@@ -1,4 +1,4 @@
-module github.com/wostzone/stg
+module github.com/wostzone/gateway
 
 go 1.14
 

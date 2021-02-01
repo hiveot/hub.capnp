@@ -1,7 +1,7 @@
 package main
 
-import "github.com/wostzone/stg/core"
+import "github.com/wostzone/stg/src"
 
 func main() {
-	core.StartStgServer("")
+	src.StartGateway()
 }
