@@ -1,2 +1,2 @@
-# stg
-Implementation of the Secured Thing Gateway
+# wostgw
+Implementation of the WoST Gateway
