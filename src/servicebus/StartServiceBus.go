@@ -4,36 +4,28 @@
 // - store and pass messages along the pipeline
 package servicebus
 
-import (
-	"net/http"
+// DefaultHost with listening address and port
+const DefaultHost = "localhost:9678"
 
-	"github.com/gorilla/mux"
-	log "github.com/sirupsen/logrus"
-)
-
-// StartServiceBus start listening for incoming connections and messages
+// StartServiceBus start listening for incoming connections and messages.
 // This returns after listening is established
-// host contains the hostname and port, default is localhost:9678
-// authmap is a map from pluginID to authorization token
-func StartServiceBus(host string, authMap map[string]string) {
+// host contains the hostname and port
+// clientAuth contains the client authorization tokens
+func StartServiceBus(host string, clientAuth map[string]string) *ChannelServer {
 	if host == "" {
-		host = "localhost:9678"
+		host = DefaultHost
 	}
 
-	router := mux.NewRouter()
-	router.HandleFunc("/channel/{ChannelID}/{Stage}", ServeChannel)
-	router.HandleFunc("/echo", ServeEcho)
+	srv := NewChannelServer()
+
+	// ServeChannel handles incoming channel connections for pub or sub
+	router := srv.Start(host)
+	for pid, token := range clientAuth {
+		srv.AddAuthToken(pid, token)
+	}
+	// ServeHome provides a status view
 	router.HandleFunc("/", ServeHome)
-	for pid, token := range authMap {
-		AddAuthToken(pid, token)
-	}
-
-	go func() {
-		err := http.ListenAndServe(host, router)
-		if err != nil {
-			log.Fatal("ListenAndServe: ", err)
-		}
-	}()
 
 	// time.Sleep(time.Second)
+	return srv
 }
