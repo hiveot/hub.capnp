@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
@@ -10,15 +11,19 @@ import (
 const publishAddress = "ws://%s/channel/%s/pub"
 const subscriberAddress = "ws://%s/channel/%s/sub"
 
-// NewChannelConnection creates a new connection for the given path and authenticates with the server
+// newChannelConnection creates a new connection for the given path and authenticates with the server
 // This returns a websocket connection
 // If onReceiveHandler returns a result, the result is send as a response to the channel.
 // Only use this if a result is expected, otherwise return nil
-func NewChannelConnection(url string, authToken string,
+func newChannelConnection(url string, authToken string,
 	onReceiveHandler func(message []byte, isClosed bool)) (*websocket.Conn, error) {
 
 	logrus.Infof("NewChannelConnection: connecting to %s", url)
-	connection, resp, err := websocket.DefaultDialer.Dial(url, nil)
+	reqHeader := http.Header{}
+	if authToken != "" {
+		reqHeader.Add("authorization", authToken)
+	}
+	connection, resp, err := websocket.DefaultDialer.Dial(url, reqHeader)
 	if err != nil {
 		msg := fmt.Sprintf("%s: %s", url, err)
 		if resp != nil {
@@ -52,7 +57,7 @@ func NewChannelConnection(url string, authToken string,
 // This returns a websocket connection
 func NewPublisher(host string, authToken string, channelID string) (*websocket.Conn, error) {
 	url := fmt.Sprintf(publishAddress, host, channelID)
-	return NewChannelConnection(url, authToken, nil)
+	return newChannelConnection(url, authToken, nil)
 }
 
 // NewSubscriber creates a new connection for a subscriber to a channel
@@ -63,7 +68,7 @@ func NewSubscriber(host string, authToken string, channelID string,
 	handler func(msg []byte)) (*websocket.Conn, error) {
 
 	url := fmt.Sprintf(subscriberAddress, host, channelID)
-	return NewChannelConnection(url, authToken, func(msg []byte, isClosed bool) {
+	return newChannelConnection(url, authToken, func(msg []byte, isClosed bool) {
 		handler(msg)
 	})
 }
@@ -76,7 +81,7 @@ func NewConsumerClient(host string, authToken string, channelID string,
 	handler func(msg []byte)) (*websocket.Conn, error) {
 
 	url := fmt.Sprintf(subscriberAddress, host, channelID)
-	return NewChannelConnection(url, authToken, func(msg []byte, isClosed bool) {
+	return newChannelConnection(url, authToken, func(msg []byte, isClosed bool) {
 		handler(msg)
 	})
 }

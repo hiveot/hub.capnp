@@ -14,15 +14,19 @@ import (
 // StartServiceBus start listening for incoming connections and messages
 // This returns after listening is established
 // host contains the hostname and port, default is localhost:9678
-func StartServiceBus(host string) {
+// authmap is a map from pluginID to authorization token
+func StartServiceBus(host string, authMap map[string]string) {
 	if host == "" {
 		host = "localhost:9678"
 	}
 
 	router := mux.NewRouter()
-	router.HandleFunc("/pipeline/{ChannelID}/{Stage}", ServeChannel)
+	router.HandleFunc("/channel/{ChannelID}/{Stage}", ServeChannel)
 	router.HandleFunc("/echo", ServeEcho)
 	router.HandleFunc("/", ServeHome)
+	for pid, token := range authMap {
+		AddAuthToken(pid, token)
+	}
 
 	go func() {
 		err := http.ListenAndServe(host, router)

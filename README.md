@@ -1,11 +1,12 @@
 # WoST Gateway
 
-The WoST Gateway is the reference implementation of the gateway for the Web of Secured Things (WoST). It receives information from 'WoST Things' and makes the result available to consumers. The gateway aims to be compatible with the WoT open standard but is constrainted to features that meet the WoST security mandate of "Things Do Not Run Servers".
+The WoST Gateway is the reference implementation of the gateway for the Web of Secured Things. It receives information from 'WoST Things' and makes the result available to consumers. The gateway aims to be compatible with the WoT open standard but is constrainted to features that meet the WoST security mandate of "Things Do Not Run Servers".
 
 ## Project Status
 
-This project is in the design phase [Jan 2021]. 
-Development of the core starts in Feb 2021, followed by plugins.
+This project is in the early development [Jan 2021]. 
+Development on the internal gateway service bus has started.
+
 
 ## Audience
 
@@ -85,11 +86,9 @@ plugins:                   // list of plugins to launch
   directory
 ~~~
 
-
 The gateway looks in the ./config folder or the /etc/wost folder for this file. This file is optional. Out of the box defaults will provide a working gateway with an internal service bus that listens on localhost port 9678 (WOST). 
 
 Plugins can optionally be configured through yaml configuration files in the same configuration folder.
-
 
 ## Launching
 
@@ -141,7 +140,7 @@ Service plugins can optionally publish transformed data onto the TD/event channe
 
 ## Writing Plugins
 
-Plugins can be written in any programming language. They can include a configuration file that describes their purpose and the pipeline they use. Plugins must use the gateway library to connect to the service bus.
+Plugins can be written in any programming language. They can include a configuration file that describes their purpose and the channels they use. Plugins must use the gateway library to connect to the service bus.
 
 There is nearly no boilerplate code involved in writing plugins, except for adhering to the channel data requirements. Plugins can therefore be very lightweight and efficient. 
 
@@ -165,7 +164,7 @@ To receive channel data, connect to the channel and include an optional filter:
 ### Reference Plugin s
 The WoST project plans to include several plugins for working out of the box.
 
-* The 'discovery' protocol binding announces the gateway on the local network using mDNS. This is intended to let Secured Things discover the gateway.
+* The 'discovery' protocol binding announces the gateway on the local network using mDNS. This is intended to let WoST Things discover the gateway.
 
 * The  'wost' protocol binding provides a websocket API for use by WoST Things to provision, publish TD's, publish events, and receive actions.
 

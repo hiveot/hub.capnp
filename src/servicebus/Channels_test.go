@@ -17,30 +17,26 @@ const defaultBufferSize = 1
 func TestCreateChannel(t *testing.T) {
 	logrus.Info("Testing create channels")
 	cp := servicebus.NewChannelPlumbing()
-	c11 := &websocket.Conn{}
-	c12a := &websocket.Conn{}
-	c12b := &websocket.Conn{}
+	c1 := &websocket.Conn{}
+	c2 := &websocket.Conn{}
+	c3 := &websocket.Conn{}
 	channel1 := cp.NewChannel(channel1ID, defaultBufferSize)
-	cp.AddSubscriber(channel1, c11)
-	cp.AddSubscriber(channel1, c12a)
-	cp.AddSubscriber(channel1, c12b)
+	cp.AddSubscriber(channel1, c1)
+	cp.AddSubscriber(channel1, c2)
+	cp.AddSubscriber(channel1, c3)
 
-	cl11 := cp.GetSubscribers(channel1ID)
-	cl12 := cp.GetSubscribers(channel1ID)
-	cl21 := cp.GetSubscribers(channel2ID)
-	assert.Equal(t, 1, len(cl11), "Expected 1 connection in channel 1")
-	assert.Equal(t, 2, len(cl12), "Expected 2 connection in channel 1")
-	assert.Equal(t, 0, len(cl21), "Expected 0 connections in channel 2")
+	clist1 := cp.GetSubscribers(channel1ID)
+	clist2 := cp.GetSubscribers(channel2ID)
+	assert.Equal(t, 3, len(clist1), "Expected 3 subscriber in channel 1")
+	assert.Equal(t, 0, len(clist2), "Expected 0 subscribers in channel 2")
 
-	removeSuccessful := cp.RemoveConnection(c11)
-	assert.True(t, removeSuccessful, "Connection c11 should have been found")
-	removeSuccessful = cp.RemoveConnection(c12a)
-	assert.True(t, removeSuccessful, "Connection c12a should have been found")
-	cl11 = cp.GetSubscribers(channel1ID)
-	cl12 = cp.GetSubscribers(channel1ID)
-	assert.Equal(t, 0, len(cl11), "Expected 0 connections in channel")
-	assert.Equal(t, 1, len(cl12), "Expected 1 connection in channel")
+	removeSuccessful := cp.RemoveConnection(c1)
+	assert.True(t, removeSuccessful, "Connection c1 should have been found")
+	removeSuccessful = cp.RemoveConnection(c2)
+	assert.True(t, removeSuccessful, "Connection c2 should have been found")
+	clist1 = cp.GetSubscribers(channel1ID)
+	assert.Equal(t, 1, len(clist1), "Expected 1 remaining connection in channel 1")
 
 	// removing twice should not fail
-	cp.RemoveConnection(c11)
+	cp.RemoveConnection(c1)
 }
