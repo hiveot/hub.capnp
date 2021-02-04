@@ -4,6 +4,8 @@
 // - store and pass messages along the pipeline
 package servicebus
 
+import "crypto/tls"
+
 // DefaultHost with listening address and port
 const DefaultHost = "localhost:9678"
 
@@ -11,7 +13,7 @@ const DefaultHost = "localhost:9678"
 // This returns after listening is established
 // host contains the hostname and port
 // clientAuth contains the client authorization tokens
-func StartServiceBus(host string, clientAuth map[string]string) *ChannelServer {
+func StartServiceBus(host string, clientAuth map[string]string) (*ChannelServer, *tls.Config) {
 	if host == "" {
 		host = DefaultHost
 	}
@@ -19,7 +21,7 @@ func StartServiceBus(host string, clientAuth map[string]string) *ChannelServer {
 	srv := NewChannelServer()
 
 	// ServeChannel handles incoming channel connections for pub or sub
-	router := srv.Start(host)
+	router, clientTLSConf := srv.Start(host)
 	for pid, token := range clientAuth {
 		srv.AddAuthToken(pid, token)
 	}
@@ -27,5 +29,5 @@ func StartServiceBus(host string, clientAuth map[string]string) *ChannelServer {
 	router.HandleFunc("/", ServeHome)
 
 	// time.Sleep(time.Second)
-	return srv
+	return srv, clientTLSConf
 }

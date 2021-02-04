@@ -1,9 +1,15 @@
 package servicebus_test
 
 import (
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -70,7 +76,7 @@ func TestInvalidAuthentication(t *testing.T) {
 	const invalidAuthToken = "invalid-token"
 
 	logrus.Infof("Testing authentication on channel %s", channel1)
-	cs := servicebus.StartServiceBus(host, authTokens)
+	cs, _ := servicebus.StartServiceBus(host, authTokens)
 	time.Sleep(time.Second)
 
 	_, err1 := client.NewPublisher(host, client1ID, invalidAuthToken, channel1)
@@ -84,6 +90,64 @@ func TestInvalidAuthentication(t *testing.T) {
 	cs.Stop()
 }
 
+func TestTLS(t *testing.T) {
+	// 	const channel1 = "Chan1"
+	// 	const pubMsg1 = "Message 1"
+	// host := "localhost:9678"
+	// host := "127.0.0.1:9678"
+	// hostname := "127.0.0.1"
+	hostname := "localhost"
+	hostPort := hostname + ":9678"
+
+	// srv, clientTLSConf := servicebus.StartServiceBus(host, authTokens)
+	// _ = srv
+	// get our ca and server certificate
+	serverTLSConf, clientTLSConf, err := servicebus.CertSetup(hostname)
+	if err != nil {
+		panic(err)
+	}
+
+	router := mux.NewRouter()
+	router.HandleFunc("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintln(w, "success!")
+	}))
+
+	server := &http.Server{
+		Addr:      hostPort,
+		Handler:   router,
+		TLSConfig: serverTLSConf,
+		// TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
+	}
+	go server.ListenAndServeTLS("", "")
+	time.Sleep(time.Second)
+	defer server.Close()
+
+	//-----
+	// communicate with the server using an http.Client configured to trust our CA
+	transport := &http.Transport{
+		TLSClientConfig: clientTLSConf,
+		// EnableHTTP2: true,
+	}
+	// clientTLSConf.InsecureSkipVerify = true
+	http := http.Client{
+		Transport: transport,
+	}
+	resp, err := http.Get("https://" + hostPort)
+	require.NoError(t, err, "Failed reading from server")
+
+	// verify the response
+	respBodyBytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	body := strings.TrimSpace(string(respBodyBytes[:]))
+	if body == "success!" {
+		fmt.Println(body)
+	} else {
+		panic("not successful!")
+	}
+}
+
 // Test publish and subscribe client
 func TestPubSubChannel(t *testing.T) {
 	const channel1 = "Chan1"
@@ -91,7 +155,7 @@ func TestPubSubChannel(t *testing.T) {
 	var subMsg1 = ""
 
 	logrus.Infof("Testing channel %s", channel1)
-	cs := servicebus.StartServiceBus(host, authTokens)
+	cs, _ := servicebus.StartServiceBus(host, authTokens)
 	time.Sleep(time.Second)
 
 	// send published channel messages to subscribers
@@ -116,5 +180,63 @@ func TestPubSubChannel(t *testing.T) {
 	// time.Sleep(time.Second)
 	cs.Stop()
 	cs.Stop()
+}
 
+// test sending messages to multiple subscribers
+func TestLoad(t *testing.T) {
+	var err error
+	var pCon *websocket.Conn
+	var t3 time.Time
+	var t4 time.Time
+	var rxCount int32 = 0
+	var txCount int = 0
+	var lastclient *websocket.Conn
+
+	cs, _ := servicebus.StartServiceBus(host, authTokens)
+	time.Sleep(time.Second * 1)
+	t0 := time.Now()
+	// test creating 1000 publishers and subscribers
+	var sCount int = 0
+	for sCount = 0; sCount < 200; sCount++ {
+		c, err := client.NewSubscriber(host, client1ID, authToken1, channel1ID, func(msg []byte) {
+			atomic.AddInt32(&rxCount, 1)
+			t4 = time.Now() // latest received time
+			// logrus.Infof("Received message on receiver %d", sCount)
+		})
+		assert.NoErrorf(t, err, "Unexpected error creating subscriber %d", sCount)
+		lastclient = c
+	}
+
+	t1 := time.Now()
+	var pCount = 0
+	// var pCon *websocket.Conn
+	for pCount = 0; pCount < 200; pCount++ {
+		pCon, err = client.NewPublisher(host, client1ID, authToken1, channel1ID)
+		assert.NoErrorf(t, err, "Unexpected error creating publisher %d", pCount)
+	}
+	t2 := time.Now()
+
+	// pretend a subscriber connection dropped while sending
+	lastclient.Close()
+	sCount--
+
+	for i := 0; i < 500; i++ {
+		client.SendMessage(pCon, []byte("Hello world"))
+		txCount++
+	}
+	t3 = time.Now()
+
+	// take time to receive them all
+	time.Sleep(time.Second * 3)
+
+	assert.Equal(t, txCount*sCount, int(rxCount), "not all subscribers received a message")
+	chan1 := cs.GetChannel(channel1ID)
+	assert.Equal(t, txCount, chan1.MessageCount, "Server received messages mismatch")
+
+	cs.Stop()
+	// time.Sleep(time.Millisecond * 1)
+	logrus.Printf("Time to create %d subscribers: %d msec", sCount, t1.Sub(t0)/time.Millisecond)
+	logrus.Printf("Time to create %d publishers: %d msec", pCount, t2.Sub(t1)/time.Millisecond)
+	logrus.Printf("Time to send %d messages %d usec", txCount, t3.Sub(t2)/time.Microsecond)
+	logrus.Printf("Time to receive %d messages by subscribers: %d msec", rxCount, t4.Sub(t2)/time.Millisecond)
 }

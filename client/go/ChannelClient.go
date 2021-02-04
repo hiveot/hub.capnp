@@ -28,7 +28,7 @@ const (
 func newChannelConnection(url string, clientID string, authToken string,
 	onReceiveHandler func(message []byte, isClosed bool)) (*websocket.Conn, error) {
 
-	logrus.Infof("NewChannelConnection: connecting to %s with client ID %s", url, clientID)
+	// logrus.Infof("NewChannelConnection: connecting to %s with client ID %s", url, clientID)
 	reqHeader := http.Header{}
 	// reqHeader.Add(AuthorizationHeader, authToken)
 	// reqHeader.Add(ClientHeader, clientID)
@@ -53,11 +53,11 @@ func newChannelConnection(url string, clientID string, authToken string,
 			_, message, err := connection.ReadMessage()
 			if err != nil {
 				// the connect has closed
-				logrus.Warningf("NewChannelConnection: Connection to %s has closed", url)
+				// logrus.Warningf("NewChannelConnection: Connection to %s has closed", url)
 				// onReceiveHandler("", true)
 				break
 			}
-			logrus.Infof("NewChannelConnection: Received message on %s", url)
+			// logrus.Infof("NewChannelConnection: Received message on %s", url)
 			if onReceiveHandler != nil {
 				onReceiveHandler(message, false)
 			}

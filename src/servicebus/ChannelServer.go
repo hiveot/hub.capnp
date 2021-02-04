@@ -2,19 +2,19 @@
 package servicebus
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"net/http"
 	"sync"
-	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 )
 
-// Default nr of messages that can be queued per channel
-const defaultChannelQueueDepth = 100
+// Default nr of messages that can be queued per channel before the sender blocks
+const defaultChannelQueueDepth = 10
 
 // Connection headers
 const (
@@ -45,10 +45,11 @@ type ChannelServer struct {
 
 // Channel holding publisher and subscriber connections to this channel
 type Channel struct {
-	ID          string            // ID of the channel
-	publishers  []*websocket.Conn // publisher connections
-	subscribers []*websocket.Conn // subscriber connections
-	jobQueue    chan []byte       // job queue for processing
+	ID           string            // ID of the channel
+	publishers   []*websocket.Conn // publisher connections
+	subscribers  []*websocket.Conn // subscriber connections
+	jobQueue     chan []byte       // job queue for processing
+	MessageCount int               // nr of published messages
 }
 
 // AddAuthToken adds an authentication token for a client
@@ -155,10 +156,11 @@ func (cs *ChannelServer) NewChannel(channelID string, queueDepth int) *Channel {
 // If a subscriber fails, it is removed from the channel
 func (cs *ChannelServer) processChannelMessage(channelID string, message []byte) {
 	consumers := cs.GetSubscribers(channelID)
-	logrus.Infof("Sending message to %d subscribers of channel %s", len(consumers), channelID)
+	// logrus.Infof("processChannelMessage: Sending message to %d subscribers of channel %s", len(consumers), channelID)
 	for _, c := range consumers {
 		err := cs.sendMessage(c, message)
 		if err != nil {
+			logrus.Warningf("processChannelMessage: failed sending 1 message to a subscriber of %s", channelID)
 			cs.RemoveConnection(c)
 		}
 	}
@@ -167,11 +169,11 @@ func (cs *ChannelServer) processChannelMessage(channelID string, message []byte)
 // receiveMessage from a socket connection
 // Wait until message received or timeoutSec has passed, use 0 to wait indefinitely
 // Note that if the connection times out, the connectino must be discarded.
-func (cs *ChannelServer) receiveMessage(connection *websocket.Conn, timeout time.Duration) ([]byte, error) {
-	connection.SetReadDeadline(time.Now().Add(timeout))
-	_, message, err := connection.ReadMessage()
-	return message, err
-}
+// func (cs *ChannelServer) receiveMessage(connection *websocket.Conn, timeout time.Duration) ([]byte, error) {
+// 	connection.SetReadDeadline(time.Now().Add(timeout))
+// 	_, message, err := connection.ReadMessage()
+// 	return message, err
+// }
 
 // RemoveConnection a channel connection while retaining order
 // Returns true if remove successful, false if connection not found
@@ -221,7 +223,7 @@ func (cs *ChannelServer) sendMessage(connection *websocket.Conn, message []byte)
 func (cs *ChannelServer) ServeChannel(response http.ResponseWriter, request *http.Request) {
 	chID := mux.Vars(request)[MuxChannel]
 	pubOrSub := mux.Vars(request)[MuxStage]
-	logrus.Infof("ServeChannel starting for channel %s, stage %s", chID, pubOrSub)
+	logrus.Infof("ServeChannel incoming connection for channel %s, stage %s", chID, pubOrSub)
 
 	clientID, err := cs.authenticateConnection(request)
 	if err != nil {
@@ -236,7 +238,7 @@ func (cs *ChannelServer) ServeChannel(response http.ResponseWriter, request *htt
 		logrus.Warningf("ServeChannel upgrade error for client %s: %s", clientID, err)
 		return
 	}
-	logrus.Warningf("ServeChannel accepted connection from client %s", clientID)
+	// logrus.Warningf("ServeChannel accepted connection from client %s", clientID)
 
 	channel := cs.GetChannel(chID)
 	if channel == nil {
@@ -260,6 +262,7 @@ func (cs *ChannelServer) ServeChannel(response http.ResponseWriter, request *htt
 				cs.RemoveConnection(c)
 				break
 			}
+			channel.MessageCount++
 			logrus.Infof("ServeChannel received publication on channel ID %s", chID)
 			channel.jobQueue <- message
 		}
@@ -268,23 +271,41 @@ func (cs *ChannelServer) ServeChannel(response http.ResponseWriter, request *htt
 
 // Start the server and listen for incoming connection on /channel/#
 // Returns the mux router to allow for additional listeners such as /home
-func (cs *ChannelServer) Start(host string) *mux.Router {
+func (cs *ChannelServer) Start(host string) (*mux.Router, *tls.Config) {
+	var useTLS = true
 
 	router := mux.NewRouter()
 	router.HandleFunc(fmt.Sprintf("/channel/{%s}/{%s}", MuxChannel, MuxStage), cs.ServeChannel)
-	cs.httpServer = &http.Server{
-		Addr:    host,
-		Handler: router,
-	}
 
+	if useTLS {
+		serverTLSConf, clientTLSConf, err := CertSetup(host)
+		if err != nil {
+			return nil, nil
+		}
+		cs.httpServer = &http.Server{
+			Addr:         host,
+			Handler:      router,
+			TLSConfig:    serverTLSConf,
+			TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
+		}
+		// TODO make available to clients
+		return router, clientTLSConf
+	}
 	go func() {
-		err := cs.httpServer.ListenAndServe()
-		if err != nil && err != http.ErrServerClosed {
-			logrus.Fatal("Start: ", err)
+		if !useTLS {
+			cs.httpServer = &http.Server{
+				Addr:    host,
+				Handler: router,
+			}
+			err := cs.httpServer.ListenAndServe()
+
+			if err != nil && err != http.ErrServerClosed {
+				logrus.Fatal("Start: ListenAndServeTLS error ", err)
+			}
 		}
 	}()
 
-	return router
+	return router, nil
 }
 
 // Stop the server and close all connections
