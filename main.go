@@ -1,6 +1,6 @@
 package main
 
-import "github.com/wostzone/stg/src"
+import "github.com/wostzone/gateway/src"
 
 func main() {
 	src.StartGateway()

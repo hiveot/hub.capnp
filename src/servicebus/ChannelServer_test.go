@@ -1,6 +1,8 @@
 package servicebus_test
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -74,9 +76,10 @@ func TestCreateChannel(t *testing.T) {
 func TestInvalidAuthentication(t *testing.T) {
 	const channel1 = "Chan1"
 	const invalidAuthToken = "invalid-token"
+	const certFolder = "../test"
 
 	logrus.Infof("Testing authentication on channel %s", channel1)
-	cs, _ := servicebus.StartServiceBus(host, authTokens)
+	cs := servicebus.StartServiceBus(host, "", authTokens)
 	time.Sleep(time.Second)
 
 	_, err1 := client.NewPublisher(host, client1ID, invalidAuthToken, channel1)
@@ -102,9 +105,16 @@ func TestTLS(t *testing.T) {
 	// srv, clientTLSConf := servicebus.StartServiceBus(host, authTokens)
 	// _ = srv
 	// get our ca and server certificate
-	serverTLSConf, clientTLSConf, err := servicebus.CertSetup(hostname)
-	if err != nil {
-		panic(err)
+	caCertPEM, caKeyPEM := servicebus.CreateWoSTCA()
+	serverCertPEM, serverKeyPEM, err := servicebus.CreateGatewayCert(caCertPEM, caKeyPEM, hostname)
+
+	require.NoErrorf(t, err, "Failed creating server certificate")
+	require.NotNilf(t, serverCertPEM, "Failed creating server certificate")
+	require.NotNilf(t, serverKeyPEM, "Failed creating server private key")
+
+	serverCert, err := tls.X509KeyPair(serverCertPEM, serverKeyPEM)
+	serverTLSConf := &tls.Config{
+		Certificates: []tls.Certificate{serverCert},
 	}
 
 	router := mux.NewRouter()
@@ -124,6 +134,11 @@ func TestTLS(t *testing.T) {
 
 	//-----
 	// communicate with the server using an http.Client configured to trust our CA
+	certpool := x509.NewCertPool()
+	certpool.AppendCertsFromPEM(caCertPEM)
+	clientTLSConf := &tls.Config{
+		RootCAs: certpool,
+	}
 	transport := &http.Transport{
 		TLSClientConfig: clientTLSConf,
 		// EnableHTTP2: true,
@@ -155,7 +170,7 @@ func TestPubSubChannel(t *testing.T) {
 	var subMsg1 = ""
 
 	logrus.Infof("Testing channel %s", channel1)
-	cs, _ := servicebus.StartServiceBus(host, authTokens)
+	cs := servicebus.StartServiceBus(host, "", authTokens)
 	time.Sleep(time.Second)
 
 	// send published channel messages to subscribers
@@ -192,7 +207,7 @@ func TestLoad(t *testing.T) {
 	var txCount int = 0
 	var lastclient *websocket.Conn
 
-	cs, _ := servicebus.StartServiceBus(host, authTokens)
+	cs := servicebus.StartServiceBus(host, "", authTokens)
 	time.Sleep(time.Second * 1)
 	t0 := time.Now()
 	// test creating 1000 publishers and subscribers

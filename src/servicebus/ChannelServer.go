@@ -2,7 +2,6 @@
 package servicebus
 
 import (
-	"crypto/tls"
 	"errors"
 	"fmt"
 	"net/http"
@@ -271,41 +270,45 @@ func (cs *ChannelServer) ServeChannel(response http.ResponseWriter, request *htt
 
 // Start the server and listen for incoming connection on /channel/#
 // Returns the mux router to allow for additional listeners such as /home
-func (cs *ChannelServer) Start(host string) (*mux.Router, *tls.Config) {
-	var useTLS = true
+func (cs *ChannelServer) Start(host string) *mux.Router {
+	router := mux.NewRouter()
+	router.HandleFunc(fmt.Sprintf("/channel/{%s}/{%s}", MuxChannel, MuxStage), cs.ServeChannel)
+
+	go func() {
+		cs.httpServer = &http.Server{
+			Addr:    host,
+			Handler: router,
+		}
+		err := cs.httpServer.ListenAndServe()
+
+		if err != nil && err != http.ErrServerClosed {
+			logrus.Fatal("Start: ListenAndServe error ", err)
+		}
+	}()
+	return router
+}
+
+// StartTLS starts the server and listen for incoming connection on /channel/# using TLS
+// This expects a certfile and keyfile.
+// Returns the mux router to allow for additional listeners such as /home
+func (cs *ChannelServer) StartTLS(host string, certFile string, keyFile string) *mux.Router {
 
 	router := mux.NewRouter()
 	router.HandleFunc(fmt.Sprintf("/channel/{%s}/{%s}", MuxChannel, MuxStage), cs.ServeChannel)
 
-	if useTLS {
-		serverTLSConf, clientTLSConf, err := CertSetup(host)
-		if err != nil {
-			return nil, nil
-		}
-		cs.httpServer = &http.Server{
-			Addr:         host,
-			Handler:      router,
-			TLSConfig:    serverTLSConf,
-			TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
-		}
-		// TODO make available to clients
-		return router, clientTLSConf
+	cs.httpServer = &http.Server{
+		Addr:    host,
+		Handler: router,
+		// TLSConfig:    serverTLSConf,
+		// TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
 	}
 	go func() {
-		if !useTLS {
-			cs.httpServer = &http.Server{
-				Addr:    host,
-				Handler: router,
-			}
-			err := cs.httpServer.ListenAndServe()
-
-			if err != nil && err != http.ErrServerClosed {
-				logrus.Fatal("Start: ListenAndServeTLS error ", err)
-			}
+		err := cs.httpServer.ListenAndServeTLS(certFile, keyFile)
+		if err != nil && err != http.ErrServerClosed {
+			logrus.Fatal("Start: ListenAndServeTLS error ", err)
 		}
 	}()
-
-	return router, nil
+	return router
 }
 
 // Stop the server and close all connections

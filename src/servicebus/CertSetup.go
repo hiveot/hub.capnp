@@ -6,120 +6,174 @@ import (
 	"bytes"
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/tls"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"math/big"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 const keySize = 2048 // 4096
+const caDurationYears = 10
+const certDurationYears = 10
 
-// CertSetup creates CA and server certificate and a client configuration
-func CertSetup(hostname string) (serverTLSConf *tls.Config, clientTLSConf *tls.Config, err error) {
+// func GenCARoot() (*x509.Certificate, []byte, *rsa.PrivateKey) {
+// 	if _, err := os.Stat("someFile"); err == nil {
+// 		//read PEM and cert from file
+// 	}
+// 	var rootTemplate = x509.Certificate{
+// 		SerialNumber: big.NewInt(1),
+// 		Subject: pkix.Name{
+// 			Country:      []string{"SE"},
+// 			Organization: []string{"Company Co."},
+// 			CommonName:   "Root CA",
+// 		},
+// 		NotBefore:             time.Now().Add(-10 * time.Second),
+// 		NotAfter:              time.Now().AddDate(10, 0, 0),
+// 		KeyUsage:              x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
+// 		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+// 		BasicConstraintsValid: true,
+// 		IsCA:                  true,
+// 		MaxPathLen:            2,
+// 		IPAddresses:           []net.IP{net.ParseIP("127.0.0.1")},
+// 	}
+// 	priv, err := rsa.GenerateKey(rand.Reader, 2048)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	rootCert, rootPEM := genCert(&rootTemplate, &rootTemplate, &priv.PublicKey, priv)
+// 	return rootCert, rootPEM, priv
+// }
+
+// CreateWoSTCA creates WoST CA and certificate and private key for signing server certificates
+func CreateWoSTCA() (certPEM []byte, keyPEM []byte) {
 	// set up our CA certificate
-	ca := &x509.Certificate{
-		SerialNumber: big.NewInt(2019),
+	cert := &x509.Certificate{
+		SerialNumber: big.NewInt(2021),
 		Subject: pkix.Name{
-			Organization:  []string{"Company, INC."},
-			Country:       []string{"US"},
-			Province:      []string{""},
-			Locality:      []string{"San Francisco"},
-			StreetAddress: []string{"Golden Gate Bridge"},
-			PostalCode:    []string{"94016"},
+			Organization:  []string{"WoST Zone"},
+			Country:       []string{"CA"},
+			Province:      []string{"BC"},
+			Locality:      []string{"Project"},
+			StreetAddress: []string{""},
+			PostalCode:    []string{""},
+			CommonName:    "Root CA",
 		},
-		NotBefore:             time.Now(),
-		NotAfter:              time.Now().AddDate(10, 0, 0),
-		IsCA:                  true,
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
-		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+		NotBefore: time.Now().Add(-10 * time.Second),
+		NotAfter:  time.Now().AddDate(caDurationYears, 0, 0),
+		// KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+		KeyUsage: x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
+		// ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,
+		IsCA:                  true,
+		// MaxPathLen: 2,
+		// 		IPAddresses:           []net.IP{net.ParseIP("127.0.0.1")},
 	}
 
-	// create our private and public key
-	caPrivKey, err := rsa.GenerateKey(rand.Reader, keySize)
+	// Create the CA private key
+	privKey, err := rsa.GenerateKey(rand.Reader, keySize)
 	if err != nil {
-		return nil, nil, err
+		logrus.Errorf("CertSetup: Unable to create private key: %s", err)
+		return nil, nil
 	}
+
+	// PEM encode private key
+	privKeyPEMBuffer := new(bytes.Buffer)
+	pem.Encode(privKeyPEMBuffer, &pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(privKey),
+	})
 
 	// create the CA
-	caBytes, err := x509.CreateCertificate(rand.Reader, ca, ca, &caPrivKey.PublicKey, caPrivKey)
+	caBytes, err := x509.CreateCertificate(rand.Reader, cert, cert, &privKey.PublicKey, privKey)
 	if err != nil {
-		return nil, nil, err
+		logrus.Errorf("CertSetup: Unable to create CA cert: %s", err)
+		return nil, nil
 	}
 
-	// pem encode
-	caPEM := new(bytes.Buffer)
-	pem.Encode(caPEM, &pem.Block{
+	// pem encode certificate
+	certPEMBuffer := new(bytes.Buffer)
+	pem.Encode(certPEMBuffer, &pem.Block{
 		Type:  "CERTIFICATE",
 		Bytes: caBytes,
 	})
+	return certPEMBuffer.Bytes(), privKeyPEMBuffer.Bytes()
+}
 
-	caPrivKeyPEM := new(bytes.Buffer)
-	pem.Encode(caPrivKeyPEM, &pem.Block{
-		Type:  "RSA PRIVATE KEY",
-		Bytes: x509.MarshalPKCS1PrivateKey(caPrivKey),
-	})
+// CreateGatewayCert creates Wost gateway server key and certificate
+func CreateGatewayCert(caCertPEM []byte, caKeyPEM []byte, hostname string) (pkPEM []byte, certPEM []byte, err error) {
+	// We need the CA key and certificate
+	caPrivKeyBlock, _ := pem.Decode(caKeyPEM)
+	caPrivKey, err := x509.ParsePKCS1PrivateKey(caPrivKeyBlock.Bytes)
+	certBlock, _ := pem.Decode(caCertPEM)
+	caCert, err := x509.ParseCertificate(certBlock.Bytes)
+	if err != nil {
+		return nil, nil, err
+	}
 
 	// set up our server certificate
 	cert := &x509.Certificate{
 		SerialNumber: big.NewInt(2019),
 		Subject: pkix.Name{
-			Organization:  []string{"Company, INC."},
-			Country:       []string{"US"},
-			Province:      []string{""},
-			Locality:      []string{"San Francisco"},
-			StreetAddress: []string{"Golden Gate Bridge"},
-			PostalCode:    []string{"94016"},
+			Organization:  []string{"WoST Zone"},
+			Country:       []string{"CA"},
+			Province:      []string{"BC"},
+			Locality:      []string{"WoST Gateway"},
+			StreetAddress: []string{""},
+			PostalCode:    []string{""},
 			CommonName:    hostname,
 		},
 		// IPAddresses:  []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback},
 		NotBefore:    time.Now(),
-		NotAfter:     time.Now().AddDate(10, 0, 0),
+		NotAfter:     time.Now().AddDate(certDurationYears, 0, 0),
 		SubjectKeyId: []byte{1, 2, 3, 4, 6},
 		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 		KeyUsage:     x509.KeyUsageDigitalSignature,
 	}
 
-	certPrivKey, err := rsa.GenerateKey(rand.Reader, keySize)
+	privKey, err := rsa.GenerateKey(rand.Reader, keySize)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	certBytes, err := x509.CreateCertificate(rand.Reader, cert, ca, &certPrivKey.PublicKey, caPrivKey)
+	certBytes, err := x509.CreateCertificate(rand.Reader, cert, caCert, &privKey.PublicKey, caPrivKey)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	certPEM := new(bytes.Buffer)
-	pem.Encode(certPEM, &pem.Block{
+	certPEMBuffer := new(bytes.Buffer)
+	pem.Encode(certPEMBuffer, &pem.Block{
 		Type:  "CERTIFICATE",
 		Bytes: certBytes,
 	})
 
-	certPrivKeyPEM := new(bytes.Buffer)
-	pem.Encode(certPrivKeyPEM, &pem.Block{
+	privKeyPEMBuffer := new(bytes.Buffer)
+	pem.Encode(privKeyPEMBuffer, &pem.Block{
 		Type:  "RSA PRIVATE KEY",
-		Bytes: x509.MarshalPKCS1PrivateKey(certPrivKey),
+		Bytes: x509.MarshalPKCS1PrivateKey(privKey),
 	})
 
-	serverCert, err := tls.X509KeyPair(certPEM.Bytes(), certPrivKeyPEM.Bytes())
-	if err != nil {
-		return nil, nil, err
-	}
+	return certPEMBuffer.Bytes(), privKeyPEMBuffer.Bytes(), nil
 
-	serverTLSConf = &tls.Config{
-		Certificates: []tls.Certificate{serverCert},
-	}
+	// serverCert, err := tls.X509KeyPair(certPEM.Bytes(), certPrivKeyPEM.Bytes())
+	// if err != nil {
+	// 	return nil, nil, err
+	// }
 
-	certpool := x509.NewCertPool()
-	certpool.AppendCertsFromPEM(caPEM.Bytes())
-	clientTLSConf = &tls.Config{
-		RootCAs: certpool,
-	}
+	// serverTLSConf = &tls.Config{
+	// 	Certificates: []tls.Certificate{serverCert},
+	// }
 
-	return
+	// certpool := x509.NewCertPool()
+	// certpool.AppendCertsFromPEM(caPEM.Bytes())
+	// clientTLSConf = &tls.Config{
+	// 	RootCAs: certpool,
+	// }
+
+	// return
 }
 
 // func createCert() {
