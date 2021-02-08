@@ -10,6 +10,7 @@ import (
 	"crypto/x509/pkix"
 	"encoding/pem"
 	"math/big"
+	"net"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -48,6 +49,7 @@ const certDurationYears = 10
 // }
 
 // CreateWoSTCA creates WoST CA and certificate and private key for signing server certificates
+// Source: https://shaneutt.com/blog/golang-ca-and-signed-cert-go/
 func CreateWoSTCA() (certPEM []byte, keyPEM []byte) {
 	// set up our CA certificate
 	cert := &x509.Certificate{
@@ -61,12 +63,10 @@ func CreateWoSTCA() (certPEM []byte, keyPEM []byte) {
 			PostalCode:    []string{""},
 			CommonName:    "Root CA",
 		},
-		NotBefore: time.Now().Add(-10 * time.Second),
-		NotAfter:  time.Now().AddDate(caDurationYears, 0, 0),
-		// KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
-		KeyUsage: x509.KeyUsageCertSign | x509.KeyUsageCRLSign,
-		// ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
-		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		NotBefore:             time.Now().Add(-10 * time.Second),
+		NotAfter:              time.Now().AddDate(caDurationYears, 0, 0),
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageCertSign,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
 		BasicConstraintsValid: true,
 		IsCA:                  true,
 		// MaxPathLen: 2,
@@ -113,10 +113,10 @@ func CreateGatewayCert(caCertPEM []byte, caKeyPEM []byte, hostname string) (pkPE
 	if err != nil {
 		return nil, nil, err
 	}
-
+	// hostname = "localhost"
 	// set up our server certificate
 	cert := &x509.Certificate{
-		SerialNumber: big.NewInt(2019),
+		SerialNumber: big.NewInt(2021),
 		Subject: pkix.Name{
 			Organization:  []string{"WoST Zone"},
 			Country:       []string{"CA"},
@@ -126,12 +126,18 @@ func CreateGatewayCert(caCertPEM []byte, caKeyPEM []byte, hostname string) (pkPE
 			PostalCode:    []string{""},
 			CommonName:    hostname,
 		},
-		// IPAddresses:  []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback},
-		NotBefore:    time.Now(),
-		NotAfter:     time.Now().AddDate(certDurationYears, 0, 0),
-		SubjectKeyId: []byte{1, 2, 3, 4, 6},
-		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
-		KeyUsage:     x509.KeyUsageDigitalSignature,
+		NotBefore: time.Now(),
+		NotAfter:  time.Now().AddDate(certDurationYears, 0, 0),
+		// SubjectKeyId: []byte{1, 2, 3, 4, 6},   // WTF is this???
+		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+		KeyUsage:    x509.KeyUsageDigitalSignature,
+	}
+
+	// If an IP address is given, then allow localhost
+	ipAddr := net.ParseIP(hostname)
+	if ipAddr != nil {
+		logrus.Infof("CreateGatewayCert: hostname %s is an IP address. Setting as SAN", hostname)
+		cert.IPAddresses = []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback, ipAddr}
 	}
 
 	privKey, err := rsa.GenerateKey(rand.Reader, keySize)
@@ -157,61 +163,60 @@ func CreateGatewayCert(caCertPEM []byte, caKeyPEM []byte, hostname string) (pkPE
 	})
 
 	return certPEMBuffer.Bytes(), privKeyPEMBuffer.Bytes(), nil
-
-	// serverCert, err := tls.X509KeyPair(certPEM.Bytes(), certPrivKeyPEM.Bytes())
-	// if err != nil {
-	// 	return nil, nil, err
-	// }
-
-	// serverTLSConf = &tls.Config{
-	// 	Certificates: []tls.Certificate{serverCert},
-	// }
-
-	// certpool := x509.NewCertPool()
-	// certpool.AppendCertsFromPEM(caPEM.Bytes())
-	// clientTLSConf = &tls.Config{
-	// 	RootCAs: certpool,
-	// }
-
-	// return
 }
 
-// func createCert() {
-// 	// get our ca and server certificate
-// 	serverTLSConf, clientTLSConf, err := certsetup()
-// 	if err != nil {
-// 		panic(err)
-// 	}
+// CreateClientCert creates a client side certificate, signed by the CA
+func CreateClientCert(caCertPEM []byte, caKeyPEM []byte, hostname string) (pkPEM []byte, certPEM []byte, err error) {
+	// We need the CA key and certificate
+	caPrivKeyBlock, _ := pem.Decode(caKeyPEM)
+	caPrivKey, err := x509.ParsePKCS1PrivateKey(caPrivKeyBlock.Bytes)
+	caCertBlock, _ := pem.Decode(caCertPEM)
+	caCert, err := x509.ParseCertificate(caCertBlock.Bytes)
+	if err != nil {
+		return nil, nil, err
+	}
+	// hostname = "localhost"
+	// set up our server certificate
+	clientCert := &x509.Certificate{
+		SerialNumber: big.NewInt(2021),
+		Subject: pkix.Name{
+			Organization:  []string{"WoST"},
+			Country:       []string{"CA"},
+			Province:      []string{"BC"},
+			Locality:      []string{"WoST Client"},
+			StreetAddress: []string{""},
+			PostalCode:    []string{""},
+			CommonName:    hostname,
+		},
+		NotBefore:    time.Now(),
+		NotAfter:     time.Now().AddDate(certDurationYears, 0, 0),
+		SubjectKeyId: []byte{1, 2, 3, 4, 6},
+		ExtKeyUsage:  []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
+		KeyUsage:     x509.KeyUsageDigitalSignature,
+	}
 
-// 	// set up the httptest.Server using our certificate signed by our CA
-// 	server := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		fmt.Fprintln(w, "success!")
-// 	}))
-// 	server.TLS = serverTLSConf
-// 	server.StartTLS()
-// 	defer server.Close()
+	clientKey, err := rsa.GenerateKey(rand.Reader, keySize)
+	if err != nil {
+		return nil, nil, err
+	}
 
-// 	// communicate with the server using an http.Client configured to trust our CA
-// 	transport := &http.Transport{
-// 		TLSClientConfig: clientTLSConf,
-// 	}
-// 	http := http.Client{
-// 		Transport: transport,
-// 	}
-// 	resp, err := http.Get(server.URL)
-// 	if err != nil {
-// 		panic(err)
-// 	}
+	clientCertBytes, err := x509.CreateCertificate(rand.Reader, clientCert, caCert, &clientKey.PublicKey, caPrivKey)
+	if err != nil {
+		return nil, nil, err
+	}
 
-// 	// verify the response
-// 	respBodyBytes, err := ioutil.ReadAll(resp.Body)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	body := strings.TrimSpace(string(respBodyBytes[:]))
-// 	if body == "success!" {
-// 		fmt.Println(body)
-// 	} else {
-// 		panic("not successful!")
-// 	}
-// // }
+	clientCertPEMBuffer := new(bytes.Buffer)
+	pem.Encode(clientCertPEMBuffer, &pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: clientCertBytes,
+	})
+
+	clientKeyPEMBuffer := new(bytes.Buffer)
+	pem.Encode(clientKeyPEMBuffer, &pem.Block{
+		Type:  "RSA PRIVATE KEY",
+		Bytes: x509.MarshalPKCS1PrivateKey(clientKey),
+	})
+
+	return clientCertPEMBuffer.Bytes(), clientKeyPEMBuffer.Bytes(), nil
+
+}
