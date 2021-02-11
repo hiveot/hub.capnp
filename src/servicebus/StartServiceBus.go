@@ -9,6 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
+	"github.com/wostzone/gateway/src/lib"
 )
 
 // DefaultHost with listening address and port
@@ -78,15 +79,15 @@ func StartTLSServiceBus(host string, certFolder string) (*ChannelServer, error) 
 		_, err = os.Stat(serverCertPath)
 		if os.IsNotExist(err) {
 			logrus.Warningf("StartServiceBus: Certificates not found. Generating new certificate files in %s", certFolder)
-			caCertPEM, caKeyPEM := CreateWoSTCA()
+			caCertPEM, caKeyPEM := lib.CreateWoSTCA()
 			hostname, port, err := net.SplitHostPort(host)
 			_ = port
 			if err != nil {
 				return srv, err
 			}
 			// Certificate should not contain the port
-			serverCertPEM, serverKeyPEM, _ := CreateGatewayCert(caCertPEM, caKeyPEM, hostname)
-			clientCertPEM, clientKeyPEM, _ := CreateClientCert(caCertPEM, caKeyPEM, hostname)
+			serverCertPEM, serverKeyPEM, _ := lib.CreateGatewayCert(caCertPEM, caKeyPEM, hostname)
+			clientCertPEM, clientKeyPEM, _ := lib.CreateClientCert(caCertPEM, caKeyPEM, hostname)
 
 			ioutil.WriteFile(caCertPath, caCertPEM, 0644)
 			ioutil.WriteFile(caKeyPath, caKeyPEM, 0600)

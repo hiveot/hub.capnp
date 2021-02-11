@@ -18,7 +18,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	client "github.com/wostzone/gateway/client/go"
+	"github.com/wostzone/gateway/src/lib"
 	"github.com/wostzone/gateway/src/servicebus"
 	"golang.org/x/net/http2"
 )
@@ -81,14 +81,14 @@ func TestNewPubSub(t *testing.T) {
 	require.NoError(t, err)
 	time.Sleep(time.Second)
 
-	conn, err := client.NewPublisher(hostPort, client1ID, channel1)
+	conn, err := lib.NewPublisher(hostPort, client1ID, channel1)
 	require.NoError(t, err, "Error creating publisher: %s", err)
 	require.NotNil(t, conn)
 
-	conn, err = client.NewSubscriber(hostPort, client1ID, channel1, func(msg []byte) {})
+	conn, err = lib.NewSubscriber(hostPort, client1ID, channel1, func(channel string, msg []byte) {})
 	require.NoError(t, err, "Error creating subscriber")
 
-	_, err = client.NewPublisher(hostPort, "", channel1)
+	_, err = lib.NewPublisher(hostPort, "", channel1)
 	require.Error(t, err, "Expected error creating subscriber with invalid ID")
 
 	cs.Stop()
@@ -101,14 +101,14 @@ func TestTLSCertificateGeneration(t *testing.T) {
 	hostname := "localhost"
 
 	// test creating ca and server certificates
-	caCertPEM, caKeyPEM := servicebus.CreateWoSTCA()
+	caCertPEM, caKeyPEM := lib.CreateWoSTCA()
 	require.NotNilf(t, caCertPEM, "Failed creating CA certificate")
 
 	caCert, err := tls.X509KeyPair(caCertPEM, caKeyPEM)
 	_ = caCert
 	require.NoErrorf(t, err, "Failed parsing CA certificate")
 
-	serverCertPEM, serverKeyPEM, err := servicebus.CreateGatewayCert(caCertPEM, caKeyPEM, hostname)
+	serverCertPEM, serverKeyPEM, err := lib.CreateGatewayCert(caCertPEM, caKeyPEM, hostname)
 	require.NoErrorf(t, err, "Failed creating server certificate")
 	// serverCert, err := tls.X509KeyPair(serverCertPEM, serverKeyPEM)
 	require.NoErrorf(t, err, "Failed creating server certificate")
@@ -150,12 +150,12 @@ func TestTLSConnection(t *testing.T) {
 		fmt.Fprint(w, message)
 	}))
 
-	caCertPEM, caKeyPEM := servicebus.CreateWoSTCA()
+	caCertPEM, caKeyPEM := lib.CreateWoSTCA()
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(caCertPEM)
 
-	serverCertPEM, serverKeyPEM, err := servicebus.CreateGatewayCert(caCertPEM, caKeyPEM, hostname)
-	clientCertPEM, clientKeyPEM, err := servicebus.CreateClientCert(caCertPEM, caKeyPEM, hostname)
+	serverCertPEM, serverKeyPEM, err := lib.CreateGatewayCert(caCertPEM, caKeyPEM, hostname)
+	clientCertPEM, clientKeyPEM, err := lib.CreateClientCert(caCertPEM, caKeyPEM, hostname)
 	clientCert, err := tls.X509KeyPair(clientCertPEM, clientKeyPEM)
 	require.NoErrorf(t, err, "Creating certificates failed:")
 
@@ -229,21 +229,21 @@ func TestTLSPubSubChannel(t *testing.T) {
 	// clientCert, err := tls.X509KeyPair(clientCertPEM, clientKeyPEM)
 
 	// send published channel messages to subscribers
-	publisher, err := client.NewTLSPublisher(hostPort, client1ID, channel1,
+	publisher, err := lib.NewTLSPublisher(hostPort, client1ID, channel1,
 		clientCertPEM, clientKeyPEM, caCertPEM)
 	require.NoError(t, err)
 
-	subscriber, err := client.NewTLSSubscriber(hostPort, client1ID, channel1,
+	subscriber, err := lib.NewTLSSubscriber(hostPort, client1ID, channel1,
 		clientCertPEM, clientKeyPEM, caCertPEM,
-		func(msg []byte) {
-			logrus.Info("TestChannel: Received published message")
+		func(channel string, msg []byte) {
+			logrus.Infof("TestChannel: Received published message on channel %s", channel)
 			mutex1.Lock()
 			subMsg1 = string(msg)
 			mutex1.Unlock()
 		})
 	require.NoError(t, err)
 
-	client.SendMessage(publisher, []byte(pubMsg1))
+	lib.SendMessage(publisher, []byte(pubMsg1))
 	time.Sleep(1 * time.Second)
 	mutex1.Lock()
 	assert.Equal(t, pubMsg1, subMsg1)
@@ -258,6 +258,41 @@ func TestTLSPubSubChannel(t *testing.T) {
 	cs.Stop()
 }
 
+// Test that after closing a channel no message is received
+func TestCloseSubscriberChannel(t *testing.T) {
+	const channel1 = "Chan1"
+	const pubMsg1 = "Message 1"
+	hostname := "localhost"
+	hostPort := hostname + ":9678"
+	var msgCount = 0
+	const certFolder = "../../test/"
+
+	// setup
+	cs, err := servicebus.StartTLSServiceBus(hostPort, certFolder)
+	require.NoError(t, err)
+	time.Sleep(time.Second * 1)
+	clientCertPEM, _ := ioutil.ReadFile(certFolder + servicebus.ClientCertFile)
+	clientKeyPEM, _ := ioutil.ReadFile(certFolder + servicebus.ClientKeyFile)
+	caCertPEM, _ := ioutil.ReadFile(certFolder + servicebus.CaCertFile)
+
+	c1, err := lib.NewTLSSubscriber(hostPort, client1ID, channel1ID,
+		clientCertPEM, clientKeyPEM, caCertPEM, func(channel string, msg []byte) {
+			msgCount = msgCount + 1
+			logrus.Infof("Received a message. This should show only once. Msgcount=%d", msgCount)
+		})
+	// _ = c1
+
+	p1, err := lib.NewTLSPublisher(hostPort, client1ID, channel1ID,
+		clientCertPEM, clientKeyPEM, caCertPEM)
+
+	lib.SendMessage(p1, []byte(pubMsg1))
+	c1.Close()
+	lib.SendMessage(p1, []byte(pubMsg1))
+	time.Sleep(1000 * time.Millisecond)
+	assert.Equalf(t, 1, msgCount, "Expected only 1 message")
+	cs.Stop()
+}
+
 // test sending messages to multiple subscribers
 func TestLoad(t *testing.T) {
 	const hostPort = "localhost:9678"
@@ -267,7 +302,6 @@ func TestLoad(t *testing.T) {
 	var t4 time.Time
 	var rxCount int32 = 0
 	var txCount int32 = 0
-	var lastclient *websocket.Conn
 	const certFolder = "../../test/"
 	mutex1 := sync.Mutex{}
 
@@ -279,43 +313,41 @@ func TestLoad(t *testing.T) {
 	caCertPEM, _ := ioutil.ReadFile(certFolder + servicebus.CaCertFile)
 
 	t0 := time.Now()
-	// test creating 1000 publishers and subscribers
-	var sCount int = 0
-	for sCount = 0; sCount < 201; sCount++ {
-		c, err := client.NewTLSSubscriber(hostPort, client1ID, channel1ID,
-			clientCertPEM, clientKeyPEM, caCertPEM, func(msg []byte) {
+	// test creating 100 publishers and subscribers
+	var sCount int
+	for sCount = 0; sCount < 100; sCount++ {
+		_, err := lib.NewTLSSubscriber(hostPort, client1ID, channel1ID,
+			clientCertPEM, clientKeyPEM, caCertPEM, func(channel string, msg []byte) {
 				mutex1.Lock()
-				atomic.AddInt32(&rxCount, 1)
-				t4 = time.Now() // latest received time
-				mutex1.Unlock()
+				defer mutex1.Unlock()
+				// msg is nil if connection closes
+				if msg != nil {
+					atomic.AddInt32(&rxCount, 1)
+					t4 = time.Now() // latest received time
+				}
 				// logrus.Infof("Received message on receiver %d", sCount)
 			})
 		assert.NoErrorf(t, err, "Unexpected error creating subscriber %d", sCount)
-		lastclient = c
 	}
 
 	t1 := time.Now()
-	var pCount = 0
-	// var pCon *websocket.Conn
-	for pCount = 0; pCount < 200; pCount++ {
-		pCon, err = client.NewTLSPublisher(hostPort, client1ID, channel1ID,
+	var pCount int
+	for pCount = 0; pCount < 100; pCount++ {
+		pCon, err = lib.NewTLSPublisher(hostPort, client1ID, channel1ID,
 			clientCertPEM, clientKeyPEM, caCertPEM)
 		assert.NoErrorf(t, err, "Unexpected error creating publisher %d", pCount)
 	}
 	t2 := time.Now()
 
-	// pretend a subscriber connection dropped while sending
-	lastclient.Close()
-	sCount--
-
-	for i := 0; i < 500; i++ {
-		client.SendMessage(pCon, []byte("Hello world"))
+	// time.Sleep(1 * time.Millisecond)
+	for i := 0; i < 10; i++ {
+		lib.SendMessage(pCon, []byte("Hello world"))
 		txCount++
 	}
 	t3 = time.Now()
 
 	// take time to receive them all
-	time.Sleep(time.Second * 3)
+	time.Sleep(time.Second * 5)
 
 	mutex1.Lock()
 	assert.Equal(t, int(txCount)*sCount, int(rxCount), "not all subscribers received a message")
@@ -326,9 +358,9 @@ func TestLoad(t *testing.T) {
 	cs.Stop()
 	// time.Sleep(time.Millisecond * 1)
 	mutex1.Lock()
-	logrus.Printf("Time to create %d subscribers: %d msec", sCount, t1.Sub(t0)/time.Millisecond)
-	logrus.Printf("Time to create %d publishers: %d msec", pCount, t2.Sub(t1)/time.Millisecond)
-	logrus.Printf("Time to send %d messages %d usec", txCount, t3.Sub(t2)/time.Microsecond)
-	logrus.Printf("Time to receive %d messages by subscribers: %d msec", rxCount, t4.Sub(t2)/time.Millisecond)
+	logrus.Printf("Time to create %d TLS subscribers: %d msec", sCount, t1.Sub(t0)/time.Millisecond)
+	logrus.Printf("Time to create %d TLS publishers: %d msec", pCount, t2.Sub(t1)/time.Millisecond)
+	logrus.Printf("Time to send %d TLS messages %d msec", txCount, t3.Sub(t2)/time.Millisecond)
+	logrus.Printf("Time to receive %d TLS messages by subscribers: %d msec", rxCount, t4.Sub(t2)/time.Millisecond)
 	mutex1.Unlock()
 }

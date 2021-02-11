@@ -1,6 +1,6 @@
-// Package servicebus with creation of self signed certificate chain
+// Package lib with creation of self signed certificate chain
 // Source: https://gist.github.com/shaneutt/5e1995295cff6721c89a71d13a71c251
-package servicebus
+package lib
 
 import (
 	"bytes"

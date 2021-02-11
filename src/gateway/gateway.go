@@ -11,7 +11,7 @@ func StartGateway() {
 	// read config
 	// determine service bus to use
 	// launch internal service bus
-	servicebus.StartServiceBus(hostname, nil)
+	servicebus.StartServiceBus(hostname)
 	// launch plugins
 
 }

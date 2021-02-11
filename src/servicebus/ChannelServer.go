@@ -17,7 +17,7 @@ import (
 )
 
 // Default nr of messages that can be queued per channel before the sender blocks
-const defaultChannelQueueDepth = 100
+const defaultChannelQueueDepth = 10
 
 // Connection headers
 const (
@@ -89,20 +89,6 @@ func (cs *ChannelServer) authenticateConnection(request *http.Request) (string, 
 func (cs *ChannelServer) channelMessageWorker(channel *Channel) {
 	for message := range channel.jobQueue {
 		cs.processChannelMessage(channel.ID, message)
-	}
-}
-
-// CloseAll all connections and stop listening
-func (cs *ChannelServer) CloseAll() {
-	cs.updateMutex.Lock()
-	defer cs.updateMutex.Unlock()
-	for _, channel := range cs.channels {
-		for _, pubs := range channel.publishers {
-			pubs.Close()
-		}
-		for _, subs := range channel.subscribers {
-			subs.Close()
-		}
 	}
 }
 
@@ -249,7 +235,8 @@ func (cs *ChannelServer) ServeChannel(response http.ResponseWriter, request *htt
 	if pubOrSub == SubscriberStage {
 		// record subscriber connections
 		cs.AddSubscriber(channel, c)
-	} else if pubOrSub == PublisherStage {
+	} else { // else if pubOrSub == PublisherStage {
+		// Also read on subscribe connections to detect if the client has closed it
 		cs.AddPublisher(channel, c)
 		// publisher connections are closed on exit
 		defer c.Close()
@@ -257,7 +244,9 @@ func (cs *ChannelServer) ServeChannel(response http.ResponseWriter, request *htt
 			_, message, err := c.ReadMessage()
 			if err != nil {
 				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-					logrus.Errorf("ServeChannel on %s/%s read error: %s", chID, pubOrSub, err)
+					logrus.Errorf("ServeChannel connection error to %s/%s by client: %s", chID, pubOrSub, err)
+				} else {
+					logrus.Warningf("ServeChannel connection to %s/%s dropped by client: %s", chID, pubOrSub, err)
 				}
 				cs.RemoveConnection(c)
 				break
@@ -277,13 +266,13 @@ func (cs *ChannelServer) Start(host string) (*mux.Router, error) {
 	router.HandleFunc(fmt.Sprintf("/channel/{%s}/{%s}", MuxChannel, MuxStage), cs.ServeChannel)
 
 	go func() {
-		cs.updateMutex.Lock()
+		// cs.updateMutex.Lock()
 		cs.httpServer = &http.Server{
 			Addr:    host,
 			Handler: router,
 		}
+		// cs.updateMutex.Unlock()
 		err = cs.httpServer.ListenAndServe()
-		cs.updateMutex.Unlock()
 
 		if err != nil && err != http.ErrServerClosed {
 			logrus.Fatal("Start: ListenAndServe error ", err)
@@ -341,8 +330,18 @@ func (cs *ChannelServer) StartTLS(listenAddress string, caCertFile string, serve
 
 // Stop the server and close all connections
 func (cs *ChannelServer) Stop() {
+	// cs.updateMutex.Lock()
+	// defer cs.updateMutex.Unlock()
+
 	cs.httpServer.Shutdown(nil)
-	cs.CloseAll()
+	for _, channel := range cs.channels {
+		for _, pubs := range channel.publishers {
+			pubs.Close()
+		}
+		for _, subs := range channel.subscribers {
+			subs.Close()
+		}
+	}
 }
 
 // NewChannelServer creates an instance of the lightweight channel server
