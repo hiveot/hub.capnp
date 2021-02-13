@@ -121,9 +121,9 @@ func newWebsocketConnection(url string, clientID string,
 // NewPublisher creates a new connection to publish on a channel
 // clientID is the ID of the publisher that is connecting
 // This returns a websocket connection
-func NewPublisher(host string, clientID string, channelID string) (*websocket.Conn, error) {
+func NewPublisher(hostPort string, clientID string, channelID string) (*websocket.Conn, error) {
 	const publishAddress = "ws://%s/channel/%s/pub"
-	url := fmt.Sprintf(publishAddress, host, channelID)
+	url := fmt.Sprintf(publishAddress, hostPort, channelID)
 	return newWebsocketConnection(url, clientID, nil, nil, nil, nil)
 }
 
@@ -131,12 +131,12 @@ func NewPublisher(host string, clientID string, channelID string) (*websocket.Co
 // clientID is the ID of the subscriber that is connecting
 // handler is invoked when a message is to be processed. It should return the provided or modified message
 // This returns a websocket connection
-func NewSubscriber(host string, clientID string, channelID string,
+func NewSubscriber(hostPort string, clientID string, channelID string,
 	handler func(channel string, msg []byte)) (*websocket.Conn, error) {
 	const subscriberAddress = "ws://%s/channel/%s/sub"
 	var myChannelID = channelID
 
-	url := fmt.Sprintf(subscriberAddress, host, channelID)
+	url := fmt.Sprintf(subscriberAddress, hostPort, channelID)
 	return newWebsocketConnection(url, clientID, nil, nil, nil, func(msg []byte, isClosed bool) {
 		// if isClosed
 		handler(myChannelID, msg)
@@ -150,10 +150,10 @@ func NewSubscriber(host string, clientID string, channelID string,
 // clientKeyPEM is the client certificate key used to verify the client with the server
 // serverCertPEM is the CA to verify the server with the client
 // This returns a websocket connection
-func NewTLSPublisher(host string, clientID string, channelID string,
+func NewTLSPublisher(hostPort string, clientID string, channelID string,
 	clientCertPEM []byte, clientKeyPEM []byte, serverCertPEM []byte) (*websocket.Conn, error) {
 	const publishAddress = "wss://%s/channel/%s/pub"
-	url := fmt.Sprintf(publishAddress, host, channelID)
+	url := fmt.Sprintf(publishAddress, hostPort, channelID)
 	return newWebsocketConnection(url, clientID, clientCertPEM, clientKeyPEM, serverCertPEM, nil)
 }
 
@@ -164,14 +164,14 @@ func NewTLSPublisher(host string, clientID string, channelID string,
 // serverCertPEM is the CA to verify the server with the client
 // handler is invoked when a message is to be processed. It should return the provided or modified message
 // This returns a websocket connection
-func NewTLSSubscriber(host string, clientID string, channelID string,
+func NewTLSSubscriber(hostPort string, clientID string, channelID string,
 	clientCertPEM []byte, clientKeyPEM []byte, serverCertPEM []byte,
 	handler func(channel string, msg []byte)) (*websocket.Conn, error) {
 
 	const subscriberAddress = "wss://%s/channel/%s/sub"
 	var myChannelID = channelID
 
-	url := fmt.Sprintf(subscriberAddress, host, channelID)
+	url := fmt.Sprintf(subscriberAddress, hostPort, channelID)
 	return newWebsocketConnection(url, clientID, clientCertPEM, clientKeyPEM, serverCertPEM, func(msg []byte, isClosed bool) {
 		handler(myChannelID, msg)
 	})

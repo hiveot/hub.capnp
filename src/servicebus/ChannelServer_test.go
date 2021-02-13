@@ -3,7 +3,6 @@ package servicebus_test
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/pem"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -92,48 +91,6 @@ func TestNewPubSub(t *testing.T) {
 	require.Error(t, err, "Expected error creating subscriber with invalid ID")
 
 	cs.Stop()
-}
-
-func TestTLSCertificateGeneration(t *testing.T) {
-	// host := "localhost:9678"
-	// hostname := "127.0.0.1:9678"
-	// hostname := "10.3.3.30"
-	hostname := "localhost"
-
-	// test creating ca and server certificates
-	caCertPEM, caKeyPEM := lib.CreateWoSTCA()
-	require.NotNilf(t, caCertPEM, "Failed creating CA certificate")
-
-	caCert, err := tls.X509KeyPair(caCertPEM, caKeyPEM)
-	_ = caCert
-	require.NoErrorf(t, err, "Failed parsing CA certificate")
-
-	serverCertPEM, serverKeyPEM, err := lib.CreateGatewayCert(caCertPEM, caKeyPEM, hostname)
-	require.NoErrorf(t, err, "Failed creating server certificate")
-	// serverCert, err := tls.X509KeyPair(serverCertPEM, serverKeyPEM)
-	require.NoErrorf(t, err, "Failed creating server certificate")
-	require.NotNilf(t, serverCertPEM, "Failed creating server certificate")
-	require.NotNilf(t, serverKeyPEM, "Failed creating server private key")
-
-	// verify the certificate
-	certpool := x509.NewCertPool()
-	ok := certpool.AppendCertsFromPEM(caCertPEM)
-	require.True(t, ok, "Failed parsing CA certificate")
-
-	serverBlock, _ := pem.Decode(serverCertPEM)
-	require.NotNil(t, serverBlock, "Failed decoding server certificate PEM")
-
-	serverCert, err := x509.ParseCertificate(serverBlock.Bytes)
-	require.NoError(t, err, "ParseCertificate for server failed")
-
-	opts := x509.VerifyOptions{
-		Roots:   certpool,
-		DNSName: hostname,
-		// DNSName:       "127.0.0.1",
-		Intermediates: x509.NewCertPool(),
-	}
-	_, err = serverCert.Verify(opts)
-	require.NoError(t, err, "Verify for server certificate failed")
 }
 
 // Test a TLS connection using a self generated certificates

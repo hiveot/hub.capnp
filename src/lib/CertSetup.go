@@ -171,6 +171,9 @@ func CreateClientCert(caCertPEM []byte, caKeyPEM []byte, hostname string) (pkPEM
 	caPrivKeyBlock, _ := pem.Decode(caKeyPEM)
 	caPrivKey, err := x509.ParsePKCS1PrivateKey(caPrivKeyBlock.Bytes)
 	caCertBlock, _ := pem.Decode(caCertPEM)
+	if caCertBlock == nil {
+		return nil, nil, err
+	}
 	caCert, err := x509.ParseCertificate(caCertBlock.Bytes)
 	if err != nil {
 		return nil, nil, err

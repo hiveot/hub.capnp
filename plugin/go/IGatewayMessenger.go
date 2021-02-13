@@ -16,7 +16,8 @@ const (
 type IGatewayMessenger interface {
 
 	// Connect the messenger to the messenger server
-	Connect(serverAddress string) error
+	// Fail if connection fails after timeout
+	Connect(serverAddress string, timeout int) error
 
 	// Disconnect all connections and stop listeners
 	Disconnect()

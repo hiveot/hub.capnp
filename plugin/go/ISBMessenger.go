@@ -1,9 +1,12 @@
 package plugin
 
 import (
+	"fmt"
 	"io/ioutil"
+	"os"
 	"path"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
@@ -34,7 +37,7 @@ type ISBMessenger struct {
 
 // Connect to the internal service bus server
 // This doesn't connect yet until publish or subscribe is called
-func (isb *ISBMessenger) Connect(serverAddress string) error {
+func (isb *ISBMessenger) Connect(serverAddress string, timeoutSec int) error {
 	isb.serverAddress = serverAddress
 	// TBD we could do a connection attempt to validate it
 	return nil
@@ -130,6 +133,12 @@ func (isb *ISBMessenger) getPublisher(channel string) (conn *websocket.Conn, err
 // NewISBMessenger creates a new instance of the internal service bus messenger to publish
 // and subscribe to gateway messages.
 func NewISBMessenger(clientID string, certFolder string) *ISBMessenger {
+	// ClientID defaults to hostname-secondsSinceEpoc
+	hostName, _ := os.Hostname()
+	if clientID == "" {
+		clientID = fmt.Sprintf("%s-%d", hostName, time.Now().Unix())
+	}
+
 	isb := &ISBMessenger{
 		clientID: clientID,
 		// serverAddress: serverAddress,
