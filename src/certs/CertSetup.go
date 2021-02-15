@@ -1,6 +1,6 @@
-// Package lib with creation of self signed certificate chain
-// Source: https://gist.github.com/shaneutt/5e1995295cff6721c89a71d13a71c251
-package lib
+// Package certs with creation of self signed certificate chain
+// Credits: https://gist.github.com/shaneutt/5e1995295cff6721c89a71d13a71c251
+package certs
 
 import (
 	"bytes"
@@ -19,6 +19,16 @@ import (
 const keySize = 2048 // 4096
 const caDurationYears = 10
 const certDurationYears = 10
+
+// Standard client and server certificate filenames
+const (
+	CaCertFile     = "ca.crt"
+	CaKeyFile      = "ca.key"
+	ServerCertFile = "gateway.crt"
+	ServerKeyFile  = "gateway.key"
+	ClientCertFile = "client.crt"
+	ClientKeyFile  = "client.key"
+)
 
 // func GenCARoot() (*x509.Certificate, []byte, *rsa.PrivateKey) {
 // 	if _, err := os.Stat("someFile"); err == nil {

@@ -1,5 +1,4 @@
-// Package plugin with connection management for the gateway that use MQTT to communicate
-package plugin
+package messenger
 
 import (
 	"crypto/tls"
@@ -29,12 +28,12 @@ type MqttMessenger struct {
 	pubQos        byte
 	subQos        byte
 	//
-	isRunning           bool                           // listen for messages while running
-	pahoClient          pahomqtt.Client                // Paho MQTT Client
-	subscriptions       map[string][]TopicSubscription // list of TopicSubscription for re-subscribing after reconnect
-	tlsVerifyServerCert bool                           // verify the server certificate, this requires a Root CA signed cert
-	tlsCACertFile       string                         // path to CA certificate
-	updateMutex         *sync.Mutex                    // mutex for async updating of subscriptions
+	isRunning           bool                          // listen for messages while running
+	pahoClient          pahomqtt.Client               // Paho MQTT Client
+	subscriptions       map[string]*TopicSubscription // map of TopicSubscription for re-subscribing after reconnect
+	tlsVerifyServerCert bool                          // verify the server certificate, this requires a Root CA signed cert
+	tlsCACertFile       string                        // path to CA certificate
+	updateMutex         *sync.Mutex                   // mutex for async updating of subscriptions
 }
 
 // TopicSubscription holds subscriptions to restore after disconnect
@@ -50,7 +49,13 @@ type TopicSubscription struct {
 // If a previous connection exists then it is disconnected first.
 // serverAddr contains the hostname:port of the server
 // timeout in seconds after which to give up
-func (messenger *MqttMessenger) Connect(serverAddr string, timeout int) error {
+func (messenger *MqttMessenger) Connect(serverAddr string, clientID string, timeout int) error {
+	// set config defaults
+	// ClientID defaults to hostname-secondsSinceEpoc
+	if clientID == "" {
+		hostName, _ := os.Hostname()
+		clientID = fmt.Sprintf("%s-%d", hostName, time.Now().Unix())
+	}
 
 	messenger.serverAddress = serverAddr
 	// close existing connection
@@ -155,7 +160,7 @@ func (messenger *MqttMessenger) Disconnect() {
 		messenger.pahoClient.Disconnect(10 * ConnectionTimeoutSec * 1000)
 		messenger.pahoClient = nil
 
-		messenger.subscriptions = nil
+		messenger.subscriptions = make(map[string]*TopicSubscription, 0)
 		//close(messenger.messageChannel)     // end the message handler loop
 	}
 }
@@ -166,21 +171,15 @@ func (messenger *MqttMessenger) onMessage(c pahomqtt.Client, msg pahomqtt.Messag
 	payload := msg.Payload()
 
 	logrus.Infof("MqttMessenger.onMessage. address=%s", topic)
-	subscriptions := messenger.subscriptions[topic]
-	if subscriptions == nil {
-		logrus.Errorf("onMessage: no subscriptions for topic %s", topic)
-	} else if len(subscriptions) == 0 {
-		logrus.Errorf("onMessage: no more subscriptions for topic %s", topic)
-		messenger.pahoClient.Unsubscribe(topic)
+	subscription := messenger.subscriptions[topic]
+	if subscription == nil {
+		logrus.Errorf("onMessage: no subscription for topic %s", topic)
+		return
 	}
-	for _, sub := range subscriptions {
-		(sub.handler)(topic, payload)
-	}
+	subscription.handler(topic, payload)
 }
 
-// Publish value using the device address as base
-// address to publish on.
-// payload is converted to string if it isn't a byte array, as Paho doesn't handle int and bool
+// Publish a message to a topic address
 func (messenger *MqttMessenger) Publish(topic string, message []byte) error {
 	var err error
 
@@ -212,7 +211,7 @@ func (messenger *MqttMessenger) resubscribe() {
 
 	logrus.Infof("MqttMessenger.resubscribe to %d addresess", len(messenger.subscriptions))
 	for topic := range messenger.subscriptions {
-		// clear existing subscription
+		// clear existing subscription in case it is still there
 		messenger.pahoClient.Unsubscribe(topic)
 
 		logrus.Infof("MqttMessenger.resubscribe: address %s", topic)
@@ -229,85 +228,57 @@ func (messenger *MqttMessenger) resubscribe() {
 }
 
 // Subscribe to a address
-// Subscribers are automatically resubscribed after the connection is restored
-// If no connection exists, then subscriptions are stored until a connection is established.
-// address: address to subscribe to. This can contain wildcards.
-// qos: Quality of service for subscription: 0, 1, 2
+// If a subscription already exists, it is replaced.
+// topic: address to subscribe to. This supports mqtt wildcards such as + and #
 // handler: callback handler.
 func (messenger *MqttMessenger) Subscribe(
-	topic string, handler func(address string, message []byte)) error {
+	topic string, handler func(address string, message []byte)) {
 	handlerID := reflect.ValueOf(handler)
-	subscription := TopicSubscription{
+	subscription := &TopicSubscription{
 		topic:     topic,
 		handler:   handler,
 		handlerID: handlerID,
-		// token:     nil,
-		// client:    messenger,
 	}
+	logrus.Infof("MqttMessenger.Subscribe: topic %s, qos %d", topic, messenger.subQos)
+
 	messenger.updateMutex.Lock()
 	defer messenger.updateMutex.Unlock()
-	subs := messenger.subscriptions[topic]
-	subs = append(subs, subscription)
-	messenger.subscriptions[topic] = subs
 
-	logrus.Infof("MqttMessenger.Subscribe: topic %s, qos %d", topic, messenger.subQos)
-	//messenger.pahoClient.Subscribe(address, qos, addressSubscription.onMessage) //func(c pahomqtt.Client, msg pahomqtt.Message) {
-	if messenger.pahoClient != nil && len(subs) == 1 {
-		messenger.pahoClient.Subscribe(topic, messenger.subQos, messenger.onMessage) //func(c pahomqtt.Client, msg pahomqtt.Message) {
+	if messenger.subscriptions[topic] != nil {
+		logrus.Warningf("Subscribe: Existing subscription to %s is replaced", topic)
+	} else {
+		if messenger.pahoClient != nil {
+			messenger.pahoClient.Subscribe(topic, messenger.subQos, messenger.onMessage) //func(c pahomqtt.Client, msg pahomqtt.Message) {
+		}
 	}
-	return nil
+	messenger.subscriptions[topic] = subscription
 }
 
 // Unsubscribe a topic and handler
 // if handler is nil then all subscribers to the topic are removed
-func (messenger *MqttMessenger) Unsubscribe(
-	topic string, handler func(address string, message []byte)) {
+func (messenger *MqttMessenger) Unsubscribe(topic string) {
 	// messenger.publishMutex.Lock()
-	var handlerID = reflect.ValueOf(handler)
-	subscriptions := messenger.subscriptions[topic]
-	if subscriptions == nil {
+	subscription := messenger.subscriptions[topic]
+	if subscription == nil {
 		// nothing to unsubscribe
 		logrus.Warningf("Unsubscribe: Subscription on topic %s didn't exist. Ignored", topic)
+		return
 	}
 
-	for i, sub := range subscriptions {
-		// can't compare addresses directly so convert to string
-		if sub.topic == topic && (handler == nil || sub.handlerID == handlerID) {
-			if i < len(subscriptions) {
-				copy(subscriptions[i:], subscriptions[i+1:])
-			}
-			// shift remainder left one index
-			subscriptions = subscriptions[:len(subscriptions)-1]
-			// If this is the last subscriber to the topic then unsubscribe from paho
-			if len(subscriptions) == 0 {
-				messenger.pahoClient.Unsubscribe((topic))
-			}
-			if handler != nil {
-				break
-			}
-		}
-	}
-	messenger.subscriptions[topic] = subscriptions
-	// messenger.publishMutex.Unlock()
+	messenger.pahoClient.Unsubscribe(topic)
+	messenger.subscriptions[topic] = nil
 }
 
 // NewMqttMessenger creates a new MQTT messenger instance
 // clientID must be unique
 // certFolder must contain the server certificate mqtt_srv.crt
-func NewMqttMessenger(clientID string, certFolder string) *MqttMessenger {
+func NewMqttMessenger(certFolder string) *MqttMessenger {
 
-	// set config defaults
-	// ClientID defaults to hostname-secondsSinceEpoc
-	if clientID == "" {
-		hostName, _ := os.Hostname()
-		clientID = fmt.Sprintf("%s-%d", hostName, time.Now().Unix())
-	}
 	messenger := &MqttMessenger{
-		clientID:      clientID,
 		pubQos:        1,
 		subQos:        1,
 		pahoClient:    nil,
-		subscriptions: make(map[string][]TopicSubscription, 0),
+		subscriptions: make(map[string]*TopicSubscription, 0),
 		//messageChannel: make(chan *IncomingMessage),
 		tlsCACertFile:       certFolder + "/mqtt_srv.crt",
 		tlsVerifyServerCert: true,

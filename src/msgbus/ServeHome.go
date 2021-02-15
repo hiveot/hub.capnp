@@ -1,6 +1,10 @@
-package servicebus
+package msgbus
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/sirupsen/logrus"
+)
 
 // ServeHome a home page if no path is given
 func ServeHome(w http.ResponseWriter, request *http.Request) {
@@ -12,5 +16,6 @@ func ServeHome(w http.ResponseWriter, request *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	http.ServeFile(w, request, "home.html")
+	logrus.Infof("ServeHome")
+	http.ServeFile(w, request, "../status/index.html")
 }

@@ -1,7 +1,5 @@
-// Package src with gateway source
-package src
-
-import "github.com/wostzone/gateway/src/servicebus"
+// Package gateway with gateway source
+package gateway
 
 const hostname = "localhost:9678"
 
@@ -11,7 +9,7 @@ func StartGateway() {
 	// read config
 	// determine service bus to use
 	// launch internal service bus
-	servicebus.StartServiceBus(hostname)
+	StartSimbuServer(hostname)
 	// launch plugins
 
 }
