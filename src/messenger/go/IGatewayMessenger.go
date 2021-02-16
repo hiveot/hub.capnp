@@ -15,13 +15,13 @@ const (
 // Predefined gateway channels
 const (
 	// The TD channel carries 'Thing Description' documents
-	TDChannelID = "TD"
+	TDChannelID = "td"
 	// The notification channel carries Thing status updates
-	NotificationChannelID = "notification"
+	EventsChannelID = "events"
 	// The action channel carries Thing action commands
-	ActionChannelID = "action"
+	ActionChannelID = "actions"
 	// The plugin channel carries plugin registration messages
-	PluginChannelID = "plugin"
+	PluginsChannelID = "plugin"
 	// The test channel carries test messages
 	TestChannelID = "test"
 )

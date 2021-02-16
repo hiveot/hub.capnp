@@ -1,0 +1,27 @@
+# WoST Gateway systemd service
+# Save this as /etc/systemd/system/wost-gateway.service
+
+[Unit]
+Description=Wost service to launch the gateway and plugins
+Wants=network-online.target
+After=network.target network-online.target
+PartOf=myzone.target
+
+[Service]
+#PIDFile=/run/gateway.%i.pid
+PIDFile=/run/gateway.pid
+Nice=10
+
+# When the service runs globally, make it run as a particular user for added security
+User=wost
+Group=wost
+
+# Auto restart the service after 1 minute when it aborts
+# NOTE: change the home folder to the appropriate folder when running locally
+WorkingDirectory=/opt/wost
+ExecStart=/opt/wost/bin/gateway
+Restart=on-failure
+RestartSec=60
+
+#[Install]
+#WantedBy=myzone.target
