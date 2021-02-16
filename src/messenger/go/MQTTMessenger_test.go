@@ -3,7 +3,7 @@ package messenger_test
 import (
 	"testing"
 
-	messenger "github.com/wostzone/gateway/messenger/go"
+	messenger "github.com/wostzone/gateway/src/messenger/go"
 )
 
 const mqttServerHostPort = "localhost:8883"
@@ -20,13 +20,9 @@ func TestMqttNoConnect(t *testing.T) {
 	TMessengerNoConnect(t, client)
 }
 
-func TestMqttNoClientID(t *testing.T) {
-	client := messenger.NewMqttMessenger(mqttCertFolder)
-	TMessengerNoClientID(t, client, mqttServerHostPort)
-}
 func TestMQTTPubSub(t *testing.T) {
 	client := messenger.NewMqttMessenger(mqttCertFolder)
-	TMessengerPubSub(t, client, mqttServerHostPort)
+	TMessengerPubSubNoTLS(t, client, mqttServerHostPort)
 }
 
 func TestMQTTMultipleSubscriptions(t *testing.T) {

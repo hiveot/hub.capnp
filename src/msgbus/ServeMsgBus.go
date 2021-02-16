@@ -177,6 +177,7 @@ func (mbs *ServeMsgBus) RemoveSubscriber(channelID string, c *websocket.Conn) {
 func (mbs *ServeMsgBus) sendChannelMessageToSubscribers(channelID string, message []byte) {
 	consumers := mbs.GetSubscribers(channelID)
 
+	logrus.Infof("ServeMsgBus.sendChannelMessageToSubscribers send message to %d subscribers of channel %s", len(consumers), channelID)
 	// logrus.Infof("processChannelMessage: Sending message to %d subscribers of channel %s", len(consumers), channelID)
 	// logrus.Infof("--- sending message to %d subscribers of channel %s", len(consumers), channelID)
 	for _, c := range consumers {
@@ -262,21 +263,24 @@ func (mbs *ServeMsgBus) Start(host string) (*mux.Router, error) {
 // StartTLS starts listing for incoming connection on via TLS.
 // This uses both client and server certificates
 //  listenAddress is the address and port the server listens on
-//  caCertFile path to CA certificate
-//  serverCertFile path to MsgBusServer certificate
-//  serverKeyFile path to MsgBusServer private key
+//  caCertFile path to CA certificate, required
+//  serverCertFile path to MsgBusServer certificate, required
+//  serverKeyFile path to MsgBusServer private key, required
 // Returns the mux router to allow for additional listeners such as /home
 func (mbs *ServeMsgBus) StartTLS(listenAddress string, caCertFile string, serverCertFile string,
-	serverKeyFile string) (*mux.Router, error) {
+	serverKeyFile string) (router *mux.Router, err error) {
+
 	logrus.Infof("ServeMsgBus.StartTLS: Serving on address %s", listenAddress)
-	router := mux.NewRouter()
+
+	router = mux.NewRouter()
 	router.HandleFunc(MsgbusAddress, mbs.serveConnection)
 
 	// The server certificate and key is needed
-	mbs.ServerCertPEM, _ = ioutil.ReadFile(serverCertFile)
-	serverKeyPEM, _ := ioutil.ReadFile(serverKeyFile)
-	serverCert, err := tls.X509KeyPair(mbs.ServerCertPEM, serverKeyPEM)
-	if err != nil {
+	mbs.ServerCertPEM, err = ioutil.ReadFile(serverCertFile)
+	serverKeyPEM, err2 := ioutil.ReadFile(serverKeyFile)
+	serverCert, err3 := tls.X509KeyPair(mbs.ServerCertPEM, serverKeyPEM)
+	if err != nil || err2 != nil || err3 != nil {
+		logrus.Errorf("StartTLS: certificates not found")
 		return router, err
 	}
 	// To verify clients, the client CA must be provided

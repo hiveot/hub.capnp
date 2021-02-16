@@ -1,4 +1,4 @@
-package certs
+package certs_test
 
 import (
 	"bytes"
@@ -9,24 +9,25 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/wostzone/gateway/src/certs"
 )
 
 func TestTLSCertificateGeneration(t *testing.T) {
 	hostname := "127.0.0.1"
 
 	// test creating ca and server certificates
-	caCertPEM, caKeyPEM := CreateWoSTCA()
+	caCertPEM, caKeyPEM := certs.CreateWoSTCA()
 	require.NotNilf(t, caCertPEM, "Failed creating CA certificate")
 	caCert, err := tls.X509KeyPair(caCertPEM, caKeyPEM)
 	_ = caCert
 	require.NoErrorf(t, err, "Failed parsing CA certificate")
 
-	clientCertPEM, clientKeyPEM, err := CreateClientCert(caCertPEM, caKeyPEM, hostname)
+	clientCertPEM, clientKeyPEM, err := certs.CreateClientCert(caCertPEM, caKeyPEM, hostname)
 	require.NoErrorf(t, err, "Creating certificates failed:")
 	require.NotNilf(t, clientCertPEM, "Failed creating client certificate")
 	require.NotNilf(t, clientKeyPEM, "Failed creating client key")
 
-	serverCertPEM, serverKeyPEM, err := CreateGatewayCert(caCertPEM, caKeyPEM, hostname)
+	serverCertPEM, serverKeyPEM, err := certs.CreateGatewayCert(caCertPEM, caKeyPEM, hostname)
 	require.NoErrorf(t, err, "Failed creating server certificate")
 	// serverCert, err := tls.X509KeyPair(serverCertPEM, serverKeyPEM)
 	require.NoErrorf(t, err, "Failed creating server certificate")
@@ -56,7 +57,7 @@ func TestTLSCertificateGeneration(t *testing.T) {
 
 func TestBadCert(t *testing.T) {
 	hostname := "127.0.0.1"
-	caCertPEM, caKeyPEM := CreateWoSTCA()
+	caCertPEM, caKeyPEM := certs.CreateWoSTCA()
 	// caCertPEM = pem.Encode( )[]byte{1, 2, 3}
 
 	certPEMBuffer := new(bytes.Buffer)
@@ -66,7 +67,7 @@ func TestBadCert(t *testing.T) {
 	})
 	caCertPEM = certPEMBuffer.Bytes()
 
-	clientCertPEM, clientKeyPEM, err := CreateClientCert(caCertPEM, caKeyPEM, hostname)
+	clientCertPEM, clientKeyPEM, err := certs.CreateClientCert(caCertPEM, caKeyPEM, hostname)
 	assert.Errorf(t, err, "Creating certificates should fail")
 	assert.Nilf(t, clientCertPEM, "Created client certificate")
 	assert.Nilf(t, clientKeyPEM, "Created client key")

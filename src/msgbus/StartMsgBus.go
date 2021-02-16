@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"path"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -30,7 +31,8 @@ func Start(hostPort string) (*ServeMsgBus, error) {
 	// ServeHome provides a status view
 	router.HandleFunc("/", ServeHome)
 
-	// time.Sleep(time.Second)
+	// let server start up
+	time.Sleep(time.Millisecond)
 	return srv, err
 }
 
@@ -74,7 +76,11 @@ func StartTLS(host string, certFolder string) (*ServeMsgBus, error) {
 
 		ioutil.WriteFile(caCertPath, caCertPEM, 0644)
 		ioutil.WriteFile(caKeyPath, caKeyPEM, 0600)
-		ioutil.WriteFile(serverKeyPath, serverKeyPEM, 0600)
+		err = ioutil.WriteFile(serverKeyPath, serverKeyPEM, 0600)
+		if err != nil {
+			logrus.Errorf("StartTLS: Error creating certificates: %s", err)
+			return nil, err
+		}
 		ioutil.WriteFile(serverCertPath, serverCertPEM, 0644)
 		ioutil.WriteFile(clientKeyPath, clientKeyPEM, 0600)
 		ioutil.WriteFile(clientCertPath, clientCertPEM, 0644)
