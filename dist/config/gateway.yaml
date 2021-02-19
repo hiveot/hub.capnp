@@ -6,6 +6,7 @@
 #certsFolder: "${appfolder}/certs" # location of gateway and client certificate
 #configFolder: "${appfolder}/config" # location of plugin configuration files
 #pluginsFolder: "${appfolder}/plugins" # location of plugin binaries
+#logsFolder: "${appfolder}/logs" # location of log files
 
 # Message bus server
 #protocol: "" # internal, MQTT, default internal

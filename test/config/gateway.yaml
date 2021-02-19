@@ -1,20 +1,18 @@
-# Example application configuration
-# All fields are optional except for the plugins to start
-
-# Folders
-#appFolder: "/opt/wost/gateway" # application root folder
-#certsFolder: "${appfolder}/certs" # location of gateway and client certificate
-#configFolder: "${appfolder}/config" # location of plugin configuration files
-#pluginsFolder: "${appfolder}/plugins" # location of plugin binaries
+# Example gateway configuration
 
 # Message bus server
-#protocol: "" # internal, MQTT, default internal
-#hostname: "localhost:9678" # hostname:port or ip:port to listen on of message bus
-useTLS: false # use TLS for client/server messaging
+messenger:
+  #certsFolder: "${appfolder}/certs" # location of gateway and client certificate
+  #protocol: "" # internal, MQTT, default internal
+  #hostname: "localhost:9678" # hostname:port or ip:port to listen on of message bus
+  useTLS: false # use TLS for client/server messaging
 
 # Logging
-loglevel: "debug" # debug, info, warning, error. Default is warning
+Logging:
+  logfile: "gateway.log"
+  loglevel: "debug" # debug, info, warning, error. Default is warning
 
 # Plugins to start
 plugins: # list of plugins to start
-  - dummy
+  autostart
+  - msgbus

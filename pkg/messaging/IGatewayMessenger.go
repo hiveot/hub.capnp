@@ -1,0 +1,56 @@
+// Package messaging with interface for gateway connection management
+// Used by implementation of the service bus connection to communicate between plugin and gateway
+package messaging
+
+// Default client and server certificates names when used
+const (
+	CaCertFile     = "ca.crt"
+	CaKeyFile      = "ca.key"
+	ServerCertFile = "gateway.crt"
+	ServerKeyFile  = "gateway.key"
+	ClientCertFile = "client.crt"
+	ClientKeyFile  = "client.key"
+)
+
+// Predefined gateway channels
+const (
+	// The TD channel carries 'Thing Description' documents
+	TDChannelID = "td"
+	// The notification channel carries Thing status updates
+	EventsChannelID = "events"
+	// The action channel carries Thing action commands
+	ActionChannelID = "actions"
+	// The plugin channel carries plugin registration messages
+	PluginsChannelID = "plugin"
+	// The test channel carries test messages
+	TestChannelID = "test"
+)
+
+// IGatewayMessenger interface to connection handler to publish messages onto and subscribe to the gateway
+type IGatewayMessenger interface {
+
+	// Connect the messenger to the messenger server.
+	// If a connection is already in place, the existing connection is dropped and
+	// a new connection is made. Existing subscriptions remain in place.
+	// The messenger must already be setup with the destination host, port and certificate
+	//  clientID is unique to the server. Default is hostname-timestamp
+	//  timeout is the amount of time to keep retrying in case the connection fails
+	Connect(clientID string, timeout int) error
+
+	// Disconnect all connections and remove all subscriptions
+	Disconnect()
+
+	// Publish sends a message to the gateway on the given channelID
+	// channelID contains the address to publish to, divided by '/' as a separator
+	Publish(channelID string, message []byte) error
+
+	// Subscribe to a message channelID.
+	// Only a single subscription to a channelID can be made.
+	// channelID contains the address to listen on. Wildcard supports depends on the messenger used.
+	// handler is invoked when a message is received on the address
+	Subscribe(channelID string, handler func(address string, message []byte))
+
+	// Unsubscribe from a previously subscribed channelID address.
+	// channelID contains the address to listen on, divided by '/' as a separator
+	Unsubscribe(channelID string)
+}
