@@ -1,0 +1,4 @@
+[36mINFO[0m[2021-02-20T15:37:07-08:00] Hello world                                  
+[36mINFO[0m[2021-02-20T15:37:07-08:00] LoadConfig: Loaded config from file '../../test/config/gateway.yaml' 
+[33mWARN[0m[2021-02-20T15:37:07-08:00] StartPlugins: Started plugin 'ls'            
+[31mERRO[0m[2021-02-20T15:37:07-08:00] StartPlugins: Plugin 'msgbus' failed to start: exec: "msgbus": executable file not found in $PATH 

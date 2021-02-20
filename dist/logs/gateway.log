@@ -1,0 +1,3 @@
+[33mWARN[0m[2021-02-20T15:43:52-08:00] Starting 2 gateway plugins on localhost:9678. UseTLS=true 
+[33mWARN[0m[2021-02-20T15:43:52-08:00] StartPlugins: Started plugin '/bin/true'     
+[31mERRO[0m[2021-02-20T15:43:52-08:00] StartPlugins: Plugin 'ls' failed to start: fork/exec /home/henk/projects/wost/gateway/dist/bin/ls: no such file or directory 

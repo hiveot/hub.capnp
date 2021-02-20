@@ -1,4 +1,4 @@
-// Package lwwsserver with simple internal message bus for serving plugins pub/sub
+// Package smbserver with simple internal message bus for serving plugins pub/sub
 package smbserver
 
 import (

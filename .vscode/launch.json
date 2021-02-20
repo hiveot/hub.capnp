@@ -5,6 +5,15 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "args": ["--configFolder", "test/config"],
+      "cwd": "${workspaceFolder}",
+      "name": "Launch Gateway",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/gateway/main.go"
+    },
+    {
       "name": "Launch logging plugin",
       "args": ["localhost:9678" ],
       "type": "go",

@@ -1,0 +1,19 @@
+# Bad configuration file for tests
+
+# Message bus server
+messenger:
+  #certsFolder: "${appfolder}/certs" # location of gateway and client certificate
+  #protocol: "" # internal, MQTT, default internal
+  #hostname: "localhost:9678" # hostname:port or ip:port to listen on of message bus
+  useTLS: false # use TLS for client/server messaging
+  -brokenyamlfile
+
+# Logging
+Logging:
+  logfile: "gateway.log"
+  loglevel: "debug" # debug, info, warning, error. Default is warning
+
+# Plugins to start
+plugins: # list of plugins to start
+  autostart
+  - msgbus

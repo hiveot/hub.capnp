@@ -1,21 +1,27 @@
 # Example application configuration
 # All fields are optional except for the plugins to start
 
-# Folders
-#appFolder: "/opt/wost/gateway" # application root folder
-#certsFolder: "${appfolder}/certs" # location of gateway and client certificate
-#configFolder: "${appfolder}/config" # location of plugin configuration files
-#pluginsFolder: "${appfolder}/plugins" # location of plugin binaries
-#logsFolder: "${appfolder}/logs" # location of log files
+# configFolder: "../config" # location of plugin configuration files
+# configFolder: "/etc/wost/config" # location of plugin configuration files
+configFolder: "./" # location of plugin configuration files
 
 # Message bus server
-#protocol: "" # internal, MQTT, default internal
-#hostname: "localhost:9678" # hostname:port or ip:port to listen on of message bus
-#useTLS: true # use TLS for client/server messaging
+messenger:
+  #protocol: "" # internal, MQTT, default internal
+  #hostname: "localhost:9678" # hostname:port or ip:port to listen on of message bus
+  #certsFolder: "../certs" # location of gateway and client certificate
+  #certsFolder: "/etc/wost/certs" # location of gateway and client certificate
+  useTLS: true # use TLS for client/server messaging
 
 # Logging
-#loglevel: "info" # debug, info, warning, error. Default is warning
+logging:
+  loglevel: "info" # debug, info, warning, error. Default is warning
+  #logsFolder: "../logs" # location of log files
+  #logsFolder: "/var/logs/wost" # location of log files
 
+#pluginsFolder: "../plugins" # location of plugin binaries
+#pluginsFolder: "/opt/wost/gateway/plugins" # location of plugin binaries
 # Plugins to start
 plugins: # list of plugins to start
-  - dummy
+  - /bin/true
+  - ls

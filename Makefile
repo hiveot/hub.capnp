@@ -43,13 +43,20 @@ upgrade: ## Upgrade the dependencies to the latest version. Use with care.
 prof: ## Run application with CPU and memory profiling
 	  $(GORUN) main.go -cpuprofile=cpu.prof -memprofile=mem.prof
 
+plugins: smbserver
+
+smbserver:
+	GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(X64_DIST_FOLDER)/gateway plugins/smbserver/main.go
+	@echo "Done. gateway distribution can be found in folder $(DIST_FOLDER). Executable in $(X64_DIST_FOLDER)/gateway"
+
+
 bin: x64
 x64: FORCE ## Build gateway for amd64 target
 	mkdir -p $(X64_DIST_FOLDER)
 	mkdir -p $(DIST_FOLDER)/config
 	mkdir -p $(DIST_FOLDER)/logs
 	mkdir -p $(DIST_FOLDER)/certs
-	GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(X64_DIST_FOLDER)/gateway src/main.go
+	GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(X64_DIST_FOLDER)/gateway cmd/gateway/main.go
 	@echo "Done. gateway distribution can be found in folder $(DIST_FOLDER). Executable in $(X64_DIST_FOLDER)/gateway"
 
 arm: FORCE ## Build gateway for ARM target (including raspberry pi)
@@ -57,7 +64,7 @@ arm: FORCE ## Build gateway for ARM target (including raspberry pi)
 	mkdir -p $(DIST_FOLDER)/config
 	mkdir -p $(DIST_FOLDER)/logs
 	mkdir -p $(DIST_FOLDER)/certs
-	GOOS=linux GOARCH=arm $(GOBUILD) -o $(ARM_DIST_FOLDER)/gateway src/main.go
+	GOOS=linux GOARCH=arm $(GOBUILD) -o $(ARM_DIST_FOLDER)/gateway cmd/gateway/main.go
 	@echo "Done. gateway distribution can be found in folder $(DIST_FOLDER). Executable in $(ARM_DIST_FOLDER)/gateway"
 
 docker: ## Build gateway for Docker target (TODO untested)

@@ -14,5 +14,5 @@ Logging:
 
 # Plugins to start
 plugins: # list of plugins to start
-  autostart
+  - ls
   - msgbus
