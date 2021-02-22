@@ -18,27 +18,28 @@ type ConfigType1 struct {
 }
 
 func TestDefaultConfig(t *testing.T) {
-	ci := lib.CreateGatewayConfig("")
+	ci := lib.CreateDefaultGatewayConfig("")
 	require.NotNil(t, ci)
 	err := lib.ValidateConfig(ci)
-	assert.Error(t, err, "Expected error as this test app does not reside in bin folder")
+	assert.NoError(t, err)
 }
 
 func TestLoadGatewayConfig(t *testing.T) {
 	testFile := "../../test/config/gateway.yaml"
 
-	ci := lib.CreateGatewayConfig("../../test")
+	ci := lib.CreateDefaultGatewayConfig("../../test")
 	require.NotNil(t, ci)
 	err := lib.LoadConfig(testFile, ci)
 	assert.NoError(t, err)
 	err = lib.ValidateConfig(ci)
 	assert.NoError(t, err)
+	assert.Equal(t, false, ci.Messenger.UseTLS)
 }
 
 func TestLoadGatewayConfigNotFound(t *testing.T) {
 	testFile := "../../test/config/gateway-notfound.yaml"
 
-	ci := lib.CreateGatewayConfig("../../test")
+	ci := lib.CreateDefaultGatewayConfig("../../test")
 	require.NotNil(t, ci)
 	err := lib.LoadConfig(testFile, ci)
 	assert.Error(t, err, "Configfile should not be found")
@@ -47,7 +48,7 @@ func TestLoadGatewayConfigNotFound(t *testing.T) {
 func TestLoadGatewayConfigYamlError(t *testing.T) {
 	testFile := "../../test/config/gateway-bad.yaml"
 
-	ci := lib.CreateGatewayConfig("../../test")
+	ci := lib.CreateDefaultGatewayConfig("../../test")
 	require.NotNil(t, ci)
 	err := lib.LoadConfig(testFile, ci)
 	// Error should contain info on bad file
@@ -58,7 +59,7 @@ func TestLoadGatewayConfigYamlError(t *testing.T) {
 
 func TestLoadGatewayConfigBadFolders(t *testing.T) {
 
-	ci := lib.CreateGatewayConfig("../../test")
+	ci := lib.CreateDefaultGatewayConfig("../../test")
 	err := lib.ValidateConfig(ci)
 	assert.NoError(t, err, "Default config should be okay")
 	ci2 := *ci
@@ -66,7 +67,7 @@ func TestLoadGatewayConfigBadFolders(t *testing.T) {
 	err = lib.ValidateConfig(&ci2)
 	assert.Error(t, err)
 	ci2 = *ci
-	ci2.Logging.LogsFolder = "/doesntexist"
+	ci2.Logging.LogFile = "/this/path/doesntexist"
 	err = lib.ValidateConfig(&ci2)
 	assert.Error(t, err)
 	ci2 = *ci
@@ -80,7 +81,7 @@ func TestLoadGatewayConfigBadFolders(t *testing.T) {
 }
 
 func TestBaseConfig(t *testing.T) {
-	ci := lib.CreateGatewayConfig("../../test")
+	ci := lib.CreateDefaultGatewayConfig("../../test")
 	require.NotNil(t, ci)
 	err := lib.ValidateConfig(ci)
 	assert.NoError(t, err)
@@ -91,4 +92,5 @@ func TestLogging(t *testing.T) {
 	lib.SetLogging("info", logFile)
 	logrus.Info("Hello world")
 	assert.FileExists(t, logFile)
+	os.Remove(logFile)
 }

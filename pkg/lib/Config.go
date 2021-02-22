@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"errors"
 	"io/ioutil"
 	"os"
 	"path"
@@ -10,6 +11,12 @@ import (
 	"github.com/wostzone/gateway/pkg/messaging/smbus"
 	"gopkg.in/yaml.v2"
 )
+
+// GatewayConfigName the configuration file name of the gateway
+const GatewayConfigName = "gateway.yaml"
+
+// GatewayLogFile the file name of the gateway logging
+const GatewayLogFile = "gateway.log"
 
 // ConfigArgs configuration commandline arguments
 type ConfigArgs struct {
@@ -21,8 +28,8 @@ type ConfigArgs struct {
 // GatewayConfig with gateway configuration parameters
 type GatewayConfig struct {
 	Logging struct {
-		Loglevel   string `yaml:"loglevel"`   // debug, info, warning, error. Default is warning
-		LogsFolder string `yaml:"logsFolder"` // location of logfiles
+		Loglevel string `yaml:"logLevel"` // debug, info, warning, error. Default is warning
+		LogFile  string `yaml:"logFile"`  // logging to file
 	} `yaml:"logging"`
 
 	// Messenger configuration of gateway plugin messaging
@@ -40,20 +47,23 @@ type GatewayConfig struct {
 	// internal
 }
 
-// CreateGatewayConfig with default values
+// CreateDefaultGatewayConfig with default values
 // baseFolder is the base of the configuration. Use "" for default: parent of application
 //
-func CreateGatewayConfig(baseFolder string) *GatewayConfig {
+func CreateDefaultGatewayConfig(baseFolder string) *GatewayConfig {
 	appFolder := baseFolder
 	if appFolder == "" {
 		appBin, _ := os.Executable()
 		binFolder := path.Dir(appBin)
 		appFolder = path.Dir(binFolder)
 
-		// for running within the project use the test folder as application root folder
+		// for running within the project tests use the test folder as application root folder
 		if path.Base(binFolder) != "bin" {
-			appFolder = path.Join(appFolder, "test")
+			// appFolder = path.Join(appFolder, "../test")
+			cwd, _ := os.Getwd()
+			appFolder = path.Join(cwd, "../../test")
 		}
+		// logrus.Infof("appBin: %s. CWD=%s", appBin, cwd)
 	}
 	config := &GatewayConfig{
 		ConfigFolder: path.Join(appFolder, "config"),
@@ -65,7 +75,7 @@ func CreateGatewayConfig(baseFolder string) *GatewayConfig {
 	config.Messenger.Protocol = string(messaging.ConnectionProtocolSmbus) // internal
 	config.Messenger.UseTLS = true
 	config.Logging.Loglevel = "warning"
-	config.Logging.LogsFolder = path.Join(appFolder, "logs")
+	config.Logging.LogFile = path.Join(appFolder, "logs/"+GatewayLogFile)
 	return config
 }
 
@@ -80,6 +90,7 @@ func LoadConfig(configFile string, config interface{}) error {
 		return err
 	}
 	logrus.Infof("LoadConfig: Loaded config from file '%s'", configFile)
+
 	err = yaml.Unmarshal(rawConfig, config)
 	if err != nil {
 		logrus.Errorf("LoadConfig: Error parsing config file '%s': %s", configFile, err)
@@ -96,8 +107,9 @@ func ValidateConfig(config *GatewayConfig) error {
 		logrus.Errorf("Configuration folder '%s' not found\n", config.ConfigFolder)
 		return err
 	}
-	if _, err := os.Stat(config.Logging.LogsFolder); os.IsNotExist(err) {
-		logrus.Errorf("Logging folder '%s' not found\n", config.Logging.LogsFolder)
+	loggingFolder := path.Dir(config.Logging.LogFile)
+	if _, err := os.Stat(loggingFolder); os.IsNotExist(err) {
+		logrus.Errorf("Logging folder '%s' not found\n", loggingFolder)
 		return err
 	}
 	if _, err := os.Stat(config.Messenger.CertsFolder); os.IsNotExist(err) && config.Messenger.UseTLS {
@@ -108,31 +120,13 @@ func ValidateConfig(config *GatewayConfig) error {
 		logrus.Errorf("Plugins folder '%s' not found\n", config.PluginFolder)
 		return err
 	}
+	if config.Messenger.Protocol != "" &&
+		config.Messenger.Protocol != string(messaging.ConnectionProtocolSmbus) &&
+		config.Messenger.Protocol != string(messaging.ConnectionProtocolMQTT) {
+		err := errors.New("Invalid messenger protocol " + string(config.Messenger.Protocol))
+		logrus.Errorf("ValidateConfig: %s", err)
+		return err
+	}
+
 	return nil
 }
-
-// // Set default configuration and load optional configuration file
-// func loadConfig(configFile string) *Config {
-// 	gwbin, _ := os.Executable()
-// 	binFolder := path.Dir(gwbin)
-// 	appFolder := path.Dir(binFolder)
-// 	// for running within the project use the test folder as application root folder
-// 	if path.Base(binFolder) != "bin" {
-// 		appFolder = path.Join(appFolder, "test")
-// 	}
-// 	config := &Config{
-// 		Channels:   []string{messaging.TDChannelID, messaging.ActionChannelID, messaging.EventsChannelID},
-// 		LogsFolder: path.Join(appFolder, "logs"),
-// 	}
-
-// 	// configFile := path.Join(config.ConfigFolder, "gateway.yaml")
-// 	rawConfig, err := ioutil.ReadFile(configFile)
-// 	if err == nil {
-// 		logrus.Infof("Loading configuration from: %s", configFile)
-// 		err = yaml.Unmarshal(rawConfig, config)
-// 		if err != nil {
-// 			logrus.Errorf("Failed parsing configuration file %s: %s", configFile, err)
-// 		}
-// 	}
-// 	return config
-// }

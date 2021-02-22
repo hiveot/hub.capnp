@@ -3,14 +3,14 @@
 # Message bus server
 messenger:
   #certsFolder: "${appfolder}/certs" # location of gateway and client certificate
-  #protocol: "" # internal, MQTT, default internal
+  protocol: "smbus" # smbus, MQTT, default smbus
   #hostname: "localhost:9678" # hostname:port or ip:port to listen on of message bus
   useTLS: false # use TLS for client/server messaging
 
 # Logging
-Logging:
-  logfile: "gateway.log"
-  loglevel: "debug" # debug, info, warning, error. Default is warning
+logging:
+  # logFile: "/var/log/wost/gateway.log"
+  logLevel: "info" # debug, info, warning, error. Default is warning
 
 # Plugins to start
 plugins: # list of plugins to start

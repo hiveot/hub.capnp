@@ -21,7 +21,7 @@ func TestStartPlugin(t *testing.T) {
 
 func TestStartPluginsFromConfig(t *testing.T) {
 	// the binary 'ls' exists on Linux and Windows
-	config := lib.CreateGatewayConfig("../../test")
+	config := lib.CreateDefaultGatewayConfig("../../test")
 	err := lib.LoadConfig(path.Join(config.ConfigFolder, "gateway.yaml"), config)
 	assert.NoError(t, err)
 	lib.StartPlugins("", config.Plugins, []string{})

@@ -14,7 +14,7 @@ import (
 // If the name contains an absolute path the pluginFolder is ignored.
 // See https://blog.kowalczyk.info/article/wOYk/advanced-command-execution-in-go-with-osexec.html
 //  for some good tips on executing commands with osexec.
-// This captures the command stderr
+// This captures the plugin stderr output to report on plugin startup problems
 //
 //  pluginFolder is specific folder for plugins. Leave empty to search the OS PATH
 //  name is the executable name of the plugin.
@@ -44,32 +44,3 @@ func StartPlugins(pluginFolder string, names []string, args []string) {
 		}
 	}
 }
-
-// // StartPlugin starts the logging plugin
-// func StartPlugin() {
-// 	var hostPort string
-// 	var configFile string
-// 	var certFolder string
-// 	flag.Parse()
-
-// 	args := flag.Args()
-// 	if len(args) < 2 {
-// 		println("Usage: plugin host [configFile [certFolder]] ")
-// 		return
-// 	}
-// 	hostPort = args[0]
-// 	if len(args) == 2 {
-// 		configFile = args[1]
-// 	}
-// 	if len(args) == 3 {
-// 		configFile = args[1]
-// 		certFolder = args[2]
-// 	}
-// 	config := loadConfig(configFile)
-// 	logging.SetLogging(config.Loglevel, path.Join(config.LogsFolder, PluginID+".log"))
-// 	plugin := NewLoggerPlugin(hostPort, certFolder)
-// 	plugin.Start()
-// 	// wait for signal to end
-// 	waitForSignal()
-// 	plugin.Stop()
-// }

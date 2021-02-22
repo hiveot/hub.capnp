@@ -9,9 +9,9 @@ messenger:
   -brokenyamlfile
 
 # Logging
-Logging:
-  logfile: "gateway.log"
-  loglevel: "debug" # debug, info, warning, error. Default is warning
+logging:
+  # logFile: "/var/log/wost/gateway.log"
+  logLevel: "debug" # debug, info, warning, error. Default is warning
 
 # Plugins to start
 plugins: # list of plugins to start

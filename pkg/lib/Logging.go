@@ -22,8 +22,7 @@ func SetLogging(levelName string, filename string) error {
 		switch strings.ToLower(levelName) {
 		case "error":
 			loggingLevel = logrus.ErrorLevel
-		case "warn":
-		case "warning":
+		case "warn", "warning":
 			loggingLevel = logrus.WarnLevel
 		case "info":
 			loggingLevel = logrus.InfoLevel

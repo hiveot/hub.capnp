@@ -10,7 +10,7 @@ type ConnectionProtocol string
 
 // Available message bus connection protocols
 const (
-	ConnectionProtocolSmbus ConnectionProtocol = "smb"
+	ConnectionProtocolSmbus ConnectionProtocol = "smbus"
 	ConnectionProtocolMQTT  ConnectionProtocol = "mqtt"
 )
 

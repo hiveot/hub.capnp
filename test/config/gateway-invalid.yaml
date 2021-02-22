@@ -1,0 +1,17 @@
+# Example gateway configuration
+
+# Message bus server
+messenger:
+  protocol: "badprotocol" # smbus, MQTT, default smbus
+  useTLS: false # use TLS for client/server messaging
+
+# Logging
+logging:
+  # logFile: "/var/log/wost/gateway.log"
+  # loglevel is used in test to verify the file was actually loaded
+  logLevel: "debug" # debug, info, warning, error. Default is warning
+
+# Plugins to start
+plugins: # list of plugins to start
+  - ls
+  - msgbus

@@ -3,9 +3,13 @@ package lib_test
 import (
 	"flag"
 	"os"
+	"strings"
 	"testing"
+	_ "testing"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/wostzone/gateway/pkg/lib"
 )
 
@@ -16,42 +20,107 @@ type CustomConfig struct {
 }
 
 func TestSetupGatewayCommandline(t *testing.T) {
-	myArgs := "--hostname bob --logsFolder logs --loglevel debug --useTLS=False"
-	config := lib.CreateGatewayConfig("")
-	// erase existing flags to avoid flag redefined error
-	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-	lib.SetupGatewayArgs(config)
-	err := lib.ParseCommandline(myArgs, &config)
-	assert.NoError(t, err)
-	assert.Equal(t, "bob", config.Messenger.HostPort)
-	assert.Equal(t, "logs", config.Logging.LogsFolder)
-	assert.Equal(t, "debug", config.Logging.Loglevel)
-	assert.Equal(t, false, config.Messenger.UseTLS)
+	myArgs := strings.Split("--hostname bob --logFile logfile.log --useTLS=False --logLevel debug", " ")
+	// Remove testing package created commandline and flags so we can test ours
+	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
+	os.Args = append(os.Args[0:1], myArgs...)
+
+	gwConfig := lib.CreateDefaultGatewayConfig("")
+	lib.SetGatewayCommandlineArgs(gwConfig)
+	// gwConfig, err := lib.SetupConfig("", nil)
+
+	flag.Parse()
+	// assert.NoError(t, err)
+	assert.Equal(t, "bob", gwConfig.Messenger.HostPort)
+	assert.Equal(t, "logfile.log", gwConfig.Logging.LogFile)
+	assert.Equal(t, "debug", gwConfig.Logging.Loglevel)
+	assert.Equal(t, false, gwConfig.Messenger.UseTLS)
 }
 
-// func TestCommandlineWithError(t *testing.T) {
-// 	myArgs := "--hostname bob --badarg=bad"
-// 	config := lib.CreateGatewayConfig("")
-// 	lib.SetupGatewayArgs(config)
-// 	err := lib.ParseCommandline(myArgs, &config)
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, "bob", config.HostPort)
-// }
+func TestCommandlineWithError(t *testing.T) {
+	myArgs := strings.Split("--hostname bob --badarg=bad", " ")
+	// Remove testing package created commandline and flags so we can test ours
+	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
+	os.Args = append(os.Args[0:1], myArgs...)
 
+	gwConfig, err := lib.SetupConfig("", nil)
+
+	assert.Error(t, err, "Parse flag -badarg should fail")
+	assert.Equal(t, "bob", gwConfig.Messenger.HostPort)
+}
+
+// Test setup with extra commandline flag '--extra'
 func TestSetupGatewayCommandlineWithExtendedConfig(t *testing.T) {
-	myArgs := "--hostname bob --extra value1"
+	myArgs := strings.Split("--hostname bob --extra value1", " ")
+	// Remove testing package created commandline and flags so we can test ours
+	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
+	os.Args = append(os.Args[0:1], myArgs...)
 
-	gwConfig := lib.CreateGatewayConfig("")
-	config := CustomConfig{}
-	config.GatewayConfig = *gwConfig
+	// gwConfig := lib.CreateDefaultGatewayConfig("")
+	pluginConfig := CustomConfig{}
+	// config.GatewayConfig = *gwConfig
 
-	// erase existing flags to avoid flag redefined error
-	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
-	lib.SetupGatewayArgs(&config.GatewayConfig)
-	flag.StringVar(&config.ExtraVariable, "extra", "", "Extended extra configuration")
+	// lib.SetGatewayCommandlineArgs(&config.GatewayConfig)
+	flag.StringVar(&pluginConfig.ExtraVariable, "extra", "", "Extended extra configuration")
 
-	err := lib.ParseCommandline(myArgs, &config)
+	// err := lib.ParseCommandline(myArgs, &config)
+	gwConfig, err := lib.SetupConfig("", pluginConfig)
+
 	assert.NoError(t, err)
-	assert.Equal(t, "bob", config.Messenger.HostPort)
-	assert.Equal(t, "value1", config.ExtraVariable)
+	assert.Equal(t, "bob", gwConfig.Messenger.HostPort)
+	assert.Equal(t, "value1", pluginConfig.ExtraVariable)
+}
+
+// Test with a custom and bad config file
+func TestSetupConfigBadConfigfile(t *testing.T) {
+	// The default directory is the project folder
+	myArgs := strings.Split("-c ../../test/config/gateway-bad.yaml", " ")
+	// Remove testing package created commandline and flags so we can test ours
+	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
+	os.Args = append(os.Args[0:1], myArgs...)
+
+	gwConfig, err := lib.SetupConfig("", nil)
+	assert.Error(t, err)
+	assert.Equal(t, "yaml: line 11", err.Error()[0:13], "Expected yaml parse error")
+	assert.NotNil(t, gwConfig)
+}
+
+// Test with an invalid config file
+func TestSetupConfigInvalidConfigfile(t *testing.T) {
+	// The default directory is the project folder
+	d, _ := os.Getwd()
+	logrus.Infof("current dir is %s", d)
+	myArgs := strings.Split("-c ../../test/config/gateway-invalid.yaml", " ")
+	// Remove testing package created commandline and flags so we can test ours
+	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
+	os.Args = append(os.Args[0:1], myArgs...)
+
+	gwConfig, err := lib.SetupConfig("", nil)
+	assert.Equal(t, "debug", gwConfig.Logging.Loglevel, "config file wasn't loaded")
+	assert.Error(t, err, "Expected validation of config to fail")
+	assert.NotNil(t, gwConfig)
+}
+
+func TestSetupConfigNoConfig(t *testing.T) {
+	myArgs := strings.Split("", " ")
+	// Remove testing package created commandline and flags so we can test ours
+	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
+	os.Args = append(os.Args[0:1], myArgs...)
+
+	pluginConfig := CustomConfig{}
+	gwConfig, err := lib.SetupConfig("notaconfigfile", pluginConfig)
+	assert.Error(t, err)
+	assert.NotNil(t, gwConfig)
+}
+
+func TestSetupLogging(t *testing.T) {
+	myArgs := strings.Split("--logLevel debug", " ")
+	// Remove testing package created commandline and flags so we can test ours
+	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
+	os.Args = append(os.Args[0:1], myArgs...)
+
+	gwConfig, err := lib.SetupConfig("myplugin", nil)
+	assert.NoError(t, err)
+	require.NotNil(t, gwConfig)
+	assert.Equal(t, "debug", gwConfig.Logging.Loglevel)
 }
