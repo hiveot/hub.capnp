@@ -1,27 +1,30 @@
 # Example application configuration
 # All fields are optional except for the plugins to start
 
-# configFolder: "../config" # location of plugin configuration files
-# configFolder: "/etc/wost/config" # location of plugin configuration files
-configFolder: "./" # location of plugin configuration files
-
-# Message bus server
-messenger:
-  #protocol: "" # internal, MQTT, default internal
-  #hostname: "localhost:9678" # hostname:port or ip:port to listen on of message bus
-  #certsFolder: "../certs" # location of gateway and client certificate
-  #certsFolder: "/etc/wost/certs" # location of gateway and client certificate
-  useTLS: true # use TLS for client/server messaging
-
 # Logging
 logging:
   loglevel: "info" # debug, info, warning, error. Default is warning
-  #logsFolder: "../logs" # location of log files
-  #logsFolder: "/var/logs/wost" # location of log files
+  #logFile: "../logs/gateway.log"           // local log file
+  #logFile: "/var/log/wost/gateway.log"     // system log file
 
-#pluginsFolder: "../plugins" # location of plugin binaries
-#pluginsFolder: "/opt/wost/gateway/plugins" # location of plugin binaries
-# Plugins to start
-plugins: # list of plugins to start
-  - /bin/true
-  - ls
+# Message bus server
+messenger:
+  #protocol: ""                   # smbus or mqtt. Default is the smbus plugin
+  #hostname: "localhost:9678"     # hostname:port or ip:port to listen on of message bus
+  #certsFolder: "../certs"        # location of gateway and client certificate
+  #certsFolder: "/etc/wost/certs" # location of gateway and client certificate
+  useTLS: true # use TLS for client/server messaging
+
+# location of plugin configuration files. Default is ../config
+# configFolder: "../config"        # local config
+# configFolder: "/etc/wost/config" # system config
+
+# location of plugin binaries files. Default is ../bin
+#pluginsFolder: "../bin"                    # local plugin binaries
+#pluginsFolder: "/opt/wost/gateway/plugins" # system plugin binaries
+
+# List of plugins to start.
+# smbus must be first if protocol is smbus (default)
+plugins:
+  - smbus
+  - recorder

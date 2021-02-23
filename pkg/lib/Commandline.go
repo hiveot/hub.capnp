@@ -44,14 +44,18 @@ func SetGatewayCommandlineArgs(config *GatewayConfig) {
 //  - If the commandline argument  -c configFolder is given then load use this
 // as the configuration folder instead of: appFolder/../config
 //
+// appFolder overrides the default application folder that contains bin/gateway.
+//     Leave empty to use parent of application binary. Intended for running tests.
+// pluginName is used as the ID in messaging and the plugin configuration filename
+//     The plugin config file is optional. Sensible defaults will be used if not present.
 // pluginConfig is the configuration to load. nil to only load the gateway config.
 // Returns the gateway configuration and error code in case of error
-func SetupConfig(pluginName string, pluginConfig interface{}) (*GatewayConfig, error) {
+func SetupConfig(appFolder string, pluginName string, pluginConfig interface{}) (*GatewayConfig, error) {
 	// set configuration defaults
-	gwConfig := CreateDefaultGatewayConfig("")
+	gwConfig := CreateDefaultGatewayConfig(appFolder)
 	gwConfigFile := path.Join(gwConfig.ConfigFolder, GatewayConfigName)
 
-	// Option -c overrides the default gateway config file.
+	// Use option -c overrides the default gateway config file.
 	args := os.Args[1:]
 	for index, arg := range args {
 		if arg == "-c" {
@@ -71,9 +75,9 @@ func SetupConfig(pluginName string, pluginConfig interface{}) (*GatewayConfig, e
 	if pluginName != "" && pluginConfig != nil {
 		pluginConfigFile := path.Join(gwConfig.ConfigFolder, pluginName+".yaml")
 		err3 := LoadConfig(pluginConfigFile, pluginConfig)
-
 		if err3 != nil {
-			return gwConfig, err3
+			// ignore errors. The plugin configuration file is optional
+			// return gwConfig, err3
 		}
 	}
 	SetGatewayCommandlineArgs(gwConfig)

@@ -48,8 +48,8 @@ type GatewayConfig struct {
 }
 
 // CreateDefaultGatewayConfig with default values
-// baseFolder is the base of the configuration. Use "" for default: parent of application
-//
+// baseFolder is the base of the application, log and configuration folders.
+// Use "" for default: parent of application binary
 func CreateDefaultGatewayConfig(baseFolder string) *GatewayConfig {
 	appFolder := baseFolder
 	if appFolder == "" {
@@ -86,10 +86,10 @@ func LoadConfig(configFile string, config interface{}) error {
 	var rawConfig []byte
 	rawConfig, err = ioutil.ReadFile(configFile)
 	if err != nil {
-		logrus.Errorf("LoadConfig: Error loading config from file '%s': %s", configFile, err)
+		logrus.Warningf("LoadConfig: Unable to load config file: %s", err)
 		return err
 	}
-	logrus.Infof("LoadConfig: Loaded config from file '%s'", configFile)
+	logrus.Infof("LoadConfig: Loaded config file '%s'", configFile)
 
 	err = yaml.Unmarshal(rawConfig, config)
 	if err != nil {

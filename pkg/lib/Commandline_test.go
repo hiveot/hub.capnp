@@ -43,7 +43,7 @@ func TestCommandlineWithError(t *testing.T) {
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 	os.Args = append(os.Args[0:1], myArgs...)
 
-	gwConfig, err := lib.SetupConfig("", nil)
+	gwConfig, err := lib.SetupConfig("", "", nil)
 
 	assert.Error(t, err, "Parse flag -badarg should fail")
 	assert.Equal(t, "bob", gwConfig.Messenger.HostPort)
@@ -64,7 +64,7 @@ func TestSetupGatewayCommandlineWithExtendedConfig(t *testing.T) {
 	flag.StringVar(&pluginConfig.ExtraVariable, "extra", "", "Extended extra configuration")
 
 	// err := lib.ParseCommandline(myArgs, &config)
-	gwConfig, err := lib.SetupConfig("", pluginConfig)
+	gwConfig, err := lib.SetupConfig("", "", pluginConfig)
 
 	assert.NoError(t, err)
 	assert.Equal(t, "bob", gwConfig.Messenger.HostPort)
@@ -79,7 +79,7 @@ func TestSetupConfigBadConfigfile(t *testing.T) {
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 	os.Args = append(os.Args[0:1], myArgs...)
 
-	gwConfig, err := lib.SetupConfig("", nil)
+	gwConfig, err := lib.SetupConfig("", "", nil)
 	assert.Error(t, err)
 	assert.Equal(t, "yaml: line 11", err.Error()[0:13], "Expected yaml parse error")
 	assert.NotNil(t, gwConfig)
@@ -95,12 +95,13 @@ func TestSetupConfigInvalidConfigfile(t *testing.T) {
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 	os.Args = append(os.Args[0:1], myArgs...)
 
-	gwConfig, err := lib.SetupConfig("", nil)
+	gwConfig, err := lib.SetupConfig("", "", nil)
 	assert.Equal(t, "debug", gwConfig.Logging.Loglevel, "config file wasn't loaded")
 	assert.Error(t, err, "Expected validation of config to fail")
 	assert.NotNil(t, gwConfig)
 }
 
+// TestSetupConfigNoConfig checks that setup still works if the plugin config doesn't exist
 func TestSetupConfigNoConfig(t *testing.T) {
 	myArgs := strings.Split("", " ")
 	// Remove testing package created commandline and flags so we can test ours
@@ -108,8 +109,8 @@ func TestSetupConfigNoConfig(t *testing.T) {
 	os.Args = append(os.Args[0:1], myArgs...)
 
 	pluginConfig := CustomConfig{}
-	gwConfig, err := lib.SetupConfig("notaconfigfile", pluginConfig)
-	assert.Error(t, err)
+	gwConfig, err := lib.SetupConfig("", "notaconfigfile", pluginConfig)
+	assert.NoError(t, err)
 	assert.NotNil(t, gwConfig)
 }
 
@@ -119,7 +120,7 @@ func TestSetupLogging(t *testing.T) {
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 	os.Args = append(os.Args[0:1], myArgs...)
 
-	gwConfig, err := lib.SetupConfig("myplugin", nil)
+	gwConfig, err := lib.SetupConfig("", "myplugin", nil)
 	assert.NoError(t, err)
 	require.NotNil(t, gwConfig)
 	assert.Equal(t, "debug", gwConfig.Logging.Loglevel)

@@ -101,8 +101,8 @@ func Listen(conn *websocket.Conn, handler func(command string, topic string, mes
 // Send a command to the message bus server
 func Send(conn *websocket.Conn, command string, channelID string, message []byte) error {
 	if conn == nil {
-		msg := fmt.Errorf("send: Unable to deliver command %s to channel %s. No connection to server", command, channelID)
-		return msg
+		err := fmt.Errorf("send: Unable to deliver command %s to channel %s. No connection to server", command, channelID)
+		return err
 	}
 
 	w, err := conn.NextWriter(websocket.TextMessage)

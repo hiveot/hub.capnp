@@ -49,11 +49,11 @@ clean: ## Clean distribution files
 #prof: ## Run application with CPU and memory profiling
 #	  $(GORUN) main.go -cpuprofile=cpu.prof -memprofile=mem.prof
 
-plugins: logger smbserver ## Build the plugins for amd64 and arm
+plugins: recorder smbus ## Build the plugins for amd64 and arm
 
-logger smbserver:
-	GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(X64_DIST_FOLDER)/$@ plugins/$@/cmd/main.go
-	GOOS=linux GOARCH=arm $(GOBUILD) -o $(ARM_DIST_FOLDER)/$@ plugins/$@/cmd/main.go
+smbus recorder:
+	GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(X64_DIST_FOLDER)/$@ plugins/$@/main.go
+	GOOS=linux GOARCH=arm $(GOBUILD) -o $(ARM_DIST_FOLDER)/$@ plugins/$@/main.go
 	@echo "> SUCCESS. Plugin '$@' can be found at $(X64_DIST_FOLDER)/$@ and $(ARM_DIST_FOLDER)/$@"
 
 gateway: FORCE ## Build gateway for amd64 and arm targets

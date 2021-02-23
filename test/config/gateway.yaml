@@ -15,4 +15,3 @@ logging:
 # Plugins to start
 plugins: # list of plugins to start
   - ls
-  - msgbus

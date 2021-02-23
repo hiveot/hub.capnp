@@ -181,14 +181,21 @@ Data published on WoST Gateway channels MUST adhere to that data channel's schem
 
 Message published on these channel MUST adhere to the WoT data schemas for TD, events and actions.
 
-### Reference Plugin s
+### Reference Plugins
+
 The WoST project plans to include several plugins for working out of the box.
+
+* The 'smbus' plugin is a simple message bus for out of the box secure plugin to gateway communication.
 
 * The 'discovery' protocol binding announces the gateway on the local network using mDNS. This is intended to let WoST Things discover the gateway.
 
 * The  'wost' protocol binding provides a websocket API for use by WoST Things to provision, publish TD's, publish events, and receive actions.
 
+* The 'recorder' service records channel messages into files. Intended for testing.
+ 
 * The 'directory' service plugin provides an HTTPS API for consumers to query provisioned and discovered Things. 
+
+Advanced plugins that are planned:
 
 * The 'intermediary' service plugin forwards TD and events from exposed Things to a remote gateway or intermediary, and optionally receive actions. This is intended for cloud based access to Things.
 
@@ -200,18 +207,33 @@ The WoST project plans to include several plugins for working out of the box.
 
 * The 'admin' service plugin provides a simple web based interface to view and manage Things. 
 
+* The 'wallpaper' service builds a live wallpaper out of ip cameras or other published images
+
+Plugins for connecting to legacy IoT devices
+
+* The 'owserver' protocol binding publishes 1-wire OwServer-V2 devices
+
+* The 'openzwave' protocol binding publishes open-zwave devices
+
+* The 'ipcam' protocol binding publishes network camera snapshots
+
+* The 'isy99' protocol binding publishes ISY99 (Insteon) devices 
+
 All of these plugins can be substituted by another implementation as needed. 
+
 
 ## Launching Plugins
 
 Plugins are launched at startup and given three arguments: 
+
+TBD: either gateway load config or pass params ...
 * {host} containing the IP and port of the service bus connection.
 * {certFolder} certificate folder for server and client certificates
 * {configFile} containing the path to the plugin YAML configuration file. This file is optional. If possible plugins should function out of the box without configuration.
 
 ## Messenger Connections
 
-After launch, plugins connect to their channels. The default connect address for the internal service bus is made up as follows:
+After launch, plugins connect to the message bus and subscribe to channels. The default connect address for the internal service bus (smbus) is:
 > wss://{host:port}/wost
 
 Where:
@@ -219,7 +241,7 @@ Where:
 
 While a plugin can publish and subscribe to as many channels as needed it is strongly recommended to adhere to the single responsibility principle and only use the channels that are needed to fulfil that responsibility. 
 
-Note that the client libraries implement the connection logic for the various protocols so the plugin developer only need to know the channel ID.
+The provided client libraries implement the connection logic for the various protocols so the plugin developer only need to know the channel ID.
 
 A plugin can implement its own connection client for publishing and subscribing. The message format for the built-in websocket message bus is: 
 > {command}:{channel}:{payload}
