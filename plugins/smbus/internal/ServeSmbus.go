@@ -4,10 +4,12 @@ package internal
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
@@ -255,12 +257,16 @@ func (mbs *ServeSmbus) Start(host string) (*mux.Router, error) {
 		err = mbs.httpServer.ListenAndServe()
 
 		if err != nil && err != http.ErrServerClosed {
-			logrus.Errorf("Start: ListenAndServe error: %s", err)
+			// logrus.Panicf("Start: ListenAndServe error: %s", err)
+			err = fmt.Errorf("Start: %s", err)
+			logrus.Error(err)
+			// logrus.Errorf("Start: ListenAndServe error: %s", err)
+			// os.Exit(1)
 		}
 	}()
-
-	// FIXME: this doesn't catch error "bind: address already in use"
-	//  Wait until running or failure?
+	// Sleep to be check if ListenAndServe started properly
+	// Not pretty but it handles it
+	time.Sleep(time.Second)
 
 	return router, err
 }
@@ -313,9 +319,13 @@ func (mbs *ServeSmbus) StartTLS(listenAddress string, caCertFile string, serverC
 		err := mbs.httpServer.ListenAndServeTLS("", "")
 		// err := cs.httpServer.ListenAndServeTLS(serverCertFile, serverKeyFile)
 		if err != nil && err != http.ErrServerClosed {
-			logrus.Errorf("ServeMsgBus.Start: ListenAndServeTLS error: %s", err)
+			err = fmt.Errorf("Start TLS: %s", err)
+			// logrus.Fatalf("ServeMsgBus.Start: ListenAndServeTLS error: %s", err)
 		}
 	}()
+	// Make sure the server is listening before continuing
+	// Not pretty but it handles it
+	time.Sleep(time.Second)
 	return router, err
 }
 

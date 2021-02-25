@@ -9,6 +9,7 @@ import (
 
 // StartGateway reads the gateway configuration and starts the gateway plugins
 // Start is aborted if the configuration is invalid
+// The plugins receive the same commandline arguments as the gateway
 func StartGateway(appFolder string) error {
 	config, err := lib.SetupConfig(appFolder, "", nil)
 	if err != nil {
@@ -16,13 +17,13 @@ func StartGateway(appFolder string) error {
 	}
 
 	// launch plugins
-	logrus.Warningf("Starting %d gateway plugins on %s. UseTLS=%t",
+	logrus.Warningf("StartGateway: Starting %d gateway plugins on %s. UseTLS=%t",
 		len(config.Plugins), config.Messenger.HostPort, config.Messenger.UseTLS)
-	args := os.Args[1:] // pass the gateways args to the plugin
 
+	args := os.Args[1:] // pass the gateways args to the plugin
 	lib.StartPlugins(config.PluginFolder, config.Plugins, args)
 
-	logrus.Warningf("Gateway is not running")
+	logrus.Warningf("StartGateway: Gateway started successfully!")
 
 	return nil
 }
@@ -30,7 +31,7 @@ func StartGateway(appFolder string) error {
 // StopGateway stops a running gateway and its plugins
 // TODO implements
 func StopGateway() {
-	logrus.Warningf("Received Signal, stopping gateway and its plugins")
+	logrus.Warningf("StopGateway: Received Signal, stopping gateway and its plugins")
 
-	logrus.Warningf("Unable to stop gateway plugins. Someone hasn't implemented this yet...")
+	logrus.Warningf("StopGateway: Unable to stop gateway plugins. Someone hasn't implemented this yet...")
 }

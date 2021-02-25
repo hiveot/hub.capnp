@@ -19,8 +19,10 @@ func SetGatewayCommandlineArgs(config *GatewayConfig) {
 	// 	return
 	// }
 	flagsAreSet = true
-	// Flag -c is handled separately in SetupConfig. It is added here to avoid flag parse error
-	flag.String("c", path.Join(config.ConfigFolder, ""), "Load this config file instead of gateway.yaml")
+	// Flags -c and --home are handled separately in SetupConfig. It is added here to avoid flag parse error
+	flag.String("c", "gateway.yaml", "Set the gateway configuration file ")
+	flag.StringVar(&config.Home, "home", config.Home, "Application working `folder`")
+
 	flag.StringVar(&config.Messenger.CertsFolder, "certsFolder", config.Messenger.CertsFolder, "Optional certificate `folder` for TLS")
 	flag.StringVar(&config.ConfigFolder, "configFolder", config.ConfigFolder, "Plugin configuration `folder`")
 	flag.StringVar(&config.Messenger.HostPort, "hostname", config.Messenger.HostPort, "Message bus address host:port")
@@ -39,27 +41,48 @@ func SetGatewayCommandlineArgs(config *GatewayConfig) {
 // The plugin configuration is the {pluginName}.yaml. If no pluginName is given it is ignored
 //  and logging for the plugin is not configured.
 // The plugin logfile is stored in the gateway logging folder using the pluginName.log filename
-// Wrt commandline:
-//  - This loads the gateway commandline arguments
-//  - If the commandline argument  -c configFolder is given then load use this
-// as the configuration folder instead of: appFolder/../config
+// This loads the gateway commandline arguments with two special considerations:
+//  - Option "-c"  loads the specified configuration file instead of the default one
+//  - Option "--home" sets the home folder as the base of ./config, ./logs and ./bin directories
+//       The homeFolder argument takes precedence
 //
-// appFolder overrides the default application folder that contains bin/gateway.
+// homeFolder overrides the default home folder
 //     Leave empty to use parent of application binary. Intended for running tests.
+//     The current working directory is changed to this folder
 // pluginName is used as the ID in messaging and the plugin configuration filename
 //     The plugin config file is optional. Sensible defaults will be used if not present.
 // pluginConfig is the configuration to load. nil to only load the gateway config.
 // Returns the gateway configuration and error code in case of error
-func SetupConfig(appFolder string, pluginName string, pluginConfig interface{}) (*GatewayConfig, error) {
+func SetupConfig(homeFolder string, pluginName string, pluginConfig interface{}) (*GatewayConfig, error) {
+	args := os.Args[1:]
+	if homeFolder == "" {
+		// Option --home overrides the default home folder. Intended for testing.
+		for index, arg := range args {
+			if arg == "--home" || arg == "-home" {
+				homeFolder = args[index+1]
+				// make relative paths absolute
+				if !path.IsAbs(homeFolder) {
+					cwd, _ := os.Getwd()
+					homeFolder = path.Join(cwd, homeFolder)
+				}
+				break
+			}
+		}
+	}
+
 	// set configuration defaults
-	gwConfig := CreateDefaultGatewayConfig(appFolder)
+	gwConfig := CreateDefaultGatewayConfig(homeFolder)
 	gwConfigFile := path.Join(gwConfig.ConfigFolder, GatewayConfigName)
 
-	// Use option -c overrides the default gateway config file.
-	args := os.Args[1:]
+	// Option -c overrides the default gateway config file. Intended for testing.
+	args = os.Args[1:]
 	for index, arg := range args {
 		if arg == "-c" {
 			gwConfigFile = args[index+1]
+			// make relative paths absolute
+			if !path.IsAbs(gwConfigFile) {
+				gwConfigFile = path.Join(homeFolder, gwConfigFile)
+			}
 			break
 		}
 	}
@@ -91,6 +114,9 @@ func SetupConfig(appFolder string, pluginName string, pluginConfig interface{}) 
 			logrus.Errorf("SetupConfig: commandline configuration invalid: %s", err)
 		}
 	}
+
+	// It is up to the app to change to the home directory.
+	// os.Chdir(gwConfig.HomeFolder)
 
 	// Last set the gateway/plugin logging
 	if pluginName != "" {

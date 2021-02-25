@@ -29,53 +29,64 @@ type ConfigArgs struct {
 type GatewayConfig struct {
 	Logging struct {
 		Loglevel string `yaml:"logLevel"` // debug, info, warning, error. Default is warning
-		LogFile  string `yaml:"logFile"`  // logging to file
+		LogFile  string `yaml:"logFile"`  // gateway logging to file
 	} `yaml:"logging"`
 
 	// Messenger configuration of gateway plugin messaging
 	Messenger struct {
-		CertsFolder string `yaml:"certsFolder"` // location of gateway and client certificate
+		CertsFolder string `yaml:"certsFolder"` // location of gateway and client certificate. Default is ./certs
 		HostPort    string `yaml:"hostname"`    // hostname:port or ip:port to listen on of message bus
 		Protocol    string `yaml:"protocol"`    // internal, MQTT, default internal
 		UseTLS      bool   `yaml:"useTLS"`      // use TLS for client/server messaging
 	} `yaml:"messenger"`
 
-	// AppFolder    string   `yaml:"app"`          // application root folder
-	ConfigFolder string   `yaml:"configFolder"` // location of plugin configuration files
-	PluginFolder string   `yaml:"pluginFolder"` // location of plugin binaries
+	Home         string   `yaml:"home"`         // application home directory. Default is parent of executable.
+	ConfigFolder string   `yaml:"configFolder"` // location of configuration files. Default is ./config
+	PluginFolder string   `yaml:"pluginFolder"` // location of plugin binaries. Default is ./bin
 	Plugins      []string `yaml:"plugins"`      // names of plugins to start
 	// internal
 }
 
 // CreateDefaultGatewayConfig with default values
-// baseFolder is the base of the application, log and configuration folders.
+// homeFolder is the home of the application, log and configuration folders.
 // Use "" for default: parent of application binary
-func CreateDefaultGatewayConfig(baseFolder string) *GatewayConfig {
-	appFolder := baseFolder
-	if appFolder == "" {
-		appBin, _ := os.Executable()
-		binFolder := path.Dir(appBin)
-		appFolder = path.Dir(binFolder)
+// When relative path is given, it is relative to the application binary
+func CreateDefaultGatewayConfig(homeFolder string) *GatewayConfig {
+	appBin, _ := os.Executable()
+	binFolder := path.Dir(appBin)
+	if homeFolder == "" {
+		homeFolder = path.Dir(binFolder)
 
 		// for running within the project tests use the test folder as application root folder
-		if path.Base(binFolder) != "bin" {
-			// appFolder = path.Join(appFolder, "../test")
-			cwd, _ := os.Getwd()
-			appFolder = path.Join(cwd, "../../test")
-		}
+		// if path.Base(binFolder) != "bin" {
+		// 	// appFolder = path.Join(appFolder, "../test")
+		// 	cwd, _ := os.Getwd()
+		// 	appFolder = path.Join(cwd, "../../test")
+		// }
 		// logrus.Infof("appBin: %s. CWD=%s", appBin, cwd)
+	} else if !path.IsAbs(homeFolder) {
+		// turn relative home folder in absolute path
+		// cwd, _ := os.Getwd()
+		// homeFolder = path.Join(cwd, homeFolder)
+		homeFolder = path.Join(binFolder, homeFolder)
 	}
+	logrus.Infof("CreateDefaultGatewayConfig: appBin is: %s; Home is: %s", appBin, homeFolder)
 	config := &GatewayConfig{
-		ConfigFolder: path.Join(appFolder, "config"),
+		// ConfigFolder: path.Join(homeFolder, "config"),
+		Home:         homeFolder,
+		ConfigFolder: path.Join(homeFolder, "config"),
 		Plugins:      make([]string, 0),
-		PluginFolder: path.Join(appFolder, "bin"),
+		// PluginFolder: path.Join(homeFolder, "bin"),
+		PluginFolder: path.Join(homeFolder, "./bin"),
 	}
-	config.Messenger.CertsFolder = path.Join(appFolder, "certs")
+	// config.Messenger.CertsFolder = path.Join(homeFolder, "certs")
+	config.Messenger.CertsFolder = path.Join(homeFolder, "./certs")
 	config.Messenger.HostPort = smbus.DefaultSmbusHost                    //"localhost:9678"
 	config.Messenger.Protocol = string(messaging.ConnectionProtocolSmbus) // internal
 	config.Messenger.UseTLS = true
 	config.Logging.Loglevel = "warning"
-	config.Logging.LogFile = path.Join(appFolder, "logs/"+GatewayLogFile)
+	// config.Logging.LogFile = path.Join(homeFolder, "logs/"+GatewayLogFile)
+	config.Logging.LogFile = path.Join(homeFolder, "./logs/"+GatewayLogFile)
 	return config
 }
 
@@ -99,27 +110,34 @@ func LoadConfig(configFile string, config interface{}) error {
 	return nil
 }
 
-// ValidateConfig checks if values in the gatewy configuration are correct
+// ValidateConfig checks if values in the gateway configuration are correct
 // Returns an error if the config is invalid
 func ValidateConfig(config *GatewayConfig) error {
-	// validate config file
-	if _, err := os.Stat(config.ConfigFolder); os.IsNotExist(err) {
-		logrus.Errorf("Configuration folder '%s' not found\n", config.ConfigFolder)
+	if _, err := os.Stat(config.Home); os.IsNotExist(err) {
+		logrus.Errorf("ValidateConfig: Home folder '%s' not found\n", config.Home)
 		return err
 	}
+	if _, err := os.Stat(config.ConfigFolder); os.IsNotExist(err) {
+		logrus.Errorf("ValidateConfig: Configuration folder '%s' not found\n", config.ConfigFolder)
+		return err
+	}
+
 	loggingFolder := path.Dir(config.Logging.LogFile)
 	if _, err := os.Stat(loggingFolder); os.IsNotExist(err) {
-		logrus.Errorf("Logging folder '%s' not found\n", loggingFolder)
+		logrus.Errorf("ValidateConfig: Logging folder '%s' not found\n", loggingFolder)
 		return err
 	}
+
 	if _, err := os.Stat(config.Messenger.CertsFolder); os.IsNotExist(err) && config.Messenger.UseTLS {
-		logrus.Errorf("TLS certificate folder '%s' not found\n", config.Messenger.CertsFolder)
+		logrus.Errorf("ValidateConfig: TLS certificate folder '%s' not found\n", config.Messenger.CertsFolder)
 		return err
 	}
+
 	if _, err := os.Stat(config.PluginFolder); os.IsNotExist(err) {
-		logrus.Errorf("Plugins folder '%s' not found\n", config.PluginFolder)
+		logrus.Errorf("ValidateConfig: Plugins folder '%s' not found\n", config.PluginFolder)
 		return err
 	}
+
 	if config.Messenger.Protocol != "" &&
 		config.Messenger.Protocol != string(messaging.ConnectionProtocolSmbus) &&
 		config.Messenger.Protocol != string(messaging.ConnectionProtocolMQTT) {

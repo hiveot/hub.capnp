@@ -5,7 +5,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "args": [],
+      "args": ["--home", "./test"],
       "cwd": "${workspaceFolder}",
       "name": "Launch Gateway",
       "type": "go",
@@ -15,19 +15,19 @@
     },
     {
       "name": "Launch smbus plugin",
-      "args": [],
+      "args": ["--home", "../../test"],
       "type": "go",
       "request": "launch",
       "mode": "debug",
       "program": "${workspaceFolder}/plugins/smbus/main.go",
     },
     {
-      "name": "Launch channel logger plugin",
-      "args": [],
+      "name": "Launch channel recorder plugin",
+      "args": ["--home", "../../test", "-hostname", "localhost:9999"],
       "type": "go",
       "request": "launch",
       "mode": "debug",
-      "program": "${workspaceFolder}/plugins/logger/main.go",
+      "program": "${workspaceFolder}/plugins/recorder/main.go",
     },
 
 

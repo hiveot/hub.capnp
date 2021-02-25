@@ -1,6 +1,7 @@
 package lib_test
 
 import (
+	"os"
 	"path"
 	"testing"
 	"time"
@@ -10,9 +11,11 @@ import (
 )
 
 func TestStartPlugin(t *testing.T) {
+	wd, _ := os.Getwd()
+	home := path.Join(wd, "../../test")
 	// the binary 'ls' exists on Linux and Windows
 	pluginName := "ls"
-	cmd := lib.StartPlugin("", pluginName, []string{})
+	cmd := lib.StartPlugin(home, pluginName, []string{})
 	assert.NotNil(t, cmd)
 	// output, err := cmd.Output()
 
@@ -20,8 +23,10 @@ func TestStartPlugin(t *testing.T) {
 }
 
 func TestStartPluginsFromConfig(t *testing.T) {
+	wd, _ := os.Getwd()
+	home := path.Join(wd, "../../test")
 	// the binary 'ls' exists on Linux and Windows
-	config := lib.CreateDefaultGatewayConfig("../../test")
+	config := lib.CreateDefaultGatewayConfig(home)
 	err := lib.LoadConfig(path.Join(config.ConfigFolder, "gateway.yaml"), config)
 	assert.NoError(t, err)
 	lib.StartPlugins("", config.Plugins, []string{})
@@ -29,7 +34,6 @@ func TestStartPluginsFromConfig(t *testing.T) {
 }
 
 func TestStopPlugin(t *testing.T) {
-	// the binary 'ls' exists on Linux and Windows
 	pluginName := "sleep"
 	cmd := lib.StartPlugin("", pluginName, []string{"10"})
 	assert.NotNil(t, cmd)
@@ -40,9 +44,11 @@ func TestStopPlugin(t *testing.T) {
 }
 
 func TestStopEndedPlugin(t *testing.T) {
+	wd, _ := os.Getwd()
+	home := path.Join(wd, "../../test")
 	// the binary 'ls' exists on Linux and Windows
 	pluginName := "ls"
-	cmd := lib.StartPlugin("", pluginName, []string{})
+	cmd := lib.StartPlugin(home, pluginName, []string{})
 	assert.NotNil(t, cmd)
 	// 'ls' returns within 1 sec so this attempts to stop a process that has already ended
 	time.Sleep(3 * time.Second)
@@ -52,8 +58,10 @@ func TestStopEndedPlugin(t *testing.T) {
 }
 
 func TestStopAllPlugins(t *testing.T) {
+	wd, _ := os.Getwd()
+	home := path.Join(wd, "../../test")
 	// the binary 'ls' exists on Linux and Windows
-	cmd := lib.StartPlugin("", "sleep", []string{"10"})
+	cmd := lib.StartPlugin(home, "sleep", []string{"10"})
 	assert.NotNil(t, cmd)
 	time.Sleep(1 * time.Second)
 	lib.StopAllPlugins()

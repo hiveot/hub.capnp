@@ -43,13 +43,13 @@ func StartPlugin(pluginFolder string, name string, args []string) *exec.Cmd {
 		logrus.Errorf("StartPlugin: plugin with name %s is not stopped", name)
 		return nil
 	}
-
+	// argString := strings.Join(args, " ")
 	cmd := exec.Command(pluginFile, args...)
-	// TODO: do we really want to capture stderr?
+	// Capture stderr in case of startup failure
 	cmd.Stderr = os.Stderr
 
 	go func() {
-		err := cmd.Run()
+		err := cmd.Run() // this waits until completion
 		if err != nil {
 			logrus.Errorf("StartPlugin Plugin '%s' ended with error: %s", name, err)
 		} else {

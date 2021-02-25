@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/gateway/pkg/lib"
 	"github.com/wostzone/gateway/plugins/smbus/internal"
@@ -11,7 +13,9 @@ func main() {
 	srv, err := internal.StartSmbus("")
 	if err != nil {
 		logrus.Errorf("smbus: Failed to start")
-		srv.Stop()
+		os.Exit(1)
 	}
 	lib.WaitForSignal()
+	srv.Stop()
+	os.Exit(0)
 }

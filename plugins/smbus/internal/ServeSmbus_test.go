@@ -73,7 +73,6 @@ func TestConnectNoTLS(t *testing.T) {
 	// logrus.Infof("Testing authentication on channel %s", channel1)
 	cs, err := internal.Start(hostPort)
 	require.NoError(t, err)
-	time.Sleep(time.Second)
 
 	conn, err := smbus.NewWebsocketConnection(hostPort, client1ID, nil)
 	require.NoError(t, err, "Error creating publisher: %s", err)
@@ -91,7 +90,6 @@ func TestConnectNoWSClient(t *testing.T) {
 
 	srv, err := internal.Start(hostPort)
 	require.NoError(t, err)
-	time.Sleep(100 * time.Millisecond)
 
 	// conn, err := smbserver.NewWebsocketConnection(hostPort, client1ID, nil)
 	// require.NoError(t, err, "Error creating publisher: %s", err)
@@ -106,7 +104,6 @@ func TestConnectNoWSClient(t *testing.T) {
 
 	require.NotNil(t, resp)
 	assert.True(t, resp.StatusCode >= 400)
-	time.Sleep(time.Second)
 
 	srv.Stop()
 }
@@ -117,7 +114,6 @@ func TestConnectInvalidClientID(t *testing.T) {
 
 	cs, err := internal.Start(hostPort)
 	require.NoError(t, err)
-	time.Sleep(time.Second)
 	_, err = smbus.NewWebsocketConnection(hostPort, "", nil)
 	require.Error(t, err, "Expected error creating subscriber with invalid ID")
 	cs.Stop()
@@ -130,12 +126,16 @@ func TestStartTwice(t *testing.T) {
 
 	cs1, err := internal.Start(hostPort)
 	require.NoError(t, err)
+
+	// Address in use causes os.Exit so this test never passes :/
 	cs2, err := internal.Start(hostPort)
-	time.Sleep(time.Second)
+	assert.Error(t, err)
+	// assert.Panics(t, func() { internal.Start(hostPort) })
 
 	cs1.Stop()
-	cs2.Stop()
-
+	if cs2 != nil {
+		cs2.Stop()
+	}
 }
 
 func TestPubSub(t *testing.T) {
@@ -148,7 +148,6 @@ func TestPubSub(t *testing.T) {
 
 	mb, err := internal.Start(hostPort)
 	require.NoError(t, err)
-	time.Sleep(time.Second)
 
 	rawHandler1 := func(command string, channel string, msg []byte) {
 		logrus.Infof("TestPubSub: received command '%s' for channel '%s'", command, channel)
@@ -268,7 +267,6 @@ func TestTLSPubSub(t *testing.T) {
 	cs, err := internal.StartTLS(hostPort, certFolder)
 	require.NoError(t, err)
 
-	time.Sleep(time.Second)
 	clientCertPEM, _ := ioutil.ReadFile(path.Join(certFolder, certs.ClientCertFile))
 	clientKeyPEM, _ := ioutil.ReadFile(path.Join(certFolder, certs.ClientKeyFile))
 	caCertPEM, _ := ioutil.ReadFile(path.Join(certFolder, certs.CaCertFile))
@@ -322,7 +320,7 @@ func TestCloseSubscriberChannel(t *testing.T) {
 	// setup
 	cs, err := internal.StartTLS(hostPort, certFolder)
 	require.NoError(t, err)
-	time.Sleep(time.Second * 1)
+
 	clientCertPEM, _ := ioutil.ReadFile(path.Join(certFolder, certs.ClientCertFile))
 	clientKeyPEM, _ := ioutil.ReadFile(path.Join(certFolder, certs.ClientKeyFile))
 	caCertPEM, _ := ioutil.ReadFile(path.Join(certFolder, certs.CaCertFile))
@@ -370,7 +368,7 @@ func TestLoad(t *testing.T) {
 
 	cs, err := internal.StartTLS(hostPort, certFolder)
 	require.NoError(t, err)
-	time.Sleep(time.Second * 1)
+
 	clientCertPEM, _ := ioutil.ReadFile(path.Join(certFolder, certs.ClientCertFile))
 	clientKeyPEM, _ := ioutil.ReadFile(path.Join(certFolder, certs.ClientKeyFile))
 	caCertPEM, _ := ioutil.ReadFile(path.Join(certFolder, certs.CaCertFile))
@@ -429,7 +427,7 @@ func TestServeHome(t *testing.T) {
 
 	// setup
 	mb, err := internal.Start(hostPort)
-	time.Sleep(time.Millisecond)
+
 	res, err := http.Get("http://" + hostPort + "/")
 	require.NoError(t, err)
 	logrus.Infof("TestServeHome: result: %s", res.Status)
