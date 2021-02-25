@@ -1,4 +1,4 @@
-// Package smbserver with simple internal message bus for serving plugins pub/sub
+// Package internal with simple internal message bus for serving plugins pub/sub
 package internal
 
 import (
@@ -243,6 +243,7 @@ func (mbs *ServeSmbus) serveConnection(response http.ResponseWriter, request *ht
 // Returns the mux router to allow for additional listeners such as /home
 func (mbs *ServeSmbus) Start(host string) (*mux.Router, error) {
 	var err error
+	errMutex := sync.Mutex{}
 	router := mux.NewRouter()
 	router.HandleFunc(smbus.MsgbusAddress, mbs.serveConnection)
 
@@ -254,12 +255,17 @@ func (mbs *ServeSmbus) Start(host string) (*mux.Router, error) {
 		}
 		// cs.updateMutex.Unlock()
 		logrus.Infof("ServeMsgBus.Start: ListenAndServe on %s", host)
-		err = mbs.httpServer.ListenAndServe()
+		err2 := mbs.httpServer.ListenAndServe()
 
-		if err != nil && err != http.ErrServerClosed {
+		if err2 != nil && err2 != http.ErrServerClosed {
 			// logrus.Panicf("Start: ListenAndServe error: %s", err)
-			err = fmt.Errorf("Start: %s", err)
-			logrus.Error(err)
+			err2 = fmt.Errorf("Start: %s", err)
+			logrus.Error(err2)
+			errMutex.Lock()
+			// Return the error to the main thread if it is still around
+			// If things go well it is long gone :)
+			err = err2
+			errMutex.Unlock()
 			// logrus.Errorf("Start: ListenAndServe error: %s", err)
 			// os.Exit(1)
 		}
@@ -268,6 +274,8 @@ func (mbs *ServeSmbus) Start(host string) (*mux.Router, error) {
 	// Not pretty but it handles it
 	time.Sleep(time.Second)
 
+	errMutex.Lock()
+	defer errMutex.Unlock()
 	return router, err
 }
 
@@ -280,6 +288,7 @@ func (mbs *ServeSmbus) Start(host string) (*mux.Router, error) {
 // Returns the mux router to allow for additional listeners such as /home
 func (mbs *ServeSmbus) StartTLS(listenAddress string, caCertFile string, serverCertFile string,
 	serverKeyFile string) (router *mux.Router, err error) {
+	errMutex := sync.Mutex{}
 
 	logrus.Infof("ServeMsgBus.StartTLS: Serving on address %s", listenAddress)
 
@@ -316,16 +325,23 @@ func (mbs *ServeSmbus) StartTLS(listenAddress string, caCertFile string, serverC
 		TLSConfig: serverTLSConf,
 	}
 	go func() {
-		err := mbs.httpServer.ListenAndServeTLS("", "")
+		err2 := mbs.httpServer.ListenAndServeTLS("", "")
 		// err := cs.httpServer.ListenAndServeTLS(serverCertFile, serverKeyFile)
-		if err != nil && err != http.ErrServerClosed {
-			err = fmt.Errorf("Start TLS: %s", err)
+		if err2 != nil && err2 != http.ErrServerClosed {
+			errMutex.Lock()
+			err = fmt.Errorf("Start TLS: %s", err2)
+			logrus.Error(err)
+			errMutex.Unlock()
 			// logrus.Fatalf("ServeMsgBus.Start: ListenAndServeTLS error: %s", err)
 		}
 	}()
 	// Make sure the server is listening before continuing
 	// Not pretty but it handles it
-	time.Sleep(time.Second)
+	time.Sleep(time.Second * 1)
+	// prevent race test failure
+	errMutex.Lock()
+	defer errMutex.Unlock()
+
 	return router, err
 }
 

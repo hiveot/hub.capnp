@@ -15,7 +15,9 @@ import (
 
 // map of plugins by ID and PID
 var startedPlugins map[string]*exec.Cmd = make(map[string]*exec.Cmd)
-var pluginMutex = sync.Mutex{}
+
+// var pluginsMutex = sync.Mutex{}
+var pluginsMutex = sync.Mutex{}
 
 // StartPlugin runs the executable with the given name.
 // If the name contains a relative path, it is appended to the pluginFolder
@@ -35,9 +37,9 @@ func StartPlugin(pluginFolder string, name string, args []string) *exec.Cmd {
 		pluginFile = path.Join(pluginFolder, name)
 	}
 
-	pluginMutex.Lock()
+	pluginsMutex.Lock()
+	defer pluginsMutex.Unlock()
 	exists := startedPlugins[name]
-	pluginMutex.Unlock()
 	if exists != nil {
 		// TODO: check if process is running
 		logrus.Errorf("StartPlugin: plugin with name %s is not stopped", name)
@@ -47,25 +49,22 @@ func StartPlugin(pluginFolder string, name string, args []string) *exec.Cmd {
 	cmd := exec.Command(pluginFile, args...)
 	// Capture stderr in case of startup failure
 	cmd.Stderr = os.Stderr
+	// keep track of what is started. This doesn't mean it is running though
+	startedPlugins[name] = cmd
+	cmd.Start()
 
 	go func() {
-		err := cmd.Run() // this waits until completion
+		err := cmd.Wait()
 		if err != nil {
 			logrus.Errorf("StartPlugin Plugin '%s' ended with error: %s", name, err)
 		} else {
 			logrus.Warningf("StartPlugin Plugin '%s' has ended", name)
 		}
-		pluginMutex.Lock()
+		pluginsMutex.Lock()
 		startedPlugins[name] = nil
-		pluginMutex.Unlock()
-
+		defer pluginsMutex.Unlock()
 	}()
 	// logrus.Errorf("StartPlugin '%s'", name)
-
-	// keep track of what is started. This doesn't mean it is running though
-	pluginMutex.Lock()
-	startedPlugins[name] = cmd
-	pluginMutex.Unlock()
 
 	// cmd.Stdout = os.Stdout
 	logrus.Warningf("StartPlugin: ----------- Started plugin '%s' ------------", name)
@@ -81,6 +80,9 @@ func StartPlugins(pluginFolder string, names []string, args []string) {
 
 // StopPlugin stops a plugin by name
 func StopPlugin(name string) error {
+	pluginsMutex.Lock()
+	defer pluginsMutex.Unlock()
+
 	cmd := startedPlugins[name]
 	if cmd == nil || cmd.Process == nil {
 		msg := fmt.Sprintf("StopPlugin: Failed to stop plugin '%s'. Plugin not running", name)
@@ -95,7 +97,15 @@ func StopPlugin(name string) error {
 
 // StopAllPlugins stops all started plugins
 func StopAllPlugins() {
-	for name := range startedPlugins {
-		StopPlugin(name)
+	pluginsMutex.Lock()
+	keys := make([]string, 0)
+	for key := range startedPlugins {
+		keys =
+			append(keys, key)
+	}
+	pluginsMutex.Unlock()
+
+	for _, key := range keys {
+		StopPlugin(key)
 	}
 }

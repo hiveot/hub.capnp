@@ -71,7 +71,9 @@ func (smbmsg *SmbusMessenger) Disconnect() {
 func (smbmsg *SmbusMessenger) onReceiveMessage(command string, channelID string, message []byte) {
 	logrus.Infof("onReceiveMessage: command=%s, channelID=%s", command, channelID)
 	if command == MsgBusCommandReceive {
+		smbmsg.updateMutex.Lock()
 		handler := smbmsg.subscribers[channelID]
+		defer smbmsg.updateMutex.Unlock()
 		if handler == nil {
 			logrus.Errorf("onReceiveMessage: Missing handler for channel %s. Message ignored.", channelID)
 		} else {
@@ -94,17 +96,17 @@ func (smbmsg *SmbusMessenger) Subscribe(
 	channelID string, handler func(channel string, message []byte)) {
 
 	smbmsg.updateMutex.Lock()
-	defer smbmsg.updateMutex.Unlock()
 	// remove any previous subscriptions
 	smbmsg.subscribers[channelID] = handler
+	defer smbmsg.updateMutex.Unlock()
 	Subscribe(smbmsg.connection, channelID)
 }
 
 // Unsubscribe from a channel
 func (smbmsg *SmbusMessenger) Unsubscribe(channelID string) {
 	smbmsg.updateMutex.Lock()
-	defer smbmsg.updateMutex.Unlock()
 	smbmsg.subscribers[channelID] = nil
+	defer smbmsg.updateMutex.Unlock()
 	Unsubscribe(smbmsg.connection, channelID)
 }
 

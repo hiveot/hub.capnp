@@ -19,8 +19,8 @@ func init() {
 	appFolder = path.Join(cwd, "../../../test")
 }
 func TestStartSmbus(t *testing.T) {
-	// test on a different port as to not interfere with running server
-	os.Args = append(os.Args[0:1], strings.Split("-hostname localhost:9999", " ")...)
+	// test on a different port as to not interfere with running application or test server
+	os.Args = append(os.Args[0:1], strings.Split("-hostname localhost:9998", " ")...)
 
 	smb, err := internal.StartSmbus(appFolder)
 	assert.NoError(t, err)

@@ -52,7 +52,7 @@ func TestLoadGatewayConfig(t *testing.T) {
 	assert.NoError(t, err)
 	err = lib.ValidateConfig(gc)
 	assert.NoError(t, err)
-	assert.Equal(t, false, gc.Messenger.UseTLS)
+	assert.Equal(t, "info", gc.Logging.Loglevel)
 }
 
 func TestLoadGatewayConfigNotFound(t *testing.T) {

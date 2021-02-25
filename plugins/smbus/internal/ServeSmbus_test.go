@@ -68,7 +68,7 @@ func TestCreateChannel(t *testing.T) {
 // Test client-server connection without TLS
 func TestConnectNoTLS(t *testing.T) {
 	const channel1 = "Chan1"
-	const hostPort = "localhost:9666"
+	const hostPort = "localhost:9998"
 
 	// logrus.Infof("Testing authentication on channel %s", channel1)
 	cs, err := internal.Start(hostPort)
@@ -145,6 +145,7 @@ func TestPubSub(t *testing.T) {
 	const msg1 = "Hello world 1"
 	const msg2 = "Hello world 2"
 	var rx string
+	rxMutex := sync.Mutex{}
 
 	mb, err := internal.Start(hostPort)
 	require.NoError(t, err)
@@ -152,7 +153,9 @@ func TestPubSub(t *testing.T) {
 	rawHandler1 := func(command string, channel string, msg []byte) {
 		logrus.Infof("TestPubSub: received command '%s' for channel '%s'", command, channel)
 		if command == smbus.MsgBusCommandReceive {
+			rxMutex.Lock()
 			rx = string(msg)
+			rxMutex.Unlock()
 		}
 	}
 	c, _ := smbus.NewWebsocketConnection(hostPort, client1ID, rawHandler1)
@@ -165,7 +168,9 @@ func TestPubSub(t *testing.T) {
 	err = smbus.Publish(c, channel1, []byte(msg1))
 	require.NoError(t, err)
 	time.Sleep(10 * time.Millisecond)
+	rxMutex.Lock()
 	assert.Equal(t, msg1, rx)
+	rxMutex.Unlock()
 
 	// publish to  channel without subscribers
 	err = smbus.Publish(c, channel2, []byte(msg1))
@@ -175,7 +180,9 @@ func TestPubSub(t *testing.T) {
 	err = smbus.Unsubscribe(c, channel1)
 	smbus.Publish(c, channel1, []byte(msg2))
 	time.Sleep(time.Millisecond)
+	rxMutex.Lock()
 	assert.NotEqual(t, msg2, rx)
+	rxMutex.Unlock()
 
 	time.Sleep(time.Second)
 
@@ -314,7 +321,8 @@ func TestCloseSubscriberChannel(t *testing.T) {
 	const pubMsg1 = "Message 1"
 	hostname := "localhost"
 	hostPort := hostname + ":9666"
-	var msgCount = 0
+	var msgCount = int64(0)
+	msgCountMutex := sync.Mutex{}
 	const certFolder = "../../../test/certs"
 
 	// setup
@@ -327,8 +335,10 @@ func TestCloseSubscriberChannel(t *testing.T) {
 
 	handler := func(command string, channel string, msg []byte) {
 		if command == smbus.MsgBusCommandReceive {
+			msgCountMutex.Lock()
 			msgCount = msgCount + 1
-			logrus.Infof("Received a message. This should show only once. Msgcount=%d", msgCount)
+			msgCountMutex.Unlock()
+			// logrus.Infof("Received a message. This should show only once. Msgcount=%d", msgCount)
 		}
 	}
 
@@ -349,7 +359,9 @@ func TestCloseSubscriberChannel(t *testing.T) {
 	smbus.Publish(c1, channel1, []byte(pubMsg1))
 	// smbserver.Publish(c1, channel2, []byte(pubMsg1))
 	time.Sleep(1 * time.Second)
-	assert.Equal(t, 3, msgCount)
+	msgCountMutex.Lock()
+	assert.Equal(t, int64(3), msgCount)
+	msgCountMutex.Unlock()
 
 	cs.Stop()
 }

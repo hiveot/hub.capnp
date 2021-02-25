@@ -108,12 +108,12 @@ func StartTLS(host string, certFolder string) (*ServeSmbus, error) {
 }
 
 // StartSmbus Main entry point to start the Simple Message Bus server
-func StartSmbus(appFolder string) (*ServeSmbus, error) {
+func StartSmbus(homeFolder string) (*ServeSmbus, error) {
 	var server *ServeSmbus
 	var err error
 
 	smbusConfig := &SmbusConfig{}
-	gwConfig, err := lib.SetupConfig(appFolder, pluginID, smbusConfig)
+	gwConfig, err := lib.SetupConfig(homeFolder, pluginID, smbusConfig)
 	smbusConfig.gwConfig = *gwConfig
 
 	if err != nil {

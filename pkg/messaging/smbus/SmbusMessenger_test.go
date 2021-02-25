@@ -8,15 +8,17 @@ import (
 	testhelper "github.com/wostzone/gateway/pkg/messaging/test"
 )
 
-// const smbusCertFolder = "../../../test/certs"
-const smbusCertFolder = "/home/henk/bin/wost/certs"
-const serverHostPort = smbus.DefaultSmbusHost
+const smbusCertFolder = "../../../test/certs"
 
-// THIS REQUIRES THE LWWS PLUGIN TO RUN
+const serverHostPort = "localhost:9999"
+
+// !!! THE TESTS REQUIRE THAT A SMBUS TEST SERVER IS RUNNING !!!
+// from plugins/smbus run:
+//    go run main.go --home ../../test
 
 // Test create and close the simple message bus channel
 func TestSmbusConnection(t *testing.T) {
-	// srv, _ := smbserver.Start(serverHostPort)
+	// srv, _ := smberver.StartSmbus(serverHostPort)
 	client := smbus.NewSmbusMessenger(smbusCertFolder, serverHostPort)
 	testhelper.TMessengerConnect(t, client)
 	// srv.Stop()
