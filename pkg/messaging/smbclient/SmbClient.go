@@ -1,4 +1,4 @@
-package smbus
+package smbclient
 
 import (
 	"fmt"
@@ -16,8 +16,8 @@ import (
 // const publishAddress = "ws://%s/channel/%s/pub"
 // const subscriberAddress = "ws://%s/channel/%s/sub"
 
-// SmbusMessenger provides the IGatewayMessenger API for the simple message bus
-type SmbusMessenger struct {
+// SmbClient provides the IGatewayMessenger API for the simple message bus
+type SmbClient struct {
 	clientID      string          // Who Am I?
 	hostPort      string          // hostname/ip:port of the server
 	clientCertPEM []byte          // client certificate to authenticate with the server
@@ -29,51 +29,51 @@ type SmbusMessenger struct {
 }
 
 // Connect to the internal message bus server
-func (smbmsg *SmbusMessenger) Connect(clientID string, timeoutSec int) error {
+func (smbc *SmbClient) Connect(clientID string, timeoutSec int) error {
 	var conn *websocket.Conn
 	var err error
 	hostName, _ := os.Hostname()
 	if clientID == "" {
 		clientID = fmt.Sprintf("%s-%d", hostName, time.Now().Unix())
 	}
-	smbmsg.clientID = clientID
+	smbc.clientID = clientID
 	// TBD we could do a connection attempt to validate it
 
-	if smbmsg.clientCertPEM != nil {
+	if smbc.clientCertPEM != nil {
 		conn, err = NewTLSWebsocketConnection(
-			smbmsg.hostPort, clientID, smbmsg.onReceiveMessage,
-			smbmsg.clientCertPEM, smbmsg.clientKeyPEM, smbmsg.serverCertPEM)
+			smbc.hostPort, clientID, smbc.onReceiveMessage,
+			smbc.clientCertPEM, smbc.clientKeyPEM, smbc.serverCertPEM)
 	} else {
 		conn, err = NewWebsocketConnection(
-			smbmsg.hostPort, clientID, smbmsg.onReceiveMessage)
+			smbc.hostPort, clientID, smbc.onReceiveMessage)
 	}
-	smbmsg.connection = conn
+	smbc.connection = conn
 	// subscribe to existing channels
-	for channelID := range smbmsg.subscribers {
-		Subscribe(smbmsg.connection, channelID)
+	for channelID := range smbc.subscribers {
+		Subscribe(smbc.connection, channelID)
 	}
 
 	return err
 }
 
 // Disconnect all connections and stop listeners
-func (smbmsg *SmbusMessenger) Disconnect() {
-	smbmsg.updateMutex.Lock()
-	defer smbmsg.updateMutex.Unlock()
+func (smbc *SmbClient) Disconnect() {
+	smbc.updateMutex.Lock()
+	defer smbc.updateMutex.Unlock()
 
-	if smbmsg.connection != nil {
-		smbmsg.connection.Close()
-		smbmsg.connection = nil
+	if smbc.connection != nil {
+		smbc.connection.Close()
+		smbc.connection = nil
 	}
 }
 
 // Receive a subscribed message and pass it to its handler
-func (smbmsg *SmbusMessenger) onReceiveMessage(command string, channelID string, message []byte) {
+func (smbc *SmbClient) onReceiveMessage(command string, channelID string, message []byte) {
 	logrus.Infof("onReceiveMessage: command=%s, channelID=%s", command, channelID)
 	if command == MsgBusCommandReceive {
-		smbmsg.updateMutex.Lock()
-		handler := smbmsg.subscribers[channelID]
-		defer smbmsg.updateMutex.Unlock()
+		smbc.updateMutex.Lock()
+		handler := smbc.subscribers[channelID]
+		defer smbc.updateMutex.Unlock()
 		if handler == nil {
 			logrus.Errorf("onReceiveMessage: Missing handler for channel %s. Message ignored.", channelID)
 		} else {
@@ -86,35 +86,37 @@ func (smbmsg *SmbusMessenger) onReceiveMessage(command string, channelID string,
 
 // Publish sends a message into a channel
 // This returns an error if a connection doesn't exist and the message is not delivered
-func (smbmsg *SmbusMessenger) Publish(channelID string, message []byte) error {
-	return Publish(smbmsg.connection, channelID, message)
+func (smbc *SmbClient) Publish(channelID string, message []byte) error {
+	return Publish(smbc.connection, channelID, message)
 }
 
 // Subscribe to a channel. Existing subscriptions are replaced
 // wildcards are not supported
-func (smbmsg *SmbusMessenger) Subscribe(
+func (smbc *SmbClient) Subscribe(
 	channelID string, handler func(channel string, message []byte)) {
 
-	smbmsg.updateMutex.Lock()
+	smbc.updateMutex.Lock()
 	// remove any previous subscriptions
-	smbmsg.subscribers[channelID] = handler
-	defer smbmsg.updateMutex.Unlock()
-	Subscribe(smbmsg.connection, channelID)
+	smbc.subscribers[channelID] = handler
+	defer smbc.updateMutex.Unlock()
+	Subscribe(smbc.connection, channelID)
 }
 
 // Unsubscribe from a channel
-func (smbmsg *SmbusMessenger) Unsubscribe(channelID string) {
-	smbmsg.updateMutex.Lock()
-	smbmsg.subscribers[channelID] = nil
-	defer smbmsg.updateMutex.Unlock()
-	Unsubscribe(smbmsg.connection, channelID)
+func (smbc *SmbClient) Unsubscribe(channelID string) {
+	smbc.updateMutex.Lock()
+	smbc.subscribers[channelID] = nil
+	defer smbc.updateMutex.Unlock()
+	Unsubscribe(smbc.connection, channelID)
 }
 
-// NewSmbusMessenger creates a new instance of the lightweigh websocket messenger to publish
+// NewSmbClient creates a new instance of the lightweight messagebus to publish
 // and subscribe to gateway messages.
-func NewSmbusMessenger(certFolder string, hostPort string) *SmbusMessenger {
-
-	smbmsg := &SmbusMessenger{
+func NewSmbClient(certFolder string, hostPort string) *SmbClient {
+	if hostPort == "" {
+		hostPort = DefaultSmbHost
+	}
+	smbmsg := &SmbClient{
 		// serverAddress: serverAddress,
 		subscribers: make(map[string]func(channelID string, msg []byte)),
 		updateMutex: &sync.Mutex{},

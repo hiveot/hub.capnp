@@ -23,14 +23,13 @@ func SetGatewayCommandlineArgs(config *GatewayConfig) {
 	flag.String("c", "gateway.yaml", "Set the gateway configuration file ")
 	flag.StringVar(&config.Home, "home", config.Home, "Application working `folder`")
 
-	flag.StringVar(&config.Messenger.CertsFolder, "certsFolder", config.Messenger.CertsFolder, "Optional certificate `folder` for TLS")
+	flag.StringVar(&config.Messenger.CertFolder, "certFolder", config.Messenger.CertFolder, "Optional certificate `folder` for TLS")
 	flag.StringVar(&config.ConfigFolder, "configFolder", config.ConfigFolder, "Plugin configuration `folder`")
 	flag.StringVar(&config.Messenger.HostPort, "hostname", config.Messenger.HostPort, "Message bus address host:port")
 	flag.StringVar(&config.Logging.LogFile, "logFile", config.Logging.LogFile, "Log to file")
 	flag.StringVar(&config.Messenger.Protocol, "protocol", string(config.Messenger.Protocol), "Message bus protocol: internal|mqtt")
 	flag.StringVar(&config.PluginFolder, "pluginFolder", config.PluginFolder, "Optional plugin `folder`")
 	flag.StringVar(&config.Logging.Loglevel, "logLevel", config.Logging.Loglevel, "Loglevel: {error|`warning`|info|debug}")
-	flag.BoolVar(&config.Messenger.UseTLS, "useTLS", config.Messenger.UseTLS, "Gateway listens using TLS {`true`|false}")
 }
 
 // SetupConfig contains the boilerplate to load the gateway and plugin configuration files.

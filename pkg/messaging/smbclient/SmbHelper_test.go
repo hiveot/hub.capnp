@@ -1,4 +1,4 @@
-package smbus_test
+package smbclient_test
 
 import (
 	"io/ioutil"
@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/wostzone/gateway/pkg/certs"
-	"github.com/wostzone/gateway/pkg/messaging/smbus"
+	"github.com/wostzone/gateway/pkg/messaging/smbclient"
 )
 
 // helper function to test WsConnect methods
@@ -50,14 +50,14 @@ func TestConnect(t *testing.T) {
 	httpServer := startLittleServer(t, hostPort)
 	time.Sleep(100 * time.Millisecond)
 
-	conn, err := smbus.NewWebsocketConnection(hostPort, client1ID, nil)
+	conn, err := smbclient.NewWebsocketConnection(hostPort, client1ID, nil)
 	require.NoError(t, err)
 
 	// subConn, err := NewSubscriber(hostPort, client1ID, channel1, func(channel string, msg []byte) {
 	// })
 	// assert.NoError(t, err)
 
-	err = smbus.Publish(conn, channel1, []byte("Hello world"))
+	err = smbclient.Publish(conn, channel1, []byte("Hello world"))
 	assert.NoError(t, err)
 
 	time.Sleep(100 * time.Millisecond)
@@ -83,10 +83,10 @@ func TestNewPubSubErrors(t *testing.T) {
 	logrus.Infof("Testing authentication on channel %s", channel1)
 
 	// These should fail as no server is listening
-	_, err := smbus.NewWebsocketConnection(hostPort, client1ID, nil)
+	_, err := smbclient.NewWebsocketConnection(hostPort, client1ID, nil)
 	require.Error(t, err)
 
-	_, err = smbus.NewTLSWebsocketConnection(hostPort, client1ID, nil, clientCertPEM, clientKeyPEM, serverCertPEM)
+	_, err = smbclient.NewTLSWebsocketConnection(hostPort, client1ID, nil, clientCertPEM, clientKeyPEM, serverCertPEM)
 	require.Error(t, err)
 
 	// c := &websocket.Conn{}
@@ -102,11 +102,11 @@ func TestBadPublish(t *testing.T) {
 	const client1ID = "cid1"
 	const msg1 = "tada"
 
-	c, _ := smbus.NewWebsocketConnection(hostPort, client1ID, nil)
+	c, _ := smbclient.NewWebsocketConnection(hostPort, client1ID, nil)
 	require.Nil(t, c)
 
 	// publish to channel with subscribers
-	err := smbus.Publish(c, channel1, []byte(msg1))
+	err := smbclient.Publish(c, channel1, []byte(msg1))
 	require.Error(t, err)
 
 }

@@ -97,7 +97,7 @@ func TestLoadGatewayConfigBadFolders(t *testing.T) {
 	err = lib.ValidateConfig(&gc2)
 	assert.Error(t, err)
 	gc2 = *gc
-	gc2.Messenger.CertsFolder = "./doesntexist"
+	gc2.Messenger.CertFolder = "./doesntexist"
 	err = lib.ValidateConfig(&gc2)
 	assert.Error(t, err)
 	gc2 = *gc

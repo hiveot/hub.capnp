@@ -1,4 +1,4 @@
-package internal
+package smbserver
 
 import (
 	"net/http"

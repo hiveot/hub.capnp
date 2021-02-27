@@ -1,5 +1,5 @@
-// Package internal with simple internal message bus for serving plugins pub/sub
-package internal
+// Package smbserver with simple internal message bus for serving plugins pub/sub
+package smbserver
 
 import (
 	"crypto/tls"
@@ -14,7 +14,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/gateway/pkg/messaging/smbus"
+	"github.com/wostzone/gateway/pkg/messaging/smbclient"
 )
 
 // Default nr of messages that can be queued per channel before the sender blocks
@@ -184,7 +184,7 @@ func (mbs *ServeSmbus) sendChannelMessageToSubscribers(channelID string, message
 	// logrus.Infof("processChannelMessage: Sending message to %d subscribers of channel %s", len(consumers), channelID)
 	// logrus.Infof("--- sending message to %d subscribers of channel %s", len(consumers), channelID)
 	for _, c := range consumers {
-		err := smbus.Send(c, smbus.MsgBusCommandReceive, channelID, message)
+		err := smbclient.Send(c, smbclient.MsgBusCommandReceive, channelID, message)
 		if err != nil {
 			logrus.Warningf("ServeMsgBus.processChannelMessage: failed sending 1 message to a subscriber of %s", channelID)
 			mbs.RemoveConnection(c)
@@ -199,7 +199,7 @@ func (mbs *ServeSmbus) serveConnection(response http.ResponseWriter, request *ht
 	// pubOrSub := mux.Vars(request)[MuxStage]
 
 	// clientID, err := cs.authenticateConnection(request)
-	clientID := request.Header.Get(smbus.ClientHeader)
+	clientID := request.Header.Get(smbclient.ClientHeader)
 	if clientID == "" {
 		http.Error(response, "Invalid client. A clientID is required.", 401)
 		logrus.Warningf("ServeMsgBus.serveConnection: Missing clientID from client '%s'", request.RemoteAddr)
@@ -222,14 +222,14 @@ func (mbs *ServeSmbus) serveConnection(response http.ResponseWriter, request *ht
 
 	//listen connections are closed on exit
 	go func() {
-		smbus.Listen(c, func(command string, topic string, data []byte) {
+		smbclient.Listen(c, func(command string, topic string, data []byte) {
 			if data == nil {
 				mbs.RemoveConnection(c)
-			} else if command == smbus.MsgBusCommandPublish {
+			} else if command == smbclient.MsgBusCommandPublish {
 				mbs.PublishToSubscribers(topic, data)
-			} else if command == smbus.MsgBusCommandSubscribe {
+			} else if command == smbclient.MsgBusCommandSubscribe {
 				mbs.AddSubscriber(topic, c)
-			} else if command == smbus.MsgBusCommandUnsubscribe {
+			} else if command == smbclient.MsgBusCommandUnsubscribe {
 				mbs.RemoveSubscriber(topic, c)
 			} else {
 				logrus.Warningf("ServeMsgBus.ServeConnection: Ignored unknown command '%s'", command)
@@ -245,7 +245,7 @@ func (mbs *ServeSmbus) Start(host string) (*mux.Router, error) {
 	var err error
 	errMutex := sync.Mutex{}
 	router := mux.NewRouter()
-	router.HandleFunc(smbus.MsgbusAddress, mbs.serveConnection)
+	router.HandleFunc(smbclient.MsgbusAddress, mbs.serveConnection)
 
 	go func() {
 		// cs.updateMutex.Lock()
@@ -293,7 +293,7 @@ func (mbs *ServeSmbus) StartTLS(listenAddress string, caCertFile string, serverC
 	logrus.Infof("ServeMsgBus.StartTLS: Serving on address %s", listenAddress)
 
 	router = mux.NewRouter()
-	router.HandleFunc(smbus.MsgbusAddress, mbs.serveConnection)
+	router.HandleFunc(smbclient.MsgbusAddress, mbs.serveConnection)
 
 	// The server certificate and key is needed
 	mbs.ServerCertPEM, err = ioutil.ReadFile(serverCertFile)

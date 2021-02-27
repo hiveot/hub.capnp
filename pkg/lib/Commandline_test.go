@@ -25,7 +25,7 @@ func TestSetupGatewayCommandline(t *testing.T) {
 	wd, _ := os.Getwd()
 	home := path.Join(wd, "../../test")
 
-	myArgs := strings.Split("--hostname bob --logFile logfile.log --useTLS=False --logLevel debug", " ")
+	myArgs := strings.Split("--hostname bob --logFile logfile.log --logLevel debug", " ")
 	// Remove testing package created commandline and flags so we can test ours
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 	os.Args = append(os.Args[0:1], myArgs...)
@@ -39,7 +39,7 @@ func TestSetupGatewayCommandline(t *testing.T) {
 	assert.Equal(t, "bob", gwConfig.Messenger.HostPort)
 	assert.Equal(t, "logfile.log", gwConfig.Logging.LogFile)
 	assert.Equal(t, "debug", gwConfig.Logging.Loglevel)
-	assert.Equal(t, false, gwConfig.Messenger.UseTLS)
+	// assert.Equal(t, "/etc/cert", gwConfig.Messenger.CertFolder)
 }
 
 func TestCommandlineWithError(t *testing.T) {

@@ -24,7 +24,5 @@ messenger:
 #pluginsFolder: "/opt/wost/gateway/plugins" # system plugin binaries
 
 # List of plugins to start.
-# smbus must be first if protocol is smbus (default)
 plugins:
-  - smbus
   - recorder

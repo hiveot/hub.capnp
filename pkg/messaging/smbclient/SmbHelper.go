@@ -1,5 +1,5 @@
-// Package smbus with client side helper functions to connect, send and receive messages
-package smbus
+// Package smbclient with client side helper functions to connect, send and receive messages
+package smbclient
 
 import (
 	"crypto/tls"
@@ -33,8 +33,8 @@ const (
 	ClientHeader        = "Client"
 )
 
-// DefaultSmbusHost with listening address and port
-const DefaultSmbusHost = "localhost:9678"
+// DefaultSmbHost with the default server address and port
+const DefaultSmbHost = "localhost:9678"
 
 //--- communication functions that do the actual work
 
@@ -62,7 +62,8 @@ func Connect(socketDialer *websocket.Dialer, url string, clientID string) (*webs
 // This function blocks until the connection is closed
 //  conn is an active connection to a websocket server
 //  handler is a message callback
-func Listen(conn *websocket.Conn, handler func(command string, topic string, message []byte)) {
+func Listen(conn *websocket.Conn,
+	handler func(command string, topic string, message []byte)) {
 	// setup a receive loop for this connection if a receive handler is provided
 	// also listen on publisher connections to detect connection closure
 	remoteURL := conn.RemoteAddr()
@@ -149,7 +150,8 @@ func NewWebsocketConnection(hostPort string, clientID string,
 // clientKeyPEM is the client certificate key used to verify the client with the server
 // serverCertPEM is the CA to verify the server with the client
 // This returns a websocket connection
-func NewTLSWebsocketConnection(hostPort string, clientID string, handler func(comand string, topic string, msg []byte),
+func NewTLSWebsocketConnection(hostPort string, clientID string,
+	handler func(comand string, topic string, msg []byte),
 	clientCertPEM []byte, clientKeyPEM []byte, serverCertPEM []byte) (*websocket.Conn, error) {
 
 	url := fmt.Sprintf("wss://%s/wost", hostPort)

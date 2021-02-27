@@ -1,14 +1,11 @@
 package lib
 
 import (
-	"errors"
 	"io/ioutil"
 	"os"
 	"path"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/gateway/pkg/messaging"
-	"github.com/wostzone/gateway/pkg/messaging/smbus"
 	"gopkg.in/yaml.v2"
 )
 
@@ -34,10 +31,9 @@ type GatewayConfig struct {
 
 	// Messenger configuration of gateway plugin messaging
 	Messenger struct {
-		CertsFolder string `yaml:"certsFolder"` // location of gateway and client certificate. Default is ./certs
-		HostPort    string `yaml:"hostname"`    // hostname:port or ip:port to listen on of message bus
-		Protocol    string `yaml:"protocol"`    // internal, MQTT, default internal
-		UseTLS      bool   `yaml:"useTLS"`      // use TLS for client/server messaging
+		CertFolder string `yaml:"certFolder"` // location of certificates when using TLS. Default is ./certs
+		HostPort   string `yaml:"hostname"`   // hostname:port or ip:port to listen on of message bus
+		Protocol   string `yaml:"protocol"`   // internal, MQTT, default internal
 	} `yaml:"messenger"`
 
 	Home         string   `yaml:"home"`         // application home directory. Default is parent of executable.
@@ -80,10 +76,9 @@ func CreateDefaultGatewayConfig(homeFolder string) *GatewayConfig {
 		PluginFolder: path.Join(homeFolder, "./bin"),
 	}
 	// config.Messenger.CertsFolder = path.Join(homeFolder, "certs")
-	config.Messenger.CertsFolder = path.Join(homeFolder, "./certs")
-	config.Messenger.HostPort = smbus.DefaultSmbusHost                    //"localhost:9678"
-	config.Messenger.Protocol = string(messaging.ConnectionProtocolSmbus) // internal
-	config.Messenger.UseTLS = true
+	config.Messenger.CertFolder = path.Join(homeFolder, "./certs")
+	config.Messenger.HostPort = "" // use default "localhost:9678"
+	config.Messenger.Protocol = "" // use default
 	config.Logging.Loglevel = "warning"
 	// config.Logging.LogFile = path.Join(homeFolder, "logs/"+GatewayLogFile)
 	config.Logging.LogFile = path.Join(homeFolder, "./logs/"+GatewayLogFile)
@@ -128,21 +123,13 @@ func ValidateConfig(config *GatewayConfig) error {
 		return err
 	}
 
-	if _, err := os.Stat(config.Messenger.CertsFolder); os.IsNotExist(err) && config.Messenger.UseTLS {
-		logrus.Errorf("ValidateConfig: TLS certificate folder '%s' not found\n", config.Messenger.CertsFolder)
+	if _, err := os.Stat(config.Messenger.CertFolder); os.IsNotExist(err) {
+		logrus.Errorf("ValidateConfig: TLS certificate folder '%s' not found\n", config.Messenger.CertFolder)
 		return err
 	}
 
 	if _, err := os.Stat(config.PluginFolder); os.IsNotExist(err) {
 		logrus.Errorf("ValidateConfig: Plugins folder '%s' not found\n", config.PluginFolder)
-		return err
-	}
-
-	if config.Messenger.Protocol != "" &&
-		config.Messenger.Protocol != string(messaging.ConnectionProtocolSmbus) &&
-		config.Messenger.Protocol != string(messaging.ConnectionProtocolMQTT) {
-		err := errors.New("Invalid messenger protocol " + string(config.Messenger.Protocol))
-		logrus.Errorf("ValidateConfig: %s", err)
 		return err
 	}
 

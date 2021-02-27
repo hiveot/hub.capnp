@@ -34,23 +34,23 @@ type IGatewayMessenger interface {
 	// a new connection is made. Existing subscriptions remain in place.
 	// The messenger must already be setup with the destination host, port and certificate
 	//  clientID is unique to the server. Default is hostname-timestamp
-	//  timeout is the amount of time to keep retrying in case the connection fails
+	//  timeout is the amount of time to keep retrying in case the connection fails. 0 to try indefinitly
 	Connect(clientID string, timeout int) error
 
 	// Disconnect all connections and remove all subscriptions
 	Disconnect()
 
 	// Publish sends a message to the gateway on the given channelID
-	// channelID contains the address to publish to, divided by '/' as a separator
+	//  channelID contains the address to publish to, divided by '/' as a separator
 	Publish(channelID string, message []byte) error
 
 	// Subscribe to a message channelID.
 	// Only a single subscription to a channelID can be made.
-	// channelID contains the address to listen on. Wildcard supports depends on the messenger used.
-	// handler is invoked when a message is received on the address
-	Subscribe(channelID string, handler func(address string, message []byte))
+	//  channelID contains the address to listen on. Wildcard supports depends on the messenger used.
+	//  handler is invoked when a message is received on the channel
+	Subscribe(channelID string, handler func(channelID string, message []byte))
 
 	// Unsubscribe from a previously subscribed channelID address.
-	// channelID contains the address to listen on, divided by '/' as a separator
+	//  channelID contains the address to listen on, divided by '/' as a separator
 	Unsubscribe(channelID string)
 }

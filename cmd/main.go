@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	err := gateway.StartGateway("")
+	err := gateway.StartGateway("", true)
 	if err != nil {
 		logrus.Fatalf("main: Failed starting gateway: %s", err)
 	}

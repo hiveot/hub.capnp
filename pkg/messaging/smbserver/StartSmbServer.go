@@ -1,4 +1,4 @@
-package internal
+package smbserver
 
 import (
 	"io/ioutil"
@@ -11,16 +11,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/gateway/pkg/certs"
 	"github.com/wostzone/gateway/pkg/lib"
-	"github.com/wostzone/gateway/pkg/messaging/smbus"
+	"github.com/wostzone/gateway/pkg/messaging/smbclient"
 )
-
-// const DefaultPubKey = "server.pub"
-const pluginID = "smbus"
-
-// SmbusConfig based on gateway configuration
-type SmbusConfig struct {
-	gwConfig lib.GatewayConfig
-}
 
 // Start starts the built-in lightweigth message bus and listens for incoming connections and messages.
 // This returns after listening is established
@@ -31,7 +23,7 @@ func Start(hostPort string) (*ServeSmbus, error) {
 	logrus.Warningf("Start: Starting message bus server no TLS")
 
 	if hostPort == "" {
-		hostPort = smbus.DefaultSmbusHost
+		hostPort = smbclient.DefaultSmbHost
 	}
 	srv := NewServeMsgBus()
 	router, err = srv.Start(hostPort)
@@ -55,7 +47,7 @@ func StartTLS(host string, certFolder string) (*ServeSmbus, error) {
 	var err error
 
 	if host == "" {
-		host = smbus.DefaultSmbusHost
+		host = smbclient.DefaultSmbHost
 	}
 	srv := NewServeMsgBus()
 
@@ -107,21 +99,20 @@ func StartTLS(host string, certFolder string) (*ServeSmbus, error) {
 	return srv, err
 }
 
-// StartSmbus Main entry point to start the Simple Message Bus server
-func StartSmbus(homeFolder string) (*ServeSmbus, error) {
+// StartSmbServer Main entry point to start the Simple Message Bus server with
+// the given gateway configuration
+func StartSmbServer(gwConfig *lib.GatewayConfig) (*ServeSmbus, error) {
 	var server *ServeSmbus
 	var err error
 
-	smbusConfig := &SmbusConfig{}
-	gwConfig, err := lib.SetupConfig(homeFolder, pluginID, smbusConfig)
-	smbusConfig.gwConfig = *gwConfig
+	// gwConfig, err := lib.SetupConfig(homeFolder, "", nil)
 
-	if err != nil {
-		return nil, err
-	}
+	// if err != nil {
+	// 	return nil, err
+	// }
 
-	if gwConfig.Messenger.UseTLS {
-		server, err = StartTLS(gwConfig.Messenger.HostPort, gwConfig.Messenger.CertsFolder)
+	if gwConfig.Messenger.CertFolder != "" {
+		server, err = StartTLS(gwConfig.Messenger.HostPort, gwConfig.Messenger.CertFolder)
 	} else {
 		server, err = Start(gwConfig.Messenger.HostPort)
 	}

@@ -1,5 +1,5 @@
-// Package messaging_test with helper functions
-package testhelper
+// Package testhelper_test with helper functions
+package testhelper_test
 
 import (
 	"sync"
@@ -27,6 +27,8 @@ func TMessengerConnect(t *testing.T, gwm messaging.IGatewayMessenger) {
 	assert.NoError(t, err)
 	gwm.Disconnect()
 }
+
+// TMessengerNoConnect helper to test  messenger connection
 func TMessengerNoConnect(t *testing.T, gwm messaging.IGatewayMessenger) {
 	timeout := 5
 	require.NotNil(t, gwm)
@@ -152,6 +154,7 @@ func TMessengerBadUnsubscribe(t *testing.T, gwm messaging.IGatewayMessenger) {
 
 }
 
+// TMessengerPubNoConnect helper to test  messenger connection
 func TMessengerPubNoConnect(t *testing.T, gwm messaging.IGatewayMessenger) {
 	// clientID := "test"
 	const timeout = 10

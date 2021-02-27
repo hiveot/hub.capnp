@@ -168,7 +168,7 @@ Service plugins can also create a new channel to communicate with other plugins,
 
 Plugins can be written in any programming language. They can include a configuration file that describes their purpose and the channels they use. Plugins should use the gateway messenger library to connect to the service bus.
 
-There is nearly no boilerplate code involved in writing plugins, except for adhering to the channel data requirements. Plugins can therefore be very lightweight and efficient. 
+There is nearly no boilerplate code involved in writing plugins, except for adhering to the channel data requirements. Plugins can therefore be very simple. 
 
 Plugins run in their own process, isolated from other plugins. It is however possible to write a plugin that launches other plugins in threads. For example, a JS plugin can load additional plugins written in Javascript. Each of the additional plugin connects to the gateway channels using the client library.
 
@@ -177,7 +177,7 @@ Plugins run in their own process, isolated from other plugins. It is however pos
 Data published on WoST Gateway channels MUST adhere to that data channel's schema specification.  The Gateway has the following predefined channels:
 * td: Thing descriptions https://www.w3.org/TR/2020/WD-wot-thing-description11-20201124/
 * events: Thing events
-* action: Thing actions
+* actions: Thing actions
 
 Message published on these channel MUST adhere to the WoT data schemas for TD, events and actions.
 
@@ -185,7 +185,7 @@ Message published on these channel MUST adhere to the WoT data schemas for TD, e
 
 The WoST project plans to include several plugins for working out of the box.
 
-* The 'smbus' plugin is a simple message bus for out of the box secure plugin to gateway communication.
+* The 'smbus' plugin is the default simple message bus for out-of-the-box secure publish/subscribe messaging between plugins and gateway. Unless you use mqtt, you want this.
 
 * The 'discovery' protocol binding announces the gateway on the local network using mDNS. This is intended to let WoST Things discover the gateway.
 
@@ -224,28 +224,45 @@ All of these plugins can be substituted by another implementation as needed.
 
 ## Launching Plugins
 
-Plugins are launched at startup and given three arguments: 
+Plugins are launched at startup and given the same arguments as the gateway to determine the configuration and message bus connection information:
 
-TBD: either gateway load config or pass params ...
-* {host} containing the IP and port of the service bus connection.
-* {certFolder} certificate folder for server and client certificates
-* {configFile} containing the path to the plugin YAML configuration file. This file is optional. If possible plugins should function out of the box without configuration.
+```
+-c            /path/to/gateway.yaml optional alt configuration, default is {home}/config/gateway.yaml
+-home         /path/to/app/home    optional alternative application home folder/ Defa
+-certsFolder  /path/to/alt/certs   optional certificate folder, eg when using mqtt. Default is {home}/certs
+-configFolder /path/to/alt/config  optional alternative config, eg /etc/wost
+-hostname     localhost:9678       optional alternative message bus, eg mosquitto:8883
+-logFile      /path/to/gateway.log optional logfile. Use to determine logs folder
+-protocol mqtt | smbus             default is smbus
+-pluginFolder                      optional alt plugin folder, default is {home}/bin
+-logLevel warning                  for extra logging, default is gateway loglevel
+-useTLS true                       option to not use TLS, default true
+```
+
+The plugin configuration file is pluginID.yaml in the {home}/config folder. This file is optional. A default file is provided with the plugin.
+
 
 ## Messenger Connections
 
 After launch, plugins connect to the message bus and subscribe to channels. The default connect address for the internal service bus (smbus) is:
-> wss://{host:port}/wost
+> wss://localhost:9678/wost
 
-Where:
-* {host:port} is passed on startup
-
-While a plugin can publish and subscribe to as many channels as needed it is strongly recommended to adhere to the single responsibility principle and only use the channels that are needed to fulfil that responsibility. 
+Where localhost:9678 is defined in the gateway messaging configuration. The plugin reads the gateway.yaml on startup to ensure the same messaging setup is used.
 
 The provided client libraries implement the connection logic for the various protocols so the plugin developer only need to know the channel ID.
 
 A plugin can implement its own connection client for publishing and subscribing. The message format for the built-in websocket message bus is: 
 > {command}:{channel}:{payload}
 Where command is one of 'publish', 'subscribe', 'unsubscribe', and 'receive'. See wost/gateway/src/msgbus/MsgBusClient.go for more info.
+
+## Why A Message Bus For Plugin Communication?
+
+Plugins publish and subscribe to messages. While there are many ways to implement a message bus, once you add the requirement to support multiple programming langes the choices are reduced to network socket type communication. There is no best solution here which is why both an internal message bus (smbus) and an external message bus (mqtt) is supported. 
+
+One of the benefits of this approach is that plugins do not have to run on the same machine as the gateway itself. As long as it has the certificates to connect it can function just like a local plugin. This allows for specialized tasks such as image recognition to be offloaded elsewhere. 
+
+Since security is key, both the smbus and the MQTT message bus communication MUST use TLS. The smbus authentication is provided through client side certifices. The MQTT client can use basic authentication over TLS and requires the server certificate to be available in the gateway certs folder. 
+
 
 
 # Contributing

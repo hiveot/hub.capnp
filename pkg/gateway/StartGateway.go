@@ -5,24 +5,37 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/gateway/pkg/lib"
+	"github.com/wostzone/gateway/pkg/messaging"
+	"github.com/wostzone/gateway/pkg/messaging/smbserver"
 )
 
-// StartGateway reads the gateway configuration and starts the gateway plugins
-// Start is aborted if the configuration is invalid
+// the internal message bus server, if running
+var srv *smbserver.ServeSmbus
+
+// StartGateway reads the gateway configuration, starts the message bus server and the gateway plugins
+// If the configuration is invalid then start is aborted
 // The plugins receive the same commandline arguments as the gateway
-func StartGateway(appFolder string) error {
-	config, err := lib.SetupConfig(appFolder, "", nil)
+//  homeFolder is the folder containing the config subfolder with the gateway.yaml configuration
+//  startPlugins set to false to only start the gateway with message bus server if configured
+func StartGateway(homeFolder string, startPlugins bool) error {
+	var err error
+	config, err := lib.SetupConfig(homeFolder, "", nil)
 	if err != nil {
 		return err
+	}
+	if config.Messenger.Protocol != messaging.ConnectionProtocolMQTT {
+		logrus.Warningf("StartGateway: Starting the internal message bus server")
+		srv, err = smbserver.StartSmbServer(config)
 	}
 
 	// launch plugins
 	logrus.Warningf("StartGateway: Starting %d gateway plugins on %s. UseTLS=%t",
-		len(config.Plugins), config.Messenger.HostPort, config.Messenger.UseTLS)
+		len(config.Plugins), config.Messenger.HostPort, config.Messenger.CertFolder != "")
 
-	args := os.Args[1:] // pass the gateways args to the plugin
-	lib.StartPlugins(config.PluginFolder, config.Plugins, args)
-
+	if startPlugins {
+		args := os.Args[1:] // pass the gateways args to the plugin
+		lib.StartPlugins(config.PluginFolder, config.Plugins, args)
+	}
 	logrus.Warningf("StartGateway: Gateway started successfully!")
 
 	return nil
@@ -32,6 +45,8 @@ func StartGateway(appFolder string) error {
 // TODO implements
 func StopGateway() {
 	logrus.Warningf("StopGateway: Received Signal, stopping gateway and its plugins")
-
+	if srv != nil {
+		srv.Stop()
+	}
 	logrus.Warningf("StopGateway: Unable to stop gateway plugins. Someone hasn't implemented this yet...")
 }
