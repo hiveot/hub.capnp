@@ -1,28 +1,43 @@
-# Example application configuration
-# All fields are optional except for the plugins to start
+# Gateway  Description in YAML
 
-# Logging
-logging:
-  loglevel: "info" # debug, info, warning, error. Default is warning
-  #logFile: "../logs/gateway.log"           // local log file
-  #logFile: "/var/log/wost/gateway.log"     // system log file
+"@context": "http://www.w3.org/2019/wot/td/v1"
+"@type": "Gateway"
 
-# Message bus server
-messenger:
-  #protocol: ""                   # smbus or mqtt. Default is the smbus plugin
-  #hostname: "localhost:9678"     # hostname:port or ip:port to listen on of message bus
-  #certsFolder: "../certs"        # location of gateway and client certificate
-  #certsFolder: "/etc/wost/certs" # location of gateway and client certificate
-  useTLS: true # use TLS for client/server messaging
+id: "urn:wost:gateway:config"
+title: "WoST Gateway"
+description: "Web Of Secured Things Gateway and Intermediary"
+support: "mailto:support@wost.zone"
+version: "0.0.1"
+created: "2021-02-27T00:00:00.000Z"
+modified: "2021-02-27T00:00:00.000Z"
+base: ""
 
-# location of plugin configuration files. Default is ../config
-# configFolder: "../config"        # local config
-# configFolder: "/etc/wost/config" # system config
+properties:
+  # location of plugin configuration files. Default is ../config
+  # configFolder: "../config"        # local config
+  # configFolder: "/etc/wost/config" # system config
 
-# location of plugin binaries files. Default is ../bin
-#pluginsFolder: "../bin"                    # local plugin binaries
-#pluginsFolder: "/opt/wost/gateway/plugins" # system plugin binaries
+  # Gateway and plugin default logging configuration
+  logging:
+    loglevel: "info"
+    logFile: "../logs/gateway.log" # local log file
+    #logFile: "/var/log/wost/gateway.log"    # system log file
 
-# List of plugins to start.
-plugins:
-  - recorder
+  # Message bus configuration
+  messenger:
+    #protocol: ""                   # smbus or mqtt. Default is the smbus plugin
+    #hostname: "localhost:9678"     # hostname:port or ip:port to listen on of message bus
+    certsFolder: "../certs" # location of gateway and client certificate for use with TLS
+    #certsFolder: "/etc/wost/certs" # location of gateway and client certificate for use with TLS
+
+  # Plugin configuration
+  plugins:
+    # location of plugin binaries files. Default is ../bin
+    # pluginsFolder: "../bin"                    # local plugin binaries
+    #pluginsFolder: "/opt/wost/gateway/plugins" # system plugin binaries
+    autostart: # autostart plugins
+      - recorder
+
+actions:
+
+events:

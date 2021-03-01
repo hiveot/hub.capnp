@@ -49,7 +49,6 @@ clean: ## Clean distribution files
 #prof: ## Run application with CPU and memory profiling
 #	  $(GORUN) main.go -cpuprofile=cpu.prof -memprofile=mem.prof
 
-plugins: recorder ## Build the plugins for amd64 and arm
 
 recorder:
 	GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(X64_DIST_FOLDER)/$@ plugins/$@/main.go
