@@ -26,6 +26,14 @@ const (
 	TestChannelID = "test"
 )
 
+// PluginMessage with activate/deactivation message for the PluginChannel
+type PluginMessage struct {
+	ID       string `json:"ID"`       // Plugin ID that started
+	Hostname string `json:"hostname"` // Hostname where it can be reached at if applicable
+	IP4      string `json:"ip4"`      // IP4 address where it can be reached at if applicable
+	Active   bool   `json:"active"`   // Plugin is active/inactive
+}
+
 // IGatewayMessenger interface to connection handler to publish messages onto and subscribe to the gateway
 type IGatewayMessenger interface {
 

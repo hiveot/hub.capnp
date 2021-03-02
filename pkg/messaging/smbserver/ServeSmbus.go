@@ -259,7 +259,7 @@ func (mbs *ServeSmbus) Start(host string) (*mux.Router, error) {
 
 		if err2 != nil && err2 != http.ErrServerClosed {
 			// logrus.Panicf("Start: ListenAndServe error: %s", err)
-			err2 = fmt.Errorf("Start: %s", err)
+			err2 = fmt.Errorf("Start Smbus: %w", err)
 			logrus.Error(err2)
 			errMutex.Lock()
 			// Return the error to the main thread if it is still around
