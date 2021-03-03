@@ -42,6 +42,6 @@ func StartGatewayMessenger(clientID string, gwConfig *lib.GatewayConfig) (IGatew
 		gwConfig.Messenger.Protocol,
 		gwConfig.Messenger.CertFolder, gwConfig.Messenger.HostPort,
 	)
-	err := messenger.Connect(clientID, 0)
+	err := messenger.Connect(clientID, gwConfig.Messenger.Timeout)
 	return messenger, err
 }

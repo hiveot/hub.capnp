@@ -28,10 +28,11 @@ const (
 
 // PluginMessage with activate/deactivation message for the PluginChannel
 type PluginMessage struct {
-	ID       string `json:"ID"`       // Plugin ID that started
+	Active   bool   `json:"active"`   // Plugin is active/inactive
+	ID       string `json:"ID"`       // Plugin instance ID that started
 	Hostname string `json:"hostname"` // Hostname where it can be reached at if applicable
 	IP4      string `json:"ip4"`      // IP4 address where it can be reached at if applicable
-	Active   bool   `json:"active"`   // Plugin is active/inactive
+	Port     int    `json:"port"`     // Port the service is listening on
 }
 
 // IGatewayMessenger interface to connection handler to publish messages onto and subscribe to the gateway

@@ -39,20 +39,34 @@ func (smbc *SmbClient) Connect(clientID string, timeoutSec int) error {
 	smbc.clientID = clientID
 	// TBD we could do a connection attempt to validate it
 
-	if smbc.clientCertPEM != nil {
-		conn, err = NewTLSWebsocketConnection(
-			smbc.hostPort, clientID, smbc.onReceiveMessage,
-			smbc.clientCertPEM, smbc.clientKeyPEM, smbc.serverCertPEM)
-	} else {
-		conn, err = NewWebsocketConnection(
-			smbc.hostPort, clientID, smbc.onReceiveMessage)
-	}
-	smbc.connection = conn
-	// subscribe to existing channels
-	for channelID := range smbc.subscribers {
-		Subscribe(smbc.connection, channelID)
-	}
+	retryDelaySec := 1
+	retryDuration := 0
+	for timeoutSec == 0 || retryDuration < timeoutSec {
 
+		if smbc.clientCertPEM != nil {
+			conn, err = NewTLSWebsocketConnection(
+				smbc.hostPort, clientID, smbc.onReceiveMessage,
+				smbc.clientCertPEM, smbc.clientKeyPEM, smbc.serverCertPEM)
+		} else {
+			conn, err = NewWebsocketConnection(
+				smbc.hostPort, clientID, smbc.onReceiveMessage)
+		}
+		if err == nil {
+			smbc.connection = conn
+			// subscribe to existing channels
+			for channelID := range smbc.subscribers {
+				Subscribe(smbc.connection, channelID)
+			}
+			break
+		}
+		sleepDuration := time.Duration(retryDelaySec)
+		retryDuration += int(sleepDuration)
+		time.Sleep(sleepDuration * time.Second)
+		// slowly increment wait time
+		if retryDelaySec < 120 {
+			retryDelaySec++
+		}
+	}
 	return err
 }
 

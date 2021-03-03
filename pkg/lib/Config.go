@@ -34,6 +34,7 @@ type GatewayConfig struct {
 		CertFolder string `yaml:"certFolder"` // location of certificates when using TLS. Default is ./certs
 		HostPort   string `yaml:"hostname"`   // hostname:port or ip:port to listen on of message bus
 		Protocol   string `yaml:"protocol"`   // internal, MQTT, default internal
+		Timeout    int    `yaml:"timeout"`    // Client connection timeout in seconds. 0 for indefinite
 	} `yaml:"messenger"`
 
 	Home         string   `yaml:"home"`         // application home directory. Default is parent of executable.
