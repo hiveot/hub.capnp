@@ -7,6 +7,7 @@ messenger:
   #hostname: "localhost:9678" # hostname:port or ip:port to listen on of message bus
   useTLS: false # use TLS for client/server messaging
   -brokenyamlfile
+  timeout: 1
 
 # Logging
 logging:

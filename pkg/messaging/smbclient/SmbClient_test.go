@@ -2,9 +2,9 @@ package smbclient_test
 
 import (
 	"testing"
-	"time"
 
 	"github.com/wostzone/gateway/pkg/messaging/smbclient"
+	"github.com/wostzone/gateway/pkg/messaging/smbserver"
 	testhelper "github.com/wostzone/gateway/pkg/messaging/test"
 )
 
@@ -16,19 +16,30 @@ const serverHostPort = "localhost:9999"
 // from plugins/smbserver run:
 //    go run plugins/smbserver/main.go --home ../../test
 
+var srv *smbserver.ServeSmbus
+
+func setup() {
+	// cwd, _ := os.Getwd()
+	// homeFolder = path.Join(cwd, "../../test")
+	srv, _ = smbserver.StartTLS(serverHostPort, smbCertFolder)
+}
+func teardown() {
+	srv.Stop()
+}
+
 // Test create and close the simple message bus channel
 func TestSmbClientConnection(t *testing.T) {
-	// srv, _ := smberver.StartSmbus(serverHostPort)
+	setup()
 	client := smbclient.NewSmbClient(smbCertFolder, serverHostPort)
 	testhelper.TMessengerConnect(t, client)
-	// srv.Stop()
+	teardown()
 }
 
 func TestSmbusNoConnect(t *testing.T) {
-	// srv, _ := smbserver.Start(serverHostPort)
+	setup()
 	client := smbclient.NewSmbClient(smbCertFolder, "localhost:0")
 	testhelper.TMessengerNoConnect(t, client)
-	// srv.Stop()
+	teardown()
 }
 
 // func TestSmbusPubSubNoTLS(t *testing.T) {
@@ -38,39 +49,36 @@ func TestSmbusNoConnect(t *testing.T) {
 // 	// srv.Stop()
 // }
 func TestSmbusPubSubWithTLS(t *testing.T) {
-	// srv, err := smbserver.StartTLS(serverHostPort, certFolder)
-	// assert.NoError(t, err)
-	time.Sleep(10 * time.Millisecond)
-
+	setup()
 	client := smbclient.NewSmbClient(smbCertFolder, serverHostPort)
 	testhelper.TMessengerPubSub(t, client)
-	// srv.Stop()
+	teardown()
 }
 
 func TestSmbusMultipleSubscriptions(t *testing.T) {
-	// srv, _ := smbserver.Start(serverHostPort)
+	setup()
 	client := smbclient.NewSmbClient(smbCertFolder, serverHostPort)
 	testhelper.TMessengerMultipleSubscriptions(t, client)
-	// srv.Stop()
+	teardown()
 }
 
 func TestSmbusBadUnsubscribe(t *testing.T) {
-	// srv, _ := smbserver.Start(serverHostPort)
+	setup()
 	client := smbclient.NewSmbClient(smbCertFolder, serverHostPort)
 	testhelper.TMessengerBadUnsubscribe(t, client)
-	// srv.Stop()
+	teardown()
 }
 
 func TestSmbusPubNoConnect(t *testing.T) {
-	// srv, _ := smbserver.Start(serverHostPort)
+	setup()
 	client := smbclient.NewSmbClient(smbCertFolder, serverHostPort)
 	testhelper.TMessengerPubNoConnect(t, client)
-	// srv.Stop()
+	teardown()
 }
 
 func TestSmbusSubBeforeConnect(t *testing.T) {
-	// srv, _ := smbserver.Start(serverHostPort)
+	setup()
 	client := smbclient.NewSmbClient(smbCertFolder, serverHostPort)
 	testhelper.TMessengerSubBeforeConnect(t, client)
-	// srv.Stop()
+	teardown()
 }

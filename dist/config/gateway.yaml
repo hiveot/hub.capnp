@@ -29,6 +29,7 @@ properties:
     #hostname: "localhost:9678"     # hostname:port or ip:port to listen on of message bus
     certsFolder: "../certs" # location of gateway and client certificate for use with TLS
     #certsFolder: "/etc/wost/certs" # location of gateway and client certificate for use with TLS
+    timeout: 1
 
   # Plugin configuration
   plugins:
