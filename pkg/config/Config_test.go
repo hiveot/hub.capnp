@@ -111,7 +111,7 @@ func TestLogging(t *testing.T) {
 	logFile := path.Join(wd, "../../test/logs/TestLogging.log")
 
 	os.Remove(logFile)
-	config.SetLogging("info", logFile)
+	config.SetLogging("info", logFile, "")
 	logrus.Info("Hello world")
 	assert.FileExists(t, logFile)
 	os.Remove(logFile)

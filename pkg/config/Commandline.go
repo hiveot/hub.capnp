@@ -121,9 +121,9 @@ func SetupConfig(homeFolder string, pluginName string, pluginConfig interface{})
 	if pluginName != "" {
 		logFolder := path.Dir(gwConfig.Logging.LogFile)
 		logFileName := path.Join(logFolder, pluginName+".log")
-		SetLogging(gwConfig.Logging.Loglevel, logFileName)
+		SetLogging(gwConfig.Logging.Loglevel, logFileName, gwConfig.Logging.TimeFormat)
 	} else if gwConfig.Logging.LogFile != "" {
-		SetLogging(gwConfig.Logging.Loglevel, gwConfig.Logging.LogFile)
+		SetLogging(gwConfig.Logging.Loglevel, gwConfig.Logging.LogFile, gwConfig.Logging.TimeFormat)
 	}
 	return gwConfig, err
 }

@@ -14,7 +14,8 @@ import (
 // Intended for standardize logging in the gateway and plugins
 //  levelName is the requested logging level: error, warning, info, debug
 //  filename is the output log file full name including path, use "" for stderr
-func SetLogging(levelName string, filename string) error {
+//  timeFormat default is ISO8601 YYYY-MM-DDTHH:MM:SS.sss-TZ
+func SetLogging(levelName string, filename string, timeFormat string) error {
 	loggingLevel := logrus.DebugLevel
 	var err error
 
@@ -52,16 +53,16 @@ func SetLogging(levelName string, filename string) error {
 	customFormatter.DisableLevelTruncation = false
 	logrus.SetFormatter(customFormatter)
 
-	// logrus.SetFormatter(
-	// 	&logrus.TextFormatter{
-	// 		// LogFormat: "",
-	// 		DisableColors: true,
-	// 		// DisableLevelTruncation: true,
-	// 		// PadLevelText:    true,
-	// 		// TimestampFormat: "2006-01-02 15:04:05.000",
-	// 		// FullTimestamp: true,
-	// 		// ForceFormatting: true,
-	// 	})
+	logrus.SetFormatter(
+		&logrus.TextFormatter{
+			// LogFormat: "",
+			DisableColors: true,
+			// DisableLevelTruncation: true,
+			// PadLevelText:    true,
+			TimestampFormat: "2006-01-02T15:04:05.000-0700",
+			FullTimestamp:   true,
+			// ForceFormatting: true,
+		})
 	logrus.SetOutput(logOut)
 	logrus.SetLevel(loggingLevel)
 

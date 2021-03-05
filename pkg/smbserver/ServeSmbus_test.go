@@ -36,7 +36,7 @@ const testHostPort = "localhost:9666"
 
 // Test create, store and remove channels by the server
 func TestCreateChannel(t *testing.T) {
-	logrus.Info("Testing create channels")
+	t.Logf("TestCreateChannel")
 	srv := smbserver.NewServeMsgBus()
 	c1 := &websocket.Conn{}
 	c2 := &websocket.Conn{}
@@ -68,6 +68,7 @@ func TestCreateChannel(t *testing.T) {
 
 // Test client-server connection without TLS
 func TestConnectNoTLS(t *testing.T) {
+	t.Logf("TestConnectNoTLS")
 	const channel1 = "Chan1"
 
 	// logrus.Infof("Testing authentication on channel %s", channel1)
@@ -82,6 +83,7 @@ func TestConnectNoTLS(t *testing.T) {
 }
 
 func TestDefaultHost(t *testing.T) {
+	t.Logf("TestDefaultHost")
 	// setup
 	mb, err := smbserver.Start("")
 	require.NoError(t, err)
@@ -93,6 +95,7 @@ func TestDefaultHost(t *testing.T) {
 
 // test connecting by a regular http client, which should fail
 func TestConnectHttpClient(t *testing.T) {
+	t.Logf("TestConnectHttpClient")
 	const channel1 = "Chan1"
 	const client1ID = "cid1"
 	var err error
@@ -118,6 +121,7 @@ func TestConnectHttpClient(t *testing.T) {
 }
 
 func TestConnectInvalidClientID(t *testing.T) {
+	t.Logf("TestConnectInvalidClientID")
 	const channel1 = "Chan1"
 
 	cs, err := smbserver.Start(testHostPort)
@@ -129,6 +133,7 @@ func TestConnectInvalidClientID(t *testing.T) {
 }
 
 func TestStartTwice(t *testing.T) {
+	t.Logf("TestStartTwice")
 	const channel1 = "Chan1"
 
 	cs1, err := smbserver.Start(testHostPort)
@@ -263,7 +268,11 @@ func TestTLSPubSub(t *testing.T) {
 	const pubMsg1 = "Message 1"
 	var subMsg1 = ""
 	mutex1 := sync.Mutex{}
-	const certFolder = "../../test/certs"
+
+	// use separate cert folder so not to interfere with other test running -race
+	const certFolder = "/tmp/testcert"
+	os.RemoveAll(certFolder)
+	os.Mkdir(certFolder, 0770)
 
 	logrus.Infof("Testing channel %s", channel1)
 	// create new certificates in the test folder
@@ -320,16 +329,9 @@ func TestTLSPubSub(t *testing.T) {
 
 func TestTLSNoCerts(t *testing.T) {
 	const channel1 = "Chan1"
-	const certFolder = "../../test/certs"
+	const certFolder = "/tmp/nocerts" // this folder has no certs
 
 	logrus.Infof("Testing channel %s", channel1)
-	// create new certificates in the test folder
-	os.Remove(path.Join(certFolder, certs.CaCertFile))
-	os.Remove(path.Join(certFolder, certs.CaKeyFile))
-	os.Remove(path.Join(certFolder, certs.ServerCertFile))
-	os.Remove(path.Join(certFolder, certs.ServerKeyFile))
-	os.Remove(path.Join(certFolder, certs.ClientCertFile))
-	os.Remove(path.Join(certFolder, certs.ClientKeyFile))
 
 	srv := smbserver.NewServeMsgBus()
 	router, err := srv.StartTLS(testHostPort, "", "", "")

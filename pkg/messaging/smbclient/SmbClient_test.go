@@ -3,8 +3,9 @@ package smbclient_test
 import (
 	"testing"
 
+	"github.com/wostzone/gateway/pkg/config"
 	"github.com/wostzone/gateway/pkg/messaging/smbclient"
-	testhelper "github.com/wostzone/gateway/pkg/messaging/test"
+	testhelper "github.com/wostzone/gateway/pkg/messaging/testhelper"
 	"github.com/wostzone/gateway/pkg/smbserver"
 )
 
@@ -12,13 +13,15 @@ const smbCertFolder = "../../../test/certs"
 
 const serverHostPort = "localhost:9999"
 
-// !!! THE TESTS REQUIRE THAT A SMBSERVER IS RUNNING !!!
-// from plugins/smbserver run:
-//    go run plugins/smbserver/main.go --home ../../test
-
 var srv *smbserver.ServeSmbus
 
+func init() {
+	config.SetLogging("info", "", "")
+}
+
 func setup() {
+	// these tests need a smbserver running
+	// config.SetLogging("info", "", "")
 	// cwd, _ := os.Getwd()
 	// homeFolder = path.Join(cwd, "../../test")
 	srv, _ = smbserver.StartTLS(serverHostPort, smbCertFolder)

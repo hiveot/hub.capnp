@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/wostzone/gateway/pkg/messaging/mqtt"
-	testhelper "github.com/wostzone/gateway/pkg/messaging/test"
+	testhelper "github.com/wostzone/gateway/pkg/messaging/testhelper"
 )
 
 const mqttServerHostPort = "localhost:8883"

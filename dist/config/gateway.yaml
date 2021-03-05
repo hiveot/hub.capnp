@@ -21,6 +21,7 @@ properties:
   logging:
     loglevel: "info"
     logFile: "../logs/gateway.log" # local log file
+    #timeFormat: "2006-01-02 15:04:05.000-07:00"    # ISO8601 format
     #logFile: "/var/log/wost/gateway.log"    # system log file
 
   # Message bus configuration

@@ -31,8 +31,9 @@ type ConfigArgs struct {
 // GatewayConfig with gateway configuration parameters
 type GatewayConfig struct {
 	Logging struct {
-		Loglevel string `yaml:"logLevel"` // debug, info, warning, error. Default is warning
-		LogFile  string `yaml:"logFile"`  // gateway logging to file
+		Loglevel   string `yaml:"logLevel"`   // debug, info, warning, error. Default is warning
+		LogFile    string `yaml:"logFile"`    // gateway logging to file
+		TimeFormat string `yaml:"timeFormat"` // go default ISO8601 ("2006-01-02T15:04:05.000-0700")
 	} `yaml:"logging"`
 
 	// Messenger configuration of gateway plugin messaging
