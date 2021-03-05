@@ -16,14 +16,17 @@ import (
 	"github.com/wostzone/gateway/pkg/messaging/smbclient"
 )
 
+const hostPort = "localhost:9666"
+
 // helper function to test WsConnect methods
 func startLittleServer(t *testing.T, hostPort string) *http.Server {
 	var upgrader websocket.Upgrader = websocket.Upgrader{}
+	logrus.Infof("--- startLittleServer ------")
 
 	router := mux.NewRouter()
 	router.HandleFunc("/wost", func(resp http.ResponseWriter, req *http.Request) {
 		pubOrSub := mux.Vars(req)["stage"]
-		logrus.Infof("TestNewPubSub: calling socket upgrade to websocket: %s", pubOrSub)
+		logrus.Infof("startLittleServer: calling socket upgrade to websocket: %s", pubOrSub)
 		upgrader.Upgrade(resp, req, nil)
 	})
 
@@ -35,15 +38,15 @@ func startLittleServer(t *testing.T, hostPort string) *http.Server {
 		// cs.updateMutex.Unlock()
 		err := httpServer.ListenAndServe()
 		if err != nil && err != http.ErrServerClosed {
-			assert.NoError(t, err, "ListenAndServe failed: %s", err)
+			assert.NoError(t, err, "startLittleServer: ListenAndServe failed: %s", err)
 		}
 	}()
 	return httpServer
 }
 
 func TestConnect(t *testing.T) {
+	logrus.Infof("--- TestConnect ------")
 	const channel1 = "Chan1"
-	const hostPort = "localhost:9666"
 	const client1ID = "cid1"
 	const certFolder = "../../test"
 	var err error
@@ -67,8 +70,8 @@ func TestConnect(t *testing.T) {
 }
 
 func TestNewPubSubErrors(t *testing.T) {
+	logrus.Infof("--- TestNewPubSubErrors ------")
 	const channel1 = "Chan1"
-	const hostPort = "localhost:9666"
 	const client1ID = "cid1"
 	const certFolder = "../../test"
 
@@ -97,6 +100,7 @@ func TestNewPubSubErrors(t *testing.T) {
 }
 
 func TestBadPublish(t *testing.T) {
+	logrus.Infof("--- TestBadPublish ------")
 	const channel1 = "Chan1"
 	const hostPort = "localhost:1111"
 	const client1ID = "cid1"

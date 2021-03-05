@@ -84,18 +84,20 @@ func (smbc *SmbClient) Disconnect() {
 
 // Receive a subscribed message and pass it to its handler
 func (smbc *SmbClient) onReceiveMessage(command string, channelID string, message []byte) {
-	logrus.Infof("onReceiveMessage: command=%s, channelID=%s", command, channelID)
+	logrus.Infof("SmbClient.onReceiveMessage: command=%s, channelID=%s", command, channelID)
 	if command == MsgBusCommandReceive {
 		smbc.updateMutex.Lock()
 		handler := smbc.subscribers[channelID]
 		defer smbc.updateMutex.Unlock()
 		if handler == nil {
-			logrus.Errorf("onReceiveMessage: Missing handler for channel %s. Message ignored.", channelID)
+			logrus.Errorf("SmbClient.onReceiveMessage: Missing handler for channel %s. Message ignored.", channelID)
 		} else {
 			handler(channelID, message)
 		}
+	} else if command == "" {
+		logrus.Warningf("SmbClient.onReceiveMessage: connection on channel %s closed", channelID)
 	} else {
-		logrus.Warningf("onReceiveMessage: Unexpected command %s on channel %s", command, channelID)
+		logrus.Warningf("SmbClient.onReceiveMessage: Unexpected command %s on channel %s", command, channelID)
 	}
 }
 

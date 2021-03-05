@@ -32,7 +32,7 @@ const defaultBufferSize = 1
 // const hostPort = "localhost:9678"
 
 const client1ID = "plugin1"
-const testHostPort = "localhost:9666"
+const testHostPort = "localhost:9667"
 
 // Test create, store and remove channels by the server
 func TestCreateChannel(t *testing.T) {
