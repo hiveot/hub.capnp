@@ -10,8 +10,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/gateway/pkg/certs"
-	"github.com/wostzone/gateway/pkg/lib"
-	"github.com/wostzone/gateway/pkg/messaging/smbclient"
+	"github.com/wostzone/gateway/pkg/config"
 )
 
 // Start starts the built-in lightweigth message bus and listens for incoming connections and messages.
@@ -23,7 +22,7 @@ func Start(hostPort string) (*ServeSmbus, error) {
 	logrus.Warningf("Start: Starting message bus server no TLS")
 
 	if hostPort == "" {
-		hostPort = smbclient.DefaultSmbHost
+		hostPort = config.DefaultSmbHost
 	}
 	srv := NewServeMsgBus()
 	router, err = srv.Start(hostPort)
@@ -41,13 +40,16 @@ func Start(hostPort string) (*ServeSmbus, error) {
 // If no certificate is found in certFolder they will be generated.
 // This returns after listening is established
 // - host contains the hostname and optionally port. Default is 9678 (WOST)
-// - certFolder is the folder for ca, server and client certificates
+// - certFolder is the folder for ca, server and client certificates. Default is ./certs
 func StartTLS(host string, certFolder string) (*ServeSmbus, error) {
 	var router *mux.Router
 	var err error
 
 	if host == "" {
-		host = smbclient.DefaultSmbHost
+		host = config.DefaultSmbHost
+	}
+	if certFolder == "" {
+		certFolder = config.DefaultCertsFolder
 	}
 	srv := NewServeMsgBus()
 
@@ -101,7 +103,7 @@ func StartTLS(host string, certFolder string) (*ServeSmbus, error) {
 
 // StartSmbServer Main entry point to start the Simple Message Bus server with
 // the given gateway configuration
-func StartSmbServer(gwConfig *lib.GatewayConfig) (*ServeSmbus, error) {
+func StartSmbServer(gwConfig *config.GatewayConfig) (*ServeSmbus, error) {
 	var server *ServeSmbus
 	var err error
 

@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/gateway/pkg/certs"
+	"github.com/wostzone/gateway/pkg/config"
 )
 
 // const publishAddress = "ws://%s/channel/%s/pub"
@@ -128,7 +129,7 @@ func (smbc *SmbClient) Unsubscribe(channelID string) {
 // and subscribe to gateway messages.
 func NewSmbClient(certFolder string, hostPort string) *SmbClient {
 	if hostPort == "" {
-		hostPort = DefaultSmbHost
+		hostPort = config.DefaultSmbHost
 	}
 	smbmsg := &SmbClient{
 		// serverAddress: serverAddress,

@@ -1,4 +1,4 @@
-package lib
+package config
 
 import (
 	"io/ioutil"
@@ -14,6 +14,12 @@ const GatewayConfigName = "gateway.yaml"
 
 // GatewayLogFile the file name of the gateway logging
 const GatewayLogFile = "gateway.log"
+
+// DefaultCertsFolder with the location of certificates
+const DefaultCertsFolder = "./certs"
+
+// DefaultSmbHost with the default server address and port
+const DefaultSmbHost = "localhost:9678"
 
 // ConfigArgs configuration commandline arguments
 type ConfigArgs struct {
@@ -77,9 +83,9 @@ func CreateDefaultGatewayConfig(homeFolder string) *GatewayConfig {
 		PluginFolder: path.Join(homeFolder, "./bin"),
 	}
 	// config.Messenger.CertsFolder = path.Join(homeFolder, "certs")
-	config.Messenger.CertFolder = path.Join(homeFolder, "./certs")
-	config.Messenger.HostPort = "" // use default "localhost:9678"
-	config.Messenger.Protocol = "" // use default
+	config.Messenger.CertFolder = path.Join(homeFolder, DefaultCertsFolder)
+	config.Messenger.HostPort = DefaultSmbHost // use default "localhost:9678"
+	config.Messenger.Protocol = ""             // use default
 	config.Logging.Loglevel = "warning"
 	// config.Logging.LogFile = path.Join(homeFolder, "logs/"+GatewayLogFile)
 	config.Logging.LogFile = path.Join(homeFolder, "./logs/"+GatewayLogFile)

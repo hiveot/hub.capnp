@@ -3,7 +3,6 @@ package main
 import (
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/gateway/pkg/gateway"
-	"github.com/wostzone/gateway/pkg/lib"
 )
 
 func main() {
@@ -11,6 +10,6 @@ func main() {
 	if err != nil {
 		logrus.Fatalf("main: Failed starting gateway: %s", err)
 	}
-	lib.WaitForSignal()
+	gateway.WaitForSignal()
 	gateway.StopGateway()
 }

@@ -1,5 +1,5 @@
-// Package lib with gateway logging helper functions
-package lib
+// Package config with logging configuration functions
+package config
 
 import (
 	"fmt"

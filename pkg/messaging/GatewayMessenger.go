@@ -1,7 +1,7 @@
 package messaging
 
 import (
-	"github.com/wostzone/gateway/pkg/lib"
+	"github.com/wostzone/gateway/pkg/config"
 	"github.com/wostzone/gateway/pkg/messaging/mqtt"
 	"github.com/wostzone/gateway/pkg/messaging/smbclient"
 )
@@ -37,7 +37,7 @@ func NewGatewayConnection(protocol string, certFolder string, hostPort string) I
 //  clientID is used to identify the client to the message bus and must be unique
 //  config contains the connection information of the gateway
 // returns a messenger used to publish and subscribe to channels.
-func StartGatewayMessenger(clientID string, gwConfig *lib.GatewayConfig) (IGatewayMessenger, error) {
+func StartGatewayMessenger(clientID string, gwConfig *config.GatewayConfig) (IGatewayMessenger, error) {
 	messenger := NewGatewayConnection(
 		gwConfig.Messenger.Protocol,
 		gwConfig.Messenger.CertFolder, gwConfig.Messenger.HostPort,

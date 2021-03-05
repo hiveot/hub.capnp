@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	"github.com/wostzone/gateway/pkg/messaging/smbclient"
-	"github.com/wostzone/gateway/pkg/messaging/smbserver"
 	testhelper "github.com/wostzone/gateway/pkg/messaging/test"
+	"github.com/wostzone/gateway/pkg/smbserver"
 )
 
 const smbCertFolder = "../../../test/certs"

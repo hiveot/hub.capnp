@@ -33,9 +33,6 @@ const (
 	ClientHeader        = "Client"
 )
 
-// DefaultSmbHost with the default server address and port
-const DefaultSmbHost = "localhost:9678"
-
 //--- communication functions that do the actual work
 
 // Connect to the simple message bus server

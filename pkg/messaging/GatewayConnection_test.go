@@ -9,9 +9,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/wostzone/gateway/pkg/lib"
+	"github.com/wostzone/gateway/pkg/config"
 	"github.com/wostzone/gateway/pkg/messaging"
-	"github.com/wostzone/gateway/pkg/messaging/smbserver"
+	"github.com/wostzone/gateway/pkg/smbserver"
 )
 
 // Test create the Simple Message Bus protocol connections
@@ -24,7 +24,7 @@ func TestNewSmbClientConnection(t *testing.T) {
 
 	cwd, _ := os.Getwd()
 	homeFolder := path.Join(cwd, "../../test")
-	gwConfig, err := lib.SetupConfig(homeFolder, "", nil)
+	gwConfig, err := config.SetupConfig(homeFolder, "", nil)
 
 	// this needs a msbserver to connect to
 	assert.NoError(t, err)
@@ -68,7 +68,7 @@ func TestStartGatewayMessenger(t *testing.T) {
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 
 	homeFolder := path.Join(cwd, "../../test")
-	gwConfig, err := lib.SetupConfig(homeFolder, clientID, nil)
+	gwConfig, err := config.SetupConfig(homeFolder, clientID, nil)
 	assert.NoError(t, err)
 
 	// this needs a msbserver to connect to

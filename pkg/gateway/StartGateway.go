@@ -4,22 +4,23 @@ import (
 	"os"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/gateway/pkg/lib"
+	"github.com/wostzone/gateway/pkg/config"
 	"github.com/wostzone/gateway/pkg/messaging"
-	"github.com/wostzone/gateway/pkg/messaging/smbserver"
+	"github.com/wostzone/gateway/pkg/smbserver"
 )
 
 // the internal message bus server, if running
 var srv *smbserver.ServeSmbus
 
-// StartGateway reads the gateway configuration, starts the message bus server and the gateway plugins
+// StartGateway reads the gateway configuration, starts the internal message bus server, if configured,
+// and launches the plugins.
 // If the configuration is invalid then start is aborted
 // The plugins receive the same commandline arguments as the gateway
 //  homeFolder is the folder containing the config subfolder with the gateway.yaml configuration
 //  startPlugins set to false to only start the gateway with message bus server if configured
 func StartGateway(homeFolder string, startPlugins bool) error {
 	var err error
-	config, err := lib.SetupConfig(homeFolder, "", nil)
+	config, err := config.SetupConfig(homeFolder, "", nil)
 	if err != nil {
 		return err
 	}
@@ -34,7 +35,7 @@ func StartGateway(homeFolder string, startPlugins bool) error {
 
 	if startPlugins {
 		args := os.Args[1:] // pass the gateways args to the plugin
-		lib.StartPlugins(config.PluginFolder, config.Plugins, args)
+		StartPlugins(config.PluginFolder, config.Plugins, args)
 	}
 	logrus.Warningf("StartGateway: Gateway started successfully!")
 

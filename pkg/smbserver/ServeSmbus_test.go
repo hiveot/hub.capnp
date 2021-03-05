@@ -20,7 +20,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/wostzone/gateway/pkg/certs"
 	"github.com/wostzone/gateway/pkg/messaging/smbclient"
-	"github.com/wostzone/gateway/pkg/messaging/smbserver"
+	"github.com/wostzone/gateway/pkg/smbserver"
 	"golang.org/x/net/http2"
 )
 
@@ -79,6 +79,16 @@ func TestConnectNoTLS(t *testing.T) {
 	require.NotNil(t, conn)
 
 	cs.Stop()
+}
+
+func TestDefaultHost(t *testing.T) {
+	// setup
+	mb, err := smbserver.Start("")
+	require.NoError(t, err)
+	mb.Stop()
+	mb, err = smbserver.StartTLS("", "")
+	require.Error(t, err, "Expected error due to missing certs folder")
+	// mb.Stop()
 }
 
 // test connecting by a regular http client, which should fail
@@ -253,7 +263,7 @@ func TestTLSPubSub(t *testing.T) {
 	const pubMsg1 = "Message 1"
 	var subMsg1 = ""
 	mutex1 := sync.Mutex{}
-	const certFolder = "../../../test/certs"
+	const certFolder = "../../test/certs"
 
 	logrus.Infof("Testing channel %s", channel1)
 	// create new certificates in the test folder
@@ -310,7 +320,7 @@ func TestTLSPubSub(t *testing.T) {
 
 func TestTLSNoCerts(t *testing.T) {
 	const channel1 = "Chan1"
-	const certFolder = "../../../test/certs"
+	const certFolder = "../../test/certs"
 
 	logrus.Infof("Testing channel %s", channel1)
 	// create new certificates in the test folder
@@ -335,7 +345,7 @@ func TestCloseSubscriberChannel(t *testing.T) {
 	const pubMsg1 = "Message 1"
 	var msgCount = int64(0)
 	msgCountMutex := sync.Mutex{}
-	const certFolder = "../../../test/certs"
+	const certFolder = "../../test/certs"
 
 	// setup
 	cs, err := smbserver.StartTLS(testHostPort, certFolder)
@@ -387,7 +397,7 @@ func TestLoad(t *testing.T) {
 	var rxCount int32 = 0
 	var txCount int32 = 0
 	mutex1 := sync.Mutex{}
-	const certFolder = "../../../test/certs"
+	const certFolder = "../../test/certs"
 
 	cs, err := smbserver.StartTLS(testHostPort, certFolder)
 	require.NoError(t, err)
