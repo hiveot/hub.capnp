@@ -5,10 +5,37 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
+	"runtime"
 	"strings"
 
 	"github.com/sirupsen/logrus"
 )
+
+// ContextHook to report source file...
+type ContextHook struct{}
+
+// Levels ...
+func (hook ContextHook) Levels() []logrus.Level {
+	return logrus.AllLevels
+}
+
+// Fire ...
+func (hook ContextHook) Fire(entry *logrus.Entry) error {
+	// stack depth depends on logging level: Warn=10, Info=9, Error=8   :/
+	depth := 10
+	if entry.Level == logrus.InfoLevel {
+		depth = 9
+	} else if entry.Level == logrus.ErrorLevel {
+		depth = 8
+	}
+	if pc, file, line, ok := runtime.Caller(depth); ok {
+		funcName := runtime.FuncForPC(pc).Name()
+		fileInfo := fmt.Sprintf("%s:%v", path.Base(file), line)
+		entry.Data["source"] = fmt.Sprintf("%s:%s", fileInfo, path.Base(funcName))
+	}
+	return nil
+}
 
 // SetLogging sets the logging level and output file for this publisher
 // Intended for standardize logging in the gateway and plugins
@@ -56,9 +83,10 @@ func SetLogging(levelName string, filename string, timeFormat string) error {
 	logrus.SetFormatter(
 		&logrus.TextFormatter{
 			// LogFormat: "",
-			DisableColors: true,
+			// DisableColors: true,
+			ForceColors: true,
 			// DisableLevelTruncation: true,
-			// PadLevelText:    true,
+			PadLevelText:    true,
 			TimestampFormat: "2006-01-02T15:04:05.000-0700",
 			FullTimestamp:   true,
 			// ForceFormatting: true,
@@ -66,6 +94,10 @@ func SetLogging(levelName string, filename string, timeFormat string) error {
 	logrus.SetOutput(logOut)
 	logrus.SetLevel(loggingLevel)
 
+	var hook = ContextHook{}
+	logrus.AddHook(hook)
+
 	logrus.SetReportCaller(false) // publisher logging includes caller and file:line#
+
 	return err
 }

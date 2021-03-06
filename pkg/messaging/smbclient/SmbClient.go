@@ -68,6 +68,11 @@ func (smbc *SmbClient) Connect(clientID string, timeoutSec int) error {
 			retryDelaySec++
 		}
 	}
+	if err != nil {
+		logrus.Errorf("Failed connecting to the gateway: %s", err)
+	} else {
+		logrus.Warningf("Success connecting to gateway: %s", smbc.hostPort)
+	}
 	return err
 }
 

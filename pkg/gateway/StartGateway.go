@@ -29,14 +29,15 @@ func StartGateway(homeFolder string, startPlugins bool) error {
 		srv, err = smbserver.StartSmbServer(config)
 	}
 
-	// launch plugins
-	logrus.Warningf("StartGateway: Starting %d gateway plugins on %s. UseTLS=%t",
-		len(config.Plugins), config.Messenger.HostPort, config.Messenger.CertFolder != "")
-
 	if startPlugins {
+		// launch plugins
+		logrus.Warningf("StartGateway: Starting %d gateway plugins on %s. UseTLS=%t",
+			len(config.Plugins), config.Messenger.HostPort, config.Messenger.CertFolder != "")
+
 		args := os.Args[1:] // pass the gateways args to the plugin
 		StartPlugins(config.PluginFolder, config.Plugins, args)
 	}
+
 	logrus.Warningf("StartGateway: Gateway started successfully!")
 
 	return nil
