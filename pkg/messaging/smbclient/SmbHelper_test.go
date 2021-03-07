@@ -12,7 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/wostzone/gateway/pkg/certs"
+	"github.com/wostzone/gateway/pkg/certsetup"
 	"github.com/wostzone/gateway/pkg/messaging/smbclient"
 )
 
@@ -75,9 +75,9 @@ func TestNewPubSubErrors(t *testing.T) {
 	const client1ID = "cid1"
 	const certFolder = "../../test"
 
-	serverCertPath := path.Join(certFolder, certs.ServerCertFile)
-	clientCertPath := path.Join(certFolder, certs.ClientCertFile)
-	clientKeyPath := path.Join(certFolder, certs.ClientKeyFile)
+	serverCertPath := path.Join(certFolder, certsetup.ServerCertFile)
+	clientCertPath := path.Join(certFolder, certsetup.ClientCertFile)
+	clientKeyPath := path.Join(certFolder, certsetup.ClientKeyFile)
 
 	serverCertPEM, _ := ioutil.ReadFile(serverCertPath)
 	clientCertPEM, _ := ioutil.ReadFile(clientCertPath)

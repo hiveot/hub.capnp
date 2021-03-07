@@ -18,7 +18,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/wostzone/gateway/pkg/certs"
+	"github.com/wostzone/gateway/pkg/certsetup"
+	"github.com/wostzone/gateway/pkg/config"
 	"github.com/wostzone/gateway/pkg/messaging/smbclient"
 	"github.com/wostzone/gateway/pkg/smbserver"
 	"golang.org/x/net/http2"
@@ -34,9 +35,16 @@ const defaultBufferSize = 1
 const client1ID = "plugin1"
 const testHostPort = "localhost:9667"
 
+func setup(name string) {
+	config.SetLogging("info", "", "")
+	logrus.Infof("TestCreateChannel")
+}
+func teardown() {
+}
+
 // Test create, store and remove channels by the server
 func TestCreateChannel(t *testing.T) {
-	t.Logf("TestCreateChannel")
+	setup("TestCreateChannel")
 	srv := smbserver.NewServeMsgBus()
 	c1 := &websocket.Conn{}
 	c2 := &websocket.Conn{}
@@ -64,11 +72,12 @@ func TestCreateChannel(t *testing.T) {
 
 	// removing twice should not fail
 	srv.RemoveConnection(c2)
+	teardown()
 }
 
 // Test client-server connection without TLS
 func TestConnectNoTLS(t *testing.T) {
-	t.Logf("TestConnectNoTLS")
+	setup("TestConnectNoTLS")
 	const channel1 = "Chan1"
 
 	// logrus.Infof("Testing authentication on channel %s", channel1)
@@ -80,10 +89,11 @@ func TestConnectNoTLS(t *testing.T) {
 	require.NotNil(t, conn)
 
 	cs.Stop()
+	teardown()
 }
 
 func TestDefaultHost(t *testing.T) {
-	t.Logf("TestDefaultHost")
+	setup("TestDefaultHost")
 	// setup
 	mb, err := smbserver.Start("")
 	require.NoError(t, err)
@@ -91,11 +101,12 @@ func TestDefaultHost(t *testing.T) {
 	mb, err = smbserver.StartTLS("", "")
 	require.Error(t, err, "Expected error due to missing certs folder")
 	// mb.Stop()
+	teardown()
 }
 
 // test connecting by a regular http client, which should fail
 func TestConnectHttpClient(t *testing.T) {
-	t.Logf("TestConnectHttpClient")
+	setup("TestConnectHttpClient")
 	const channel1 = "Chan1"
 	const client1ID = "cid1"
 	var err error
@@ -118,10 +129,11 @@ func TestConnectHttpClient(t *testing.T) {
 	assert.True(t, resp.StatusCode >= 400)
 
 	srv.Stop()
+	teardown()
 }
 
 func TestConnectInvalidClientID(t *testing.T) {
-	t.Logf("TestConnectInvalidClientID")
+	setup("TestConnectInvalidClientID")
 	const channel1 = "Chan1"
 
 	cs, err := smbserver.Start(testHostPort)
@@ -129,11 +141,11 @@ func TestConnectInvalidClientID(t *testing.T) {
 	_, err = smbclient.NewWebsocketConnection(testHostPort, "", nil)
 	require.Error(t, err, "Expected error creating subscriber with invalid ID")
 	cs.Stop()
-
+	teardown()
 }
 
 func TestStartTwice(t *testing.T) {
-	t.Logf("TestStartTwice")
+	setup("TestStartTwice")
 	const channel1 = "Chan1"
 
 	cs1, err := smbserver.Start(testHostPort)
@@ -148,9 +160,11 @@ func TestStartTwice(t *testing.T) {
 	if cs2 != nil {
 		cs2.Stop()
 	}
+	teardown()
 }
 
 func TestPubSub(t *testing.T) {
+	setup("TestPubSub")
 	const channel1 = "Chan1"
 	const channel2 = "Chan2"
 	const msg1 = "Hello world 1"
@@ -198,11 +212,13 @@ func TestPubSub(t *testing.T) {
 	time.Sleep(time.Second)
 
 	mb.Stop()
+	teardown()
 }
 
 // Test a TLS connection using a self generated certificates
 // This also serves as an example on how to setup a server and client using a CA and client certificate
 func TestTLSCerts(t *testing.T) {
+	setup("TestTLSCerts")
 	// hostname := "10.3.3.30"
 	hostname := "localhost"
 	message := "success!"
@@ -213,12 +229,12 @@ func TestTLSCerts(t *testing.T) {
 		fmt.Fprint(w, message)
 	}))
 
-	caCertPEM, caKeyPEM := certs.CreateWoSTCA()
+	caCertPEM, caKeyPEM := certsetup.CreateWoSTCA()
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(caCertPEM)
 
-	serverCertPEM, serverKeyPEM, err := certs.CreateGatewayCert(caCertPEM, caKeyPEM, hostname)
-	clientCertPEM, clientKeyPEM, err := certs.CreateClientCert(caCertPEM, caKeyPEM, hostname)
+	serverCertPEM, serverKeyPEM, err := certsetup.CreateGatewayCert(caCertPEM, caKeyPEM, hostname)
+	clientCertPEM, clientKeyPEM, err := certsetup.CreateClientCert(caCertPEM, caKeyPEM, hostname)
 	clientCert, err := tls.X509KeyPair(clientCertPEM, clientKeyPEM)
 	require.NoErrorf(t, err, "Creating certificates failed:")
 
@@ -260,10 +276,12 @@ func TestTLSCerts(t *testing.T) {
 	respBodyBytes, err := ioutil.ReadAll(resp.Body)
 	require.NoErrorf(t, err, "Failed reading response")
 	assert.Equal(t, message, string(respBodyBytes))
+	teardown()
 }
 
 // Test publish and subscribe client over TLS
 func TestTLSPubSub(t *testing.T) {
+	setup("TestTLSPubSub")
 	const channel1 = "Chan1"
 	const pubMsg1 = "Message 1"
 	var subMsg1 = ""
@@ -276,20 +294,20 @@ func TestTLSPubSub(t *testing.T) {
 
 	logrus.Infof("Testing channel %s", channel1)
 	// create new certificates in the test folder
-	os.Remove(path.Join(certFolder, certs.CaCertFile))
-	os.Remove(path.Join(certFolder, certs.CaKeyFile))
-	os.Remove(path.Join(certFolder, certs.ServerCertFile))
-	os.Remove(path.Join(certFolder, certs.ServerKeyFile))
-	os.Remove(path.Join(certFolder, certs.ClientCertFile))
-	os.Remove(path.Join(certFolder, certs.ClientKeyFile))
+	os.Remove(path.Join(certFolder, certsetup.CaCertFile))
+	os.Remove(path.Join(certFolder, certsetup.CaKeyFile))
+	os.Remove(path.Join(certFolder, certsetup.ServerCertFile))
+	os.Remove(path.Join(certFolder, certsetup.ServerKeyFile))
+	os.Remove(path.Join(certFolder, certsetup.ClientCertFile))
+	os.Remove(path.Join(certFolder, certsetup.ClientKeyFile))
 
 	// This re-generates the certificates
 	cs, err := smbserver.StartTLS(testHostPort, certFolder)
 	require.NoError(t, err)
 
-	clientCertPEM, _ := ioutil.ReadFile(path.Join(certFolder, certs.ClientCertFile))
-	clientKeyPEM, _ := ioutil.ReadFile(path.Join(certFolder, certs.ClientKeyFile))
-	caCertPEM, _ := ioutil.ReadFile(path.Join(certFolder, certs.CaCertFile))
+	clientCertPEM, _ := ioutil.ReadFile(path.Join(certFolder, certsetup.ClientCertFile))
+	clientKeyPEM, _ := ioutil.ReadFile(path.Join(certFolder, certsetup.ClientKeyFile))
+	caCertPEM, _ := ioutil.ReadFile(path.Join(certFolder, certsetup.CaCertFile))
 
 	// clientCert, err := tls.X509KeyPair(clientCertPEM, clientKeyPEM)
 
@@ -325,9 +343,11 @@ func TestTLSPubSub(t *testing.T) {
 	// time.Sleep(time.Second)
 	cs.Stop()
 	cs.Stop()
+	teardown()
 }
 
 func TestTLSNoCerts(t *testing.T) {
+	setup("TestTLSNoCerts")
 	const channel1 = "Chan1"
 	const certFolder = "/tmp/nocerts" // this folder has no certs
 
@@ -338,10 +358,12 @@ func TestTLSNoCerts(t *testing.T) {
 	_ = router
 	// assert.Nil(t, router)
 	assert.Error(t, err) // certificates not found
+	teardown()
 }
 
 // Test that after closing a channel no message is received
 func TestCloseSubscriberChannel(t *testing.T) {
+	setup("TestCloseSubscriberChannel")
 	const channel1 = "Chan1"
 	// const channel2 = "Chan2"
 	const pubMsg1 = "Message 1"
@@ -353,9 +375,9 @@ func TestCloseSubscriberChannel(t *testing.T) {
 	cs, err := smbserver.StartTLS(testHostPort, certFolder)
 	require.NoError(t, err)
 
-	clientCertPEM, _ := ioutil.ReadFile(path.Join(certFolder, certs.ClientCertFile))
-	clientKeyPEM, _ := ioutil.ReadFile(path.Join(certFolder, certs.ClientKeyFile))
-	caCertPEM, _ := ioutil.ReadFile(path.Join(certFolder, certs.CaCertFile))
+	clientCertPEM, _ := ioutil.ReadFile(path.Join(certFolder, certsetup.ClientCertFile))
+	clientKeyPEM, _ := ioutil.ReadFile(path.Join(certFolder, certsetup.ClientKeyFile))
+	caCertPEM, _ := ioutil.ReadFile(path.Join(certFolder, certsetup.CaCertFile))
 
 	handler := func(command string, channel string, msg []byte) {
 		if command == smbclient.MsgBusCommandReceive {
@@ -388,10 +410,12 @@ func TestCloseSubscriberChannel(t *testing.T) {
 	msgCountMutex.Unlock()
 
 	cs.Stop()
+	teardown()
 }
 
 // test sending messages to multiple subscribers
 func TestLoad(t *testing.T) {
+	setup("TestLoad")
 	var err error
 	var conn *websocket.Conn
 	var t3 time.Time
@@ -404,9 +428,9 @@ func TestLoad(t *testing.T) {
 	cs, err := smbserver.StartTLS(testHostPort, certFolder)
 	require.NoError(t, err)
 
-	clientCertPEM, _ := ioutil.ReadFile(path.Join(certFolder, certs.ClientCertFile))
-	clientKeyPEM, _ := ioutil.ReadFile(path.Join(certFolder, certs.ClientKeyFile))
-	caCertPEM, _ := ioutil.ReadFile(path.Join(certFolder, certs.CaCertFile))
+	clientCertPEM, _ := ioutil.ReadFile(path.Join(certFolder, certsetup.ClientCertFile))
+	clientKeyPEM, _ := ioutil.ReadFile(path.Join(certFolder, certsetup.ClientKeyFile))
+	caCertPEM, _ := ioutil.ReadFile(path.Join(certFolder, certsetup.CaCertFile))
 
 	t1 := time.Now()
 	// test creating 100 connections
@@ -454,9 +478,11 @@ func TestLoad(t *testing.T) {
 	logrus.Printf("Time to send %d TLS messages %d msec", txCount, t3.Sub(t2)/time.Millisecond)
 	logrus.Printf("Time to receive %d TLS messages by subscribers: %d msec", rxCount, t4.Sub(t2)/time.Millisecond)
 	mutex1.Unlock()
+	teardown()
 }
 
 func TestServeHome(t *testing.T) {
+	setup("TestServeHome")
 	// setup
 	mb, err := smbserver.Start(testHostPort)
 
@@ -472,4 +498,5 @@ func TestServeHome(t *testing.T) {
 
 	// time.Sleep(100 * time.Second)
 	mb.Stop()
+	teardown()
 }

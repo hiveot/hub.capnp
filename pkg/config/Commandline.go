@@ -28,21 +28,20 @@ func SetGatewayCommandlineArgs(config *GatewayConfig) {
 	flag.StringVar(&config.Messenger.HostPort, "hostname", config.Messenger.HostPort, "Message bus address host:port")
 	flag.StringVar(&config.Logging.LogFile, "logFile", config.Logging.LogFile, "Log to file")
 	flag.StringVar(&config.Messenger.Protocol, "protocol", string(config.Messenger.Protocol), "Message bus protocol: internal|mqtt")
-	flag.StringVar(&config.PluginFolder, "pluginFolder", config.PluginFolder, "Optional plugin `folder`")
+	flag.StringVar(&config.PluginFolder, "pluginFolder", config.PluginFolder, "Alternate plugin `folder`. Empty to not load plugins.")
 	flag.StringVar(&config.Logging.Loglevel, "logLevel", config.Logging.Loglevel, "Loglevel: {error|`warning`|info|debug}")
 }
 
 // SetupConfig contains the boilerplate to load the gateway and plugin configuration files.
 // parse the commandline and set the plugin logging configuration.
-// The plugin should add any custom commandline options with the flag package before calling SetupConfig.
+// The caller can add custom commandline options beforehand using the flag package.
 //
-// The gateway config filename is always GatewayConfigName ('gateway.yaml')
-// The plugin configuration is the {pluginName}.yaml. If no pluginName is given it is ignored
-//  and logging for the plugin is not configured.
+// The default gateway config filename is 'gateway.yaml' (const GatewayConfigName)
+// The plugin configuration is the {pluginName}.yaml. If no pluginName is given it is ignored.
 // The plugin logfile is stored in the gateway logging folder using the pluginName.log filename
 // This loads the gateway commandline arguments with two special considerations:
-//  - Option "-c"  loads the specified configuration file instead of the default one
-//  - Option "--home" sets the home folder as the base of ./config, ./logs and ./bin directories
+//  - Commandline "-c"  specifies an alternative gateway configuration file
+//  - Commandline "--home" sets the home folder as the base of ./config, ./logs and ./bin directories
 //       The homeFolder argument takes precedence
 //
 // homeFolder overrides the default home folder
@@ -85,7 +84,7 @@ func SetupConfig(homeFolder string, pluginName string, pluginConfig interface{})
 			break
 		}
 	}
-	logrus.Infof("SetupConfig: Using %s as gateway config file", gwConfigFile)
+	logrus.Infof("Using %s as gateway config file", gwConfigFile)
 	err1 := LoadConfig(gwConfigFile, gwConfig)
 	if err1 != nil {
 		return gwConfig, err1
@@ -109,9 +108,9 @@ func SetupConfig(homeFolder string, pluginName string, pluginConfig interface{})
 	// Second validation pass in case commandline argument messed up the config
 	if err == nil {
 		err = ValidateConfig(gwConfig)
-		if err != nil {
-			logrus.Errorf("SetupConfig: commandline configuration invalid: %s", err)
-		}
+		// if err != nil {
+		// 	logrus.Errorf("Commandline configuration invalid: %s", err)
+		// }
 	}
 
 	// It is up to the app to change to the home directory.

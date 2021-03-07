@@ -55,11 +55,11 @@ clean: ## Clean distribution files
 # 	GOOS=linux GOARCH=arm $(GOBUILD) -o $(ARM_DIST_FOLDER)/$@ plugins/$@/main.go
 # 	@echo "> SUCCESS. Plugin '$@' can be found at $(X64_DIST_FOLDER)/$@ and $(ARM_DIST_FOLDER)/$@"
 
-# gateway: FORCE ## Build gateway for amd64 and arm targets
-# 	@echo "building for $(ARCH)"
-# 	GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(X64_DIST_FOLDER)/gateway cmd/main.go
-# 	GOOS=linux GOARCH=arm $(GOBUILD) -o $(ARM_DIST_FOLDER)/gateway cmd/main.go
-# 	@echo "> SUCCESS. The Gateway executable '$@' can be found in $(X64_DIST_FOLDER)/$@ and $(ARM_DIST_FOLDER)/$@"
+gateway: FORCE ## Build gateway for amd64 and arm targets
+	@echo "building for $(ARCH)"
+	GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(X64_DIST_FOLDER)/gateway main.go
+	GOOS=linux GOARCH=arm $(GOBUILD) -o $(ARM_DIST_FOLDER)/gateway main.go
+	@echo "> SUCCESS. The Gateway executable '$@' can be found in $(X64_DIST_FOLDER)/$@ and $(ARM_DIST_FOLDER)/$@"
 
 
 #docker: ## Build gateway for Docker target (TODO untested)

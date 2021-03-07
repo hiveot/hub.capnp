@@ -1,6 +1,6 @@
 // Package certs with creation of self signed certificate chain
 // Credits: https://gist.github.com/shaneutt/5e1995295cff6721c89a71d13a71c251
-package certs
+package certsetup
 
 import (
 	"bytes"

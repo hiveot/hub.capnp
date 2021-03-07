@@ -10,7 +10,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/gateway/pkg/certs"
+	"github.com/wostzone/gateway/pkg/certsetup"
 	"github.com/wostzone/gateway/pkg/config"
 )
 
@@ -89,20 +89,20 @@ func (smbc *SmbClient) Disconnect() {
 
 // Receive a subscribed message and pass it to its handler
 func (smbc *SmbClient) onReceiveMessage(command string, channelID string, message []byte) {
-	logrus.Infof("SmbClient.onReceiveMessage: command=%s, channelID=%s", command, channelID)
+	logrus.Infof("Command=%s, channelID=%s", command, channelID)
 	if command == MsgBusCommandReceive {
 		smbc.updateMutex.Lock()
 		handler := smbc.subscribers[channelID]
 		defer smbc.updateMutex.Unlock()
 		if handler == nil {
-			logrus.Errorf("SmbClient.onReceiveMessage: Missing handler for channel %s. Message ignored.", channelID)
+			logrus.Errorf("Missing handler for channel %s. Message ignored.", channelID)
 		} else {
 			handler(channelID, message)
 		}
 	} else if command == "" {
-		logrus.Warningf("SmbClient.onReceiveMessage: connection on channel %s closed", channelID)
+		logrus.Warningf("Connection on channel %s closed", channelID)
 	} else {
-		logrus.Warningf("SmbClient.onReceiveMessage: Unexpected command %s on channel %s", command, channelID)
+		logrus.Warningf("Unexpected command %s on channel %s", command, channelID)
 	}
 }
 
@@ -147,17 +147,17 @@ func NewSmbClient(certFolder string, hostPort string) *SmbClient {
 	if certFolder != "" {
 		// caCertPath := path.Join(certFolder, CaCertFile)
 		// caKeyPath := path.Join(certFolder, CaKeyFile)
-		serverCertPath := path.Join(certFolder, certs.ServerCertFile)
-		// serverKeyPath := path.Join(certFolder, certs.ServerKeyFile)
-		clientCertPath := path.Join(certFolder, certs.ClientCertFile)
-		clientKeyPath := path.Join(certFolder, certs.ClientKeyFile)
+		serverCertPath := path.Join(certFolder, certsetup.ServerCertFile)
+		// serverKeyPath := path.Join(certFolder, certsetup.ServerKeyFile)
+		clientCertPath := path.Join(certFolder, certsetup.ClientCertFile)
+		clientKeyPath := path.Join(certFolder, certsetup.ClientKeyFile)
 
 		smbmsg.serverCertPEM, _ = ioutil.ReadFile(serverCertPath)
 		// gwsb.serverKeyPEM, _ := ioutil.ReadFile(serverKeyFile),
 		smbmsg.clientCertPEM, _ = ioutil.ReadFile(clientCertPath)
 		smbmsg.clientKeyPEM, _ = ioutil.ReadFile(clientKeyPath)
 		if smbmsg.serverCertPEM == nil {
-			logrus.Errorf("NewSmbusMessenger: no certificates in %s", certFolder)
+			logrus.Errorf("No certificates in %s", certFolder)
 		}
 	}
 	return smbmsg

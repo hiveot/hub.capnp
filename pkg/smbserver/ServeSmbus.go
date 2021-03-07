@@ -44,7 +44,7 @@ type Channel struct {
 func (mbs *ServeSmbus) AddConnection(c *websocket.Conn) {
 	mbs.updateMutex.Lock()
 	defer mbs.updateMutex.Unlock()
-	logrus.Infof("ServeSmbus.AddConnection: adding connection from '%s'", c.RemoteAddr().String())
+	logrus.Infof("Adding connection from '%s'", c.RemoteAddr().String())
 	mbs.connections = append(mbs.connections, c)
 }
 
@@ -57,7 +57,7 @@ func (mbs *ServeSmbus) AddChannel(channelID string) *Channel {
 
 	channel := mbs.subscriptions[channelID]
 	if channel == nil {
-		logrus.Infof("ServeSmbus.AddChannel: adding new channel '%s'", channelID)
+		logrus.Infof("Adding new channel '%s'", channelID)
 		channel = &Channel{
 			ID:          channelID,
 			subscribers: make([]*websocket.Conn, 0),
@@ -77,7 +77,7 @@ func (mbs *ServeSmbus) AddChannel(channelID string) *Channel {
 // channelID is the unique ID of the channel
 // conn is the websocket connection that subscribes to the channel
 func (mbs *ServeSmbus) AddSubscriber(channelID string, conn *websocket.Conn) *Channel {
-	logrus.Infof("ServeSmbus.AddSubscriber: adding subscription to channel '%s'", channelID)
+	logrus.Infof("Adding subscription to channel '%s'", channelID)
 
 	channel := mbs.AddChannel(channelID)
 
@@ -124,7 +124,7 @@ func (mbs *ServeSmbus) GetSubscribers(channelID string) []*websocket.Conn {
 func (mbs *ServeSmbus) PublishToSubscribers(channelID string, message []byte) {
 	ch := mbs.GetChannel(channelID)
 	if ch == nil {
-		logrus.Warningf("ServeSmbus.PublishToSubscribers: No subscribers for channel %s", channelID)
+		logrus.Warningf("No subscribers for channel %s", channelID)
 	} else {
 		atomic.AddInt32(&ch.MessageCount, 1)
 		ch.jobQueue <- message
@@ -152,7 +152,7 @@ func removeConnectionFromList(clist []*websocket.Conn, c *websocket.Conn) []*web
 // RemoveConnection remove connection from subscriptions
 // The caller must make sure it is closed
 func (mbs *ServeSmbus) RemoveConnection(c *websocket.Conn) {
-	logrus.Infof("ServeSmbus.RemoveConnection: Removing closed connection")
+	logrus.Infof("Removing closed connection")
 	mbs.updateMutex.Lock()
 	defer mbs.updateMutex.Unlock()
 
@@ -165,7 +165,7 @@ func (mbs *ServeSmbus) RemoveConnection(c *websocket.Conn) {
 
 // RemoveSubscriber a connection from a channel
 func (mbs *ServeSmbus) RemoveSubscriber(channelID string, c *websocket.Conn) {
-	logrus.Infof("ServeSmbus.RemoveSubscriber: Remove subscription to channel '%s'", channelID)
+	logrus.Infof("Remove subscription to channel '%s'", channelID)
 
 	channel := mbs.GetChannel(channelID)
 	if channel != nil {
@@ -180,7 +180,7 @@ func (mbs *ServeSmbus) RemoveSubscriber(channelID string, c *websocket.Conn) {
 func (mbs *ServeSmbus) sendChannelMessageToSubscribers(channelID string, message []byte) {
 	consumers := mbs.GetSubscribers(channelID)
 
-	logrus.Infof("ServeSmbus.sendChannelMessageToSubscribers send message to %d subscribers of channel %s", len(consumers), channelID)
+	logrus.Infof("Send message to %d subscribers of channel %s", len(consumers), channelID)
 	// logrus.Infof("processChannelMessage: Sending message to %d subscribers of channel %s", len(consumers), channelID)
 	// logrus.Infof("--- sending message to %d subscribers of channel %s", len(consumers), channelID)
 	for _, c := range consumers {
@@ -202,16 +202,16 @@ func (mbs *ServeSmbus) serveConnection(response http.ResponseWriter, request *ht
 	clientID := request.Header.Get(smbclient.ClientHeader)
 	if clientID == "" {
 		http.Error(response, "Invalid client. A clientID is required.", 401)
-		logrus.Warningf("ServeMsgBus.serveConnection: Missing clientID from client '%s'", request.RemoteAddr)
+		logrus.Warningf("Missing clientID from client '%s'", request.RemoteAddr)
 		return
 	}
-	logrus.Infof("ServeMsgBus.serveConnection accepted incoming connection from %s", clientID)
+	logrus.Infof("Accepted incoming connection from %s", clientID)
 
 	// upgrade the HTTP connection to a websocket connection
 	c, err := mbs.upgrader.Upgrade(response, request, nil)
 	if err != nil {
 		http.Error(response, err.Error(), 401)
-		logrus.Warningf("ServeMsgBus.serveConnection upgrade error for client %s: %s", clientID, err)
+		logrus.Warningf("Upgrade error for client %s: %s", clientID, err)
 		return
 	}
 	// logrus.Warningf("ServeChannel accepted connection from client %s", clientID)
@@ -232,7 +232,7 @@ func (mbs *ServeSmbus) serveConnection(response http.ResponseWriter, request *ht
 			} else if command == smbclient.MsgBusCommandUnsubscribe {
 				mbs.RemoveSubscriber(topic, c)
 			} else {
-				logrus.Warningf("ServeSmbus.ServeConnection: Ignored unknown command '%s'", command)
+				logrus.Warningf("Ignored unknown command '%s'", command)
 			}
 		})
 		// c.Close()
@@ -254,12 +254,12 @@ func (mbs *ServeSmbus) Start(host string) (*mux.Router, error) {
 			Handler: router,
 		}
 		// cs.updateMutex.Unlock()
-		logrus.Infof("ServeSmbus.Start: ListenAndServe on %s", host)
+		logrus.Infof("ListenAndServe on %s", host)
 		err2 := mbs.httpServer.ListenAndServe()
 
 		if err2 != nil && err2 != http.ErrServerClosed {
 			// logrus.Panicf("Start: ListenAndServe error: %s", err)
-			err2 = fmt.Errorf("ServeSmbus.Start: %w", err2)
+			err2 = fmt.Errorf("Start: %w", err2)
 			logrus.Error(err2)
 			errMutex.Lock()
 			// Return the error to the main thread if it is still around
@@ -290,7 +290,7 @@ func (mbs *ServeSmbus) StartTLS(listenAddress string, caCertFile string, serverC
 	serverKeyFile string) (router *mux.Router, err error) {
 	errMutex := sync.Mutex{}
 
-	logrus.Infof("ServeSmbus.StartTLS: Serving on address %s", listenAddress)
+	logrus.Infof("Serving on address %s", listenAddress)
 
 	router = mux.NewRouter()
 	router.HandleFunc(smbclient.MsgbusAddress, mbs.serveConnection)
@@ -300,7 +300,7 @@ func (mbs *ServeSmbus) StartTLS(listenAddress string, caCertFile string, serverC
 	serverKeyPEM, err2 := ioutil.ReadFile(serverKeyFile)
 	serverCert, err3 := tls.X509KeyPair(mbs.ServerCertPEM, serverKeyPEM)
 	if err != nil || err2 != nil || err3 != nil {
-		logrus.Errorf("ServeSmbus.StartTLS: certificates not found")
+		logrus.Errorf("Server certificate pair not found")
 		return router, err
 	}
 	// To verify clients, the client CA must be provided
@@ -329,7 +329,7 @@ func (mbs *ServeSmbus) StartTLS(listenAddress string, caCertFile string, serverC
 		// err := cs.httpServer.ListenAndServeTLS(serverCertFile, serverKeyFile)
 		if err2 != nil && err2 != http.ErrServerClosed {
 			errMutex.Lock()
-			err = fmt.Errorf("ServeSmbus.StartTLS ListenAndServeTLS: %s", err2)
+			err = fmt.Errorf("ListenAndServeTLS: %s", err2)
 			logrus.Error(err)
 			errMutex.Unlock()
 			// logrus.Fatalf("ServeMsgBus.Start: ListenAndServeTLS error: %s", err)
@@ -349,7 +349,7 @@ func (mbs *ServeSmbus) StartTLS(listenAddress string, caCertFile string, serverC
 func (mbs *ServeSmbus) Stop() {
 	// cs.updateMutex.Lock()
 	// defer cs.updateMutex.Unlock()
-	logrus.Warningf("ServeSmbus.Stop: Stopping message bus server")
+	logrus.Warningf("Stopping message bus server")
 	mbs.updateMutex.Lock()
 	defer mbs.updateMutex.Unlock()
 

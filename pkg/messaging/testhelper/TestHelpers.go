@@ -52,7 +52,7 @@ func TMessengerPubSub(t *testing.T, gwm messaging.IGatewayMessenger) {
 		rxMutex.Lock()
 		defer rxMutex.Unlock()
 		rx = string(msg)
-		logrus.Infof("TMessengerPubSubWithTLS: Received message: %s", msg)
+		logrus.Infof("Received message: %s", msg)
 	})
 	require.NoErrorf(t, err, "Failed subscribing to channel %s", messaging.TestChannelID)
 
@@ -85,13 +85,13 @@ func TMessengerMultipleSubscriptions(t *testing.T, gwm messaging.IGatewayMesseng
 		rxMutex.Lock()
 		defer rxMutex.Unlock()
 		rx1 = string(msg)
-		logrus.Infof("TestMQTTPubSub: Received message on handler 1: %s", msg)
+		logrus.Infof("Received message on handler 1: %s", msg)
 	}
 	handler2 := func(channel string, msg []byte) {
 		rxMutex.Lock()
 		defer rxMutex.Unlock()
 		rx2 = string(msg)
-		logrus.Infof("TestMQTTPubSub: Received message on handler 2: %s", msg)
+		logrus.Infof("Received message on handler 2: %s", msg)
 	}
 	_ = handler2
 	gwm.Subscribe(messaging.TestChannelID, handler1)
@@ -179,7 +179,7 @@ func TMessengerSubBeforeConnect(t *testing.T, gwm messaging.IGatewayMessenger) {
 	// mqttMessenger := NewMqttMessenger(clientID, mqttCertFolder)
 
 	handler1 := func(channel string, msg []byte) {
-		logrus.Infof("TestMQTTPubSub: Received message on handler 1: %s", msg)
+		logrus.Infof("Received message on handler 1: %s", msg)
 		rxMutex.Lock()
 		defer rxMutex.Unlock()
 		rx = string(msg)

@@ -71,7 +71,7 @@ func Listen(conn *websocket.Conn,
 		if err != nil {
 			// the connect has closed
 			// logrus.Warningf("NewChannelConnection: Connection to %s has closed", url)
-			logrus.Warningf("listen: ReadMessage, read error from %s: %s", remoteURL, err)
+			logrus.Warningf("ReadMessage, read error from %s: %s", remoteURL, err)
 			err = conn.Close()
 			if handler != nil {
 				handler("", "", nil)
@@ -84,7 +84,7 @@ func Listen(conn *websocket.Conn,
 		data := []byte(nil)
 		parts := strings.SplitN(string(message), ":", 3)
 		if len(parts) != 3 {
-			logrus.Warningf("listen: Ignored invalid message without command or topic from %s", remoteURL)
+			logrus.Warningf("Ignored invalid message without command or topic from %s", remoteURL)
 		} else {
 			command = parts[0]
 			topic = parts[1]
@@ -99,13 +99,13 @@ func Listen(conn *websocket.Conn,
 // Send a command to the message bus server
 func Send(conn *websocket.Conn, command string, channelID string, message []byte) error {
 	if conn == nil {
-		err := fmt.Errorf("send: Unable to deliver command %s to channel %s. No connection to server", command, channelID)
+		err := fmt.Errorf("Unable to deliver command %s to channel %s. No connection to server", command, channelID)
 		return err
 	}
 
 	w, err := conn.NextWriter(websocket.TextMessage)
 	if err != nil {
-		logrus.Errorf("send: writing failed to: %s. Connection broken.", conn.RemoteAddr())
+		logrus.Errorf("writing failed to: %s. Connection broken.", conn.RemoteAddr())
 		// should we retry?
 		return err
 	}
@@ -128,7 +128,7 @@ func NewWebsocketConnection(hostPort string, clientID string,
 
 	// logrus.Infof("NewChannelConnection: connecting to %s with client ID %s", url, clientID)
 	socketDialer := websocket.DefaultDialer
-	logrus.Infof("NewWebsocketConnection: ClientID '%s' connecting to MsgBus URL: %s", clientID, url)
+	logrus.Infof("ClientID '%s' connecting to MsgBus URL: %s", clientID, url)
 	connection, err := Connect(socketDialer, url, clientID)
 	if err == nil {
 		// setup a receive loop for this connection if a receive handler is provided
@@ -159,7 +159,7 @@ func NewTLSWebsocketConnection(hostPort string, clientID string,
 
 	clientCert, err := tls.X509KeyPair(clientCertPEM, clientKeyPEM)
 	if err != nil {
-		logrus.Error("NewTLSWebsocketConnection: Invalid client certificate or key: ", err)
+		logrus.Error("Invalid client certificate or key: ", err)
 		return nil, err
 	}
 

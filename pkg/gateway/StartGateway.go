@@ -25,20 +25,22 @@ func StartGateway(homeFolder string, startPlugins bool) error {
 		return err
 	}
 	if config.Messenger.Protocol != messaging.ConnectionProtocolMQTT {
-		logrus.Warningf("StartGateway: Starting the internal message bus server")
+		logrus.Warningf("Starting the internal message bus server")
 		srv, err = smbserver.StartSmbServer(config)
 	}
 
-	if startPlugins {
+	if !startPlugins || config.PluginFolder == "" {
+		logrus.Infof("Not starting plugins")
+	} else {
 		// launch plugins
-		logrus.Warningf("StartGateway: Starting %d gateway plugins on %s. UseTLS=%t",
+		logrus.Warningf("Starting %d gateway plugins on %s. UseTLS=%t",
 			len(config.Plugins), config.Messenger.HostPort, config.Messenger.CertFolder != "")
 
 		args := os.Args[1:] // pass the gateways args to the plugin
 		StartPlugins(config.PluginFolder, config.Plugins, args)
 	}
 
-	logrus.Warningf("StartGateway: Gateway started successfully!")
+	logrus.Warningf("Gateway started successfully!")
 
 	return nil
 }
@@ -46,9 +48,9 @@ func StartGateway(homeFolder string, startPlugins bool) error {
 // StopGateway stops a running gateway and its plugins
 // TODO implements
 func StopGateway() {
-	logrus.Warningf("StopGateway: Received Signal, stopping gateway and its plugins")
+	logrus.Warningf("Received Signal, stopping gateway and its plugins")
 	if srv != nil {
 		srv.Stop()
 	}
-	logrus.Warningf("StopGateway: Unable to stop gateway plugins. Someone hasn't implemented this yet...")
+	logrus.Warningf("Unable to stop gateway plugins. Someone hasn't implemented this yet...")
 }

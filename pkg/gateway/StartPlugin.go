@@ -31,7 +31,7 @@ var pluginsMutex = sync.Mutex{}
 //  args is a list of commandline arguments
 //  returns *exec.Cmd
 func StartPlugin(pluginFolder string, name string, args []string) *exec.Cmd {
-	// logrus.Warningf("--StartPlugin: '%s'---", name)
+	// logrus.Warningf("--: '%s'---", name)
 	pluginFile := name
 	if !filepath.IsAbs(name) {
 		pluginFile = path.Join(pluginFolder, name)
@@ -42,7 +42,7 @@ func StartPlugin(pluginFolder string, name string, args []string) *exec.Cmd {
 	exists := startedPlugins[name]
 	if exists != nil {
 		// TODO: check if process is running
-		logrus.Errorf("StartPlugin: plugin with name %s is not stopped", name)
+		logrus.Errorf("Plugin with name %s is not stopped", name)
 		return nil
 	}
 	// argString := strings.Join(args, " ")
@@ -56,9 +56,9 @@ func StartPlugin(pluginFolder string, name string, args []string) *exec.Cmd {
 	go func() {
 		err := cmd.Wait()
 		if err != nil {
-			logrus.Errorf("StartPlugin Plugin '%s' ended with error: %s", name, err)
+			logrus.Errorf("Plugin '%s' ended with error: %s", name, err)
 		} else {
-			logrus.Warningf("StartPlugin Plugin '%s' has ended", name)
+			logrus.Warningf("Plugin '%s' has ended", name)
 		}
 		pluginsMutex.Lock()
 		startedPlugins[name] = nil
@@ -67,7 +67,7 @@ func StartPlugin(pluginFolder string, name string, args []string) *exec.Cmd {
 	// logrus.Errorf("StartPlugin '%s'", name)
 
 	// cmd.Stdout = os.Stdout
-	logrus.Warningf("StartPlugin: ----------- Started plugin '%s' ------------", name)
+	logrus.Warningf("----------- Started plugin '%s' ------------", name)
 	return cmd
 }
 
@@ -85,11 +85,11 @@ func StopPlugin(name string) error {
 
 	cmd := startedPlugins[name]
 	if cmd == nil || cmd.Process == nil {
-		msg := fmt.Sprintf("StopPlugin: Failed to stop plugin '%s'. Plugin not running", name)
+		msg := fmt.Sprintf("Failed to stop plugin '%s'. Plugin not running", name)
 		logrus.Errorf(msg)
 		return errors.New(msg)
 	}
-	logrus.Warningf("StopPlugin: '%s', PID='%d'", name, cmd.Process.Pid)
+	logrus.Warningf("Stopped plugin '%s', PID='%d'", name, cmd.Process.Pid)
 	err := syscall.Kill(cmd.Process.Pid, syscall.SIGINT)
 	startedPlugins[name] = nil
 	return err

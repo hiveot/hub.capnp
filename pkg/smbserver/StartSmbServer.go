@@ -9,7 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/gateway/pkg/certs"
+	"github.com/wostzone/gateway/pkg/certsetup"
 	"github.com/wostzone/gateway/pkg/config"
 )
 
@@ -19,7 +19,7 @@ import (
 func Start(hostPort string) (*ServeSmbus, error) {
 	var router *mux.Router
 	var err error
-	logrus.Warningf("Start: Starting message bus server no TLS")
+	logrus.Warningf("Starting message bus server no TLS")
 
 	if hostPort == "" {
 		hostPort = config.DefaultSmbHost
@@ -53,44 +53,44 @@ func StartTLS(host string, certFolder string) (*ServeSmbus, error) {
 	}
 	srv := NewServeMsgBus()
 
-	logrus.Warningf("StartTLS: Starting message bus server using TLS on %s", host)
-	caCertPath := path.Join(certFolder, certs.CaCertFile)
-	caKeyPath := path.Join(certFolder, certs.CaKeyFile)
-	serverCertPath := path.Join(certFolder, certs.ServerCertFile)
-	serverKeyPath := path.Join(certFolder, certs.ServerKeyFile)
-	clientCertPath := path.Join(certFolder, certs.ClientCertFile)
-	clientKeyPath := path.Join(certFolder, certs.ClientKeyFile)
+	logrus.Warningf("Starting message bus server using TLS on %s", host)
+	caCertPath := path.Join(certFolder, certsetup.CaCertFile)
+	caKeyPath := path.Join(certFolder, certsetup.CaKeyFile)
+	serverCertPath := path.Join(certFolder, certsetup.ServerCertFile)
+	serverKeyPath := path.Join(certFolder, certsetup.ServerKeyFile)
+	clientCertPath := path.Join(certFolder, certsetup.ClientCertFile)
+	clientKeyPath := path.Join(certFolder, certsetup.ClientKeyFile)
 
-	// err := httpscerts.Check("cert.pem", "key.pem")
+	// err := httpscertsetup.Check("cert.pem", "key.pem")
 
 	_, err = os.Stat(serverCertPath)
 	if os.IsNotExist(err) {
-		logrus.Warningf("StartTLS: Certificates not found. Generating new certificate files in %s", certFolder)
-		caCertPEM, caKeyPEM := certs.CreateWoSTCA()
+		logrus.Warningf("Certificates not found. Generating new certificate files in %s", certFolder)
+		caCertPEM, caKeyPEM := certsetup.CreateWoSTCA()
 		hostname, port, err := net.SplitHostPort(host)
 		_ = port
 		if err != nil {
 			return srv, err
 		}
 		// Certificate should not contain the port
-		serverCertPEM, serverKeyPEM, _ := certs.CreateGatewayCert(caCertPEM, caKeyPEM, hostname)
-		clientCertPEM, clientKeyPEM, _ := certs.CreateClientCert(caCertPEM, caKeyPEM, hostname)
+		serverCertPEM, serverKeyPEM, _ := certsetup.CreateGatewayCert(caCertPEM, caKeyPEM, hostname)
+		clientCertPEM, clientKeyPEM, _ := certsetup.CreateClientCert(caCertPEM, caKeyPEM, hostname)
 
 		ioutil.WriteFile(caCertPath, caCertPEM, 0644)
 		ioutil.WriteFile(caKeyPath, caKeyPEM, 0600)
 		err = ioutil.WriteFile(serverKeyPath, serverKeyPEM, 0600)
 		if err != nil {
-			logrus.Errorf("StartTLS: Error creating certificates: %s", err)
+			logrus.Errorf("Error creating certificates: %s", err)
 			return nil, err
 		}
 		ioutil.WriteFile(serverCertPath, serverCertPEM, 0644)
 		ioutil.WriteFile(clientKeyPath, clientKeyPEM, 0600)
 		ioutil.WriteFile(clientCertPath, clientCertPEM, 0644)
 	} else if err != nil {
-		logrus.Errorf("StartTLS: Unable to open server certificate file %s: %s", serverCertPath, err)
+		logrus.Errorf("Unable to open server certificate file %s: %s", serverCertPath, err)
 		logrus.Fatal("Stopping")
 	} else {
-		logrus.Infof("StartTLS: Using server certificate file %s", serverCertPath)
+		logrus.Infof("Using server certificate file %s", serverCertPath)
 	}
 	router, err = srv.StartTLS(host, caCertPath, serverCertPath, serverKeyPath)
 
@@ -106,13 +106,6 @@ func StartTLS(host string, certFolder string) (*ServeSmbus, error) {
 func StartSmbServer(gwConfig *config.GatewayConfig) (*ServeSmbus, error) {
 	var server *ServeSmbus
 	var err error
-
-	// gwConfig, err := lib.SetupConfig(homeFolder, "", nil)
-
-	// if err != nil {
-	// 	return nil, err
-	// }
-
 	if gwConfig.Messenger.CertFolder != "" {
 		server, err = StartTLS(gwConfig.Messenger.HostPort, gwConfig.Messenger.CertFolder)
 	} else {

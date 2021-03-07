@@ -74,13 +74,12 @@ func CreateDefaultGatewayConfig(homeFolder string) *GatewayConfig {
 		// homeFolder = path.Join(cwd, homeFolder)
 		homeFolder = path.Join(binFolder, homeFolder)
 	}
-	logrus.Infof("CreateDefaultGatewayConfig: appBin is: %s; Home is: %s", appBin, homeFolder)
+	logrus.Infof("AppBin is: %s; Home is: %s", appBin, homeFolder)
 	config := &GatewayConfig{
 		// ConfigFolder: path.Join(homeFolder, "config"),
 		Home:         homeFolder,
 		ConfigFolder: path.Join(homeFolder, "config"),
 		Plugins:      make([]string, 0),
-		// PluginFolder: path.Join(homeFolder, "bin"),
 		PluginFolder: path.Join(homeFolder, "./bin"),
 	}
 	// config.Messenger.CertsFolder = path.Join(homeFolder, "certs")
@@ -100,14 +99,14 @@ func LoadConfig(configFile string, config interface{}) error {
 	var rawConfig []byte
 	rawConfig, err = ioutil.ReadFile(configFile)
 	if err != nil {
-		logrus.Warningf("LoadConfig: Unable to load config file: %s", err)
+		logrus.Warningf("Unable to load config file: %s", err)
 		return err
 	}
-	logrus.Infof("LoadConfig: Loaded config file '%s'", configFile)
+	logrus.Infof("Loaded config file '%s'", configFile)
 
 	err = yaml.Unmarshal(rawConfig, config)
 	if err != nil {
-		logrus.Errorf("LoadConfig: Error parsing config file '%s': %s", configFile, err)
+		logrus.Errorf("Error parsing config file '%s': %s", configFile, err)
 		return err
 	}
 	return nil
@@ -117,28 +116,30 @@ func LoadConfig(configFile string, config interface{}) error {
 // Returns an error if the config is invalid
 func ValidateConfig(config *GatewayConfig) error {
 	if _, err := os.Stat(config.Home); os.IsNotExist(err) {
-		logrus.Errorf("ValidateConfig: Home folder '%s' not found\n", config.Home)
+		logrus.Errorf("Home folder '%s' not found\n", config.Home)
 		return err
 	}
 	if _, err := os.Stat(config.ConfigFolder); os.IsNotExist(err) {
-		logrus.Errorf("ValidateConfig: Configuration folder '%s' not found\n", config.ConfigFolder)
+		logrus.Errorf("Configuration folder '%s' not found\n", config.ConfigFolder)
 		return err
 	}
 
 	loggingFolder := path.Dir(config.Logging.LogFile)
 	if _, err := os.Stat(loggingFolder); os.IsNotExist(err) {
-		logrus.Errorf("ValidateConfig: Logging folder '%s' not found\n", loggingFolder)
+		logrus.Errorf("Logging folder '%s' not found\n", loggingFolder)
 		return err
 	}
 
 	if _, err := os.Stat(config.Messenger.CertFolder); os.IsNotExist(err) {
-		logrus.Errorf("ValidateConfig: TLS certificate folder '%s' not found\n", config.Messenger.CertFolder)
+		logrus.Errorf("TLS certificate folder '%s' not found\n", config.Messenger.CertFolder)
 		return err
 	}
-
-	if _, err := os.Stat(config.PluginFolder); os.IsNotExist(err) {
-		logrus.Errorf("ValidateConfig: Plugins folder '%s' not found\n", config.PluginFolder)
-		return err
+	// Pluginfolder is either empty or must exist
+	if config.PluginFolder != "" {
+		if _, err := os.Stat(config.PluginFolder); os.IsNotExist(err) {
+			logrus.Errorf("Plugins folder '%s' not found\n", config.PluginFolder)
+			return err
+		}
 	}
 
 	return nil
