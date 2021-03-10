@@ -7,20 +7,20 @@
     {
       "args": ["--home", "./test"],
       "cwd": "${workspaceFolder}",
-      "name": "Launch Gateway",
+      "name": "Launch Hub",
       "type": "go",
       "request": "launch",
       "mode": "debug",
       "program": "${workspaceFolder}/cmd/main.go"
     },
     {
-      "name": "Launch channel recorder plugin",
+      "name": "Launch channel logger plugin",
       // "args": ["--home", "../../test", "-hostname", "localhost:9999"],
       "args": ["--home", "../../dist", "-hostname", "localhost:9999"],
       "type": "go",
       "request": "launch",
       "mode": "debug",
-      "program": "${workspaceFolder}/plugins/recorder/main.go",
+      "program": "${workspaceFolder}/plugins/logger/main.go",
     },
 
 

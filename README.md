@@ -142,7 +142,7 @@ After downloading or building the plugin executable:
 
 # Design 
 
-![Design Overview](./docs/hub%20design.png)
+![Design Overview](./docs/hubdesign.png)
 
 ## Overview
 

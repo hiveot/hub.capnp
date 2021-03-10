@@ -31,8 +31,8 @@ clean: ## Clean distribution files
 	rm -f test/logs/*
 	rm -f $(DIST_FOLDER)/certs/*
 	rm -f $(DIST_FOLDER)/logs/*
-	rm -f $(X64_DIST_FOLDER)/*
-	rm -f $(ARM_DIST_FOLDER)/*
+	rm -f $(DIST_FOLDER)/bin/*
+	rm -f $(DIST_FOLDER)/arm/*
 	rm -f debug $(PKG_NAME)
 	mkdir -p $(X64_DIST_FOLDER)
 	mkdir -p $(ARM_DIST_FOLDER)
