@@ -1,6 +1,6 @@
 # Simple Message Bus Server 
 
-The smbserver provides the internal simple message bus server of the WoST gateway. Intended for secure standalone pub/sub messaging between plugins.
+The smbserver provides the internal simple message bus server of the WoST Hub. Intended for secure standalone pub/sub messaging between plugins.
 
 This serves websockets over TLS. Messages have the following format:
   {command}:{channel}:{payload}

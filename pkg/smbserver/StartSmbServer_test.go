@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/wostzone/gateway/pkg/config"
-	"github.com/wostzone/gateway/pkg/smbserver"
+	"github.com/wostzone/hub/pkg/config"
+	"github.com/wostzone/hub/pkg/smbserver"
 )
 
 var homeFolder string
@@ -23,9 +23,9 @@ func TestStartSmbServer(t *testing.T) {
 	// test on a different port as to not interfere with running application or test server
 	os.Args = append(os.Args[0:1], strings.Split("-hostname localhost:9998", " ")...)
 
-	gwConfig, err := config.SetupConfig(homeFolder, "", nil)
+	hubConfig, err := config.SetupConfig(homeFolder, "", nil)
 	assert.NoError(t, err)
-	smb, err := smbserver.StartSmbServer(gwConfig)
+	smb, err := smbserver.StartSmbServer(hubConfig)
 	assert.NoError(t, err)
 	time.Sleep(time.Second)
 	smb.Stop()

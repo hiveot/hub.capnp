@@ -11,13 +11,13 @@ GORUN=$(GOCMD) run
 DIST_FOLDER=./dist
 X64_DIST_FOLDER=$(DIST_FOLDER)/bin
 ARM_DIST_FOLDER=$(DIST_FOLDER)/arm
-PKG_NAME=wost-gateway.tgz
+PKG_NAME=wost-hub.tgz
 .DEFAULT_GOAL := help
 
 .PHONY: help
 
 all: FORCE ## Build package with binary distribution and config
-all: clean gateway 
+all: clean hub 
 
 dist: clean x64  ## Build binary distribution including config
 		tar -czf $(PKG_NAME) -C $(DIST_FOLDER) .
@@ -55,14 +55,14 @@ clean: ## Clean distribution files
 # 	GOOS=linux GOARCH=arm $(GOBUILD) -o $(ARM_DIST_FOLDER)/$@ plugins/$@/main.go
 # 	@echo "> SUCCESS. Plugin '$@' can be found at $(X64_DIST_FOLDER)/$@ and $(ARM_DIST_FOLDER)/$@"
 
-gateway: FORCE ## Build gateway for amd64 and arm targets
+hub: FORCE ## Build hub for amd64 and arm targets
 	@echo "building for $(ARCH)"
-	GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(X64_DIST_FOLDER)/gateway main.go
-	GOOS=linux GOARCH=arm $(GOBUILD) -o $(ARM_DIST_FOLDER)/gateway main.go
-	@echo "> SUCCESS. The Gateway executable '$@' can be found in $(X64_DIST_FOLDER)/$@ and $(ARM_DIST_FOLDER)/$@"
+	GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(X64_DIST_FOLDER)/hub main.go
+	GOOS=linux GOARCH=arm $(GOBUILD) -o $(ARM_DIST_FOLDER)/hub main.go
+	@echo "> SUCCESS. The Hub executable '$@' can be found in $(X64_DIST_FOLDER)/$@ and $(ARM_DIST_FOLDER)/$@"
 
 
-#docker: ## Build gateway for Docker target (TODO untested)
+#docker: ## Build hub for Docker target (TODO untested)
 #		docker run --rm -it -v "$(GOPATH)":/go -w /go/src/bitbucket.org/rsohlich/makepost golang:latest go build -o "$(BINARY_AMD64)" -v
 
 help: ## Show this help

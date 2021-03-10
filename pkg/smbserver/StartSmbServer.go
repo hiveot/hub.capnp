@@ -9,8 +9,8 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/gateway/pkg/certsetup"
-	"github.com/wostzone/gateway/pkg/config"
+	"github.com/wostzone/hub/pkg/certsetup"
+	"github.com/wostzone/hub/pkg/config"
 )
 
 // Start starts the built-in lightweigth message bus and listens for incoming connections and messages.
@@ -51,9 +51,9 @@ func StartTLS(host string, certFolder string) (*ServeSmbus, error) {
 	if certFolder == "" {
 		certFolder = config.DefaultCertsFolder
 	}
+	logrus.Warningf("Starting message bus server using TLS on %s", host)
 	srv := NewServeMsgBus()
 
-	logrus.Warningf("Starting message bus server using TLS on %s", host)
 	caCertPath := path.Join(certFolder, certsetup.CaCertFile)
 	caKeyPath := path.Join(certFolder, certsetup.CaKeyFile)
 	serverCertPath := path.Join(certFolder, certsetup.ServerCertFile)
@@ -73,7 +73,7 @@ func StartTLS(host string, certFolder string) (*ServeSmbus, error) {
 			return srv, err
 		}
 		// Certificate should not contain the port
-		serverCertPEM, serverKeyPEM, _ := certsetup.CreateGatewayCert(caCertPEM, caKeyPEM, hostname)
+		serverCertPEM, serverKeyPEM, _ := certsetup.CreateHubCert(caCertPEM, caKeyPEM, hostname)
 		clientCertPEM, clientKeyPEM, _ := certsetup.CreateClientCert(caCertPEM, caKeyPEM, hostname)
 
 		ioutil.WriteFile(caCertPath, caCertPEM, 0644)
@@ -102,14 +102,14 @@ func StartTLS(host string, certFolder string) (*ServeSmbus, error) {
 }
 
 // StartSmbServer Main entry point to start the Simple Message Bus server with
-// the given gateway configuration
-func StartSmbServer(gwConfig *config.GatewayConfig) (*ServeSmbus, error) {
+// the given hub configuration
+func StartSmbServer(hubConfig *config.HubConfig) (*ServeSmbus, error) {
 	var server *ServeSmbus
 	var err error
-	if gwConfig.Messenger.CertFolder != "" {
-		server, err = StartTLS(gwConfig.Messenger.HostPort, gwConfig.Messenger.CertFolder)
+	if hubConfig.Messenger.CertFolder != "" {
+		server, err = StartTLS(hubConfig.Messenger.HostPort, hubConfig.Messenger.CertFolder)
 	} else {
-		server, err = Start(gwConfig.Messenger.HostPort)
+		server, err = Start(hubConfig.Messenger.HostPort)
 	}
 	return server, err
 }

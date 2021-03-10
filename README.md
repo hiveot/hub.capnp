@@ -1,53 +1,50 @@
-# WoST Gateway
+# WoST Hub
 
-The WoST Gateway is the reference implementation of the gateway for the Web of Secured Things. It receives information from 'WoST Things' and makes the result available to consumers. The gateway aims to be compatible with the WoT open standard but is constrainted to features that meet the WoST security mandate of "Things Do Not Run Servers".
+The WoST Hub is the reference implementation of the Hub for the Web of (Secured) Things. It receives information from 'Things' and provides a Thing shadow device to consumers. Consumers interact with Things through the Hub provided shadow devices without connecting directly to the Thing. The Hub aims to be compatible with the WoT open standard but is constrainted to features that meet the WoST security mandate of "Things Do Not Run Servers".
 
 ## Project Status
 
 Status: Alpha
 
-The core implementation of the gateway with plugin support is feature complete. This includes a built-in message bus and the option to use MQTT as a message bus to communicate between plugins and gateway. The gateway can be started and will listen for publication and subscriptions by plugins
+A second iteration of the Hub is in progress. The Hub message bus is reworked to provide the Thing API itself and can be run as a WebSocket or MQTT service. Plugins use this API to receive information from and control Things.
 
-Next up is adding an example plugin that Secured Things can use to push their Thing Description.
 
 
 ## Audience
 
 This project is aimed at software developers and system implementors with knowledge of operating systems and computing devices. 
 
-A Binary distribution of the gateway and its plugins can be installed and used by users with basic Linux skills.
+A Binary distribution of the Hub and its plugins can be installed and used by users with basic Linux skills.
 
 ## Summary
 
-The gateway is intended to cover various use-cases. The WoT architecture describes [several of them](https://www.w3.org/TR/wot-architecture/#sec-use-cases) such as smart home for consumers and smart factories in industry. 
+The WoST Hub provides a shadow representation of discovered Things. Things register themselves with the Hub while consumers discover and control things through the Hub. The Hub acts as an intermediary and avoid the need to provide direct access to Things by consumers. This keeps the Thing isolated and secure.
 
-The gateway is intended to be used with WoST compliant IoT devices (WoST Things)and legacy devices. WoST compliant devices automatically discovery the gateway on a local network and requests to provision themselves. The administrator logs into the gateway and accepts the provisioning request. From then on the device sends its Thing Description and its events to the gateway, from where it can be accessed and monitored. A management plugin lets the user administer and monitor devices through a web browser. 
+The WoST Hub is intended to be used with WoST compliant IoT devices (WoST Things)and legacy devices. WoST compliant devices automatically discover the Hub on a local network and provision themselves with the Hub. After provisioning the device sends its Thing Description and its events to the Hub, from where it can be accessed and monitored. 
 
-Legacy devices that are not WoST compliant are accessed through plugins that convert between the legacy format and WoT standards. They can be used as if they are WoT devices via the gateway APIs.
+Legacy devices that are not WoST compliant are accessed through plugins that convert between the legacy format and WoT standards. They can be used as if they are WoT devices via the Hub APIs.
 
-In either case WoST Things are never accessed directly. WoST managed IoT devices should remain in a secured fire-walled area. End users view and control the devices through the gateway using their web browser. This works entirely stand-alone and no Internet access is required. For remote access and monitoring, the gateway can connect securely to a cloud WoST Gateway over the Internet. Here too, there is never a direct connection from the Internet to the local network.
+In either case WoST Things are never accessed directly. WoST managed IoT devices should remain in a secured fire-walled area. End users view and control the devices through the Hub. For use within the Local Area Network this works entirely stand-alone and no Internet access is required. For remote access and monitoring, the Hub can connect securely to a cloud based Hub. Here too, there is never a direct connection from the Internet to the local network.
 
-The features of the gateway is provided through plugins. Core plugins that (will be) included are for Thing discovery using Thing Description documents. 
+The features of the Hub is provided through plugins. Core plugins provide support for Thing provisioning and discovery. 
 
 ## WoST vs WoT
 
-As mentioned elsewhere in more detail, WoST is an implementation of WoT where Things do not run a server. Instead WoST 'Things' push their data into an intermediary WoST gateway. The  reason behind this approach is that of security. Implementing servers securely is hard and not a role for a simple IoT device.
+As mentioned elsewhere in more detail, WoST is an implementation of WoT with the restriction that **Things do not run a server**. Instead WoST 'Things' push their data into the WoST hub that provides intermediary services to access the Thing. The reason behind this approach is that of security. Implementing servers securely is hard and not a role for a simple IoT device.
 
-WoST therefore supports [section 6.7 of the WoT architecture](https://www.w3.org/TR/wot-architecture/#direct-communication) with a protocol binding that requires the Thing to connect to an Intermediary. The WoST gateway is in this case the intermediary and implements a server for the Thing to connect to. 
-
-The WoST gateway functionality is provided through plugins. The Intermediary plugin implements the protocol binding for WoST Things to connect to.  
+WoST therefore supports [section 6.7 of the WoT architecture](https://www.w3.org/TR/wot-architecture/#direct-communication) with a protocol binding that requires the Thing to connect to an Intermediary. The WoST Hub is in this case the intermediary and implements a server for the Thing to connect to using one of its protocol bindings. 
 
 ## Installation
 
-The WoST Gateway is designed to run on Linux based computers. Mac, Windows and Android versions are currently not considered since the recommendation is to run it on a stand-alone computer. 
+The WoST Hub is designed to run on Linux based computers. Mac, Windows and Android versions are currently not considered since the recommendation is to run it on a stand-alone computer. 
 
 ### System Requirements
 
-Unless the gateway is provided as part of an appliance, it needs to be installed on a computer. It is best to use a dedicated computer for this. 
+Unless the Hub is provided as part of an appliance, it needs to be installed on a computer. It is best to use a dedicated computer for this. 
 
-For home users a raspberry pi 2+ will be powerful enough to run the gateway and simple plugins. For industrial or automotive usage a dedicated embedded computer system is recommended.
+For home users a raspberry pi 2+ will be powerful enough to run the Hub and simple plugins. For industrial or automotive usage a dedicated embedded computer system is recommended.
 
-In its most basic configuration the gateway needs less than 100MB of RAM and an ARMv7 CPU as found on a PI2. See plugin documentation for additional memory requirements.
+In its most basic configuration the Hub needs less than 100MB of RAM and an ARMv7 CPU as found on a PI2. See plugin documentation for additional memory requirements.
 
 ### Install From Package Manager
 
@@ -55,7 +52,7 @@ Installation from package managers is currently not available.
 
 ### Manual Install As User
 
-The Gateway can be installed and run as a dedicated user. 
+The Hub can be installed and run as a dedicated user. 
 
 Installation tarballs will be made available or build from source.
 After untarring or building go to the 'dist' folder and copy the files to the home's bin folder.
@@ -65,16 +62,16 @@ cp -a * ~/bin/wost
 ```
 This will create the following folder structure
 
-* /home/{user}/bin/wost/bin      gateway and plugin binaries
-* /home/{user}/bin/wost/config   gateway and plugin configuration
-* /home/{user}/bin/wost/logs     gateway and plugin logging output
+* /home/{user}/bin/wost/bin      hub and plugin binaries
+* /home/{user}/bin/wost/config   hub and plugin configuration
+* /home/{user}/bin/wost/logs     hub and plugin logging output
 * /home/{user}/bin/wost/certs    TLS certificates generated by the 
   
 
 ### Manual Install To System
 
 For systemd installation, as root for user 'wost'. 
-When changing the user and folders make sure to edit the wost-gateway.service file accordingly.
+When changing the user and folders make sure to edit the wost-hub.service file accordingly.
 From the dist folder run:
 ```
 # Create folders
@@ -86,7 +83,7 @@ mkdir /var/log/wost/
 # Install WoST configuration and systemd
 # unpack the tarball in a temp for and run:
 sudo cp config/* /etc/wost
-sudo cp init/wost-gateway.service /etc/systemd/system
+sudo cp init/wost-hub.service /etc/systemd/system
 sudo cp dist/bin/* /opt/wost
 
 # Setup user and permissions
@@ -107,7 +104,7 @@ Prerequisites:
 
 Build and install from source (tentative):
 ```
-$ git clone https://github.com/wostzone/gateway
+$ git clone https://github.com/wostzone/hub
 $ make all 
 ```
 
@@ -115,170 +112,123 @@ After the build is complete, the distribution binaries can be found in the 'dist
 
 ## Configuration
 
-The gateway is configured through the 'gateway.yaml' configuration file that can be edited with a regular text editor. The sample file in the dist config folder contains configuration options with the default values.
+The Hub is configured through the 'hub.yaml' configuration file that can be edited with a regular text editor. The sample file in the dist config folder contains configuration options with the default values.
 
-The gateway looks in the ./config folder or the /etc/wost folder for this file. This file is optional. Out of the box defaults will provide a working gateway with an internal service bus that listens on localhost port 9678 (WOST). 
+The Hub looks in the ./config folder or the /etc/wost folder for this file. This file is optional. Out of the box defaults will provide a working hub with an internal service bus that listens on localhost port 9678 (WOST). 
 
 Plugins can optionally be configured through yaml configuration files in the same configuration folder.
 
 ## Launching
 
-The gateway can be launched manually by invoking the 'gateway' app in the wost folder.
-eg ~/bin/wost/bin/gateway
+The Hub can be launched manually by invoking the 'hub' app in the wost folder.
+eg ~/bin/wost/bin/hub
 
 A systemd launcher can be configured to launch automatically on startup for Linux systems that use systemd. 
 
 ```
-systemctl enable wost-gateway
-systemctl start wost-gateway
+systemctl enable wost-hub
+systemctl start wost-hub
 ```
+
+## Plugin Installation
+
+Plugins are installed in the Hub 'bin' directory. By default this is the location of the Hub binary. A separate plugin directory can be configured in the hub.yaml configuration file if desired.
+
+After downloading or building the plugin executable:
+1. Copy the plugin executable from dist/bin or dist/arm into the Hub binary folder.
+2. Copy the plugin configuration file dist/config/{plugin}.yaml to the Hub configuration folder.  
+3. Enable the plugin in hub.yaml configuration file in the 'plugins' section.It will be started automatically when the Hub starts.
+
 
 # Design 
 
-![Design Overview](./docs/gateway-design.png)
+![Design Overview](./docs/hub%20design.png)
 
 ## Overview
 
-The gateway consists of an internal service bus and a collection of plugins. The plugins fall into two categories, protocol bindings and services. Protocol bindings connect with Things and 3rd party IoT devices while services provide consumer side functionality such as directory services. When available the WoT specified data and API definitions are used.
+The WoST Hub consists of an internal message bus and a curated set of plugins. The plugins fall into two categories, protocol bindings and services. Protocol bindings connect with Things and 3rd party IoT devices while services provide consumer side functionality such as directory services. When available the WoT specified data and API definitions are used.
 
-All features of the gateway are provided through these plugins. Plugins can be written in any language, including ECMAScript to be compliant with the [WoT Scripting API](https://www.w3.org/TR/wot-architecture/#sec-scripting-api). It is even possible to write a plugin for plugins to support a particular programming platform such as EC6. 
+All services of the WoST Hub are provided through these plugins. Plugins can be written in any language, including ECMAScript to be compliant with the [WoT Scripting API](https://www.w3.org/TR/wot-architecture/#sec-scripting-api). It is even possible to write a plugin for plugins to support a particular programming platform such as EC6. 
 
-As mentioned, plugins fall into two categories depending on their purpose:
-* Protocol bindings provide connectivity for WoST Things and for 3rd party IoT devices. These plugins convert the device description data they receive to a Thing Description document and submit events in the WoT format according to the WoT specifications.
-* Service plugins provide a service to consumer applications. They can receive requests and publish actions for Things to execute. Services can make additional API's available to consumers, for example a directory service and a web client interface. Consumers never communicate directly with Things. This always goes throught the gateway intermediary.
+As mentioned, plugins fall into two categories depending on their primary purpose:
+* Protocol bindings provide connectivity for WoST Things and for legacy/3rd party IoT devices. These plugins convert the device description data they receive to a Thing Description document and submit these onto the Hub Message bus. Actions received from the message bus are passed back to the Thing after converting it into the Thing's native format. 
+  
+* Service plugins provide a service to consumer applications. They can receive requests and publish actions for Things to execute. Services can make additional API's available to consumers, for example a directory service can have a HTTP and a websocket API. All communication from consumers to Things goes via services. Services listen on the Message bus for thing descriptions and events and can publish actions to be performed by Things.
 
-The gateway comes with an internal websocket based lightweight message bus for communication between plugins. A client library is provided for plugins to easily publish and subscribe to message channels. The message bus is default configured for TLS and generates its own CA, Server and Client certificates. For those that think this is overkill, TLS can be disabled by setting an empty certificate folder in the gateway.yaml configuration file. By default and when run without configuration the gateway will start the internal message bus with TLS. 
+## Hub Message Bus
 
-For distributed high performance use-cases the internal message bus can be replaced with a MQTT message bus such as Mosquitto. To enable this set the 'protocol' option to 'mqtt' in the configuration file, set the hostname to the address and port of the MQTT server, and copy the server public certificate to the gateway certs folder as gatewy.crt.
+The Hub Message Bus API is WoT compatible and its messages conform to the format defined in the WoT TD standard. 
 
-The included gateway client library (for use by plugins) support both the internal message bus and MQTT and uses the gateway.yaml configuration file to connect to the message bus. This allows the re-use of a plugin in places with different message bus implementations. The gateway client library will be made available for programming language such as golang, ES6, and Python. 
+The Hub supports two message bus implementations: A built-in simple message bus (smbus) and MQTT. 
 
-Plugins publish and subscribe to gateway 'channels'. Each type of data has its own channel. WoT related channel are the 'td', 'events' and 'actions' channels. That carry JSON messages in the WoT specified format. Plugins can add additional channels as needed.
+The built-in message bus is intended for running the Hub out of the box without requiring much setup. This configuration generates client and server certificates for use by the plugin and uses TLS to communicate with the bus. The certificates are generated on first start and are only accessible to the user that runs the Hub and its plugins.
 
+Support for MQTT over TLS is built-in. The hub must be configured with the address of the MQTT broker and its server certificate. 
 
-### Protocol Binding Plugins
+Publishers and subscribers to the message MUST follow the WoT Thing API. Since at the time of writing a MQTT protocol binding API is not specified, a best guess is made based on the Mozilla REST API. See the API section for details.
 
-The primary role of protocol binding plugins is to translate between 3rd party  protocols and the WoT data standards. Plugins publish the TD (Thing Description) onto the 'td' channel, publish Thing events on the 'events' channel and subscribe to Thing actions on the 'actions' channel.
+The included message bus client library (for use by plugins) support both the internal message bus and MQTT and uses the hub.yaml configuration file to determine where to connect. The plugin does not need to know which message bus is used. The Hub client library will be made available for programming language such as golang, ES6, and Python. 
 
-The format of the data pushed into the channel MUST match the schema as by the WoT [TD Schema](https://www.w3.org/TR/wot-thing-description/#json-schema-for-validation)
-
-See the 'writing a plugin' (todo) documentation or one of the existing plugins on how to use channels to communicate with the gateway.
-
-Plugins can publish to additional channels for extended functionality. A schema definition for the new channel must be defined and followed.
+## Protocol Binding Plugins
 
 
-### Service Plugins
+## Service Plugins
 
-Service plugins provide their own API or run their own web server to make Thing data available to consumers. For example a directory service provides an API to query known devices. The admin plugin provides a web page to administer the gateway and its plugins. 
+Service plugins provide their own API to the consumer. For example a directory service provides the Directory API to query for Things. The admin plugin provides a web page to administer the Hub and its plugins. 
 
-Service plugins subscribe to the TD and Event channels to obtain information about things and can publish actions to control Things.
+Service plugins subscribe to TD and Event messages to obtain information about things and can publish actions to control Things.
 
 Service plugins can also create a new channel to communicate with other plugins, specific to the purpose of the plugin. A schema definition for the new channel must be defined and followed.
 
 <todo>See the list of available service plugins for details. </todo>
 
-## Writing Plugins
-
-Plugins can be written in any programming language. They can include a configuration file that describes their purpose and the channels they use. Plugins should use the gateway messenger library to connect to the service bus.
-
-There is nearly no boilerplate code involved in writing plugins, except for adhering to the channel data requirements. Plugins can therefore be very simple. 
-
-Plugins run in their own process, isolated from other plugins. It is however possible to write a plugin that launches other plugins in threads. For example, a JS plugin can load additional plugins written in Javascript. Each of the additional plugin connects to the gateway channels using the client library.
-
-### Data Channels
-
-Data published on WoST Gateway channels MUST adhere to that data channel's schema specification.  The Gateway has the following predefined channels:
-* td: Thing descriptions https://www.w3.org/TR/2020/WD-wot-thing-description11-20201124/
-* events: Thing events
-* actions: Thing actions
-
-Message published on these channel MUST adhere to the WoT data schemas for TD, events and actions.
-
-### Plugin Configuration
-
-Plugins are configured the same way as Things are configured. Each plugin has a TD that describes its properties, events and actions. (TODO)
-
-
-### Core Plugins
-
-The WoST project plans to include several core plugins for using the gateway out of the box. Like any other plugin, these can be replaced with an alternative implementation. The gateway.yaml configuration lists which plugins to run on startup.
-
-* The 'intermediary' protocol binding provides an API for Things to connect to and publish their TD and events, and receive actions. It supports HTTPS and Websocket connections over TLS.
-
-* The 'discovery' protocol binding announces the gateway intermediary on the local network using mDNS. This is intended to let WoST Things and Consumers automatically discover the gateway.
+Service plugins included with the hub provide a works-out-of-the-box experience. The use of these plugins is optional: 
 
 * The 'directory' service provides an HTTPS API for consumers to query discovered Things. 
 
-* The 'forwarder' service forwards select Exposed Things to another cloud based intermediary such as another WoST gateway. Intended to safely access Things via the cloud. 
-
-* The 'admin' plugin provides an web based administration panel to view and configure Things and plugins.
+* The 'forwarder' service forwards select Exposed Things to another cloud based intermediary such as another WoST hub. Intended to safely access Things via the cloud. 
 
 * The 'recorder' service is a simple example plugin that records channel messages into files. Intended for testing.
 
- lanneld protocol binding plugins:
+* The 'intermediary' service makes Things available to an intermediary, such as another Hub in the cloud using the Thing APIs of the intermediary. An authorization model determines which Things and which actions are shared with the intermediary. This is intended to provide access to Things for authorized users from over the internet without the need to open up the firewall.
 
-* The 'owserver' protocol binding publishes 1-wire OwServer-V2 devices
+* The 'scripting' service provides an ECMA scripting engine to let the user run scripts. Scripts can access the message bus through the messaging client library.
 
-* The 'openzwave' protocol binding publishes open-zwave devices
+* The 'admin' plugin provides an web based administration panel to view and configure Things and plugins.
 
-* The 'ipcam' protocol binding publishes network camera snapshots
+## Writing Plugins
 
-* The 'isy99' protocol binding publishes ISY99 (Insteon) devices 
+Plugins can be written in any programming language by using the network interfaces. The Hub provides a messenger client library in Golang to easily connect to the message bus. This library will be maintained along with the hub. Implementations in Python and Javascript are planned for the future.
 
-* The 'zigbee' protocol binding publishes zigbee devices
+Plugins run in their own process, isolated from other plugins. 
 
-* The 'coap' protocol binding for CoAP IoT devices
- 
-Advanced plugins under consideration:
+A [scripting API](https://www.w3.org/TR/wot-scripting-api/) is also planned and  can also be used to create plugins.
 
-* The 'history' service plugin implements the history API to query historical values for Things. (NGSI-LD history API)
+See [the documentation on writing plugins](docs/writing-plugins.md). 
 
-* The 'script' service plugin executes ECMA scripts. It lets script receive channel data and can execute actions. 
-
-* The 'notification' service plugin sends messages from the notification channel to the configured destination, eg Email, SMS, other.
-
-* The 'wallpaper' service builds a live wallpaper out of ip cameras or other published images
 
 ## Launching Plugins
 
-Plugins are launched at startup and given the same arguments as the gateway to determine the configuration and message bus connection information:
+Plugins are launched at startup and given the same arguments as the Hub to determine the configuration and message bus connection information:
 
 ```
--c            /path/to/gateway.yaml optional alt configuration, default is {home}/config/gateway.yaml
+-c            /path/to/hub.yaml optional alt configuration, default is {home}/config/hub.yaml
 -home         /path/to/app/home    optional alternative application home folder/ Defa
 -certsFolder  /path/to/alt/certs   optional certificate folder, eg when using mqtt. Default is {home}/certs
 -configFolder /path/to/alt/config  optional alternative config, eg /etc/wost
 -hostname     localhost:9678       optional alternative message bus, eg mosquitto:8883
--logFile      /path/to/gateway.log optional logfile. Use to determine logs folder
+-logFile      /path/to/hub.log optional logfile. Use to determine logs folder
 -protocol mqtt | smbus             default is smbus
 -pluginFolder                      optional alt plugin folder, default is {home}/bin
--logLevel warning                  for extra logging, default is gateway loglevel
+-logLevel warning                  for extra logging, default is hub loglevel
 -useTLS true                       option to not use TLS, default true
 ```
 
 The plugin configuration file is pluginID.yaml in the {home}/config folder. This file is optional. A default file is provided with the plugin. This file describes the plugin properties, events and actions in TD compatible format.
 
-## Messenger Connections
+## Thing APIs
 
-After launch, plugins connect to the message bus and subscribe to channels. The default connect address for the internal service bus (smbus) is:
-> wss://localhost:9678/wost
-
-Where localhost:9678 is defined in the gateway messaging configuration. The plugin reads the gateway.yaml on startup to ensure the same messaging setup is used.
-
-The provided client libraries implement the connection logic for the various protocols so the plugin developer only need to know the channel ID.
-
-A plugin can implement its own connection client for publishing and subscribing. The message format for the built-in websocket message bus is: 
-> {command}:{channel}:{payload}
-Where command is one of 'publish', 'subscribe', 'unsubscribe', and 'receive'. See wost/gateway/src/msgbus/MsgBusClient.go for more info.
-
-## Why A Message Bus For Plugin Communication?
-
-Plugins publish and subscribe to messages. While there are many ways to implement a message bus, once you add the requirement to support multiple programming langes the choices are reduced to network socket type communication. There is no best solution here which is why both an internal message bus (smbus) and an external message bus (mqtt) is supported. 
-
-One of the benefits of this approach is that plugins do not have to run on the same machine as the gateway itself. As long as it has the certificates to connect it can function just like a local plugin. This allows for specialized tasks such as image recognition to be offloaded elsewhere. 
-
-Since security is key, both the smbus and the MQTT message bus communication MUST use TLS. The smbus authentication is provided through client side certifices. The MQTT client can use basic authentication over TLS and requires the server certificate to be available in the gateway certs folder. 
-
+The API provided by the Hub core services are documented in: [docs/hubapi.md](docs/hubapi.md)
 
 
 # Contributing
@@ -289,4 +239,3 @@ Contributions to WoST projects are always welcome. There are many areas where he
 # Credits
 
 This project builds on the Web of Things (WoT) standardization by the W3C.org standards organization. For more information https://www.w3.org/WoT/
-

@@ -2,14 +2,14 @@ package main
 
 import (
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/gateway/pkg/gateway"
+	"github.com/wostzone/hub/pkg/hub"
 )
 
 func main() {
-	err := gateway.StartGateway("", true)
+	err := hub.StartHub("", true)
 	if err != nil {
-		logrus.Fatalf("main: Failed starting gateway: %s", err)
+		logrus.Fatalf("main: Failed starting hub: %s", err)
 	}
-	gateway.WaitForSignal()
-	gateway.StopGateway()
+	hub.WaitForSignal()
+	hub.StopHub()
 }

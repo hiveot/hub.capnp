@@ -2,7 +2,7 @@
 
 # Message bus server
 messenger:
-  #certsFolder: "${appfolder}/certs" # location of gateway and client certificate
+  #certsFolder: "${appfolder}/certs" # location of hub and client certificate
   #protocol: "" # internal, MQTT, default internal
   #hostname: "localhost:9678" # hostname:port or ip:port to listen on of message bus
   useTLS: false # use TLS for client/server messaging
@@ -11,7 +11,7 @@ messenger:
 
 # Logging
 logging:
-  # logFile: "/var/log/wost/gateway.log"
+  # logFile: "/var/log/wost/hub.log"
   logLevel: "debug" # debug, info, warning, error. Default is warning
 
 # Plugins to start

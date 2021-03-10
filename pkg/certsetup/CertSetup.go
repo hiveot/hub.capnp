@@ -1,4 +1,4 @@
-// Package certs with creation of self signed certificate chain
+// Package certsetup with creation of self signed certificate chain
 // Credits: https://gist.github.com/shaneutt/5e1995295cff6721c89a71d13a71c251
 package certsetup
 
@@ -24,8 +24,8 @@ const certDurationYears = 10
 const (
 	CaCertFile     = "ca.crt"
 	CaKeyFile      = "ca.key"
-	ServerCertFile = "gateway.crt"
-	ServerKeyFile  = "gateway.key"
+	ServerCertFile = "hub.crt"
+	ServerKeyFile  = "hub.key"
 	ClientCertFile = "client.crt"
 	ClientKeyFile  = "client.key"
 )
@@ -113,8 +113,8 @@ func CreateWoSTCA() (certPEM []byte, keyPEM []byte) {
 	return certPEMBuffer.Bytes(), privKeyPEMBuffer.Bytes()
 }
 
-// CreateGatewayCert creates Wost gateway server key and certificate
-func CreateGatewayCert(caCertPEM []byte, caKeyPEM []byte, hostname string) (pkPEM []byte, certPEM []byte, err error) {
+// CreateHubCert creates Wost hub server key and certificate
+func CreateHubCert(caCertPEM []byte, caKeyPEM []byte, hostname string) (pkPEM []byte, certPEM []byte, err error) {
 	// We need the CA key and certificate
 	caPrivKeyBlock, _ := pem.Decode(caKeyPEM)
 	caPrivKey, err := x509.ParsePKCS1PrivateKey(caPrivKeyBlock.Bytes)
@@ -131,7 +131,7 @@ func CreateGatewayCert(caCertPEM []byte, caKeyPEM []byte, hostname string) (pkPE
 			Organization:  []string{"WoST Zone"},
 			Country:       []string{"CA"},
 			Province:      []string{"BC"},
-			Locality:      []string{"WoST Gateway"},
+			Locality:      []string{"WoST Hub"},
 			StreetAddress: []string{""},
 			PostalCode:    []string{""},
 			CommonName:    hostname,
@@ -146,7 +146,7 @@ func CreateGatewayCert(caCertPEM []byte, caKeyPEM []byte, hostname string) (pkPE
 	// If an IP address is given, then allow localhost
 	ipAddr := net.ParseIP(hostname)
 	if ipAddr != nil {
-		logrus.Infof("CreateGatewayCert: hostname %s is an IP address. Setting as SAN", hostname)
+		logrus.Infof("CreateHubCert: hostname %s is an IP address. Setting as SAN", hostname)
 		cert.IPAddresses = []net.IP{net.IPv4(127, 0, 0, 1), net.IPv6loopback, ipAddr}
 	}
 

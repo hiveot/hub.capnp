@@ -1,4 +1,4 @@
-package gateway_test
+package hub_test
 
 import (
 	"os"
@@ -7,15 +7,15 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/wostzone/gateway/pkg/gateway"
+	"github.com/wostzone/hub/pkg/hub"
 )
 
-func TestStartGateway(t *testing.T) {
+func TestStartHub(t *testing.T) {
 	cwd, _ := os.Getwd()
 	homeFolder := path.Join(cwd, "../../test")
-	err := gateway.StartGateway(homeFolder, false)
+	err := hub.StartHub(homeFolder, false)
 	assert.NoError(t, err)
 
 	time.Sleep(3 * time.Second)
-	gateway.StopGateway()
+	hub.StopHub()
 }

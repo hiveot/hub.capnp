@@ -3,10 +3,10 @@ package smbclient_test
 import (
 	"testing"
 
-	"github.com/wostzone/gateway/pkg/config"
-	"github.com/wostzone/gateway/pkg/messaging/smbclient"
-	testhelper "github.com/wostzone/gateway/pkg/messaging/testhelper"
-	"github.com/wostzone/gateway/pkg/smbserver"
+	"github.com/wostzone/hub/pkg/config"
+	"github.com/wostzone/hub/pkg/messaging/smbclient"
+	testhelper "github.com/wostzone/hub/pkg/messaging/testhelper"
+	"github.com/wostzone/hub/pkg/smbserver"
 )
 
 const smbCertFolder = "../../../test/certs"

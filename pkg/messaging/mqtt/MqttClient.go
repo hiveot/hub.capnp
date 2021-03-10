@@ -21,7 +21,7 @@ const ConnectionTimeoutSec = 20
 // TLSPort is the default secure port to connect to mqtt
 const TLSPort = 8883
 
-// MqttClient client that implements IGatewayMessenger
+// MqttClient client that implements IHubMessenger
 type MqttClient struct {
 	clientID string // unique ID of the client
 	hostPort string // host:port of server to connect to

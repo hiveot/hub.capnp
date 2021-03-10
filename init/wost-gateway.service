@@ -1,15 +1,15 @@
-# WoST Gateway systemd service
-# Save this as /etc/systemd/system/wost-gateway.service
+# WoST Hub systemd service
+# Save this as /etc/systemd/system/wost-hub.service
 
 [Unit]
-Description=Wost service to launch the gateway and plugins
+Description=Wost service to launch the hub and plugins
 Wants=network-online.target
 After=network.target network-online.target
 PartOf=myzone.target
 
 [Service]
-#PIDFile=/run/gateway.%i.pid
-PIDFile=/run/gateway.pid
+#PIDFile=/run/hub.%i.pid
+PIDFile=/run/hub.pid
 Nice=10
 
 # When the service runs globally, make it run as a particular user for added security
@@ -19,7 +19,7 @@ Group=wost
 # Auto restart the service after 1 minute when it aborts
 # NOTE: change the home folder to the appropriate folder when running locally
 WorkingDirectory=/opt/wost
-ExecStart=/opt/wost/bin/gateway
+ExecStart=/opt/wost/bin/hub
 Restart=on-failure
 RestartSec=60
 

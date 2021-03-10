@@ -1,18 +1,18 @@
-// Package messaging with interface for gateway connection management
-// Used by implementation of the service bus connection to communicate between plugin and gateway
+// Package messaging with interface for hub connection management
+// Used by implementation of the service bus connection to communicate between plugin and hub
 package messaging
 
 // Default client and server certificates names when used
 const (
 	CaCertFile     = "ca.crt"
 	CaKeyFile      = "ca.key"
-	ServerCertFile = "gateway.crt"
-	ServerKeyFile  = "gateway.key"
+	ServerCertFile = "hub.crt"
+	ServerKeyFile  = "hub.key"
 	ClientCertFile = "client.crt"
 	ClientKeyFile  = "client.key"
 )
 
-// Predefined gateway channels
+// Predefined hub channels
 const (
 	// The TD channel carries 'Thing Description' documents
 	TDChannelID = "td"
@@ -35,8 +35,8 @@ type PluginMessage struct {
 	Port     int    `json:"port"`     // Port the service is listening on
 }
 
-// IGatewayMessenger interface to connection handler to publish messages onto and subscribe to the gateway
-type IGatewayMessenger interface {
+// IHubMessenger interface to connection handler to publish messages onto and subscribe to the hub
+type IHubMessenger interface {
 
 	// Connect the messenger to the messenger server.
 	// If a connection is already in place, the existing connection is dropped and
@@ -49,7 +49,7 @@ type IGatewayMessenger interface {
 	// Disconnect all connections and remove all subscriptions
 	Disconnect()
 
-	// Publish sends a message to the gateway on the given channelID
+	// Publish sends a message to the hub on the given channelID
 	//  channelID contains the address to publish to, divided by '/' as a separator
 	Publish(channelID string, message []byte) error
 

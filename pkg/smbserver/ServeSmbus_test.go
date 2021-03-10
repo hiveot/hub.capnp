@@ -18,10 +18,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/wostzone/gateway/pkg/certsetup"
-	"github.com/wostzone/gateway/pkg/config"
-	"github.com/wostzone/gateway/pkg/messaging/smbclient"
-	"github.com/wostzone/gateway/pkg/smbserver"
+	"github.com/wostzone/hub/pkg/certsetup"
+	"github.com/wostzone/hub/pkg/config"
+	"github.com/wostzone/hub/pkg/messaging/smbclient"
+	"github.com/wostzone/hub/pkg/smbserver"
 	"golang.org/x/net/http2"
 )
 
@@ -233,7 +233,7 @@ func TestTLSCerts(t *testing.T) {
 	caCertPool := x509.NewCertPool()
 	caCertPool.AppendCertsFromPEM(caCertPEM)
 
-	serverCertPEM, serverKeyPEM, err := certsetup.CreateGatewayCert(caCertPEM, caKeyPEM, hostname)
+	serverCertPEM, serverKeyPEM, err := certsetup.CreateHubCert(caCertPEM, caKeyPEM, hostname)
 	clientCertPEM, clientKeyPEM, err := certsetup.CreateClientCert(caCertPEM, caKeyPEM, hostname)
 	clientCert, err := tls.X509KeyPair(clientCertPEM, clientKeyPEM)
 	require.NoErrorf(t, err, "Creating certificates failed:")

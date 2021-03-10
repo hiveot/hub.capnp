@@ -8,7 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/wostzone/gateway/pkg/config"
+	"github.com/wostzone/hub/pkg/config"
 )
 
 type ConfigType1 struct {
@@ -19,12 +19,12 @@ type ConfigType1 struct {
 func TestDefaultConfigNoHome(t *testing.T) {
 	// This result is unpredictable as it depends on where the binary lives.
 	// This changes depends on whether to run as debug, coverage or F5 run
-	gc := config.CreateDefaultGatewayConfig("")
+	gc := config.CreateDefaultHubConfig("")
 	require.NotNil(t, gc)
 	err := config.ValidateConfig(gc)
 	_ = err // unpredictable outcome
 	// assert.NoError(t, err)
-	gc = config.CreateDefaultGatewayConfig("./")
+	gc = config.CreateDefaultHubConfig("./")
 	require.NotNil(t, gc)
 	_ = err // unpredictable outcome
 	// assert.NoError(t, err)
@@ -36,18 +36,18 @@ func TestDefaultConfigWithHome(t *testing.T) {
 	wd, _ := os.Getwd()
 	home := path.Join(wd, "../../test")
 	logrus.Infof("TestDefaultConfig: Current folder is %s", wd)
-	gc := config.CreateDefaultGatewayConfig(home)
+	gc := config.CreateDefaultHubConfig(home)
 	require.NotNil(t, gc)
 	err := config.ValidateConfig(gc)
 	assert.NoError(t, err)
 }
 
-func TestLoadGatewayConfig(t *testing.T) {
+func TestLoadHubConfig(t *testing.T) {
 	wd, _ := os.Getwd()
-	gc := config.CreateDefaultGatewayConfig(path.Join(wd, "../../test"))
+	gc := config.CreateDefaultHubConfig(path.Join(wd, "../../test"))
 	require.NotNil(t, gc)
 
-	configFile := path.Join(gc.ConfigFolder, "gateway.yaml")
+	configFile := path.Join(gc.ConfigFolder, "hub.yaml")
 	err := config.LoadConfig(configFile, gc)
 	assert.NoError(t, err)
 	err = config.ValidateConfig(gc)
@@ -55,21 +55,21 @@ func TestLoadGatewayConfig(t *testing.T) {
 	assert.Equal(t, "info", gc.Logging.Loglevel)
 }
 
-func TestLoadGatewayConfigNotFound(t *testing.T) {
+func TestLoadHubConfigNotFound(t *testing.T) {
 	wd, _ := os.Getwd()
-	gc := config.CreateDefaultGatewayConfig(path.Join(wd, "../../test"))
+	gc := config.CreateDefaultHubConfig(path.Join(wd, "../../test"))
 	require.NotNil(t, gc)
-	configFile := path.Join(gc.ConfigFolder, "gateway-notfound.yaml")
+	configFile := path.Join(gc.ConfigFolder, "hub-notfound.yaml")
 	err := config.LoadConfig(configFile, gc)
 	assert.Error(t, err, "Configfile should not be found")
 }
 
-func TestLoadGatewayConfigYamlError(t *testing.T) {
+func TestLoadHubConfigYamlError(t *testing.T) {
 	wd, _ := os.Getwd()
-	gc := config.CreateDefaultGatewayConfig(path.Join(wd, "../../test"))
+	gc := config.CreateDefaultHubConfig(path.Join(wd, "../../test"))
 	require.NotNil(t, gc)
 
-	configFile := path.Join(gc.ConfigFolder, "gateway-bad.yaml")
+	configFile := path.Join(gc.ConfigFolder, "hub-bad.yaml")
 	err := config.LoadConfig(configFile, gc)
 	// Error should contain info on bad file
 	errTxt := err.Error()
@@ -77,10 +77,10 @@ func TestLoadGatewayConfigYamlError(t *testing.T) {
 	assert.Error(t, err, "Configfile should not be found")
 }
 
-func TestLoadGatewayConfigBadFolders(t *testing.T) {
+func TestLoadHubConfigBadFolders(t *testing.T) {
 
 	wd, _ := os.Getwd()
-	gc := config.CreateDefaultGatewayConfig(path.Join(wd, "../../test"))
+	gc := config.CreateDefaultHubConfig(path.Join(wd, "../../test"))
 	err := config.ValidateConfig(gc)
 	assert.NoError(t, err, "Default config should be okay")
 

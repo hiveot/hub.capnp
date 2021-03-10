@@ -1,11 +1,11 @@
-# Gateway  Description in YAML
+# Hub  Description in YAML
 
 "@context": "http://www.w3.org/2019/wot/td/v1"
-"@type": "Gateway"
+"@type": "Hub"
 
-id: "urn:wost:gateway:config"
-title: "WoST Gateway"
-description: "Web Of Secured Things Gateway and Intermediary"
+id: "urn:wost:hub:config"
+title: "WoST Hub"
+description: "Web Of Secured Things Hub and Intermediary"
 support: "mailto:support@wost.zone"
 version: "0.0.1"
 created: "2021-02-27T00:00:00.000Z"
@@ -17,26 +17,26 @@ properties:
   # configFolder: "../config"        # local config
   # configFolder: "/etc/wost/config" # system config
 
-  # Gateway and plugin default logging configuration
+  # Hub and plugin default logging configuration
   logging:
     loglevel: "info"
-    logFile: "../logs/gateway.log" # local log file
+    logFile: "../logs/hub.log" # local log file
     #timeFormat: "2006-01-02 15:04:05.000-07:00"    # ISO8601 format
-    #logFile: "/var/log/wost/gateway.log"    # system log file
+    #logFile: "/var/log/wost/hub.log"    # system log file
 
   # Message bus configuration
   messenger:
     #protocol: ""                   # smbus or mqtt. Default is the smbus plugin
     #hostname: "localhost:9678"     # hostname:port or ip:port to listen on of message bus
-    certsFolder: "../certs" # location of gateway and client certificate for use with TLS
-    #certsFolder: "/etc/wost/certs" # location of gateway and client certificate for use with TLS
+    certsFolder: "../certs" # location of hub and client certificate for use with TLS
+    #certsFolder: "/etc/wost/certs" # location of hub and client certificate for use with TLS
     timeout: 1
 
   # Plugin configuration
   plugins:
     # location of plugin binaries files. Default is ../bin
     # pluginsFolder: "../bin"                    # local plugin binaries
-    #pluginsFolder: "/opt/wost/gateway/plugins" # system plugin binaries
+    #pluginsFolder: "/opt/wost/hub/plugins" # system plugin binaries
     autostart: # autostart plugins
       - recorder
 

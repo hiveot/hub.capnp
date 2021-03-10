@@ -1,4 +1,4 @@
-# Example gateway configuration
+# Example hub configuration
 
 # Message bus server
 messenger:
@@ -9,7 +9,7 @@ messenger:
 
 # Logging
 logging:
-  # logFile: "/var/log/wost/gateway.log"
+  # logFile: "/var/log/wost/hub.log"
   # loglevel is used in test to verify the file was actually loaded
   logLevel: "debug" # debug, info, warning, error. Default is warning
 

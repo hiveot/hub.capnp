@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/wostzone/gateway/pkg/certsetup"
+	"github.com/wostzone/hub/pkg/certsetup"
 )
 
 func TestTLSCertificateGeneration(t *testing.T) {
@@ -27,7 +27,7 @@ func TestTLSCertificateGeneration(t *testing.T) {
 	require.NotNilf(t, clientCertPEM, "Failed creating client certificate")
 	require.NotNilf(t, clientKeyPEM, "Failed creating client key")
 
-	serverCertPEM, serverKeyPEM, err := certsetup.CreateGatewayCert(caCertPEM, caKeyPEM, hostname)
+	serverCertPEM, serverKeyPEM, err := certsetup.CreateHubCert(caCertPEM, caKeyPEM, hostname)
 	require.NoErrorf(t, err, "Failed creating server certificate")
 	// serverCert, err := tls.X509KeyPair(serverCertPEM, serverKeyPEM)
 	require.NoErrorf(t, err, "Failed creating server certificate")

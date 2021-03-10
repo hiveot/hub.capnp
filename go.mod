@@ -1,4 +1,4 @@
-module github.com/wostzone/gateway
+module github.com/wostzone/hub
 
 go 1.14
 
@@ -11,6 +11,7 @@ require (
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
 	github.com/sirupsen/logrus v1.8.0
 	github.com/stretchr/testify v1.7.0
+	github.com/wostzone/hub v0.0.0-20210306053807-85b444047061
 	github.com/x-cray/logrus-prefixed-formatter v0.5.2
 	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110
 	golang.org/x/sys v0.0.0-20210305230114-8fe3ee5dd75b // indirect

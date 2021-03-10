@@ -14,7 +14,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/gateway/pkg/messaging/smbclient"
+	"github.com/wostzone/hub/pkg/messaging/smbclient"
 )
 
 // Default nr of messages that can be queued per channel before the sender blocks

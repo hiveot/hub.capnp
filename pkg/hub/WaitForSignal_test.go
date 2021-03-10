@@ -1,4 +1,4 @@
-package gateway_test
+package hub_test
 
 import (
 	"os"
@@ -8,14 +8,14 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/wostzone/gateway/pkg/gateway"
+	"github.com/wostzone/hub/pkg/hub"
 )
 
 func TestWaitForSignal(t *testing.T) {
 	m := sync.Mutex{}
 	var waitCompleted = false
 	go func() {
-		gateway.WaitForSignal()
+		hub.WaitForSignal()
 		m.Lock()
 		waitCompleted = true
 		m.Unlock()

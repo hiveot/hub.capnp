@@ -10,20 +10,20 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/gateway/pkg/certsetup"
-	"github.com/wostzone/gateway/pkg/config"
+	"github.com/wostzone/hub/pkg/certsetup"
+	"github.com/wostzone/hub/pkg/config"
 )
 
 // const publishAddress = "ws://%s/channel/%s/pub"
 // const subscriberAddress = "ws://%s/channel/%s/sub"
 
-// SmbClient provides the IGatewayMessenger API for the simple message bus
+// SmbClient provides the IHubMessenger API for the simple message bus
 type SmbClient struct {
 	clientID      string          // Who Am I?
 	hostPort      string          // hostname/ip:port of the server
 	clientCertPEM []byte          // client certificate to authenticate with the server
 	clientKeyPEM  []byte          // private key of this client certificate
-	serverCertPEM []byte          // server certificate to verify the gateway against
+	serverCertPEM []byte          // server certificate to verify the hub against
 	connection    *websocket.Conn // websocket connection to internal service bus
 	subscribers   map[string]func(channelID string, msg []byte)
 	updateMutex   *sync.Mutex
@@ -69,9 +69,9 @@ func (smbc *SmbClient) Connect(clientID string, timeoutSec int) error {
 		}
 	}
 	if err != nil {
-		logrus.Errorf("Failed connecting to the gateway: %s", err)
+		logrus.Errorf("Failed connecting to the hub: %s", err)
 	} else {
-		logrus.Warningf("Success connecting to gateway: %s", smbc.hostPort)
+		logrus.Warningf("Success connecting to hub: %s", smbc.hostPort)
 	}
 	return err
 }
@@ -133,7 +133,7 @@ func (smbc *SmbClient) Unsubscribe(channelID string) {
 }
 
 // NewSmbClient creates a new instance of the lightweight messagebus to publish
-// and subscribe to gateway messages.
+// and subscribe to hub messages.
 func NewSmbClient(certFolder string, hostPort string) *SmbClient {
 	if hostPort == "" {
 		hostPort = config.DefaultSmbHost

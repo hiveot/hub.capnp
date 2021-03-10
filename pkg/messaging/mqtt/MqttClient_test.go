@@ -3,8 +3,8 @@ package mqtt_test
 import (
 	"testing"
 
-	"github.com/wostzone/gateway/pkg/messaging/mqtt"
-	testhelper "github.com/wostzone/gateway/pkg/messaging/testhelper"
+	"github.com/wostzone/hub/pkg/messaging/mqtt"
+	testhelper "github.com/wostzone/hub/pkg/messaging/testhelper"
 )
 
 const mqttServerHostPort = "localhost:8883"

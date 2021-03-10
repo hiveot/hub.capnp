@@ -13,7 +13,7 @@ import (
 )
 
 // SetLogging sets the logging level and output file
-// Intended for standardize logging in the gateway and plugins
+// Intended for standardize logging in the hub and plugins
 //  levelName is the requested logging level: error, warning, info, debug
 //  filename is the output log file full name including path, use "" for stderr
 //  timeFormat default is ISO8601 YYYY-MM-DDTHH:MM:SS.sss-TZ

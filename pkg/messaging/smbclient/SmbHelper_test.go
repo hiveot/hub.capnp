@@ -12,8 +12,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/wostzone/gateway/pkg/certsetup"
-	"github.com/wostzone/gateway/pkg/messaging/smbclient"
+	"github.com/wostzone/hub/pkg/certsetup"
+	"github.com/wostzone/hub/pkg/messaging/smbclient"
 )
 
 const hostPort = "localhost:9666"

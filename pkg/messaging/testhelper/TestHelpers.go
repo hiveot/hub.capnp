@@ -9,7 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/wostzone/gateway/pkg/messaging"
+	"github.com/wostzone/hub/pkg/messaging"
 )
 
 const clientID = "Client1"
@@ -18,7 +18,7 @@ const protocol = messaging.ConnectionProtocolMQTT
 var altServer = ""
 
 // TMessengerConnect helper to test messenger connection
-func TMessengerConnect(t *testing.T, gwm messaging.IGatewayMessenger) {
+func TMessengerConnect(t *testing.T, gwm messaging.IHubMessenger) {
 	const timeout = 10
 	err := gwm.Connect(clientID, timeout)
 	assert.NoError(t, err)
@@ -29,7 +29,7 @@ func TMessengerConnect(t *testing.T, gwm messaging.IGatewayMessenger) {
 }
 
 // TMessengerNoConnect helper to test  messenger connection
-func TMessengerNoConnect(t *testing.T, gwm messaging.IGatewayMessenger) {
+func TMessengerNoConnect(t *testing.T, gwm messaging.IHubMessenger) {
 	timeout := 5
 	require.NotNil(t, gwm)
 	err := gwm.Connect(clientID, timeout)
@@ -38,7 +38,7 @@ func TMessengerNoConnect(t *testing.T, gwm messaging.IGatewayMessenger) {
 }
 
 // TMessengerPubSub is a test helper for publish/subscribe a message
-func TMessengerPubSub(t *testing.T, gwm messaging.IGatewayMessenger) {
+func TMessengerPubSub(t *testing.T, gwm messaging.IHubMessenger) {
 	var rx string
 	rxMutex := sync.Mutex{}
 	var msg1 = "Hello world"
@@ -69,7 +69,7 @@ func TMessengerPubSub(t *testing.T, gwm messaging.IGatewayMessenger) {
 }
 
 // TMessengerMultipleSubscriptions test that only the most recent subscription holds
-func TMessengerMultipleSubscriptions(t *testing.T, gwm messaging.IGatewayMessenger) {
+func TMessengerMultipleSubscriptions(t *testing.T, gwm messaging.IHubMessenger) {
 	var rx1 string
 	var rx2 string
 	rxMutex := sync.Mutex{}
@@ -142,7 +142,7 @@ func TMessengerMultipleSubscriptions(t *testing.T, gwm messaging.IGatewayMesseng
 }
 
 // TMessengerBadUnsubscribe tests unsubscribe of not subscribed channel
-func TMessengerBadUnsubscribe(t *testing.T, gwm messaging.IGatewayMessenger) {
+func TMessengerBadUnsubscribe(t *testing.T, gwm messaging.IHubMessenger) {
 	// clientID := "test"
 	const timeout = 10
 
@@ -155,7 +155,7 @@ func TMessengerBadUnsubscribe(t *testing.T, gwm messaging.IGatewayMessenger) {
 }
 
 // TMessengerPubNoConnect helper to test  messenger connection
-func TMessengerPubNoConnect(t *testing.T, gwm messaging.IGatewayMessenger) {
+func TMessengerPubNoConnect(t *testing.T, gwm messaging.IHubMessenger) {
 	// clientID := "test"
 	const timeout = 10
 	var msg1 = "Hello world 1"
@@ -170,7 +170,7 @@ func TMessengerPubNoConnect(t *testing.T, gwm messaging.IGatewayMessenger) {
 }
 
 // TMessengerSubBeforeConnect subscribe should work before connection is established
-func TMessengerSubBeforeConnect(t *testing.T, gwm messaging.IGatewayMessenger) {
+func TMessengerSubBeforeConnect(t *testing.T, gwm messaging.IHubMessenger) {
 	// clientID := "test"
 	const timeout = 10
 	const msg = "hello 1"

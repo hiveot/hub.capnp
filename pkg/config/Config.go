@@ -9,11 +9,11 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// GatewayConfigName the configuration file name of the gateway
-const GatewayConfigName = "gateway.yaml"
+// HubConfigName the configuration file name of the hub
+const HubConfigName = "hub.yaml"
 
-// GatewayLogFile the file name of the gateway logging
-const GatewayLogFile = "gateway.log"
+// HubLogFile the file name of the hub logging
+const HubLogFile = "hub.log"
 
 // DefaultCertsFolder with the location of certificates
 const DefaultCertsFolder = "./certs"
@@ -28,15 +28,15 @@ type ConfigArgs struct {
 	description  string
 }
 
-// GatewayConfig with gateway configuration parameters
-type GatewayConfig struct {
+// HubConfig with hub configuration parameters
+type HubConfig struct {
 	Logging struct {
 		Loglevel   string `yaml:"logLevel"`   // debug, info, warning, error. Default is warning
-		LogFile    string `yaml:"logFile"`    // gateway logging to file
+		LogFile    string `yaml:"logFile"`    // hub logging to file
 		TimeFormat string `yaml:"timeFormat"` // go default ISO8601 ("2006-01-02T15:04:05.000-0700")
 	} `yaml:"logging"`
 
-	// Messenger configuration of gateway plugin messaging
+	// Messenger configuration of hub plugin messaging
 	Messenger struct {
 		CertFolder string `yaml:"certFolder"` // location of certificates when using TLS. Default is ./certs
 		HostPort   string `yaml:"hostname"`   // hostname:port or ip:port to listen on of message bus
@@ -51,11 +51,11 @@ type GatewayConfig struct {
 	// internal
 }
 
-// CreateDefaultGatewayConfig with default values
+// CreateDefaultHubConfig with default values
 // homeFolder is the home of the application, log and configuration folders.
 // Use "" for default: parent of application binary
 // When relative path is given, it is relative to the application binary
-func CreateDefaultGatewayConfig(homeFolder string) *GatewayConfig {
+func CreateDefaultHubConfig(homeFolder string) *HubConfig {
 	appBin, _ := os.Executable()
 	binFolder := path.Dir(appBin)
 	if homeFolder == "" {
@@ -75,7 +75,7 @@ func CreateDefaultGatewayConfig(homeFolder string) *GatewayConfig {
 		homeFolder = path.Join(binFolder, homeFolder)
 	}
 	logrus.Infof("AppBin is: %s; Home is: %s", appBin, homeFolder)
-	config := &GatewayConfig{
+	config := &HubConfig{
 		// ConfigFolder: path.Join(homeFolder, "config"),
 		Home:         homeFolder,
 		ConfigFolder: path.Join(homeFolder, "config"),
@@ -87,8 +87,8 @@ func CreateDefaultGatewayConfig(homeFolder string) *GatewayConfig {
 	config.Messenger.HostPort = DefaultSmbHost // use default "localhost:9678"
 	config.Messenger.Protocol = ""             // use default
 	config.Logging.Loglevel = "warning"
-	// config.Logging.LogFile = path.Join(homeFolder, "logs/"+GatewayLogFile)
-	config.Logging.LogFile = path.Join(homeFolder, "./logs/"+GatewayLogFile)
+	// config.Logging.LogFile = path.Join(homeFolder, "logs/"+HubLogFile)
+	config.Logging.LogFile = path.Join(homeFolder, "./logs/"+HubLogFile)
 	return config
 }
 
@@ -112,9 +112,9 @@ func LoadConfig(configFile string, config interface{}) error {
 	return nil
 }
 
-// ValidateConfig checks if values in the gateway configuration are correct
+// ValidateConfig checks if values in the hub configuration are correct
 // Returns an error if the config is invalid
-func ValidateConfig(config *GatewayConfig) error {
+func ValidateConfig(config *HubConfig) error {
 	if _, err := os.Stat(config.Home); os.IsNotExist(err) {
 		logrus.Errorf("Home folder '%s' not found\n", config.Home)
 		return err
