@@ -1,0 +1,73 @@
+# Example hub configuration
+
+# Message bus configuration, paths are relative to application home
+messagebus:
+  caCert: "certs/ca.cert"
+  caKey: "certs/ca.key"
+  serverCert: "certs/server.cert"
+  serverKey: "certs/server.key"
+  pluginCert: "certs/plugin.cert"
+  pluginKey: "certs/plugin.key"
+  certValidity: 30 # days
+  #hostname: "localhost:9678" # hostname:port or ip:port to listen on of message bus
+  hostname: "localhost:9001"
+  websocket: 9678
+  timeout: 1 # plugin connection timeout
+
+# Logging
+logging:
+  #logFile: "./logs/hub.log" # relative to the application home
+  logLevel: "info" # debug, info, warning, error. Default is warning
+
+#configFolder: "../config" # plugin config, relative to the working directory
+
+# Plugin to start
+plugins:
+  - logger
+  - discovery
+  - pb_mosquitto
+
+# Message bus client roles and topics
+# These permissions applies to the groups the thing and client share
+# Protocol bindings publishing on the message bus will be subject to these ACLs.
+# No errors
+roles:
+  - observe:
+      - read: things/+/td
+      - read: things/+/values
+      - read: things/+/events
+  - control:
+      - read: things/+/td
+      - read: things/+/values
+      - read: things/+/events
+      - write: things/+/actions
+  - manage:
+      - read: things/+/td
+      - read: things/+/values
+      - read: things/+/events
+      - write: things/+/actions
+      - write: things/+/config
+  - thing: # a thing is a client that accesses only on its own IDs
+      - write: things/+/td
+      - write: things/+/values
+      - write: things/+/events
+      - read: things/+/actions
+      - read: things/+/config
+
+# Predefined clients in addition to plugins
+clients:
+  - default:
+      groups: office
+      roles: observe
+  - user1:
+      groups: office, home
+      roles: control
+  - thing1:
+      groups: home
+      roles: thing
+
+# Groups of things and their consumers
+group:
+  home:
+  office:
+  factory:

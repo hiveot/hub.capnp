@@ -4,11 +4,9 @@ The WoST Hub is the reference implementation of the Hub for the Web of (Secured)
 
 ## Project Status
 
-Status: Alpha
+Status: Alpha, not ready for use
 
-A second iteration of the Hub is in progress. The Hub message bus is reworked to provide the Thing API itself and can be run as a WebSocket or MQTT service. Plugins use this API to receive information from and control Things.
-
-
+A second iteration of the Hub is in progress. The Hub message bus is reworked around MQTT and will also provide the Thing API. Plugins use this API to receive information from and control Things. Protocol adapters will map their protocol to this message bus internally.
 
 ## Audience
 
@@ -18,13 +16,13 @@ A Binary distribution of the Hub and its plugins can be installed and used by us
 
 ## Summary
 
-The WoST Hub provides a shadow representation of discovered Things. Things register themselves with the Hub while consumers discover and control things through the Hub. The Hub acts as an intermediary and avoid the need to provide direct access to Things by consumers. This keeps the Thing isolated and secure.
+The WoST Hub provides a shadow representation of discovered Things. Things register themselves with the Hub while consumers discover and control things through the Hub. The Hub acts as an intermediary and avoids the need to provide direct access to Things by consumers. This keeps the Thing isolated and secure.
 
-The WoST Hub is intended to be used with WoST compliant IoT devices (WoST Things)and legacy devices. WoST compliant devices automatically discover the Hub on a local network and provision themselves with the Hub. After provisioning the device sends its Thing Description and its events to the Hub, from where it can be accessed and monitored. 
+The WoST Hub is intended to be used with WoST compliant IoT devices (WoST Things)and legacy devices. WoST compliant devices can automatically discover the Hub on a local network and provision themselves with the Hub. After provisioning the device sends its Thing Description(s) and events to the Hub, from where it can be accessed and monitored. 
 
-Legacy devices that are not WoST compliant are accessed through plugins that convert between the legacy format and WoT standards. They can be used as if they are WoT devices via the Hub APIs.
+Legacy devices that are not WoST compliant are accessed through plugins that convert between the legacy format and WoT standards. They can be used as if they are WoT/WoST devices via the Hub APIs.
 
-In either case WoST Things are never accessed directly. WoST managed IoT devices should remain in a secured fire-walled area. End users view and control the devices through the Hub. For use within the Local Area Network this works entirely stand-alone and no Internet access is required. For remote access and monitoring, the Hub can connect securely to a cloud based Hub. Here too, there is never a direct connection from the Internet to the local network.
+In either case WoST Things are not accessed directly. WoST managed IoT devices should remain in a secured fire-walled area. End users view and control the devices through the Hub. For use within the Local Area Network this works entirely stand-alone and no Internet access is required. For remote access and monitoring, the Hub can connect securely to a cloud based intermediary/Hub. Here too, there is never a direct connection from the Internet to the local network.
 
 The features of the Hub is provided through plugins. Core plugins provide support for Thing provisioning and discovery. 
 
@@ -36,15 +34,15 @@ WoST therefore supports [section 6.7 of the WoT architecture](https://www.w3.org
 
 ## Installation
 
-The WoST Hub is designed to run on Linux based computers. Mac, Windows and Android versions are currently not considered since the recommendation is to run it on a stand-alone computer. 
+The WoST Hub is designed to run on Linux based computers.
 
 ### System Requirements
 
-Unless the Hub is provided as part of an appliance, it needs to be installed on a computer. It is best to use a dedicated computer for this. 
+Unless the Hub is provided as part of an appliance, it needs to be installed on a computer. It is recommended to use a dedicated linux computer for this. 
 
 For home users a raspberry pi 2+ will be powerful enough to run the Hub and simple plugins. For industrial or automotive usage a dedicated embedded computer system is recommended.
 
-In its most basic configuration the Hub needs less than 100MB of RAM and an ARMv7 CPU as found on a PI2. See plugin documentation for additional memory requirements.
+The minimal requirement is 100MB of RAM and an Intel Celeron, or ARMv7 CPU as found on a PI2. Additional resources might be required for some plugins. See plugin documentation.
 
 ### Install From Package Manager
 
@@ -55,7 +53,7 @@ Installation from package managers is currently not available.
 The Hub can be installed and run as a dedicated user. 
 
 Installation tarballs will be made available or build from source.
-After untarring or building go to the 'dist' folder and copy the files to the home's bin folder.
+After untarring or building go to the 'dist' folder and copy the files to the WoST bin folder.
 ```
 mkdir ~/bin/wost
 cp -a * ~/bin/wost
@@ -68,7 +66,7 @@ This will create the following folder structure
 * /home/{user}/bin/wost/certs    TLS certificates generated by the 
   
 
-### Manual Install To System
+### Manual Install To System (tenative)
 
 For systemd installation, as root for user 'wost'. 
 When changing the user and folders make sure to edit the wost-hub.service file accordingly.
@@ -105,10 +103,21 @@ Prerequisites:
 Build and install from source (tentative):
 ```
 $ git clone https://github.com/wostzone/hub
+$ cd hub
 $ make all 
 ```
 
 After the build is complete, the distribution binaries can be found in the 'dist/bin' folder for 64 bit Intel CPUs and dist/arm for ARM CPUs. 
+
+Plugins are built similarly. The binary should be run using the hub configuration folder:
+```bash
+$ git clone https://github.com/wostzone/plugin
+$ cd plugin
+$ make all 
+$ cp dist/bin/* ../hub/dist/bin
+$ cp dist/arm/* ../hub/dist/arm
+$ cp dist/config/plugin.yaml ../hub/dist/config
+```
 
 ## Configuration
 
@@ -116,28 +125,30 @@ The Hub is configured through the 'hub.yaml' configuration file that can be edit
 
 The Hub looks in the ./config folder or the /etc/wost folder for this file. This file is optional. Out of the box defaults will provide a working hub with an internal service bus that listens on localhost port 9678 (WOST). 
 
-Plugins can optionally be configured through yaml configuration files in the same configuration folder.
+Plugins can optionally be configured through yaml configuration files in the same configuration folder as the hub configuration file.
 
 ## Launching
 
 The Hub can be launched manually by invoking the 'hub' app in the wost folder.
 eg ~/bin/wost/bin/hub
 
-A systemd launcher can be configured to launch automatically on startup for Linux systems that use systemd. 
+A systemd launcher can be configured to launch automatically on startup for Linux systems that use systemd. See 'init/wost.service'
 
 ```
-systemctl enable wost-hub
-systemctl start wost-hub
+sudo cp init/wost-hub.service /etc/systemd/system
+sudo vi /etc/systmd/system/wost-hub.service      (edit user)
+sudo systemctl enable wost-hub
+sudo systemctl start wost-hub
 ```
 
 ## Plugin Installation
 
-Plugins are installed in the Hub 'bin' directory. By default this is the location of the Hub binary. A separate plugin directory can be configured in the hub.yaml configuration file if desired.
+Plugins are installed in the Hub 'bin' directory.
 
 After downloading or building the plugin executable:
 1. Copy the plugin executable from dist/bin or dist/arm into the Hub binary folder.
 2. Copy the plugin configuration file dist/config/{plugin}.yaml to the Hub configuration folder.  
-3. Enable the plugin in hub.yaml configuration file in the 'plugins' section.It will be started automatically when the Hub starts.
+3. Enable the plugin in hub.yaml configuration file in the 'plugins' section.It will be started automatically when the Hub starts. Note that plugins start in the listed order. 
 
 
 # Design 
@@ -157,19 +168,16 @@ As mentioned, plugins fall into two categories depending on their primary purpos
 
 ## Hub Message Bus
 
-The Hub Message Bus API is WoT compatible and its messages conform to the format defined in the WoT TD standard. 
+Core to the Hub is its publish/subscribe message bus. Messages sent over this message bus are WoT compatible and conform to the format defined in the WoT TD standard. 
 
-The Hub supports two message bus implementations: A built-in simple message bus (smbus) and MQTT. 
+The Hub message bus is a MQTT/TLS compatible message bus broker. WoST Hub uses Mosquitto but other implementations can be used as well. The pb_mosquitto plugin automatically manages the mosquitto configuration include authentication and authorization. If a message bus other than mosquitto is used, its configuration must be managed manually, or a protocol adapter needs to be added to manage the configuration, similar to pb_mosquitto.
 
-The built-in message bus is intended for running the Hub out of the box without requiring much setup. This configuration generates client and server certificates for use by the plugin and uses TLS to communicate with the bus. The certificates are generated on first start and are only accessible to the user that runs the Hub and its plugins.
+The hub is configured with the address of the MQTT broker and certificate names. The pb_mosquitto plugin uses the configuration to update mosquitto's WoST configuration.
 
-Support for MQTT over TLS is built-in. The hub must be configured with the address of the MQTT broker and its server certificate. 
-
-Publishers and subscribers to the message MUST follow the WoT Thing API. Since at the time of writing a MQTT protocol binding API is not specified, a best guess is made based on the Mozilla REST API. See the API section for details.
-
-The included message bus client library (for use by plugins) support both the internal message bus and MQTT and uses the hub.yaml configuration file to determine where to connect. The plugin does not need to know which message bus is used. The Hub client library will be made available for programming language such as golang, ES6, and Python. 
+The hub supports authentication and authorization through the message bus plugin.
 
 ## Protocol Binding Plugins
+
 
 
 ## Service Plugins

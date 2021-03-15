@@ -24,7 +24,9 @@ func StartHub(homeFolder string, startPlugins bool) error {
 	if err != nil {
 		return err
 	}
-	if config.Messenger.Protocol != messaging.ConnectionProtocolMQTT {
+	if config.Messenger.Protocol == messaging.ConnectionProtocolMQTT {
+		// do nothing, an external mqtt broker is already running
+	} else {
 		logrus.Warningf("Starting the internal message bus server")
 		srv, err = smbserver.StartSmbServer(config)
 	}

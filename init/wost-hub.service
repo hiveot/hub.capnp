@@ -9,7 +9,7 @@ PartOf=myzone.target
 
 [Service]
 #PIDFile=/run/hub.%i.pid
-PIDFile=/run/hub.pid
+PIDFile=/run/wost-hub.pid
 Nice=10
 
 # When the service runs globally, make it run as a particular user for added security

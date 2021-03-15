@@ -2,10 +2,9 @@
 
 # Message bus server
 messenger:
-  certFolder: "/invalid/folder" # used when useTLS is true
+  certFolder: "/invalid/folder" # set to activate TLS
   protocol: "" # smbus, MQTT, default smbus
   timeout: 1
-  # useTLS: true # use TLS for client/server messaging
 
 # Logging
 logging:

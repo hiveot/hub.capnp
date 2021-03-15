@@ -57,8 +57,8 @@ clean: ## Clean distribution files
 
 hub: FORCE ## Build hub for amd64 and arm targets
 	@echo "building for $(ARCH)"
-	GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(X64_DIST_FOLDER)/hub main.go
-	GOOS=linux GOARCH=arm $(GOBUILD) -o $(ARM_DIST_FOLDER)/hub main.go
+	GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(X64_DIST_FOLDER)/hub cmd/main.go
+	GOOS=linux GOARCH=arm $(GOBUILD) -o $(ARM_DIST_FOLDER)/hub cmd/main.go
 	@echo "> SUCCESS. The Hub executable '$@' can be found in $(X64_DIST_FOLDER)/$@ and $(ARM_DIST_FOLDER)/$@"
 
 

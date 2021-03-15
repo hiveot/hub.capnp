@@ -2,10 +2,10 @@
 
 # Message bus server
 messenger:
-  #certsFolder: "${appfolder}/certs" # location of hub and client certificate
+  #certsFolder: "./certs" # set to activate TLS
   #protocol: "" # internal, MQTT, default internal
   #hostname: "localhost:9678" # hostname:port or ip:port to listen on of message bus
-  useTLS: false # use TLS for client/server messaging
+  # the next line intentionally causes an error 
   -brokenyamlfile
   timeout: 1
 
