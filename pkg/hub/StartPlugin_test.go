@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/wostzone/hub/pkg/config"
 	"github.com/wostzone/hub/pkg/hub"
+	"github.com/wostzone/hubapi/pkg/hubconfig"
 )
 
 func TestStartPlugin(t *testing.T) {
@@ -23,14 +23,26 @@ func TestStartPlugin(t *testing.T) {
 	// logrus.Infof("Output: %s", output)
 }
 
+func TestStartPluginTwice(t *testing.T) {
+	wd, _ := os.Getwd()
+	home := path.Join(wd, "../../test")
+	// the binary 'ls' exists on Linux and Windows
+	pluginName := "ls"
+	cmd := hub.StartPlugin(home, pluginName, []string{})
+	assert.NotNil(t, cmd)
+	// second time should fail as only single instances are allowed
+	cmd = hub.StartPlugin(home, pluginName, []string{})
+	assert.Nil(t, cmd)
+}
+
 func TestStartPluginsFromConfig(t *testing.T) {
 	wd, _ := os.Getwd()
 	home := path.Join(wd, "../../test")
 	// the binary 'ls' exists on Linux and Windows
-	hubConfig := config.CreateDefaultHubConfig(home)
-	err := config.LoadConfig(path.Join(hubConfig.ConfigFolder, "hub.yaml"), hubConfig)
+	hc := hubconfig.CreateDefaultHubConfig(home)
+	err := hubconfig.LoadConfig(path.Join(hc.ConfigFolder, "hub.yaml"), hc)
 	assert.NoError(t, err)
-	hub.StartPlugins("", hubConfig.Plugins, []string{})
+	hub.StartPlugins("", hc.Plugins, []string{})
 
 }
 

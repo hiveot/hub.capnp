@@ -4,42 +4,30 @@ import (
 	"os"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/pkg/config"
-	"github.com/wostzone/hub/pkg/messaging"
-	"github.com/wostzone/hub/pkg/smbserver"
+	"github.com/wostzone/hubapi/pkg/hubconfig"
 )
 
-// the internal message bus server, if running
-var srv *smbserver.ServeSmbus
-
-// StartHub reads the hub configuration, starts the internal message bus server, if configured,
-// and launches the plugins.
-// If the configuration is invalid then start is aborted
+// StartHub reads the hub configuration, create the certificates if needed and
+// launches the plugins. If the configuration is invalid then start is aborted
 // The plugins receive the same commandline arguments as the hub
 //  homeFolder is the folder containing the config subfolder with the hub.yaml configuration
 //  startPlugins set to false to only start the hub with message bus server if configured
 func StartHub(homeFolder string, startPlugins bool) error {
 	var err error
-	config, err := config.SetupConfig(homeFolder, "", nil)
+	hc, err := hubconfig.SetupConfig(homeFolder, "", nil)
 	if err != nil {
 		return err
 	}
-	if config.Messenger.Protocol == messaging.ConnectionProtocolMQTT {
-		// do nothing, an external mqtt broker is already running
-	} else {
-		logrus.Warningf("Starting the internal message bus server")
-		srv, err = smbserver.StartSmbServer(config)
-	}
 
-	if !startPlugins || config.PluginFolder == "" {
+	if !startPlugins || hc.PluginFolder == "" {
 		logrus.Infof("Not starting plugins")
 	} else {
 		// launch plugins
-		logrus.Warningf("Starting %d hub plugins on %s. UseTLS=%t",
-			len(config.Plugins), config.Messenger.HostPort, config.Messenger.CertFolder != "")
+		logrus.Warningf("Starting %d plugins on %s:%d.",
+			len(hc.Plugins), hc.Messenger.Address, hc.Messenger.Port)
 
 		args := os.Args[1:] // pass the hubs args to the plugin
-		StartPlugins(config.PluginFolder, config.Plugins, args)
+		StartPlugins(hc.PluginFolder, hc.Plugins, args)
 	}
 
 	logrus.Warningf("Hub started successfully!")
@@ -51,8 +39,5 @@ func StartHub(homeFolder string, startPlugins bool) error {
 // TODO implements
 func StopHub() {
 	logrus.Warningf("Received Signal, stopping hub and its plugins")
-	if srv != nil {
-		srv.Stop()
-	}
 	logrus.Warningf("Unable to stop hub plugins. Someone hasn't implemented this yet...")
 }

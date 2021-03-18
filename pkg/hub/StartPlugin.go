@@ -39,10 +39,12 @@ func StartPlugin(pluginFolder string, name string, args []string) *exec.Cmd {
 
 	pluginsMutex.Lock()
 	defer pluginsMutex.Unlock()
+	// If plugin is already running, don't start it twice
+	// TODO: does it need to support multiple instances?
 	exists := startedPlugins[name]
 	if exists != nil {
 		// TODO: check if process is running
-		logrus.Errorf("Plugin with name %s is not stopped", name)
+		logrus.Errorf("Plugin with name %s has already been started", name)
 		return nil
 	}
 	// argString := strings.Join(args, " ")
