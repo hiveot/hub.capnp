@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/sirupsen/logrus"
 )
@@ -70,6 +71,8 @@ func StartPlugin(pluginFolder string, name string, args []string) *exec.Cmd {
 
 	// cmd.Stdout = os.Stdout
 	logrus.Warningf("----------- Started plugin '%s' ------------", name)
+	// Give room to switch threads
+	time.Sleep(time.Millisecond)
 	return cmd
 }
 

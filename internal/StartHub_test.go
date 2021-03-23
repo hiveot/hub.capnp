@@ -9,7 +9,8 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/wostzone/hub/pkg/hub"
+	"github.com/stretchr/testify/require"
+	hub "github.com/wostzone/hub/internal"
 )
 
 var homeFolder string
@@ -18,7 +19,7 @@ var homeFolder string
 // Reset args to prevent 'flag redefined' error
 func setup() {
 	cwd, _ := os.Getwd()
-	homeFolder = path.Join(cwd, "../../test")
+	homeFolder = path.Join(cwd, "../test")
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 	os.Args = append(os.Args[0:1], strings.Split("", " ")...)
 	// hubConfig, _ = hubconfig.SetupConfig(homeFolder, pluginID, customConfig)
@@ -27,7 +28,7 @@ func setup() {
 func TestStartHubNoPlugins(t *testing.T) {
 	setup()
 	err := hub.StartHub(homeFolder, false)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	time.Sleep(3 * time.Second)
 	hub.StopHub()

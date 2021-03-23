@@ -1,32 +1,22 @@
-# Go parameters
-GOCMD=go
-GOBUILD=$(GOCMD) build
-GOCLEAN=$(GOCMD) clean
-GODEP=$(GOCMD) get
-GOTEST=$(GOCMD) test
-GOGET=$(GOCMD) get
-GORUN=$(GOCMD) run
-
-# Build and Packaging parameters
+# Makefile to build and test the WoST Hub
+# To build including generating certificates: make all
 DIST_FOLDER=./dist
-X64_DIST_FOLDER=$(DIST_FOLDER)/bin
-ARM_DIST_FOLDER=$(DIST_FOLDER)/arm
 PKG_NAME=wost-hub.tgz
 .DEFAULT_GOAL := help
 
 .PHONY: help
 
 all: FORCE ## Build package with binary distribution and config
-all: clean hub 
+all: clean hub gencerts
 
 dist: clean x64  ## Build binary distribution including config
 		tar -czf $(PKG_NAME) -C $(DIST_FOLDER) .
 
 test: FORCE ## Run tests (todo fix this)
-		$(GOTEST) -v ./pkg/...
+		go test -v ./pkg/...
 
 clean: ## Clean distribution files
-	$(GOCLEAN)
+	go clean
 	rm -f test/certs/*
 	rm -f test/logs/*
 	rm -f $(DIST_FOLDER)/certs/*
@@ -34,32 +24,30 @@ clean: ## Clean distribution files
 	rm -f $(DIST_FOLDER)/bin/*
 	rm -f $(DIST_FOLDER)/arm/*
 	rm -f debug $(PKG_NAME)
-	mkdir -p $(X64_DIST_FOLDER)
-	mkdir -p $(ARM_DIST_FOLDER)
+	mkdir -p $(DIST_FOLDER)/arm
+	mkdir -p $(DIST_FOLDER)/bin
 	mkdir -p $(DIST_FOLDER)/certs
 	mkdir -p $(DIST_FOLDER)/config
 	mkdir -p $(DIST_FOLDER)/logs
 
 #deps: ## Build GO dependencies 
-#		$(GODEP)
+#		go get
 
 #upgrade: ## Upgrade the dependencies to the latest version. Use with care.
 #		go fix
 
 #prof: ## Run application with CPU and memory profiling
-#	  $(GORUN) main.go -cpuprofile=cpu.prof -memprofile=mem.prof
+#	  go run main.go -cpuprofile=cpu.prof -memprofile=mem.prof
 
-
-# recorder:
-# 	GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(X64_DIST_FOLDER)/$@ plugins/$@/main.go
-# 	GOOS=linux GOARCH=arm $(GOBUILD) -o $(ARM_DIST_FOLDER)/$@ plugins/$@/main.go
-# 	@echo "> SUCCESS. Plugin '$@' can be found at $(X64_DIST_FOLDER)/$@ and $(ARM_DIST_FOLDER)/$@"
+gencerts: ## Build gencernts to generate self-signed certificates with CA
+	GOOS=linux GOARCH=amd64 go build -o $(DIST_FOLDER)/bin/gencerts ./cmd/gencerts/main.go
+	GOOS=linux GOARCH=arm go build -o $(DIST_FOLDER)/arm/gencerts ./cmd/gencerts/main.go
+	@echo "> SUCCESS. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@ and $(DIST_FOLDER)/arm/$@"
 
 hub: FORCE ## Build hub for amd64 and arm targets
-	@echo "building for $(ARCH)"
-	GOOS=linux GOARCH=amd64 $(GOBUILD) -o $(X64_DIST_FOLDER)/hub cmd/main.go
-	GOOS=linux GOARCH=arm $(GOBUILD) -o $(ARM_DIST_FOLDER)/hub cmd/main.go
-	@echo "> SUCCESS. The Hub executable '$@' can be found in $(X64_DIST_FOLDER)/$@ and $(ARM_DIST_FOLDER)/$@"
+	GOOS=linux GOARCH=amd64 go build -o $(DIST_FOLDER)/bin/hub ./cmd/hub/main.go
+	GOOS=linux GOARCH=arm go build -o $(DIST_FOLDER)/arm/hub ./cmd/hub/main.go
+	@echo "> SUCCESS. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@ and $(DIST_FOLDER)/arm/$@"
 
 
 #docker: ## Build hub for Docker target (TODO untested)

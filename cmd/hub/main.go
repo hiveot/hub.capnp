@@ -2,7 +2,8 @@ package main
 
 import (
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/pkg/hub"
+	hub "github.com/wostzone/hub/internal"
+	"github.com/wostzone/hubapi/pkg/plugin"
 )
 
 func main() {
@@ -10,6 +11,6 @@ func main() {
 	if err != nil {
 		logrus.Fatalf("main: Failed starting hub: %s", err)
 	}
-	hub.WaitForSignal()
+	plugin.WaitForSignal()
 	hub.StopHub()
 }

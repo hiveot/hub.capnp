@@ -7,15 +7,16 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/wostzone/hub/pkg/hub"
+	"github.com/stretchr/testify/require"
+	hub "github.com/wostzone/hub/internal"
 	"github.com/wostzone/hubapi/pkg/hubconfig"
 )
 
 func TestStartPlugin(t *testing.T) {
 	wd, _ := os.Getwd()
-	home := path.Join(wd, "../../test")
-	// the binary 'ls' exists on Linux and Windows
-	pluginName := "ls"
+	home := path.Join(wd, "../test")
+	// the binary 'ls' exists on Linux
+	pluginName := "/bin/ls"
 	cmd := hub.StartPlugin(home, pluginName, []string{})
 	assert.NotNil(t, cmd)
 	// output, err := cmd.Output()
@@ -25,11 +26,12 @@ func TestStartPlugin(t *testing.T) {
 
 func TestStartPluginTwice(t *testing.T) {
 	wd, _ := os.Getwd()
-	home := path.Join(wd, "../../test")
+	home := path.Join(wd, "../test")
 	// the binary 'ls' exists on Linux and Windows
-	pluginName := "ls"
-	cmd := hub.StartPlugin(home, pluginName, []string{})
-	assert.NotNil(t, cmd)
+	pluginName := "/bin/sleep"
+	cmd := hub.StartPlugin(home, pluginName, []string{"1"})
+	require.NotNil(t, cmd)
+	time.Sleep(time.Millisecond)
 	// second time should fail as only single instances are allowed
 	cmd = hub.StartPlugin(home, pluginName, []string{})
 	assert.Nil(t, cmd)
@@ -37,7 +39,7 @@ func TestStartPluginTwice(t *testing.T) {
 
 func TestStartPluginsFromConfig(t *testing.T) {
 	wd, _ := os.Getwd()
-	home := path.Join(wd, "../../test")
+	home := path.Join(wd, "../test")
 	// the binary 'ls' exists on Linux and Windows
 	hc := hubconfig.CreateDefaultHubConfig(home)
 	err := hubconfig.LoadConfig(path.Join(hc.ConfigFolder, "hub.yaml"), hc)
