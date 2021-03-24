@@ -25,12 +25,12 @@ func StartHub(homeFolder string, startPlugins bool) error {
 		return err
 	}
 	// Exit if certificates don't exist
-	caCertFile := path.Join(hc.Messenger.CertFolder, certsetup.CaCertFile)
+	caCertFile := path.Join(hc.Messenger.CertsFolder, certsetup.CaCertFile)
 	if _, err := os.Stat(caCertFile); os.IsNotExist(err) {
 		logrus.Fatalf("CA Certificate file %s not found.", caCertFile)
 		return err
 	} else {
-		logrus.Warningf("Using certificates from %s", hc.Messenger.CertFolder)
+		logrus.Warningf("Using certificates from %s", hc.Messenger.CertsFolder)
 	}
 
 	// start the plugins unless disabled

@@ -1,18 +1,9 @@
 # Example hub configuration
 
 # Message bus configuration, paths are relative to application home
-messagebus:
-  caCert: "certs/ca.cert"
-  caKey: "certs/ca.key"
-  serverCert: "certs/server.cert"
-  serverKey: "certs/server.key"
-  pluginCert: "certs/plugin.cert"
-  pluginKey: "certs/plugin.key"
-  certValidity: 30 # days
-  #hostname: "localhost:9678" # hostname:port or ip:port to listen on of message bus
-  hostname: "localhost:9001"
-  websocket: 9678
-  timeout: 1 # plugin connection timeout
+messenger:
+  address: "localhost"
+  port: 8883
 
 # Logging
 logging:
@@ -27,7 +18,8 @@ plugins:
   - discovery
   - pb_mosquitto
 
-# Message bus client roles and topics
+# Message bus client roles and addresses
+# Just concept at this stage
 # These permissions applies to the groups the thing and client share
 # Protocol bindings publishing on the message bus will be subject to these ACLs.
 # No errors

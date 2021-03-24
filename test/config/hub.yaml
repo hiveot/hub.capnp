@@ -3,10 +3,9 @@
 # Message bus server
 messenger:
   #certFolder: "./certs" # set to activate TLS. Relative to app home folder
-  certFolder: "/etc/mosquitto/certs" # set to activate TLS. Relative to app home folder
-  protocol: "smbus" # smbus, MQTT, default smbus
-  #hostname: "localhost:9678" # hostname:port or ip:port to listen on of message bus
-  hostname: "localhost:9999" # do not interfere with production server
+  certsFolder: "/etc/mosquitto/certs" # set to activate TLS. Relative to app home folder
+  address: "localhost" # LAN address to connect to the message bus
+  port: 8883 # MQTT port to connect
   timeout: 1
 
 # Logging
@@ -18,4 +17,4 @@ logging:
 
 # Plugins to start
 plugins: # list of plugins to start
-  - /bin/ls
+  - /bin/ls # for testing
