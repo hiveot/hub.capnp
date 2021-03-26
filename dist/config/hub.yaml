@@ -4,6 +4,7 @@
 messenger:
   address: "localhost"
   port: 8883
+  certsFolder: /etc/mosquitto/certs
 
 # Logging
 logging:

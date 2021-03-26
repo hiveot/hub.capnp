@@ -7,7 +7,7 @@ PKG_NAME=wost-hub.tgz
 .PHONY: help
 
 all: FORCE ## Build package with binary distribution and config
-all: clean hub gencerts
+all: hub gencerts
 
 dist: clean x64  ## Build binary distribution including config
 		tar -czf $(PKG_NAME) -C $(DIST_FOLDER) .
