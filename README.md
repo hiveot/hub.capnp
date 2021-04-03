@@ -4,7 +4,7 @@ The WoST Hub is the reference implementation of the Hub for the Web of (Secured)
 
 ## Project Status
 
-Status: Alpha, expect breaking changes
+Status: The status of this plugin is Alpha. It is functional but breaking changes must be expected.
 
 Authentication and authorization improvements are in development.
 

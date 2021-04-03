@@ -33,6 +33,7 @@ var pluginsMutex = sync.Mutex{}
 //  returns *exec.Cmd
 func StartPlugin(pluginFolder string, name string, args []string) *exec.Cmd {
 	// logrus.Warningf("--: '%s'---", name)
+	logrus.Warningf("----------- Starting plugin '%s' ------------", name)
 	pluginFile := name
 	if !filepath.IsAbs(name) {
 		pluginFile = path.Join(pluginFolder, name)
@@ -70,7 +71,7 @@ func StartPlugin(pluginFolder string, name string, args []string) *exec.Cmd {
 	// logrus.Errorf("StartPlugin '%s'", name)
 
 	// cmd.Stdout = os.Stdout
-	logrus.Warningf("----------- Started plugin '%s' ------------", name)
+	// logrus.Warningf("----------- Started plugin '%s' ------------", name)
 	// Give room to switch threads
 	time.Sleep(time.Millisecond)
 	return cmd

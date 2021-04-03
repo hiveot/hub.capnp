@@ -6,8 +6,16 @@ PKG_NAME=wost-hub.tgz
 
 .PHONY: help
 
-all: FORCE ## Build package with binary distribution and config
 all: hub gencerts
+
+install:  ## Install the hub into ~/bin/wost/bin and config
+	mkdir -p ~/bin/wost/bin
+	mkdir -p ~/bin/wost/arm
+	mkdir -p ~/bin/wost/config
+	mkdir -p ~/bin/wost/logs
+	cp $(DIST_FOLDER)/bin/* ~/bin/wost/bin/
+	cp $(DIST_FOLDER)/arm/* ~/bin/wost/arm/
+	cp -n $(DIST_FOLDER)/config/* ~/bin/wost/config/
 
 dist: clean x64  ## Build binary distribution including config
 		tar -czf $(PKG_NAME) -C $(DIST_FOLDER) .
@@ -44,7 +52,7 @@ gencerts: ## Build gencernts to generate self-signed certificates with CA
 	GOOS=linux GOARCH=arm go build -o $(DIST_FOLDER)/arm/gencerts ./cmd/gencerts/main.go
 	@echo "> SUCCESS. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@ and $(DIST_FOLDER)/arm/$@"
 
-hub: FORCE ## Build hub for amd64 and arm targets
+hub: ## Build hub for amd64 and arm targets
 	GOOS=linux GOARCH=amd64 go build -o $(DIST_FOLDER)/bin/hub ./cmd/hub/main.go
 	GOOS=linux GOARCH=arm go build -o $(DIST_FOLDER)/arm/hub ./cmd/hub/main.go
 	@echo "> SUCCESS. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@ and $(DIST_FOLDER)/arm/$@"
@@ -56,4 +64,3 @@ hub: FORCE ## Build hub for amd64 and arm targets
 help: ## Show this help
 		@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-FORCE:
