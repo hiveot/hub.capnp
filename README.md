@@ -21,13 +21,13 @@ The WoST Hub is intended to be used with WoST compliant IoT devices (WoST Things
 
 Legacy devices that are not WoST compliant are accessed through plugins that convert between the legacy format and WoT standards. They can be used as if they are WoT/WoST devices via the Hub APIs.
 
-In either case WoST Things are not accessed directly. WoST managed IoT devices should remain in a secured fire-walled area. End users view and control the devices through the Hub. For use within the Local Area Network this works entirely stand-alone and no Internet access is required. For remote access and monitoring, the Hub can connect securely to a cloud based intermediary/Hub. Here too, there is never a direct connection from the Internet to the local network.
+In either case WoST Things are not accessed directly. WoST managed IoT devices should remain in a secured fire-walled area. Consumers view and control the devices through the Hub. When used within the Local Area Network this works entirely stand-alone and no Internet access is required. For remote access and monitoring, the Hub can connect securely to a cloud based intermediary/Hub. Here too, there is never a direct connection from the Internet to the local network.
 
-The features of the Hub is provided through plugins. Core plugins provide support for managing the message bus, Thing provisioning and service discovery. 
+The features of the Hub are provided through plugins. Core plugins provide support for managing the message bus, Thing provisioning and service discovery. 
 
 ## WoST vs WoT
 
-As mentioned elsewhere in more detail, WoST is an implementation of WoT with the restriction that **Things do not run a server**. Instead WoST 'Things' push their data into the WoST hub that provides intermediary services to access the Thing. The reason behind this approach is that of security. Implementing servers securely is hard and not a role for a simple IoT device.
+As mentioned elsewhere in more detail, WoST is an implementation of WoT with the restriction that **Things do not run a server**. Instead WoST 'Things' push their data into the WoST Hub that provides intermediary services to access the Thing. The main reason behind this approach is that of security. Implementing servers securely is hard and not a role for a simple IoT device.
 
 WoST therefore supports [section 6.7 of the WoT architecture](https://www.w3.org/TR/wot-architecture/#direct-communication) with a protocol binding that requires the Thing to connect to an Intermediary. The WoST Hub is in this case the intermediary and implements a server for the Thing to connect to using one of its protocol bindings. 
 
@@ -41,7 +41,7 @@ It is recommended to use a dedicated linux computer for installing the Hub and i
 
 The minimal requirement is 100MB of RAM and an Intel Celeron, or ARMv7 CPU. Additional resources might be required for some plugins. See plugin documentation.
 
-The Hub requires the installation of the Mosquitto MQTT message broker. The protocol binding pb_mosquitto plugin manages the configuration and security of the Mosquitto broker on behalf of the Hub.
+The Hub requires the installation of the Mosquitto MQTT message broker. The protocol binding pb_mosquitto plugin manages the configuration and security of the Mosquitto broker on behalf of the Hub. Other MQTT brokers can be used instead of mosquitto as long as they have an accompanying protocol binding to manage the configuration. 
 
 ### Install From Package Manager
 
@@ -75,15 +75,7 @@ Mosquitto setup:
 Install mosquitto: 
 > On Ubuntu: sudo apt install mosquitto
 
-Link the configuration 
-> sudo ln -sf /home/{user}/bin/wost/config/wost-mosquitto.conf /etc/mosquitto/conf.d/wost-mosquitto.conf
-> vi wost-mosquitto.conf 
-
-Edit the wost-mosquitto.conf file and change the lines cafile, keyfile, certfile in the sections 'MQTT over TLS', and 'MQTT over websocket' to point to the '/home/{user}/bin/wost/certs' folder.
-
-Enable mosquitto on startup:
-> sudo systemctl enable mosquitto
-
+The mosquitto-pb plugin launches Mosquitto and generates the neccesary configuration files. No manual setup is needed. It is not recommended to use an existing mosquitto server running on the same machine, but it is allowed if different ports are used. 
 
 
 ### Manual Install To System (tenative)
@@ -114,15 +106,8 @@ chown -R wost:wost /var/log/wost
 systemctl daemon-reload
 ```
 
-Install mosquitto on Ubuntu:
+Install mosquitto on Ubuntu but do not configure it:
 > sudo apt install mosquitto
-
-Link the configuration (provided by pb_mosquitto plugin)
->sudo ln -sf /etc/wost/wost-mosquitto.conf /etc/mosquitto/conf.d/wost-mosquitto.conf
->
->vi wost-mosquitto.conf 
-
-Edit the wost-mosquitto.conf file and change the lines cafile, keyfile, certfile in the sections 'MQTT over TLS', and 'MQTT over websocket' to point to the '/etc/wost/certs' folder.
 
 ### Build From Source
 
@@ -155,8 +140,8 @@ $ cp dist/config/{plugin}.yaml ../hub/dist/config
 
 The Hub is configured through the 'hub.yaml' configuration file that can be edited with a regular text editor. The sample file in the dist/config folder contains configuration options with the default values.
 
-The Hub looks in the {home}/config folder or the /etc/wost folder for this file. The fule must exist as it contains the connection information for plugins and clients. The default values configure the hub for use on localhost only. Set the IP address of the message broker as Messaging address to allow LAN access.
-Plugins can be configured through accompanied yaml configuration files in the same configuration folder as the hub configuration file.
+The Hub looks in the {home}/config folder folder for this file. The fule must exist as it contains the message bus connection information for use by plugins. The default values configure the hub for use on localhost only. Set the IP address of the message broker to allow access from anywhere on the LAN.
+Plugins read the hub.yaml configuration and can have an additional plugin specific configuration file in the config folder. Plugins must be able to run without a configuration file. 
 
 ## Launching
 
@@ -179,7 +164,7 @@ Plugins are installed in the Hub 'bin' directory.
 After downloading or building the plugin executable:
 1. Copy the plugin executable from dist/bin or dist/arm into the Hub binary folder.
 2. Copy the plugin configuration file dist/config/{plugin}.yaml to the Hub configuration folder.  
-3. Enable the plugin in hub.yaml configuration file in the 'plugins' section.It will be started automatically when the Hub starts. Note that plugins start in the listed order. 
+3. Enable the plugin in hub.yaml configuration file in the 'plugins' section. It will be started automatically when the Hub starts. Note that plugins start in the listed order. 
 
 
 # Design 
@@ -206,7 +191,7 @@ By default WoST uses Mosquitto as the MQTT message bus, but other implementation
 The hub is configured with the address of the MQTT broker and certificate names. Plugins use this same configuration (hub.yaml) to connect to the message bus.
 
 
-## Protocol Binding Plugins
+## Protocol Binding lugins
 
 Protocol Binding plugins adapt 3rd party protocols to the WoST Thing MQTT protocol. Effectively turning the 3rd party devices into WoST/WoT Things. For example, an openzwave protocol binding turns ZWave devices into WoST compatible Things.
 

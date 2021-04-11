@@ -10,27 +10,29 @@ import (
 	"github.com/wostzone/hubapi/pkg/hubconfig"
 )
 
-// StartHub reads the hub configuration, create the certificates if needed and
-// launches the plugins. If the configuration is invalid then start is aborted
-// The plugins receive the same commandline arguments as the hub
+// StartHub reads the hub configuration and launches the plugins. If the configuration is invalid
+// then start is aborted. The plugins receive the same commandline arguments as the hub.
+// Before starting the Hub, the certificates must have been generated as part of setup.
+// Use 'gencerts' to generate them in the {homeFolder}/certs folder.
 //  homeFolder is the folder containing the config subfolder with the hub.yaml configuration
 //  startPlugins set to false to only start the hub with message bus server if configured
 // Return nil or error if the hub configuration file or certificate are not found
 func StartHub(homeFolder string, startPlugins bool) error {
 	var err error
 	var noPlugins bool
+	// the noplugins commandline argument only applies to the hub
 	flag.BoolVar(&noPlugins, "noplugins", !startPlugins, "Start the hub without plugins")
 	hc, err := hubconfig.LoadCommandlineConfig(homeFolder, "", nil)
 	if err != nil {
 		return err
 	}
 	// Exit if certificates don't exist
-	caCertFile := path.Join(hc.Messenger.CertsFolder, certsetup.CaCertFile)
+	caCertFile := path.Join(hc.CertsFolder, certsetup.CaCertFile)
 	if _, err := os.Stat(caCertFile); os.IsNotExist(err) {
 		logrus.Fatalf("CA Certificate file %s not found.", caCertFile)
 		return err
 	} else {
-		logrus.Warningf("Using certificates from %s", hc.Messenger.CertsFolder)
+		logrus.Warningf("Using certificates from %s", hc.CertsFolder)
 	}
 
 	// start the plugins unless disabled

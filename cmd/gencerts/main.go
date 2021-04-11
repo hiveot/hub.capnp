@@ -10,7 +10,8 @@ import (
 	"github.com/wostzone/hubapi/pkg/hubconfig"
 )
 
-// Generate certificates if they don't exist
+// Generate certificates in the wost certs folder if they don't exist.
+// If they do exist, this will exit.
 func main() {
 	// set flag for help
 	var hostname string = ""
