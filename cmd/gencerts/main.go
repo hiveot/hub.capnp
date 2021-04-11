@@ -26,14 +26,14 @@ func main() {
 	flag.Parse()
 
 	// setup certificates only if they don't exist
-	caCertFile := path.Join(hc.Messenger.CertsFolder, certsetup.CaCertFile)
+	caCertFile := path.Join(hc.CertsFolder, certsetup.CaCertFile)
 	if _, err := os.Stat(caCertFile); os.IsNotExist(err) {
-		logrus.Infof("Generating certificates in %s", hc.Messenger.CertsFolder)
-		certsetup.CreateCertificates("", hc.Messenger.CertsFolder)
+		logrus.Infof("Generating certificates in %s", hc.CertsFolder)
+		certsetup.CreateCertificates("", hc.CertsFolder)
 	} else {
-		logrus.Errorf("Not generating certificates. Certificates already exist in %s", hc.Messenger.CertsFolder)
+		logrus.Errorf("Not generating certificates. Certificates already exist in %s", hc.CertsFolder)
 		os.Exit(1)
 	}
-	println("Certificates generated in ", hc.Messenger.CertsFolder)
+	println("Certificates generated in ", hc.CertsFolder)
 	os.Exit(0)
 }
