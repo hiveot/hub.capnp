@@ -3,15 +3,17 @@
 # Message bus server
 messenger:
   address: "localhost" # LAN address to connect to the message bus
-  port: 8883 # MQTT port to connect
-  timeout: 1
+  clientPortMqtt: 33100
+  clientPortWS: 33101
+  pluginPortMqtt: 33102
+  pluginPortWS: 33103
 
 # Logging
 logging:
-  #logFile: "../logs/hub.log" # relative to this config file
+  #logFile: "./logs/hub.log" # relative to home folder
   logLevel: "info" # debug, info, warning, error. Default is warning
 
-#configFolder: "../config" # plugin config, relative to the working directory
+#configFolder: "./config" # plugin config, relative to the working directory
 #certsFolder: "./certs" # set to activate TLS. Relative to app home folder
 
 # Plugins to start

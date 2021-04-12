@@ -3,8 +3,10 @@
 # Message bus configuration, paths are relative to application home
 messenger:
   address: "localhost"
-  port: 8883
-  certsFolder: /etc/mosquitto/certs
+  clientPortMqtt: 8883
+  clientPortWS: 8884
+  pluginPortMqtt: 9883
+  pluginPortWS: 9884
 
 # Logging
 logging:
@@ -12,6 +14,7 @@ logging:
   logLevel: "info" # debug, info, warning, error. Default is warning
 
 #configFolder: "../config" # plugin config, relative to the working directory
+#certsFolder: "./certs" # set to activate TLS. Relative to app home folder
 
 # Plugin to start
 plugins:

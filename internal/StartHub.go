@@ -40,8 +40,7 @@ func StartHub(homeFolder string, startPlugins bool) error {
 		logrus.Warningf("Starting Hub without plugins")
 	} else {
 		// launch plugins
-		logrus.Warningf("Starting %d plugins on %s:%d.",
-			len(hc.Plugins), hc.Messenger.Address, hc.Messenger.Port)
+		logrus.Warningf("Starting %d plugins on %s.", len(hc.Plugins), hc.Messenger.Address)
 
 		args := os.Args[1:] // pass the hubs args to the plugin
 		StartPlugins(hc.PluginFolder, hc.Plugins, args)

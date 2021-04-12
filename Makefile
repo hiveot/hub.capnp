@@ -4,7 +4,7 @@ DIST_FOLDER=./dist
 PKG_NAME=wost-hub.tgz
 .DEFAULT_GOAL := help
 
-.PHONY: help
+.PHONY: 
 
 all: hub gencerts
 
@@ -20,8 +20,8 @@ install:  ## Install the hub into ~/bin/wost/bin and config
 dist: clean x64  ## Build binary distribution including config
 		tar -czf $(PKG_NAME) -C $(DIST_FOLDER) .
 
-test: FORCE ## Run tests (todo fix this)
-		go test -v ./pkg/...
+test: .PHONY ## Run tests (todo fix this)
+	go test -v ./...
 
 clean: ## Clean distribution files
 	go clean
