@@ -6,7 +6,7 @@ PKG_NAME=wost-hub.tgz
 
 .PHONY: 
 
-all: hub gencerts
+all: hub gencerts ## Build hub and gencerts apps
 
 install:  ## Install the hub into ~/bin/wost/bin and config
 	mkdir -p ~/bin/wost/bin
@@ -15,7 +15,7 @@ install:  ## Install the hub into ~/bin/wost/bin and config
 	mkdir -p ~/bin/wost/logs
 	cp $(DIST_FOLDER)/bin/* ~/bin/wost/bin/
 	cp $(DIST_FOLDER)/arm/* ~/bin/wost/arm/
-	cp -n $(DIST_FOLDER)/config/* ~/bin/wost/config/
+	cp -n $(DIST_FOLDER)/config/* ~/bin/wost/config/  
 
 dist: clean x64  ## Build binary distribution including config
 		tar -czf $(PKG_NAME) -C $(DIST_FOLDER) .

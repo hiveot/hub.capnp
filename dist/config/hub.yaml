@@ -3,24 +3,26 @@
 # Message bus configuration, paths are relative to application home
 messenger:
   address: "localhost"
-  clientPortMqtt: 8883
-  clientPortWS: 8884
-  pluginPortMqtt: 9883
-  pluginPortWS: 9884
+  clientPortMqtt: 8883 # TLS MQTT client port
+  clientPortWS: 8884 # TLS Websocket port
+  pluginPortMqtt: 9883 # TLS MQTT plugin port. Requires client cert
+  pluginPortWS: 9884 # TLS Websocket plugin port. Requires client cert
 
 # Logging
 logging:
   #logFile: "./logs/hub.log" # relative to the application home
   logLevel: "info" # debug, info, warning, error. Default is warning
 
-#configFolder: "../config" # plugin config, relative to the working directory
-#certsFolder: "./certs" # set to activate TLS. Relative to app home folder
+#Folders are relative to the app home directory
+#configFolder: "../config"
+#certsFolder: "./certs"
 
 # Plugin to start
 plugins:
-  - logger
-  - discovery
-  - pb_mosquitto
+  - mosquitto-pb # Launch the mosquitto server
+  - logger # Log discovered Things
+  - discovery-pb # Discover services locally with DNS-SD
+  - owserver-pb # Publish 1-wire Things connected to a OWServer-V2 gateway
 
 # Message bus client roles and addresses
 # Just concept at this stage
