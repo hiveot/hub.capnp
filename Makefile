@@ -47,7 +47,7 @@ clean: ## Clean distribution files
 #prof: ## Run application with CPU and memory profiling
 #	  go run main.go -cpuprofile=cpu.prof -memprofile=mem.prof
 
-gencerts: ## Build gencernts to generate self-signed certificates with CA
+gencerts: ## Build gencerts to generate self-signed certificates with CA
 	GOOS=linux GOARCH=amd64 go build -o $(DIST_FOLDER)/bin/gencerts ./cmd/gencerts/main.go
 	GOOS=linux GOARCH=arm go build -o $(DIST_FOLDER)/arm/gencerts ./cmd/gencerts/main.go
 	@echo "> SUCCESS. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@ and $(DIST_FOLDER)/arm/$@"
