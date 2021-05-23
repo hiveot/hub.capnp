@@ -6,8 +6,8 @@ import (
 	"path"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hubapi/pkg/certsetup"
-	"github.com/wostzone/hubapi/pkg/hubconfig"
+	"github.com/wostzone/hubapi-go/pkg/certsetup"
+	"github.com/wostzone/hubapi-go/pkg/hubconfig"
 )
 
 // Generate certificates in the wost certs folder if they don't exist.
@@ -29,7 +29,7 @@ func main() {
 	caCertFile := path.Join(hc.CertsFolder, certsetup.CaCertFile)
 	if _, err := os.Stat(caCertFile); os.IsNotExist(err) {
 		logrus.Infof("Generating certificates in %s", hc.CertsFolder)
-		certsetup.CreateCertificates("", hc.CertsFolder)
+		certsetup.CreateCertificateBundle("", hc.CertsFolder)
 	} else {
 		logrus.Errorf("Not generating certificates. Certificates already exist in %s", hc.CertsFolder)
 		os.Exit(1)

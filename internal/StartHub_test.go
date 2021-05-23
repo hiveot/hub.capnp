@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	hub "github.com/wostzone/hub/internal"
-	"github.com/wostzone/hubapi/pkg/certsetup"
+	"github.com/wostzone/hubapi-go/pkg/certsetup"
 )
 
 // testing takes place using the test folder on localhost
@@ -26,7 +26,7 @@ func setup() {
 	cwd, _ := os.Getwd()
 	homeFolder = path.Join(cwd, "../test")
 	certsFolder = path.Join(homeFolder, "certs")
-	certsetup.CreateCertificates(hostname, certsFolder)
+	certsetup.CreateCertificateBundle(hostname, certsFolder)
 
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 	os.Args = append(os.Args[0:1], strings.Split("", " ")...)

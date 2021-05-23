@@ -6,8 +6,8 @@ import (
 	"path"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hubapi/pkg/certsetup"
-	"github.com/wostzone/hubapi/pkg/hubconfig"
+	"github.com/wostzone/hubapi-go/pkg/certsetup"
+	"github.com/wostzone/hubapi-go/pkg/hubconfig"
 )
 
 // StartHub reads the hub configuration and launches the plugins. If the configuration is invalid
