@@ -1,4 +1,4 @@
-package hub_test
+package internal_test
 
 import (
 	"flag"
@@ -10,7 +10,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	hub "github.com/wostzone/hub/internal"
+	"github.com/wostzone/hub/internal"
 	"github.com/wostzone/wostlib-go/pkg/certsetup"
 )
 
@@ -36,25 +36,25 @@ func setup() {
 
 func TestStartHubNoPlugins(t *testing.T) {
 	setup()
-	err := hub.StartHub(homeFolder, false)
+	err := internal.StartHub(homeFolder, false)
 	require.NoError(t, err)
 
 	time.Sleep(3 * time.Second)
-	hub.StopHub()
+	internal.StopHub()
 }
 
 func TestStartHubWithPlugins(t *testing.T) {
 	setup()
-	err := hub.StartHub(homeFolder, true)
+	err := internal.StartHub(homeFolder, true)
 	assert.NoError(t, err)
 
 	time.Sleep(3 * time.Second)
-	hub.StopHub()
+	internal.StopHub()
 }
 
 func TestStartHubBadHome(t *testing.T) {
 	setup()
-	err := hub.StartHub("/notahomefolder", true)
+	err := internal.StartHub("/notahomefolder", true)
 	assert.Error(t, err)
 
 }

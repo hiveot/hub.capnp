@@ -1,0 +1,9 @@
+# Configuration file for discovery service
+#clientID: discovery-pb
+publishTD: true
+
+# Discovery of services via mDNS
+# This publishes registered hub services as name.{serviceType}
+#  hostname, address, port, txt fields
+serviceType: _test._wot._tcp
+domain: local

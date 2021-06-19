@@ -1,4 +1,4 @@
-package hub
+package internal
 
 import (
 	"flag"
@@ -6,8 +6,8 @@ import (
 	"path"
 
 	"github.com/sirupsen/logrus"
+	"github.com/wostzone/wostlib-go/pkg/certsetup"
 	"github.com/wostzone/wostlib-go/pkg/hubconfig"
-	"github.com/wostzone/wostlib-go/wostapi"
 )
 
 // StartHub reads the hub configuration and launches the plugins. If the configuration is invalid
@@ -27,7 +27,7 @@ func StartHub(homeFolder string, startPlugins bool) error {
 		return err
 	}
 	// Exit if certificates don't exist
-	caCertFile := path.Join(hc.CertsFolder, wostapi.CaCertFile)
+	caCertFile := path.Join(hc.CertsFolder, certsetup.CaCertFile)
 	if _, err := os.Stat(caCertFile); os.IsNotExist(err) {
 		logrus.Fatalf("CA Certificate file %s not found.", caCertFile)
 		return err
