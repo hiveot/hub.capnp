@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/sirupsen/logrus"
 	hub "github.com/wostzone/hub/internal"
-	"github.com/wostzone/hubapi-go/pkg/hubclient"
+	"github.com/wostzone/wostlib-go/pkg/hubclient"
 )
 
 func main() {

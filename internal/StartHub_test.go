@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	hub "github.com/wostzone/hub/internal"
-	"github.com/wostzone/hubapi-go/pkg/certsetup"
+	"github.com/wostzone/wostlib-go/pkg/certsetup"
 )
 
 // testing takes place using the test folder on localhost

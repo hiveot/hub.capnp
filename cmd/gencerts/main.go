@@ -6,8 +6,8 @@ import (
 	"path"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hubapi-go/pkg/certsetup"
-	"github.com/wostzone/hubapi-go/pkg/hubconfig"
+	"github.com/wostzone/wostlib-go/pkg/certsetup"
+	"github.com/wostzone/wostlib-go/pkg/hubconfig"
 )
 
 // Generate certificates in the wost certs folder if they don't exist.
@@ -15,8 +15,8 @@ import (
 func main() {
 	// set flag for help
 	var hostname string = ""
-	flag.String("-c", "", "Location of hub.yaml config file")
-	flag.String("-home", "", "Location application home directory")
+	// flag.String("-c", "", "Location of hub.yaml config file")
+	// flag.String("-home", "", "Location application home directory")
 	flag.StringVar(&hostname, "-hostname", "localhost", "Hostname or IP to use in certificate. Default localhost for testing.")
 	hc, err := hubconfig.LoadPluginConfig("", "", nil)
 	if err != nil {

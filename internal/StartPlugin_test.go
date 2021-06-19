@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	hub "github.com/wostzone/hub/internal"
-	"github.com/wostzone/hubapi-go/pkg/hubconfig"
+	"github.com/wostzone/wostlib-go/pkg/hubconfig"
 )
 
 func TestStartPlugin(t *testing.T) {
