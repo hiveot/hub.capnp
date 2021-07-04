@@ -8,16 +8,20 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/wostlib-go/pkg/certsetup"
 	"github.com/wostzone/wostlib-go/pkg/hubconfig"
+	"github.com/wostzone/wostlib-go/pkg/tlsclient"
 )
 
 // Generate certificates in the wost certs folder if they don't exist.
 // If they do exist, this will exit.
 func main() {
 	// set flag for help
-	var hostname string = ""
+	ifName, mac, ip := tlsclient.GetOutboundInterface("")
+	_ = ifName
+	_ = mac
+	san := ip.String()
 	// flag.String("-c", "", "Location of hub.yaml config file")
 	// flag.String("-home", "", "Location application home directory")
-	flag.StringVar(&hostname, "-hostname", "localhost", "Hostname or IP to use in certificate. Default localhost for testing.")
+	flag.StringVar(&san, "-san", san, "Subject name or IP address to use in certificate. Default interface "+ifName)
 	hc, err := hubconfig.LoadPluginConfig("", "", nil)
 	if err != nil {
 		os.Exit(1)
@@ -27,9 +31,10 @@ func main() {
 
 	// setup certificates only if they don't exist
 	caCertFile := path.Join(hc.CertsFolder, certsetup.CaCertFile)
+	certNames := []string{san}
 	if _, err := os.Stat(caCertFile); os.IsNotExist(err) {
 		logrus.Infof("Generating certificates in %s", hc.CertsFolder)
-		certsetup.CreateCertificateBundle("", hc.CertsFolder)
+		certsetup.CreateCertificateBundle(certNames, hc.CertsFolder)
 	} else {
 		logrus.Errorf("Not generating certificates. Certificates already exist in %s", hc.CertsFolder)
 		os.Exit(1)

@@ -21,7 +21,6 @@ logging:
 plugins:
   # Core plugins
   - mosquitto-pb # Launch the mosquitto server and manage mosquitto auth
-  - dnssd-pb # DNS-SD local discovery of services
   - idprov-pb # Automated provisioning of Things
   # Other plugins
   - logger # Log discovered Things

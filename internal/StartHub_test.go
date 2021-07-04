@@ -18,7 +18,7 @@ import (
 var homeFolder string
 var certsFolder string
 
-const hostname = "localhost"
+var hostnames = []string{"localhost"}
 
 // Use the test folder during testing
 // Reset args to prevent 'flag redefined' error
@@ -26,7 +26,7 @@ func setup() {
 	cwd, _ := os.Getwd()
 	homeFolder = path.Join(cwd, "../test")
 	certsFolder = path.Join(homeFolder, "certs")
-	certsetup.CreateCertificateBundle(hostname, certsFolder)
+	certsetup.CreateCertificateBundle(hostnames, certsFolder)
 
 	flag.CommandLine = flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
 	os.Args = append(os.Args[0:1], strings.Split("", " ")...)

@@ -6,7 +6,7 @@ PKG_NAME=wost-hub.tgz
 
 .PHONY: 
 
-all: hub gencerts ## Build hub and gencerts apps
+all: hub gencerts idprov-pb ## Build hub and core apps
 
 install:  ## Install the hub into ~/bin/wost/bin and config
 	mkdir -p ~/bin/wost/bin
@@ -48,14 +48,18 @@ clean: ## Clean distribution files
 #prof: ## Run application with CPU and memory profiling
 #	  go run main.go -cpuprofile=cpu.prof -memprofile=mem.prof
 
-gencerts: ## Build gencerts to generate self-signed certificates with CA
-	GOOS=linux GOARCH=amd64 go build -o $(DIST_FOLDER)/bin/gencerts ./cmd/gencerts/main.go
-	GOOS=linux GOARCH=arm go build -o $(DIST_FOLDER)/arm/gencerts ./cmd/gencerts/main.go
+idprov-pb: ## Build idprov-pb plugin
+	GOOS=linux GOARCH=amd64 go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go
+	GOOS=linux GOARCH=arm go build -o $(DIST_FOLDER)/arm/$@ ./cmd/$@/main.go
+
+gencerts: ## Build gencerts utility to generate self-signed certificates with CA
+	GOOS=linux GOARCH=amd64 go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go
+	GOOS=linux GOARCH=arm go build -o $(DIST_FOLDER)/arm/$@ ./cmd/$@/main.go
 	@echo "> SUCCESS. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@ and $(DIST_FOLDER)/arm/$@"
 
 hub: ## Build hub for amd64 and arm targets
-	GOOS=linux GOARCH=amd64 go build -o $(DIST_FOLDER)/bin/hub ./cmd/hub/main.go
-	GOOS=linux GOARCH=arm go build -o $(DIST_FOLDER)/arm/hub ./cmd/hub/main.go
+	GOOS=linux GOARCH=amd64 go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go
+	GOOS=linux GOARCH=arm go build -o $(DIST_FOLDER)/arm/$@ ./cmd/$@/main.go
 	@echo "> SUCCESS. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@ and $(DIST_FOLDER)/arm/$@"
 
 

@@ -1,0 +1,19 @@
+# Configuration file for IDProv provisioning protocol binding
+
+# Listening address of the server. Default is the first non local interface
+# address: ""
+
+# Listening port of the server. Default is 43776
+# port: 43776
+
+# Folder for certificate storage relative to home. Default is certstore
+#certStore: "certstore"
+
+# Instance ID of the client. Default is the plugin ID 'idprov-pb'
+# clientID: "idprov-pb"
+
+# Enable DNS-SD discovery publications. Default is enabled.
+#enableDiscovery: true
+
+# Certificate validity period in days. Default is 30
+#validForDays: 30
