@@ -1,0 +1,13 @@
+# Mosquitto manager protocol binding configuration
+
+#clientID: "mosquitto-pb"
+
+# Publish the TD for this service, default is false
+publishTD: true
+
+# Mosquitto template file
+mosquittoTemplate: "mosquitto.conf.template"
+# Mosquitto generated config file
+mosquittoConfig: "mosquitto.conf"
+# Mosquitto generated ACL file, must match the name in the template
+mosquittoACL: "mosquitto.acl"

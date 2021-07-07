@@ -6,7 +6,7 @@ PKG_NAME=wost-hub.tgz
 
 .PHONY: 
 
-all: hub gencerts idprov-pb ## Build hub and core apps
+all: hub gencerts mosquitto-pb idprov-pb ## Build hub and core apps
 
 install:  ## Install the hub into ~/bin/wost/bin and config
 	mkdir -p ~/bin/wost/bin
@@ -51,6 +51,12 @@ clean: ## Clean distribution files
 idprov-pb: ## Build idprov-pb plugin
 	GOOS=linux GOARCH=amd64 go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go
 	GOOS=linux GOARCH=arm go build -o $(DIST_FOLDER)/arm/$@ ./cmd/$@/main.go
+
+# The mosqauth plugin only builds for the local environment, x64 or arms need to be build on their respective platforms
+mosquitto-pb: ## Build mosquitto manager
+	GOOS=linux GOARCH=amd64 go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go
+	GOOS=linux GOARCH=arm go build -o $(DIST_FOLDER)/arm/$@ ./cmd/$@/main.go
+	cd core/mosquitto-pb/mosqplug/main && make
 
 gencerts: ## Build gencerts utility to generate self-signed certificates with CA
 	GOOS=linux GOARCH=amd64 go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go

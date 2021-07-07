@@ -3,10 +3,8 @@
 # Message bus server
 messenger:
   address: "localhost" # LAN address to connect to the message bus
-  clientPortMqtt: 33100
-  clientPortWS: 33101
-  pluginPortMqtt: 33102
-  pluginPortWS: 33103
+  certPortMqtt: 33100 # certificate based auth over MQTT/TLS
+  unpwPortWS: 33101 # username password auth over WebSocket/TLS
 
 # Logging
 logging:
