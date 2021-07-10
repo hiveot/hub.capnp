@@ -1,28 +1,32 @@
 package auth
 
+import "github.com/wostzone/wostlib-go/pkg/certsetup"
+
 // AuthHandler handlers client authorization for access to Things
 type AuthHandler struct {
 }
 
 // CheckAuthorization tests if the client has access to the device for the given operation
-//  clientID is the ID of an authenticated client. A consumer, plugin or device
+// certOU, if provided gives full access to plugins and administrators
+//
+//  userName the login name or device ID of an authenticated client: consumer, plugin or device
+//  certOU the OU of the user certificate if present.
 //  thingID is the ID of the Thing to access
 //  writing: true for writing to Thing, false for reading
 //  messageType is one of: td, configure, event, action
 // This returns false if access is denied or nil if allowed
-func (auth *AuthHandler) CheckAuthorization(clientID string, thingID string, writing bool, messageType string) bool {
+func (auth *AuthHandler) CheckAuthorization(userName string, certOU string, thingID string, writing bool, messageType string) bool {
+	if certOU == certsetup.OUPlugin || certOU == certsetup.OUAdmin {
+		return true
+	}
+
 	// devices can do anything on with their own Things
-	if auth.IsPublisher(clientID, thingID) {
+	if auth.IsPublisher(userName, thingID) {
 		return true
 	}
-	if auth.IsAdmin(clientID) {
-		return true
-	}
-	if auth.IsPlugin(clientID) {
-		return true
-	}
+
 	groups := auth.GetGroups(thingID)
-	role := auth.GetRole(clientID, groups)
+	role := auth.GetRole(userName, groups)
 	hasPerm := auth.HasPermission(role, writing, messageType)
 	return hasPerm
 }
@@ -47,16 +51,6 @@ func (auth *AuthHandler) HasPermission(role string, writing bool, messageType st
 func (auth *AuthHandler) IsPublisher(clientID string, thingID string) bool {
 	// FIXME: make this work
 	return false
-}
-
-func (auth *AuthHandler) IsPlugin(clientID string) bool {
-	// FIXME: use constants
-	return clientID == "plugin"
-}
-
-func (auth *AuthHandler) IsAdmin(clientID string) bool {
-	// FIXME: use constants
-	return clientID == "admin"
 }
 
 // Start the authhandler. This loads its configuration and initializes its in-memory cache

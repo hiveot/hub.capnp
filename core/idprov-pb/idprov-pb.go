@@ -10,12 +10,13 @@ const PluginID = "idprov-pb"
 
 // IDProvPBConfig Protocol binding configuration
 type IDProvPBConfig struct {
-	IdpAddress      string `yaml:"idpAddress"`      // listening address, default is automatic
-	IdpPort         uint   `yaml:"idpPort"`         // idprov listening port
-	IdpCerts        string `yaml:"idpCerts"`        // folder to store client certificates
-	ClientID        string `yaml:"clientID"`        // unique service instance client ID
-	EnableDiscovery bool   `yaml:"enableDiscovery"` // DNS-SD disco
-	ValidForDays    uint   `yaml:"validForDays"`    // Nr days certificates are valid for
+	IdpAddress      string            `yaml:"idpAddress"`      // listening address, default is automatic
+	IdpPort         uint              `yaml:"idpPort"`         // idprov listening port
+	IdpCerts        string            `yaml:"idpCerts"`        // folder to store client certificates
+	ClientID        string            `yaml:"clientID"`        // unique service instance client ID
+	EnableDiscovery bool              `yaml:"enableDiscovery"` // DNS-SD disco
+	ValidForDays    uint              `yaml:"validForDays"`    // Nr days certificates are valid for
+	Services        map[string]string `yaml:"services"`        // Services that work with provisioned certificates
 }
 
 // IDProv provisioning protocol binding service
@@ -60,6 +61,8 @@ func NewIDProvPB(config IDProvPBConfig, hubConfig hubconfig.HubConfig) *IDProvPB
 		config.IdpPort,
 		hubConfig.CertsFolder, config.IdpCerts,
 		config.ValidForDays, idprov.IdprovServiceDiscoveryType)
+
+	server.Directory().Services = config.Services
 
 	return &IDProvPB{
 		config:    config,

@@ -17,3 +17,12 @@
 
 # Certificate validity period in days. Default is 30
 #validForDays: 30
+
+# Services that IDProv supports
+services:
+  mqtt: mqtts://10.3.3.30:8883/
+  mqttws: wss://10.3.3.30:8884/
+  #wostdir: https://{10.3.3.30:9002/
+  #wostportal: https://10.3.3.30:993/
+  #adminportal: https://10.3.3.30:994/
+  #adminapi: https://10.3.3.30:995/

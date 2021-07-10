@@ -3,8 +3,8 @@
 # Message bus configuration, paths are relative to application home
 messenger:
   address: "" # defaults to outbound port
-  certPortMqtt: 33100 # certificate based auth over MQTT/TLS
-  unpwPortWS: 33101 # username password auth over WebSocket/TLS
+  certPortMqtt: 8883 # certificate based auth over MQTT/TLS
+  unpwPortWS: 8884 # username password auth over WebSocket/TLS
 
 # Logging
 logging:

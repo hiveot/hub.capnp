@@ -3,37 +3,36 @@
 ## Plan
 
 1. Phase 1: Hub MVP
-   1. Configuration management for hub and plugins (hubapi-go)
-   2. Certificate management, create CA, Server, Client certs (hub)
-   3. Launching of plugins (hub)
-   4. Logger plugin to track launching problems and test plugins (logger)
-   5. Mosquitto no-aut MQTT server configuration (pb_mosquitto)
-   6. HTTP protocol adapter (pb_http)
-   7. MQTT client (api-go)
-   8. HTTP client (api-go)
-   9.  DNS-SD local discovery protocol binding (pb_discovery)
-   10. In-memory directory service
-   11. EDS OWServer 1-wire protocol adapter
+   1. Configuration management for hub and plugins (wostlib-go) [done]
+   2. Certificate management (wostlib-go) [done]
+   3. MQTT client (wostlib-go) [done]
+   4. Launching of plugins (hub) [done]
+   5. Logger plugin to track launching problems and test plugins (logger) [done]
+   6. Mosquitto no-auth MQTT server configuration (pb_mosquitto) [done]
+   7. Discovery of hub services - tbd part of idprov?
 
 2.  Phase 2: Authentication & provisioning
-    1. Add username/password authentication to mosquitto
-    2. Add Basic security schema to HTTP
-    3. Add Digest security schema to HTTP
-    4. Add Bearer security schema to HTTP
-    5. Add PKS security schema to HTTP
-    6. Thing provisioning protocol (hub+pb_mosquitto)
-    7. Provisioning approval process
+    1. Certificate based client authentication for plugins and devices [done]
+    2. Thing provisioning protocol (idprov) [done]
+    3. Username/password authentication service for mosquitto/https services
+    4. Hub Auth CLI
+    5. Add Basic security schema to HTTP authentication
+    6. Add Digest security schema to HTTP authentication
+    7. Add Bearer security schema to HTTP authentication
+    8. Add PKS security schema to HTTP authentication
+    9. Provisioning approval process
 
 3.  Phase 3: Directory service
     1.  In-memory directory service
     2.  Schema validation
    
-4.  Phase 4: Add more protocol adapters
-    1.  Insteon
-    2.  IPcam
-    3.  Montage
-    4.  OpenZwave
-    5.  Weather
+4.  Phase 4: Add protocol adapters
+    1.  EDS OWServer 1-wire protocol adapter POC [done]
+    2.  Insteon
+    3.  IPcam
+    4.  Montage
+    5.  OpenZwave
+    6.  Weather
 
 5.  Phase 5: Potential Enhancements
     1.  Hub CLI 

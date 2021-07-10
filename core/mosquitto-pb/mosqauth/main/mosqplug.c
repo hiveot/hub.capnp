@@ -9,18 +9,17 @@
 #include <mosquitto_broker.h>
 #include <mosquitto_plugin.h>
 #include <mosquitto.h>
+#include <openssl/x509.h>
 
-#if MOSQ_AUTH_PLUGIN_VERSION >= 3
 #define mosquitto_auth_opt mosquitto_opt
-#endif
 
 // main.h is generated when main.go is compiled
 #include "main.h"
 
 // Same constant as one in go-auth.go.
-#define AuthRejected 0
-#define AuthGranted 1
-#define AuthError 2
+// #define AuthRejected 0
+// #define AuthGranted 1
+// #define AuthError 2
 
 int mosquitto_auth_plugin_version(void)
 {
@@ -79,18 +78,13 @@ int mosquitto_auth_security_cleanup(void *user_data, struct mosquitto_auth_opt *
 
 #if MOSQ_AUTH_PLUGIN_VERSION >= 4
 int mosquitto_auth_unpwd_check(void *user_data, struct mosquitto *client, const char *username, const char *password)
-#elif MOSQ_AUTH_PLUGIN_VERSION >= 3
-int mosquitto_auth_unpwd_check(void *userdata, const struct mosquitto *client, const char *username, const char *password)
 #else
-int mosquitto_auth_unpwd_check(void *userdata, const char *username, const char *password)
+int mosquitto_auth_unpwd_check(void *userdata, const struct mosquitto *client, const char *username, const char *password)
 #endif
 {
-#if MOSQ_AUTH_PLUGIN_VERSION >= 3
   const char *clientid = mosquitto_client_id(client);
   const char *ip = mosquitto_client_address(client);
-#else
-  const char *clientid = "";
-#endif
+
   if (username == NULL || password == NULL)
   {
     printf("error: received null username or password for unpwd check\n");
@@ -105,38 +99,26 @@ int mosquitto_auth_unpwd_check(void *userdata, const char *username, const char 
 
   GoUint8 ret = AuthUnpwdCheck(go_clientid, go_username, go_password, go_clientip);
   return ret;
-  // switch (ret)
-  // {
-  // case AuthGranted:
-  //   return MOSQ_ERR_SUCCESS;
-  //   break;
-  // case AuthRejected:
-  //   return MOSQ_ERR_AUTH;
-  //   break;
-  // case AuthError:
-  //   return MOSQ_ERR_UNKNOWN;
-  //   break;
-  // default:
-  //   fprintf(stderr, "unknown plugin error: %d\n", ret);
-  //   return MOSQ_ERR_UNKNOWN;
-  // }
 }
 
 #if MOSQ_AUTH_PLUGIN_VERSION >= 4
 int mosquitto_auth_acl_check(void *user_data, int access, struct mosquitto *client, const struct mosquitto_acl_msg *msg)
-#elif MOSQ_AUTH_PLUGIN_VERSION >= 3
-int mosquitto_auth_acl_check(void *userdata, int access, const struct mosquitto *client, const struct mosquitto_acl_msg *msg)
 #else
-int mosquitto_auth_acl_check(void *userdata, const char *clientid, const char *username, const char *topic, int access)
+int mosquitto_auth_acl_check(void *userdata, int access, const struct mosquitto *client, const struct mosquitto_acl_msg *msg)
 #endif
 {
-#if MOSQ_AUTH_PLUGIN_VERSION >= 3
   const char *clientid = mosquitto_client_id(client);
   const char *username = mosquitto_client_username(client);
   const char *topic = msg->topic;
   const char *ip = mosquitto_client_address(client);
-  const char *cert = mosquitto_client_certificate(client); // client uses cert auth
-#endif
+
+  X509 *cert = mosquitto_client_certificate(client); // client uses cert auth
+  const char *subjname = "";
+  if (cert != NULL)
+  {
+    subjname = X509_NAME_oneline(X509_get_subject_name(cert), NULL, 0);
+  }
+
   if (clientid == NULL || username == NULL || topic == NULL || access < 1)
   {
     printf("error: received null username, clientid or topic, or access is equal or less than 0 for acl check\n");
@@ -144,37 +126,25 @@ int mosquitto_auth_acl_check(void *userdata, const char *clientid, const char *u
     return MOSQ_ERR_ACL_DENIED;
   }
 
+  GoInt32 go_access = access;
   GoString go_clientid = {clientid, strlen(clientid)};
   GoString go_username = {username, strlen(username)};
   GoString go_topic = {topic, strlen(topic)};
-  GoInt32 go_access = access;
-  GoInt go_certauth = (cert != NULL);
+  GoString go_subjname = {subjname, strlen(subjname)};
 
-  GoUint8 ret = AuthAclCheck(go_clientid, go_username, go_topic, go_access, go_certauth);
+  // ssl testing
+  printf("mosquitto_auth_acl_check: clientId=%s, subjectname=%s", clientid, subjname);
+  fflush(stdout);
+  //---
+  GoUint8 ret = AuthAclCheck(go_clientid, go_username, go_topic, go_access, go_subjname);
+  X509_free(cert);
   return ret;
-  // switch (ret)
-  // {
-  // case AuthGranted:
-  //   return MOSQ_ERR_SUCCESS;
-  //   break;
-  // case AuthRejected:
-  //   return MOSQ_ERR_ACL_DENIED;
-  //   break;
-  // case AuthError:
-  //   return MOSQ_ERR_UNKNOWN;
-  //   break;
-  // default:
-  //   fprintf(stderr, "unknown plugin error: %d\n", ret);
-  //   return MOSQ_ERR_UNKNOWN;
-  // }
 }
 
 #if MOSQ_AUTH_PLUGIN_VERSION >= 4
 int mosquitto_auth_psk_key_get(void *user_data, struct mosquitto *client, const char *hint, const char *identity, char *key, int max_key_len)
-#elif MOSQ_AUTH_PLUGIN_VERSION >= 3
-int mosquitto_auth_psk_key_get(void *userdata, const struct mosquitto *client, const char *hint, const char *identity, char *key, int max_key_len)
 #else
-int mosquitto_auth_psk_key_get(void *userdata, const char *hint, const char *identity, char *key, int max_key_len)
+int mosquitto_auth_psk_key_get(void *userdata, const struct mosquitto *client, const char *hint, const char *identity, char *key, int max_key_len)
 #endif
 {
   return MOSQ_ERR_AUTH;

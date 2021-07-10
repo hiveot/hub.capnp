@@ -1,7 +1,9 @@
-// Package mosqplug with Mosquitto plugin to integrate authorization
-// Credit: iegomez/mosquitto-go-auth
-package mosqplug
+// package main for both the protocol binding and the mosquitto auth plugin
+package main
 
+// #cgo CFLAGS: -g  -fPIC -I/usr/local/include -I./
+// #cgo LDFLAGS: -L. -shared
+import "C"
 import (
 	"strings"
 
@@ -50,12 +52,11 @@ const (
 	MOSQ_ACL_READ      = 0x01 // check if client can read the topic, before it is sent to the client
 	MOSQ_ACL_WRITE     = 0x02 // check if client can post to the topic, when it is received from the client
 	MOSQ_ACL_SUBSCRIBE = 0x04 // check if client can subscribe to the topic (with wildcard)
-
 )
 
 var authHandler *auth.AuthHandler
 
-// AuthPluginInit is called when the plugin is initialized by Mosquitto
+//export AuthPluginInit
 func AuthPluginInit(keys []string, values []string, authOptsNum int) {
 	logrus.Warningf("mosqauth: AuthPluginInit invoked")
 
@@ -70,6 +71,7 @@ func AuthPluginInit(keys []string, values []string, authOptsNum int) {
 //  MOSQ_ERR_UNKNOWN for an application specific error
 //  MOSQ_ERR_SUCCESS if the user is authenticated
 //  MOSQ_ERR_PLUGIN_DEFER if we do not wish to handle this check
+//export AuthUnpwdCheck
 func AuthUnpwdCheck(clientID string, username string, password string, clientIP string) uint8 {
 	// TODO: remove password logging
 	logrus.Infof("mosqauth: AuthUnpwdCheck: clientID=%s, username=%s, pass=%s, clientIP=%s",
@@ -91,26 +93,36 @@ func AuthUnpwdCheck(clientID string, username string, password string, clientIP 
 //  username
 //  topic
 //  access: MOSQ_ACL_SUBSCRIBE, MOSQ_ACL_READ, MOSQ_ACL_WRITE
-//  certAuth: true if client authenticated with a certificate
+//  certSubjName: certificate subject name "/L=/O=/OU=/CN=" or "" if no certificate was used
 //
 // returns
 //  MOSQ_ERR_ACL_DENIED if access was not granted
 //  MOSQ_ERR_UNKNOWN for an application specific error
 //  MOSQ_ERR_SUCCESS if access is granted
 //  MOSQ_ERR_PLUGIN_DEFER if we do not wish to handle this check
-func AuthAclCheck(clientID, username, topic string, access int, certAuth bool) uint8 {
-	logrus.Infof("mosqauth: AuthAclCheck clientID=%s, username=%s, topic=%s, access=%d, certAuth=%v",
-		clientID, username, topic, access, certAuth)
+//export AuthAclCheck
+func AuthAclCheck(clientID, userName, topic string, access int, certSubjName string) uint8 {
+	logrus.Infof("mosqauth: AuthAclCheck clientID=%s, username=%s, topic=%s, access=%d, certSubj=%s",
+		clientID, userName, topic, access, certSubjName)
+	var certOU = ""
+
+	// what OU does this client belong to?
+	parts := strings.Split(certSubjName, "/")
+	for _, part := range parts {
+		if strings.HasPrefix(part, "OU=") {
+			certOU = part[3:]
+		}
+	}
 
 	// topic format: things/{publisherID}/{thingID}/td|configure|event|action|
-	parts := strings.Split(topic, "/")
+	parts = strings.Split(topic, "/")
 	if len(parts) < 4 {
 		return MOSQ_ERR_ACL_DENIED
 	}
 	thingID := parts[2]
 	messageType := parts[3]
 	writing := (access == MOSQ_ACL_WRITE)
-	hasPermission := authHandler.CheckAuthorization(clientID, thingID, writing, messageType)
+	hasPermission := authHandler.CheckAuthorization(userName, certOU, thingID, writing, messageType)
 	if !hasPermission {
 		return MOSQ_ERR_ACL_DENIED
 	}
@@ -119,7 +131,7 @@ func AuthAclCheck(clientID, username, topic string, access int, certAuth bool) u
 	// return
 }
 
-//
+//export AuthPluginCleanup
 func AuthPluginCleanup() {
 	logrus.Info("AuthPluginCleanup: Cleaning up plugin")
 	if authHandler != nil {
@@ -127,3 +139,25 @@ func AuthPluginCleanup() {
 		authHandler = nil
 	}
 }
+
+func main() {}
+
+// Main entry to WoST protocol adapter for managing Mosquitto
+// This setup the configuration from file and commandline parameters and launches the service
+// func main() {
+// 	svc := mosquittopb.NewMosquittoManager()
+// 	hubConfig, err := hubconfig.LoadCommandlineConfig("", mosquittopb.PluginID, &svc.Config)
+// 	if err != nil {
+// 		logrus.Errorf("ERROR: Start aborted due to error")
+// 		os.Exit(1)
+// 	}
+
+// 	err = svc.Start(hubConfig)
+// 	if err != nil {
+// 		logrus.Errorf("Logger: Failed to start: %s", err)
+// 		os.Exit(1)
+// 	}
+// 	hubclient.WaitForSignal()
+// 	svc.Stop()
+// 	os.Exit(0)
+// }

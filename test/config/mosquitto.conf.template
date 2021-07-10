@@ -35,13 +35,14 @@ use_identity_as_username true
 tls_version tlsv1.2
 
 # mosqauth plugin handles authorization
-auth_plugin ../../dist/bin/mosqauth.so
+auth_plugin {{.homeFolder}}/../dist/bin/mosqauth.so
 
 
 # WebSockets over TLS/SSL for use with login/password
 # Intended for web browser and client applications that are consumers without certificate
 # Client certificates are not used but a server CA is needed on the client or the 
 #  client must ignore certificate verification.
+# Use a password file for user names
 listener {{.unpwPortWS}}
 protocol websockets
 cafile {{.homeFolder}}/certs/caCert.pem
@@ -52,6 +53,7 @@ certfile {{.homeFolder}}/certs/hubCert.pem
 require_certificate false
 tls_version tlsv1.2
 # mosqauth plugin handles authorization
-auth_plugin ../../dist/bin/mosqauth.so
-
+auth_plugin {{.homeFolder}}/../dist/bin/mosqauth.so
+allow_anonymous false
+password_file {{.homeFolder}}/config/mosquitto-passwd
 

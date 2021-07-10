@@ -1,15 +1,17 @@
-package mosqplug_test
+package mosqauth_test
 
 import (
 	"testing"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/core/mosquitto-pb/mosqplug"
+	"github.com/wostzone/hub/core/mosquitto-pb/mosqauth/main"
 )
+
+// FIXME: Can't test C functions. Move to auth handler testing
 
 func TestAuthPluginInit(t *testing.T) {
 	logrus.Infof("---TestAuthPluginInit---")
-	mosqplug.AuthPluginInit(nil, nil, 0)
+	main.AuthPluginInit(nil, nil, 0)
 }
 
 func TestAuthUnpwdCheck(t *testing.T) {
@@ -18,7 +20,7 @@ func TestAuthUnpwdCheck(t *testing.T) {
 	password := "password1"
 	clientID := "clientID1"
 	clientIP := "ip"
-	mosqplug.AuthUnpwdCheck(clientID, username, password, clientIP)
+	main.AuthUnpwdCheck(clientID, username, password, clientIP)
 }
 
 func TestAuthAclCheck(t *testing.T) {
@@ -26,11 +28,11 @@ func TestAuthAclCheck(t *testing.T) {
 	clientID := "clientID1"
 	username := "user1"
 	topic := "things/thingid1/td"
-	access := mosqplug.MOSQ_ACL_SUBSCRIBE
-	mosqplug.AuthAclCheck(clientID, username, topic, access, true)
+	access := main.MOSQ_ACL_SUBSCRIBE
+	main.AuthAclCheck(clientID, username, topic, access, true)
 }
 
 func TestAuthPluginCleanup(t *testing.T) {
 	logrus.Infof("---TestAuthPluginCleanup---")
-	mosqplug.AuthPluginCleanup()
+	main.AuthPluginCleanup()
 }
