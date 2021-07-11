@@ -24,3 +24,4 @@ dist/arm/*
 dist/logs/*
 *.crt
 *.key
+test/config/mosquitto.conf
