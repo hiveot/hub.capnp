@@ -1,4 +1,4 @@
-package mosquittopb
+package mosquittomgr
 
 import (
 	"bytes"
@@ -33,9 +33,9 @@ func ConfigureMosquitto(hubConfig *hubconfig.HubConfig, templateFilename string,
 
 	// overkill a mosquitto with a bazooka
 	templateParams := map[string]string{
-		"homeFolder":   hubConfig.Home,
-		"certPortMqtt": fmt.Sprint(hubConfig.Messenger.CertPortMqtt),
-		"unpwPortWS":   fmt.Sprint(hubConfig.Messenger.UnpwPortWS),
+		"homeFolder":     hubConfig.Home,
+		"mqttCertPort":   fmt.Sprint(hubConfig.MqttCertPort),
+		"mqttUnpwPortWS": fmt.Sprint(hubConfig.MqttUnpwPortWS),
 	}
 
 	tpl, err := template.New("").Parse(string(configTemplate))

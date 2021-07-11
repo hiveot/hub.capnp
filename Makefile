@@ -6,7 +6,7 @@ PKG_NAME=wost-hub.tgz
 
 .PHONY: 
 
-all: hub gencerts mosquitto-pb idprov-pb ## Build hub and core apps
+all: hub gencerts mosqauth mosquittomgr idprov-pb ## Build hub and core apps
 
 install:  ## Install the hub into ~/bin/wost/bin and config
 	mkdir -p ~/bin/wost/bin
@@ -15,20 +15,22 @@ install:  ## Install the hub into ~/bin/wost/bin and config
 	cp $(DIST_FOLDER)/bin/* ~/bin/wost/bin/
 	cp -n $(DIST_FOLDER)/config/* ~/bin/wost/config/  
 
-dist: clean x64  ## Build binary distribution including config
+dist: clean   ## Build binary distribution tarball 
 		tar -czf $(PKG_NAME) -C $(DIST_FOLDER) .
 
 test: .PHONY ## Run tests (todo fix this)
-	go test -v ./...
+	go test -failfast -v ./...
 
 clean: ## Clean distribution files
 	go clean
 	go mod tidy
 	rm -f test/certs/*
 	rm -f test/logs/*
+	rm -f test/config/mosquitto.conf
 	rm -f $(DIST_FOLDER)/certs/*
 	rm -f $(DIST_FOLDER)/logs/*
 	rm -f $(DIST_FOLDER)/bin/*
+	rm -f $(DIST_FOLDER)/config/mosquitto.conf
 	rm -f debug $(PKG_NAME)
 	mkdir -p $(DIST_FOLDER)/bin
 	mkdir -p $(DIST_FOLDER)/certs
@@ -47,18 +49,20 @@ clean: ## Clean distribution files
 idprov-pb: ## Build idprov-pb plugin
 	go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go
 
-# The mosqauth plugin only builds for the local environment, x64 or arms need to be build on their respective platforms
-mosquitto-pb: ## Build mosquitto manager
+mosquittomgr: mosqauth ## Build mosquitto configuration manager
 	go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go
-	cd core/mosquitto-pb/mosqauth/main && make
+	
+mosqauth: ## Build mosquitto auth plugin for use by the Hub
+	cd cmd/mosqauth && make
+	@echo "> SUCCESS. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@"
 
 gencerts: ## Build gencerts utility to generate self-signed certificates with CA
 	go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go
-	@echo "> SUCCESS. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@ and $(DIST_FOLDER)/arm/$@"
+	@echo "> SUCCESS. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@"
 
-hub: ## Build hub for amd64 and arm targets
+hub: ## Build WoST Hub
 	go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go
-	@echo "> SUCCESS. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@ and $(DIST_FOLDER)/arm/$@"
+	@echo "> SUCCESS. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@"
 
 
 #docker: ## Build hub for Docker target (TODO untested)

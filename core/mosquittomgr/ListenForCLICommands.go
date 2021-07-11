@@ -1,4 +1,4 @@
-package mosquittopb
+package mosquittomgr
 
 // ListenForCLICommands opens a port to listen for commands to manage mosquitto
 // TODO

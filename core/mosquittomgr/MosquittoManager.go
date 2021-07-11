@@ -1,4 +1,4 @@
-package mosquittopb
+package mosquittomgr
 
 import (
 	"os/exec"

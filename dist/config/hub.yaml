@@ -1,15 +1,14 @@
 # Example hub configuration
 
 # Message bus configuration, paths are relative to application home
-messenger:
-  address: "" # defaults to outbound port
-  certPortMqtt: 8883 # certificate based auth over MQTT/TLS
-  unpwPortWS: 8884 # username password auth over WebSocket/TLS
+mqttAddress: "" # IP or hostname of message bus. Defaults to outbound interface address
+mqttCertPort: 8883 # certificate based auth over MQTT/TLS, default 8883
+mqttUnpwPortWS: 8884 # username password auth over WebSocket/TLS, default 8884
+mqttTimeout: 3 # Mqtt connection timeout
 
 # Logging
-logging:
-  #logFile: "./logs/hub.log" # relative to the application home
-  #logLevel: "warning" # debug, info, warning, error. Default is warning
+logFile: "./logs/hub.log" # relative to the application home
+#logLevel: "warning" # debug, info, warning, error. Default is warning
 
 #Folders are relative to the app home directory
 #configFolder: "../config"

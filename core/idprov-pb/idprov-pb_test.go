@@ -5,8 +5,10 @@ import (
 	"path"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	idprovpb "github.com/wostzone/hub/core/idprov-pb"
+	"github.com/wostzone/idprov-go/pkg/idprov"
 	"github.com/wostzone/wostlib-go/pkg/hubconfig"
 )
 
@@ -23,12 +25,20 @@ func TestMain(m *testing.M) {
 }
 
 func TestStartStop(t *testing.T) {
-	idpConfig := idprovpb.IDProvPBConfig{}
+	idpConfig := &idprovpb.IDProvPBConfig{}
 
 	hubConfig, err := hubconfig.LoadCommandlineConfig(homeFolder, idprovpb.PluginID, &idpConfig)
-	idpPB := idprovpb.NewIDProvPB(idpConfig, *hubConfig)
+	idpPB := idprovpb.NewIDProvPB(idpConfig, hubConfig)
 
 	err = idpPB.Start()
+	assert.NoError(t, err)
+
+	idpc := idprov.NewIDProvClient("test", idpConfig.IdpAddress, idpConfig.IdpPort, hubConfig.CertsFolder)
+	err = idpc.Start()
+	assert.NoError(t, err)
+
+	idpc.Stop()
+
 	require.NoError(t, err)
 	idpPB.Stop()
 }

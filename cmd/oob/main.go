@@ -7,7 +7,8 @@ import (
 	"path"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/idprov-pb/pkg/oob"
+	"github.com/wostzone/idprov-go/pkg/idprovoob"
+	"github.com/wostzone/wostlib-go/pkg/hubconfig"
 )
 
 // Commandline utility to set the out of band secret for provisioning
@@ -18,10 +19,12 @@ func main() {
 
 	// Some additional commandline arguments for this plugin
 	appDir := path.Dir(os.Args[0])
-	var hostname string = ""
+	var hostname string = string(hubconfig.GetOutboundIP(""))
 	var certFolder string = path.Join(appDir, "../certs")
+	var port uint = 9678
 
-	flag.StringVar(&hostname, "server", "localhost:9678", "Hostname/IP:port of the provisioning server. Default localhost")
+	flag.StringVar(&hostname, "server", hostname, "Address of the provisioning server")
+	flag.UintVar(&port, "server", port, "Port of the provisioning server")
 	flag.StringVar(&certFolder, "certs", certFolder, "Folder with CA certificate and key")
 	flag.Parse()
 
@@ -35,8 +38,8 @@ func main() {
 	deviceID := args[0]
 	secret := args[1]
 
-	oobClient := oob.NewOOBClient()
-	err := oobClient.Start(hostname, certFolder)
+	oobClient := idprovoob.NewOOBClient(hostname, port, certFolder)
+	err := oobClient.Start()
 	if err == nil {
 		_, err = oobClient.PostOOB(deviceID, secret)
 		oobClient.Stop()

@@ -12,7 +12,7 @@ import (
 )
 
 // Generate certificates in the wost certs folder if they don't exist.
-// If they do exist, this will exit.
+// If certificates already exists then no changes will be made.
 func main() {
 	// set flag for help
 	ifName, mac, ip := tlsclient.GetOutboundInterface("")

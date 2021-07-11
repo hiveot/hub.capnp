@@ -23,7 +23,7 @@ log_type information
 
 # MQTT over TLS/SSL for use with certificate auth. 
 # This is the preferred connection method and used by devices, plugins, administrator and consumers with a certificate.
-listener {{.certPortMqtt}}
+listener {{.mqttCertPort}}
 cafile {{.homeFolder}}/certs/caCert.pem
 keyfile {{.homeFolder}}/certs/hubKey.pem
 certfile {{.homeFolder}}/certs/hubCert.pem
@@ -42,7 +42,7 @@ auth_plugin ../../dist/bin/mosqauth.so
 # Intended for web browser and client applications that are consumers without certificate
 # Client certificates are not used but a server CA is needed on the client or the 
 #  client must ignore certificate verification.
-listener {{.unpwPortWS}}
+listener {{.mqttUnpwPortWS}}
 protocol websockets
 cafile {{.homeFolder}}/certs/caCert.pem
 keyfile {{.homeFolder}}/certs/hubKey.pem

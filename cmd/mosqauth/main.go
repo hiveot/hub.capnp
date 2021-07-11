@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/sirupsen/logrus"
-	auth "github.com/wostzone/hub/core/auth/pkg"
+	"github.com/wostzone/hub/core/auth"
 )
 
 // from mosquitto.h

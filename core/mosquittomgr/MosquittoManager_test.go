@@ -1,4 +1,4 @@
-package mosquittopb_test
+package mosquittomgr_test
 
 import (
 	"os"
@@ -9,7 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	mosquittopb "github.com/wostzone/hub/core/mosquitto-pb"
+	"github.com/wostzone/hub/core/mosquittomgr"
 	"github.com/wostzone/wostlib-go/pkg/certsetup"
 	"github.com/wostzone/wostlib-go/pkg/hubclient"
 	"github.com/wostzone/wostlib-go/pkg/hubconfig"
@@ -27,7 +27,8 @@ var homeFolder string
 func TestMain(m *testing.M) {
 	cwd, _ := os.Getwd()
 	homeFolder = path.Join(cwd, "../../test")
-	names := []string{"localhost"}
+	ip := hubconfig.GetOutboundIP("").String()
+	names := []string{string(ip)}
 	hubconfig.SetLogging("info", "", "")
 	// for testing the certs must exist
 	certsFolder := path.Join(homeFolder, "certs")
@@ -41,9 +42,9 @@ func TestStartStop(t *testing.T) {
 	logrus.Infof("---TestStartStop---")
 	const pluginID = "mosquitto-pb-test"
 
-	svc := mosquittopb.NewMosquittoManager()
-	hubConfig, _ = hubconfig.LoadPluginConfig(homeFolder, mosquittopb.PluginID, &svc.Config)
-	hubconfig.SetLogging(hubConfig.Logging.Loglevel, "", hubConfig.Logging.TimeFormat)
+	svc := mosquittomgr.NewMosquittoManager()
+	hubConfig, _ = hubconfig.LoadPluginConfig(homeFolder, mosquittomgr.PluginID, &svc.Config)
+	hubconfig.SetLogging(hubConfig.Loglevel, "", hubConfig.TimeFormat)
 
 	err := svc.Start(hubConfig)
 	assert.NoError(t, err)
@@ -59,9 +60,9 @@ func TestPluginConnect(t *testing.T) {
 	const plugin2ID = "mosquitto-pb-test2"
 	const thing1ID = "urn:test:thing1"
 
-	svc := mosquittopb.NewMosquittoManager()
-	hubConfig, _ = hubconfig.LoadPluginConfig(homeFolder, mosquittopb.PluginID, &svc.Config)
-	hubconfig.SetLogging(hubConfig.Logging.Loglevel, "", hubConfig.Logging.TimeFormat)
+	svc := mosquittomgr.NewMosquittoManager()
+	hubConfig, _ = hubconfig.LoadPluginConfig(homeFolder, mosquittomgr.PluginID, &svc.Config)
+	hubconfig.SetLogging(hubConfig.Loglevel, "", hubConfig.TimeFormat)
 	err := svc.Start(hubConfig)
 	assert.NoError(t, err)
 

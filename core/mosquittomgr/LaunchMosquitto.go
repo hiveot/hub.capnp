@@ -1,5 +1,5 @@
-// Package internal with launching of the mosquitto broker
-package mosquittopb
+// Package mosquittomgr with launching of the mosquitto broker
+package mosquittomgr
 
 import (
 	"os"

@@ -17,7 +17,7 @@ func main() {
 	// var clientID = PluginID
 
 	// Service configuration with defaults
-	idpConfig := idprovpb.IDProvPBConfig{
+	idpConfig := &idprovpb.IDProvPBConfig{
 		IdpCerts:        "./idpcerts",
 		ClientID:        idprovpb.PluginID,
 		EnableDiscovery: true,
@@ -40,7 +40,7 @@ func main() {
 	// commandline overrides configfile
 	flag.Parse()
 
-	pb := idprovpb.NewIDProvPB(idpConfig, *hubConfig)
+	pb := idprovpb.NewIDProvPB(idpConfig, hubConfig)
 	err = pb.Start()
 
 	if err != nil {

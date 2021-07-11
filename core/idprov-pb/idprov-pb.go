@@ -41,10 +41,14 @@ func (pb *IDProvPB) Stop() {
 	}
 }
 
-func NewIDProvPB(config IDProvPBConfig, hubConfig hubconfig.HubConfig) *IDProvPB {
+// Create a new IDProv protocol binding instance
+//  config for IDProv server. Will be updated with defaults
+//  hubConfig with certificate info
+// Returns IDProv protocol binding instance
+func NewIDProvPB(config *IDProvPBConfig, hubConfig *hubconfig.HubConfig) *IDProvPB {
 	// use default values if config is incomplete
 	if config.IdpAddress == "" {
-		config.IdpAddress = idprovserver.GetOutboundIP("").String()
+		config.IdpAddress = hubconfig.GetOutboundIP("").String()
 	}
 	if config.IdpPort == 0 {
 		config.IdpPort = 43776
@@ -65,8 +69,8 @@ func NewIDProvPB(config IDProvPBConfig, hubConfig hubconfig.HubConfig) *IDProvPB
 	server.Directory().Services = config.Services
 
 	return &IDProvPB{
-		config:    config,
-		hubConfig: hubConfig,
+		config:    *config,
+		hubConfig: *hubConfig,
 		server:    server,
 	}
 }

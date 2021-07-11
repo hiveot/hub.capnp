@@ -1,4 +1,4 @@
-package mosquittopb
+package mosquittomgr
 
 // PublishServiceTD generates a TD for this service and publishes it.
 // It includes the admin HTTPS API to manage mosquitto.

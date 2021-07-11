@@ -1,6 +1,7 @@
+# Build for mosquitto authentication & authorization plugin for WoST Hub
 CFLAGS := -I/usr/local/include -fPIC
 LDFLAGS :=  -shared 
-DIST := ../../../../dist
+DIST := ../../dist
 
 all: mosqauth
 
