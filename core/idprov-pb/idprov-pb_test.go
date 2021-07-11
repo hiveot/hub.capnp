@@ -33,7 +33,8 @@ func TestStartStop(t *testing.T) {
 	err = idpPB.Start()
 	assert.NoError(t, err)
 
-	idpc := idprov.NewIDProvClient("test", idpConfig.IdpAddress, idpConfig.IdpPort, hubConfig.CertsFolder)
+	// Both mqtt and idprov server must live on the same address to be able to use the same server cert
+	idpc := idprov.NewIDProvClient("test", hubConfig.MqttAddress, idpConfig.IdpPort, hubConfig.CertsFolder)
 	err = idpc.Start()
 	assert.NoError(t, err)
 

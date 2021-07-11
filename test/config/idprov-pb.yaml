@@ -1,6 +1,6 @@
 # Configuration file for IDProv provisioning protocol binding
 
-# Listening address of the server. Default is the first non local interface
+# Listening address of the server when different from the hub mqtt server
 # address: ""
 
 # Listening port of the server. Default is 43776

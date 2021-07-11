@@ -16,13 +16,13 @@ func main() {
 	svc := mosquittomgr.NewMosquittoManager()
 	hubConfig, err := hubconfig.LoadCommandlineConfig("", mosquittomgr.PluginID, &svc.Config)
 	if err != nil {
-		logrus.Errorf("Mosquitto-pb: Start aborted due to commandline error")
+		logrus.Errorf("Mosquittomgr: Start aborted due to commandline error")
 		os.Exit(1)
 	}
 
 	err = svc.Start(hubConfig)
 	if err != nil {
-		logrus.Errorf("Mosquitto-pb: Failed to start: %s", err)
+		logrus.Errorf("Mosquittomgr: Failed to start: %s", err)
 		os.Exit(1)
 	}
 	hubclient.WaitForSignal()

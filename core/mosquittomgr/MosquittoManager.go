@@ -9,7 +9,7 @@ import (
 	"github.com/wostzone/wostlib-go/pkg/hubconfig"
 )
 
-const PluginID = "mosquitto-pb"
+const PluginID = "mosquittomgr"
 
 // const DefaultACLFile = "mosquitto.acl"
 const DefaultConfFile = "mosquitto.conf"

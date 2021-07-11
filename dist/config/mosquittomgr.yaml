@@ -1,9 +1,6 @@
 # Mosquitto manager protocol binding configuration
 
-#clientID: "mosquitto-pb"
-
-# Publish the TD for this service, default is false
-publishTD: true
+#clientID: "mosquittomgr"
 
 # Mosquitto template file
 mosquittoTemplate: "mosquitto.conf.template"

@@ -47,8 +47,11 @@ func (pb *IDProvPB) Stop() {
 // Returns IDProv protocol binding instance
 func NewIDProvPB(config *IDProvPBConfig, hubConfig *hubconfig.HubConfig) *IDProvPB {
 	// use default values if config is incomplete
+
+	// Both mqtt and idprov server must live on the same address to be able to use the same server cert
 	if config.IdpAddress == "" {
-		config.IdpAddress = hubconfig.GetOutboundIP("").String()
+		// config.IdpAddress = hubconfig.GetOutboundIP("").String()
+		config.IdpAddress = hubConfig.MqttAddress
 	}
 	if config.IdpPort == 0 {
 		config.IdpPort = 43776

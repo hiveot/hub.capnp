@@ -19,19 +19,30 @@ import (
 
 var hubConfig *hubconfig.HubConfig
 var homeFolder string
+var configFolder string
 
 // NOTE: GENERATE MOSQAUTH.SO BEFORE RUNNING THESE TESTS
 // eg, cd mosquitto-pb/mosqauth/main && make
+
+// easy cleanup for existing  certificate
+// func removeCerts(folder string) {
+// 	_, _ = exec.Command("sh", "-c", "rm -f "+path.Join(folder, "*.pem")).Output()
+// }
 
 // TestMain uses the project test folder as the home folder and generates test certificates
 func TestMain(m *testing.M) {
 	cwd, _ := os.Getwd()
 	homeFolder = path.Join(cwd, "../../test")
-	ip := hubconfig.GetOutboundIP("").String()
-	names := []string{string(ip)}
-	hubconfig.SetLogging("info", "", "")
+	hubConfig, _ = hubconfig.LoadHubConfig(homeFolder)
+	configFolder = hubConfig.ConfigFolder
+	hubconfig.SetLogging(hubConfig.Loglevel, "", "")
+
+	// TODO: should cert be based on name or address, or both?
+	ip := hubconfig.GetOutboundIP(hubConfig.MqttAddress).String()
+	names := []string{string(ip), hubConfig.MqttAddress}
 	// for testing the certs must exist
 	certsFolder := path.Join(homeFolder, "certs")
+	// removeCerts(certsFolder)
 	certsetup.CreateCertificateBundle(names, certsFolder)
 
 	result := m.Run()
@@ -43,10 +54,10 @@ func TestStartStop(t *testing.T) {
 	const pluginID = "mosquitto-pb-test"
 
 	svc := mosquittomgr.NewMosquittoManager()
-	hubConfig, _ = hubconfig.LoadPluginConfig(homeFolder, mosquittomgr.PluginID, &svc.Config)
-	hubconfig.SetLogging(hubConfig.Loglevel, "", hubConfig.TimeFormat)
+	err := hubconfig.LoadPluginConfig(configFolder, mosquittomgr.PluginID, &svc.Config)
+	assert.NoError(t, err)
 
-	err := svc.Start(hubConfig)
+	err = svc.Start(hubConfig)
 	assert.NoError(t, err)
 
 	// main.AuthPluginInit(nil, nil, 0)
@@ -61,9 +72,10 @@ func TestPluginConnect(t *testing.T) {
 	const thing1ID = "urn:test:thing1"
 
 	svc := mosquittomgr.NewMosquittoManager()
-	hubConfig, _ = hubconfig.LoadPluginConfig(homeFolder, mosquittomgr.PluginID, &svc.Config)
-	hubconfig.SetLogging(hubConfig.Loglevel, "", hubConfig.TimeFormat)
-	err := svc.Start(hubConfig)
+	err := hubconfig.LoadPluginConfig(configFolder, mosquittomgr.PluginID, &svc.Config)
+	assert.NoError(t, err)
+
+	err = svc.Start(hubConfig)
 	assert.NoError(t, err)
 
 	// a plugin must be able to connect using a client certificate

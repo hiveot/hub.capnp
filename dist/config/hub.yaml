@@ -1,9 +1,9 @@
 # Example hub configuration
 
 # Message bus configuration, paths are relative to application home
-mqttAddress: "" # IP or hostname of message bus. Defaults to outbound interface address
-mqttCertPort: 8883 # certificate based auth over MQTT/TLS, default 8883
-mqttUnpwPortWS: 8884 # username password auth over WebSocket/TLS, default 8884
+#mqttAddress: "" # IP or hostname of message bus. Defaults to outbound interface address
+#mqttCertPort: 8883 # certificate based auth over MQTT/TLS, default 8883
+#mqttUnpwPortWS: 8884 # username password auth over WebSocket/TLS, default 8884
 mqttTimeout: 3 # Mqtt connection timeout
 
 # Logging
@@ -17,7 +17,7 @@ logFile: "./logs/hub.log" # relative to the application home
 # Plugin to start
 plugins:
   # Core plugins
-  - mosquitto-pb # Launch the mosquitto server and manage mosquitto auth
+  - mosquittomgr # Launch the mosquitto server and manage mosquitto auth
   - idprov-pb # Automated provisioning of devices
   # Other plugins
   - logger # Log discovered Things
