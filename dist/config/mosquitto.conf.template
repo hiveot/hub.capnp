@@ -7,8 +7,11 @@
 #   2. Password based authentication for consumers (admin issued PW)
 
 per_listener_settings true
+
+# these are globals
 allow_anonymous false
 retain_available false
+persistence false
 #message_size_limit 10000000
 #max_inflight_messages 1000
 #max_queued_bytes 100000000  
@@ -20,38 +23,38 @@ log_type warning
 log_type notice
 log_type information
 
-
-# MQTT over TLS/SSL for use with certificate auth. 
+#--- Default listener for MQTT over TLS with certificate
 # This is the preferred connection method and used by devices, plugins, administrator and consumers with a certificate.
-listener {{.mqttCertPort}}
+port {{.mqttCertPort}}
+#max_connections 30
 cafile {{.homeFolder}}/certs/caCert.pem
 keyfile {{.homeFolder}}/certs/hubKey.pem
 certfile {{.homeFolder}}/certs/hubCert.pem
 
-# Certificate CN field identifies is used as the username
+# Certificate CN field is used as the username
 require_certificate true
 use_identity_as_username true  
 #	use_subject_as_username
 tls_version tlsv1.2
-
 # mosqauth plugin handles authorization
 auth_plugin {{.homeFolder}}/bin/mosqauth.so
 
 
-# WebSockets over TLS/SSL for use with login/password
+#--- WebSockets over TLS/SSL for use with login/password
 # Intended for web browser and client applications that are consumers without certificate
 # Client certificates are not used but a server CA is needed on the client or the 
 #  client must ignore certificate verification.
+# Use a password file for user names
 listener {{.mqttUnpwPortWS}}
+#max_connections 100
 protocol websockets
 cafile {{.homeFolder}}/certs/caCert.pem
 keyfile {{.homeFolder}}/certs/hubKey.pem
 certfile {{.homeFolder}}/certs/hubCert.pem
-
-# Certificates are optional for consumers but required for devices and plugins
 require_certificate false
 tls_version tlsv1.2
 # mosqauth plugin handles authorization
 auth_plugin {{.homeFolder}}/bin/mosqauth.so
-
+allow_anonymous false
+#todo: password_file {{.homeFolder}}/config/mosquitto-passwd
 

@@ -9,16 +9,23 @@ import (
 	"github.com/stretchr/testify/require"
 	idprovpb "github.com/wostzone/hub/core/idprov-pb"
 	"github.com/wostzone/idprov-go/pkg/idprov"
+	"github.com/wostzone/wostlib-go/pkg/certsetup"
 	"github.com/wostzone/wostlib-go/pkg/hubconfig"
 )
 
+// testing takes place using the test folder on localhost
 var homeFolder string
+var certsFolder string
+
+var hostnames = []string{"localhost"}
 
 // TestMain sets the project test folder as the home folder.
-// Make sure the certificates exist.
 func TestMain(m *testing.M) {
 	cwd, _ := os.Getwd()
 	homeFolder = path.Join(cwd, "../../test")
+	certsFolder = path.Join(homeFolder, "certs")
+	certsetup.CreateCertificateBundle(hostnames, certsFolder)
+
 	result := m.Run()
 
 	os.Exit(result)

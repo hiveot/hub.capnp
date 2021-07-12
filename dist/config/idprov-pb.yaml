@@ -1,13 +1,13 @@
 # Configuration file for IDProv provisioning protocol binding
 
 # Listening address of the server when different from the hub mqtt server
-# address: ""
+# idpAddress: ""
 
 # Listening port of the server. Default is 43776
-# port: 43776
+#idpPort: 43776
 
 # Folder for certificate storage relative to home. Default is certstore
-#certStore: "certstore"
+#idpCerts: "certstore"
 
 # Instance ID of the client. Default is the plugin ID 'idprov-pb'
 # clientID: "idprov-pb"
