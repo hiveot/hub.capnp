@@ -133,7 +133,7 @@ int mosquitto_auth_acl_check(void *userdata, int access, const struct mosquitto 
   GoString go_subjname = {subjname, strlen(subjname)};
 
   // ssl testing
-  printf("mosquitto_auth_acl_check: clientId=%s, subjectname=%s", clientid, subjname);
+  printf("mosquitto_auth_acl_check: clientId=%s, subjectname=%s\n", clientid, subjname);
   fflush(stdout);
   //---
   GoUint8 ret = AuthAclCheck(go_clientid, go_username, go_topic, go_access, go_subjname);

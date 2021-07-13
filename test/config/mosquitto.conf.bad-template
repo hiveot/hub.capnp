@@ -37,7 +37,7 @@ use_identity_as_username true   # CN
 #use_subject_as_username true     # Subject
 tls_version tlsv1.2
 # mosqauth plugin handles authorization
-auth_plugin {{.homeFolder}}/../dist/bin/mosqauth.so
+auth_plugin {{.homeFolder}}/../dist/bin/mosqauth-doesnotexist.so
 
 
 #--- WebSockets over TLS/SSL for use with login/password

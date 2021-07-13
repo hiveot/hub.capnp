@@ -1,8 +1,13 @@
 package auth
 
-import "github.com/wostzone/wostlib-go/pkg/certsetup"
+import (
+	"github.com/sirupsen/logrus"
+	"github.com/wostzone/wostlib-go/pkg/certsetup"
+	"github.com/wostzone/wostlib-go/pkg/td"
+)
 
 // AuthHandler handlers client authorization for access to Things
+// Work in progress. Currently authorizes IoT device access using certificates
 type AuthHandler struct {
 }
 
@@ -15,16 +20,21 @@ type AuthHandler struct {
 //  writing: true for writing to Thing, false for reading
 //  messageType is one of: td, configure, event, action
 // This returns false if access is denied or nil if allowed
-func (auth *AuthHandler) CheckAuthorization(userName string, certOU string, thingID string, writing bool, messageType string) bool {
+func (auth *AuthHandler) CheckAuthorization(
+	userName string, certOU string, thingID string, writing bool, messageType string) bool {
+
 	if certOU == certsetup.OUPlugin || certOU == certsetup.OUAdmin {
+		// plugins and admins have full permission
+		return true
+	} else if certOU == certsetup.OUIoTDevice {
+		if !auth.IsPublisher(userName, thingID) {
+			// publishers of IoT devices can not access devices of other publishers
+			logrus.Infof("CheckAuthorization: Refused access by device '%s' to thingID '%s'. Thing belongs to a different publisher", userName, thingID)
+			return false
+		}
 		return true
 	}
-
-	// devices can do anything on with their own Things
-	if auth.IsPublisher(userName, thingID) {
-		return true
-	}
-
+	// anything else is allowed access if they are in the same group as the thing
 	groups := auth.GetGroups(thingID)
 	role := auth.GetRole(userName, groups)
 	hasPerm := auth.HasPermission(role, writing, messageType)
@@ -37,24 +47,41 @@ func (auth *AuthHandler) GetGroups(thingID string) []string {
 	return []string{}
 }
 
-// Return the highest role the client has in a group
-func (auth *AuthHandler) GetRole(clientID string, groups []string) string {
+// Return the highest role the user has in a group
+func (auth *AuthHandler) GetRole(userName string, groups []string) string {
 	// FIXME: make this work
-	return GroupRoleManager
+	return GroupRoleNone
 }
 
-// Determine if the role allows the operation
+// Determine if the consumer role allows the read/write operation
 func (auth *AuthHandler) HasPermission(role string, writing bool, messageType string) bool {
-	// FIXME: make this work
-	return true
+	hasPermission := false
+	// TODO: include message type
+	if writing {
+		hasPermission = (role == GroupRoleEditor || role == GroupRoleManager || role == GroupRoleThing)
+	} else {
+		hasPermission = (role == GroupRoleEditor || role == GroupRoleManager || role == GroupRoleViewer || role == GroupRoleThing)
+	}
+	return hasPermission
 }
-func (auth *AuthHandler) IsPublisher(clientID string, thingID string) bool {
-	// FIXME: make this work
-	return false
+
+// IsPublisher checks if the deviceID is the publisher component of the thingID
+// This is based on the predefined thingID format publisher:sensorID
+func (auth *AuthHandler) IsPublisher(deviceID string, thingID string) bool {
+	zone, publisherID, thingDeviceID, deviceType := td.SplitThingID(thingID)
+	_ = zone
+	_ = thingDeviceID
+	_ = deviceType
+	if publisherID != deviceID {
+		return false
+	}
+	// permission granted: the publisher of the thingID is the device that is connected
+	return true
 }
 
 // Start the authhandler. This loads its configuration and initializes its in-memory cache
-func (auth *AuthHandler) Start() {
+func (auth *AuthHandler) Start() error {
+	return nil
 }
 
 // Stop the auth handler.

@@ -2,7 +2,6 @@ package mosquittomgr
 
 import (
 	"os/exec"
-	"path"
 
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/wostlib-go/pkg/hubclient"
@@ -50,10 +49,6 @@ func (mm *MosquittoManager) Start(hubConfig *hubconfig.HubConfig) error {
 	mm.hubConfig = hubConfig
 
 	templateFilename := mm.Config.MosquittoTemplate
-	if !path.IsAbs(templateFilename) {
-		templateFilename = path.Join(hubConfig.ConfigFolder, templateFilename)
-	}
-
 	configFile, err := ConfigureMosquitto(mm.hubConfig, templateFilename, mm.Config.MosquittoConf)
 	if err != nil {
 		return err
@@ -61,6 +56,7 @@ func (mm *MosquittoManager) Start(hubConfig *hubconfig.HubConfig) error {
 	mm.mosquittoCmd, err = LaunchMosquitto(configFile)
 	if err != nil {
 		logrus.Fatalf("Mosquitto failed to start: %s", err)
+		return err
 	}
 
 	mm.hubClient = hubclient.NewMqttHubPluginClient(mm.Config.ClientID, mm.hubConfig)
@@ -68,6 +64,7 @@ func (mm *MosquittoManager) Start(hubConfig *hubconfig.HubConfig) error {
 	if err != nil {
 		return err
 	}
+	logrus.Infof("MosquittoManager started successfully")
 	// Listen for provisioning requests
 	// topic := MakeProvisionTopic('+', ProvisionRequest)
 	// mm.hubClient.SubscribeProvisioning(topic, HandleProvisionRequest)

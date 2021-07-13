@@ -2,6 +2,6 @@ package mosquittomgr
 
 // ListenForCLICommands opens a port to listen for commands to manage mosquitto
 // TODO
-func (mm *MosquittoManager) ListenForCLICommands() {
+// func (mm *MosquittoManager) ListenForCLICommands() {
 
-}
+// }

@@ -9,6 +9,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/core/auth"
+	"github.com/wostzone/wostlib-go/pkg/hubconfig"
 )
 
 // from mosquitto.h
@@ -59,6 +60,9 @@ var authHandler *auth.AuthHandler
 //export AuthPluginInit
 func AuthPluginInit(keys []string, values []string, authOptsNum int) {
 	logrus.Warningf("mosqauth: AuthPluginInit invoked")
+
+	// TODO: get level from config
+	hubconfig.SetLogging("info", "")
 
 	authHandler = auth.NewAuthHandler()
 	authHandler.Start()
@@ -117,6 +121,7 @@ func AuthAclCheck(clientID, userName, topic string, access int, certSubjName str
 	// topic format: things/{publisherID}/{thingID}/td|configure|event|action|
 	parts = strings.Split(topic, "/")
 	if len(parts) < 4 {
+		logrus.Infof("mosqauth: AuthAclCheck Invalid topic format '%s'. Expected min 4 parts.", topic)
 		return MOSQ_ERR_ACL_DENIED
 	}
 	thingID := parts[2]
