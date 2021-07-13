@@ -20,7 +20,7 @@ func main() {
 	// flag.String("-c", "", "Location of hub.yaml config file")
 	// flag.String("-home", "", "Location application home directory")
 	flag.StringVar(&san, "-san", san, "Subject name or IP address to use in certificate. Default interface "+ifName)
-	hc, err := hubconfig.LoadHubConfig("")
+	hc, err := hubconfig.LoadHubConfig("", "")
 	if err != nil {
 		os.Exit(1)
 	}

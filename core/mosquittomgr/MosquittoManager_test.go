@@ -34,7 +34,7 @@ var configFolder string
 func TestMain(m *testing.M) {
 	cwd, _ := os.Getwd()
 	homeFolder = path.Join(cwd, "../../test")
-	hubConfig, _ = hubconfig.LoadHubConfig(homeFolder)
+	hubConfig, _ = hubconfig.LoadHubConfig(homeFolder, mosquittomgr.PluginID)
 	configFolder = hubConfig.ConfigFolder
 	hubconfig.SetLogging(hubConfig.Loglevel, "")
 
@@ -55,7 +55,7 @@ func TestStartStop(t *testing.T) {
 	const pluginID = "mosquitto-pb-test"
 
 	svc := mosquittomgr.NewMosquittoManager()
-	err := hubconfig.LoadPluginConfig(configFolder, mosquittomgr.PluginID, &svc.Config)
+	err := hubconfig.LoadPluginConfig(configFolder, mosquittomgr.PluginID, &svc.Config, nil)
 	assert.NoError(t, err)
 
 	err = svc.Start(hubConfig)
@@ -73,7 +73,7 @@ func TestPluginConnect(t *testing.T) {
 	const thing1ID = "urn:test:thing1"
 
 	svc := mosquittomgr.NewMosquittoManager()
-	err := hubconfig.LoadPluginConfig(configFolder, mosquittomgr.PluginID, &svc.Config)
+	err := hubconfig.LoadPluginConfig(configFolder, mosquittomgr.PluginID, &svc.Config, nil)
 	assert.NoError(t, err)
 
 	err = svc.Start(hubConfig)
@@ -99,7 +99,7 @@ func TestPasswd(t *testing.T) {
 	password1 := "user1" // in password file in test folder
 
 	svc := mosquittomgr.NewMosquittoManager()
-	err := hubconfig.LoadPluginConfig(configFolder, mosquittomgr.PluginID, &svc.Config)
+	err := hubconfig.LoadPluginConfig(configFolder, mosquittomgr.PluginID, &svc.Config, nil)
 	assert.NoError(t, err)
 
 	err = svc.Start(hubConfig)
@@ -124,7 +124,7 @@ func TestBadPasswd(t *testing.T) {
 	password1 := "badpass"
 
 	svc := mosquittomgr.NewMosquittoManager()
-	err := hubconfig.LoadPluginConfig(configFolder, mosquittomgr.PluginID, &svc.Config)
+	err := hubconfig.LoadPluginConfig(configFolder, mosquittomgr.PluginID, &svc.Config, nil)
 	assert.NoError(t, err)
 	err = svc.Start(hubConfig)
 	assert.NoError(t, err)
@@ -144,7 +144,7 @@ func TestTemplateNotFound(t *testing.T) {
 	logrus.Infof("---TestTemplateNotFound---")
 
 	svc := mosquittomgr.NewMosquittoManager()
-	err := hubconfig.LoadPluginConfig(configFolder, mosquittomgr.PluginID, &svc.Config)
+	err := hubconfig.LoadPluginConfig(configFolder, mosquittomgr.PluginID, &svc.Config, nil)
 	svc.Config.MosquittoTemplate = "./notatemplatefile"
 	assert.NoError(t, err)
 	err = svc.Start(hubConfig)
@@ -157,7 +157,7 @@ func TestBadConfigTemplate(t *testing.T) {
 	logrus.Infof("---TestBadConfigTemplate---")
 
 	svc := mosquittomgr.NewMosquittoManager()
-	err := hubconfig.LoadPluginConfig(configFolder, mosquittomgr.PluginID, &svc.Config)
+	err := hubconfig.LoadPluginConfig(configFolder, mosquittomgr.PluginID, &svc.Config, nil)
 	assert.NoError(t, err)
 	svc.Config.MosquittoTemplate = "mosquitto.conf.bad-template"
 	err = svc.Start(hubConfig)

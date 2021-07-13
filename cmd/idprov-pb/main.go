@@ -6,39 +6,38 @@ import (
 
 	"github.com/sirupsen/logrus"
 	idprovpb "github.com/wostzone/hub/core/idprov-pb"
+	"github.com/wostzone/idprov-go/pkg/idprov"
 	"github.com/wostzone/wostlib-go/pkg/hubclient"
 	"github.com/wostzone/wostlib-go/pkg/hubconfig"
 )
 
 // main Parse commandline options and launch IDProvisioning protocol binding service
 func main() {
-	// appDir := path.Dir(os.Args[0])
-	// var certFolder string = path.Join(appDir, "../certs")
-	// var clientID = PluginID
 
 	// Service configuration with defaults
 	idpConfig := &idprovpb.IDProvPBConfig{
-		IdpCerts:        "./idpcerts",
+		IdpCerts:        idprovpb.DefaultCertStore,
 		ClientID:        idprovpb.PluginID,
 		EnableDiscovery: true,
-		IdpPort:         43776,
+		IdpPort:         idprov.DefaultPort,
 		IdpAddress:      "",
 		ValidForDays:    30,
 	}
 
 	// Commandline can override configuration
 	// flag.StringVar(&idpConfig.Address, "address", "localhost", "Listening address of the provisioning server.")
-	flag.StringVar(&idpConfig.IdpAddress, "idpAddress", idpConfig.IdpAddress, "Listening address override. Default is auto")
+	flag.StringVar(&idpConfig.IdpAddress, "idpAddress", idpConfig.IdpAddress, "IDP Server address. Default is Hub address")
 	flag.StringVar(&idpConfig.IdpCerts, "idpCerts", idpConfig.IdpCerts, "Folder with provisioned certificates")
 	flag.UintVar(&idpConfig.IdpPort, "idpPort", idpConfig.IdpPort, "Listening port of the provisioning server.")
 	flag.StringVar(&idpConfig.ClientID, "clientID", idprovpb.PluginID, "Plugin Client ID")
-	// FIXME: use the pluginID for the log filename
+
 	hubConfig, err := hubconfig.LoadCommandlineConfig("", idprovpb.PluginID, &idpConfig)
 	if err != nil {
+		logrus.Printf("bye bye")
 		os.Exit(1)
 	}
 	// commandline overrides configfile
-	flag.Parse()
+	// flag.Parse()
 
 	pb := idprovpb.NewIDProvPB(idpConfig, hubConfig)
 	err = pb.Start()

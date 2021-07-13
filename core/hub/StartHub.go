@@ -18,6 +18,8 @@ import (
 //  startPlugins set to false to only start the hub with message bus server if configured
 // Return nil or error if the hub configuration file or certificate are not found
 func StartHub(homeFolder string, startPlugins bool) error {
+	pluginFolder := path.Join(homeFolder, "bin")
+
 	var err error
 	var noPlugins bool
 	// the noplugins commandline argument only applies to the hub
@@ -26,24 +28,19 @@ func StartHub(homeFolder string, startPlugins bool) error {
 	if err != nil {
 		return err
 	}
-	// Exit if certificates don't exist
-	caCertFile := path.Join(hc.CertsFolder, certsetup.CaCertFile)
-	if _, err := os.Stat(caCertFile); os.IsNotExist(err) {
-		logrus.Fatalf("CA Certificate file %s not found.", caCertFile)
-		return err
-	} else {
-		logrus.Warningf("Using certificates from %s", hc.CertsFolder)
-	}
+	// Create a CA if needed and update hub and plugin certs
+	sanNames := []string{hc.MqttAddress}
+	certsetup.CreateCertificateBundle(sanNames, hc.CertsFolder)
 
 	// start the plugins unless disabled
-	if noPlugins || hc.PluginFolder == "" {
-		logrus.Warningf("Starting Hub without plugins")
+	if noPlugins {
+		logrus.Infof("Starting Hub without plugins")
 	} else {
 		// launch plugins
-		logrus.Warningf("Starting %d plugins on %s.", len(hc.Plugins), hc.MqttAddress)
+		logrus.Infof("Starting %d plugins on %s.", len(hc.Plugins), hc.MqttAddress)
 
 		args := os.Args[1:] // pass the hubs args to the plugin
-		StartPlugins(hc.PluginFolder, hc.Plugins, args)
+		StartPlugins(pluginFolder, hc.Plugins, args)
 	}
 
 	logrus.Warningf("Hub started successfully!")

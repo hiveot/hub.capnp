@@ -6,7 +6,7 @@ mqttCertPort: 33100 # certificate based auth over MQTT/TLS
 mqttUnpwPortWS: 33101 # username password auth over WebSocket/TLS
 
 # Logging
-#logFile: "./logs/hub.log" # relative to home folder
+#logFile: "../logs/{pluginID}.log" # relative to the home directory
 logLevel: "info" # debug, info, warning, error. Default is warning
 
 #configFolder: "./config" # plugin config, relative to the working directory

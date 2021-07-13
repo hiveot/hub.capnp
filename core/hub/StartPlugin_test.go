@@ -38,7 +38,7 @@ func TestStartPluginTwice(t *testing.T) {
 func TestStartPluginsFromConfig(t *testing.T) {
 	// the binary 'ls' exists on Linux and Windows
 	hc := hubconfig.CreateDefaultHubConfig(homeFolder)
-	err := hubconfig.LoadConfig(path.Join(hc.ConfigFolder, "hub.yaml"), hc)
+	err := hubconfig.LoadConfig(path.Join(hc.ConfigFolder, "hub.yaml"), hc, nil)
 	assert.NoError(t, err)
 	hub.StartPlugins("", hc.Plugins, []string{})
 

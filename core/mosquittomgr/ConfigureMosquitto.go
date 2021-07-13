@@ -1,11 +1,9 @@
 package mosquittomgr
 
 import (
-	"bytes"
 	"fmt"
 	"io/ioutil"
 	"path"
-	"text/template"
 
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/wostlib-go/pkg/hubconfig"
@@ -19,7 +17,6 @@ import (
 //  configName  filename of the mosquitto configuration file to generate
 //  Returns the final configuration path or an error
 func ConfigureMosquitto(hubConfig *hubconfig.HubConfig, templateFilename string, configFilename string) (string, error) {
-	var msg bytes.Buffer
 
 	// load the template
 	if !path.IsAbs(templateFilename) {
@@ -37,10 +34,7 @@ func ConfigureMosquitto(hubConfig *hubconfig.HubConfig, templateFilename string,
 		"mqttCertPort":   fmt.Sprint(hubConfig.MqttCertPort),
 		"mqttUnpwPortWS": fmt.Sprint(hubConfig.MqttUnpwPortWS),
 	}
-
-	tpl, err := template.New("").Parse(string(configTemplate))
-	tpl.Execute(&msg, templateParams)
-	configTxt := msg.String()
+	configTxt := hubconfig.SubstituteText(string(configTemplate), templateParams)
 
 	// write the configuration file
 	if !path.IsAbs(configFilename) {
