@@ -17,6 +17,8 @@ persistence false
 #max_queued_bytes 100000000  
 #max_queued_messages 1000
 
+log_dest file {{.homeFolder}}/logs/mosquitto.log
+log_dest stdout
 log_timestamp_format [%Y-%m-%dT%H:%M:%S] Mosquitto
 log_type error
 log_type warning
@@ -38,6 +40,9 @@ use_identity_as_username true
 tls_version tlsv1.2
 # mosqauth plugin handles authorization
 auth_plugin {{.homeFolder}}/bin/mosqauth.so
+auth_opt_logFile {{.homeFolder}}/logs/mosqauth.log
+auth_opt_logLevel info
+auth_opt_aclFile {{.homeFolder}}/config/aclfile.yaml
 
 
 #--- WebSockets over TLS/SSL for use with login/password
@@ -55,6 +60,10 @@ require_certificate false
 tls_version tlsv1.2
 # mosqauth plugin handles authorization
 auth_plugin {{.homeFolder}}/bin/mosqauth.so
+auth_opt_logFile {{.homeFolder}}/logs/mosqauth.log
+auth_opt_logLevel info
+auth_opt_aclFile {{.homeFolder}}/config/aclfile.yaml
+
 allow_anonymous false
 #todo: password_file {{.homeFolder}}/config/mosquitto-passwd
 

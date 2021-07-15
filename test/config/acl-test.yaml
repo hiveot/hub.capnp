@@ -1,0 +1,14 @@
+# Example ACL group file
+
+#
+groups:
+  group1:
+    user1: viewer
+    user2: editor
+    device1: iotthing
+  group2:
+    user1: manager
+    device1: iotthing
+  group3:
+    user2: manager
+    device2: iotthing

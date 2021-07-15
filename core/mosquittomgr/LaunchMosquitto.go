@@ -13,7 +13,7 @@ import (
 // to the current process.
 //  returns with the command or error. Use cmd.Process.Kill to terminate.
 func LaunchMosquitto(configFile string) (*exec.Cmd, error) {
-	logrus.Infof("--- Starting mosquitto broker ---")
+	logrus.Infof("Starting mosquitto broker")
 
 	// mosquitto must be in the path
 	cmd := exec.Command("mosquitto", "-c", configFile)
@@ -25,9 +25,9 @@ func LaunchMosquitto(configFile string) (*exec.Cmd, error) {
 		return nil, err
 	}
 	go func() {
-		logrus.Infof("--- Mosquitto cmd.Wait started ---")
+		// logrus.Infof("Mosquitto cmd.Wait started")
 		_, err = cmd.Process.Wait()
-		logrus.Infof("--- Mosquitto cmd.Wait has ended ---")
+		logrus.Infof("Mosquitto has ended")
 	}()
 	// Give mosquitto some time to start, if starting failed due to error we might pick it up
 	time.Sleep(100 * time.Millisecond)

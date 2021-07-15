@@ -10,6 +10,8 @@ import (
 	"github.com/wostzone/wostlib-go/pkg/hubconfig"
 )
 
+const pluginID = "hub"
+
 // StartHub reads the hub configuration and launches the plugins. If the configuration is invalid
 // then start is aborted. The plugins receive the same commandline arguments as the hub.
 // Before starting the Hub, the certificates must have been generated as part of setup.
@@ -24,7 +26,7 @@ func StartHub(homeFolder string, startPlugins bool) error {
 	var noPlugins bool
 	// the noplugins commandline argument only applies to the hub
 	flag.BoolVar(&noPlugins, "noplugins", !startPlugins, "Start the hub without plugins")
-	hc, err := hubconfig.LoadCommandlineConfig(homeFolder, "", nil)
+	hc, err := hubconfig.LoadCommandlineConfig(homeFolder, pluginID, nil)
 	if err != nil {
 		return err
 	}
@@ -43,7 +45,7 @@ func StartHub(homeFolder string, startPlugins bool) error {
 		StartPlugins(pluginFolder, hc.Plugins, args)
 	}
 
-	logrus.Warningf("Hub started successfully!")
+	logrus.Warningf("Hub start successful!")
 
 	return nil
 }

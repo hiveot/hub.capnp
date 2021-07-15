@@ -38,7 +38,9 @@ use_identity_as_username true   # CN
 tls_version tlsv1.2
 # mosqauth plugin handles authorization
 auth_plugin {{.homeFolder}}/../dist/bin/mosqauth.so
-
+auth_opt_logFile {{.homeFolder}}/logs/mosqauth.log
+auth_opt_logLevel info
+auth_opt_aclFile {{.homeFolder}}/config/acl-test.yaml
 
 #--- WebSockets over TLS/SSL for use with login/password
 # Intended for web browser and client applications that are consumers without certificate
@@ -55,6 +57,10 @@ require_certificate false
 tls_version tlsv1.2
 # mosqauth plugin handles authorization
 auth_plugin {{.homeFolder}}/../dist/bin/mosqauth.so
+auth_opt_logFile {{.homeFolder}}/logs/mosqauth.log
+auth_opt_logLevel info
+auth_opt_aclFile {{.homeFolder}}/config/acl-test.yaml
+
 allow_anonymous false
 password_file {{.homeFolder}}/config/mosquitto-passwd
 

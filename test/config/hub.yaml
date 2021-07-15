@@ -4,9 +4,9 @@
 mqttAddress: "localhost" # LAN address to connect to the message bus
 mqttCertPort: 33100 # certificate based auth over MQTT/TLS
 mqttUnpwPortWS: 33101 # username password auth over WebSocket/TLS
+mqttTimeout: 3
 
 # Logging
-#logFile: "../logs/{pluginID}.log" # relative to the home directory
 logLevel: "info" # debug, info, warning, error. Default is warning
 
 #configFolder: "./config" # plugin config, relative to the working directory

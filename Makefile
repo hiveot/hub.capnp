@@ -13,6 +13,7 @@ install:  ## Install the hub into ~/bin/wost/bin and config
 	mkdir -p ~/bin/wost/config
 	mkdir -p ~/bin/wost/logs
 	cp $(DIST_FOLDER)/bin/* ~/bin/wost/bin/
+	cp $(DIST_FOLDER)/config/mosquitto.conf.template ~/bin/wost/config/  
 	cp -n $(DIST_FOLDER)/config/* ~/bin/wost/config/  
 
 dist: clean   ## Build binary distribution tarball 

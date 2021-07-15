@@ -27,10 +27,10 @@ func ConfigureMosquitto(hubConfig *hubconfig.HubConfig, templateFilename string,
 		logrus.Errorf("Unable to generate mosquitto configuration. Template file %s read error: %s", templateFilename, err)
 		return "", err
 	}
-
-	// overkill a mosquitto with a bazooka
+	// TODO: template keywords. These names MUST match hub.yaml :/
 	templateParams := map[string]string{
 		"homeFolder":     hubConfig.Home,
+		"logFolder":      path.Dir(hubConfig.LogFolder),
 		"mqttCertPort":   fmt.Sprint(hubConfig.MqttCertPort),
 		"mqttUnpwPortWS": fmt.Sprint(hubConfig.MqttUnpwPortWS),
 	}

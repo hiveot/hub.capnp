@@ -33,6 +33,8 @@ func TestStartPluginTwice(t *testing.T) {
 	// second time should fail as only single instances are allowed
 	cmd = hub.StartPlugin(homeFolder, pluginName, []string{})
 	assert.Nil(t, cmd)
+	// wait until the first sleep ends
+	time.Sleep(time.Second)
 }
 
 func TestStartPluginsFromConfig(t *testing.T) {
@@ -45,7 +47,7 @@ func TestStartPluginsFromConfig(t *testing.T) {
 }
 
 func TestStopPlugin(t *testing.T) {
-	pluginName := "sleep"
+	pluginName := "/bin/sleep"
 	cmd := hub.StartPlugin("", pluginName, []string{"10"})
 	assert.NotNil(t, cmd)
 	time.Sleep(1 * time.Second)
@@ -56,7 +58,7 @@ func TestStopPlugin(t *testing.T) {
 
 func TestStopEndedPlugin(t *testing.T) {
 	// the binary 'ls' exists on Linux and Windows
-	pluginName := "ls"
+	pluginName := "/bin/ls"
 	cmd := hub.StartPlugin(homeFolder, pluginName, []string{})
 	assert.NotNil(t, cmd)
 	// 'ls' returns within 1 sec so this attempts to stop a process that has already ended
@@ -68,7 +70,7 @@ func TestStopEndedPlugin(t *testing.T) {
 
 func TestStopAllPlugins(t *testing.T) {
 	// the binary 'ls' exists on Linux and Windows
-	cmd := hub.StartPlugin(homeFolder, "sleep", []string{"10"})
+	cmd := hub.StartPlugin(homeFolder, "/bin/sleep", []string{"10"})
 	assert.NotNil(t, cmd)
 	time.Sleep(1 * time.Second)
 	hub.StopAllPlugins()

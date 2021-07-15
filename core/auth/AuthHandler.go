@@ -9,6 +9,7 @@ import (
 // AuthHandler handlers client authorization for access to Things
 // Work in progress. Currently authorizes IoT device access using certificates
 type AuthHandler struct {
+	aclStore IAclStoreReader
 }
 
 // CheckAuthorization tests if the client has access to the device for the given operation
@@ -35,22 +36,10 @@ func (auth *AuthHandler) CheckAuthorization(
 		return true
 	}
 	// anything else is allowed access if they are in the same group as the thing
-	groups := auth.GetGroups(thingID)
-	role := auth.GetRole(userName, groups)
+	groups := auth.aclStore.GetGroups(thingID)
+	role := auth.aclStore.GetRole(userName, groups)
 	hasPerm := auth.HasPermission(role, writing, messageType)
 	return hasPerm
-}
-
-// Return the group IDs of the groups the thing is a member of
-func (auth *AuthHandler) GetGroups(thingID string) []string {
-	// FIXME: make this work
-	return []string{}
-}
-
-// Return the highest role the user has in a group
-func (auth *AuthHandler) GetRole(userName string, groups []string) string {
-	// FIXME: make this work
-	return GroupRoleNone
 }
 
 // Determine if the consumer role allows the read/write operation
@@ -81,15 +70,19 @@ func (auth *AuthHandler) IsPublisher(deviceID string, thingID string) bool {
 
 // Start the authhandler. This loads its configuration and initializes its in-memory cache
 func (auth *AuthHandler) Start() error {
-	return nil
+	err := auth.aclStore.Open()
+	return err
 }
 
 // Stop the auth handler.
 func (auth *AuthHandler) Stop() {
+	auth.aclStore.Close()
 }
 
 // NewAuthHandler creates a new instance of the authentication handler
-func NewAuthHandler() *AuthHandler {
-	ah := AuthHandler{}
+func NewAuthHandler(aclStore IAclStoreReader) *AuthHandler {
+	ah := AuthHandler{
+		aclStore: aclStore,
+	}
 	return &ah
 }

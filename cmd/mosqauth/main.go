@@ -55,16 +55,33 @@ const (
 	MOSQ_ACL_SUBSCRIBE = 0x04 // check if client can subscribe to the topic (with wildcard)
 )
 
+const MosqOptLogFile = "logFile"
+const MosqOptLogLevel = "logLevel"
+const MosqOptAclFile = "aclFile"
+
 var authHandler *auth.AuthHandler
 
 //export AuthPluginInit
 func AuthPluginInit(keys []string, values []string, authOptsNum int) {
-	logrus.Warningf("mosqauth: AuthPluginInit invoked")
+	logrus.Warningf("mosqauth: AuthPluginInit invoked. Keys=%s", keys)
+	// determine logging path. Key/Values are from mosquitto.conf
+	logFile := "authplug.log"
+	logLevel := "info"
+	aclFile := "aclFile.yaml"
+	for index, key := range keys {
+		// the key name mus tmatch the hub.yaml
+		if key == MosqOptLogFile {
+			logFile = values[index]
+		} else if key == MosqOptLogLevel {
+			logLevel = values[index]
+		} else if key == MosqOptAclFile {
+			aclFile = values[index]
+		}
+	}
 
-	// TODO: get level from config
-	hubconfig.SetLogging("info", "")
-
-	authHandler = auth.NewAuthHandler()
+	hubconfig.SetLogging(logLevel, logFile)
+	aclStore := auth.NewAclStoreFile(aclFile)
+	authHandler = auth.NewAuthHandler(aclStore)
 	authHandler.Start()
 }
 
@@ -118,14 +135,14 @@ func AuthAclCheck(clientID, userName, topic string, access int, certSubjName str
 		}
 	}
 
-	// topic format: things/{publisherID}/{thingID}/td|configure|event|action|
+	// topic format: things/{thingID}/td|configure|event|action|
 	parts = strings.Split(topic, "/")
-	if len(parts) < 4 {
+	if len(parts) < 3 {
 		logrus.Infof("mosqauth: AuthAclCheck Invalid topic format '%s'. Expected min 4 parts.", topic)
 		return MOSQ_ERR_ACL_DENIED
 	}
-	thingID := parts[2]
-	messageType := parts[3]
+	thingID := parts[1]
+	messageType := parts[2]
 	writing := (access == MOSQ_ACL_WRITE)
 	hasPermission := authHandler.CheckAuthorization(userName, certOU, thingID, writing, messageType)
 	if !hasPermission {
