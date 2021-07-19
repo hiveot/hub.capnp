@@ -8,7 +8,8 @@ import (
 	"strings"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/core/auth"
+	"github.com/wostzone/hub/core/authhandler"
+	"github.com/wostzone/hub/pkg/auth"
 	"github.com/wostzone/wostlib-go/pkg/hubconfig"
 )
 
@@ -55,50 +56,67 @@ const (
 	MOSQ_ACL_SUBSCRIBE = 0x04 // check if client can subscribe to the topic (with wildcard)
 )
 
-const MosqOptLogFile = "logFile"
-const MosqOptLogLevel = "logLevel"
-const MosqOptAclFile = "aclFile"
+// Default filenames for auth and logging
+const (
+	DefaultUnpwFile = "unpw.conf"
+	DefaultAclFile  = "acl.yaml"
+	DefaultLogFile  = "authplug.log"
+	DefaultLogLevel = "warning"
+)
 
-var authHandler *auth.AuthHandler
+// Configuration keys to override defaults using auth_opt_xxx in mosquitto.conf
+const (
+	MosqOptLogFile  = "logFile"
+	MosqOptLogLevel = "logLevel"
+	MosqOptAclFile  = "aclFile"
+	MosqOptUnpwFile = "unpwFile"
+)
+
+var authHandler *authhandler.AuthHandler
 
 //export AuthPluginInit
 func AuthPluginInit(keys []string, values []string, authOptsNum int) {
 	logrus.Warningf("mosqauth: AuthPluginInit invoked. Keys=%s", keys)
-	// determine logging path. Key/Values are from mosquitto.conf
-	logFile := "authplug.log"
-	logLevel := "info"
-	aclFile := "aclFile.yaml"
+	// Key/Values are from mosquitto.conf
+	logFile := DefaultLogFile
+	logLevel := DefaultLogLevel
+	aclFile := DefaultAclFile
+	unpwFile := DefaultUnpwFile
 	for index, key := range keys {
-		// the key name mus tmatch the hub.yaml
 		if key == MosqOptLogFile {
 			logFile = values[index]
 		} else if key == MosqOptLogLevel {
 			logLevel = values[index]
 		} else if key == MosqOptAclFile {
 			aclFile = values[index]
+		} else if key == MosqOptUnpwFile {
+			unpwFile = values[index]
 		}
 	}
 
 	hubconfig.SetLogging(logLevel, logFile)
-	aclStore := auth.NewAclStoreFile(aclFile)
-	authHandler = auth.NewAuthHandler(aclStore)
+	aclStore := auth.NewAclFileStore(aclFile)
+	unpwStore := auth.NewPasswordFileStore(unpwFile)
+	authHandler = authhandler.NewAuthHandler(aclStore, unpwStore)
 	authHandler.Start()
 }
 
 // AuthUnpwdCheck checks for a correct username/password
 // This matches the given password against the stored password hash
 // Returns:
-//  MOSQ_ERR_AUTH if authentication failed
-//  MOSQ_ERR_UNKNOWN for an application specific error
 //  MOSQ_ERR_SUCCESS if the user is authenticated
 //  MOSQ_ERR_PLUGIN_DEFER if we do not wish to handle this check
 //export AuthUnpwdCheck
 func AuthUnpwdCheck(clientID string, username string, password string, clientIP string) uint8 {
-	// TODO: remove password logging
-	logrus.Infof("mosqauth: AuthUnpwdCheck: clientID=%s, username=%s, pass=%s, clientIP=%s",
-		clientID, username, password, clientIP)
-	// TODO
-	return MOSQ_ERR_PLUGIN_DEFER
+
+	logrus.Infof("mosqauth: AuthUnpwdCheck: clientID=%s, username=%s, clientIP=%s",
+		clientID, username, clientIP)
+
+	err := authHandler.CheckUsernamePassword(username, password)
+	if err != nil {
+		return MOSQ_ERR_PLUGIN_DEFER
+	}
+	return MOSQ_ERR_SUCCESS
 }
 
 // AuthAclCheck checks if the user has access to the topic
@@ -144,8 +162,8 @@ func AuthAclCheck(clientID, userName, topic string, access int, certSubjName str
 	thingID := parts[1]
 	messageType := parts[2]
 	writing := (access == MOSQ_ACL_WRITE)
-	hasPermission := authHandler.CheckAuthorization(userName, certOU, thingID, writing, messageType)
-	if !hasPermission {
+	err := authHandler.CheckAuthorization(userName, certOU, thingID, writing, messageType)
+	if err != nil {
 		return MOSQ_ERR_ACL_DENIED
 	}
 

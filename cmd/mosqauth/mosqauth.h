@@ -78,8 +78,6 @@ extern void AuthPluginInit(GoSlice keys, GoSlice values, GoInt authOptsNum);
 // AuthUnpwdCheck checks for a correct username/password
 // This matches the given password against the stored password hash
 // Returns:
-//  MOSQ_ERR_AUTH if authentication failed
-//  MOSQ_ERR_UNKNOWN for an application specific error
 //  MOSQ_ERR_SUCCESS if the user is authenticated
 //  MOSQ_ERR_PLUGIN_DEFER if we do not wish to handle this check
 extern GoUint8 AuthUnpwdCheck(GoString clientID, GoString username, GoString password, GoString clientIP);

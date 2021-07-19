@@ -41,9 +41,9 @@ const (
 //
 // This allows for Things to be shared with other groups with viewing rights only, even though
 // there are user or admins in that group.
-type AuthGroup struct {
-	// The name of the group
-	GroupName string
-	// The members (thingIDs and userIDs) and their role: [memberid]role
-	MemberRoles map[string]string
-}
+// type AuthGroup struct {
+// 	// The name of the group
+// 	GroupName string
+// 	// The members (thingIDs and userIDs) and their role: [memberid]role
+// 	MemberRoles map[string]string
+// }
