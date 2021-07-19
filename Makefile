@@ -23,8 +23,8 @@ test: .PHONY ## Run tests (todo fix this)
 	go test -failfast -v ./...
 
 clean: ## Clean distribution files
-	go clean
 	go mod tidy
+	go clean
 	rm -f test/certs/*
 	rm -f test/logs/*
 	rm -f test/config/mosquitto.conf

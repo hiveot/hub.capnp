@@ -1,41 +1,16 @@
 package auth_test
 
 import (
-	"os"
 	"path"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/wostzone/hub/pkg/auth"
-	"github.com/wostzone/wostlib-go/pkg/hubconfig"
 )
 
-const aclFileName = "acl-test.yaml"
-
-var configFolder string
-var aclFile string
-var aclStore *auth.AclFileStore
-
-// Use the config folder to store the acl files
-func TestMain(m *testing.M) {
-	hubconfig.SetLogging("info", "")
-	cwd, _ := os.Getwd()
-	homeFolder := path.Join(cwd, "../../test")
-	configFolder = path.Join(homeFolder, "config")
-
-	// Make sure an ACL file exist
-	aclFile = path.Join(configFolder, aclFileName)
-	fp, _ := os.Create(aclFile)
-	fp.Close()
-	aclStore = auth.NewAclFileStore(aclFile)
-
-	res := m.Run()
-	os.Exit(res)
-}
-
 func TestOpenCloseAclStore(t *testing.T) {
-	// as := auth.NewAclStoreFile(aclFile)
+	aclStore := auth.NewAclFileStore(aclFilePath)
 	err := aclStore.Open()
 	assert.NoError(t, err)
 	time.Sleep(time.Second * 1)
@@ -48,6 +23,7 @@ func TestSetRole(t *testing.T) {
 	user1 := "user1"
 	role1 := auth.GroupRoleManager
 	group1 := "group1"
+	aclStore := auth.NewAclFileStore(aclFilePath)
 	err := aclStore.Open()
 	assert.NoError(t, err)
 
@@ -67,6 +43,7 @@ func TestSetRole(t *testing.T) {
 }
 
 func TestWriteAclToTempFail(t *testing.T) {
+	aclStore := auth.NewAclFileStore(aclFilePath)
 
 	err := aclStore.Open()
 	assert.NoError(t, err)
@@ -121,5 +98,5 @@ func TestFailWriteFile(t *testing.T) {
 	// err = aclStore.SetRole("user1", "group1", "somerole")
 	// assert.Error(t, err)
 	// os.Remove(aclFile)
-	aclStore.Close()
+	as.Close()
 }

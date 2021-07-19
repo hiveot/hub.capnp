@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/core/authhandler"
+	// "github.com/wostzone/hub/core/authhandler"
 	"github.com/wostzone/hub/pkg/auth"
 	"github.com/wostzone/wostlib-go/pkg/hubconfig"
 )
@@ -72,7 +72,7 @@ const (
 	MosqOptUnpwFile = "unpwFile"
 )
 
-var authHandler *authhandler.AuthHandler
+var authHandler *auth.AuthHandler
 
 //export AuthPluginInit
 func AuthPluginInit(keys []string, values []string, authOptsNum int) {
@@ -93,11 +93,11 @@ func AuthPluginInit(keys []string, values []string, authOptsNum int) {
 			unpwFile = values[index]
 		}
 	}
-
 	hubconfig.SetLogging(logLevel, logFile)
+	// The file based store is the only option for now
 	aclStore := auth.NewAclFileStore(aclFile)
 	unpwStore := auth.NewPasswordFileStore(unpwFile)
-	authHandler = authhandler.NewAuthHandler(aclStore, unpwStore)
+	authHandler = auth.NewAuthHandler(aclStore, unpwStore)
 	authHandler.Start()
 }
 
@@ -112,8 +112,8 @@ func AuthUnpwdCheck(clientID string, username string, password string, clientIP 
 	logrus.Infof("mosqauth: AuthUnpwdCheck: clientID=%s, username=%s, clientIP=%s",
 		clientID, username, clientIP)
 
-	err := authHandler.CheckUsernamePassword(username, password)
-	if err != nil {
+	match := authHandler.CheckUsernamePassword(username, password)
+	if !match {
 		return MOSQ_ERR_PLUGIN_DEFER
 	}
 	return MOSQ_ERR_SUCCESS
@@ -181,23 +181,3 @@ func AuthPluginCleanup() {
 }
 
 func main() {}
-
-// Main entry to WoST protocol adapter for managing Mosquitto
-// This setup the configuration from file and commandline parameters and launches the service
-// func main() {
-// 	svc := mosquittopb.NewMosquittoManager()
-// 	hubConfig, err := hubconfig.LoadCommandlineConfig("", mosquittopb.PluginID, &svc.Config)
-// 	if err != nil {
-// 		logrus.Errorf("ERROR: Start aborted due to error")
-// 		os.Exit(1)
-// 	}
-
-// 	err = svc.Start(hubConfig)
-// 	if err != nil {
-// 		logrus.Errorf("Logger: Failed to start: %s", err)
-// 		os.Exit(1)
-// 	}
-// 	hubclient.WaitForSignal()
-// 	svc.Stop()
-// 	os.Exit(0)
-// }

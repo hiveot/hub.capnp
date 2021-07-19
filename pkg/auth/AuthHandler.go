@@ -1,10 +1,9 @@
-package authhandler
+package auth
 
 import (
 	"fmt"
 
 	"github.com/alexedwards/argon2id"
-	"github.com/wostzone/hub/pkg/auth"
 	"github.com/wostzone/wostlib-go/pkg/certsetup"
 	"github.com/wostzone/wostlib-go/pkg/td"
 	"golang.org/x/crypto/bcrypt"
@@ -23,38 +22,53 @@ const (
 // is authorized to receive or post a message. This applies to all users of the message bus,
 // regardless of how they are authenticated.
 type AuthHandler struct {
-	aclStore  auth.IAclStoreReader
-	unpwStore auth.IUnpwStoreReader
+	aclStore  IAclStoreReader
+	unpwStore IUnpwStoreReader
+}
+
+// CreatePasswordHash for the given password
+// This just creates the hash and does not update the store. See also VerifyPasswordHash
+//  password to ahsh
+//  algo is the algorithm to use, PWHASH_ARGON2id or PWHASH_BCRYPT
+func (ah *AuthHandler) CreatePasswordHash(password string, algo string) (hash string, err error) {
+	if algo == PWHASH_ARGON2id {
+		params := argon2id.DefaultParams
+		hash, err = argon2id.CreateHash(password, params)
+	} else if algo == PWHASH_BCRYPT {
+		var hashBytes []byte
+		hashBytes, err = bcrypt.GenerateFromPassword([]byte(password), 0)
+		hash = string(hashBytes)
+	} else {
+		err = fmt.Errorf("CreatePasswordHash: Unsupported hashing algorithm '%s'", algo)
+	}
+	return hash, err
 }
 
 // CheckLoginPassword verifies if the given password is valid for login
 // Returns true if valid, false if the user is unknown or the password is invalid
-func (ah *AuthHandler) CheckUsernamePassword(loginName string, password string) error {
-	var err error
-
+func (ah *AuthHandler) CheckUsernamePassword(loginName string, password string) bool {
 	// Todo: configure hashing method
-	pwhash := PWHASH_ARGON2id
+	algo := PWHASH_ARGON2id
 	h := ah.unpwStore.GetPasswordHash(loginName)
-	if h == "" {
-		// this is not a valid password, use to reduce timing difference with valid user
-		// TODO: iterations and memory must match the configured encoding
-		h = "$argon2i$v=19$m=4096,t=3,p=1$dGhpc2lzbXlzYWx0$WzR/Vji668772vv++KMoKlaN3AJA1BGR7bCGt4Q2fsA"
-	}
+	return ah.VerifyPasswordHash(h, password, algo)
 
-	if pwhash == PWHASH_ARGON2id {
-		match, err2 := argon2id.ComparePasswordAndHash(password, h)
-		if err2 != nil {
-			err = err2
-		} else if !match {
-			return fmt.Errorf("CheckUsernamePassword: Invalid username or password")
-		}
-	} else if pwhash == PWHASH_BCRYPT {
-		err = bcrypt.CompareHashAndPassword([]byte(h), []byte(password))
-	} else {
-		err = fmt.Errorf("CheckUsernamePassword: Unsupported password hash '%s'", pwhash)
-	}
+}
 
-	return err
+// VerifyPasswordHash verifies if the given hash matches the password
+// This does not access the store
+//  hash to verify
+//  password to verify against
+//  algo is the algorithm to use, PWHASH_ARGON2id or PWHASH_BCRYPT
+// returns true on success, or false on mismatch
+func (ah *AuthHandler) VerifyPasswordHash(hash string, password string, algo string) bool {
+	if algo == PWHASH_ARGON2id {
+		match, _ := argon2id.ComparePasswordAndHash(password, hash)
+		return match
+	} else if algo == PWHASH_BCRYPT {
+		err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+		return (err == nil)
+	}
+	return false
 }
 
 // CheckAuthorization tests if the client has access to the device for the given operation
@@ -102,11 +116,11 @@ func (ah *AuthHandler) HasPermission(role string, writing bool, messageType stri
 	var err error
 	// TODO: include message type
 	if writing {
-		if role != auth.GroupRoleThing && role != auth.GroupRoleEditor && role != auth.GroupRoleManager {
+		if role != GroupRoleThing && role != GroupRoleEditor && role != GroupRoleManager {
 			err = fmt.Errorf("HasPermission: Role %s has no write access to message type %s", role, messageType)
 		}
 	} else {
-		if role != auth.GroupRoleThing && role != auth.GroupRoleEditor && role != auth.GroupRoleManager && role != auth.GroupRoleViewer {
+		if role != GroupRoleThing && role != GroupRoleEditor && role != GroupRoleManager && role != GroupRoleViewer {
 			err = fmt.Errorf("HasPermission: Role %s has no read access to message type %s", role, messageType)
 		}
 	}
@@ -143,7 +157,7 @@ func (ah *AuthHandler) Stop() {
 // NewAuthHandler creates a new instance of the authentication/authorization handler for validation only.
 //  aclStore provides the functions to read authorization rules
 //  unpwStore provides the functions to read username password hashes
-func NewAuthHandler(aclStore auth.IAclStoreReader, unpwStore auth.IUnpwStoreReader) *AuthHandler {
+func NewAuthHandler(aclStore IAclStoreReader, unpwStore IUnpwStoreReader) *AuthHandler {
 	ah := AuthHandler{
 		aclStore:  aclStore,
 		unpwStore: unpwStore,

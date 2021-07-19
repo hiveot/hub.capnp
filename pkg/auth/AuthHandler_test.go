@@ -1,61 +1,44 @@
-package authhandler_test
+package auth_test
 
 import (
 	"os"
-	"path"
 	"testing"
 	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"github.com/wostzone/hub/core/authhandler"
 	"github.com/wostzone/hub/pkg/auth"
 	"github.com/wostzone/wostlib-go/pkg/certsetup"
 	"github.com/wostzone/wostlib-go/pkg/hubclient"
-	"github.com/wostzone/wostlib-go/pkg/hubconfig"
 )
-
-var homeFolder string
-var aclFile string
-
-// var pwFile string
-var unpwStore *auth.PasswordFileStore
-var aclStore *auth.AclFileStore
 
 const testDevice1 = "device1"
 
-// TestMain initializes the test stores
-func TestMain(m *testing.M) {
-	hubconfig.SetLogging("info", "")
-	cwd, _ := os.Getwd()
-	homeFolder = path.Join(cwd, "../../test")
-	configFolder := path.Join(homeFolder, "config")
-
-	aclFile = path.Join(configFolder, "acl-test.yaml")
-	os.Create(aclFile) // start with empty file
-	aclStore = auth.NewAclFileStore(aclFile)
-
-	unpwFileName := path.Join(configFolder, "unpw-test.conf")
-	unpwStore = auth.NewPasswordFileStore(unpwFileName)
-
-	result := m.Run()
-
-	os.Exit(result)
+// Create auth handler with empty username/pw and acl list
+func createEmptyTestAuthHandler() *auth.AuthHandler {
+	fp, _ := os.Create(unpwFilePath)
+	fp.Close()
+	unpwStore := auth.NewPasswordFileStore(unpwFilePath)
+	aclStore := auth.NewAclFileStore(aclFilePath)
+	ah := auth.NewAuthHandler(aclStore, unpwStore)
+	return ah
 }
 
-func TestStartStop(t *testing.T) {
+func TestAuthHandlerStartStop(t *testing.T) {
 	logrus.Infof("---TestStartStop---")
-	ah := authhandler.NewAuthHandler(aclStore, unpwStore)
+	ah := createEmptyTestAuthHandler()
 	err := ah.Start()
 	time.Sleep(time.Second * 1)
 	assert.NoError(t, err)
 	ah.Stop()
 }
 
-func TestBadStart(t *testing.T) {
+func TestAuthHandlerBadStart(t *testing.T) {
 	logrus.Infof("---TestBadStart---")
-	aclStore := auth.NewAclFileStore("/badpath")
-	ah := authhandler.NewAuthHandler(aclStore, unpwStore)
+	unpwStore := auth.NewPasswordFileStore(unpwFilePath)
+	aclStore := auth.NewAclFileStore("/bad/aclstore/path")
+	ah := auth.NewAuthHandler(aclStore, unpwStore)
+
 	// opening the acl store should fail
 	err := ah.Start()
 	assert.Error(t, err)
@@ -64,10 +47,11 @@ func TestBadStart(t *testing.T) {
 
 func TestIsPublisher(t *testing.T) {
 	logrus.Infof("---TestIsPublisher---")
+
 	thingID1 := "urn:zone:" + testDevice1 + ":sensor1:temperature"
 	thingID2 := "urn:zone:" + testDevice1 + ":sensor1"
 	thingID3 := "urn:zone:" + testDevice1 + ""
-	ah := authhandler.NewAuthHandler(aclStore, unpwStore)
+	ah := createEmptyTestAuthHandler()
 	ah.Start()
 
 	isPublisher := ah.IsPublisher(testDevice1, thingID1)
@@ -82,7 +66,7 @@ func TestIsPublisher(t *testing.T) {
 func TestHasPermission(t *testing.T) {
 	logrus.Infof("---TestHasPermission---")
 
-	ah := authhandler.NewAuthHandler(aclStore, unpwStore)
+	ah := createEmptyTestAuthHandler()
 	ah.Start()
 	// read permission
 	hasPerm := ah.HasPermission(auth.GroupRoleThing, false, hubclient.MessageTypeTD)
@@ -108,7 +92,10 @@ func TestHasPermission(t *testing.T) {
 
 func TestCheckDeviceAuthorization(t *testing.T) {
 	logrus.Infof("---TestCheckDeviceAuthorization---")
-	ah := authhandler.NewAuthHandler(aclStore, unpwStore)
+	unpwStore := auth.NewPasswordFileStore(unpwFilePath)
+	aclStore := auth.NewAclFileStore(aclFilePath)
+
+	ah := auth.NewAuthHandler(aclStore, unpwStore)
 	ah.Start()
 
 	group1 := "group1"
@@ -156,55 +143,54 @@ func TestCheckDeviceAuthorization(t *testing.T) {
 
 func TestUnpwMatch(t *testing.T) {
 	logrus.Infof("---TestUnpwMatch---")
-	ah := authhandler.NewAuthHandler(aclStore, unpwStore)
-	ah.Start()
-
 	userName := "user1" // as in test file
 	password := "user1"
 
-	err := ah.CheckUsernamePassword(userName, password)
+	ah := createEmptyTestAuthHandler()
+	ah.Start()
+
+	// add the user to the password file
+	unpwStore2 := auth.NewPasswordFileStore(unpwFilePath)
+	unpwStore2.Open()
+	pwHash, err := ah.CreatePasswordHash(password, auth.PWHASH_ARGON2id)
 	assert.NoError(t, err)
+	unpwStore2.SetPasswordHash(userName, pwHash)
+	unpwStore2.Close()
+	time.Sleep(time.Millisecond * 200)
+
+	match := ah.CheckUsernamePassword(userName, password)
+	assert.True(t, match)
 
 	ah.Stop()
 }
 
 func TestUnpwNoMatch(t *testing.T) {
 	logrus.Infof("---TestUnpwNoMatch---")
-	ah := authhandler.NewAuthHandler(aclStore, unpwStore)
+	ah := createEmptyTestAuthHandler()
 	ah.Start()
 
 	user1 := "user1" // user 1 exists in test file
 	password := "user1"
 
-	err := ah.CheckUsernamePassword("notauser", password)
-	assert.Error(t, err)
+	match := ah.CheckUsernamePassword("notauser", password)
+	assert.False(t, match)
 
-	err = ah.CheckUsernamePassword(user1, "badpassword")
-	assert.Error(t, err)
+	match = ah.CheckUsernamePassword(user1, "badpassword")
+	assert.False(t, match)
 
 	ah.Stop()
 
 }
 
-// func TestAuthUnpwdCheck(t *testing.T) {
-// 	logrus.Infof("---TestAuthUnpwdCheck---")
-// 	username := "user1"
-// 	password := "password1"
-// 	clientID := "clientID1"
-// 	clientIP := "ip"
-// 	main.AuthUnpwdCheck(clientID, username, password, clientIP)
-// }
-
-// func TestAuthAclCheck(t *testing.T) {
-// 	logrus.Infof("---TestAuthAclCheck---")
-// 	clientID := "clientID1"
-// 	username := "user1"
-// 	topic := "things/thingid1/td"
-// 	access := main.MOSQ_ACL_SUBSCRIBE
-// 	main.AuthAclCheck(clientID, username, topic, access, true)
-// }
-
-// func TestAuthPluginCleanup(t *testing.T) {
-// 	logrus.Infof("---TestAuthPluginCleanup---")
-// 	main.AuthPluginCleanup()
-// }
+func TestBCrypt(t *testing.T) {
+	logrus.Infof("---TestBCrypt---")
+	var password1 = "password1"
+	ah := createEmptyTestAuthHandler()
+	err := ah.Start()
+	assert.NoError(t, err)
+	hash, err := ah.CreatePasswordHash(password1, auth.PWHASH_BCRYPT)
+	assert.NoError(t, err)
+	match := ah.VerifyPasswordHash(hash, password1, auth.PWHASH_BCRYPT)
+	assert.True(t, match)
+	ah.Stop()
+}

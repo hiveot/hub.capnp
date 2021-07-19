@@ -25,6 +25,5 @@ dist/logs/*
 *.crt
 *.key
 test/config/mosquitto.conf
-test/config/pw-test.conf
-test/config/acl-test.yaml
 test/config/unpw-test.conf
+test/config/acl-test.yaml
