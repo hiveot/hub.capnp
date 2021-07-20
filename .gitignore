@@ -24,6 +24,6 @@ dist/arm/*
 dist/logs/*
 *.crt
 *.key
+*.acl
+*.passwd
 test/config/mosquitto.conf
-test/config/unpw-test.conf
-test/config/acl-test.yaml

@@ -2,7 +2,6 @@ package auth
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -13,6 +12,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/wostlib-go/pkg/watcher"
 )
+
+// The default filename of the username/password file store
+const DefaultUnpwFilename = "unpw.passwd"
 
 // PasswordFileStore stores a list of user login names and their password info
 // It includes a file watcher to automatically reload on update.
@@ -47,10 +49,9 @@ func (pwStore *PasswordFileStore) GetPasswordHash(username string) string {
 // This reads the acl file and subscribes to file changes
 func (pwStore *PasswordFileStore) Open() error {
 	err := pwStore.Reload()
-	if err != nil {
-		return err
+	if err == nil {
+		pwStore.watcher, err = watcher.WatchFile(pwStore.storePath, pwStore.Reload)
 	}
-	pwStore.watcher, err = watcher.WatchFile(pwStore.storePath, pwStore.Reload)
 	return err
 }
 
@@ -65,9 +66,8 @@ func (pwStore *PasswordFileStore) Reload() error {
 	pwList := make(map[string]string)
 	file, err := os.Open(pwStore.storePath)
 	if err != nil {
-		msg := fmt.Sprintf("Reload: Failed to open password file: %s", err)
-		logrus.Error(msg)
-		return errors.New(msg)
+		err := fmt.Errorf("Reload: Failed to open password file: %s", err)
+		return err
 	}
 	defer file.Close()
 
@@ -152,6 +152,7 @@ func (pwStore *PasswordFileStore) WriteToTemp(folder string) (tempFileName strin
 // New instance of a file based ACL store
 // Note: this store is intended for one writer and many readers.
 // Multiple concurrent writes are not supported and might lead to one write being ignored.
+//  filepath location of the file store. See also DefaultUnpwFilename for the recommended name
 func NewPasswordFileStore(filepath string) *PasswordFileStore {
 	store := &PasswordFileStore{
 		storePath: filepath,

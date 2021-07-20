@@ -10,7 +10,7 @@ import (
 	"github.com/wostzone/wostlib-go/pkg/hubconfig"
 )
 
-// Main entry to WoST protocol adapter for managing Mosquitto
+// Main entry to WoST plugin for managing Mosquitto
 // This setup the configuration from file and commandline parameters and launches the service
 func main() {
 	svc := mosquittomgr.NewMosquittoManager()

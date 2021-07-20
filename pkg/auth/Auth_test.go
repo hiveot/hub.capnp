@@ -8,8 +8,8 @@ import (
 	"github.com/wostzone/wostlib-go/pkg/hubconfig"
 )
 
-const aclFileName = "acl-test.yaml"
-const unpwFileName = "unpw-test.conf"
+const aclFileName = "test.acl"
+const unpwFileName = "test.passwd"
 
 var aclFilePath string
 var unpwFilePath string

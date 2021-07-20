@@ -6,7 +6,7 @@ PKG_NAME=wost-hub.tgz
 
 .PHONY: 
 
-all: hub gencerts mosqauth mosquittomgr idprov-pb ## Build hub and core apps
+all: hub auth mosqauth mosquittomgr idprov-pb ## Build hub and core apps
 
 install:  ## Install the hub into ~/bin/wost/bin and config
 	mkdir -p ~/bin/wost/bin
@@ -57,9 +57,13 @@ mosqauth: ## Build mosquitto auth plugin for use by the Hub
 	cd cmd/mosqauth && make
 	@echo "> SUCCESS. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@"
 
-gencerts: ## Build gencerts utility to generate self-signed certificates with CA
+auth: ## Build auhtentication CLI to generate certificates, set password and set ACLs
 	go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go
 	@echo "> SUCCESS. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@"
+
+#gencerts: ## Build gencerts utility to generate self-signed certificates with CA
+#	go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go
+#	@echo "> SUCCESS. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@"
 
 hub: ## Build WoST Hub
 	go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go

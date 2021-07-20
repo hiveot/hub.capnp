@@ -1,4 +1,0 @@
-groups:
-    group1:
-        urn:zone1:pub1:device1:sensor1: thing
-        user1: editor

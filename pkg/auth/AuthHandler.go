@@ -30,9 +30,14 @@ type AuthHandler struct {
 // This just creates the hash and does not update the store. See also VerifyPasswordHash
 //  password to ahsh
 //  algo is the algorithm to use, PWHASH_ARGON2id or PWHASH_BCRYPT
-func (ah *AuthHandler) CreatePasswordHash(password string, algo string) (hash string, err error) {
+//  iterations for argon2id, default is 10
+func CreatePasswordHash(password string, algo string, iterations uint) (hash string, err error) {
 	if algo == PWHASH_ARGON2id {
+		if iterations <= 0 {
+			iterations = 10
+		}
 		params := argon2id.DefaultParams
+		params.Iterations = uint32(iterations)
 		hash, err = argon2id.CreateHash(password, params)
 	} else if algo == PWHASH_BCRYPT {
 		var hashBytes []byte

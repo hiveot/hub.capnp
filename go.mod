@@ -4,6 +4,7 @@ go 1.14
 
 require (
 	github.com/alexedwards/argon2id v0.0.0-20210511081203-7d35d68092b8
+	github.com/docopt/docopt-go v0.0.0-20180111231733-ee0de3bc6815
 	github.com/fsnotify/fsnotify v1.4.9
 	github.com/kr/pretty v0.1.0 // indirect
 	github.com/sirupsen/logrus v1.8.1

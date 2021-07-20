@@ -58,8 +58,6 @@ const (
 
 // Default filenames for auth and logging
 const (
-	DefaultUnpwFile = "unpw.conf"
-	DefaultAclFile  = "acl.yaml"
 	DefaultLogFile  = "authplug.log"
 	DefaultLogLevel = "warning"
 )
@@ -80,8 +78,8 @@ func AuthPluginInit(keys []string, values []string, authOptsNum int) {
 	// Key/Values are from mosquitto.conf
 	logFile := DefaultLogFile
 	logLevel := DefaultLogLevel
-	aclFile := DefaultAclFile
-	unpwFile := DefaultUnpwFile
+	aclFile := auth.DefaultAclFilename
+	unpwFile := auth.DefaultUnpwFilename
 	for index, key := range keys {
 		if key == MosqOptLogFile {
 			logFile = values[index]

@@ -152,7 +152,7 @@ func TestUnpwMatch(t *testing.T) {
 	// add the user to the password file
 	unpwStore2 := auth.NewPasswordFileStore(unpwFilePath)
 	unpwStore2.Open()
-	pwHash, err := ah.CreatePasswordHash(password, auth.PWHASH_ARGON2id)
+	pwHash, err := auth.CreatePasswordHash(password, auth.PWHASH_ARGON2id, 0)
 	assert.NoError(t, err)
 	unpwStore2.SetPasswordHash(userName, pwHash)
 	unpwStore2.Close()
@@ -188,7 +188,7 @@ func TestBCrypt(t *testing.T) {
 	ah := createEmptyTestAuthHandler()
 	err := ah.Start()
 	assert.NoError(t, err)
-	hash, err := ah.CreatePasswordHash(password1, auth.PWHASH_BCRYPT)
+	hash, err := auth.CreatePasswordHash(password1, auth.PWHASH_BCRYPT, 0)
 	assert.NoError(t, err)
 	match := ah.VerifyPasswordHash(hash, password1, auth.PWHASH_BCRYPT)
 	assert.True(t, match)

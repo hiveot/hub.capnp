@@ -13,6 +13,9 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// The default filename of the ACL file store
+const DefaultAclFilename = "groups.acl"
+
 // A group is a map of clients and roles
 type AclGroup map[string]string
 
@@ -122,11 +125,14 @@ func (aclStore *AclFileStore) Reload() error {
 	return nil
 }
 
-// Set a user ACL and update the store
+// Set a user ACL and update the store.
 // This updates the user's role, saves it to a temp file and move the result to the store file.
 // Interruptions will not lead to data corruption as the resulting acl file is only moved after successful write.
 // Note that concurrent writes by different processes is not supported and can lead to one of the
 // writes being ignored.
+//  clientID login name to assign the role
+//  groupID  group where the role applies
+//  role     one of GroupRoleViewer, GroupRoleEditor, GroupRoleManager, GroupRoleThing or GroupRoleNone to remove the role
 func (aclStore *AclFileStore) SetRole(clientID string, groupID string, role string) error {
 	// Prevent concurrently running Reload and SetRole
 	aclStore.mutex.Lock()
@@ -137,7 +143,11 @@ func (aclStore *AclFileStore) SetRole(clientID string, groupID string, role stri
 		aclGroup = AclGroup{}
 		aclStore.Groups[groupID] = aclGroup
 	}
-	aclGroup[clientID] = role
+	if role == GroupRoleNone {
+		delete(aclGroup, clientID)
+	} else {
+		aclGroup[clientID] = role
+	}
 	folder := path.Dir(aclStore.storePath)
 	tempFileName, err := aclStore.WriteToTemp(folder)
 	if err != nil {
@@ -187,6 +197,7 @@ func (aclStore *AclFileStore) WriteToTemp(folder string) (tempFileName string, e
 }
 
 // New instance of a file based ACL store
+//  filepath is the location of the store. See also DefaultAclFilename for the recommended name.
 func NewAclFileStore(filepath string) *AclFileStore {
 	store := &AclFileStore{
 		Groups:    map[string]AclGroup{},
