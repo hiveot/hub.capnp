@@ -1,6 +1,6 @@
-# WoST MQTT Mosquitto Binding
+# Mosquitto Manager 
 
-This plugin manages Mosquitto, a lightweight and powerful MQTT message bus broker. In order to use this plugin the mosquitto broker must be installed.
+This plugin manages the Mosquitto configuration, a lightweight and powerful MQTT message bus broker. In order to use this plugin the mosquitto broker must be installed.
 
 MQTT is the primary communication method for the Hub and its plugins. Things and consumers can connect via MQTT to publish and subscribe to TD's, Events and Actions as described in the protocol binding. 
 
@@ -11,8 +11,9 @@ Status: early alpha.
 What it does:
 - configure and launch a Mosquitto instance using the hub configuration
 - configure mosquitto logging
-- configure concertificate based authentication for devices, plugins and administrators
-- configure external authorization as per config file
+- configure authentication using client certificates 
+- configure authentication using the included username/password authentication plugin
+- configure group/role authorization using the included ACL plugin
 
 ## Audience
 
@@ -26,42 +27,37 @@ This plugin generates the Mosquitto configuration and launches an instance of th
 
 No manual setup is required other than that mosquitto is installed.
 
-### Topic Structure
-
-The MQTT topic structure is as follows:
->  things/{publisherID}/{thingID}/td|event|action
-
-{publisherID} is the ID of the publishing device. In case of plugins it is the plugin instance ID. In case of IoT devices it is the ThingID of the IoT Device. The publisher ID is used to ensure a unique topic for all Things.
-
 
 ### Authentication
 
-Mosquitto is configured with certificate based authentication for plugins, for Thing devices, and for administrators. Other consumers authenticate with a login ID and password.
+Mosquitto is configured with support for two types of authentication:
 
-Certificate based authentication is very simple. If the client has a valid certificate it can connect to the message bus. Without it, it needs a login ID and password. 
+1. Client certificate authentication for plugins, for Thing devices, and for administrators
+2. Username/password authentication for consumers
 
-This plugin doesn't care how the certificate was issued, just that it is verified by the Certificate Authority. See [IoT Provisioning](https://github.com/wostzone/idprov-standard) on how devices can obtain a certificate. The plugin certificate is created on hub startup and available to plugins only.
+Certificate based authentication is very simple. If the client has a valid certificate it can connect to the message bus.
+This plugin doesn't care how the certificate was issued, just that it is verified by the Certificate Authority. The certificate bundle for CA, hub and plugin client certificate is created on hub startup.
 
-The administrator issues username and password to consumers. The administrator uses the admin interface to this plugin to add and remove users. This plugin also includes a CLI (commandline interface) to administer users.
+The Hub's 'cmd/gencert' commandline utility generates the CA, Hub and Plugin certificates and can be used to generate client certificates for consumers. The idprov service automates certificate generation for IoT devices using out of band secrets. See [IoT Provisioning](https://github.com/wostzone/idprov-standard) for more information.
 
-The Hub's 'cmd/gencert' package generates a commandline utility to generate the CA, Hub and Plugin certificates.
+Username/password authentication is configured to use the included 'mosqauth' plugin for mosquitto. This plugin uses the hub's auth package for verify the password with the stored hash. The password store can be updated with the 'auth' commandline utility. The administrator issues username and password to consumers. Currently the administrator will have to use the 'auth' utility to manage passwords. A password service will be added in the future to support a web interface for administrators and users to change their own password. The password will also be valid for other supporting services such as the client dashboard.
+
 
 ### Authorization
 
-Mosquitto is configured to use a plugin for authorization with ACL on topic access. The actual authorization is handled by the authorization plugin. It authorizes access to Thing topics based on a client's role in the same group as the Thing.
+Mosquitto is configured to use the mosqauth plugin for authorization with ACLs on topic access. Hub authorization is described in the [Hub authorization document](https://github.com/wostzone/docs/authorization.md) and configures Mosquitto's authorization.
 
-Hub authorization is described in the [Hub authorization document](https://github.com/wostzone/docs/authorization.md) and is independent from Mosquitto's concept of authorization.
+The hub authorization uses group roles. Consumers in a group can access IoT devices in the same group depending on their role in that group. 
 
-The 'mosqplug' sub package installs a mosquitto plugin to integrate with the Hub's authorization.
 
 ## Installation
 
-This protocol binding produces two binaries. The mosquitto authorization plugin 'mosqauth.so', and the mosquitto protocol binding named 'mosquitto-pb'.
+This plugin produces two binaries. The mosquitto authorization plugin 'mosqauth.so', and the mosquitto manager plugin named 'mosquittomgr'.
 
 See the WoST hub for plugin installation instructions.
-'make install' install the plugin in the ~/bin/wost/bin folder.
+'make install' install the plugin binary in the ~/bin/wost/bin folder and the configuration files in ~/bin/wost/config.
 
-This plugin is started by the hub if the hub.conf file includes it in its plugins section.
+This plugin is started by the hub. It requires that the plugin is included in the wost.yaml configuration which is the default.
 
 ### System Requirements
 

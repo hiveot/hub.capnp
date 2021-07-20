@@ -52,7 +52,7 @@ func TestMain(m *testing.M) {
 
 func TestStartStop(t *testing.T) {
 	logrus.Infof("---TestStartStop---")
-	const pluginID = "mosquitto-pb-test"
+	// const pluginID = "mosquitto-pb-test"
 
 	svc := mosquittomgr.NewMosquittoManager()
 	err := hubconfig.LoadPluginConfig(configFolder, mosquittomgr.PluginID, &svc.Config, nil)
@@ -69,7 +69,7 @@ func TestStartStop(t *testing.T) {
 func TestPluginConnect(t *testing.T) {
 	logrus.Infof("---TestPluginConnect---")
 	const pluginID = "mosquitto-pb-test"
-	const plugin2ID = "mosquitto-pb-test2"
+	// const plugin2ID = "mosquitto-pb-test2"
 	const thing1ID = "urn:test:thing1"
 
 	svc := mosquittomgr.NewMosquittoManager()

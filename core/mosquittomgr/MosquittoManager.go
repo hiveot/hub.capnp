@@ -10,17 +10,12 @@ import (
 
 const PluginID = "mosquittomgr"
 
-// const DefaultACLFile = "mosquitto.acl"
 const DefaultConfFile = "mosquitto.conf"
 const DefaultTemplateFile = "mosquitto.conf.template"
 
+// Mosquitto manager configuration
 type PluginConfig struct {
-	ClientID string `yaml:"clientID"` // custom unique client ID of service instance
-	// PublishTD         bool   `yaml:"publishTD"`  // publish the TD of this service
-	CLIAddress string `yaml:"cliAddress"` // IP address to reach commandline interface
-	CLIHost    string `yaml:"cliHost"`    // CLI port number
-	CLIPort    uint   `yaml:"cliPort"`    // CLI port number
-	// MosquittoACL      string `yaml:"mosquittoACL"`
+	ClientID          string `yaml:"clientID"`          // custom unique client ID of service instance
 	MosquittoConf     string `yaml:"mosquittoConf"`     // generated mosquitto config file. Default is /etc/mosquitto/conf.d/wost.conf
 	MosquittoTemplate string `yaml:"mosquittoTemplate"` // filename of mosquitto template
 }
@@ -89,12 +84,7 @@ func (mm *MosquittoManager) Stop() {
 func NewMosquittoManager() *MosquittoManager {
 	mm := &MosquittoManager{
 		Config: PluginConfig{
-			ClientID: PluginID,
-			// PublishTD:         false,
-			CLIHost:    "localhost",
-			CLIAddress: "127.0.0.1",
-			CLIPort:    9679,
-			// MosquittoACL:      DefaultACLFile,
+			ClientID:          PluginID,
 			MosquittoConf:     DefaultConfFile,
 			MosquittoTemplate: DefaultTemplateFile,
 		},
