@@ -62,6 +62,7 @@ func (pwStore *PasswordFileStore) Open() error {
 func (pwStore *PasswordFileStore) Reload() error {
 	pwStore.mutex.RLock()
 	defer pwStore.mutex.RUnlock()
+	logrus.Infof("PasswordFileStore.Reload: Reloading passwords from %s", pwStore.storePath)
 
 	pwList := make(map[string]string)
 	file, err := os.Open(pwStore.storePath)
@@ -103,6 +104,9 @@ func (pwStore *PasswordFileStore) Reload() error {
 func (pwStore *PasswordFileStore) SetPasswordHash(loginID string, hash string) error {
 	pwStore.mutex.Lock()
 	defer pwStore.mutex.Unlock()
+	if pwStore.passwords == nil {
+		logrus.Panic("Use of password store before open")
+	}
 
 	pwStore.passwords[loginID] = hash
 	folder := path.Dir(pwStore.storePath)

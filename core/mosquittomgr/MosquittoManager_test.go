@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/wostzone/hub/core/mosquittomgr"
+	"github.com/wostzone/hub/pkg/auth"
 	"github.com/wostzone/wostlib-go/pkg/certsetup"
 	"github.com/wostzone/wostlib-go/pkg/hubclient"
 	"github.com/wostzone/wostlib-go/pkg/hubconfig"
@@ -25,12 +26,15 @@ var configFolder string
 // NOTE: GENERATE MOSQAUTH.SO BEFORE RUNNING THESE TESTS
 // eg, cd mosquitto-pb/mosqauth/main && make
 
-// easy cleanup for existing  certificate
-// func removeCerts(folder string) {
-// 	_, _ = exec.Command("sh", "-c", "rm -f "+path.Join(folder, "*.pem")).Output()
-// }
-
 // TestMain uses the project test folder as the home folder and generates test certificates
+
+// these names must match the auth_opt_* filenames in mosquitto.conf.template
+const aclFileName = "test.acl" // auth_opt_aclFile
+const unpwFileName = "test.passwd"
+
+var aclFilePath string
+var unpwFilePath string
+
 func TestMain(m *testing.M) {
 	cwd, _ := os.Getwd()
 	homeFolder = path.Join(cwd, "../../test")
@@ -38,22 +42,27 @@ func TestMain(m *testing.M) {
 	configFolder = hubConfig.ConfigFolder
 	hubconfig.SetLogging(hubConfig.Loglevel, "")
 
-	// TODO: should cert be based on name or address, or both?
 	ip := hubconfig.GetOutboundIP(hubConfig.MqttAddress).String()
 	names := []string{string(ip), hubConfig.MqttAddress}
 	// for testing the certs must exist
 	certsFolder := path.Join(homeFolder, "certs")
-	// removeCerts(certsFolder)
 	certsetup.CreateCertificateBundle(names, certsFolder)
 
+	// clean acls and passwd file
+	aclFilePath = path.Join(configFolder, aclFileName)
+	unpwFilePath = path.Join(configFolder, unpwFileName)
+	fp, _ := os.Create(aclFilePath)
+	fp.Close()
+	fp, _ = os.Create(unpwFilePath)
+	fp.Close()
 	result := m.Run()
 	os.Exit(result)
 }
 
 func TestStartStop(t *testing.T) {
 	logrus.Infof("---TestStartStop---")
-	// const pluginID = "mosquitto-pb-test"
 
+	// FIXME: configuration password and acl store location
 	svc := mosquittomgr.NewMosquittoManager()
 	err := hubconfig.LoadPluginConfig(configFolder, mosquittomgr.PluginID, &svc.Config, nil)
 	assert.NoError(t, err)
@@ -98,8 +107,14 @@ func TestPasswd(t *testing.T) {
 	username := "user1"
 	password1 := "user1" // in password file in test folder
 
+	pfs := auth.NewPasswordFileStore(unpwFilePath)
+	pfs.Open()
+	pwhash, err := auth.CreatePasswordHash(password1, auth.PWHASH_ARGON2id, 0)
+	assert.NoError(t, err)
+	pfs.SetPasswordHash(username, pwhash)
+
 	svc := mosquittomgr.NewMosquittoManager()
-	err := hubconfig.LoadPluginConfig(configFolder, mosquittomgr.PluginID, &svc.Config, nil)
+	err = hubconfig.LoadPluginConfig(configFolder, mosquittomgr.PluginID, &svc.Config, nil)
 	assert.NoError(t, err)
 
 	err = svc.Start(hubConfig)

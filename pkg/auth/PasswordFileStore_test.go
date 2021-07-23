@@ -98,7 +98,7 @@ func TestConcurrentReadWrite(t *testing.T) {
 
 	wg.Add(1)
 	go func() {
-		for i = 0; i < 1000; i++ {
+		for i = 0; i < 100; i++ {
 			thingID := fmt.Sprintf("thing-%d", i)
 			err2 := pwStore1.SetPasswordHash(thingID, "hash1")
 			time.Sleep(time.Millisecond)

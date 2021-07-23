@@ -2,6 +2,7 @@ package hub
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"path"
 
@@ -16,20 +17,23 @@ const pluginID = "hub"
 // then start is aborted. The plugins receive the same commandline arguments as the hub.
 // Before starting the Hub, the certificates must have been generated as part of setup.
 // Use 'gencerts' to generate them in the {homeFolder}/certs folder.
-//  homeFolder is the folder containing the config subfolder with the hub.yaml configuration
+//  homeFolder is the parent folder of the application binary and contains the config subfolder
 //  startPlugins set to false to only start the hub with message bus server if configured
 // Return nil or error if the hub configuration file or certificate are not found
 func StartHub(homeFolder string, startPlugins bool) error {
-	pluginFolder := path.Join(homeFolder, "bin")
 
 	var err error
 	var noPlugins bool
 	// the noplugins commandline argument only applies to the hub
 	flag.BoolVar(&noPlugins, "noplugins", !startPlugins, "Start the hub without plugins")
 	hc, err := hubconfig.LoadCommandlineConfig(homeFolder, pluginID, nil)
+
 	if err != nil {
 		return err
 	}
+	pluginFolder := path.Join(hc.Home, "bin")
+	fmt.Printf("Home=%s\nPluginFolder=%s\n", hc.Home, pluginFolder)
+
 	// Create a CA if needed and update hub and plugin certs
 	sanNames := []string{hc.MqttAddress}
 	certsetup.CreateCertificateBundle(sanNames, hc.CertsFolder)

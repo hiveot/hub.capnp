@@ -7,7 +7,7 @@
 mqttTimeout: 3 # Mqtt connection timeout, default is
 
 # Logging
-#logLevel: "warning" # debug, info, warning, error. Default is warning
+logLevel: "info" # debug, info, warning, error. Default is warning
 
 #Folders are relative to the app home directory
 #configFolder: "../config"

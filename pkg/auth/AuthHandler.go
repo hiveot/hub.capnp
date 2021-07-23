@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/alexedwards/argon2id"
+	"github.com/sirupsen/logrus"
 	"github.com/wostzone/wostlib-go/pkg/certsetup"
 	"github.com/wostzone/wostlib-go/pkg/td"
 	"golang.org/x/crypto/bcrypt"
@@ -23,7 +24,8 @@ const (
 // regardless of how they are authenticated.
 type AuthHandler struct {
 	aclStore  IAclStoreReader
-	unpwStore IUnpwStoreReader
+	unpwStore IUnpwStoreReader // how to allow nil check?
+	// unpwStore *PasswordFileStore
 }
 
 // CreatePasswordHash for the given password
@@ -55,25 +57,9 @@ func (ah *AuthHandler) CheckUsernamePassword(loginName string, password string) 
 	// Todo: configure hashing method
 	algo := PWHASH_ARGON2id
 	h := ah.unpwStore.GetPasswordHash(loginName)
-	return ah.VerifyPasswordHash(h, password, algo)
-
-}
-
-// VerifyPasswordHash verifies if the given hash matches the password
-// This does not access the store
-//  hash to verify
-//  password to verify against
-//  algo is the algorithm to use, PWHASH_ARGON2id or PWHASH_BCRYPT
-// returns true on success, or false on mismatch
-func (ah *AuthHandler) VerifyPasswordHash(hash string, password string, algo string) bool {
-	if algo == PWHASH_ARGON2id {
-		match, _ := argon2id.ComparePasswordAndHash(password, hash)
-		return match
-	} else if algo == PWHASH_BCRYPT {
-		err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-		return (err == nil)
-	}
-	return false
+	match := ah.VerifyPasswordHash(h, password, algo)
+	logrus.Infof("CheckUsernamePassword: loginName=%s, match=%v", loginName, match)
+	return match
 }
 
 // CheckAuthorization tests if the client has access to the device for the given operation
@@ -145,12 +131,21 @@ func (ah *AuthHandler) IsPublisher(deviceID string, thingID string) bool {
 
 // Start the authhandler. This opens the ACL and password stores for reading
 func (ah *AuthHandler) Start() error {
+	logrus.Infof("AuthHandler.Start Opening ACL store")
 	err := ah.aclStore.Open()
 	if err != nil {
 		return err
 	}
+	logrus.Infof("AuthHandler.Start Opening password store")
 	err = ah.unpwStore.Open()
-	return err
+	if err != nil {
+		logrus.Errorf("AuthHandler.Start Failed opening password store: %s", err)
+		logrus.Panic()
+		return err
+	}
+	logrus.Infof("AuthHandler.Start Success")
+
+	return nil
 }
 
 // Stop the auth handler and close the ACL and password store access.
@@ -159,9 +154,26 @@ func (ah *AuthHandler) Stop() {
 	ah.unpwStore.Close()
 }
 
+// VerifyPasswordHash verifies if the given hash matches the password
+// This does not access the store
+//  hash to verify
+//  password to verify against
+//  algo is the algorithm to use, PWHASH_ARGON2id or PWHASH_BCRYPT
+// returns true on success, or false on mismatch
+func (ah *AuthHandler) VerifyPasswordHash(hash string, password string, algo string) bool {
+	if algo == PWHASH_ARGON2id {
+		match, _ := argon2id.ComparePasswordAndHash(password, hash)
+		return match
+	} else if algo == PWHASH_BCRYPT {
+		err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+		return (err == nil)
+	}
+	return false
+}
+
 // NewAuthHandler creates a new instance of the authentication/authorization handler for validation only.
 //  aclStore provides the functions to read authorization rules
-//  unpwStore provides the functions to read username password hashes
+//  unpwStore provides the functions to read username password hashes. nil to disable
 func NewAuthHandler(aclStore IAclStoreReader, unpwStore IUnpwStoreReader) *AuthHandler {
 	ah := AuthHandler{
 		aclStore:  aclStore,

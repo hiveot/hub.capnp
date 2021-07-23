@@ -95,15 +95,16 @@ func (aclStore *AclFileStore) Open() error {
 func (aclStore *AclFileStore) Reload() error {
 	aclStore.mutex.RLock()
 	defer aclStore.mutex.RUnlock()
+	logrus.Infof("AclFileStore.Reload: Reloading acls from %s", aclStore.storePath)
 
 	raw, err := os.ReadFile(aclStore.storePath)
 	if err != nil {
-		logrus.Errorf("AclStoreFile.Reload '%s': Error opening the ACL file: %s", aclStore.storePath, err)
+		logrus.Errorf("AclFileStore.Reload '%s': Error opening the ACL file: %s", aclStore.storePath, err)
 		return err
 	}
 	err = yaml.Unmarshal(raw, aclStore)
 	if err != nil {
-		logrus.Errorf("AclStoreFile.Reload '%s': Error parsing the ACL file: %s", aclStore.storePath, err)
+		logrus.Errorf("AclFileStore.Reload '%s': Error parsing the ACL file: %s", aclStore.storePath, err)
 		return err
 	}
 
@@ -120,7 +121,7 @@ func (aclStore *AclFileStore) Reload() error {
 			cg[groupName] = role
 		}
 	}
-	logrus.Infof("AclStoreFile.Reloaded %d groups", len(clientGroups))
+	logrus.Infof("AclFileStore.Reloaded %d groups", len(clientGroups))
 	aclStore.clientGroups = clientGroups
 	return nil
 }
@@ -151,7 +152,7 @@ func (aclStore *AclFileStore) SetRole(clientID string, groupID string, role stri
 	folder := path.Dir(aclStore.storePath)
 	tempFileName, err := aclStore.WriteToTemp(folder)
 	if err != nil {
-		logrus.Infof("SetRole, error writing to temp file: %s", err)
+		logrus.Infof("AclFileStore.SetRole, error writing to temp file: %s", err)
 		return err
 	}
 
@@ -162,7 +163,7 @@ func (aclStore *AclFileStore) SetRole(clientID string, groupID string, role stri
 	// }
 	err = os.Rename(tempFileName, aclStore.storePath)
 	if err != nil {
-		logrus.Infof("SetRole, error renaming temp file to store: %s", err)
+		logrus.Infof("AclFileStore.SetRole, error renaming temp file to store: %s", err)
 		return err
 	}
 

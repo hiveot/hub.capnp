@@ -6,5 +6,3 @@
 mosquittoTemplate: "mosquitto.conf.template"
 # Mosquitto generated config file
 mosquittoConfig: "mosquitto.conf"
-# Mosquitto generated ACL file, must match the name in the template
-mosquittoACL: "mosquitto.acl"

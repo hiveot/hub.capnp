@@ -42,7 +42,8 @@ tls_version tlsv1.2
 auth_plugin {{.homeFolder}}/bin/mosqauth.so
 auth_opt_logFile {{.homeFolder}}/logs/mosqauth.log
 auth_opt_logLevel info
-auth_opt_aclFile {{.homeFolder}}/config/aclfile.yaml
+auth_opt_aclFile {{.homeFolder}}/config/hub.acl
+auth_opt_unpwFile {{.homeFolder}}/config/hub.passwd
 
 
 #--- WebSockets over TLS/SSL for use with login/password
@@ -62,8 +63,7 @@ tls_version tlsv1.2
 auth_plugin {{.homeFolder}}/bin/mosqauth.so
 auth_opt_logFile {{.homeFolder}}/logs/mosqauth.log
 auth_opt_logLevel info
-auth_opt_aclFile {{.homeFolder}}/config/aclfile.yaml
-
+auth_opt_aclFile {{.homeFolder}}/config/hub.acl
+auth_opt_unpwFile {{.homeFolder}}/config/hub.passwd
 allow_anonymous false
-#todo: password_file {{.homeFolder}}/config/mosquitto-passwd
 

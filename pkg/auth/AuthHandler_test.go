@@ -16,7 +16,9 @@ const testDevice1 = "device1"
 
 // Create auth handler with empty username/pw and acl list
 func createEmptyTestAuthHandler() *auth.AuthHandler {
-	fp, _ := os.Create(unpwFilePath)
+	fp, _ := os.Create(aclFilePath)
+	fp.Close()
+	fp, _ = os.Create(unpwFilePath)
 	fp.Close()
 	unpwStore := auth.NewPasswordFileStore(unpwFilePath)
 	aclStore := auth.NewAclFileStore(aclFilePath)
@@ -33,6 +35,15 @@ func TestAuthHandlerStartStop(t *testing.T) {
 	ah.Stop()
 }
 
+func TestAuthHandlerStartStopNoPw(t *testing.T) {
+	logrus.Infof("---TestStartStopNoPw---")
+	aclStore := auth.NewAclFileStore(aclFilePath)
+	ah := auth.NewAuthHandler(aclStore, nil)
+	err := ah.Start()
+	time.Sleep(time.Second * 1)
+	assert.NoError(t, err)
+	ah.Stop()
+}
 func TestAuthHandlerBadStart(t *testing.T) {
 	logrus.Infof("---TestBadStart---")
 	unpwStore := auth.NewPasswordFileStore(unpwFilePath)

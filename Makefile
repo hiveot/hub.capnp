@@ -19,7 +19,7 @@ install:  ## Install the hub into ~/bin/wost/bin and config
 dist: clean   ## Build binary distribution tarball 
 		tar -czf $(PKG_NAME) -C $(DIST_FOLDER) .
 
-test: .PHONY ## Run tests (todo fix this)
+test: all .PHONY ## Run tests 
 	go test -failfast -v ./...
 
 clean: ## Clean distribution files

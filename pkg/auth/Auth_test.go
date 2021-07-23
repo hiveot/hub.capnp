@@ -8,7 +8,9 @@ import (
 	"github.com/wostzone/wostlib-go/pkg/hubconfig"
 )
 
-const aclFileName = "test.acl"
+// NOTE: these names must match the auth_opt_* filenames in mosquitto.conf.template
+// also used in mosquittomgr testing
+const aclFileName = "test.acl" // auth_opt_aclFile
 const unpwFileName = "test.passwd"
 
 var aclFilePath string
@@ -25,10 +27,12 @@ func TestMain(m *testing.M) {
 	homeFolder := path.Join(cwd, "../../test")
 	configFolder = path.Join(homeFolder, "config")
 
-	// Make sure an ACL file exist
+	// Make sure ACL and password files exist
 	aclFilePath = path.Join(configFolder, aclFileName)
 	unpwFilePath = path.Join(configFolder, unpwFileName)
 	fp, _ := os.Create(aclFilePath)
+	fp.Close()
+	fp, _ = os.Create(unpwFilePath)
 	fp.Close()
 
 	res := m.Run()

@@ -2,11 +2,11 @@ package auth
 
 // IUnpwStoreReader defined the interface for reading the username-password store for user authentication
 type IUnpwStoreReader interface {
-	// Return the password hash for the user, or "" if the user is not found
-	GetPasswordHash(username string) string
-
 	// Close the store
 	Close()
+
+	// Return the password hash for the user, or "" if the user is not found
+	GetPasswordHash(username string) string
 
 	// Open the store
 	Open() error

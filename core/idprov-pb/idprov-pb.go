@@ -66,9 +66,9 @@ func NewIDProvPB(config *IDProvPBConfig, hubConfig *hubconfig.HubConfig) *IDProv
 	if config.ValidForDays <= 0 {
 		config.ValidForDays = 3
 	}
-	discoServiceType := idprov.IdprovServiceDiscoveryType
+	discoServiceName := idprov.IdprovServiceName
 	if config.EnableDiscovery == false {
-		discoServiceType = ""
+		discoServiceName = ""
 	}
 	server := idprovserver.NewIDProvServer(
 		config.ClientID,
@@ -77,7 +77,7 @@ func NewIDProvPB(config *IDProvPBConfig, hubConfig *hubconfig.HubConfig) *IDProv
 		hubConfig.CertsFolder,
 		config.IdpCerts,
 		config.ValidForDays,
-		discoServiceType)
+		discoServiceName)
 
 	server.Directory().Services = config.Services
 

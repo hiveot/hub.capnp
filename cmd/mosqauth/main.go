@@ -79,7 +79,7 @@ func AuthPluginInit(keys []string, values []string, authOptsNum int) {
 	logFile := DefaultLogFile
 	logLevel := DefaultLogLevel
 	aclFile := auth.DefaultAclFilename
-	unpwFile := auth.DefaultUnpwFilename
+	unpwFile := "" // auth.DefaultUnpwFilename optional
 	for index, key := range keys {
 		if key == MosqOptLogFile {
 			logFile = values[index]
@@ -93,6 +93,12 @@ func AuthPluginInit(keys []string, values []string, authOptsNum int) {
 	}
 	hubconfig.SetLogging(logLevel, logFile)
 	// The file based store is the only option for now
+	if aclFile == "" {
+		aclFile = auth.DefaultAclFilename
+	}
+	if unpwFile == "" {
+		unpwFile = auth.DefaultUnpwFilename
+	}
 	aclStore := auth.NewAclFileStore(aclFile)
 	unpwStore := auth.NewPasswordFileStore(unpwFile)
 	authHandler = auth.NewAuthHandler(aclStore, unpwStore)
