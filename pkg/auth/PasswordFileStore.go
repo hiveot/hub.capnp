@@ -60,9 +60,9 @@ func (pwStore *PasswordFileStore) Open() error {
 //  File format:  <loginname>:bcrypt(passwd)
 // Returns error if the file could not be opened
 func (pwStore *PasswordFileStore) Reload() error {
-	pwStore.mutex.RLock()
-	defer pwStore.mutex.RUnlock()
 	logrus.Infof("PasswordFileStore.Reload: Reloading passwords from %s", pwStore.storePath)
+	pwStore.mutex.Lock()
+	defer pwStore.mutex.Unlock()
 
 	pwList := make(map[string]string)
 	file, err := os.Open(pwStore.storePath)
@@ -88,13 +88,8 @@ func (pwStore *PasswordFileStore) Reload() error {
 		}
 	}
 	logrus.Infof("Reload: loaded %d passwords", len(pwList))
-	pwStore.passwords = pwList
 
-	// // Renew the watcher after because a file rename assigns a new inode.
-	// if pwStore.watcher != nil {
-	// 	pwStore.watcher.Close()
-	// }
-	// pwStore.watcher, err = watcher.WatchFile(pwStore.storePath, pwStore.Reload)
+	pwStore.passwords = pwList
 
 	return err
 }
@@ -102,15 +97,15 @@ func (pwStore *PasswordFileStore) Reload() error {
 // Add/update the password hash for the given login ID
 // Intended for use by administrators to add a new user or clients to update their password
 func (pwStore *PasswordFileStore) SetPasswordHash(loginID string, hash string) error {
-	pwStore.mutex.Lock()
-	defer pwStore.mutex.Unlock()
 	if pwStore.passwords == nil {
 		logrus.Panic("Use of password store before open")
 	}
-
+	pwStore.mutex.Lock()
+	defer pwStore.mutex.Unlock()
 	pwStore.passwords[loginID] = hash
+
 	folder := path.Dir(pwStore.storePath)
-	tmpPath, err := pwStore.WriteToTemp(folder)
+	tmpPath, err := WritePasswordsToTempFile(folder, pwStore.passwords)
 	if err != nil {
 		logrus.Infof("SetPasswordHash write: %s", err)
 		return err
@@ -128,8 +123,9 @@ func (pwStore *PasswordFileStore) SetPasswordHash(loginID string, hash string) e
 }
 
 // Write the ACL store to temp file in the password folder
-// This returns the name of the new temp file
-func (pwStore *PasswordFileStore) WriteToTemp(folder string) (tempFileName string, err error) {
+// This returns the name of the new temp file.
+func WritePasswordsToTempFile(
+	folder string, passwords map[string]string) (tempFileName string, err error) {
 	file, err := os.CreateTemp(folder, "hub-pwfilestore")
 	// file, err := os.OpenFile(path, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
@@ -141,7 +137,8 @@ func (pwStore *PasswordFileStore) WriteToTemp(folder string) (tempFileName strin
 
 	defer file.Close()
 	writer := bufio.NewWriter(file)
-	for key, value := range pwStore.passwords {
+
+	for key, value := range passwords {
 		_, err = writer.WriteString(fmt.Sprintf("%s:%s\n", key, value))
 		if err != nil {
 			err := fmt.Errorf("PasswordFileStore.Write: Failed writing password file: %s", err)

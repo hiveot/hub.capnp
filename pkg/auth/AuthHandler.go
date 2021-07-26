@@ -132,6 +132,9 @@ func (ah *AuthHandler) IsPublisher(deviceID string, thingID string) bool {
 // Start the authhandler. This opens the ACL and password stores for reading
 func (ah *AuthHandler) Start() error {
 	logrus.Infof("AuthHandler.Start Opening ACL store")
+	if ah.aclStore == nil || ah.unpwStore == nil {
+		return fmt.Errorf("AuthHandler.Start: Missing ACL or password store")
+	}
 	err := ah.aclStore.Open()
 	if err != nil {
 		return err
@@ -150,8 +153,12 @@ func (ah *AuthHandler) Start() error {
 
 // Stop the auth handler and close the ACL and password store access.
 func (ah *AuthHandler) Stop() {
-	ah.aclStore.Close()
-	ah.unpwStore.Close()
+	if ah.aclStore != nil {
+		ah.aclStore.Close()
+	}
+	if ah.unpwStore != nil {
+		ah.unpwStore.Close()
+	}
 }
 
 // VerifyPasswordHash verifies if the given hash matches the password

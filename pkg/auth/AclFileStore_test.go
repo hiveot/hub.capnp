@@ -44,10 +44,11 @@ func TestSetRole(t *testing.T) {
 
 func TestWriteAclToTempFail(t *testing.T) {
 	aclStore := auth.NewAclFileStore(aclFilePath)
+	acls := make(map[string]auth.AclGroup)
 
 	err := aclStore.Open()
 	assert.NoError(t, err)
-	_, err = aclStore.WriteToTemp("/badfolder")
+	_, err = auth.WriteAclsToTempFile("/badfolder", acls)
 	assert.Error(t, err)
 	aclStore.Close()
 }

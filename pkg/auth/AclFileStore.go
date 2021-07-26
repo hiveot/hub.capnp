@@ -17,12 +17,12 @@ import (
 const DefaultAclFilename = "groups.acl"
 
 // A group is a map of clients and roles
-type AclGroup map[string]string
+type AclGroup map[string]string // map of clientID:role
 
 // AclFileStore stores ACL list in file.
 // It includes a file watcher to automatically reload on update.
 type AclFileStore struct {
-	Groups       map[string]AclGroup `yaml:"groups"`
+	Groups       map[string]AclGroup `yaml:"groups"` // store by group ID
 	storePath    string
 	watcher      *fsnotify.Watcher
 	mutex        sync.RWMutex
@@ -31,6 +31,8 @@ type AclFileStore struct {
 
 // Close the store
 func (aclStore *AclFileStore) Close() {
+	aclStore.mutex.Lock()
+	defer aclStore.mutex.Unlock()
 	if aclStore.watcher != nil {
 		aclStore.watcher.Close()
 		aclStore.watcher = nil
@@ -41,6 +43,8 @@ func (aclStore *AclFileStore) Close() {
 func (aclStore *AclFileStore) GetGroups(clientID string) []string {
 	groupsMemberOf := []string{}
 
+	aclStore.mutex.RLock()
+	defer aclStore.mutex.RUnlock()
 	cg := aclStore.clientGroups[clientID]
 	for groupName := range cg {
 		groupsMemberOf = append(groupsMemberOf, groupName)
@@ -52,6 +56,9 @@ func (aclStore *AclFileStore) GetGroups(clientID string) []string {
 // Intended to get client permissions in case of overlapping groups
 func (aclStore *AclFileStore) GetRole(clientID string, groupIDs []string) string {
 	highestRole := GroupRoleNone
+
+	aclStore.mutex.RLock()
+	defer aclStore.mutex.RUnlock()
 
 	cg := aclStore.clientGroups[clientID]
 
@@ -87,16 +94,17 @@ func (aclStore *AclFileStore) Open() error {
 	if err != nil {
 		return err
 	}
+	// watcher handles debounce of too many events
 	aclStore.watcher, err = watcher.WatchFile(aclStore.storePath, aclStore.Reload)
 	return err
 }
 
 // reload the ACL store from file
 func (aclStore *AclFileStore) Reload() error {
-	aclStore.mutex.RLock()
-	defer aclStore.mutex.RUnlock()
 	logrus.Infof("AclFileStore.Reload: Reloading acls from %s", aclStore.storePath)
 
+	aclStore.mutex.Lock()
+	defer aclStore.mutex.Unlock()
 	raw, err := os.ReadFile(aclStore.storePath)
 	if err != nil {
 		logrus.Errorf("AclFileStore.Reload '%s': Error opening the ACL file: %s", aclStore.storePath, err)
@@ -150,17 +158,12 @@ func (aclStore *AclFileStore) SetRole(clientID string, groupID string, role stri
 		aclGroup[clientID] = role
 	}
 	folder := path.Dir(aclStore.storePath)
-	tempFileName, err := aclStore.WriteToTemp(folder)
+	tempFileName, err := WriteAclsToTempFile(folder, aclStore.Groups)
 	if err != nil {
 		logrus.Infof("AclFileStore.SetRole, error writing to temp file: %s", err)
 		return err
 	}
 
-	// tmpPath := aclStore.storePath + ".tmp"
-	// err := aclStore.Write(tmpPath, 0600)
-	// if err != nil {
-	// 	return err
-	// }
 	err = os.Rename(tempFileName, aclStore.storePath)
 	if err != nil {
 		logrus.Infof("AclFileStore.SetRole, error renaming temp file to store: %s", err)
@@ -172,23 +175,21 @@ func (aclStore *AclFileStore) SetRole(clientID string, groupID string, role stri
 }
 
 // Write the ACL store to a temp file
-func (aclStore *AclFileStore) WriteToTemp(folder string) (tempFileName string, err error) {
+func WriteAclsToTempFile(folder string, acls map[string]AclGroup) (tempFileName string, err error) {
 	file, err := os.CreateTemp(folder, "hub-aclfilestore")
 	// file, err := os.OpenFile(path, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
 		err := fmt.Errorf("AclFileStore.Write: Failed open temp acl file: %s", err)
-		// logrus.Error(err)
 		return "", err
 	}
 	tempFileName = file.Name()
 	defer file.Close()
 
-	data, _ := yaml.Marshal(aclStore)
+	data, _ := yaml.Marshal(acls)
 	writer := bufio.NewWriter(file)
 	_, err = writer.Write(data)
 	if err != nil {
 		err := fmt.Errorf("AclFileStore.Write: Failed writing temp acl file: %s", err)
-		// logrus.Error(err)
 		return tempFileName, err
 	}
 

@@ -27,7 +27,7 @@ func createEmptyTestAuthHandler() *auth.AuthHandler {
 }
 
 func TestAuthHandlerStartStop(t *testing.T) {
-	logrus.Infof("---TestStartStop---")
+	logrus.Infof("---TestAuthHandlerStartStop---")
 	ah := createEmptyTestAuthHandler()
 	err := ah.Start()
 	time.Sleep(time.Second * 1)
@@ -36,16 +36,17 @@ func TestAuthHandlerStartStop(t *testing.T) {
 }
 
 func TestAuthHandlerStartStopNoPw(t *testing.T) {
-	logrus.Infof("---TestStartStopNoPw---")
+	logrus.Infof("---TestAuthHandlerStartStopNoPw---")
 	aclStore := auth.NewAclFileStore(aclFilePath)
-	ah := auth.NewAuthHandler(aclStore, nil)
+	unpwStore := auth.NewPasswordFileStore(unpwFilePath)
+	ah := auth.NewAuthHandler(aclStore, unpwStore)
 	err := ah.Start()
 	time.Sleep(time.Second * 1)
 	assert.NoError(t, err)
 	ah.Stop()
 }
 func TestAuthHandlerBadStart(t *testing.T) {
-	logrus.Infof("---TestBadStart---")
+	logrus.Infof("---TestAuthHandlerBadStart---")
 	unpwStore := auth.NewPasswordFileStore(unpwFilePath)
 	aclStore := auth.NewAclFileStore("/bad/aclstore/path")
 	ah := auth.NewAuthHandler(aclStore, unpwStore)

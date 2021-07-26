@@ -98,10 +98,10 @@ func TestConcurrentReadWrite(t *testing.T) {
 
 	wg.Add(1)
 	go func() {
-		for i = 0; i < 100; i++ {
+		for i = 0; i < 300; i++ {
 			thingID := fmt.Sprintf("thing-%d", i)
 			err2 := pwStore1.SetPasswordHash(thingID, "hash1")
-			time.Sleep(time.Millisecond)
+			time.Sleep(time.Millisecond * 1)
 			if err2 != nil {
 				assert.NoError(t, err2)
 			}
@@ -110,7 +110,7 @@ func TestConcurrentReadWrite(t *testing.T) {
 	}()
 	wg.Wait()
 	// time to catch up the file watcher debouncing
-	time.Sleep(time.Second)
+	time.Sleep(time.Second * 2)
 
 	// both stores should be fully up to date
 	assert.Equal(t, i, pwStore1.Count())
@@ -122,11 +122,11 @@ func TestConcurrentReadWrite(t *testing.T) {
 }
 
 func TestWritePwToTempFail(t *testing.T) {
-
+	pws := make(map[string]string)
 	pwStore1 := auth.NewPasswordFileStore(unpwFilePath)
 	err := pwStore1.Open()
 	assert.NoError(t, err)
-	_, err = pwStore1.WriteToTemp("/badfolder")
+	_, err = auth.WritePasswordsToTempFile("/badfolder", pws)
 	assert.Error(t, err)
 	pwStore1.Close()
 }
