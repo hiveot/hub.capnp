@@ -1,4 +1,4 @@
-package auth
+package aclstore
 
 import (
 	"bufio"
@@ -9,6 +9,7 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/sirupsen/logrus"
+	"github.com/wostzone/hub/pkg/auth"
 	"github.com/wostzone/wostlib-go/pkg/watcher"
 	"gopkg.in/yaml.v3"
 )
@@ -22,6 +23,7 @@ type AclGroup map[string]string // map of clientID:role
 // AclFileStore stores ACL list in file.
 // It includes a file watcher to automatically reload on update.
 type AclFileStore struct {
+	clientID     string              // for logging
 	Groups       map[string]AclGroup `yaml:"groups"` // store by group ID
 	storePath    string
 	watcher      *fsnotify.Watcher
@@ -31,6 +33,7 @@ type AclFileStore struct {
 
 // Close the store
 func (aclStore *AclFileStore) Close() {
+	logrus.Infof("AclFileStore.Close: clientID='%s'", aclStore.clientID)
 	aclStore.mutex.Lock()
 	defer aclStore.mutex.Unlock()
 	if aclStore.watcher != nil {
@@ -55,7 +58,7 @@ func (aclStore *AclFileStore) GetGroups(clientID string) []string {
 // Get highest role of a user has in a list of group
 // Intended to get client permissions in case of overlapping groups
 func (aclStore *AclFileStore) GetRole(clientID string, groupIDs []string) string {
-	highestRole := GroupRoleNone
+	highestRole := auth.GroupRoleNone
 
 	aclStore.mutex.RLock()
 	defer aclStore.mutex.RUnlock()
@@ -74,13 +77,13 @@ func (aclStore *AclFileStore) GetRole(clientID string, groupIDs []string) string
 // IsRoleGreaterEqual returns true if a user role has same or greater permissions
 // than the minimum role.
 func IsRoleGreaterEqual(role string, minRole string) bool {
-	if minRole == GroupRoleNone || role == minRole {
+	if minRole == auth.GroupRoleNone || role == minRole {
 		return true
 	}
-	if minRole == GroupRoleViewer && role != GroupRoleNone {
+	if minRole == auth.GroupRoleViewer && role != auth.GroupRoleNone {
 		return true
 	}
-	if minRole == GroupRoleEditor && (role == GroupRoleManager) {
+	if minRole == auth.GroupRoleEditor && (role == auth.GroupRoleManager) {
 		return true
 	}
 	return false
@@ -90,29 +93,31 @@ func IsRoleGreaterEqual(role string, minRole string) bool {
 // This reads the acl file and subscribes to file changes.
 // The ACL file MUST exist, even if it is empty.
 func (aclStore *AclFileStore) Open() error {
+	logrus.Infof("AclFileStore.Open: clientID='%s'", aclStore.clientID)
+
 	err := aclStore.Reload()
 	if err != nil {
 		return err
 	}
 	// watcher handles debounce of too many events
-	aclStore.watcher, err = watcher.WatchFile(aclStore.storePath, aclStore.Reload)
+	aclStore.watcher, err = watcher.WatchFile(aclStore.storePath, aclStore.Reload, aclStore.clientID)
 	return err
 }
 
 // reload the ACL store from file
 func (aclStore *AclFileStore) Reload() error {
-	logrus.Infof("AclFileStore.Reload: Reloading acls from %s", aclStore.storePath)
+	logrus.Infof("AclFileStore.Reload: clientID='%s'. Reloading acls from %s", aclStore.clientID, aclStore.storePath)
 
 	aclStore.mutex.Lock()
 	defer aclStore.mutex.Unlock()
 	raw, err := os.ReadFile(aclStore.storePath)
 	if err != nil {
-		logrus.Errorf("AclFileStore.Reload '%s': Error opening the ACL file: %s", aclStore.storePath, err)
+		logrus.Errorf("AclFileStore.Reload clientID='%s'. File '%s': Error opening the ACL file: %s", aclStore.clientID, aclStore.storePath, err)
 		return err
 	}
 	err = yaml.Unmarshal(raw, aclStore)
 	if err != nil {
-		logrus.Errorf("AclFileStore.Reload '%s': Error parsing the ACL file: %s", aclStore.storePath, err)
+		logrus.Errorf("AclFileStore.Reload clientID='%s'. File '%s': Error parsing the ACL file: %s", aclStore.clientID, aclStore.storePath, err)
 		return err
 	}
 
@@ -129,7 +134,7 @@ func (aclStore *AclFileStore) Reload() error {
 			cg[groupName] = role
 		}
 	}
-	logrus.Infof("AclFileStore.Reloaded %d groups", len(clientGroups))
+	logrus.Infof("AclFileStore.Reload clientID='%s'. Reloaded %d groups", aclStore.clientID, len(clientGroups))
 	aclStore.clientGroups = clientGroups
 	return nil
 }
@@ -152,7 +157,7 @@ func (aclStore *AclFileStore) SetRole(clientID string, groupID string, role stri
 		aclGroup = AclGroup{}
 		aclStore.Groups[groupID] = aclGroup
 	}
-	if role == GroupRoleNone {
+	if role == auth.GroupRoleNone {
 		delete(aclGroup, clientID)
 	} else {
 		aclGroup[clientID] = role
@@ -160,17 +165,17 @@ func (aclStore *AclFileStore) SetRole(clientID string, groupID string, role stri
 	folder := path.Dir(aclStore.storePath)
 	tempFileName, err := WriteAclsToTempFile(folder, aclStore.Groups)
 	if err != nil {
-		logrus.Infof("AclFileStore.SetRole, error writing to temp file: %s", err)
+		logrus.Infof("AclFileStore.SetRole clientID='%s'. Error writing to temp file: %s", aclStore.clientID, err)
 		return err
 	}
 
 	err = os.Rename(tempFileName, aclStore.storePath)
 	if err != nil {
-		logrus.Infof("AclFileStore.SetRole, error renaming temp file to store: %s", err)
+		logrus.Infof("AclFileStore.SetRole. clientID='%s'. Error renaming temp file to store: %s", aclStore.clientID, err)
 		return err
 	}
 
-	logrus.Infof("Set: Client '%s' set a role '%s' in group '%s'", clientID, role, groupID)
+	logrus.Infof("AclFileStore.SetRole: clientID='%s' set a role '%s' in group '%s'", clientID, role, groupID)
 	return err
 }
 
@@ -179,17 +184,18 @@ func WriteAclsToTempFile(folder string, acls map[string]AclGroup) (tempFileName 
 	file, err := os.CreateTemp(folder, "hub-aclfilestore")
 	// file, err := os.OpenFile(path, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0600)
 	if err != nil {
-		err := fmt.Errorf("AclFileStore.Write: Failed open temp acl file: %s", err)
+		err := fmt.Errorf("WriteAclsToTempFile: Failed open temp acl file: %s", err)
 		return "", err
 	}
 	tempFileName = file.Name()
+	logrus.Infof("WriteAclsToTempFile tempfile: %s", tempFileName)
 	defer file.Close()
 
 	data, _ := yaml.Marshal(acls)
 	writer := bufio.NewWriter(file)
 	_, err = writer.Write(data)
 	if err != nil {
-		err := fmt.Errorf("AclFileStore.Write: Failed writing temp acl file: %s", err)
+		err := fmt.Errorf("WriteAclsToTempFile: Failed writing temp acl file: %s", err)
 		return tempFileName, err
 	}
 
@@ -200,8 +206,9 @@ func WriteAclsToTempFile(folder string, acls map[string]AclGroup) (tempFileName 
 
 // New instance of a file based ACL store
 //  filepath is the location of the store. See also DefaultAclFilename for the recommended name.
-func NewAclFileStore(filepath string) *AclFileStore {
+func NewAclFileStore(filepath string, clientID string) *AclFileStore {
 	store := &AclFileStore{
+		clientID:  clientID,
 		Groups:    map[string]AclGroup{},
 		storePath: filepath,
 	}

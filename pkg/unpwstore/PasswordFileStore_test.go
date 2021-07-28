@@ -1,4 +1,4 @@
-package auth_test
+package unpwstore_test
 
 import (
 	"fmt"
@@ -10,15 +10,36 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"github.com/wostzone/hub/pkg/auth"
+	"github.com/wostzone/hub/pkg/unpwstore"
+	"github.com/wostzone/wostlib-go/pkg/hubconfig"
 )
 
-// var unpwStore *auth.NewPasswordFileStore
+const unpwFileName = "testunpwstore.passwd"
+
+var unpwFilePath string
+
+var configFolder string
+
+// TestMain for all auth tests, setup of default folders and filenames
+func TestMain(m *testing.M) {
+	hubconfig.SetLogging("info", "")
+	cwd, _ := os.Getwd()
+	homeFolder := path.Join(cwd, "../../test")
+	configFolder = path.Join(homeFolder, "config")
+
+	// Make sure ACL and password files exist
+	unpwFilePath = path.Join(configFolder, unpwFileName)
+	fp, _ := os.Create(unpwFilePath)
+	fp.Close()
+
+	res := m.Run()
+	os.Exit(res)
+}
 
 func TestOpenClosePWFile(t *testing.T) {
 	fp, _ := os.Create(unpwFilePath)
 	fp.Close()
-	unpwStore := auth.NewPasswordFileStore(unpwFilePath)
+	unpwStore := unpwstore.NewPasswordFileStore(unpwFilePath, "TestOpenClosePWFile")
 	err := unpwStore.Open()
 	assert.NoError(t, err)
 	time.Sleep(time.Second * 1)
@@ -34,10 +55,10 @@ func TestSetPasswordTwoStores(t *testing.T) {
 	fp, _ := os.Create(unpwFilePath)
 	fp.Close()
 	// create 2 separate stores
-	pwStore1 := auth.NewPasswordFileStore(unpwFilePath)
+	pwStore1 := unpwstore.NewPasswordFileStore(unpwFilePath, "TestSetPasswordTwoStores-store1")
 	err := pwStore1.Open()
 	assert.NoError(t, err)
-	pwStore2 := auth.NewPasswordFileStore(unpwFilePath)
+	pwStore2 := unpwstore.NewPasswordFileStore(unpwFilePath, "TestSetPasswordTwoStores-Store2")
 	err = pwStore2.Open()
 	assert.NoError(t, err)
 
@@ -60,19 +81,20 @@ func TestSetPasswordTwoStores(t *testing.T) {
 	logrus.Infof("- do it again in reverse -")
 	err = pwStore2.SetPasswordHash(user2, hash2)
 	assert.NoError(t, err)
-	time.Sleep(time.Second * 1)
+	time.Sleep(time.Second * 2)
 	hash = pwStore1.GetPasswordHash(user2)
 	assert.Equal(t, hash2, hash)
-	time.Sleep(time.Second * 1)
+	// time.Sleep(time.Second * 1)
 
 	assert.NoError(t, err)
+	time.Sleep(time.Second * 1)
 	pwStore1.Close()
 	pwStore2.Close()
 }
 
 func TestNoPasswordFile(t *testing.T) {
 	pwFile := path.Join(configFolder, "missingpasswordfile")
-	pwStore := auth.NewPasswordFileStore(pwFile)
+	pwStore := unpwstore.NewPasswordFileStore(pwFile, "TestNoPasswordFile")
 	err := pwStore.Open()
 	assert.Error(t, err)
 
@@ -89,16 +111,16 @@ func TestConcurrentReadWrite(t *testing.T) {
 	fp.Close()
 
 	// two stores in parallel
-	pwStore1 := auth.NewPasswordFileStore(unpwFilePath)
+	pwStore1 := unpwstore.NewPasswordFileStore(unpwFilePath, "TestConcurrentReadWrite-store1 (writer)")
 	err := pwStore1.Open()
 	assert.NoError(t, err)
-	pwStore2 := auth.NewPasswordFileStore(unpwFilePath)
+	pwStore2 := unpwstore.NewPasswordFileStore(unpwFilePath, "TestConcurrentReadWrite-store2 (reader)")
 	err = pwStore2.Open()
 	assert.NoError(t, err)
 
 	wg.Add(1)
 	go func() {
-		for i = 0; i < 300; i++ {
+		for i = 0; i < 30; i++ {
 			thingID := fmt.Sprintf("thing-%d", i)
 			err2 := pwStore1.SetPasswordHash(thingID, "hash1")
 			time.Sleep(time.Millisecond * 1)
@@ -123,10 +145,10 @@ func TestConcurrentReadWrite(t *testing.T) {
 
 func TestWritePwToTempFail(t *testing.T) {
 	pws := make(map[string]string)
-	pwStore1 := auth.NewPasswordFileStore(unpwFilePath)
+	pwStore1 := unpwstore.NewPasswordFileStore(unpwFilePath, "TestWritePwToTempFail")
 	err := pwStore1.Open()
 	assert.NoError(t, err)
-	_, err = auth.WritePasswordsToTempFile("/badfolder", pws)
+	_, err = unpwstore.WritePasswordsToTempFile("/badfolder", pws)
 	assert.Error(t, err)
 	pwStore1.Close()
 }

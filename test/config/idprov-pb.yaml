@@ -4,7 +4,7 @@
 # idpAddress: ""
 
 # Listening port of the server. Default is 43776
-idpPort: 9000
+idpPort: 9001
 
 # Folder for certificate storage relative to home. Default is certstore
 #idpCerts: "certstore"

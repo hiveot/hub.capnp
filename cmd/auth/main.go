@@ -8,7 +8,9 @@ import (
 	"time"
 
 	"github.com/docopt/docopt-go"
+	"github.com/wostzone/hub/pkg/aclstore"
 	"github.com/wostzone/hub/pkg/auth"
+	"github.com/wostzone/hub/pkg/unpwstore"
 	"github.com/wostzone/wostlib-go/pkg/certsetup"
 	"github.com/wostzone/wostlib-go/pkg/signing"
 	"github.com/wostzone/wostlib-go/pkg/tlsclient"
@@ -51,18 +53,19 @@ func ParseArgs(homeFolder string, args []string) {
 		Password string
 		Role     string
 		// options
-		Config string
-		Certs  string
-		Output string
-		Pubkey string
-		Iter   int
+		Aclfile string
+		Config  string
+		Certs   string
+		Output  string
+		Pubkey  string
+		Iter    int
 	}
 	usage := `
 Usage:
   auth certbundle [--certs=CertFolder]
   auth clientcert [--certs=CertFolder --pubkey=pubkeyfile] <loginID> 
   auth setpassword [-c configFolder] [-i iterations] <loginID> [<password>]
-  auth setrole [-c configFolder] <loginID> <groupID> <role>
+  auth setrole [-c configFolder --aclfile=aclfile] <loginID> <groupID> <role>
   auth --help | --version
 
 Commands:
@@ -79,6 +82,7 @@ Arguments:
   role         one of viewer, editor, manager, thing, or none to delete
 
 Options:
+  --aclfile=AclFile              use a different acl file instead of the default config/` + aclstore.DefaultAclFilename + `
   -e --certs=CertFolder      location of Hub certificates [default: ` + certsFolder + `]
   -c --config=ConfigFolder   location of Hub config folder [default: ` + configFolder + `]
   -p --pubkey=PubKeyfile     use public key file instead of generating a key pair
@@ -110,7 +114,7 @@ Options:
 		err = HandleSetPasswd(optConf.Config, optConf.Loginid, optConf.Password, optConf.Iter)
 	} else if optConf.Setrole {
 		fmt.Printf("Set user role in group\n")
-		err = HandleSetRole(optConf.Config, optConf.Loginid, optConf.Groupid, optConf.Role)
+		err = HandleSetRole(optConf.Config, optConf.Loginid, optConf.Groupid, optConf.Role, optConf.Aclfile)
 	} else {
 		err = fmt.Errorf("invalid command")
 	}
@@ -145,8 +149,8 @@ func CreateKeyPair(clientID string) (pubKeyPem string, err error) {
 func HandleSetPasswd(configFolder string, username string, passwd string, iterations int) error {
 	var pwHash string
 	var err error
-	unpwFilePath := path.Join(configFolder, auth.DefaultUnpwFilename)
-	unpwStore := auth.NewPasswordFileStore(unpwFilePath)
+	unpwFilePath := path.Join(configFolder, unpwstore.DefaultUnpwFilename)
+	unpwStore := unpwstore.NewPasswordFileStore(unpwFilePath, "auth.main.HandleSetPasswd")
 	err = unpwStore.Open()
 	if err == nil {
 		pwHash, err = auth.CreatePasswordHash(passwd, auth.PWHASH_ARGON2id, uint(iterations))
@@ -246,15 +250,18 @@ func HandleCreateThingCert(certFolder string, deviceID string, pubKeyFile string
 }
 
 // Set the role of a client in a group.
-func HandleSetRole(configFolder string, clientID string, groupID string, role string) error {
+func HandleSetRole(configFolder string, clientID string, groupID string, role string, aclFile string) error {
 	if role != auth.GroupRoleEditor && role != auth.GroupRoleViewer &&
 		role != auth.GroupRoleManager && role != auth.GroupRoleThing && role != auth.GroupRoleNone {
 		err := fmt.Errorf("invalid role '%s'", role)
 		return err
 	}
-
-	aclFilePath := path.Join(configFolder, auth.DefaultAclFilename)
-	aclStore := auth.NewAclFileStore(aclFilePath)
+	aclFilePath := path.Join(configFolder, aclstore.DefaultAclFilename)
+	if aclFile != "" {
+		// option to specify an acl file wrt home
+		aclFilePath = path.Join(path.Dir(configFolder), aclFile)
+	}
+	aclStore := aclstore.NewAclFileStore(aclFilePath, "auth.main.HandleSetRole")
 	err := aclStore.Open()
 	if err == nil {
 		err = aclStore.SetRole(clientID, groupID, role)

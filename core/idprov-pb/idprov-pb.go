@@ -1,8 +1,11 @@
 package idprovpb
 
 import (
+	"path"
+
 	"github.com/wostzone/idprov-go/pkg/idprov"
 	"github.com/wostzone/idprov-go/pkg/idprovserver"
+	"github.com/wostzone/wostlib-go/pkg/certsetup"
 	"github.com/wostzone/wostlib-go/pkg/hubconfig"
 )
 
@@ -67,14 +70,21 @@ func NewIDProvPB(config *IDProvPBConfig, hubConfig *hubconfig.HubConfig) *IDProv
 		config.ValidForDays = 3
 	}
 	discoServiceName := idprov.IdprovServiceName
-	if config.EnableDiscovery == false {
+	if !config.EnableDiscovery {
 		discoServiceName = ""
 	}
+	serverCertPath := path.Join(hubConfig.CertsFolder, certsetup.HubCertFile)
+	serverKeyPath := path.Join(hubConfig.CertsFolder, certsetup.HubKeyFile)
+	caCertPath := path.Join(hubConfig.CertsFolder, certsetup.CaCertFile)
+	caKeyPath := path.Join(hubConfig.CertsFolder, certsetup.CaKeyFile)
 	server := idprovserver.NewIDProvServer(
 		config.ClientID,
 		config.IdpAddress,
 		config.IdpPort,
-		hubConfig.CertsFolder,
+		serverCertPath,
+		serverKeyPath,
+		caCertPath,
+		caKeyPath,
 		config.IdpCerts,
 		config.ValidForDays,
 		discoServiceName)

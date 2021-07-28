@@ -64,5 +64,4 @@ func TestStartHubBadHome(t *testing.T) {
 	setup()
 	err := hub.StartHub("/notahomefolder", true)
 	assert.Error(t, err)
-
 }

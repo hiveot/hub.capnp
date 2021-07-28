@@ -1,6 +1,7 @@
 package mosquittomgr
 
 import (
+	"os"
 	"os/exec"
 
 	"github.com/sirupsen/logrus"
@@ -24,8 +25,9 @@ type PluginConfig struct {
 type MosquittoManager struct {
 	Config       PluginConfig
 	hubConfig    *hubconfig.HubConfig
-	hubClient    *hubclient.MqttHubClient
+	hubClient    *hubclient.MqttHubClient // for communication with the Hub
 	mosquittoCmd *exec.Cmd
+	isRunning    chan bool
 }
 
 // Start the manager.
@@ -42,24 +44,29 @@ type MosquittoManager struct {
 // Returns error if no mosquitto configuration is found
 func (mm *MosquittoManager) Start(hubConfig *hubconfig.HubConfig) error {
 	mm.hubConfig = hubConfig
+	logrus.Warningf("MosquittoManager.Start")
 
 	templateFilename := mm.Config.MosquittoTemplate
 	configFile, err := ConfigureMosquitto(mm.hubConfig, templateFilename, mm.Config.MosquittoConf)
 	if err != nil {
 		return err
 	}
-	mm.mosquittoCmd, err = LaunchMosquitto(configFile)
+	mm.mosquittoCmd, err = LaunchMosquitto(configFile, mm.isRunning)
 	if err != nil {
-		logrus.Fatalf("Mosquitto failed to start: %s", err)
+		logrus.Errorf("Mosquitto failed to start: %s", err)
 		return err
 	}
 
-	mm.hubClient = hubclient.NewMqttHubPluginClient(mm.Config.ClientID, mm.hubConfig)
-	err = mm.hubClient.Start()
-	if err != nil {
-		return err
-	}
-	logrus.Infof("MosquittoManager started successfully")
+	// This manager communicates with the Hub using the message bus
+	// mm.hubClient = hubclient.NewMqttHubPluginClient(mm.Config.ClientID, mm.hubConfig)
+	// err = mm.hubClient.Start()
+	// if err != nil {
+	// 	logrus.Errorf("MosquittoManager.Start MQTT client failed (for hub comm)")
+	// 	mm.mosquittoCmd.Process.Kill()
+	// 	mm.mosquittoCmd = nil
+	// 	return err
+	// }
+	logrus.Infof("MosquittoManager.Start success")
 	// Listen for provisioning requests
 	// topic := MakeProvisionTopic('+', ProvisionRequest)
 	// mm.hubClient.SubscribeProvisioning(topic, HandleProvisionRequest)
@@ -73,7 +80,18 @@ func (mm *MosquittoManager) Start(hubConfig *hubconfig.HubConfig) error {
 // If Mosquitto was started by the manager it will be stopped.
 func (mm *MosquittoManager) Stop() {
 	if mm.mosquittoCmd != nil {
-		mm.mosquittoCmd.Process.Kill()
+		// err := mm.mosquittoCmd.Process.Kill()
+		err := mm.mosquittoCmd.Process.Signal(os.Kill)
+		if err != nil {
+			logrus.Errorf("MosquittoManager.Stop. Kill mosquitto error: %s", err)
+		}
+		// FIXME: use channel to wait for completion
+		<-mm.isRunning
+		logrus.Warningf("MosquittoManager.Stop. Mosquitto ended")
+		// _, err = mm.mosquittoCmd.Process.Wait()
+		// if err != nil {
+		// 	logrus.Infof("MosquittoManager.Stop. Wait mosquitto error: %s", err)
+		// }
 	}
 	if mm.hubClient != nil {
 		mm.hubClient.Stop()
@@ -88,6 +106,7 @@ func NewMosquittoManager() *MosquittoManager {
 			MosquittoConf:     DefaultConfFile,
 			MosquittoTemplate: DefaultTemplateFile,
 		},
+		isRunning: make(chan bool, 1),
 	}
 	return mm
 }

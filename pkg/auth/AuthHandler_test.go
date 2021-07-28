@@ -2,17 +2,48 @@ package auth_test
 
 import (
 	"os"
+	"path"
 	"testing"
 	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+	"github.com/wostzone/hub/pkg/aclstore"
 	"github.com/wostzone/hub/pkg/auth"
+	"github.com/wostzone/hub/pkg/unpwstore"
 	"github.com/wostzone/wostlib-go/pkg/certsetup"
 	"github.com/wostzone/wostlib-go/pkg/hubclient"
+	"github.com/wostzone/wostlib-go/pkg/hubconfig"
 )
 
 const testDevice1 = "device1"
+const aclFileName = "test-ah.acl" // auth_opt_aclFile
+var aclFilePath string
+
+const unpwFileName = "test.passwd"
+
+var unpwFilePath string
+
+// TestMain for all auth tests, setup of default folders and filenames
+func TestMain(m *testing.M) {
+	hubconfig.SetLogging("info", "")
+	cwd, _ := os.Getwd()
+	homeFolder := path.Join(cwd, "../../test")
+	configFolder := path.Join(homeFolder, "config")
+
+	// Make sure ACL and password files exist
+	aclFilePath = path.Join(configFolder, aclFileName)
+	fp, _ := os.Create(aclFilePath)
+	fp.Close()
+	unpwFilePath = path.Join(configFolder, unpwFileName)
+	fp, _ = os.Create(unpwFilePath)
+	fp.Close()
+	// creating these files takes a bit of time,
+	time.Sleep(time.Second)
+
+	res := m.Run()
+	os.Exit(res)
+}
 
 // Create auth handler with empty username/pw and acl list
 func createEmptyTestAuthHandler() *auth.AuthHandler {
@@ -20,8 +51,8 @@ func createEmptyTestAuthHandler() *auth.AuthHandler {
 	fp.Close()
 	fp, _ = os.Create(unpwFilePath)
 	fp.Close()
-	unpwStore := auth.NewPasswordFileStore(unpwFilePath)
-	aclStore := auth.NewAclFileStore(aclFilePath)
+	unpwStore := unpwstore.NewPasswordFileStore(unpwFilePath, "createEmptyTestAuthHandler")
+	aclStore := aclstore.NewAclFileStore(aclFilePath, "createEmptyTestAuthHandler")
 	ah := auth.NewAuthHandler(aclStore, unpwStore)
 	return ah
 }
@@ -37,8 +68,8 @@ func TestAuthHandlerStartStop(t *testing.T) {
 
 func TestAuthHandlerStartStopNoPw(t *testing.T) {
 	logrus.Infof("---TestAuthHandlerStartStopNoPw---")
-	aclStore := auth.NewAclFileStore(aclFilePath)
-	unpwStore := auth.NewPasswordFileStore(unpwFilePath)
+	unpwStore := unpwstore.NewPasswordFileStore(unpwFilePath, "TestAuthHandlerStartStopNoPw")
+	aclStore := aclstore.NewAclFileStore(aclFilePath, "TestAuthHandlerStartStopNoPw")
 	ah := auth.NewAuthHandler(aclStore, unpwStore)
 	err := ah.Start()
 	time.Sleep(time.Second * 1)
@@ -47,8 +78,8 @@ func TestAuthHandlerStartStopNoPw(t *testing.T) {
 }
 func TestAuthHandlerBadStart(t *testing.T) {
 	logrus.Infof("---TestAuthHandlerBadStart---")
-	unpwStore := auth.NewPasswordFileStore(unpwFilePath)
-	aclStore := auth.NewAclFileStore("/bad/aclstore/path")
+	unpwStore := unpwstore.NewPasswordFileStore(unpwFilePath, "TestAuthHandlerBadStart")
+	aclStore := aclstore.NewAclFileStore("/bad/aclstore/path", "TestAuthHandlerBadStart")
 	ah := auth.NewAuthHandler(aclStore, unpwStore)
 
 	// opening the acl store should fail
@@ -104,8 +135,8 @@ func TestHasPermission(t *testing.T) {
 
 func TestCheckDeviceAuthorization(t *testing.T) {
 	logrus.Infof("---TestCheckDeviceAuthorization---")
-	unpwStore := auth.NewPasswordFileStore(unpwFilePath)
-	aclStore := auth.NewAclFileStore(aclFilePath)
+	unpwStore := unpwstore.NewPasswordFileStore(unpwFilePath, "TestCheckDeviceAuthorization")
+	aclStore := aclstore.NewAclFileStore(aclFilePath, "TestCheckDeviceAuthorization")
 
 	ah := auth.NewAuthHandler(aclStore, unpwStore)
 	ah.Start()
@@ -162,7 +193,7 @@ func TestUnpwMatch(t *testing.T) {
 	ah.Start()
 
 	// add the user to the password file
-	unpwStore2 := auth.NewPasswordFileStore(unpwFilePath)
+	unpwStore2 := unpwstore.NewPasswordFileStore(unpwFilePath, "TestUnpwMatch")
 	unpwStore2.Open()
 	pwHash, err := auth.CreatePasswordHash(password, auth.PWHASH_ARGON2id, 0)
 	assert.NoError(t, err)

@@ -9,7 +9,9 @@ import (
 
 	"github.com/sirupsen/logrus"
 	// "github.com/wostzone/hub/core/authhandler"
+	"github.com/wostzone/hub/pkg/aclstore"
 	"github.com/wostzone/hub/pkg/auth"
+	"github.com/wostzone/hub/pkg/unpwstore"
 	"github.com/wostzone/wostlib-go/pkg/hubconfig"
 )
 
@@ -78,7 +80,7 @@ func AuthPluginInit(keys []string, values []string, authOptsNum int) {
 	// Key/Values are from mosquitto.conf
 	logFile := DefaultLogFile
 	logLevel := DefaultLogLevel
-	aclFile := auth.DefaultAclFilename
+	aclFile := aclstore.DefaultAclFilename
 	unpwFile := "" // auth.DefaultUnpwFilename optional
 	for index, key := range keys {
 		if key == MosqOptLogFile {
@@ -94,13 +96,13 @@ func AuthPluginInit(keys []string, values []string, authOptsNum int) {
 	hubconfig.SetLogging(logLevel, logFile)
 	// The file based store is the only option for now
 	if aclFile == "" {
-		aclFile = auth.DefaultAclFilename
+		aclFile = aclstore.DefaultAclFilename
 	}
 	if unpwFile == "" {
-		unpwFile = auth.DefaultUnpwFilename
+		unpwFile = unpwstore.DefaultUnpwFilename
 	}
-	aclStore := auth.NewAclFileStore(aclFile)
-	unpwStore := auth.NewPasswordFileStore(unpwFile)
+	aclStore := aclstore.NewAclFileStore(aclFile, "mosqauth.AuthPluginInit")
+	unpwStore := unpwstore.NewPasswordFileStore(unpwFile, "mosqauth.AuthPluginInit")
 	authHandler = auth.NewAuthHandler(aclStore, unpwStore)
 	authHandler.Start()
 }

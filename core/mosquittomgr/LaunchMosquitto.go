@@ -2,6 +2,7 @@
 package mosquittomgr
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"time"
@@ -11,9 +12,11 @@ import (
 
 // launch mosquitto with the given configuration file. This attaches stderr and stdout
 // to the current process.
+// This signals the 'done' channel when the mosquitto process has ended
 //  returns with the command or error. Use cmd.Process.Kill to terminate.
-func LaunchMosquitto(configFile string) (*exec.Cmd, error) {
+func LaunchMosquitto(configFile string, done chan bool) (*exec.Cmd, error) {
 	logrus.Infof("Starting mosquitto broker")
+	var isRunning bool
 
 	// mosquitto must be in the path
 	cmd := exec.Command("mosquitto", "-c", configFile)
@@ -25,12 +28,20 @@ func LaunchMosquitto(configFile string) (*exec.Cmd, error) {
 		return nil, err
 	}
 	go func() {
+		t1 := time.Now()
+		isRunning = true
 		// logrus.Infof("Mosquitto cmd.Wait started")
 		_, err = cmd.Process.Wait()
-		logrus.Infof("Mosquitto has ended")
+		done <- true
+		duration := time.Since(t1)
+		logrus.Infof("Mosquitto has ended after %.3f seconds. err=%v", duration.Seconds(), err)
+		isRunning = false
 	}()
 	// Give mosquitto some time to start, if starting failed due to error we might pick it up
 	time.Sleep(100 * time.Millisecond)
+	if !isRunning && err == nil {
+		err = fmt.Errorf("LaunchMosquitto. mosquitto terminated immediately. Check the template or the plugin")
+	}
 
 	return cmd, err
 }

@@ -31,10 +31,11 @@ func TestMain(m *testing.M) {
 	os.Exit(result)
 }
 
-func TestStartStop(t *testing.T) {
+func TestStartStopIdProvPB(t *testing.T) {
 	idpConfig := &idprovpb.IDProvPBConfig{}
 
 	hubConfig, err := hubconfig.LoadCommandlineConfig(homeFolder, idprovpb.PluginID, &idpConfig)
+	assert.NoError(t, err)
 	idpPB := idprovpb.NewIDProvPB(idpConfig, hubConfig)
 
 	err = idpPB.Start()

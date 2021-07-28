@@ -15,7 +15,7 @@ func TestMain(t *testing.T) {
 	// cmdline := "certbundle"
 	// cmdline := "clientcert client1"
 	// cmdline := "setpassword client1 bob -c ./config"
-	cmdline := "setrole client1 group1 viewer"
+	cmdline := "setrole client1 group1 viewer --aclfile=config/test.acl"
 	args := strings.Split(cmdline, " ")
 	ParseArgs(homeFolder, args)
 }

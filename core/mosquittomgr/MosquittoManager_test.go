@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/wostzone/hub/core/mosquittomgr"
 	"github.com/wostzone/hub/pkg/auth"
+	"github.com/wostzone/hub/pkg/unpwstore"
 	"github.com/wostzone/wostlib-go/pkg/certsetup"
 	"github.com/wostzone/wostlib-go/pkg/hubclient"
 	"github.com/wostzone/wostlib-go/pkg/hubconfig"
@@ -59,8 +60,8 @@ func TestMain(m *testing.M) {
 	os.Exit(result)
 }
 
-func TestStartStop(t *testing.T) {
-	logrus.Infof("---TestStartStop---")
+func TestStartStopMosqManager(t *testing.T) {
+	logrus.Infof("---TestStartStopMosqManager---")
 
 	// FIXME: configuration password and acl store location
 	svc := mosquittomgr.NewMosquittoManager()
@@ -98,38 +99,51 @@ func TestPluginConnect(t *testing.T) {
 	err = client.PublishTD(thing1ID, td)
 	assert.NoError(t, err)
 	time.Sleep(time.Second)
-
+	client.Stop()
 	svc.Stop()
 }
 
-func TestPasswd(t *testing.T) {
-	logrus.Infof("---TestPasswd---")
-	username := "user1"
-	password1 := "user1" // in password file in test folder
+func TestPasswdWithMosqManager(t *testing.T) {
+	logrus.Infof("--- TestPasswdWithMosqManager ---")
+	var err error
+	username := "user2"
+	password1 := "user2"
 
-	pfs := auth.NewPasswordFileStore(unpwFilePath)
-	pfs.Open()
+	pfs := unpwstore.NewPasswordFileStore(unpwFilePath, "TestPasswdWithMosqManager")
+	err = pfs.Open()
+	assert.NoError(t, err)
+	// for logging timestamps
+	time.Sleep(time.Millisecond * 100)
 	pwhash, err := auth.CreatePasswordHash(password1, auth.PWHASH_ARGON2id, 0)
 	assert.NoError(t, err)
+	logrus.Infof("--- TestPasswdWithMosqManager: Setting password for %s", username)
 	pfs.SetPasswordHash(username, pwhash)
+	assert.NoError(t, err)
 
+	// for logging timestamps - dont mix setting passwd with starting mosq mgr
+	time.Sleep(time.Millisecond * 1000)
+
+	logrus.Infof("--- TestPasswdWithMosqManager: Creating MosquittoManager")
 	svc := mosquittomgr.NewMosquittoManager()
 	err = hubconfig.LoadPluginConfig(configFolder, mosquittomgr.PluginID, &svc.Config, nil)
 	assert.NoError(t, err)
 
 	err = svc.Start(hubConfig)
 	assert.NoError(t, err)
+	// for logging timestamps
+	time.Sleep(time.Millisecond * 100)
 
 	// a consumer must be able to subscribe using a valid password
 	hostPort := fmt.Sprintf("%s:%d", hubConfig.MqttAddress, hubConfig.MqttUnpwPortWS)
 	caCertFile := path.Join(hubConfig.CertsFolder, certsetup.CaCertFile)
 	client := hubclient.NewMqttHubClient(hostPort, caCertFile, username, password1)
+
 	err = client.Start()
 	require.NoError(t, err)
 	client.Stop()
 
 	time.Sleep(time.Second)
-
+	client.Stop()
 	svc.Stop()
 }
 
@@ -150,7 +164,7 @@ func TestBadPasswd(t *testing.T) {
 	client := hubclient.NewMqttHubClient(hostPort, caCertFile, username, password1)
 	err = client.Start()
 	require.Error(t, err)
-	client.Stop()
+	client.Stop() // should not panic
 
 	svc.Stop()
 }
@@ -177,6 +191,6 @@ func TestBadConfigTemplate(t *testing.T) {
 	svc.Config.MosquittoTemplate = "mosquitto.conf.bad-template"
 	err = svc.Start(hubConfig)
 	assert.Error(t, err)
-
+	time.Sleep(time.Second)
 	svc.Stop()
 }
