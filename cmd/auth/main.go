@@ -12,8 +12,8 @@ import (
 	"github.com/wostzone/hub/pkg/auth"
 	"github.com/wostzone/hub/pkg/unpwstore"
 	"github.com/wostzone/wostlib-go/pkg/certsetup"
+	"github.com/wostzone/wostlib-go/pkg/hubnet"
 	"github.com/wostzone/wostlib-go/pkg/signing"
-	"github.com/wostzone/wostlib-go/pkg/tlsclient"
 )
 
 // commandline commands
@@ -37,7 +37,7 @@ func ParseArgs(homeFolder string, args []string) {
 	// configFolder := path.Join(homeFolder, "config")
 	// ouRole := certsetup.OUClient
 	// genKeys := false
-	ifName, mac, ip := tlsclient.GetOutboundInterface("")
+	ifName, mac, ip := hubnet.GetOutboundInterface("")
 	_ = ifName
 	_ = mac
 	sanName := ip.String()

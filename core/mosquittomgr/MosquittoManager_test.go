@@ -16,6 +16,7 @@ import (
 	"github.com/wostzone/wostlib-go/pkg/certsetup"
 	"github.com/wostzone/wostlib-go/pkg/hubclient"
 	"github.com/wostzone/wostlib-go/pkg/hubconfig"
+	"github.com/wostzone/wostlib-go/pkg/hubnet"
 	"github.com/wostzone/wostlib-go/pkg/td"
 	"github.com/wostzone/wostlib-go/pkg/vocab"
 )
@@ -43,7 +44,7 @@ func TestMain(m *testing.M) {
 	configFolder = hubConfig.ConfigFolder
 	hubconfig.SetLogging(hubConfig.Loglevel, "")
 
-	ip := hubconfig.GetOutboundIP(hubConfig.MqttAddress).String()
+	ip := hubnet.GetOutboundIP(hubConfig.MqttAddress).String()
 	names := []string{string(ip), hubConfig.MqttAddress}
 	// for testing the certs must exist
 	certsFolder := path.Join(homeFolder, "certs")
