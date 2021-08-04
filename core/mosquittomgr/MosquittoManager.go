@@ -94,7 +94,7 @@ func (mm *MosquittoManager) Stop() {
 		// }
 	}
 	if mm.hubClient != nil {
-		mm.hubClient.Stop()
+		mm.hubClient.Close()
 	}
 }
 

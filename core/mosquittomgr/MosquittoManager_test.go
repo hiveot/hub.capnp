@@ -92,7 +92,7 @@ func TestPluginConnect(t *testing.T) {
 
 	// a plugin must be able to connect using a client certificate
 	client := hubclient.NewMqttHubPluginClient(pluginID, hubConfig)
-	err = client.Start()
+	err = client.Connect()
 	require.NoError(t, err)
 
 	// publish should succeed
@@ -100,7 +100,7 @@ func TestPluginConnect(t *testing.T) {
 	err = client.PublishTD(thing1ID, td)
 	assert.NoError(t, err)
 	time.Sleep(time.Second)
-	client.Stop()
+	client.Close()
 	svc.Stop()
 }
 
@@ -139,12 +139,13 @@ func TestPasswdWithMosqManager(t *testing.T) {
 	caCertFile := path.Join(hubConfig.CertsFolder, certsetup.CaCertFile)
 	client := hubclient.NewMqttHubClient(hostPort, caCertFile, username, password1)
 
-	err = client.Start()
+	err = client.Connect()
 	require.NoError(t, err)
-	client.Stop()
+	client.Close()
 
 	time.Sleep(time.Second)
-	client.Stop()
+	// close twice should not fail
+	client.Close()
 	svc.Stop()
 }
 
@@ -163,9 +164,9 @@ func TestBadPasswd(t *testing.T) {
 	hostPort := fmt.Sprintf("%s:%d", hubConfig.MqttAddress, hubConfig.MqttUnpwPortWS)
 	caCertFile := path.Join(hubConfig.CertsFolder, certsetup.CaCertFile)
 	client := hubclient.NewMqttHubClient(hostPort, caCertFile, username, password1)
-	err = client.Start()
+	err = client.Connect()
 	require.Error(t, err)
-	client.Stop() // should not panic
+	client.Close() // should not panic
 
 	svc.Stop()
 }

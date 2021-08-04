@@ -18,6 +18,7 @@ plugins:
   # Core plugins
   - mosquittomgr # Launch the mosquitto server and manage mosquitto auth
   - idprov-pb # Automated provisioning of devices
+  - thingdir-pb # Thing directory service
   # Other plugins
   - logger # Log discovered Things
   - owserver-pb # Publish 1-wire Things connected to a OWServer-V2 gateway

@@ -8,7 +8,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/idprov-go/pkg/idprovoob"
-	"github.com/wostzone/wostlib-go/pkg/hubconfig"
+	"github.com/wostzone/wostlib-go/pkg/hubnet"
 )
 
 // Commandline utility to set the out of band secret for provisioning
@@ -19,7 +19,7 @@ func main() {
 
 	// Some additional commandline arguments for this plugin
 	appDir := path.Dir(os.Args[0])
-	var hostname string = string(hubconfig.GetOutboundIP(""))
+	var hostname string = string(hubnet.GetOutboundIP(""))
 	var certFolder string = path.Join(appDir, "../certs")
 	var port uint = 9678
 

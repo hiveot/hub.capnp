@@ -57,13 +57,13 @@ mosqauth: ## Build mosquitto auth plugin for use by the Hub
 	cd cmd/mosqauth && make
 	@echo "> SUCCESS. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@"
 
-auth: ## Build auhtentication CLI to generate certificates, set password and set ACLs
+auth: ## Build authentication CLI to generate certificates, set password and set ACLs
 	go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go
 	@echo "> SUCCESS. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@"
 
-#gencerts: ## Build gencerts utility to generate self-signed certificates with CA
-#	go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go
-#	@echo "> SUCCESS. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@"
+thingdir-pb: ## Build thingdir-pb plugin
+	go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go
+
 
 hub: ## Build WoST Hub
 	go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go

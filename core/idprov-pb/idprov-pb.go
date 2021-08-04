@@ -52,7 +52,7 @@ func (pb *IDProvPB) Stop() {
 func NewIDProvPB(config *IDProvPBConfig, hubConfig *hubconfig.HubConfig) *IDProvPB {
 	// use default values if config is incomplete
 
-	// Both mqtt and idprov server must live on the same address to be able to use the same server cert
+	// Both mqtt and idprov server live on the same address to use the same server cert
 	if config.IdpAddress == "" {
 		// config.IdpAddress = hubconfig.GetOutboundIP("").String()
 		config.IdpAddress = hubConfig.MqttAddress
