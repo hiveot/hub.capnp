@@ -1,8 +1,0 @@
-# Mosquitto manager protocol binding configuration
-
-#clientID: "mosquittomgr"
-
-# Mosquitto template file
-mosquittoTemplate: "mosquitto.conf.template"
-# Mosquitto generated config file
-mosquittoConfig: "mosquitto.conf"

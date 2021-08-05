@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/sirupsen/logrus"
-	hub "github.com/wostzone/hub/core/hub"
+	"github.com/wostzone/hub/pkg/hub"
 	"github.com/wostzone/wostlib-go/pkg/hubclient"
 )
 

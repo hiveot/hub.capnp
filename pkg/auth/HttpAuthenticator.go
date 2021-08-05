@@ -1,4 +1,4 @@
-package tlsserver
+package auth
 
 import (
 	"net/http"
@@ -18,8 +18,8 @@ const (
 //
 // Digest auth only works for matching WoST hashes - argon2id - which is not an offical digest hash
 type HttpAuthenticator struct {
-
 }
+
 // move this to the hub auth package
 
 // Test if the request is made using a valid client certificate
@@ -30,12 +30,13 @@ func (hauth *HttpAuthenticator) IsValidCert(request *http.Request) bool {
 
 	// plugins and admins have full permission
 	cert := request.TLS.PeerCertificates[0]
-	certOU := cert.Issuer.OrganizationalUnit
-	if certOU == certsetup.OUPlugin || certOU == certsetup.OUAdmin {
-		return true
+	if len(cert.Issuer.OrganizationalUnit) > 0 {
+		certOU := cert.Issuer.OrganizationalUnit[1]
+		if certOU == certsetup.OUPlugin || certOU == certsetup.OUAdmin {
+			return true
+		}
 	}
-	if ou == OU
-	return cert
+	return false
 }
 
 // Authentication of HTTP requests
@@ -66,15 +67,16 @@ func (hauth *HttpAuthenticator) Authenticate(
 //  validator is the function used to validate a secret for a loginID. The secret is typically
 // the hash of the password.
 //  handler is the handler to invoke if authentication is accepted by the validator
-func (hauth *HttpAuthenticator) NewAuthenticator(
-	validator func(loginID string, secret string) bool,
-	handler func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
+// func (hauth *HttpAuthenticator) NewAuthenticator(
+// 	validator func(loginID string, secret string) bool,
+// 	handler func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
 
-	return func(resp http.ResponseWriter, req *http.Request) {
-		if srv.Authenticate(validator, req) {
-			handler(resp, req)
-		} else {
-			srv.WriteUnauthorized(resp, "Invalid username or password")
-		}
-	}
-}
+// 	return func(resp http.ResponseWriter, req *http.Request) {
+// 		if hauth.Authenticate(validator, req) {
+// 			handler(resp, req)
+// 		} else {
+// 			resp.WriteHeader(http.StatusUnauthorized)
+// 			resp.Write([]byte("Invalid username or password"))
+// 		}
+// 	}
+// }

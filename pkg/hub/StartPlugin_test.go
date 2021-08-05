@@ -7,7 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/wostzone/hub/core/hub"
+	"github.com/wostzone/hub/pkg/hub"
 	"github.com/wostzone/wostlib-go/pkg/hubconfig"
 )
 

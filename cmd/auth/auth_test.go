@@ -11,6 +11,8 @@ func TestMain(t *testing.T) {
 	wd, _ := os.Getwd()
 	homeFolder := path.Join(wd, "../../test")
 	os.Chdir(homeFolder)
+	fp, _ := os.Create("config/test.acl")
+	fp.Close()
 
 	// cmdline := "certbundle"
 	// cmdline := "clientcert client1"

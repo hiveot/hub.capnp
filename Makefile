@@ -6,7 +6,7 @@ PKG_NAME=wost-hub.tgz
 
 .PHONY: 
 
-all: hub auth mosqauth mosquittomgr idprov-pb ## Build hub and core apps
+all: hub auth  ## Build hub and auth apps
 
 install:  all ## Install the hub into ~/bin/wost/bin and config
 	mkdir -p ~/bin/wost/bin
@@ -46,13 +46,6 @@ clean: ## Clean distribution files
 
 #prof: ## Run application with CPU and memory profiling
 #	  go run main.go -cpuprofile=cpu.prof -memprofile=mem.prof
-
-mosquittomgr: mosqauth ## Build mosquitto configuration manager
-	go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go
-	
-mosqauth: ## Build mosquitto auth plugin for use by the Hub
-	cd cmd/mosqauth && make
-	@echo "> SUCCESS. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@"
 
 auth: ## Build authentication CLI to generate certificates, set password and set ACLs
 	go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go
