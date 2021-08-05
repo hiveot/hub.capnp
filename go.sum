@@ -1,3 +1,4 @@
+github.com/abbot/go-http-auth v0.4.0/go.mod h1:Cz6ARTIzApMJDzh5bRMSUou6UMSp0IEXg9km/ci7TJM=
 github.com/alexedwards/argon2id v0.0.0-20210511081203-7d35d68092b8 h1:ZtMr6/tt7VU/Ijpyyedn7eUwwsNX1uskEcR+maLEF18=
 github.com/alexedwards/argon2id v0.0.0-20210511081203-7d35d68092b8/go.mod h1:Kmn5t2Rb93Q4NTprN4+CCgARGvigKMJyxP0WckpTUp0=
 github.com/cenkalti/backoff v2.2.1+incompatible h1:tNowT99t7UNflLxfYYSlKYsBpXdEet03Pg2g16Swow4=

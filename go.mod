@@ -22,8 +22,5 @@ require (
 // Until wostlib is stable
 replace github.com/wostzone/wostlib-go => ../wostlib-go
 
-// Until idprov is stable
-replace github.com/wostzone/idprov-go => ../idprov-go
-
 // Until thingdir is stable
 replace github.com/wostzone/thingdir-go => ../thingdir-go

@@ -218,11 +218,11 @@ Service plugins can also create a new channel to communicate with other plugins,
 
 Core plugins included with the hub provide a works-out-of-the-box experience. Even though they are included, the use of these plugins is optional. Planned plugins: 
 
-* The core 'provisioning' plugin provides an HTTPS API for devices to obtain an  certificate needed to connect to other services. It supports DNS-SD discovery for the local network.
+* The core 'idprov-pb' plugin provides an HTTPS API for devices to obtain an  certificate needed to connect to other services. It supports DNS-SD discovery for the local network.
 
 * The core 'auth' plugin provides role based authorization management of clients using groups. Clients in a group can access Things in that group based on their group role.
  
-* The 'directory' service provides an HTTPS API for consumers to query discovered Things. 
+* The 'thingdir' service provides an HTTPS API for consumers to query discovered Things. 
 
 * The 'forwarder' service forwards select Exposed Things to another cloud based intermediary such as another WoST hub. Intended to safely access Things via the cloud. An authorization model determines which Things and which actions are shared with the intermediary. This is intended to provide access to Things for authorized users from over the internet without the need to open up the firewall.
 
