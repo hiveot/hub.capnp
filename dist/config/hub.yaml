@@ -16,6 +16,7 @@ logLevel: "info" # debug, info, warning, error. Default is warning
 # Plugin to start
 plugins:
   # Core plugins
+  - hubauth # hub authentication & authorization service
   - mosquittomgr # Launch the mosquitto server and manage mosquitto auth
   - idprov-pb # Automated provisioning of devices
   - thingdir-pb # Thing directory service

@@ -1,10 +1,10 @@
 # WoST Hub
 
-The WoST Hub is the reference implementation of the Hub for the Web of (Secured) Things. It receives information from 'Things' and provides a Thing shadow device to consumers. Consumers interact with Things through the Hub without connecting directly to the Thing. The Hub aims to be compatible with the WoT open standard but is constrainted to features that meet the WoST security mandate of "Things Do Not Run Servers".
+The WoST Hub is the reference implementation of the Hub for the Web of (Secured) Things. It acts as an intermediary between IoT device 'Things' and consumers. Consumers interact with Things through Hub services without connecting directly to the Thing. The Hub aims to be compatible with the WoT open standard but is constrainted to features that meet the WoST security mandate of "Things Do Not Run Servers".
 
 ## Project Status
 
-Status: The status of this plugin is Alpha. It is functional but breaking changes must be expected.
+Status: The status of this plugin is Alpha. It is functional but breaking changes can be expected.
 
 Authentication and authorization improvements are in development.
 
@@ -15,22 +15,21 @@ This project is aimed at software developers and system implementors that share 
 
 ## Summary
 
-The WoST Hub and plugins provide a shadow representation of discovered Things. Things register themselves with the Hub while consumers discover and control Things through the Hub. The Hub acts as an intermediary and avoids the need to provide direct access to Things by consumers. This keeps the Thing isolated and secure.
+The Hub package is responsible for operating the Hub services. It purpose is to launch services, monitor and report their status. In itself it does not provide any features other than managing the services.
 
-The WoST Hub is intended to be used with WoST compliant IoT devices (WoST Things)and legacy devices. WoST compliant devices can automatically discover the Hub on a local network and provision themselves with the Hub. After provisioning the device sends its Thing Description(s) and events to the Hub, from where it can be accessed and monitored. 
+The Hub is configured through the hub.yaml configuration file that provides default settings for its services and which services to launch.
 
-Legacy devices that are not WoST compliant are accessed through plugins that convert between the legacy format and WoT standards. They can be used as if they are WoT/WoST devices via the Hub APIs.
+Core Hub services are needed to provide a basic functional system and include:
+- auth: an authentication and authorization service
+- idprov: IoT device provisioning service for provisioning of IoT devices
+- mosquittomgr: management of the mosquitto MQTT message bus service
+- logging: service for logging of select messages for monitoring and testing
+- thingdir: Thing directory service
 
-In either case WoST Things are not accessed directly. WoST managed IoT devices should remain in a secured fire-walled area. Consumers view and control the devices through the Hub. When used within the Local Area Network this works entirely stand-alone and no Internet access is required. For remote access and monitoring, the Hub can connect securely to a cloud based intermediary/Hub. Here too, there is never a direct connection from the Internet to the local network.
+Each of these core services are replacable by services that provide the same functionality and support the same APIs. For example, mosquittomgr can be replaced by a different message bus service that supports the MQTT protocol and uses the auth service for authenticating and authorizing user access.
 
-The features of the Hub are provided through plugins. Core plugins provide support for managing the message bus, device provisioning, authentication and authorization.
-External plugins provide a bridge to protocols such as ZWave, onewire, and other IoT communication protocols.
+In addition, protocol bindings for non-wost IoT devices and other services can be included to enhance the functionality of the hub.
 
-## WoST vs WoT
-
-As mentioned [elsewhere](https://wostzone.github.io) in more detail, WoST is an implementation of WoT with the restriction that **Things do not run a server**. Instead WoST follows the hub-and-spokes model where 'Things' push their data into the WoST Hub, which provides a virtual representation of the Thing. The main reason behind this approach is that of security. Implementing servers securely is hard and not an easy task for a simple IoT device.
-
-WoST therefore supports [section 6.7 of the WoT architecture](https://www.w3.org/TR/wot-architecture/#direct-communication) with a protocol binding that requires the Thing to connect to an Intermediary. The WoST Hub is in this case the intermediary and implements a server for the Thing to connect to using one of its protocol bindings. 
 
 ## Installation
 

@@ -6,14 +6,13 @@ PKG_NAME=wost-hub.tgz
 
 .PHONY: 
 
-all: hub auth  ## Build hub and auth apps
+all: hub   ## Build the hub plugin manager
 
 install:  all ## Install the hub into ~/bin/wost/bin and config
-	mkdir -p ~/bin/wost/bin
-	mkdir -p ~/bin/wost/config
-	mkdir -p ~/bin/wost/logs
+	mkdir -p $(INSTALL_HOME)/bin
+	mkdir -p $(INSTALL_HOME)/config
+	mkdir -p $(INSTALL_HOME)/logs
 	cp $(DIST_FOLDER)/bin/* ~/bin/wost/bin/
-	cp $(DIST_FOLDER)/config/mosquitto.conf.template ~/bin/wost/config/  
 	cp -n $(DIST_FOLDER)/config/* ~/bin/wost/config/  
 
 dist: clean   ## Build binary distribution tarball 
@@ -31,7 +30,6 @@ clean: ## Clean distribution files
 	rm -f $(DIST_FOLDER)/certs/*
 	rm -f $(DIST_FOLDER)/logs/*
 	rm -f $(DIST_FOLDER)/bin/*
-	rm -f $(DIST_FOLDER)/config/mosquitto.conf
 	rm -f debug $(PKG_NAME)
 	mkdir -p $(DIST_FOLDER)/bin
 	mkdir -p $(DIST_FOLDER)/certs
@@ -46,11 +44,6 @@ clean: ## Clean distribution files
 
 #prof: ## Run application with CPU and memory profiling
 #	  go run main.go -cpuprofile=cpu.prof -memprofile=mem.prof
-
-auth: ## Build authentication CLI to generate certificates, set password and set ACLs
-	go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go
-	@echo "> SUCCESS. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@"
-
 
 hub: ## Build WoST Hub
 	go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go
