@@ -1,12 +1,13 @@
 # WoST Hub
 
-The WoST Hub is the reference implementation of the Hub for the Web of (Secured) Things. It acts as an intermediary between IoT device 'Things' and consumers. Consumers interact with Things through Hub services without connecting directly to the Thing. The Hub aims to be compatible with the WoT open standard but is constrainted to features that meet the WoST security mandate of "Things Do Not Run Servers".
+The WoST Hub is the reference implementation of the Hub for the Web of Secure Things. It acts as an intermediary between IoT devices 'Things' and consumers. Consumers interact with Things through Hub services without connecting directly to the Thing device. The Hub aims to be compatible with the WoT open standard but is constrainted to features that meet the WoST security mandate of "Things Do Not Run Servers".
 
 ## Project Status
 
-Status: The status of this plugin is Alpha. It is functional but breaking changes can be expected.
+Status: The status of this plugin is Alpha. It is functional but breaking changes can be expected. 
 
-Authentication and authorization improvements are in development.
+Each plugin needs to be build and installed separately, until binaries are available in the release package.
+
 
 ## Audience
 
@@ -15,23 +16,12 @@ This project is aimed at software developers and system implementors that share 
 
 ## Summary
 
-The Hub package is responsible for operating the Hub services. It purpose is to launch services, monitor and report their status. In itself it does not provide any features other than managing the services.
+The Hub module is responsible for operating Hub plugins. It purpose is to launch and monitor plugins, and report their status. In itself it does not provide any features other than managing the plugins.
 
-The Hub is configured through the hub.yaml configuration file that provides default settings for its services and which services to launch.
-
-Core Hub services are needed to provide a basic functional system and include:
-- auth: an authentication and authorization service
-- idprov: IoT device provisioning service for provisioning of IoT devices
-- mosquittomgr: management of the mosquitto MQTT message bus service
-- logging: service for logging of select messages for monitoring and testing
-- thingdir: Thing directory service
-
-Each of these core services are replacable by services that provide the same functionality and support the same APIs. For example, mosquittomgr can be replaced by a different message bus service that supports the MQTT protocol and uses the auth service for authenticating and authorizing user access.
-
-In addition, protocol bindings for non-wost IoT devices and other services can be included to enhance the functionality of the hub.
+The Hub and its plugin is configured through the hub.yaml configuration file that provides default settings for its services and which services to launch.
 
 
-## Installation
+## Installation (draft)
 
 The WoST Hub is designed to run on Linux based computers. It might be able to work on other platforms but at this stage this is not tested nor a priority.
 
@@ -41,11 +31,18 @@ It is recommended to use a dedicated linux computer for installing the Hub and i
 
 The minimal requirement is 100MB of RAM and an Intel Celeron, or ARMv7 CPU. Additional resources might be required for some plugins. See plugin documentation.
 
-The Hub requires the installation of the Mosquitto MQTT message broker. The protocol binding pb_mosquitto plugin manages the configuration and security of the Mosquitto broker on behalf of the Hub. Other MQTT brokers can be used instead of mosquitto as long as they have an accompanying protocol binding to manage the configuration. The MQTT broker can but does not have to run on the same system as the Hub.
+The Hub requires the installation of the Mosquitto MQTT message broker. The 'mosquittomgr' plugin manages the configuration and security of the Mosquitto broker on behalf of the Hub. Other MQTT brokers can be used instead of mosquitto as long as they have an accompanying service to manage the configuration. The MQTT broker can but does not have to run on the same system as the Hub.
 
 ### Install From Package Manager
 
 Installation from package managers is currently not available.
+
+
+### Install From Binary Releases
+
+TODO: v1 stable plugins are available as binaries from github. 
+
+Configuration of plugins is not needed, except for the hub.yaml to enable plugins. (Eventually this will be configurable via the portal.)
 
 ### Manual Install As User
 
@@ -76,23 +73,20 @@ Mosquitto setup:
 Install mosquitto: 
 > On Ubuntu: sudo apt install mosquitto
 
-Note: Do not autostart mosquitto.
+Note: Do not autostart or configure mosquitto. Its configuration will not be used. See mosquittomgr for details.
 
-The mosquitto-pb plugin launches Mosquitto and generates the neccesary configuration files. No manual setup is needed. While it is possible to use an external mosquitto  MQTT broker, management of authorization requires access to the configuration files. 
-
-Use of a different MQTT broker such as HiveMQ, AWS, or other requires a protocol binding to manage client authorization. See the Hub core auth module for more detail.
+Use of a different MQTT broker such as HiveMQ, AWS, or other requires a protocol binding to manage client authorization. The hubcore package provides facilities for plugins to authenticate and authorize requests.
 
 
 ### Manual Install To System (tenative)
 
-For systemd installation, as root for user 'wost'. 
+For systemd installation to run as user 'wost'. 
 When changing the user and folders make sure to edit the wost-hub.service file accordingly.
 From the dist folder run:
 ```
 # Create folders
 mkdir /opt/wost/       
-mkdir /etc/wost/       
-mkdir /etc/wost/certs/ 
+mkdir -P /etc/wost/certs/ 
 mkdir -P /var/lib/wost/certstore/ 
 mkdir /var/log/wost/   
 
@@ -101,8 +95,6 @@ mkdir /var/log/wost/
 sudo cp config/* /etc/wost
 sudo cp init/wost-hub.service /etc/systemd/system
 sudo cp dist/bin/* /opt/wost
-
-# 
 
 # Setup user and permissions
 adduser --system --no-create-home --home /opt/wost --shell /usr/sbin/nologin --group wost
@@ -121,7 +113,7 @@ Install mosquitto on Ubuntu but do not configure it:
 To build the core and bundled plugins from source, a Linux system with golang and make tools must be available on the target system. 3rd party plugins are out of scope for these instructions and can require nodejs, python and golang.
 
 Prerequisites:
-1. Golang 1.14 or newer (module support)
+1. Golang 1.15 or newer (module support)
 2. GCC Make
 
 Build and install from source (tentative):
@@ -129,34 +121,35 @@ Build and install from source (tentative):
 $ git clone https://github.com/wostzone/hub
 $ cd hub
 $ make all 
+$ make install
 ```
 
 After the build is complete, the distribution binaries can be found in the 'dist/bin' folder. During install these need to be copied to the dist/bin on the target platform.
 
 
-External plugins are built similarly:
+Plugins are built similarly:
 ```bash
 $ git clone https://github.com/wostzone/{plugin}
 $ cd plugin
 $ make all 
-$ cp dist/bin/* ../hub/dist/bin, or
-$ cp dist/config/{plugin}.yaml ../hub/dist/config
+$ make install                    (to install as user to ~/bin/wost/...)
 ```
 
 
 ## Configuration
 
-The Hub is configured through the 'hub.yaml' configuration file that can be edited with a regular text editor. The sample file in the dist/config folder contains configuration options with the default values.
+The Hub will run out of the box but can be configured using the 'hub.yaml' configuration file. The sample file in the dist/config folder contains configuration options with the default values.
 
-The Hub looks in the hub config folder for hub.yaml. The file MUST exist as it contains the message bus connection information for use by plugins. The default values configure the hub for use on localhost only. Set the IP address of the message broker to allow access from anywhere on the LAN.
-Plugins read the hub.yaml configuration and can have an additional plugin specific configuration file in the config folder. Plugins must be able to run without a configuration file. 
+The Hub looks in the 'home' config folder for hub.yaml. The file MUST exist as it contains the message bus connection information for use by plugins. By default the host IP address is used. For hosts with multiple addresses, the address to use can be configured in hub.yaml 
+
+Plugins read the hub.yaml configuration and can have an their own plugin specific configuration file in the config folder. Plugins must be able to run without a configuration file. 
 
 ## Launching
 
 The Hub can be launched manually by invoking the 'hub' app in the wost bin folder.
-eg ~/bin/wost/bin/hub
+eg ~/bin/wost/bin/hub. The services to start are defined in the hub.yaml configuration file.
 
-A systemd launcher is provided that can be configured to launch automatically on startup for Linux systems that use systemd. See 'init/wost.service'
+A systemd launcher is provided that can be configured to launch on startup for systemd compatible Linux systems. See 'init/wost.service'
 
 ```
 sudo cp init/wost-hub.service /etc/systemd/system
@@ -207,29 +200,12 @@ The core protocol bindings include pb_mosquitto which manages the Mosquitto mess
 
 ## Service Plugins
 
-Service plugins provide their own API to the consumer. For example a directory service provides the Directory API to query for Things. The admin plugin provides a web page to administer the Hub and its plugins. 
+Service plugins provide their own API to the consumer. For example a directory service provides the Directory API to query for Things. The portal plugin provides a web page to use the Hub and its plugins. 
 
 Service plugins subscribe to TD and Event messages to obtain information about things and can publish actions to control Things.
 
-Service plugins can also create a new channel to communicate with other plugins, specific to the purpose of the plugin. A schema definition for the new channel must be defined and followed.
+Core plugins included with the hub provide a works-out-of-the-box experience. Even though they are included, the use of these plugins is optional. 
 
-<todo>See the list of available service plugins for details. </todo>
-
-Core plugins included with the hub provide a works-out-of-the-box experience. Even though they are included, the use of these plugins is optional. Planned plugins: 
-
-* The core 'idprov-pb' plugin provides an HTTPS API for devices to obtain an  certificate needed to connect to other services. It supports DNS-SD discovery for the local network.
-
-* The core 'auth' plugin provides role based authorization management of clients using groups. Clients in a group can access Things in that group based on their group role.
- 
-* The 'thingdir' service provides an HTTPS API for consumers to query discovered Things. 
-
-* The 'forwarder' service forwards select Exposed Things to another cloud based intermediary such as another WoST hub. Intended to safely access Things via the cloud. An authorization model determines which Things and which actions are shared with the intermediary. This is intended to provide access to Things for authorized users from over the internet without the need to open up the firewall.
-
-* The 'logger' service is a simple example plugin that records messages into files. Intended for testing.
-
-* The 'scripting' service provides an ECMA scripting engine to let the user run scripts. Scripts can access the message bus through the hubapi-js client library.
-
-* The 'admin' plugin provides an web based administration panel to view and configure Things and plugins.
 
 ## Writing Plugins
 

@@ -2,6 +2,7 @@
 # To build including generating certificates: make all
 DIST_FOLDER=./dist
 PKG_NAME=wost-hub.tgz
+INSTALL_HOME=~/bin/wost
 .DEFAULT_GOAL := help
 
 .PHONY: 
@@ -26,7 +27,6 @@ clean: ## Clean distribution files
 	go clean
 	rm -f test/certs/*
 	rm -f test/logs/*
-	rm -f test/config/mosquitto.conf
 	rm -f $(DIST_FOLDER)/certs/*
 	rm -f $(DIST_FOLDER)/logs/*
 	rm -f $(DIST_FOLDER)/bin/*
