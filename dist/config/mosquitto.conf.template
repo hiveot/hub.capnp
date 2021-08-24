@@ -1,0 +1,89 @@
+# Mosquitto MQTT Broker configuration file
+# Template for WoST Mosquitto protocol binding
+# Features: 
+# - MQTT SSL and WebSockets SLL 
+# - Authentication methods:
+#   1. Client certificate based authentication (aimed at plugins)
+#   2. Password based authentication for consumers (admin issued PW)
+
+per_listener_settings true
+
+# these are globals
+allow_anonymous false
+retain_available false
+persistence false
+#message_size_limit 10000000
+#max_inflight_messages 1000
+#max_queued_bytes 100000000  
+#max_queued_messages 1000
+
+log_dest file {{.homeFolder}}/logs/mosquitto.log
+log_dest stdout
+log_timestamp_format [%Y-%m-%dT%H:%M:%S] Mosquitto
+log_type error
+log_type warning
+log_type notice
+log_type information
+
+#--- 1: MQTT protocol over TLS with certificate
+# This is the preferred connection method and used by devices, plugins, administrator and consumers with a certificate.
+listener {{.mqttPortCert}}
+#max_connections 30
+cafile {{.caCertFile}}
+keyfile {{.hubKeyFile}}
+certfile {{.hubCertFile}}
+
+# Certificate CN field is used as the username
+require_certificate true
+use_identity_as_username true  
+#	use_subject_as_username
+tls_version tlsv1.2
+
+# mosqauth plugin handles authorization
+auth_plugin {{.homeFolder}}/bin/mosqauth.so
+auth_opt_logFile {{.logsFolder}}/mosqauth-cert.log
+auth_opt_logLevel info
+auth_opt_aclFile {{.configFolder}}/hub.acl
+auth_opt_unpwFile {{.configFolder}}/hub.passwd
+
+
+#--- 2: MQTT protocol over TLS with username/password auth
+# This is the preferred connection method and used by devices, plugins, administrator and consumers with a certificate.
+listener {{.mqttPortUnpw}}
+#max_connections 30
+cafile {{.caCertFile}}
+keyfile {{.hubKeyFile}}
+certfile {{.hubCertFile}}
+require_certificate false
+tls_version tlsv1.2
+
+# mosqauth plugin handles authorization
+auth_plugin {{.homeFolder}}/bin/mosqauth.so
+auth_opt_logFile {{.logsFolder}}/mosqauth-unpw.log
+auth_opt_logLevel info
+auth_opt_aclFile {{.configFolder}}/hub.acl
+auth_opt_unpwFile {{.configFolder}}/hub.passwd
+
+
+#--- 3: WebSockets over TLS/SSL with username/password auth
+# Intended for web browser and client applications that are consumers without certificate
+# Client certificates are not used but a server CA is needed on the client or the 
+#  client must ignore certificate verification.
+# Use a password file for user names
+listener {{.mqttPortWS}}
+#max_connections 100
+protocol websockets
+cafile {{.caCertFile}}
+keyfile {{.hubKeyFile}}
+certfile {{.hubCertFile}}
+require_certificate false
+tls_version tlsv1.2
+
+# mosqauth plugin handles authorization
+auth_plugin {{.homeFolder}}/bin/mosqauth.so
+auth_opt_logFile {{.logsFolder}}/mosqauth-ws.log
+auth_opt_logLevel info
+auth_opt_aclFile {{.homeFolder}}/config/hub.acl
+auth_opt_unpwFile {{.homeFolder}}/config/hub.passwd
+allow_anonymous false
+

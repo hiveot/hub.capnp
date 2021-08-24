@@ -5,9 +5,9 @@ PKG_NAME=wost-hub.tgz
 INSTALL_HOME=~/bin/wost
 .DEFAULT_GOAL := help
 
-.PHONY: 
+.FORCE: 
 
-all: hub   ## Build the hub plugin manager
+all: hub core addons  ## Build the hub and plugins
 
 install:  all ## Install the hub into ~/bin/wost/bin and config
 	mkdir -p $(INSTALL_HOME)/bin
@@ -19,7 +19,7 @@ install:  all ## Install the hub into ~/bin/wost/bin and config
 dist: clean   ## Build binary distribution tarball 
 		tar -czf $(PKG_NAME) -C $(DIST_FOLDER) .
 
-test: all .PHONY ## Run tests sequentially
+test: hub .FORCE ## Run hub test
 	go test -failfast -p 1 -v ./...
 
 clean: ## Clean distribution files
@@ -36,23 +36,46 @@ clean: ## Clean distribution files
 	mkdir -p $(DIST_FOLDER)/config
 	mkdir -p $(DIST_FOLDER)/logs
 
-#deps: ## Build GO dependencies 
-#		go get
-
-#upgrade: ## Upgrade the dependencies to the latest version. Use with care.
-#		go fix
-
-#prof: ## Run application with CPU and memory profiling
-#	  go run main.go -cpuprofile=cpu.prof -memprofile=mem.prof
-
 hub: ## Build WoST Hub
 	go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go
 	@echo "> SUCCESS. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@"
 
-
-#docker: ## Build hub for Docker target (TODO untested)
-#		docker run --rm -it -v "$(GOPATH)":/go -w /go/src/bitbucket.org/rsohlich/makepost golang:latest go build -o "$(BINARY_AMD64)" -v
-
 help: ## Show this help
 		@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
+
+# Core plugins to build 
+core: hubauth idprov-go mosquittomgr thingdir-go ## Core plugins to build
+
+# Addon plugins
+addons: logger owserver-pb  ## Addon plugins to build
+
+hubauth: .FORCE ## plugin authentication utility
+	make -C ../$@ all
+	cp ../$@/$(DIST_FOLDER)/bin/* $(DIST_FOLDER)/bin
+	cp ../$@/$(DIST_FOLDER)/config/* $(DIST_FOLDER)/config
+
+idprov-go: .FORCE ## plugin provisioning service
+	make -C ../$@ all
+	cp ../$@/$(DIST_FOLDER)/bin/* $(DIST_FOLDER)/bin
+	cp ../$@/$(DIST_FOLDER)/config/* $(DIST_FOLDER)/config
+
+logger: .FORCE ## plugin simple message file logger
+	make -C ../$@ all
+	cp ../$@/$(DIST_FOLDER)/bin/* $(DIST_FOLDER)/bin
+	cp ../$@/$(DIST_FOLDER)/config/* $(DIST_FOLDER)/config
+
+mosquittomgr: .FORCE ## plugin mosquitto manager
+	make -C ../$@ all
+	cp ../$@/$(DIST_FOLDER)/bin/* $(DIST_FOLDER)/bin
+	cp ../$@/$(DIST_FOLDER)/config/* $(DIST_FOLDER)/config
+
+owserver-pb: .FORCE ## plugin owserver protocol binding
+	make -C ../$@ all
+	cp ../$@/$(DIST_FOLDER)/bin/* $(DIST_FOLDER)/bin
+	cp ../$@/$(DIST_FOLDER)/config/* $(DIST_FOLDER)/config
+
+thingdir-go: .FORCE ## plugin Thing Directory
+	make -C ../$@ all
+	cp ../$@/$(DIST_FOLDER)/bin/* $(DIST_FOLDER)/bin
+	cp ../$@/$(DIST_FOLDER)/config/* $(DIST_FOLDER)/config
