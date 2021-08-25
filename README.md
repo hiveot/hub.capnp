@@ -120,14 +120,15 @@ Build and install from source (tentative):
 ```
 $ git clone https://github.com/wostzone/hub
 $ cd hub
+$ git submodule init
+$ git submodule update
 $ make all 
-$ make install
 ```
 
 After the build is complete, the distribution binaries can be found in the 'dist/bin' folder. During install these need to be copied to the dist/bin on the target platform.
 
 
-Plugins are built similarly:
+Additional plugins are built similarly:
 ```bash
 $ git clone https://github.com/wostzone/{plugin}
 $ cd plugin

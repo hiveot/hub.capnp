@@ -43,39 +43,17 @@ hub: ## Build WoST Hub
 help: ## Show this help
 		@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-
-# Core plugins to build 
-core: hubauth idprov-go mosquittomgr thingdir-go ## Core plugins to build
-
-# Addon plugins
-addons: logger owserver-pb  ## Addon plugins to build
-
-hubauth: .FORCE ## plugin authentication utility
+owserver-pb: .FORCE ## plugin owserver protocol binding
 	make -C ../$@ all
 	cp ../$@/$(DIST_FOLDER)/bin/* $(DIST_FOLDER)/bin
-	cp ../$@/$(DIST_FOLDER)/config/* $(DIST_FOLDER)/config
-
-idprov-go: .FORCE ## plugin provisioning service
-	make -C ../$@ all
-	cp ../$@/$(DIST_FOLDER)/bin/* $(DIST_FOLDER)/bin
-	cp ../$@/$(DIST_FOLDER)/config/* $(DIST_FOLDER)/config
+	cp ../$@/$(DIST_FOLDER)/config/* $(DIST_FOLDER)/confi
 
 logger: .FORCE ## plugin simple message file logger
 	make -C ../$@ all
 	cp ../$@/$(DIST_FOLDER)/bin/* $(DIST_FOLDER)/bin
 	cp ../$@/$(DIST_FOLDER)/config/* $(DIST_FOLDER)/config
 
-mosquittomgr: .FORCE ## plugin mosquitto manager
-	make -C ../$@ all
-	cp ../$@/$(DIST_FOLDER)/bin/* $(DIST_FOLDER)/bin
-	cp ../$@/$(DIST_FOLDER)/config/* $(DIST_FOLDER)/config
+core:  .FORCE ## Build core plugins
+	make -C core all
 
-owserver-pb: .FORCE ## plugin owserver protocol binding
-	make -C ../$@ all
-	cp ../$@/$(DIST_FOLDER)/bin/* $(DIST_FOLDER)/bin
-	cp ../$@/$(DIST_FOLDER)/config/* $(DIST_FOLDER)/config
-
-thingdir-go: .FORCE ## plugin Thing Directory
-	make -C ../$@ all
-	cp ../$@/$(DIST_FOLDER)/bin/* $(DIST_FOLDER)/bin
-	cp ../$@/$(DIST_FOLDER)/config/* $(DIST_FOLDER)/config
+addons: logger owserver-pb  ## Build addon plugins
