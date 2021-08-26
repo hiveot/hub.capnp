@@ -16,23 +16,23 @@ all: hubauth idprov-go mosquittomgr thingdir-go ## Build core plugins
 
 hubauth: .FORCE ## plugin authentication utility
 	make -C ./$@ all
-	cp -a ./$@/dist/bin/* $(DIST_FOLDER)/bin
-	cp -a ./$@/dist/config/* $(DIST_FOLDER)/config
+	cp -a ./$@/dist/bin/* $(DIST_FOLDER)/bin/
+	cp -a ./$@/dist/config/* $(DIST_FOLDER)/config/
 
 idprov-go: .FORCE ## plugin provisioning service
 	make -C ./$@ all
-	cp -a ./$@/dist/bin/* $(DIST_FOLDER)/bin
-	cp -a ./$@/dist/config/* $(DIST_FOLDER)/config
+	cp -a ./$@/dist/bin/* $(DIST_FOLDER)/bin/
+	cp -a ./$@/dist/config/* $(DIST_FOLDER)/config/
 
 mosquittomgr: .FORCE ## plugin mosquitto manager
 	make -C ./$@ all
-	cp -a ./$@/dist/bin/* $(DIST_FOLDER)/bin
-	cp -a ./$@/dist/config/* $(DIST_FOLDER)/config
+	cp -a ./$@/dist/bin/* $(DIST_FOLDER)/bin/
+	cp -a ./$@/dist/config/* $(DIST_FOLDER)/config/
 
 thingdir-go: .FORCE ## plugin Thing Directory
 	make -C ./$@ all
-	cp -a ./$@/dist/bin/* $(DIST_FOLDER)/bin
-	cp -a ./$@/dist/config/* $(DIST_FOLDER)/config
+	cp -a ./$@/dist/bin/* $(DIST_FOLDER)/bin/
+	cp -a ./$@/dist/config/* $(DIST_FOLDER)/config/
 
 
 
