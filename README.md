@@ -125,7 +125,9 @@ $ git submodule update
 $ make all 
 ```
 
-After the build is complete, the distribution binaries can be found in the 'dist/bin' folder. During install these need to be copied to the dist/bin on the target platform.
+After the build is complete, the distribution binaries can be found in the 'dist/bin' folder. The Hub build includes the core plugins.
+
+make installs copies these to the dist/bin on the target location.
 
 
 Additional plugins are built similarly:

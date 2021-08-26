@@ -6,6 +6,10 @@ INSTALL_HOME=~/bin/wost
 .FORCE: 
 
 
+install: .FORCE ## Install the plugins as git submodules
+	git submodule init
+	git submodule update
+
 
 # Core plugins to build 
 all: hubauth idprov-go mosquittomgr thingdir-go ## Build core plugins
