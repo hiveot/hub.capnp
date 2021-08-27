@@ -6,7 +6,7 @@ INSTALL_HOME=~/bin/wost
 .FORCE: 
 
 
-install: .FORCE ## Install the plugins as git submodules
+init: .FORCE ## Install the plugins as git submodules
 	git submodule init
 	git submodule update
 

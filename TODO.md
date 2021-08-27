@@ -8,7 +8,7 @@ Open Todos:
 |------------|--------| ------------
 | 2021-08-23 | hub | Start/stop individual services, eg hub start|stop plugin 
 | 2021-08-23 | hub | Watchdog for started services 
-| 2021-08-23 | thingdir | Use ACLs in directory service
+| 2021-08-23 | thingdir | Use ACLs authorization in directory service
 
 
 
