@@ -10,6 +10,6 @@
 [submodule "core/thingdir-go"]
 	path = core/thingdir-go
 	url = git@github.com:wostzone/thingdir-go
-[submodule "core/wostlib-go"]
-	path = core/wostlib-go
-	url = git@github.com:wostzone/wostlib-go
+[submodule "core/hubserve-go"]
+	path = core/hubserve-go
+	url = git@github.com:wostzone/hubserve-go
