@@ -7,8 +7,8 @@ import (
 	"path"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/wostlib-go/pkg/certsetup"
-	"github.com/wostzone/wostlib-go/pkg/hubconfig"
+	"github.com/wostzone/hubserve-go/pkg/certsetup"
+	"github.com/wostzone/hubserve-go/pkg/hubconfig"
 )
 
 const pluginID = "hub"

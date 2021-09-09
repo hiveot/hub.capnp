@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/pkg/hub"
-	"github.com/wostzone/wostlib-go/pkg/hubclient"
+	"github.com/wostzone/hubserve-go/pkg/proc"
 )
 
 func main() {
@@ -11,6 +11,6 @@ func main() {
 	if err != nil {
 		logrus.Fatalf("hub: Failed starting hub: %s", err)
 	}
-	hubclient.WaitForSignal()
+	proc.WaitForSignal()
 	hub.StopHub()
 }
