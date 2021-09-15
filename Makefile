@@ -7,7 +7,7 @@ INSTALL_HOME=~/bin/wost
 
 .FORCE: 
 
-all: hub core addons  ## Build the hub and plugins
+all: hub addons  ## Build the hub and plugins
 
 install:  all ## Install the hub into ~/bin/wost/bin and config
 	mkdir -p $(INSTALL_HOME)/bin
