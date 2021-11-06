@@ -4,7 +4,7 @@
 #mqttAddress: "" # IP or hostname of message bus. Defaults to outbound interface address
 #mqttPortUnpw: 8883 # username/password based auth over MQTT/TLS
 #mqttPortCert: 8884 # certificate based auth over MQTT/TLS
-#mqttPortWS: 9001 # username/password auth over WebSocket/TLS
+#mqttPortWS: 8885 # username/password auth over WebSocket/TLS
 
 #mqttTimeout: 3 # Mqtt connection timeout, default is 3
 
