@@ -7,7 +7,7 @@ INSTALL_HOME=~/bin/wost
 
 .FORCE: 
 
-all: hub addons  ## Build the hub and plugins
+all: hub core  ## Build the hub and plugins
 
 install:  all ## Install the hub into ~/bin/wost/bin and config
 	mkdir -p $(INSTALL_HOME)/bin
@@ -40,6 +40,9 @@ hub: ## Build WoST Hub
 	go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go
 	@echo "> SUCCESS. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@"
 
+core: .FORCE ## Build core plugins
+	make -C core all
+
 help: ## Show this help
 		@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
@@ -52,8 +55,5 @@ logger: .FORCE ## plugin simple message file logger
 	make -C ../$@ all
 	cp ../$@/$(DIST_FOLDER)/bin/* $(DIST_FOLDER)/bin
 	cp ../$@/$(DIST_FOLDER)/config/* $(DIST_FOLDER)/config
-
-core:  .FORCE ## Build core plugins
-	make -C core all
 
 addons: logger owserver-pb  ## Build addon plugins

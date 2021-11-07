@@ -20,5 +20,5 @@
 
 # Additional services that IDProv publishes for discovery
 #services:
-#  directory: https://{{.hubaddress}}:9002/ # must match thingdir-pb.yaml
-#  portal: https://{{.hubaddress}}:993/    # must match wostportal.yaml
+#  directory: https://{{.hubaddress}}:8886/ # must match thingdir-pb.yaml
+#  portal: https://{{.hubaddress}}:8884/    # must match thingview.yaml

@@ -1,0 +1,4 @@
+
+# Plugins to start
+plugins: # list of plugins to start
+  - /bin/ls # for testing

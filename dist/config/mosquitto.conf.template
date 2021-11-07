@@ -17,7 +17,7 @@ persistence false
 #max_queued_bytes 100000000  
 #max_queued_messages 1000
 
-log_dest file {{.homeFolder}}/logs/mosquitto.log
+log_dest file ${appFolder}/logs/mosquitto.log
 log_dest stdout
 log_timestamp_format [%Y-%m-%dT%H:%M:%S] Mosquitto
 log_type error
@@ -27,11 +27,11 @@ log_type information
 
 #--- 1: MQTT protocol over TLS with certificate
 # This is the preferred connection method and used by devices, plugins, administrator and consumers with a certificate.
-listener {{.mqttPortCert}}
+listener ${mqttPortCert}
 #max_connections 30
-cafile {{.caCertFile}}
-keyfile {{.hubKeyFile}}
-certfile {{.hubCertFile}}
+cafile ${caCertFile}
+keyfile ${hubKeyFile}
+certfile ${hubCertFile}
 
 # Certificate CN field is used as the username
 require_certificate true
@@ -40,29 +40,29 @@ use_identity_as_username true
 tls_version tlsv1.2
 
 # mosqauth plugin handles authorization
-auth_plugin {{.homeFolder}}/bin/mosqauth.so
-auth_opt_logFile {{.logsFolder}}/mosqauth-cert.log
+auth_plugin ${appFolder}/bin/mosqauth.so
+auth_opt_logFile ${logsFolder}/mosqauth-cert.log
 auth_opt_logLevel info
-auth_opt_aclFile {{.configFolder}}/hub.acl
-auth_opt_unpwFile {{.configFolder}}/hub.passwd
+auth_opt_aclFile ${configFolder}/hub.acl
+auth_opt_unpwFile ${configFolder}/hub.passwd
 
 
 #--- 2: MQTT protocol over TLS with username/password auth
 # This is the preferred connection method and used by devices, plugins, administrator and consumers with a certificate.
-listener {{.mqttPortUnpw}}
+listener ${mqttPortUnpw}
 #max_connections 30
-cafile {{.caCertFile}}
-keyfile {{.hubKeyFile}}
-certfile {{.hubCertFile}}
+cafile ${caCertFile}
+keyfile ${hubKeyFile}
+certfile ${hubCertFile}
 require_certificate false
 tls_version tlsv1.2
 
 # mosqauth plugin handles authorization
-auth_plugin {{.homeFolder}}/bin/mosqauth.so
-auth_opt_logFile {{.logsFolder}}/mosqauth-unpw.log
+auth_plugin ${appFolder}/bin/mosqauth.so
+auth_opt_logFile ${logsFolder}/mosqauth-unpw.log
 auth_opt_logLevel info
-auth_opt_aclFile {{.configFolder}}/hub.acl
-auth_opt_unpwFile {{.configFolder}}/hub.passwd
+auth_opt_aclFile ${configFolder}/hub.acl
+auth_opt_unpwFile ${configFolder}/hub.passwd
 
 
 #--- 3: WebSockets over TLS/SSL with username/password auth
@@ -70,20 +70,20 @@ auth_opt_unpwFile {{.configFolder}}/hub.passwd
 # Client certificates are not used but a server CA is needed on the client or the 
 #  client must ignore certificate verification.
 # Use a password file for user names
-listener {{.mqttPortWS}}
+listener ${mqttPortWS}
 #max_connections 100
 protocol websockets
-cafile {{.caCertFile}}
-keyfile {{.hubKeyFile}}
-certfile {{.hubCertFile}}
+cafile ${caCertFile}
+keyfile ${hubKeyFile}
+certfile ${hubCertFile}
 require_certificate false
 tls_version tlsv1.2
 
 # mosqauth plugin handles authorization
-auth_plugin {{.homeFolder}}/bin/mosqauth.so
-auth_opt_logFile {{.logsFolder}}/mosqauth-ws.log
+auth_plugin ${appFolder}/bin/mosqauth.so
+auth_opt_logFile ${logsFolder}/mosqauth-ws.log
 auth_opt_logLevel info
-auth_opt_aclFile {{.homeFolder}}/config/hub.acl
-auth_opt_unpwFile {{.homeFolder}}/config/hub.passwd
+auth_opt_aclFile ${configFolder}/hub.acl
+auth_opt_unpwFile ${configFolder}/hub.passwd
 allow_anonymous false
 

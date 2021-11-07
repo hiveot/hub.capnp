@@ -7,11 +7,17 @@ import (
 	"path"
 
 	"github.com/sirupsen/logrus"
+	"github.com/wostzone/hubclient-go/pkg/config"
 	"github.com/wostzone/hubserve-go/pkg/certsetup"
-	"github.com/wostzone/hubserve-go/pkg/hubconfig"
 )
 
-const pluginID = "hub"
+// This is the hub launcher
+const pluginID = "launcher"
+
+// PluginConfig with list of plugins to launch
+type PluginConfig struct {
+	Plugins []string `yaml:"plugins"`
+}
 
 // StartHub reads the hub configuration and launches the plugins. If the configuration is invalid
 // then start is aborted. The plugins receive the same commandline arguments as the hub.
@@ -24,29 +30,35 @@ func StartHub(homeFolder string, startPlugins bool) error {
 
 	var err error
 	var noPlugins bool
+	var pluginConfig PluginConfig
+
 	// the noplugins commandline argument only applies to the hub
 	flag.BoolVar(&noPlugins, "noplugins", !startPlugins, "Start the hub without plugins")
-	hc, err := hubconfig.LoadCommandlineConfig(homeFolder, pluginID, nil)
+	hc, err := config.LoadAllConfig(os.Args, homeFolder, pluginID, &pluginConfig)
 
 	if err != nil {
 		return err
 	}
-	pluginFolder := path.Join(hc.Home, "bin")
-	fmt.Printf("Home=%s\nPluginFolder=%s\n", hc.Home, pluginFolder)
+	pluginFolder := path.Join(hc.AppFolder, "bin")
+	fmt.Printf("Home=%s\nPluginFolder=%s\n", hc.AppFolder, pluginFolder)
 
 	// Create a CA if needed and update hub and plugin certs
 	sanNames := []string{hc.MqttAddress}
-	certsetup.CreateCertificateBundle(sanNames, hc.CertsFolder)
+	err = certsetup.CreateCertificateBundle(sanNames, hc.CertsFolder)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
 
 	// start the plugins unless disabled
 	if noPlugins {
 		logrus.Infof("Starting Hub without plugins")
 	} else {
 		// launch plugins
-		logrus.Infof("Starting %d plugins on %s.", len(hc.Plugins), hc.MqttAddress)
+		logrus.Infof("Starting %d plugins on %s.", len(pluginConfig.Plugins), hc.MqttAddress)
 
 		args := os.Args[1:] // pass the hubs args to the plugin
-		StartPlugins(pluginFolder, hc.Plugins, args)
+		StartPlugins(pluginFolder, pluginConfig.Plugins, args)
 	}
 
 	logrus.Warningf("Hub start successful!")
