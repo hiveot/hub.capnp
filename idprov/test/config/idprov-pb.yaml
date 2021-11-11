@@ -1,0 +1,22 @@
+# Configuration file for IDProv provisioning protocol binding
+
+# Listening address of the server when different from the hub mqtt server
+# idpAddress: ""
+
+# Listening port of the server. Default is 8880
+idpPort: 9880
+# Folder for certificate storage relative to home. Default is certstore
+#idpCerts: "certstore"
+
+# Instance ID of the client. Default is the plugin ID 'idprov-pb'
+# clientID: "idprov-pb"
+
+# Enable DNS-SD discovery publications. Default is enabled.
+#enableDiscovery: true
+
+# Certificate validity period in days. Default is 30
+#validForDays: 30
+
+# Additional services that IDProv supports. The mqtt server is always added
+#services:
+#  directory: https://{{.hubaddress}}:9002/ # must match thingdir-pb.yaml

@@ -1,0 +1,5 @@
+# The all group allows its members to access all things 
+# Use with care.
+all:
+   # the administrator is manager of all things
+   admin: manager

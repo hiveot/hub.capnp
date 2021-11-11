@@ -1,0 +1,23 @@
+# Bad configuration file for tests
+# DONT CHANGE THE LINES AS THE TEST EXPECTS AN ERROR ON LINE 12
+
+
+# Message bus server
+#mqttAddress: "localhost" # hostname or address to listen on
+#mqttCertPort: 9884 # certificate based auth over MQTT/TLS
+#mqttUnpwPortWS: 9885 # username password auth over WebSocket/TLS
+
+# Line 12 line intentionally causes an error 
+  -brokenyamlfileonline12
+mqttTimeout: 1
+
+#certsFolder: "./certs" # set to activate TLS
+
+# Logging
+# logFile: "/var/log/wost/hub.log"
+logLevel: "debug" # debug, info, warning, error. Default is warning
+
+# Plugins to start
+plugins: # list of plugins to start
+  autostart
+  - msgbus
