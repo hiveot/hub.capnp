@@ -41,7 +41,7 @@ export default defineComponent({
 <template>
   <ElDropdown  trigger="click" >
     <button  style="margin-right: 10px" className='buttonHover'>
-      <icon height="24" icon="mdi:menu" />
+      <v-icon height="24" icon="mdi:menu" />
     </button>
     <template #dropdown>
       <ElDropdownMenu>
@@ -53,11 +53,11 @@ export default defineComponent({
         </ElDropdownItem>
 
         <ElDropdownItem divided/>
-        <!-- Add a dashboard page -->
+        <!-- Add a page -->
         <ElDropdownItem 
           icon="el-icon-plus" 
           @click='handleMenuSelect(MenuAddPage)'>
-          Add Dashboard...
+          Add Page...
         </ElDropdownItem>
 
         <!-- Toggle edit mode -->

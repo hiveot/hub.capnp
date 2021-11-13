@@ -1,3 +1,34 @@
+
+<template>
+<ElDialog :model-value="visible" 
+  center show-close close-on-press-escape
+  @closed='emit("onClosed")'
+  title="About ThingView"
+  >
+<div style="display:flex; flex-direction: column; align-items: center;">
+  <div style="display:flex; flex-direction: column; max-width: 400px; ">
+    <div style="display: flex; width:100%">
+      <div style="flex: .4; ; align-self:center">
+          <img style="width:100px; padding:20px" src="@/assets/logo.png" />
+      </div>
+      <div style="flex:1; width:100%; text-align: start;" >
+        <h1>ThingView</h1>
+        <p>WoST Hub Viewer</p>
+        <p>Version {{version}}</p>
+        <p>By the <a :href="wostSiteURL" target="_blank">WoST Zone</a></p>
+      </div>  
+    </div>
+
+    <div style="display: flex; flex-direction: row; justify-content: space-between; padding-top: 20px">
+      <a :href="licenseURL" target="_blank">License Information</a>
+      <a :href="wostSiteURL" target="_blank">About WoST</a>
+    </div>
+  </div>
+</div>
+</ElDialog>
+</template>
+
+
 <script lang="ts">
 import {defineComponent, reactive} from "vue";
 import { ElDialog } from "element-plus";
@@ -22,31 +53,3 @@ console.log("ShowAbout: visible=",props.visible)
 
 </script>
 
-
-<template>
-<ElDialog :model-value="visible" 
-  center show-close close-on-press-escape
-  @closed='emit("onClosed")'
-  >
-<div style="display:flex; flex-direction: column; align-items: center;">
-  <div style="display:flex; flex-direction: column; max-width: 400px; ">
-    <div style="display: flex; width:100%">
-      <div style="flex: .4; ; align-self:center">
-          <img style="width:100px; padding:20px" src="@/assets/logo.png" />
-      </div>
-      <div style="flex:1; width:100%; text-align: start;" >
-        <h1>ThingView</h1>
-        <p>WoST Hub Viewer</p>
-        <p>Version {{version}}</p>
-        <p>By the <a :href="wostSiteURL" target="_blank">WoST Zone</a></p>
-      </div>  
-    </div>
-
-    <div style="display: flex; flex-direction: row; justify-content: space-between; padding-top: 20px">
-      <a :href="licenseURL" target="_blank">License Information</a>
-      <a :href="wostSiteURL" target="_blank">About WoST</a>
-    </div>
-  </div>
-</div>
-</ElDialog>
-</template>

@@ -1,3 +1,4 @@
+
 <script lang="ts">
 import {defineComponent, reactive} from "vue";
 import { ElTabs, ElTabPane, ElSwitch } from "element-plus";
@@ -20,9 +21,10 @@ export default defineComponent({
   },
   
   emits: [
-    "onEditModeChange", 
+    "onAddPage",
+    "onEditModeChange",
     "onPageSelect", 
-    "onMenuSelect"
+    "onMenuSelect",
   ],
 
   setup(props, {emit}) {
@@ -50,9 +52,9 @@ export default defineComponent({
       // console.log("About closed...");
       data.showAbout = false;
     }
-    const handleAddPageClosed = () => {
-      // console.log("About closed...");
-      data.showAddPage = false;
+    const handleAddPage = (name:string) => {
+      console.log("Adding page", name);
+      emit("onAddPage", name);
     }
     const handleTabSelect = (tabPane:any) => {
       console.log("emit onPageSelect: page=",tabPane.paneName)
@@ -74,53 +76,62 @@ export default defineComponent({
     console.log("AppHeader: selectedPage="+props.selectedPage);
     return {data, 
       handleAboutClosed,  handleOpenAbout, 
-      handleOpenAddPage,  handleAddPageClosed,
+      handleOpenAddPage,  handleAddPage,
       handleEditModeChange,  
       handleMenuSelect, handleTabSelect};
   }
 })
 </script>
 
-
 <template>
-<div style="display:flex; flex-direction: row; 
-align-items: center; justify-content: flex-start; gap:10px;
-height:42px; background-color: rgb(218, 229, 231);">
+  <div class="header">
 
-  <AboutDialog :visible="data.showAbout" @onClosed='handleAboutClosed'/>
-  <AddPageDialog :visible="data.showAddPage" @onClosed='handleAddPageClosed'/>
+    <AboutDialog :visible="data.showAbout" @onClosed='handleAboutClosed'/>
+    <AddPageDialog :visible="data.showAddPage"  @onClosed='data.showAddPage = false;' @onAdd="handleAddPage"/>
 
-  <img alt="logo" src="@/assets/logo.png" @click="handleOpenAbout" style="height: 26px; height:100%; cursor:pointer; padding-right:5px;"/>
-  
-  <!-- On larger screens show a tab bar for dashboard pages -->
-  <ElTabs style="align-self:bottom" 
-    :model-value="selectedPage" 
-    @tab-click='$emit("onPageSelect", $event.paneName)'
-  >
-    <ElTabPane v-for="page in pages" :label="page" :key="page" :name="page"/>
-  </ElTabs>
-  
-  <!-- Edit mode switching -->
-  <div style="flex-grow:1"/>
-    <ElSwitch :value="editMode"  @change="handleEditModeChange" active-text="Edit" 
-       inactive-color="gray"
+    <img alt="logo" src="@/assets/logo.png" @click="handleOpenAbout"
+         style="height: 32px;cursor:pointer; padding:5px;"
     />
 
-  <!-- Connection Status -->
-  <button className="buttonHover">
-    <!-- <v-icon name="md-link" scale="1" /> -->
-    <icon icon="mdi:link-off" height="24"  />
-  </button>
-  
-  <!-- Dropdown menu -->
-  <AppMenu :pages="pages"  :editMode="editMode" 
-    @onMenuSelect="handleMenuSelect" 
-  />
+    <!-- On larger screens show a tab bar for dashboard pages -->
+    <ElTabs
+        :model-value="selectedPage"
+        @tab-click='handleTabSelect'
+    >
+      <ElTabPane v-for="page in pages" :name="page" :key="page" :label="page"/>
+    </ElTabs>
 
-</div>
+    <!-- Edit mode switching -->
+    <div style="flex-grow:1"/>
+    <ElSwitch :value="editMode"  @change="handleEditModeChange" active-text="Edit"
+              inactive-color="gray"
+    />
+
+    <!-- Connection Status -->
+    <button className="buttonHover">
+      <!-- <v-icon name="md-link" scale="1" /> -->
+      <v-icon icon="mdi:link-off" height="24"  />
+    </button>
+
+    <!-- Dropdown menu -->
+    <AppMenu :pages="pages"  :editMode="editMode"
+             @onMenuSelect="handleMenuSelect"
+    />
+
+  </div>
 </template>
 
 <style>
+.header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  font-size: large;
+  gap: 10px;
+  height: 42px;
+  background-color: rgb(218, 229, 231);
+}
 .buttonHover {
   background-color: transparent;
   border: 0px;
@@ -134,3 +145,4 @@ height:42px; background-color: rgb(218, 229, 231);">
   margin: 0;
 }
 </style>
+

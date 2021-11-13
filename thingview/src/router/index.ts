@@ -1,6 +1,5 @@
 import {createWebHistory, createRouter, RouteRecordRaw, RouteLocationRaw} from "vue-router";
-import AppView from "@/views/app/AppView.vue"
-// import AboutView from "@/views/app/AboutView.vue"
+import HomeView from "@/views/HomeView.vue"
 import Accounts from '@/components/AccountsTable.vue'
 import DashboardView from '@/views/DashboardView.vue'
 
@@ -12,27 +11,22 @@ const routes: Array<RouteRecordRaw> = [
   {
     name: "home",
     path: "/",
-    component: AppView,
+    component: HomeView,
     // beforeEnter: checkAuth,
   },
-  // {
-  //   name: "about",
-  //   path: "/about",
-  //   component: AboutView,
-  // },
   {
     name: "Accounts",
     path: "/accounts",
     component: Accounts,
   },
   {
-    name: "dashboard",
-    path: "/dashboard/:page",
+    name: "pages",
+    path: "/pages/:page",
     component: DashboardView,
 
     // props, see: https://router.vuejs.org/guide/essentials/passing-props.html
     // boolean mode: when props is true use route.params as component props
-    // props: true,
+    props: true,
 
     // object mode: when props is an object it is set as-is. For static props.
     // props: {

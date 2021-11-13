@@ -1,34 +1,48 @@
 <script lang="ts">
-import {defineComponent, reactive} from "vue";
-import { ElDialog, ElInput } from "element-plus";
-import { boolean } from "@storybook/addon-knobs";
+import {defineComponent, ref,reactive} from "vue";
+import { ElDialog, ElInput, ElForm, ElFormItem } from "element-plus";
 
 export default defineComponent({
-  components: {ElDialog, ElInput},
+  components: {ElDialog, ElInput, ElForm, ElFormItem},
   props: {
-    visible:Boolean
+    visible:Boolean,
   },
-  emits: ['onClosed'],
-
+  emits: {
+    'onAdd': String,
+    'onClosed': null,
+    },
   setup(props, {emit}) {
+    const pageName = ref("");
 
-  console.log("AddPageDialog: visible=",props.visible)
-    return {emit};
+    const handleSubmit = () =>{
+      emit("onAdd", pageName.value);
+      pageName.value = "";
+      emit("onClosed");
+     };
+    console.log("AddPageDialog: visible=",props.visible);
+    return {emit, pageName, handleSubmit};
   }
 })
-
 </script>
 
-
 <template>
-<ElDialog :model-value="visible" 
-  center show-close close-on-press-escape
-  @closed='emit("onClosed")'
+  <ElDialog :model-value="visible"
+            center show-close close-on-press-escape
+            @closed='emit("onClosed")'
+            title="Add A New Page"
   >
-  <div style="display:flex; flex-direction: column; align-items: center;">
-  <p>Add Page</p>
-    <ElInput label="name"/>
-
-  </div>
-</ElDialog>
+    <div style="display:flex; flex-direction: column; align-items: center;">
+      <ElForm @submit.prevent>
+        <ElFormItem label="Page Name" required >
+          <ElInput v-model="pageName" placeholder="new page" label="names"/>
+        </ElFormItem>
+      </ElForm>
+    </div>
+    <template #footer>
+      <div className="dialog-footer" style="text-align: right;">
+        <el-button @click="emit('onClosed')">Cancel</el-button>
+        <el-button @click="handleSubmit" type="primary" :disabled="(pageName=='')" >Confirm</el-button>
+      </div>
+    </template>
+  </ElDialog>
 </template>
