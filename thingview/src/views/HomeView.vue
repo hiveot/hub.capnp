@@ -1,3 +1,3 @@
 <template>
-  <h1>Home Landing</h1>
+  <h2>Home Landing Page</h2>
 </template>

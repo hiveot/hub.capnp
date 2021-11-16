@@ -6,40 +6,23 @@
     "dev": "vite",
     "build": "vue-tsc --noEmit --skipLibCheck && vite build",
     "serve": "vite preview",
-    "storybook": "start-storybook -p 6006",
-    "build-storybook": "build-storybook",
     "clean": "rm node_modules/.cache/vite/*"
   },
   "dependencies": {
-    "element-plus": "^1.1.0-beta.19",
-    "vfonts": "^0.1.0",
+    "@quasar/extras": "^1.12.0",
+    "quasar": "^2.3.2",
     "vue": "^3.2.13",
-    "vue-router": "^4.0.11"
+    "vue-router": "^4.0.12"
   },
   "devDependencies": {
-    "@babel/core": "^7.15.8",
-    "@iconify/icons-mdi": "^1.1.36",
-    "@iconify/json": "^1.1.416",
-    "@iconify/json-tools": "^1.0.10",
-    "@iconify/vue": "^3.0.0",
-    "@storybook/addon-essentials": "^6.3.11",
-    "@storybook/addon-knobs": "^6.3.1",
-    "@storybook/addon-links": "^6.3.11",
-    "@storybook/source-loader": "^6.3.11",
-    "@storybook/vue3": "^6.3.11",
+    "@quasar/vite-plugin": "^1.0.2",
     "@types/node": "^16.10.2",
     "@vitejs/plugin-vue": "^1.9.0",
-    "@vue/compiler-sfc": "^3.2.19",
-    "babel-loader": "^8.2.2",
-    "sass": "^1.42.1",
-    "storybook-builder-vite": "^0.1.0",
-    "storybook-vue3-router": "^1.0.5",
+    "sass": "1.32.0",
     "typescript": "^4.4.3",
-    "unplugin-vue-components": "^0.15.4",
     "vite": "^2.6.3",
-    "vue-loader": "^16.8.1",
     "vue-tsc": "^0.3.0"
   },
   "readme": "ERROR: No README data found!",
-  "_id": "thingview@0.0.0"
+  "_id": "thingview@0.1-alpha"
 }

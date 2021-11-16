@@ -1,46 +1,36 @@
-<script  lang="ts">
-import {defineComponent, reactive} from "vue";
-import {ElForm, ElFormItem, ElInput, ElButton, ElCheckbox} from 'element-plus';
+<script  lang="ts" setup>
+import {reactive} from "vue";
 import {hubAuth} from '../store/HubAuth';
 
-export default defineComponent({
-  // name: "LoginView",
-  components: {ElForm, ElFormItem, ElInput, ElButton, ElCheckbox},
-  props: {
-    title: {
-      type: String,
-      default: "WoST Login"
-    },
+const props = defineProps({
+  title: {
+    type: String,
+    default: "WoST Login"
   },
+})
 
   // emits: ['onLogin'], // {login:String, password:String}
-
-  setup(props, context){
-    const data = reactive({
-      busyLoggingIn: false,
-      loginEmail: "",
-      password: "",
-      rememberMe: false,
-    })
-    const handleLoginButtonClick = function(ev:any){
-      ev.preventDefault();
-      data.busyLoggingIn = true;
-      console.log("Submitting 'onLogin' with user: "+data.loginEmail)
-      // context.emit('onLogin', {login: data.loginEmail, password: data.password});
-      hubAuth.login(data.loginEmail, data.password, data.rememberMe)
-    }
-    return {
-      handleLoginButtonClick,
-      data,
-    }
-  }
+const data = reactive({
+  busyLoggingIn: false,
+  loginEmail: "",
+  password: "",
+  rememberMe: false,
 })
+
+const handleLoginButtonClick = function(ev:any){
+  ev.preventDefault();
+  data.busyLoggingIn = true;
+  console.log("Submitting 'onLogin' with user: "+data.loginEmail)
+  // context.emit('onLogin', {login: data.loginEmail, password: data.password});
+  hubAuth.login(data.loginEmail, data.password, data.rememberMe)
+}
+
 </script>
 
 <template >
-<div className="container">
+<div class="container">
   <h3>{{title}}</h3>
-  <ElForm  class="form"
+  <q-form  class="form"
     ref="form"
     labelPosition="left"
     labelWidth="120px"
@@ -48,36 +38,36 @@ export default defineComponent({
     :disabled="data.busyLoggingIn"
     size="medium"
   >
-    <ElFormItem label="Login Email" prop="loginEmail" required>
-      <ElInput
+    <q-item label="Login Email" prop="loginEmail" required>
+      <q-input
         v-model="data.loginEmail" 
         placeholder="Your login email"  
         maxlength="100" 
       />
-    </ElFormItem>
-    <ElFormItem label="Password" prop="password"  required
+    </q-item>
+    <q-item label="Password" prop="password"  required
     >
-      <ElInput  
+      <q-input
         v-model="data.password" 
         placeholder="Password"  
         type="password" 
         minlength="3"
         />
-    </ElFormItem>
-    <ElFormItem style="text-align: left">
-      <ElCheckbox
+    </q-item>
+    <q-item style="text-align: left">
+      <q-checkbox
         label="Remember Me"
         v-model="data.rememberMe"
       />
-    </ElFormItem>
+    </q-item>
     <div style="display: flex; justify-content: flex-end;">
-        <ElButton
-          :disabled="data.busyLoggingIn||data.loginEmail==''||data.password==''"
-          @click="handleLoginButtonClick" round type="primary">
+        <q-btn round color="primary"
+          :disabled="data.busyLoggingIn||data.loginEmail===''||data.password===''"
+          @click="handleLoginButtonClick" >
         Login
-        </ElButton>
+        </q-btn>
       </div>
-  </ElForm>
+  </q-form>
   </div>
 </template>
 

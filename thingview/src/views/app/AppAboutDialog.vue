@@ -1,6 +1,27 @@
+<script lang="ts" setup>
+// import {reactive} from "vue";
+
+const version = "0.1 alpha";
+const licenseURL = "https://github.com/wostzone/wostzone.github.io/blob/81f41a781dfd37d82a5e37bf9ac905199161ee85/LICENSE"
+const wostSiteURL = "https://wostzone.github.io/"
+
+interface IProps {
+  visible: boolean
+}
+const props = withDefaults(
+    defineProps<IProps>(),
+    {visible: false}
+)
+
+const emit = defineEmits(['onClosed'])
+
+console.log("ShowAbout: visible=",props.visible)
+
+</script>
+
 
 <template>
-<ElDialog :model-value="visible" 
+<q-dialog :model-value="props.visible"
   center show-close close-on-press-escape
   @closed='emit("onClosed")'
   title="About ThingView"
@@ -9,7 +30,10 @@
   <div style="display:flex; flex-direction: column; max-width: 400px; ">
     <div style="display: flex; width:100%">
       <div style="flex: .4; ; align-self:center">
-          <img style="width:100px; padding:20px" src="@/assets/logo.png" />
+          <img style="width:100px; padding:20px"
+               src="@/assets/logo.png"
+               alt="logo"
+          />
       </div>
       <div style="flex:1; width:100%; text-align: start;" >
         <h1>ThingView</h1>
@@ -25,31 +49,8 @@
     </div>
   </div>
 </div>
-</ElDialog>
+</q-dialog>
 </template>
 
 
-<script lang="ts">
-import {defineComponent, reactive} from "vue";
-import { ElDialog } from "element-plus";
-import { boolean } from "@storybook/addon-knobs";
-
-export default defineComponent({
-  components: {ElDialog},
-  props: {
-    visible:Boolean
-  },
-  emits: ['onClosed'],
-
-  setup(props, {emit}) {
-    const version = "0.1 alpha";
-    const licenseURL = "https://github.com/wostzone/wostzone.github.io/blob/81f41a781dfd37d82a5e37bf9ac905199161ee85/LICENSE"
-    const wostSiteURL = "https://wostzone.github.io/"
-
-console.log("ShowAbout: visible=",props.visible)
-    return {emit, version, licenseURL,  wostSiteURL};
-  }
-})
-
-</script>
 

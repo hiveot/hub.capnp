@@ -1,11 +1,11 @@
-import AppHeader from '@/views/app/AppHeader.vue';
+import AppHeader from '../src/views/app/AppHeader.vue';
 import { Story } from '@storybook/vue3'
 import { reactive } from 'vue';
 
 // this should not be necessary as vite.config.js has the ElementPlus resolver
 import 'element-plus/dist/index.css';
-import appState from '@/store/AppState';
-import dashboardStore from '@/store/DashboardStore';
+import appState from '../src/store/AppState';
+import dashboardStore from '../src/store/DashboardStore';
 
 export default {
   title: 'App/AppHeader',

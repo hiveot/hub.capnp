@@ -1,85 +1,115 @@
 <script lang="ts">
+// exports must be in a separate script block https://github.com/vuejs/rfcs/pull/227
 import {defineComponent} from "vue";
-
-import { ElButton, ElDropdown, ElDropdownMenu, ElDropdownItem } from "element-plus";
-import MdiMenu from '@iconify/icons-mdi/menu'
-import { addIcon } from '@iconify/vue/dist/offline';
-
 export const MenuAbout = "about";
 export const MenuAddPage = "addPage";
 export const MenuEditMode = "editMode";
 export const MenuSettings = "settings"
+export default defineComponent({});
+</script>
 
+<script lang="ts" setup>
 
-export default defineComponent({
-  components: {ElButton, ElDropdown, ElDropdownMenu, ElDropdownItem: ElDropdownItem},
+interface IAppMenu {
+  editMode: boolean;
+  pages: Array<string>;
+}
+const props = withDefaults(
+    defineProps<IAppMenu>(),
+    {
+      editMode: false,
+      pages: ()=>["Overview"],
+    })
 
-  emits: ['onMenuSelect'],
+const emit = defineEmits(['onMenuSelect'])
 
-  props: {
-    editMode: Boolean,
-    pages: {
-      // https://forum.vuejs.org/t/vue-typescript-problem-with-component-props-array-type-declaration/29478/7
-      type: Array as () => Array<any>,
-      default: ()=>[""],
-    },
-  },
+const handleMenuSelect = (name:string) => {
+  console.log('AppMenu: onMenuSelect: ', name);
+  emit("onMenuSelect", name);
+}
 
-  setup(props, {emit}) {
-    addIcon('mdi:menu', MdiMenu);
+const menuItems = [{
+  label: "Add Page...",
+  icon: "mdi-add"
+}, {
+  label: "Edit Mode",
+  icon: "",
+}, {
+  label: "Connections...",
+  icon: "mdi-link"
+},{
+  label: "About...",
+  icon: "mdi-about"
+}]
 
-    const handleMenuSelect = (name:string) => {
-      console.log('AppMenu: onMenuSelect: ', name);
-      emit("onMenuSelect", name);
-    }
-    return {handleMenuSelect, MenuAbout, MenuAddPage, MenuEditMode, MenuSettings};
-  }
-})
 </script>
 
 
 <template>
-  <ElDropdown  trigger="click" >
-    <button  style="margin-right: 10px" className='buttonHover'>
-      <v-icon height="24" icon="mdi:menu" />
-    </button>
-    <template #dropdown>
-      <ElDropdownMenu>
-        <!-- Allow page select from the menu in case tabs are hidden -->
-        <ElDropdownItem v-for="page in pages" 
-          @click='handleMenuSelect(page)'
-        >
-          {{page}}
-        </ElDropdownItem>
+  <q-btn style="margin-right: 10px" flat icon="mdi-menu">
+  <q-menu auto-close>
+    <q-list style="min-width: 150px">
+      <!-- Allow page select from the menu in case tabs are hidden -->
+      <q-item v-for="page in props.pages"
+              clickable
+        @click='handleMenuSelect(page)'
+      >
+        <q-item-section avatar>
+          <q-icon name="mdi-book-open-page-variant"/>
+        </q-item-section>
+        <q-item-section>
+          <q-item-label>{{page}}</q-item-label>
+        </q-item-section>
+      </q-item>
 
-        <ElDropdownItem divided/>
-        <!-- Add a page -->
-        <ElDropdownItem 
-          icon="el-icon-plus" 
-          @click='handleMenuSelect(MenuAddPage)'>
+      <q-separator/>
+      <!-- Add a page -->
+      <q-item clickable @click='handleMenuSelect(MenuAddPage)'>
+        <q-item-section avatar>
+          <q-icon name="mdi-plus" />
+        </q-item-section>
+        <q-item-section no-wrap>
           Add Page...
-        </ElDropdownItem>
+        </q-item-section>
+      </q-item>
 
-        <!-- Toggle edit mode -->
-        <ElDropdownItem :icon='(editMode)?"el-icon-check":"el-icon-edit"' 
-          @click='handleMenuSelect(MenuEditMode)'>
-          Edit Mode
-        </ElDropdownItem>
+      <!-- Toggle edit mode -->
+      <q-item clickable
+        @click='handleMenuSelect(MenuEditMode)'>
+        <q-item-section avatar>
+          <q-icon
+              :name='(props.editMode)?"mdi-checkbox-marked-outline":"mdi-checkbox-blank-outline"'
+              />
+        </q-item-section>
+        <q-item-section>
+            <q-item-label>Edit Mode</q-item-label>
+        </q-item-section>
+      </q-item>
 
         <!-- Show settings menu -->
-        <ElDropdownItem icon="el-icon-setting" 
-            @click='handleMenuSelect(MenuSettings)'>
-            Settings...
-        </ElDropdownItem>
+      <q-item clickable
+              @click='handleMenuSelect(MenuSettings)'>
+        <q-item-section avatar>
+          <q-icon name="mdi-lan-connect"/>
+        </q-item-section>
+        <q-item-section>
+          <q-item-label>Connections</q-item-label>
+        </q-item-section>
+      </q-item>
 
         <!-- Show About dialog -->
-        <ElDropdownItem 
-        @click='handleMenuSelect(MenuAbout)'>
-          About...
-        </ElDropdownItem>
+        <q-item clickable  @click='handleMenuSelect(MenuAbout)'>
+          <q-item-section avatar>
+            <q-img src="@/assets/logo.png" style="width:22px; height:22px"/>
+          </q-item-section>
+          <q-item-section>
+            About...
+          </q-item-section>
 
-      </ElDropdownMenu>
-    </template>
-  </ElDropdown>
+        </q-item>
+
+      </q-list>
+  </q-menu>
+  </q-btn>
 </template>
 

@@ -1,26 +1,12 @@
-<script lang="ts">
-
-import {defineComponent} from "vue";
+<script lang="ts" setup>
 
 import AccountsTable from '@/components/AccountsTable.vue'
+import hubAccountStore from '@/store/HubAccountStore'
 
-import hubAccountStore, {IAccountStore} from '@/store/HubAccountStore'
-
-export default defineComponent({
-  components: {AccountsTable},
-  emits: [ 
-    ],
-  props: {
-  },
-
-  setup(props, {emit}) {
-    return {hubAccountStore}
-  }
-})
 
 </script>
 
 
 <template>
-<AccountsTable :value="hubAccountStore.GetAccounts()" />
+  <AccountsTable :accounts="hubAccountStore.GetAccounts()" />
 </template>

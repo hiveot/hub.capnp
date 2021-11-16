@@ -1,8 +1,8 @@
-import AccountsTable from '@/components/AccountsTable.vue';
+import AccountsTable from '../src/components/AccountsTable.vue';
 
 // import the complete bundle
 // import ElementPlus from 'element-plus';
-import hubAccountStore, { AccountRecord } from '@/store/HubAccountStore';
+import hubAccountStore, { AccountRecord } from '../src/store/HubAccountStore';
 
 // this should not be necessary as vite.config.js has the ElementPlus resolver
 import 'element-plus/dist/index.css';

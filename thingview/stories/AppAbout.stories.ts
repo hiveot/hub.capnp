@@ -1,4 +1,4 @@
-import AppAboutDialog from '../views/app/AppAboutDialog.vue';
+import AppAboutDialog from '../src/views/app/AppAboutDialog.vue';
 
 // this should not be necessary as vite.config.js has the ElementPlus resolver
 import 'element-plus/dist/index.css';

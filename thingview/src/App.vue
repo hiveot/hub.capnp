@@ -18,9 +18,8 @@ export default defineComponent({
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: darkblue;
+  /*color: darkblue;*/
   font-size: large;
-  /*margin-top: 60px;*/
   margin:0;
 }
 </style>

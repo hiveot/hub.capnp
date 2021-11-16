@@ -1,4 +1,4 @@
-import AppView from '@/views/app/AppView.vue';
+import AppView from '../src/views/app/AppView.vue';
 import { Story } from '@storybook/vue3'
 import { reactive } from 'vue';
 import vueRouter from 'storybook-vue3-router'

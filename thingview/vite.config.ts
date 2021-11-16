@@ -1,53 +1,32 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
-
-import Components from 'unplugin-vue-components/vite'
-import { ElementPlusResolver } from 'unplugin-vue-components/resolvers';
+import { quasar, transformAssetUrls } from '@quasar/vite-plugin'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    vue(),
-    // needed for vite
-    Components({
-      // relative paths to the directory to search for components.
-      dirs: ['./src/components', './src/views', './src/store'],
-
-      // valid file extensions for components.
-      extensions: ['vue'],
-
-      // search for subdirectories
-      deep: true,
-
-      // resolvers for custom components
-      resolvers: [
-        ElementPlusResolver(),
-      ],
-
-      // generate `components.d.ts` global declrations,
-      // also accepts a path for custom filename
-      dts: true,  // was: globalComponentsDeclaration
-
-      // filters for transforming targets
-      include: [/\.vue$/, /\.vue\?vue/, /\.md$/],
-      exclude: [/node_modules/, /\.git/, /\.nuxt/],
+    vue({
+      template: { transformAssetUrls }
     }),
-    // ElementPlus({
-    //   // options
-    // }),
+
+    quasar({
+      sassVariables: 'src/quasar-variables.sass'
+    })
   ],
+  // https://github.com/element-plus/element-plus/issues/3219
+  // except this doesn't seem to work??? :(
+  css: {
+    preprocessorOptions: {
+      scss: {
+        charset: false
+      }
+    }
+  },
   // fix import errors and @ alias
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, 'src'),
+      '@': path.resolve(__dirname, '/src'),
     },
   },
-  // css: {
-  //   preprocessorOptions: {
-  //     scss: {
-  //       additionalData: `@use "~/styles/element/index.scss" as *;`,
-  //     },
-  //   },
-  // },
 })
