@@ -3,6 +3,9 @@
 // vue bug. Need to use 'import type' to avoid error cannot import
 import  {AccountRecord} from "@/store/HubAccountStore";
 // import {hubAccountStore} from "@/store/HubAccountStore";
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+import Button from 'primevue/button';
 
 const emit = defineEmits([
     "onAdd" // 'Add' button was pressed
@@ -32,8 +35,10 @@ const AddAccount = () => {
 
 <template>
 <div style="display:flex; flex-direction: column; align-items: center;">
-  <q-table :rows="props.accounts" :columns="columns"/>
+  <DataTable :value="props.accounts" >
+    <Column v-for="col in columns" :field="col.field" :header="col.label"/>
+  </DataTable>
 
-  <q-btn @click="AddAccount">Add Account</q-btn>
+  <Button @click="AddAccount">Add Account</Button>
 </div>
 </template>

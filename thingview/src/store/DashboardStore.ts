@@ -1,5 +1,5 @@
 // store for dashboard definitions
-import { ListenOptions } from 'net';
+// import { ListenOptions } from 'net';
 import Store from './Store'
 
 export class DashboardWidgetDefinition extends Object {

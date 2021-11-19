@@ -1,6 +1,7 @@
 <script  lang="ts" setup>
 import {reactive} from "vue";
 import {hubAuth} from '../store/HubAuth';
+import Password from 'primevue/password';
 
 const props = defineProps({
   title: {
@@ -30,44 +31,40 @@ const handleLoginButtonClick = function(ev:any){
 <template >
 <div class="container">
   <h3>{{title}}</h3>
-  <q-form  class="form"
-    ref="form"
-    labelPosition="left"
-    labelWidth="120px"
-    :model="data"
-    :disabled="data.busyLoggingIn"
-    size="medium"
-  >
-    <q-item label="Login Email" prop="loginEmail" required>
-      <q-input
-        v-model="data.loginEmail" 
-        placeholder="Your login email"  
-        maxlength="100" 
-      />
-    </q-item>
-    <q-item label="Password" prop="password"  required
-    >
-      <q-input
-        v-model="data.password" 
-        placeholder="Password"  
-        type="password" 
-        minlength="3"
-        />
-    </q-item>
-    <q-item style="text-align: left">
-      <q-checkbox
+
+  <div class="p-fluid p-formgrid p-grid">
+
+    <div  class="p-field p-grid">
+      <label for="loginEmail" class="p-col-fixed">Login Email</label>
+      <div class="p-col">
+        <InputText v-model="data.loginEmail" id="loginEmail" type="text" placeholder="Your login email"/>
+      </div>
+    </div>
+
+    <div  class="p-field p-grid">
+      <label for="loginPassword" class="p-col-fixed">Password</label>
+      <div class="p-col">
+        <Password v-model="data.password"
+                  id="loginPassword" type="text"
+                  placeholder="Your login password"/>
+      </div>
+    </div>
+
+
+    <div style="text-align: left">
+      <Checkbox
         label="Remember Me"
         v-model="data.rememberMe"
       />
-    </q-item>
+    </div>
     <div style="display: flex; justify-content: flex-end;">
-        <q-btn round color="primary"
+        <Button round color="primary"
           :disabled="data.busyLoggingIn||data.loginEmail===''||data.password===''"
           @click="handleLoginButtonClick" >
         Login
-        </q-btn>
+        </Button>
       </div>
-  </q-form>
+  </div>
   </div>
 </template>
 

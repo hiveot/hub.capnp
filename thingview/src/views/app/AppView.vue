@@ -5,18 +5,20 @@ import AppHeader from "./AppHeader.vue";
 
 const appState = reactive({
   editMode: false,
-  pages: ['Page1', 'Page2'],
-  selectedPage: "Page1",
+  pages: [
+      {label:'Page1', to:'/pages/page1'},
+    {label:'Page2', to: '/pages/page2'}],
+  selectedPage: 0,
 });
 
 const handleAddPage = (name:string) => {
-  appState.pages.push(name);
+  appState.pages.push({label:name, to:name});
   console.log("Added page: ",name)
 }
 
-const handleSelectPage = (event:any) => {
-  console.log("Selecting page: ", event)
-  appState.selectedPage = event;
+const handleSelectPage = (index:number) => {
+  console.log("Selecting page: ", index)
+  appState.selectedPage = index;
 }
 
 

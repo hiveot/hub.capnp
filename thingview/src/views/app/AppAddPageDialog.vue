@@ -1,5 +1,8 @@
 <script lang="ts" setup>
 import {ref} from "vue";
+import Dialog from 'primevue/dialog';
+import Button from 'primevue/button';
+import InputText from 'primevue/inputtext';
 
 const props = defineProps({
     visible:Boolean,
@@ -19,29 +22,33 @@ const handleSubmit = () =>{
  };
 console.log("AddPageDialog: visible=",props.visible);
 
+const handleCloseDialog = (ev:any) => {
+  console.log("handleCloseDialog, ev: ", ev)
+  if (ev === false) {
+    emit("onClosed");
+  }
+}
 </script>
 
 <template>
-  <q-dialog :model-value="visible"
-            center show-close close-on-press-escape
-            @closed='emit("onClosed", $event)'
+  <Dialog :visible="props.visible"
+          header="Add A New Page"
+          modal closable dismissableMask closeOnEscape showHeader draggable
+          @update:visible="handleCloseDialog"
   >
-    <q-card>
-      <q-card-section>
-        Add A New Page
-      </q-card-section>
     <div style="display:flex; flex-direction: column; align-items: center;">
-      <q-form @submit.prevent>
-        <q-item label="Page Name" required >
-          <q-input v-model="pageName" placeholder="new page" label="names"/>
-        </q-item>
-      </q-form>
+      <div class="p-fluid">
+        <div class="p-field p-grid">
+          <label for="pageName">Name</label>
+          <InputText id="pageName" type="text" v-model="pageName"
+                     placeholder="New Page"/>
+        </div>
+      </div>
     </div>
 
-    <q-card-actions align="right">
-      <q-btn @click="emit('onClosed',$event)">Cancel</q-btn>
-      <q-btn @click="handleSubmit"  color="primary"  :disabled="(pageName==='')" >Confirm</q-btn>
-    </q-card-actions>
-    </q-card>
-  </q-dialog>
+    <template #footer>
+      <Button @click="emit('onClosed',$event)">Cancel</Button>
+      <Button @click="handleSubmit"  color="primary"  :disabled="(pageName==='')" >Confirm</Button>
+    </template>
+  </Dialog>
 </template>

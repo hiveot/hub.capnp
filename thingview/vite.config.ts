@@ -1,28 +1,30 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
-import { quasar, transformAssetUrls } from '@quasar/vite-plugin'
+import Icons from 'unplugin-icons/vite'
+import IconsResolver from 'unplugin-icons/resolver'
+import Components from 'unplugin-vue-components/vite'
 
 // https://vitejs.dev/config/
+
+/**
+ * @type {import('vite').UserConfig}
+ */
 export default defineConfig({
   plugins: [
-    vue({
-      template: { transformAssetUrls }
+    vue(),
+    // unplugin
+    Icons({
+      compiler: 'vue3',
     }),
-
-    quasar({
-      sassVariables: 'src/quasar-variables.sass'
-    })
+    // for unplugin
+    Components({
+      dts: true,
+      resolvers: [
+          IconsResolver()
+      ],
+    }),
   ],
-  // https://github.com/element-plus/element-plus/issues/3219
-  // except this doesn't seem to work??? :(
-  css: {
-    preprocessorOptions: {
-      scss: {
-        charset: false
-      }
-    }
-  },
   // fix import errors and @ alias
   resolve: {
     alias: {

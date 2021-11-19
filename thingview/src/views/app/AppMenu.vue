@@ -1,6 +1,6 @@
 <script lang="ts">
 // exports must be in a separate script block https://github.com/vuejs/rfcs/pull/227
-import {defineComponent} from "vue";
+import { defineComponent} from "vue";
 export const MenuAbout = "about";
 export const MenuAddPage = "addPage";
 export const MenuEditMode = "editMode";
@@ -9,107 +9,68 @@ export default defineComponent({});
 </script>
 
 <script lang="ts" setup>
+import Button from 'primevue/button';
+import Menu from 'primevue/menu';
+import IconMenu from '~icons/mdi/menu'
+import {ref} from "vue";
 
 interface IAppMenu {
   editMode: boolean;
-  pages: Array<string>;
+  pages: Array<{label:string, icon?: string, to?: string}>;
 }
 const props = withDefaults(
     defineProps<IAppMenu>(),
     {
       editMode: false,
-      pages: ()=>["Overview"],
+      pages: ()=>[{label:"Overview"}],
     })
 
 const emit = defineEmits(['onMenuSelect'])
+
+defineExpose({MenuAbout, MenuAddPage, MenuEditMode, MenuSettings})
+
+// reference to the component
+const themenu = ref<any>(null);
 
 const handleMenuSelect = (name:string) => {
   console.log('AppMenu: onMenuSelect: ', name);
   emit("onMenuSelect", name);
 }
 
-const menuItems = [{
+const menuItems = [...props.pages, {
+  separator: true,
+}, {
   label: "Add Page...",
-  icon: "mdi-add"
+  icon: "mdi-add",
+  command: ()=>handleMenuSelect(MenuAddPage),
 }, {
   label: "Edit Mode",
   icon: "",
+  command: ()=>handleMenuSelect(MenuEditMode),
 }, {
   label: "Connections...",
-  icon: "mdi-link"
+  icon: "mdi-link",
+  to: "/accounts",
+  command: ()=>handleMenuSelect(MenuSettings),
 },{
   label: "About...",
-  icon: "mdi-about"
+  icon: "mdi-about",
+  command: ()=>handleMenuSelect(MenuAbout),
 }]
+
+const toggle = (event:any) => {
+  themenu.value.toggle(event);
+}
 
 </script>
 
 
 <template>
-  <q-btn style="margin-right: 10px" flat icon="mdi-menu">
-  <q-menu auto-close>
-    <q-list style="min-width: 150px">
-      <!-- Allow page select from the menu in case tabs are hidden -->
-      <q-item v-for="page in props.pages"
-              clickable
-        @click='handleMenuSelect(page)'
-      >
-        <q-item-section avatar>
-          <q-icon name="mdi-book-open-page-variant"/>
-        </q-item-section>
-        <q-item-section>
-          <q-item-label>{{page}}</q-item-label>
-        </q-item-section>
-      </q-item>
+  <Button style="margin-right: 10px"
+          @click="toggle" class="p-button-text">
+    <IconMenu/>
+  </Button>
+  <Menu ref="themenu" :model="menuItems" :popup="true"/>
 
-      <q-separator/>
-      <!-- Add a page -->
-      <q-item clickable @click='handleMenuSelect(MenuAddPage)'>
-        <q-item-section avatar>
-          <q-icon name="mdi-plus" />
-        </q-item-section>
-        <q-item-section no-wrap>
-          Add Page...
-        </q-item-section>
-      </q-item>
-
-      <!-- Toggle edit mode -->
-      <q-item clickable
-        @click='handleMenuSelect(MenuEditMode)'>
-        <q-item-section avatar>
-          <q-icon
-              :name='(props.editMode)?"mdi-checkbox-marked-outline":"mdi-checkbox-blank-outline"'
-              />
-        </q-item-section>
-        <q-item-section>
-            <q-item-label>Edit Mode</q-item-label>
-        </q-item-section>
-      </q-item>
-
-        <!-- Show settings menu -->
-      <q-item clickable
-              @click='handleMenuSelect(MenuSettings)'>
-        <q-item-section avatar>
-          <q-icon name="mdi-lan-connect"/>
-        </q-item-section>
-        <q-item-section>
-          <q-item-label>Connections</q-item-label>
-        </q-item-section>
-      </q-item>
-
-        <!-- Show About dialog -->
-        <q-item clickable  @click='handleMenuSelect(MenuAbout)'>
-          <q-item-section avatar>
-            <q-img src="@/assets/logo.png" style="width:22px; height:22px"/>
-          </q-item-section>
-          <q-item-section>
-            About...
-          </q-item-section>
-
-        </q-item>
-
-      </q-list>
-  </q-menu>
-  </q-btn>
 </template>
 

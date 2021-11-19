@@ -1,23 +1,25 @@
 {
-//  "extends": "@quasar/app/tsconfig-preset",
   "compilerOptions": {
     "baseUrl": ".",
-    "target": "esnext",
-    "useDefineForClassFields": true,
+    "esModuleInterop": true,
+    "jsx": "preserve",
     "module": "esnext",
     "moduleResolution": "node",
-    "strict": true,
-    "jsx": "preserve",
-    "sourceMap": true,
-    "resolveJsonModule": true,
-    "esModuleInterop": true,
     "paths": {
       "@/*": [
         "src/*"
       ],
       "src/*": ["src/*"],
     },
-    "skipLibCheck": false,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "sourceMap": true,
+    "target": "esnext",
+    "types": [
+      "unplugin-icons/types/vue3.d.ts",
+    ],
+    "useDefineForClassFields": true,
     "lib": [
       "esnext",
       "dom",
@@ -32,9 +34,8 @@
     "./src/**/*.vue"
   ],
   "exclude": [
-    "/dist/",
-    "/node_modules",
-    "/stories",
-    ".quasar"
+    "**/dist/",
+    "**/node_modules",
+    "**/stories",
   ],
 }

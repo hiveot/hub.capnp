@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 // import {reactive} from "vue";
+import Dialog from 'primevue/dialog';
 
-const version = "0.1 alpha";
+const version = "0.2 alpha";
 const licenseURL = "https://github.com/wostzone/wostzone.github.io/blob/81f41a781dfd37d82a5e37bf9ac905199161ee85/LICENSE"
 const wostSiteURL = "https://wostzone.github.io/"
 
@@ -16,15 +17,20 @@ const props = withDefaults(
 const emit = defineEmits(['onClosed'])
 
 console.log("ShowAbout: visible=",props.visible)
-
+const handleCloseDialog = (ev:any) => {
+  console.log("handleCloseDialog, ev: ", ev)
+  if (ev === false) {
+    emit("onClosed");
+  }
+}
 </script>
 
 
 <template>
-<q-dialog :model-value="props.visible"
-  center show-close close-on-press-escape
-  @closed='emit("onClosed")'
-  title="About ThingView"
+<Dialog :visible="props.visible"
+  header="About ThingView"
+  modal closable dismissableMask closeOnEscape showHeader draggable
+  @update:visible="handleCloseDialog"
   >
 <div style="display:flex; flex-direction: column; align-items: center;">
   <div style="display:flex; flex-direction: column; max-width: 400px; ">
@@ -43,13 +49,15 @@ console.log("ShowAbout: visible=",props.visible)
       </div>  
     </div>
 
+  </div>
+</div>
+  <template #footer>
     <div style="display: flex; flex-direction: row; justify-content: space-between; padding-top: 20px">
       <a :href="licenseURL" target="_blank">License Information</a>
       <a :href="wostSiteURL" target="_blank">About WoST</a>
     </div>
-  </div>
-</div>
-</q-dialog>
+  </template>
+</Dialog>
 </template>
 
 
