@@ -1,9 +1,8 @@
 <script lang="ts" setup>
 import {ref} from "vue";
-import Dialog from 'primevue/dialog';
-import Button from 'primevue/button';
-import InputText from 'primevue/inputtext';
+import {QForm, QInput} from "quasar";
 
+import {mdiInformation} from '@quasar/extras/mdi-v6'
 const props = defineProps({
     visible:Boolean,
   })
@@ -22,33 +21,34 @@ const handleSubmit = () =>{
  };
 console.log("AddPageDialog: visible=",props.visible);
 
-const handleCloseDialog = (ev:any) => {
-  console.log("handleCloseDialog, ev: ", ev)
-  if (ev === false) {
-    emit("onClosed");
-  }
-}
+
 </script>
 
 <template>
-  <Dialog :visible="props.visible"
-          header="Add A New Page"
-          modal closable dismissableMask closeOnEscape showHeader draggable
-          @update:visible="handleCloseDialog"
+  <Dialog
+      :visible="props.visible"
+      title="New Dashboard Page"
+      @onClosed="emit('onClosed')"
+      @onSubmit="handleSubmit"
+      showCancel showOk
+      :okDisabled="(pageName==='')"
   >
-    <div style="display:flex; flex-direction: column; align-items: center;">
-      <div class="p-fluid">
-        <div class="p-field p-grid">
-          <label for="pageName">Name</label>
-          <InputText id="pageName" type="text" v-model="pageName"
-                     placeholder="New Page"/>
-        </div>
-      </div>
-    </div>
+    <QForm @submit="handleSubmit" class="q-gutter-md" style="min-width: 350px">
+          <QInput v-model="pageName"
+                  no-error-icon
+                  autofocus filled required lazy-rules
+                  id="pageName" type="text"
+                  label="Page name"
+                  hint="Name of the dashboard as shown on the Tabs"
+                  :rules="[()=>pageName !== ''||'Please provide a name']"
+                  stack-label
+          >
+          </QInput>
+    </QForm>
 
-    <template #footer>
-      <Button @click="emit('onClosed',$event)">Cancel</Button>
-      <Button @click="handleSubmit"  color="primary"  :disabled="(pageName==='')" >Confirm</Button>
-    </template>
+<!--    <template v-slot:footer>-->
+<!--      <Button @click="emit('onClosed',$event)">Cancel</Button>-->
+<!--      <Button @click="handleSubmit"  color="primary"  :disabled="(pageName==='')" >Confirm</Button>-->
+<!--    </template>-->
   </Dialog>
 </template>

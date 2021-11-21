@@ -4,73 +4,76 @@ import { defineComponent} from "vue";
 export const MenuAbout = "about";
 export const MenuAddPage = "addPage";
 export const MenuEditMode = "editMode";
-export const MenuSettings = "settings"
+export const MenuAccounts = "accounts"
 export default defineComponent({});
 </script>
 
 <script lang="ts" setup>
-import Button from 'primevue/button';
-import Menu from 'primevue/menu';
-import IconMenu from '~icons/mdi/menu'
-import {ref} from "vue";
+
+import MenuButton, {IMenuItem} from "@/components/MenuButton.vue";
+import {
+  mdiMenu,
+  mdiInformation,
+  mdiLink,
+  mdiPlus,
+  mdiCheckboxOutline,
+  mdiCheckboxBlankOutline
+} from "@quasar/extras/mdi-v6";
 
 interface IAppMenu {
   editMode: boolean;
-  pages: Array<{label:string, icon?: string, to?: string}>;
+  pages: Array<IMenuItem>;
 }
 const props = withDefaults(
     defineProps<IAppMenu>(),
     {
       editMode: false,
-      pages: ()=>[{label:"Overview"}],
+      pages: ()=>[],
     })
 
-const emit = defineEmits(['onMenuSelect'])
+const emit = defineEmits(['onMenuSelect']) // IMenuItem
 
-defineExpose({MenuAbout, MenuAddPage, MenuEditMode, MenuSettings})
+// defineExpose({MenuAbout, MenuAddPage, MenuEditMode, MenuSettings})
 
-// reference to the component
-const themenu = ref<any>(null);
-
-const handleMenuSelect = (name:string) => {
+const handleMenuSelect = (name:any) => {
   console.log('AppMenu: onMenuSelect: ', name);
   emit("onMenuSelect", name);
 }
 
-const menuItems = [...props.pages, {
-  separator: true,
-}, {
-  label: "Add Page...",
-  icon: "mdi-add",
-  command: ()=>handleMenuSelect(MenuAddPage),
-}, {
-  label: "Edit Mode",
-  icon: "",
-  command: ()=>handleMenuSelect(MenuEditMode),
-}, {
-  label: "Connections...",
-  icon: "mdi-link",
-  to: "/accounts",
-  command: ()=>handleMenuSelect(MenuSettings),
-},{
-  label: "About...",
-  icon: "mdi-about",
-  command: ()=>handleMenuSelect(MenuAbout),
-}]
 
-const toggle = (event:any) => {
-  themenu.value.toggle(event);
+const getMenuItems = (pages: Array<IMenuItem>, editMode:boolean): Array<IMenuItem> => {
+  return  [...pages, {
+    separator: true,
+  }, {
+    label: "Add Page...",
+    icon: mdiPlus,
+    id: MenuAddPage,
+  }, {
+    label: "Edit Mode",
+    icon: editMode ? mdiCheckboxOutline : mdiCheckboxBlankOutline,
+    id: MenuEditMode,
+  }, {
+    id: MenuAccounts,
+    label: "Accounts...",
+    icon: mdiLink,
+    to: "/accounts",
+  },{
+    id: MenuAbout,
+    label: "About...",
+    icon: mdiInformation,
+  }]
 }
+
+
 
 </script>
 
 
 <template>
-  <Button style="margin-right: 10px"
-          @click="toggle" class="p-button-text">
-    <IconMenu/>
-  </Button>
-  <Menu ref="themenu" :model="menuItems" :popup="true"/>
+  <MenuButton :icon="mdiMenu"
+            :items="getMenuItems(props.pages, props.editMode)"
+   @onMenuSelect='handleMenuSelect'
+  />
 
 </template>
 

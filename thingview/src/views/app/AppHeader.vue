@@ -5,24 +5,19 @@ import AppMenu, { MenuAbout, MenuEditMode, MenuAddPage} from './AppMenu.vue';
 
 import AboutDialog from "./AppAboutDialog.vue";
 import AddPageDialog from "./AppAddPageDialog.vue";
+import {IMenuItem} from "@/components/MenuButton.vue";
 
-import TabView from 'primevue/tabview';
-import TabMenu from 'primevue/tabmenu';
-import InputSwitch from 'primevue/inputswitch';
-import IconLink from '~icons/mdi/link'
-
+import {mdiLink, mdiLinkOff} from "@quasar/extras/mdi-v6";
 
 interface IAppHeader {
   editMode: boolean
-  pages: Array<{ label:string, icon?:string, to?:string }>
-  selectedPage: number
+  pages: Array<IMenuItem>
 }
 const props = defineProps<IAppHeader>()
-  
+
 const emit = defineEmits([
     "onAddPage",
     "onEditModeChange",
-    "onPageSelect", 
     "onMenuSelect",
   ])
 
@@ -40,7 +35,7 @@ const handleEditModeChange = (ev:any)=>{
   emit("onEditModeChange", ev);
 }
 const handleOpenAbout = () => {
-  // console.log("Opening about...");
+  console.log("Opening about...");
   data.showAbout = !data.showAbout;
 }
 const handleOpenAddPage = () => {
@@ -51,63 +46,59 @@ const handleAboutClosed = () => {
   // console.log("About closed...");
   data.showAbout = false;
 }
-const handleTabSelect = (event:any) => {
-  console.log("emit onPageSelect: page=",event.index)
-  emit("onPageSelect", event.index);
-}
-const handleMenuSelect = (menu:string) => {
-  console.log("handleMenuSelect: ", menu);
-  if (menu == MenuAbout) {
+// handle Dialog and edit mode select
+const handleMenuSelect = (menuItem:IMenuItem) => {
+  console.log("handleMenuSelect: ", menuItem);
+  if (menuItem.id == MenuAbout) {
     handleOpenAbout();
-  } else if (menu == MenuEditMode) {
+  } else if (menuItem.id == MenuEditMode) {
     handleEditModeChange(!props.editMode);
-  } else if (menu == MenuAddPage) {
+  } else if (menuItem.id == MenuAddPage) {
     handleOpenAddPage();
   } else {
-    console.log("emit onPageSelect: page=",menu)
-    emit("onPageSelect", menu);
   }
 }
-console.log("AppHeader: selectedPage="+props.selectedPage);
 
 </script>
 
 <template>
   <div class="header">
 
-    <AboutDialog :visible="data.showAbout" @onClosed='handleAboutClosed'/>
-    <AddPageDialog :visible="data.showAddPage"  @onClosed='data.showAddPage = false;' @onAdd="handleAddPage"/>
+    <AboutDialog :visible="data.showAbout"
+                 @onClosed='handleAboutClosed'/>
+    <AddPageDialog :visible="data.showAddPage"
+                   @onClosed='data.showAddPage=false'
+                   @onAdd="handleAddPage"/>
 
     <img alt="logo" src="@/assets/logo.png" @click="handleOpenAbout"
          style="height: 40px;cursor:pointer; padding:5px;"
     />
 
     <!-- On larger screens show a tab bar for dashboard pages -->
-    <TabMenu :model="props.pages"
-        :activeIndex="props.selectedPage"
-        @tab-click='handleTabSelect'
-    />
+    <q-tabs   inline-label indicator-color="green">
+      <q-route-tab v-for="page in props.pages"
+             :label="page.label"
+             :icon="page.icon"
+             :to="(page.to == undefined) ? '' : page.to"
+      />
+    </q-tabs>
 
     <div style="flex-grow:1"/>
 
     <!-- Edit mode switching -->
-    <div style="display: flex; flex-direction: row; align-items: center">
-      <InputSwitch :modelValue="props.editMode"
-                @input="handleEditModeChange"
-                inactive-color="gray"
-      />
-      <label style="padding-left:5px; color:dimgray">Edit</label>
-    </div>
+    <q-toggle :model-value="props.editMode"
+              @update:model-value="handleEditModeChange"
+              label="Edit"
+              inactive-color="gray"
+    />
 
     <!-- Connection Status -->
-    <Button class="p-button-text"
-            v-tooltip="'Connection Status & Configuration'"
-    >
-      <IconLink/>
-    </Button>
+<!--    <Button  icon="mdi-link-off" flat tooltip="Connection Status & Configuration"/>-->
+    <Button  :icon="mdiLinkOff" flat tooltip="Connection Status & Configuration"/>
 
     <!-- Dropdown menu -->
-    <AppMenu :pages="props.pages"  :editMode="props.editMode"
+    <AppMenu :pages="props.pages"
+             :editMode="props.editMode"
              @onMenuSelect="handleMenuSelect"
     />
 
@@ -116,12 +107,13 @@ console.log("AppHeader: selectedPage="+props.selectedPage);
 
 <style>
 /* Tab bar should have header background */
-.p-tabmenu .p-tabmenu-nav {
-  background: transparent !important;
-}
-.p-tabmenu .p-tabmenu-nav .p-tabmenuitem .p-menuitem-link {
-  background:transparent !important;
-}
+/*.p-tabmenu .p-tabmenu-nav {*/
+/*  background: transparent !important;*/
+/*}*/
+/*.p-tabmenu .p-tabmenu-nav .p-tabmenuitem .p-menuitem-link {*/
+/*  background:transparent !important;*/
+/*}*/
+
 .header {
   display: flex;
   flex-direction: row;

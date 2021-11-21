@@ -2,16 +2,13 @@
 
 // vue bug. Need to use 'import type' to avoid error cannot import
 import  {AccountRecord} from "@/store/HubAccountStore";
-// import {hubAccountStore} from "@/store/HubAccountStore";
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
-import Button from 'primevue/button';
+import {QTable} from "quasar";
 
 const emit = defineEmits([
     "onAdd" // 'Add' button was pressed
     ])
 
-// Accounts table APIO
+// Accounts table API
 interface IAccountsTable {
   accounts: Array<AccountRecord>
 }
@@ -35,9 +32,7 @@ const AddAccount = () => {
 
 <template>
 <div style="display:flex; flex-direction: column; align-items: center;">
-  <DataTable :value="props.accounts" >
-    <Column v-for="col in columns" :field="col.field" :header="col.label"/>
-  </DataTable>
+  <QTable :rows="props.accounts" :columns="columns" />
 
   <Button @click="AddAccount">Add Account</Button>
 </div>

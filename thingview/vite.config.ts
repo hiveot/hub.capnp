@@ -1,9 +1,8 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
-import Icons from 'unplugin-icons/vite'
-import IconsResolver from 'unplugin-icons/resolver'
-import Components from 'unplugin-vue-components/vite'
+import {quasar, transformAssetUrls } from '@quasar/vite-plugin'
+import { visualizer } from 'rollup-plugin-visualizer';
 
 // https://vitejs.dev/config/
 
@@ -12,20 +11,21 @@ import Components from 'unplugin-vue-components/vite'
  */
 export default defineConfig({
   plugins: [
-    vue(),
-    // unplugin
-    Icons({
-      compiler: 'vue3',
+    vue({
+      template: {transformAssetUrls},
     }),
-    // for unplugin
-    Components({
-      dts: true,
-      resolvers: [
-          IconsResolver()
-      ],
-    }),
+    quasar(),
+    visualizer(),
   ],
-  // fix import errors and @ alias
+  // // https://github.com/element-plus/element-plus/issues/3219
+  // // except this doesn't seem to work??? :(
+  // css: {
+  //   preprocessorOptions: {
+  //     scss: {
+  //       charset: false
+  //     }
+  //   }
+  // },  // fix import errors and @ alias
   resolve: {
     alias: {
       '@': path.resolve(__dirname, '/src'),

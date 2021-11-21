@@ -1,27 +1,23 @@
 <script lang="ts" setup>
 import {reactive} from "vue";
 import AppHeader from "./AppHeader.vue";
+import {IMenuItem} from "@/components/MenuButton.vue";
+
 // import {RouterView} from 'vue-router';
+import {PagesPrefix} from "@/router";
+import {mdiViewDashboard} from "@quasar/extras/mdi-v6";
 
 const appState = reactive({
   editMode: false,
-  pages: [
-      {label:'Page1', to:'/pages/page1'},
-    {label:'Page2', to: '/pages/page2'}],
-  selectedPage: 0,
+  pages:[
+    <IMenuItem>{label:'Page1', to: PagesPrefix+'/page1', icon:mdiViewDashboard},
+    <IMenuItem>{label:'Page2', to: PagesPrefix+'/page2', icon:mdiViewDashboard}],
 });
 
 const handleAddPage = (name:string) => {
-  appState.pages.push({label:name, to:name});
+  appState.pages.push({label:name, to:PagesPrefix+'/'+name,icon:"mdi-view-dashboard"});
   console.log("Added page: ",name)
 }
-
-const handleSelectPage = (index:number) => {
-  console.log("Selecting page: ", index)
-  appState.selectedPage = index;
-}
-
-
 </script>
 
 
@@ -30,9 +26,7 @@ const handleSelectPage = (index:number) => {
   <AppHeader
       :editMode="appState.editMode"
       :pages="appState.pages"
-      :selectedPage="appState.selectedPage"
        @onEditModeChange="appState.editMode = $event"
-       @onPageSelect="handleSelectPage"
       @onAddPage="handleAddPage"
   />
   <router-view></router-view>

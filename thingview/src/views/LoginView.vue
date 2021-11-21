@@ -1,7 +1,7 @@
 <script  lang="ts" setup>
 import {reactive} from "vue";
 import {hubAuth} from '../store/HubAuth';
-import Password from 'primevue/password';
+import Button from "@/components/Button.vue"
 
 const props = defineProps({
   title: {
@@ -37,28 +37,30 @@ const handleLoginButtonClick = function(ev:any){
     <div  class="p-field p-grid">
       <label for="loginEmail" class="p-col-fixed">Login Email</label>
       <div class="p-col">
-        <InputText v-model="data.loginEmail" id="loginEmail" type="text" placeholder="Your login email"/>
+        <QInput v-model="data.loginEmail" id="loginEmail"
+                type="text" placeholder="Your login email"
+        label="email"/>
       </div>
     </div>
 
     <div  class="p-field p-grid">
       <label for="loginPassword" class="p-col-fixed">Password</label>
       <div class="p-col">
-        <Password v-model="data.password"
-                  id="loginPassword" type="text"
+        <QInput v-model="data.password"
+                  id="loginPassword" type="password"
                   placeholder="Your login password"/>
       </div>
     </div>
 
 
     <div style="text-align: left">
-      <Checkbox
+      <QCheckbox
         label="Remember Me"
         v-model="data.rememberMe"
       />
     </div>
     <div style="display: flex; justify-content: flex-end;">
-        <Button round color="primary"
+        <Button type="primary"
           :disabled="data.busyLoggingIn||data.loginEmail===''||data.password===''"
           @click="handleLoginButtonClick" >
         Login

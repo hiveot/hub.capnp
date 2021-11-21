@@ -1,28 +1,26 @@
 import {createWebHistory, createRouter, RouteRecordRaw, RouteLocationRaw} from "vue-router";
-import HomeView from "@/views/HomeView.vue"
-import Accounts from '@/components/AccountsTable.vue'
-import DashboardView from '@/views/DashboardView.vue'
-
+import PageView from "@/views/PageView.vue"
+import AccountsView from '@/views/AccountsView.vue'
 import { hubAuth } from "@/store/HubAuth";
 
-// let currentPage = "";
+export const PagesPrefix = "/pages"
 
 const routes: Array<RouteRecordRaw> = [
   {
     name: "home",
     path: "/",
-    component: HomeView,
+    component: PageView,
     // beforeEnter: checkAuth,
   },
   {
     name: "Accounts",
     path: "/accounts",
-    component: Accounts,
+    component: AccountsView,
   },
   {
     name: "pages",
-    path: "/pages/:page",
-    component: DashboardView,
+    path: PagesPrefix+"/:page",
+    component: PageView,
 
     // props, see: https://router.vuejs.org/guide/essentials/passing-props.html
     // boolean mode: when props is true use route.params as component props

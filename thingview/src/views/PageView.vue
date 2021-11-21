@@ -18,5 +18,5 @@ export default defineComponent({
 </script>
 
 <template>
-  <h1>Dashboard page={{page}}, verbose={{data.myPage}} </h1>
+  <h4>Dashboard page={{page}}, verbose={{data.myPage}} </h4>
 </template>

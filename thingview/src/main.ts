@@ -1,25 +1,27 @@
 import { createApp } from 'vue';
 import App from './App.vue';
 import router from './router';
-import PrimeVue from 'primevue/config';
-import 'primevue/resources/primevue.min.css'
 
-// import 'primevue/resources/themes/md-light-indigo/theme.css'
-import 'primevue/resources/themes/saga-blue/theme.css'
-// import 'primevue/resources/themes/vela-blue/theme.css'
+import { QIcon, QSpace, QTooltip,  Quasar } from 'quasar'
+// Application Components don't need import
+import Button from '@/components/Button.vue';
+import Dialog from '@/components/Dialog.vue';
+import MenuButton from '@/components/MenuButton.vue';
 
-// common components
-import Tooltip from 'primevue/tooltip';
-import Button from 'primevue/button';
-import Checkbox from 'primevue/checkbox';
-import InputText from 'primevue/inputtext';
+// Import SVG icon libraries (don't include the full bundle)
+import iconSet from 'quasar/icon-set/svg-mdi-v6'
+//import '@quasar/extras/mdi-v6/mdi-v6.css'
+import 'quasar/dist/quasar.css'
 
 const app = createApp(App)
-    .directive("tooltip", Tooltip)
+    // .directive("tooltip", Tooltip)
     .use(router)
-    .use(PrimeVue)
+    .use(Quasar,{
+        iconSet: iconSet,
+        components: {QSpace, QIcon, QTooltip}
+    })
     .component('Button', Button)
-    .component('Checkbox', Checkbox)
-    .component( 'InputText', InputText)
+    .component('Dialog', Dialog)
+    .component('MenuButton', MenuButton)
     .mount('#app')
 
