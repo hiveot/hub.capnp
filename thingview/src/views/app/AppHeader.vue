@@ -76,7 +76,7 @@ const handleMenuSelect = (menuItem:IMenuItem) => {
                    @onClosed='data.showAddPage=false'
                    @onAdd="handleAddPage"/>
 
-    <img alt="logo" src="@/assets/logo.png" @click="handleOpenAbout"
+    <img alt="logo" src="@/assets/logo.svg" @click="handleOpenAbout"
          style="height: 40px;cursor:pointer; padding:5px;"
     />
 

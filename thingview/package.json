@@ -6,7 +6,7 @@
     "dev": "vite",
     "build": "vue-tsc --noEmit --skipLibCheck && vite build",
     "serve": "vite preview",
-    "clean": "rm node_modules/.cache/vite/*"
+    "clean": "rm node_modules/.vite/*"
   },
   "dependencies": {
     "@quasar/extras": "^1.12.1",

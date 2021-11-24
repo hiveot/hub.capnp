@@ -20,6 +20,7 @@ const emit = defineEmits(["click"])
          :flat="props.flat"
          :label="props.label"
          :icon="props.icon"
+         @click="emit('click',null)"
   >
     <slot></slot>
     <QTooltip v-if="props.tooltip">{{props.tooltip}}</QTooltip>
