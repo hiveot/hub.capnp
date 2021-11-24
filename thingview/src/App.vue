@@ -1,10 +1,6 @@
-<script  lang="ts">
-import {defineComponent, reactive} from "vue";
+<script setup lang="ts">
+import {reactive} from "vue";
 import AppView from '@/views/AppView.vue';
-
-export default defineComponent({
-  components: {AppView},
-})
 
 </script>
 

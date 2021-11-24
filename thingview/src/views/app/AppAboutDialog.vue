@@ -35,8 +35,8 @@ const handleCloseDialog = () => {
 
     <div style="display: flex; width:100%">
       <div style="flex: .4; ; align-self:center">
-          <img style="width:120px; padding:20px"
-               src="@/assets/logo.png"
+          <img style="width:240px; padding:20px"
+               src="@/assets/logo.svg"
                alt="logo"
           />
       </div>

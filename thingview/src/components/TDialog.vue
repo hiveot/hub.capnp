@@ -5,11 +5,18 @@ import TButton from '@/components/TButton.vue'
 import {mdiClose} from "@quasar/extras/mdi-v6";
 
 interface IProps{
+  // Dialog is visible on/off
   visible: boolean
+  // Dialog title
   title?: string
+  // show the Cancel button
   showCancel?: boolean
+  // show the Ok button
   showOk?: boolean
+  // disable the Ok button
   okDisabled?: boolean
+  // optional override of Ok button label
+  okLabel?: string
 }
 
 const props = withDefaults(
@@ -19,6 +26,7 @@ const props = withDefaults(
       showCancel: false,
       showOk: false,
       okDisabled: false,
+      okLabel: "Ok",
     }
 )
 
@@ -26,7 +34,6 @@ const emit = defineEmits(['onClosed', 'onSubmit'])
 
 const handleSubmit = (ev:any) => {
   console.log("handleSubmit emit onSubmit")
-  debugger
   emit('onSubmit')
 }
 
@@ -37,25 +44,32 @@ const handleCancel = () => {
 
 </script>
 
-<!--QDialog is too basic so make our own component based on it-->
+<!--Dialog component with title and Ok/Cancel buttons with standardized dialog configuration
+ -->
 <template>
   <QDialog  :model-value="props.visible"
             @hide='handleCancel'
     >
     <QCard>
+
+<!--  dialog title with close button -->
       <QBar>
         <div class="text-h6">{{title}}</div>
         <QSpace/>
         <QBtn :icon="mdiClose" flat dense v-close-popup/>
       </QBar>
+
+<!--  default Slot for the dialog content-->
       <QCardSection>
         <slot></slot>
       </QCardSection>
 
+<!--  optional override of footer-->
       <QCardActions>
         <slot name="footer"></slot>
       </QCardActions>
 
+<!--  default Cancel/OK footer buttons-->
       <QCardActions v-if="(props.showCancel || props.showOk)" align="right">
           <TButton v-if="props.showCancel"
                   label="Cancel" flat

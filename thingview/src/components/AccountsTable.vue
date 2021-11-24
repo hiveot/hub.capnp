@@ -13,6 +13,8 @@ interface IAccountsTable {
   accounts: Array<AccountRecord>
   // Allow editing of accounts
   editMode?: boolean
+  // optional title to display above the table
+  title?: string
 }
 const props = defineProps<IAccountsTable>()
 
@@ -55,18 +57,18 @@ const isEditMode = ():boolean => {
           row-key="address"
           hide-selected-banner
   >
-<!--    export the slots-->
-<!--    <template v-for="(index, name) in $slots" v-slot:[name]>-->
-<!--      <slot :name="name" />-->
-<!--    </template>-->
+    <!-- export the slots-->
+    <template v-for="(index, name) in $slots" v-slot:[name]>
+      <slot :name="name" />
+    </template>
 
-    <!--    // Add account button-->
-<!--    <template v-slot:top>-->
-<!--      <QToolbar>-->
-<!--        <QToolbarTitle  shrink>{{props.title}}</QToolbarTitle>-->
-<!--        <QBtn size="sm" round color="primary" :icon="mdiAccountPlus"/>-->
-<!--      </QToolbar>-->
-<!--    </template>-->
+    <!-- add account button-->
+    <template v-slot:top>
+      <QToolbar>
+        <QToolbarTitle  shrink>{{props.title}}</QToolbarTitle>
+        <QBtn size="sm" round color="primary" :icon="mdiAccountPlus"/>
+      </QToolbar>
+    </template>
 
     <!-- toggle 'enabled' switch. Use computed property to be reactive inside the slot -->
     <template v-slot:body-cell-enabled="props">

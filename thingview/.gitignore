@@ -1,3 +1,4 @@
-dist/assets
+dist/
 *.woff
 *.ttf
+.quasar

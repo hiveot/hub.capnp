@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 import {ref} from "vue";
 import TDialog from "@/components/TDialog.vue";
-import {QForm, QInput} from "quasar";
+import TButton from "@/components/TButton.vue"
+import {QDialog, QBtn, QCard, QBar, QCardActions, QCardSection, QForm, QInput} from "quasar";
+import {mdiClose} from "@quasar/extras/mdi-v6";
 
 import {mdiInformation} from '@quasar/extras/mdi-v6'
 const props = defineProps({
@@ -15,25 +17,23 @@ const emit = defineEmits({
 
 const pageName = ref("");
 
-const handleSubmit = () =>{
+const handleSubmit = (ev:any) =>{
   console.log("AppAddPageDialog.handleSubmit: ", pageName.value)
   emit("onAdd", pageName.value);
   pageName.value = "";
-  debugger
   emit("onClosed");
  };
 console.log("AddPageDialog: visible=",props.visible);
 
-const handleCancel = () => {
+const handleCancel = (ev:any) => {
   console.log("AppAddPageDialog.cancelled")
-  debugger
   emit("onClosed");
 }
 
 </script>
 
 <template>
-  <TDialog
+      <TDialog
       :visible="props.visible"
       title="New Dashboard Page"
       @onClosed="handleCancel"
@@ -41,7 +41,7 @@ const handleCancel = () => {
       showCancel showOk
       :okDisabled="(pageName==='')"
   >
-    <QForm class="q-gutter-md" style="min-width: 350px">
+    <QForm @submit="handleSubmit" class="q-gutter-md" style="min-width: 350px">
           <QInput v-model="pageName"
                   no-error-icon
                   autofocus filled required lazy-rules
