@@ -1,6 +1,6 @@
 <script  lang="ts">
 import {defineComponent, reactive} from "vue";
-import AppView from '@/views/app/AppView.vue';
+import AppView from '@/views/AppView.vue';
 
 export default defineComponent({
   components: {AppView},
@@ -18,7 +18,8 @@ export default defineComponent({
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  /*color: darkblue;*/
+  color: #2f2f44;
+  /*color: green;*/
   font-size: large;
   margin:0;
 }

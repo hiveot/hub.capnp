@@ -1,9 +1,10 @@
 {
   "compilerOptions": {
     "baseUrl": ".",
-    "esModuleInterop": true,
     "jsx": "preserve",
     "module": "esnext",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
     "moduleResolution": "node",
     "paths": {
       "@/*": [
@@ -11,15 +12,12 @@
       ],
       "src/*": ["src/*"],
     },
-    "resolveJsonModule": true,
-    "skipLibCheck": true,
     "strict": true,
     "sourceMap": true,
     "target": "esnext",
     "types": [
-      "unplugin-icons/types/vue3.d.ts",
     ],
-    "useDefineForClassFields": true,
+    "skipLibCheck": true,
     "lib": [
       "esnext",
       "dom",
@@ -34,8 +32,9 @@
     "./src/**/*.vue"
   ],
   "exclude": [
-    "**/dist/",
-    "**/node_modules",
-    "**/stories",
+    "/dist/",
+    "/node_modules",
+    "/stories",
+    ".quasar"
   ],
 }

@@ -35,9 +35,9 @@ const emit = defineEmits(['onMenuSelect']) // IMenuItem
 
 // defineExpose({MenuAbout, MenuAddPage, MenuEditMode, MenuSettings})
 
-const handleMenuSelect = (name:any) => {
-  console.log('AppMenu: onMenuSelect: ', name);
-  emit("onMenuSelect", name);
+const handleMenuSelect = (item:IMenuItem) => {
+  console.log('AppMenu: onMenuSelect: ', item);
+  emit("onMenuSelect", item);
 }
 
 

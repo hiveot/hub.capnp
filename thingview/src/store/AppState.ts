@@ -1,13 +1,25 @@
 // AppState store for reactive access to non persistent application state
-import { defineComponent, reactive, readonly } from "vue";
+import { reactive, readonly } from "vue";
+import {mdiViewDashboard} from "@quasar/extras/mdi-v6";
 
+export const PagesPrefix = "/pages"
 
-class AppStateData extends Object {
-  editMode: Boolean = false;
-  pages: Array<string> = ['page1', 'page2', 'page3'];
-  selectedPage: String = "";
+export interface IPageRecord {
+  label: string
+  icon: string
+  to: string
 }
 
+// The global application state
+
+export class AppStateData extends Object {
+  editMode: boolean = false;
+  pages: Array<IPageRecord> = [
+    {label:'Overview', to: PagesPrefix+'/overview', icon:mdiViewDashboard},
+  ];
+}
+
+// The runtime application state is kept here
 export class AppState {
   protected state: AppStateData;
 
@@ -15,9 +27,19 @@ export class AppState {
     this.state = reactive(new AppStateData())
   }
 
+  public AddPage(record:IPageRecord) {
+    this.state.pages.push(record)
+  }
+  public RemovePage(record:IPageRecord) {
+    let index = this.state.pages.indexOf(record)
+    if (index >= 0) {
+      this.state.pages.splice(index, 1)
+    }
+  }
+
   // Return the reactive state
   // note, this should be readonly but that doesn't work on Array for some reason
-  public getState(): AppStateData {
+  public State(): AppStateData {
     // return readonly(this.state);
     return this.state;
   }
@@ -27,14 +49,6 @@ export class AppState {
     this.state.editMode = on;
   }
 
-  // Change the selected page to display 
-  SetSelectedPage(name: string) {
-    this.state.selectedPage = name;
-  }
-
-  SetPages(names: string[]) {
-    this.state.pages = names;
-  }
 }
 
 const appState = new AppState();

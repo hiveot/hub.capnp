@@ -5,19 +5,25 @@ import AppMenu, { MenuAbout, MenuEditMode, MenuAddPage} from './AppMenu.vue';
 
 import AboutDialog from "./AppAboutDialog.vue";
 import AddPageDialog from "./AppAddPageDialog.vue";
-import {IMenuItem} from "@/components/MenuButton.vue";
+import TButton from '@/components/TButton.vue'
 
-import {mdiLink, mdiLinkOff} from "@quasar/extras/mdi-v6";
+
+import {IMenuItem} from "@/components/MenuButton.vue";
+import {QTabs, QRouteTab, QToggle} from 'quasar';
+import {mdiLink, mdiLinkOff, mdiViewDashboard} from "@quasar/extras/mdi-v6";
+// import {mdiClose} from "@quasar/extras/mdi-v6";
+
+import {AppState, PagesPrefix} from '@/store/AppState'
 
 interface IAppHeader {
-  editMode: boolean
-  pages: Array<IMenuItem>
+  appState: AppState
 }
 const props = defineProps<IAppHeader>()
 
+// for convenience
+const currentState = props.appState.State()
+
 const emit = defineEmits([
-    "onAddPage",
-    "onEditModeChange",
     "onMenuSelect",
   ])
 
@@ -27,19 +33,19 @@ const data =reactive({
 })
 
 const handleAddPage = (name:string) => {
-  console.log("Adding page", name);
-  emit("onAddPage", name);
+  props.appState.AddPage({label:name, to:PagesPrefix+'/'+name, icon:mdiViewDashboard});
+  console.log("Added page: ",name)
 }
 const handleEditModeChange = (ev:any)=>{
   console.log("AppHeader: emit onEditModeChange")
-  emit("onEditModeChange", ev);
+  props.appState.SetEditMode(ev == true)
 }
 const handleOpenAbout = () => {
   console.log("Opening about...");
   data.showAbout = !data.showAbout;
 }
 const handleOpenAddPage = () => {
-  // console.log("Opening about...");
+  console.log("Opening add page...");
   data.showAddPage = !data.showAddPage;
 }
 const handleAboutClosed = () => {
@@ -52,7 +58,7 @@ const handleMenuSelect = (menuItem:IMenuItem) => {
   if (menuItem.id == MenuAbout) {
     handleOpenAbout();
   } else if (menuItem.id == MenuEditMode) {
-    handleEditModeChange(!props.editMode);
+    handleEditModeChange(!currentState.editMode);
   } else if (menuItem.id == MenuAddPage) {
     handleOpenAddPage();
   } else {
@@ -75,30 +81,30 @@ const handleMenuSelect = (menuItem:IMenuItem) => {
     />
 
     <!-- On larger screens show a tab bar for dashboard pages -->
-    <q-tabs   inline-label indicator-color="green">
-      <q-route-tab v-for="page in props.pages"
+    <QTabs   inline-label indicator-color="green">
+      <QRouteTab v-for="page in currentState.pages"
              :label="page.label"
              :icon="page.icon"
              :to="(page.to == undefined) ? '' : page.to"
       />
-    </q-tabs>
+    </QTabs>
 
     <div style="flex-grow:1"/>
 
     <!-- Edit mode switching -->
-    <q-toggle :model-value="props.editMode"
+    <QToggle :model-value="currentState.editMode"
               @update:model-value="handleEditModeChange"
               label="Edit"
               inactive-color="gray"
     />
 
     <!-- Connection Status -->
-<!--    <Button  icon="mdi-link-off" flat tooltip="Connection Status & Configuration"/>-->
-    <Button  :icon="mdiLinkOff" flat tooltip="Connection Status & Configuration"/>
+<!--    <TButton  icon="mdi-link-off" flat tooltip="Connection Status & Configuration"/>-->
+    <TButton  :icon="mdiLinkOff" flat tooltip="Connection Status & Configuration"/>
 
     <!-- Dropdown menu -->
-    <AppMenu :pages="props.pages"
-             :editMode="props.editMode"
+    <AppMenu :pages="currentState.pages"
+             :editMode="currentState.editMode"
              @onMenuSelect="handleMenuSelect"
     />
 

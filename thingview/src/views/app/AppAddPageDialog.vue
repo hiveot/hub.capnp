@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import {ref} from "vue";
+import TDialog from "@/components/TDialog.vue";
 import {QForm, QInput} from "quasar";
 
 import {mdiInformation} from '@quasar/extras/mdi-v6'
@@ -15,25 +16,32 @@ const emit = defineEmits({
 const pageName = ref("");
 
 const handleSubmit = () =>{
+  console.log("AppAddPageDialog.handleSubmit: ", pageName.value)
   emit("onAdd", pageName.value);
   pageName.value = "";
+  debugger
   emit("onClosed");
  };
 console.log("AddPageDialog: visible=",props.visible);
 
+const handleCancel = () => {
+  console.log("AppAddPageDialog.cancelled")
+  debugger
+  emit("onClosed");
+}
 
 </script>
 
 <template>
-  <Dialog
+  <TDialog
       :visible="props.visible"
       title="New Dashboard Page"
-      @onClosed="emit('onClosed')"
+      @onClosed="handleCancel"
       @onSubmit="handleSubmit"
       showCancel showOk
       :okDisabled="(pageName==='')"
   >
-    <QForm @submit="handleSubmit" class="q-gutter-md" style="min-width: 350px">
+    <QForm class="q-gutter-md" style="min-width: 350px">
           <QInput v-model="pageName"
                   no-error-icon
                   autofocus filled required lazy-rules
@@ -46,9 +54,5 @@ console.log("AddPageDialog: visible=",props.visible);
           </QInput>
     </QForm>
 
-<!--    <template v-slot:footer>-->
-<!--      <Button @click="emit('onClosed',$event)">Cancel</Button>-->
-<!--      <Button @click="handleSubmit"  color="primary"  :disabled="(pageName==='')" >Confirm</Button>-->
-<!--    </template>-->
-  </Dialog>
+  </TDialog>
 </template>

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import Button from "@/components/Button.vue"
+import {QBtn, QMenu, QList, QItem, QItemLabel, QItemSection} from "quasar";
 
 // Menu item description
 export interface IMenuItem {
@@ -30,26 +30,26 @@ const handleMenuSelect = (item:IMenuItem) => {
 
 
 <template>
-  <q-btn style="margin-right: 10px" flat
+  <QBtn style="margin-right: 10px" flat
          :label="props.label" :icon="props.icon">
-    <q-menu auto-close>
-        <q-list style="min-width: 150px" dense>
+    <QMenu auto-close>
+        <QList style="min-width: 150px;">
           <template  v-for="item in props.items">
 
-           <q-separator v-if='item.separator'/>
-           <q-item v-else clickable :to="item.to"
+           <QSeparator v-if='item.separator'/>
+           <QItem v-else clickable :to="item.to"
                    @click='handleMenuSelect(item)'
            >
-             <q-item-section v-if='item.icon !== ""' avatar>
+             <QItemSection v-if='item.icon !== ""' avatar>
                  <QIcon :name="item.icon"/>
-             </q-item-section>
+             </QItemSection>
 
-             <q-item-section v-if='item.label !== ""'>
-               <q-item-label>{{item.label}}</q-item-label>
-             </q-item-section>
-           </q-item>
+             <QItemSection v-if='item.label !== ""'>
+               <QItemLabel>{{item.label}}</QItemLabel>
+             </QItemSection>
+           </QItem>
           </template>
-        </q-list>
-      </q-menu>
-  </q-btn>
+        </QList>
+      </QMenu>
+  </QBtn>
 </template>

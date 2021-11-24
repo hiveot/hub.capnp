@@ -1,5 +1,8 @@
 <script lang="ts" setup>
-import {QDialog, QCard, QCardSection, QCardActions, QBar } from "quasar";
+import {QBtn, QDialog, QCard, QCardSection, QCardActions, QBar } from "quasar";
+import TButton from '@/components/TButton.vue'
+
+import {mdiClose} from "@quasar/extras/mdi-v6";
 
 interface IProps{
   visible: boolean
@@ -21,31 +24,47 @@ const props = withDefaults(
 
 const emit = defineEmits(['onClosed', 'onSubmit'])
 
+const handleSubmit = (ev:any) => {
+  console.log("handleSubmit emit onSubmit")
+  debugger
+  emit('onSubmit')
+}
+
+const handleCancel = () => {
+  console.log("cancel dialog")
+  emit('onClosed')
+}
+
 </script>
 
 <!--QDialog is too basic so make our own component based on it-->
 <template>
   <QDialog  :model-value="props.visible"
-    @hide='emit("onClosed")'
+            @hide='handleCancel'
     >
     <QCard>
       <QBar>
         <div class="text-h6">{{title}}</div>
         <QSpace/>
-        <QBtn icon="mdi-close" flat dense v-close-popup/>
+        <QBtn :icon="mdiClose" flat dense v-close-popup/>
       </QBar>
       <QCardSection>
         <slot></slot>
       </QCardSection>
+
       <QCardActions>
         <slot name="footer"></slot>
       </QCardActions>
+
       <QCardActions v-if="(props.showCancel || props.showOk)" align="right">
-          <Button label="Cancel" flat
-                  v-if="props.showCancel" @click="emit('onClosed')"/>
-          <Button label="Ok" :disabled="props.okDisabled"
+          <TButton v-if="props.showCancel"
+                  label="Cancel" flat
+                  @click="handleCancel"/>
+          <TButton v-if="props.showOk"
+                  label="Ok"
+                  :disabled="props.okDisabled"
                   primary class="q-ml-sm"
-                  v-if="props.showOk" @click="emit('onSubmit')"/>
+                  @click="handleSubmit"/>
       </QCardActions>
     </QCard>
   </QDialog>

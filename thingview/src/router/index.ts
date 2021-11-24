@@ -3,7 +3,7 @@ import PageView from "@/views/PageView.vue"
 import AccountsView from '@/views/AccountsView.vue'
 import { hubAuth } from "@/store/HubAuth";
 
-export const PagesPrefix = "/pages"
+import {PagesPrefix} from "@/store/AppState";
 
 const routes: Array<RouteRecordRaw> = [
   {

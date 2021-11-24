@@ -2,10 +2,12 @@ import { createApp } from 'vue';
 import App from './App.vue';
 import router from './router';
 
-import { QIcon, QSpace, QTooltip,  Quasar } from 'quasar'
+// commonly used components that you don't want to import all the time
+import { QBtn, QIcon, QSpace, QTooltip, QSeparator, Quasar } from 'quasar'
+
 // Application Components don't need import
-import Button from '@/components/Button.vue';
-import Dialog from '@/components/Dialog.vue';
+import TButton from '@/components/TButton.vue';
+import Dialog from '@/components/TDialog.vue';
 import MenuButton from '@/components/MenuButton.vue';
 
 // Import SVG icon libraries (don't include the full bundle)
@@ -18,10 +20,7 @@ const app = createApp(App)
     .use(router)
     .use(Quasar,{
         iconSet: iconSet,
-        components: {QSpace, QIcon, QTooltip}
+        components: {QBtn, QIcon, QSeparator, QSpace, QTooltip}
     })
-    .component('Button', Button)
-    .component('Dialog', Dialog)
-    .component('MenuButton', MenuButton)
     .mount('#app')
 

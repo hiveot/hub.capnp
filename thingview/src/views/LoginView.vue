@@ -1,7 +1,8 @@
 <script  lang="ts" setup>
 import {reactive} from "vue";
 import {hubAuth} from '../store/HubAuth';
-import Button from "@/components/Button.vue"
+import TButton from "@/components/TButton.vue"
+import {QInput, QCheckbox} from "quasar";
 
 const props = defineProps({
   title: {
@@ -60,11 +61,11 @@ const handleLoginButtonClick = function(ev:any){
       />
     </div>
     <div style="display: flex; justify-content: flex-end;">
-        <Button type="primary"
+        <TButton type="primary"
           :disabled="data.busyLoggingIn||data.loginEmail===''||data.password===''"
           @click="handleLoginButtonClick" >
         Login
-        </Button>
+        </TButton>
       </div>
   </div>
   </div>
