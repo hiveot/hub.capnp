@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import {reactive} from "vue";
-import AppView from '@/views/AppView.vue';
+import AppView from '@/views/app/AppView.vue';
 
 </script>
 
@@ -16,7 +16,7 @@ import AppView from '@/views/AppView.vue';
   text-align: center;
   color: #2f2f44;
   /*color: green;*/
-  font-size: large;
+  /*font-size: large;*/
   margin:0;
 }
 </style>

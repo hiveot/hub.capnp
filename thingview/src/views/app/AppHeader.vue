@@ -1,19 +1,18 @@
 
 <script lang="ts" setup>
 import {reactive} from "vue";
-import AppMenu, { MenuAbout, MenuEditMode, MenuAddPage} from './AppMenu.vue';
 
-import AboutDialog from "./AppAboutDialog.vue";
-import AddPageDialog from "./AppAddPageDialog.vue";
-import TButton from '@/components/TButton.vue'
-
-
-import {IMenuItem} from "@/components/MenuButton.vue";
 import {QTabs, QRouteTab, QToggle} from 'quasar';
 import {mdiLink, mdiLinkOff, mdiViewDashboard} from "@quasar/extras/mdi-v6";
 // import {mdiClose} from "@quasar/extras/mdi-v6";
 
-import {AppState, PagesPrefix} from '@/store/AppState'
+import AppMenu, { MenuAbout, MenuEditMode, MenuAddPage} from './AppMenu.vue';
+import AboutDialog from "./AppAboutDialog.vue";
+import AddPageDialog from "../page/AppAddPageDialog.vue";
+import {IMenuItem} from "@/components/MenuButton.vue";
+
+import {AccountsRouteName, AppState, PagesPrefix} from '@/data/AppState'
+
 
 interface IAppHeader {
   appState: AppState
@@ -52,6 +51,7 @@ const handleAboutClosed = () => {
   // console.log("About closed...");
   data.showAbout = false;
 }
+
 // handle Dialog and edit mode select
 const handleMenuSelect = (menuItem:IMenuItem) => {
   console.log("handleMenuSelect: ", menuItem);
@@ -80,7 +80,7 @@ const handleMenuSelect = (menuItem:IMenuItem) => {
          style="height: 40px;cursor:pointer; padding:5px;"
     />
 
-    <!-- On larger screens show a tab bar for dashboard pages -->
+    <!-- On larger screens show a tab bar for dashboard page -->
     <QTabs   inline-label indicator-color="green">
       <QRouteTab v-for="page in currentState.pages"
              :label="page.label"
@@ -100,7 +100,11 @@ const handleMenuSelect = (menuItem:IMenuItem) => {
 
     <!-- Connection Status -->
 <!--    <TButton  icon="mdi-link-off" flat tooltip="Connection Status & Configuration"/>-->
-    <TButton  :icon="mdiLinkOff" flat tooltip="Connection Status & Configuration"/>
+    <QBtn  :icon="mdiLinkOff" flat
+           :to="{name: AccountsRouteName}"
+    ><QTooltip>Connection Status & Configuration</QTooltip>
+    </QBtn>
+
 
     <!-- Dropdown menu -->
     <AppMenu :pages="currentState.pages"

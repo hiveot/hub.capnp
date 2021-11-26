@@ -1,8 +1,12 @@
-// AppState store for reactive access to non persistent application state
+// AppState data for reactive access to non persistent application state
 import { reactive, readonly } from "vue";
 import {mdiViewDashboard} from "@quasar/extras/mdi-v6";
 
-export const PagesPrefix = "/pages"
+// Router constants
+export const PagesPrefix = "/page"
+export const AccountsRouteName = "Accounts"
+export const PagesRouteName = "Pages"
+
 
 export interface IPageRecord {
   label: string
@@ -11,7 +15,7 @@ export interface IPageRecord {
 }
 
 // The global application state
-
+// TODO move persistent pages configuration into its own data
 export class AppStateData extends Object {
   editMode: boolean = false;
   pages: Array<IPageRecord> = [
@@ -19,7 +23,7 @@ export class AppStateData extends Object {
   ];
 }
 
-// The runtime application state is kept here
+// The non-persistent runtime application state is kept here
 export class AppState {
   protected state: AppStateData;
 

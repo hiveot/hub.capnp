@@ -14,13 +14,13 @@ class ThingDescriptionRecord extends Object {
   properties = new Map<string, DirProperty>();
 }
 
-// Directory store data
+// Directory data data
 class ThingDescriptionCollection extends Object {
   index: Map<string, ThingDescriptionRecord> = new Map<string, ThingDescriptionRecord>();
 }
 
 
-// DirectoryStore implements the store of Thing Description records
+// DirectoryStore implements the data of Thing Description records
 class DirectoryStore extends Store<ThingDescriptionCollection> {
 
   protected data(): ThingDescriptionCollection {

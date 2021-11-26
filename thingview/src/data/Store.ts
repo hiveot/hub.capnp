@@ -9,7 +9,7 @@ export default abstract class Store<T extends Object> {
   constructor() {
     let data = this.data();
     this.setup(data);
-    // make the store data reactive
+    // make the data data reactive
     this.state = reactive(data) as T;
   }
 

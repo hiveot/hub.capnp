@@ -1,4 +1,4 @@
-// store for dashboard definitions
+// data for dashboard page definitions
 // import { ListenOptions } from 'net';
 import Store from './Store'
 
@@ -19,7 +19,7 @@ export class DashboardCollection extends Object {
 }
 
 
-// DirectoryStore implements the store of Thing Description records
+// DirectoryStore implements the data of Thing Description records
 export class DashboardStore extends Store<DashboardCollection> {
 
   protected data(): DashboardCollection {

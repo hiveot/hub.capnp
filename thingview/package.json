@@ -10,13 +10,16 @@
   },
   "dependencies": {
     "@quasar/extras": "^1.12.1",
+    "mqtt": "^4.2.8",
+    "nanoid": "^3.1.30",
     "quasar": "^2.3.2",
     "vue": "^3.2.22",
     "vue-router": "^4.0.12"
   },
   "devDependencies": {
     "@quasar/vite-plugin": "^1.0.2",
-    "@types/node": "^16.11.7",
+    "@types/mqtt": "^2.5.0",
+    "@types/node": "^16.11.10",
     "@vitejs/plugin-vue": "^1.9.4",
     "@vue/compiler-sfc": "^3.2.22",
     "rollup-plugin-visualizer": "^5.5.2",

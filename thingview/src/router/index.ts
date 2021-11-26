@@ -1,9 +1,11 @@
 import {createWebHistory, createRouter, RouteRecordRaw, RouteLocationRaw} from "vue-router";
-import PageView from "@/views/PageView.vue"
-import AccountsView from '@/views/AccountsView.vue'
-import { hubAuth } from "@/store/HubAuth";
+import PageView from "@/views/page/PageView.vue"
+import AccountsView from '@/views/accounts/AccountsView.vue'
 
-import {PagesPrefix} from "@/store/AppState";
+import { hubAuth } from "@/data/HubAuth";
+
+import {PagesPrefix, PagesRouteName, AccountsRouteName} from "@/data/AppState";
+
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -13,12 +15,12 @@ const routes: Array<RouteRecordRaw> = [
     // beforeEnter: checkAuth,
   },
   {
-    name: "Accounts",
+    name: AccountsRouteName,
     path: "/accounts",
     component: AccountsView,
   },
   {
-    name: "pages",
+    name: PagesRouteName,
     path: PagesPrefix+"/:page",
     component: PageView,
 

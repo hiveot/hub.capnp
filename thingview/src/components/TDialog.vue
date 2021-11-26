@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import {QBtn, QDialog, QCard, QCardSection, QCardActions, QBar } from "quasar";
-import TButton from '@/components/TButton.vue'
 
 import {mdiClose} from "@quasar/extras/mdi-v6";
 
@@ -71,14 +70,17 @@ const handleCancel = () => {
 
 <!--  default Cancel/OK footer buttons-->
       <QCardActions v-if="(props.showCancel || props.showOk)" align="right">
-          <TButton v-if="props.showCancel"
-                  label="Cancel" flat
-                  @click="handleCancel"/>
-          <TButton v-if="props.showOk"
-                  label="Ok"
-                  :disabled="props.okDisabled"
-                  primary class="q-ml-sm"
-                  @click="handleSubmit"/>
+          <QBtn v-if="props.showCancel"
+            label="Cancel" flat
+            @click="handleCancel"
+          />
+          <QBtn v-if="props.showOk"
+            label="Ok"
+            :disabled="props.okDisabled"
+            color="primary"
+            class="q-ml-sm"
+            @click="handleSubmit"
+          />
       </QCardActions>
     </QCard>
   </QDialog>

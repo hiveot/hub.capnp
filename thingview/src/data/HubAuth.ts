@@ -1,4 +1,4 @@
-// HubAuth is a non-persistent store for authentication token that supports token refresh
+// HubAuth is a non-persistent data for authentication token that supports token refresh
 import Store from './Store'
 
 
@@ -16,7 +16,7 @@ class HubAuthData extends Object {
 }
 
 
-// HubAuth implements the authentication store
+// HubAuth implements the authentication data
 class HubAuth extends Store<HubAuthData> {
 
   protected data(): HubAuthData {
@@ -32,7 +32,7 @@ class HubAuth extends Store<HubAuthData> {
   // This obtains an access and refresh token
   //
   // username and password are provided by the administrator
-  // rememberMe to store the refresh token in a secure cookie for persistence between sessions
+  // rememberMe to data the refresh token in a secure cookie for persistence between sessions
   // returns a promise with the authentication result
   login(username: String, password: string, rememberMe: boolean): Promise<boolean> {
     return new Promise((resolve, reject) => {

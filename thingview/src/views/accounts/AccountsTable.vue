@@ -2,10 +2,11 @@
 
 // Wrapper around the QTable for showing a list of accounts
 // QTable slots are available to the parent
-import  {AccountRecord} from "@/store/HubAccountStore";
-import {QBtn, QToolbar, QTable, QTd, QToggle, QToolbarTitle} from "quasar";
-import {mdiAccountPlus, mdiDelete, mdiAccountEdit} from "@quasar/extras/mdi-v6";
-import {reactive} from "vue";
+import {h} from 'vue';
+import  {AccountRecord} from "@/data/AccountStore";
+import {QBtn, QIcon, QToolbar, QTable, QTd, QToggle, QToolbarTitle, QTableProps} from "quasar";
+import {mdiAccountPlus, mdiDelete, mdiAccountEdit, mdiLinkOff, mdiLink} from "@quasar/extras/mdi-v6";
+
 
 // Accounts table API
 interface IAccountsTable {
@@ -24,28 +25,42 @@ const emit = defineEmits([
   "onToggleEnabled"
 ])
 
+// table columns
 interface ICol {
   name: string
   label: string
   field: string
-  align: "left"| "right" | "center" | undefined
+  required?: boolean
+  align?: "left"| "right" | "center" | undefined
+  style?: string
+  format?: (val:any, row:any)=>any
 }
 
-const columns:Array<ICol> = [
-  {name: "edit", label: "", field:"edit", align:"left"},
-  {name: "name", label: "Name", field:"name" , align:"left" },
-  {name: "address", label: "Address", field:"address", align:"left"},
-  {name: "mqttPort", label: "MQTT Port", field:"mqttPort", align:"left"},
-  {name: "directoryPort", label: "directoryPort", field:"directoryPort", align:"left"},
-  {name: "enabled", label: "Enabled", field:"enabled", align:"left"},
-  {name: "delete", label: "", field:"delete", align:"right"},
-]
-console.log("AccountsTable: editMode=%s", props.editMode)
+// calculated property
+const isConnected = (accountID: string): boolean => {
+  return false
+}
 
-// reactive
+// reactive edit mode
 const isEditMode = ():boolean => {
   return !!props.editMode
 }
+
+const columns: Array<ICol> = [
+  {name: "edit", label: "", field: "edit", align:"center"},
+    // Use large width to minimize the other columns
+  {name: "name", label: "Name", field:"name" , align:"left", required:true, style:"width:400px",
+    },
+  {name: "address", label: "Address", field:"address", align:"left"},
+  {name: "mqttPort", label: "MQTT Port", field:"mqttPort", align:"left"},
+  {name: "directoryPort", label: "directoryPort", field:"directoryPort", align:"left"},
+  {name: "enabled", label: "Enabled", field:"enabled", align:"center"},
+  {name: "connected", label: "Connected", field:"connected", align:"center"},
+  // {name: "delete", label: "", field:"delete", align:"center"},
+]
+console.log("AccountsTable: editMode=%s", props.editMode)
+
+
 
 </script>
 
@@ -63,12 +78,14 @@ const isEditMode = ():boolean => {
     </template>
 
     <!-- add account button-->
-    <template v-slot:top>
-      <QToolbar>
-        <QToolbarTitle  shrink>{{props.title}}</QToolbarTitle>
-        <QBtn size="sm" round color="primary" :icon="mdiAccountPlus"/>
-      </QToolbar>
-    </template>
+<!--    <template v-slot:top>-->
+<!--      <QToolbar>-->
+<!--        <QToolbarTitle  shrink>{{props.title}}</QToolbarTitle>-->
+<!--        <QBtn size="sm" round color="primary" :icon="mdiAccountPlus"/>-->
+<!--      </QToolbar>-->
+<!--    </template>-->
+
+
 
     <!-- toggle 'enabled' switch. Use computed property to be reactive inside the slot -->
     <template v-slot:body-cell-enabled="props">
@@ -80,17 +97,27 @@ const isEditMode = ():boolean => {
       </QTd>
     </template>
 
+    <!-- icon for connected-->
+    <template v-slot:body-cell-connected="props" >
+      <QTd>
+        <QIcon flat :color="isConnected(props.row.id)?'green':'red'"
+               :name="isConnected(props.row.id)?mdiLink:mdiLinkOff"
+               size="2em"
+              />
+      </QTd>
+    </template>
+
+
     <!-- button for edit-->
     <template v-if="isEditMode()"  v-slot:body-cell-edit="props" >
-      <QTd style="text-align: left">
+      <QTd>
         <QBtn dense flat round color="blue" field="edit" :icon="mdiAccountEdit"
               @click="emit('onEdit', props.row)"/>
       </QTd>
     </template>
-
     <!-- button for delete-->
     <template v-if="isEditMode()"  v-slot:body-cell-delete="props" >
-      <QTd style="text-align: right">
+      <QTd>
         <QBtn dense flat round color="blue" field="edit" :icon="mdiDelete"
               @click="emit('onDelete', props.row)"/>
       </QTd>

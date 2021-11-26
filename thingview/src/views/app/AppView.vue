@@ -1,14 +1,14 @@
 <script lang="ts" setup>
-import {reactive} from "vue";
-import AppHeader from "./app/AppHeader.vue";
-import {IMenuItem} from "@/components/MenuButton.vue";
-import { useQuasar } from 'quasar'
+// import { useQuasar } from 'quasar'
 
-import appState, {PagesPrefix} from '@/store/AppState'
+import AppHeader from "./AppHeader.vue";
+import {IMenuItem} from "@/components/MenuButton.vue";
+
+import appState from '@/data/AppState'
 
 
 // future option for dark theme setting
-const $q = useQuasar()
+// const $q = useQuasar()
 // $q.dark.set(true) // or false or "auto"
 // $q.dark.toggle()
 

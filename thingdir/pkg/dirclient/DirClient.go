@@ -58,8 +58,9 @@ func (dc *DirClient) ConnectWithClientCert(tlsClientCert *tls.Certificate) error
 }
 
 // ConnectWithLoginID open the connection to the directory server using a login ID and password for authentication
-//  clientCertFile  client certificate to authenticate the client with the broker
-//  clientKeyFile   client key to authenticate the client with the broker
+// For testing. Use the auth service instead
+//  loginID  username or email
+//  password credentials
 func (dc *DirClient) ConnectWithLoginID(loginID string, password string) error {
 	// TODO, support access token instead loginID
 	accessToken, err := dc.tlsClient.ConnectWithLoginID(loginID, password)
