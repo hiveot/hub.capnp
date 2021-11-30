@@ -9,11 +9,10 @@
       "request": "launch",
       "name": "vuejs: chrome",
       "url": "http://localhost:3000",
-      "webRoot": "${workspaceFolder}/src",
-      "breakOnLoad": true,
-      "sourceMapPathOverrides": {
-        "webpack:///src/*": "${webRoot}/*"
-      }
+      "webRoot": "${workspaceFolder}",
+      "skipFiles": [
+        "${workspaceFolder}/node_modules/**/*.js"
+      ],
     },
     {
       "type": "firefox",

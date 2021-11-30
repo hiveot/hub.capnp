@@ -2,8 +2,6 @@
   "compilerOptions": {
 //    "allowJs": true,
 //    "noImplicitAny": false,
-
-
     "baseUrl": ".",
     "jsx": "preserve",
     // https://vitejs.dev/guide/features.html#typescript-compiler-options

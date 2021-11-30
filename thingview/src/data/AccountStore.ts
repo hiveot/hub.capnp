@@ -20,8 +20,8 @@ export class AccountRecord extends Object {
   // port of authentication service
   authPort?: number = 8881;
 
-  // port of mqtt service. 8884 for certificate auth, 8885 for websocket
-  mqttPort?: number = 8883;
+  // port of mqtt service. 8884 for certificate auth, 8885 for websocket 
+  mqttPort?: number = 8885;
 
   // port of the directory service
   directoryPort?: number = 8886;

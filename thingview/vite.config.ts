@@ -4,18 +4,21 @@ import path from 'path'
 import {quasar, transformAssetUrls } from '@quasar/vite-plugin'
 // import { visualizer } from 'rollup-plugin-visualizer';
 
-// https://vitejs.dev/config/
+// if (command === 'serve') {
+//   todo: use build config
+// } else {
+//   todo: use dev config
+// }
+
 
 /**
  * @type {import('vite').UserConfig}
  */
 export default defineConfig({
-  // if (command === 'serve') {
-  // } else {
-  // }
-  build: {
-    sourcemap:true,
-  },
+  // build: {
+  // // enable for production source maps
+  //   sourcemap:true,
+  // },
   plugins: [
       vue({
         template: {transformAssetUrls},

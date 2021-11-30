@@ -89,8 +89,10 @@ export default class MqttClient {
             mqttPort = DefaultPort
         }
         let url = 'wss://' + this.accountInfo.address+":"+mqttPort.toString()
-        let options = {
-            reconnectPeriod: 3000
+        let options:mqtt.IClientOptions = {
+            reconnectPeriod: 3000,
+            username: accountInfo.loginName,
+            password: accessToken,
         }
         this.mqttJS = mqtt.connect(url, options);
         this.mqttJS.on('connect', this.handleConnected.bind(this))
