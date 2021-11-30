@@ -105,7 +105,7 @@ func (pb *ThingDirPB) Start() error {
 	}
 
 	// last, start listening to TD updates on the message bus; use the same client certificate
-	mqttHostPort := fmt.Sprintf("%s:%d", pb.hubConfig.MqttAddress, pb.hubConfig.MqttPortCert)
+	mqttHostPort := fmt.Sprintf("%s:%d", pb.hubConfig.Address, pb.hubConfig.MqttPortCert)
 	err = pb.hubClient.ConnectWithClientCert(mqttHostPort, pb.hubConfig.PluginCert)
 	if err != nil {
 		return err
@@ -138,7 +138,7 @@ func NewThingDirPB(thingdirconf *ThingDirPBConfig, hubConfig *config.HubConfig) 
 
 	// Directory server defaults when using the built-in server
 	if thingdirconf.DirAddress == "" {
-		thingdirconf.DirAddress = hubConfig.MqttAddress
+		thingdirconf.DirAddress = hubConfig.Address
 	}
 	if thingdirconf.DirPort == 0 {
 		thingdirconf.DirPort = dirclient.DefaultPort

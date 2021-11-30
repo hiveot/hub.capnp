@@ -9,9 +9,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/wostzone/hub/idprov/pkg/idprovclient"
 	"github.com/wostzone/hub/idprov/pkg/oobclient"
 	"github.com/wostzone/hub/lib/client/pkg/certs"
-	"github.com/wostzone/hub/lib/client/pkg/idprovclient"
 	"github.com/wostzone/hub/lib/serve/pkg/certsetup"
 )
 

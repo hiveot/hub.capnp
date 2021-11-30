@@ -1,6 +1,6 @@
 # Makefile to build and test mosquittomg hub plugin
 DIST_FOLDER=./dist
-INSTALL_HOME=~/bin/wost
+INSTALL_HOME=~/bin/wosthub
 .DEFAULT_GOAL := help
 
 FORCE: help

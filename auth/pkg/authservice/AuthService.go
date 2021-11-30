@@ -6,6 +6,9 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/auth/pkg/authenticate"
@@ -13,25 +16,23 @@ import (
 	"github.com/wostzone/hub/auth/pkg/unpwstore"
 	"github.com/wostzone/hub/lib/client/pkg/tlsclient"
 	"github.com/wostzone/hub/lib/serve/pkg/tlsserver"
-	"io/ioutil"
-	"net/http"
 )
 
 // PluginID of the service
 const PluginID = "authservice"
 
 // DefaultAuthServicePort to connect to the auth service
-// TODO: select a proper port
-const DefaultAuthServicePort = 3000
+const DefaultAuthServicePort = 8881
 
 // internal constant for appID route parameter
 const appIDParam = "appid"
 
 // AuthServiceConfig contains the service configuration
 type AuthServiceConfig struct {
-	// Service listening address or "" to listen on all addresses
+	// Override of the server address from hub.yaml
 	Address string `yaml:"address"`
-	// Service listening port or 0 to use the default port
+
+	// Service listening port or 0 to use the default port 8881
 	Port uint `yaml:"port"`
 
 	// ClientID to identify this service as. Default is the pluginID
@@ -125,6 +126,7 @@ func (srv *AuthService) Start() error {
 		logrus.Errorf("AuthService.Start: Error starting authservice: %s", err)
 		return err
 	}
+	// add auth handlers
 	srv.tlsServer.EnableJwtAuth(&srv.signingKey.PublicKey)
 	srv.tlsServer.EnableJwtIssuer(srv.signingKey, srv.authenticator.VerifyUsernamePassword)
 

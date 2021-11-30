@@ -7,8 +7,8 @@ import (
 	"crypto/x509"
 	"fmt"
 
+	"github.com/wostzone/hub/idprov/pkg/idprovclient"
 	"github.com/wostzone/hub/idprov/pkg/idprovserver"
-	"github.com/wostzone/hub/lib/client/pkg/idprovclient"
 )
 
 const PluginID = "idprov-pb"
@@ -51,11 +51,15 @@ func (pb *IDProvPB) Stop() {
 
 // NewIDProvPB creates a new IDProv protocol binding instance
 //  config for IDProv server. Will be updated with defaults
-//  hubConfig with certificate info
+//  address of the server to advertise
+//  mqttCertPort of the mqtt broker for mutual certificate auth clients
+//  mqttWSPort of the mqtt broker for websocket clients
+//  serverCert TLS certificate of the IDProv server, signed by the CA
+//  caCert CA certificate used to sign client certificates
+//  caKey CA's key used to sign client certificates
 // Returns IDProv protocol binding instance
 func NewIDProvPB(config *IDProvPBConfig,
-	// hubConfig *hubconfig.HubConfig,
-	mqttAddress string,
+	address string,
 	mqttCertPort uint,
 	mqttWSPort uint,
 	serverCert *tls.Certificate,
@@ -65,7 +69,7 @@ func NewIDProvPB(config *IDProvPBConfig,
 
 	// Both mqtt and idprov server live on the same address to use the same server cert
 	if config.IdpAddress == "" {
-		config.IdpAddress = mqttAddress
+		config.IdpAddress = address
 	}
 	if config.ClientID == "" {
 		config.ClientID = PluginID
@@ -87,8 +91,8 @@ func NewIDProvPB(config *IDProvPBConfig,
 	if config.Services == nil {
 		config.Services = make(map[string]string)
 	}
-	config.Services[mqttSSLServiceName] = fmt.Sprintf("tls://%s:%d", mqttAddress, mqttCertPort)
-	config.Services[mqttWSServiceName] = fmt.Sprintf("wss://%s:%d", mqttAddress, mqttWSPort)
+	config.Services[mqttSSLServiceName] = fmt.Sprintf("tls://%s:%d", address, mqttCertPort)
+	config.Services[mqttWSServiceName] = fmt.Sprintf("wss://%s:%d", address, mqttWSPort)
 
 	// serverCertPath := path.Join(hubConfig.CertsFolder, certsetup.HubCertFile)
 	// serverKeyPath := path.Join(hubConfig.CertsFolder, certsetup.HubKeyFile)

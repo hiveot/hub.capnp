@@ -59,7 +59,6 @@ func TestMain(m *testing.M) {
 }
 
 func TestStartStopThingDirectoryService(t *testing.T) {
-	// tdirConfig := &thingdirpb.ThingDirPBConfig{DirAddress: hubConfig.MqttAddress}
 	tdirConfig := &thingdirpb.ThingDirPBConfig{}
 	configFile := path.Join(hubConfig.ConfigFolder, thingdirpb.PluginID+".yaml")
 	err := config.LoadYamlConfig(configFile, &tdirConfig, nil)
@@ -84,10 +83,9 @@ func TestStartStopThingDirectoryService(t *testing.T) {
 }
 
 func TestStartThingDirBadAddress(t *testing.T) {
-	// tdirConfig := &thingdirpb.ThingDirPBConfig{DirAddress: hubConfig.MqttAddress}
 	tdirConfig := &thingdirpb.ThingDirPBConfig{}
 	hc := hubConfig // copy
-	hc.MqttAddress = "wrongaddress"
+	hc.Address = "wrongaddress"
 
 	tdirPB := thingdirpb.NewThingDirPB(tdirConfig, &hc)
 	err := tdirPB.Start()
@@ -95,7 +93,7 @@ func TestStartThingDirBadAddress(t *testing.T) {
 }
 
 func TestUpdateTD(t *testing.T) {
-	tdirConfig := &thingdirpb.ThingDirPBConfig{DirAddress: hubConfig.MqttAddress}
+	tdirConfig := &thingdirpb.ThingDirPBConfig{DirAddress: hubConfig.Address}
 	configFile := path.Join(hubConfig.ConfigFolder, thingdirpb.PluginID+".yaml")
 	err := config.LoadYamlConfig(configFile, &tdirConfig, nil)
 
@@ -116,7 +114,7 @@ func TestUpdateTD(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Publishing a TD should update the directory
-	mqttHostPort := fmt.Sprintf("%s:%d", hubConfig.MqttAddress, hubConfig.MqttPortCert)
+	mqttHostPort := fmt.Sprintf("%s:%d", hubConfig.Address, hubConfig.MqttPortCert)
 	mqttClient := mqttclient.NewMqttHubClient("testUpdateTD", hubConfig.CaCert)
 	mqttClient.ConnectWithClientCert(mqttHostPort, hubConfig.PluginCert)
 	require.NotNil(t, mqttClient)

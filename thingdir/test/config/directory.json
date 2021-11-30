@@ -1,0 +1,39 @@
+{
+    "thing1": {
+      "@context": "http://www.w3.org/ns/td",
+      "@type": "button",
+      "actions": {},
+      "created": "2021-11-29T20:40:33.748-0800",
+      "events": {},
+      "id": "thing1",
+      "properties": {}
+    },
+    "thing3": {
+      "@context": "http://www.w3.org/ns/td",
+      "@type": "sensor",
+      "actions": {},
+      "created": "2021-11-29T20:40:05.998-0800",
+      "events": {},
+      "id": "thing3",
+      "properties": {
+        "name": {
+          "@type": "wost:attr",
+          "title": "garage sensor"
+        }
+      }
+    },
+    "thing4": {
+      "@context": "http://www.w3.org/ns/td",
+      "@type": "netSwitch",
+      "actions": {},
+      "created": "2021-11-29T20:40:05.998-0800",
+      "events": {},
+      "id": "thing4",
+      "properties": {
+        "name": {
+          "@type": "wost:attr",
+          "title": "main switch"
+        }
+      }
+    }
+  }

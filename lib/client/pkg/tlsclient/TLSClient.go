@@ -39,7 +39,7 @@ const (
 
 // JwtAuthLogin defines the login request message to sent when using JWT authentication
 type JwtAuthLogin struct {
-	LoginID  string `json:"username"`
+	LoginID  string `json:"login"`          // typically the email
 	Password string `json:"password"`
 }
 

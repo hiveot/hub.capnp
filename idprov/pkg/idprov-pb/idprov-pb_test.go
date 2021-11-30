@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	idprovpb "github.com/wostzone/hub/idprov/pkg/idprov-pb"
+	"github.com/wostzone/hub/idprov/pkg/idprovclient"
 	"github.com/wostzone/hub/lib/client/pkg/config"
-	"github.com/wostzone/hub/lib/client/pkg/idprovclient"
 	"github.com/wostzone/hub/lib/client/pkg/testenv"
 )
 
@@ -43,7 +43,7 @@ func TestStartStopIdProvPB(t *testing.T) {
 	hubConfig, err := config.LoadAllConfig(nil, homeFolder, idprovpb.PluginID, &idpConfig)
 	assert.NoError(t, err)
 	idpPB := idprovpb.NewIDProvPB(idpConfig,
-		hubConfig.MqttAddress,
+		hubConfig.Address,
 		uint(hubConfig.MqttPortCert),
 		uint(hubConfig.MqttPortWS),
 		testCerts.ServerCert,
@@ -54,7 +54,7 @@ func TestStartStopIdProvPB(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Both mqtt and idprov server must live on the same address to be able to use the same server cert
-	addrPort := fmt.Sprintf("%s:%d", hubConfig.MqttAddress, idpConfig.IdpPort)
+	addrPort := fmt.Sprintf("%s:%d", hubConfig.Address, idpConfig.IdpPort)
 	idpc := idprovclient.NewIDProvClient("test", addrPort,
 		path.Join(certsFolder, "testCert.pem"),
 		path.Join(certsFolder, "testKey.pem"),

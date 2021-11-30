@@ -7,5 +7,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="libserve-go" />
     <orderEntry type="module" module-name="owserver-pb" />
+    <orderEntry type="module" module-name="auth" />
+    <orderEntry type="module" module-name="thingdir" />
   </component>
 </module>

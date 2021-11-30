@@ -5,3 +5,11 @@
 //   const component: DefineComponent<{}, {}, any>
 //   export default component
 // }
+
+
+// workaround for 'global is not defined' error
+declare module 'mqtt/dist/mqtt.min' {
+    import MQTT from 'mqtt'
+    export = MQTT
+}
+

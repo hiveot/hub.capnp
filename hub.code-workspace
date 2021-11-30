@@ -5,6 +5,9 @@
     },
     {
       "path": "../owserver-pb"
+    },
+    {
+      "path": "auth"
     }
   ]
 }

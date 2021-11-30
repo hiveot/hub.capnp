@@ -30,7 +30,7 @@ import (
 //	CmdSetPasswd  = "setpasswd"
 //	CmdSetRole    = "setrole"
 //)
-const Version = `0.2-alpha`
+const Version = `0.3-alpha`
 
 func main() {
 	binFolder := path.Dir(os.Args[0])
@@ -66,6 +66,7 @@ func ParseArgs(homeFolder string, args []string) {
 		Aclfile string
 		Config  string
 		Certs   string
+		Hostname  string
 		Output  string
 		Pubkey  string
 		Iter    int
@@ -73,7 +74,7 @@ func ParseArgs(homeFolder string, args []string) {
 	}
 	usage := `
 Usage:
-  auth certbundle [-v --certs=CertFolder]
+  auth certbundle [-v --certs=CertFolder] [--hostname=hostname]
   auth clientcert [-v --certs=CertFolder --pubkey=pubkeyfile] <loginID> 
   auth devicecert [-v --certs=CertFolder --pubkey=pubkeyfile] <deviceID> 
   auth setpassword [-v -c configFolder] [-i iterations] <loginID> 
@@ -81,7 +82,7 @@ Usage:
   auth --help | --version
 
 Commands:
-  certbundle   Generate or refresh the Hub certificate bundle
+  certbundle   Generate or refresh the Hub certificate bundle, optionally provide a subject hostname or ip
   clientcert   Generate a signed client certificate, with pub/private keys if not given
   devicecert   Generate a signed device certificate, with pub/private keys if not given
   setpassword  Set user password
@@ -96,6 +97,7 @@ Options:
   --aclfile=AclFile              use a different acl file instead of the default config/` + aclstore.DefaultAclFile + `
   -e --certs=CertFolder      location of Hub certificates [default: ` + certsFolder + `]
   -c --config=ConfigFolder   location of Hub config folder [default: ` + configFolder + `]
+  -o --hostname=Hostname     name or IP address to use on the certificate
   -p --pubkey=PubKeyfile     use this public key file to generate certificate, instead of a new key pair
 	-i --iter=iterations       Number of iterations for generating password [default: 10]
   -h --help                  show this help
@@ -122,7 +124,10 @@ Options:
 	}
 	_ = opts
 	if optConf.Certbundle {
-		fmt.Printf("Generating certificate Bundle. Certfolder=%s\n", optConf.Certs)
+		if optConf.Hostname != "" {
+			sanName = optConf.Hostname
+		}
+		fmt.Printf("Generating certificate Bundle. Certfolder=%s. names=%s\n", optConf.Certs, sanName)
 		err = HandleCreateCertbundle(optConf.Certs, sanName)
 	} else if optConf.Clientcert {
 		fmt.Printf("Generating Client certificate using CA from %s\n", optConf.Certs)

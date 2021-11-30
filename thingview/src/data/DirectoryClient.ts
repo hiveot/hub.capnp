@@ -1,5 +1,7 @@
 // Constants for use by applications
-import {TLSSocket} from "tls";
+import fs from 'fs'
+import axios from 'axios'
+import https from 'https'
 
 const DefaultServiceName = "thingdir"
 const DefaultPort = 8886
@@ -25,11 +27,11 @@ interface ThingTD {
 // Client for connecting to a Hub Directory service
 export default class DirectoryClient {
     private hostport: string = ""
-    private tlsClient: TLSSocket|null = null
+    // private tlsClient: TLSSocket|null = null
 
     constructor() {
         this.hostport = ""
-        this.tlsClient = null
+        // this.tlsClient = null
     }
 
     /* Close the connection to the directory server
@@ -66,6 +68,11 @@ export default class DirectoryClient {
     // Delete(id: string) :void {
     // }
 
+    // Disconnect from the directory
+    Disconnect() {
+        // this currently does nothing
+    }
+
     // GetTD the ThingTD with the given ID
     //  id is the ThingID whose ThingTD to get
     // GetTD(id: string): ThingTD|undefined {
@@ -80,6 +87,14 @@ export default class DirectoryClient {
      * @param limit result to nr of TDs. Use 0 for default.
      */
     async ListTDs(offset: number, limit: number): Promise<Array<ThingTD>> {
+        // https://smallstep.com/hello-mtls/doc/client/axios
+        const httpsAgent = new https.Agent({
+            // cert: fs.readFileSync('clientCert.pem'),
+            // key: fs.readFileSync('clientKey.pem'),
+            ca: fs.readFileSync('caCert.pem'),
+        });
+        let url =this.hostport + RouteThings
+        axios.get(url, {httpsAgent})
         return Array<ThingTD>()
     }
 

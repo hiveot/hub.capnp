@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/wostzone/hub/lib/client/pkg/idprovclient"
+	"github.com/wostzone/hub/idprov/pkg/idprovclient"
 )
 
 // const discoveryAddr = "msi.local"

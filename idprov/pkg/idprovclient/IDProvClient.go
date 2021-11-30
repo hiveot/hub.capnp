@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/wostzone/hub/lib/client/pkg/certs"
+	"github.com/wostzone/hub/lib/client/pkg/config"
 	"github.com/wostzone/hub/lib/client/pkg/tlsclient"
 
 	"github.com/sirupsen/logrus"
@@ -129,9 +130,9 @@ func (cl *IDProvClient) PostProvisioningRequest(deviceID string, secret string) 
 	}
 	provReqMessage := PostProvisionRequestMessage{
 		DeviceID: deviceID,
-		IP:       tlsclient.GetOutboundIP("").String(),
+		IP:       config.GetOutboundIP("").String(),
 		// MAC:          myMAC,
-		PublicKeyPEM: string(cl.publicKeyPEM),
+		PublicKeyPEM: cl.publicKeyPEM,
 		Signature:    "",
 	}
 	// Sign the message using the OOB secret

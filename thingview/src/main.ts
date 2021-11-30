@@ -3,7 +3,7 @@ import App from './App.vue';
 import router from './router';
 
 // commonly used components that you don't want to import all the time
-import { QBtn, QIcon, QSpace, QTooltip, QSeparator, Quasar } from 'quasar'
+import {QBtn, QIcon, QSpace, QTooltip, QSeparator, Quasar, Notify} from 'quasar'
 
 // Import SVG icon libraries (don't include the full bundle)
 import iconSet from 'quasar/icon-set/svg-mdi-v6'
@@ -15,7 +15,8 @@ const app = createApp(App)
     .use(router)
     .use(Quasar,{
         iconSet: iconSet,
-        components: {QBtn, QIcon, QSeparator, QSpace, QTooltip}
+        plugins: {Notify},
+        components: {QBtn, QIcon, QSeparator, QSpace, QTooltip},
     })
     .mount('#app')
 

@@ -9,7 +9,7 @@ import (
 	"github.com/grandcat/zeroconf"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/wostzone/hub/lib/client/pkg/idprovclient"
+	"github.com/wostzone/hub/idprov/pkg/idprovclient"
 )
 
 const serviceID = "testID"

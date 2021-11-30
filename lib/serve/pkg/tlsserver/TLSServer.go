@@ -7,7 +7,9 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"github.com/rs/cors"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/wostzone/hub/lib/client/pkg/tlsclient"
@@ -35,15 +37,25 @@ type TLSServer struct {
 // The handler's userID is that of the authenticated user, and is intended for authorization of the request.
 // If authentication is not enabled then the userID is empty.
 //
+// apply .Method(http.MethodXyz) to restrict the accepted HTTP methods
+//
 //  path to listen on. This supports wildcards
 //  handler to invoke with the request. The userID is only provided when an authenticator is used
+// Returns the route. Apply '.Method(http.MethodPut|Post|Get)' to restrict the accepted HTTP methods
 func (srv *TLSServer) AddHandler(path string,
-	handler func(userID string, resp http.ResponseWriter, req *http.Request)) {
+	handler func(userID string, resp http.ResponseWriter, req *http.Request)) *mux.Route {
 
 	// do we need a local copy of handler? not sure
 	local_handler := handler
+
 	// the internal authenticator performs certificate based, basic or jwt token authentication if needed
-	srv.router.HandleFunc(path, func(resp http.ResponseWriter, req *http.Request) {
+	route := srv.router.HandleFunc(path, func(resp http.ResponseWriter, req *http.Request) {
+		// test, allow CORS if enabled.
+		if req.Method == http.MethodOptions {
+			// don't return a payload with the cors options request
+			return
+		}
+
 		// valid authentication without userID means a plugin certificate was used which is always authorized
 		userID, match := srv.httpAuthenticator.AuthenticateRequest(resp, req)
 		if !match {
@@ -54,6 +66,7 @@ func (srv *TLSServer) AddHandler(path string,
 			local_handler(userID, resp, req)
 		}
 	})
+	return route
 }
 
 // AddHandlerNoAuth adds a new handler for a path that does not require authentication
@@ -61,9 +74,15 @@ func (srv *TLSServer) AddHandler(path string,
 //
 //  path to listen on. This supports wildcards
 //  handler to invoke with the request. The userID is only provided when an authenticator is used
+// Returns the route. Apply '.Method(http.MethodPut|Post|Get)' to restrict the accepted HTTP methods
 func (srv *TLSServer) AddHandlerNoAuth(path string,
-	handler func(resp http.ResponseWriter, req *http.Request)) {
-	srv.router.HandleFunc(path, handler)
+	handler func(resp http.ResponseWriter, req *http.Request)) *mux.Route {
+
+	route := srv.router.HandleFunc(path, func(resp http.ResponseWriter, req *http.Request) {
+		handler(resp, req)
+	})
+	return route
+
 }
 
 // EnableBasicAuth enables BASIC authentication on this server
@@ -104,20 +123,25 @@ func (srv *TLSServer) EnableJwtIssuer(issuerKey *ecdsa.PrivateKey,
 	if issuerKey == nil {
 		issuerKey = srv.serverCert.PrivateKey.(*ecdsa.PrivateKey)
 	}
-
+	// handler of issuing JWT tokens
 	srv.jwtIssuer = NewJWTIssuer("tlsserver", issuerKey, validateCredentials)
-	srv.router.HandleFunc(jwtLoginPath, srv.jwtIssuer.HandleJWTLogin)
-	srv.router.HandleFunc(hwtRefreshPath, srv.jwtIssuer.HandleJWTRefresh)
+	srv.AddHandlerNoAuth(jwtLoginPath, srv.jwtIssuer.HandleJWTLogin).Methods(http.MethodPost, http.MethodOptions)
+	srv.AddHandlerNoAuth(hwtRefreshPath, srv.jwtIssuer.HandleJWTRefresh).Methods(http.MethodPost, http.MethodOptions)
+
 }
 
 // Start the TLS server using the provided CA and Server certificates.
-// The server will request but not require a client certificate. If one is provided it must be valid.
+// If a client certificate is provided it must be valid.
+// This configures handling of CORS requests to allow:
+//  - any origin by returning the requested origin (not using wildcard '*').
+//  - any method, eg PUT, POST, GET, PATCH,
+//  - headers "Origin", "Accept", "Content-Type", "X-Requested-With"
 func (srv *TLSServer) Start() error {
 	var err error
 
-	logrus.Infof("Starting TLS server on address: %s:%d", srv.address, srv.port)
+	logrus.Infof("TLSServer.Start Starting TLS server on address: %s:%d.", srv.address, srv.port)
 	if srv.caCert == nil || srv.serverCert == nil {
-		err := fmt.Errorf("missing CA or server certificate")
+		err := fmt.Errorf("TLSServer.Start: missing CA or server certificate")
 		logrus.Error(err)
 		return err
 	}
@@ -133,15 +157,40 @@ func (srv *TLSServer) Start() error {
 		InsecureSkipVerify: false,
 	}
 
+	// handle CORS using the cors plugin
+	// see also: https://stackoverflow.com/questions/43871637/no-access-control-allow-origin-header-is-present-on-the-requested-resource-whe
+	// TODO: add configuration for CORS origin: allowed, sameaddress, exact
+	c := cors.New(cors.Options{
+		// return the origin as allowed origin
+		AllowOriginFunc:  func(orig string) bool {
+			// local requests are always allowed, even over http (for testing) - todo: disable in production
+			if strings.HasPrefix(orig, "https://127.0.0.1") || strings.HasPrefix(orig, "https://localhost") ||
+				strings.HasPrefix(orig, "http://127.0.0.1") || strings.HasPrefix(orig, "http://localhost") {
+				return true
+			} else if strings.HasPrefix(orig, "https://"+srv.address) {
+				return true
+			}
+			return false
+		},
+		// default allowed headers is "Origin", "Accept", "Content-Type", "X-Requested-With" (missing authorization)
+		AllowedHeaders:   []string{"Origin", "Accept", "Content-Type", "Authorization"},
+		// default is get/put/patch/post/delete/head
+		//AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch},
+		Debug:            true,
+		AllowCredentials: true,
+	})
+	handler := c.Handler(srv.router)
+
 	srv.httpServer = &http.Server{
 		Addr: fmt.Sprintf("%s:%d", srv.address, srv.port),
 		// ReadTimeout:  5 * time.Minute, // 5 min to allow for delays when 'curl' on OSx prompts for username/password
 		// WriteTimeout: 10 * time.Second,
-		Handler:   srv.router,
+		Handler:   handler,
 		TLSConfig: serverTLSConf,
 	}
 	// mutex to capture error result in case startup in the background failed
 	go func() {
+
 		// serverTLSConf contains certificate and key
 		err2 := srv.httpServer.ListenAndServeTLS("", "")
 		if err2 != nil && err2 != http.ErrServerClosed {
@@ -183,10 +232,13 @@ func NewTLSServer(address string, port uint,
 ) *TLSServer {
 
 	srv := &TLSServer{
-		router:     mux.NewRouter(),
 		caCert:     caCert,
 		serverCert: serverCert,
+		router: mux.NewRouter(),
 	}
+	//// support for CORS response headers
+	//srv.router.Use(mux.CORSMethodMiddleware(srv.router))
+
 	//issuerKey := serverCert.PrivateKey.(*ecdsa.PrivateKey)
 	//serverX509, _ := x509.ParseCertificate(serverCert.Certificate[0])
 	//pubKey := certs.PublicKeyFromCert(serverX509)

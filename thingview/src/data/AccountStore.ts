@@ -39,8 +39,14 @@ export class AccountStore<IAccountStore> {
   storageKey: string = "accountStore"
 
   constructor() {
+    let defaultAccount = new AccountRecord()
+    defaultAccount.id = "default"
+    defaultAccount.name = "Hub server"
+    defaultAccount.address = location.hostname
+    defaultAccount.loginName = "user1" // for testing
+    defaultAccount.enabled = true
     this.state = reactive( {
-      accounts: [new AccountRecord()]
+      accounts: [defaultAccount]
     })
   }
 
@@ -69,12 +75,12 @@ export class AccountStore<IAccountStore> {
     let serializedStore = localStorage.getItem(this.storageKey)
     if (serializedStore != null) {
       let accountList:AccountRecord[] = JSON.parse(serializedStore)
-      if (accountList != null) {
+      if (accountList != null && accountList.length > 0) {
         this.state.accounts.splice(0, this.state.accounts.length)
         this.state.accounts.push(...accountList )
         console.debug("Loaded %s accounts from local storage", accountList.length)
       } else {
-        console.log("No accounts in storage")
+        console.log("No accounts in storage. Keeping existing accounts")
       }
     }
   }

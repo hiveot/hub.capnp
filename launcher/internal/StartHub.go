@@ -43,7 +43,7 @@ func StartHub(homeFolder string, startPlugins bool) error {
 	fmt.Printf("Home=%s\nPluginFolder=%s\n", hc.AppFolder, pluginFolder)
 
 	// Create a CA if needed and update launcher and plugin certs
-	sanNames := []string{hc.MqttAddress}
+	sanNames := []string{hc.Address, "localhost", "127.0.0.1"}
 	err = certsetup.CreateCertificateBundle(sanNames, hc.CertsFolder)
 	if err != nil {
 		logrus.Error(err)
@@ -55,7 +55,7 @@ func StartHub(homeFolder string, startPlugins bool) error {
 		logrus.Infof("Starting Hub without plugins")
 	} else {
 		// launch plugins
-		logrus.Infof("Starting %d plugins on %s.", len(pluginConfig.Plugins), hc.MqttAddress)
+		logrus.Infof("Starting %d plugins on %s.", len(pluginConfig.Plugins), hc.Address)
 
 		args := os.Args[1:] // pass the hubs args to the plugin
 		StartPlugins(pluginFolder, pluginConfig.Plugins, args)

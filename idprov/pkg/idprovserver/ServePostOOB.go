@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/lib/client/pkg/idprovclient"
+	"github.com/wostzone/hub/idprov/pkg/idprovclient"
 	"github.com/wostzone/hub/lib/serve/pkg/certsetup"
 )
 

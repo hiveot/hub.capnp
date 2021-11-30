@@ -1,6 +1,6 @@
 # IoT Device Provisioning - Protocol Binding 
 
-This package implements the protocol binding for the ['idprov protocol'](https://github.com/wostzone/idprov-standard) using the [idprov server package](https://github.com/wostzone/idprov-go/pkg/idprovserver).
+This package implements the protocol binding for the ['idprov protocol'](https://github.com/wostzone/idprov-standard) using the [idprov server package](https://github.com/wostzone/hub/idprov/pkg/idprovserver).
 
 This protocol binding lets 'Things' discover the idprov server on the local network and obtain a certificate to be able to connect to Hub services like the messaging bus. 
 
@@ -30,9 +30,9 @@ The certificate provided in provisioning to the thing device must be used in ord
 
 The idprov project provides:
 1. The ['idprov-standard'](https://github.com/wostzone/idprov-standard)) provisioning protocol definition
-2. A ['client library'](https://github.com/wostzone/idprov-go/pkg/idprov) for IoT devices to obtain a certificate.
-3. The ['provisioning server'](https://github.com/wostzone/idprov-go/pkg/idprovserver)'  reference implementation for issuing signed certificates to IoT devices.
-4. An [out-of-band commandline utility](https://github.com/wostzone/idprov-go/pkg/idprov-oob) utility for posting out of band secrets needed for provisioning.
+2. A ['client library'](https://github.com/wostzone/hub/idprov/pkg/idprovclient) for IoT devices to obtain a certificate.
+3. The ['provisioning server'](https://github.com/wostzone/hub/idprov/pkg/idprovserver)'  reference implementation for issuing signed certificates to IoT devices.
+4. An [out-of-band commandline utility](https://github.com/wostzone/hub/idprov/pkg/oobclient) utility for posting out of band secrets needed for provisioning.
 
 
 ## Installation

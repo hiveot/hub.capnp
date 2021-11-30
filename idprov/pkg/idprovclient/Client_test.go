@@ -16,8 +16,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/wostzone/hub/idprov/pkg/idprovclient"
 	"github.com/wostzone/hub/lib/client/pkg/certs"
-	"github.com/wostzone/hub/lib/client/pkg/idprovclient"
 	"github.com/wostzone/hub/lib/client/pkg/testenv"
 )
 
@@ -96,7 +96,7 @@ func TestMain(m *testing.M) {
 	// hostnames := []string{idProvServerAddr}
 	cwd, _ := os.Getwd()
 	homeFolder := path.Join(cwd, "../../test")
-	clientCertFolder = path.Join(homeFolder, "clientcerts")
+	clientCertFolder = path.Join(homeFolder, "clientcerts") // where the client saves its issued certificate
 	clientCertPath = path.Join(clientCertFolder, "clientCert.pem")
 	clientKeyPath = path.Join(clientCertFolder, "clientKey.pem")
 	caCertPath = path.Join(clientCertFolder, "caCert.pem")
@@ -116,7 +116,7 @@ func TestStartStop(t *testing.T) {
 	assert.NoError(t, err)
 	serverMux.HandleFunc(idprovclient.IDProvDirectoryPath, func(resp http.ResponseWriter, req *http.Request) {
 		msg, _ := json.Marshal(mockDirectory)
-		resp.Write(msg)
+		_, _ = resp.Write(msg)
 	})
 
 	// no client cert
@@ -140,7 +140,7 @@ func TestStartStop(t *testing.T) {
 	assert.NoErrorf(t, err, "CA cert wasn't obtained and stored")
 
 	idpClient.Stop()
-	mock1.Close()
+	_ = mock1.Close()
 }
 
 func TestBadDirectory(t *testing.T) {
@@ -150,7 +150,7 @@ func TestBadDirectory(t *testing.T) {
 	mock1, _ := startTestServer(serverMux)
 	serverMux.HandleFunc(idprovclient.IDProvDirectoryPath, func(resp http.ResponseWriter, req *http.Request) {
 		msg := "{this is a bad directory}"
-		resp.Write([]byte(msg))
+		_, _ = resp.Write([]byte(msg))
 	})
 	removeDeviceCerts()
 	idpClient := idprovclient.NewIDProvClient(deviceID, idProvServerAddr,
@@ -160,7 +160,7 @@ func TestBadDirectory(t *testing.T) {
 	assert.Error(t, err)
 
 	idpClient.Stop()
-	mock1.Close()
+	_ = mock1.Close()
 }
 
 func TestBadClientCertFolder(t *testing.T) {
@@ -187,7 +187,7 @@ func TestGetDeviceStatus(t *testing.T) {
 	mock1, _ := startTestServer(serverMux)
 	serverMux.HandleFunc(idprovclient.IDProvDirectoryPath, func(resp http.ResponseWriter, req *http.Request) {
 		msg, _ := json.Marshal(mockDirectory)
-		resp.Write(msg)
+		_, _ = resp.Write(msg)
 	})
 	statusPath := strings.Replace(mockDirectory.Endpoints.GetDeviceStatus, "{deviceID}", deviceID1, 1)
 	serverMux.HandleFunc(statusPath, func(resp http.ResponseWriter, req *http.Request) {
@@ -216,7 +216,7 @@ func TestGetDeviceStatus(t *testing.T) {
 	assert.Equal(t, deviceID1, stat2.DeviceID)
 	assert.Equal(t, deviceID1, rxDeviceID)
 	idpClient.Stop()
-	mock1.Close()
+	_ = mock1.Close()
 }
 
 // Test the provisioning process
@@ -234,7 +234,7 @@ func TestProvision(t *testing.T) {
 	mock1, _ := startTestServer(serverMux)
 	serverMux.HandleFunc(idprovclient.IDProvDirectoryPath, func(resp http.ResponseWriter, req *http.Request) {
 		msg, _ := json.Marshal(mockDirectory)
-		resp.Write(msg)
+		_, _ = resp.Write(msg)
 	})
 	serverMux.HandleFunc(mockDirectory.Endpoints.PostProvisioningRequest, func(resp http.ResponseWriter, req *http.Request) {
 
@@ -305,7 +305,7 @@ func TestProvision(t *testing.T) {
 	assert.Equal(t, idprovclient.ProvisionStatusApproved, response.Status)
 
 	idpClient.Stop()
-	mock1.Close()
+	_ = mock1.Close()
 }
 
 func TestBadAddress(t *testing.T) {
@@ -366,7 +366,7 @@ func TestBadCertPaths(t *testing.T) {
 	mock1, _ := startTestServer(serverMux)
 	serverMux.HandleFunc(idprovclient.IDProvDirectoryPath, func(resp http.ResponseWriter, req *http.Request) {
 		msg, _ := json.Marshal(mockDirectory)
-		resp.Write(msg)
+		_, _ = resp.Write(msg)
 	})
 	serverMux.HandleFunc(mockDirectory.Endpoints.PostProvisioningRequest, func(resp http.ResponseWriter, req *http.Request) {
 		body, err := ioutil.ReadAll(req.Body)
@@ -406,5 +406,5 @@ func TestBadCertPaths(t *testing.T) {
 	assert.Error(t, err)
 
 	idpClient.Stop()
-	mock1.Close()
+	_ = mock1.Close()
 }

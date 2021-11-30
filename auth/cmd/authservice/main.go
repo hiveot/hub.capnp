@@ -2,13 +2,15 @@ package main
 
 import (
 	"crypto/ecdsa"
+	"os"
+	"path"
+
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/auth/pkg/authservice"
 	"github.com/wostzone/hub/auth/pkg/unpwstore"
+	"github.com/wostzone/hub/lib/client/pkg/certs"
 	"github.com/wostzone/hub/lib/client/pkg/config"
 	"github.com/wostzone/hub/lib/client/pkg/proc"
-	"os"
-	"path"
 )
 
 const DefaultUserConfigFolderName = "configStore"
@@ -36,9 +38,21 @@ func main() {
 	if authServiceConfig.PasswordFile == "" {
 		authServiceConfig.PasswordFile = path.Join(hubConfig.ConfigFolder, unpwstore.DefaultPasswordFile)
 	}
-	// flag.Parse()
+	// the 
+	if authServiceConfig.Address == "" {
+		authServiceConfig.Address = hubConfig.Address
+	}
 
-	serverCert := hubConfig.PluginCert
+	// this server must have a certificate 
+	serverCertPath := path.Join(hubConfig.CertsFolder, config.DefaultServerCertFile)
+	serverKeyPath := path.Join(hubConfig.CertsFolder, config.DefaultServerKeyFile)
+	logrus.Printf("Loading auth server certf from: %s\n", serverCertPath)
+	serverCert, err := certs.LoadTLSCertFromPEM(serverCertPath, serverKeyPath)
+	if err != nil {
+		logrus.Printf("Failed load TLS Server certificate for the Auth Service.: %s\n", err)
+		os.Exit(1)
+	}
+
 	signingKey := serverCert.PrivateKey.(*ecdsa.PrivateKey)
 	pb := authservice.NewJwtAuthService(
 		authServiceConfig,

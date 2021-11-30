@@ -1,7 +1,7 @@
 # Example hub configuration
 
 # Message bus server
-mqttAddress: "127.0.0.1" # LAN address to connect to the message bus
+address: "127.0.0.1" # LAN address to connect to the message bus
 mqttPortCert: 9884 # certificate based auth over MQTT/TLS
 mqttPortUnpw: 9883 # password based auth over MQTT/TLS
 mqttPortWS: 9885 # username password auth over WebSocket/TLS

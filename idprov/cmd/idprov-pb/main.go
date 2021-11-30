@@ -8,9 +8,9 @@ import (
 
 	"github.com/sirupsen/logrus"
 	idprovpb "github.com/wostzone/hub/idprov/pkg/idprov-pb"
+	"github.com/wostzone/hub/idprov/pkg/idprovclient"
 	"github.com/wostzone/hub/lib/client/pkg/certs"
 	"github.com/wostzone/hub/lib/client/pkg/config"
-	"github.com/wostzone/hub/lib/client/pkg/idprovclient"
 	"github.com/wostzone/hub/lib/client/pkg/proc"
 )
 
@@ -56,7 +56,7 @@ func main() {
 		os.Exit(1)
 	}
 	pb := idprovpb.NewIDProvPB(idpConfig,
-		hubConfig.MqttAddress,
+		hubConfig.Address,
 		uint(hubConfig.MqttPortCert),
 		uint(hubConfig.MqttPortWS),
 		serverCert,

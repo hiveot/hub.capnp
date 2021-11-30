@@ -1,4 +1,4 @@
-package tlsclient
+package config
 
 import (
 	"net"

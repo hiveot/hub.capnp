@@ -84,6 +84,7 @@ func readStoreFile(storePath string) (docs map[string]interface{}, err error) {
 
 	if err != nil {
 		logrus.Infof("DirFileStore.readStoreFile: failed read store '%s', error %s", storePath, err)
+		docs = make(map[string]interface{})
 	}
 	return docs, err
 }
@@ -309,7 +310,7 @@ func (store *DirFileStore) Replace(id string, document map[string]interface{}) e
 	return nil
 }
 
-// Create a new directory file store instance
+// NewDirFileStore creates a new directory file store instance
 //  filePath path to JSON store file
 func NewDirFileStore(jsonFilePath string) *DirFileStore {
 	store := DirFileStore{

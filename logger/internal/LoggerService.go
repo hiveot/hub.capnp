@@ -129,7 +129,7 @@ func (wlog *LoggerService) Start(hubConfig *config.HubConfig) error {
 		logrus.Errorf("Start: Error loading certificate: %s", err)
 		return err
 	}
-	hostPort := fmt.Sprintf("%s:%d", hubConfig.MqttAddress, hubConfig.MqttPortCert)
+	hostPort := fmt.Sprintf("%s:%d", hubConfig.Address, hubConfig.MqttPortCert)
 	wlog.hubConnection = mqttclient.NewMqttHubClient(wlog.Config.ClientID, caCert)
 	err = wlog.hubConnection.ConnectWithClientCert(hostPort, pluginCert)
 	if err != nil {

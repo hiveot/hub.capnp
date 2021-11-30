@@ -1,5 +1,7 @@
 // import mqtt, {QoS, Packet} from 'mqtt'
-import * as mqtt from 'mqtt'
+
+// must use dist/mqtt.min see https://github.com/mqttjs/MQTT.js/issues/1269
+import * as mqtt from 'mqtt/dist/mqtt.min'
 import {QoS} from "mqtt";
 
 const DefaultPort = 8885 // websocket protocol port. Use 8883 for mqtt protocol
@@ -86,7 +88,7 @@ export default class MqttClient {
         if (mqttPort == undefined || mqttPort == 0) {
             mqttPort = DefaultPort
         }
-        let url = 'ws://' + this.accountInfo.address+":"+mqttPort.toString()
+        let url = 'wss://' + this.accountInfo.address+":"+mqttPort.toString()
         let options = {
             reconnectPeriod: 3000
         }

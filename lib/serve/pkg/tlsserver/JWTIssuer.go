@@ -4,12 +4,13 @@ import (
 	"crypto/ecdsa"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/golang-jwt/jwt"
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/lib/client/pkg/tlsclient"
 	"github.com/wostzone/hub/lib/serve/pkg/hubnet"
-	"net/http"
-	"time"
 )
 
 const JwtRefreshCookieName = "authtoken"
@@ -139,8 +140,7 @@ func (issuer *JWTIssuer) DecodeToken(tokenString string) (
 //  1. returns a JWT access and refresh token pair
 //  2. sets a secure, httpOnly, sameSite refresh cookie with the name 'JwtRefreshCookieName'
 func (issuer *JWTIssuer) HandleJWTLogin(resp http.ResponseWriter, req *http.Request) {
-	logrus.Infof("HttpAuthenticator.HandleJWTLogin")
-
+	logrus.Infof("HttpAuthenticator.HandleJWTLogin. Method=%s", req.Method)
 	loginCred := tlsclient.JwtAuthLogin{}
 	err := json.NewDecoder(req.Body).Decode(&loginCred)
 	if err != nil {
@@ -230,6 +230,7 @@ func (issuer *JWTIssuer) WriteJWTTokens(
 		SameSite: http.SameSiteStrictMode,
 	})
 
+	resp.Header().Set("Content-Type", "application/json")
 	response := tlsclient.JwtAuthResponse{AccessToken: accessToken, RefreshToken: refreshToken}
 	responseMsg, _ := json.Marshal(response)
 	_, err := resp.Write(responseMsg)

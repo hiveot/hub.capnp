@@ -18,7 +18,7 @@ import (
 	"github.com/wostzone/hub/lib/client/pkg/td"
 	"github.com/wostzone/hub/lib/client/pkg/testenv"
 	"github.com/wostzone/hub/lib/client/pkg/vocab"
-	"github.com/wostzone/mosquittomgr/internal"
+	"github.com/wostzone/hub/mosquittomgr/internal"
 )
 
 var hubConfig *config.HubConfig
@@ -89,7 +89,7 @@ func TestPluginConnect(t *testing.T) {
 
 	// a plugin must be able to connect using a client certificate
 	client := mqttclient.NewMqttHubClient(pluginID, hubConfig.CaCert)
-	hostPort := fmt.Sprintf("%s:%d", hubConfig.MqttAddress, hubConfig.MqttPortCert)
+	hostPort := fmt.Sprintf("%s:%d", hubConfig.Address, hubConfig.MqttPortCert)
 	err = client.ConnectWithClientCert(hostPort, hubConfig.PluginCert)
 	if assert.NoError(t, err) {
 		// publish should succeed
@@ -134,7 +134,7 @@ func TestPasswdWithMosqManager(t *testing.T) {
 	time.Sleep(time.Millisecond * 100)
 
 	// a consumer must be able to subscribe using a valid password
-	hostPort := fmt.Sprintf("%s:%d", hubConfig.MqttAddress, hubConfig.MqttPortUnpw)
+	hostPort := fmt.Sprintf("%s:%d", hubConfig.Address, hubConfig.MqttPortUnpw)
 	// caCertFile := path.Join(hubConfig.CertsFolder, certsetup.CaCertFile)
 	client := mqttclient.NewMqttHubClient("clientID", hubConfig.CaCert)
 
@@ -160,7 +160,7 @@ func TestJWTWithMosqManager(t *testing.T) {
 	// for logging timestamps
 	time.Sleep(time.Millisecond * 100)
 
-	hostPort := fmt.Sprintf("%s:%d", hubConfig.MqttAddress, hubConfig.MqttPortUnpw)
+	hostPort := fmt.Sprintf("%s:%d", hubConfig.Address, hubConfig.MqttPortUnpw)
 	client := mqttclient.NewMqttHubClient("clientID", hubConfig.CaCert)
 
 	issuer := tlsserver.NewJWTIssuer("test", testCerts.ServerKey, nil)
@@ -185,7 +185,7 @@ func TestBadPasswd(t *testing.T) {
 	assert.NoError(t, err)
 
 	// a consumer must not be able to subscribe using a invalid password
-	hostPort := fmt.Sprintf("%s:%d", hubConfig.MqttAddress, hubConfig.MqttPortUnpw)
+	hostPort := fmt.Sprintf("%s:%d", hubConfig.Address, hubConfig.MqttPortUnpw)
 	// caCertFile := path.Join(hubConfig.CertsFolder, certsetup.CaCertFile)
 	client := mqttclient.NewMqttHubClient("clientID", hubConfig.CaCert)
 	err = client.ConnectWithPassword(hostPort, username, password1)

@@ -9,7 +9,7 @@ type AccountConnection = {
     name: string
     id: string
     authClient: AuthClient
-    mqttClient: MqttClient
+    // mqttClient: MqttClient
     directoryClient: DirectoryClient
 }
 
@@ -27,12 +27,10 @@ export default class ConnectionManager {
     }
 
     // Connect or reconnect
-    async Connect(account: AccountRecord): Promise<AccountConnection> {
+    async Connect(account: AccountRecord) {
         this.Disconnect(account.id);
-        let authClient = new AuthClient(
-            this.handleAuthLogin.bind(this),
-            this.handleAuthRefresh.bind(this)
-        )
+        let authClient = new AuthClient(account.address, account.authPort);
+
         let mqttClient = new MqttClient(
             // this.handleMqttConnected.bind(this),
             // this.handleMqttDisconnected.bind(this),
@@ -44,22 +42,26 @@ export default class ConnectionManager {
             name:account.name,
             id:account.id,
             authClient: authClient,
-            mqttClient: mqttClient,
+            // mqttClient: mqttClient,
             directoryClient: dirClient,
         }
 
         console.log("ConnectionManager.Connect: Connecting to", account.address, "as", account.loginName)
         this.connections.set(c.id, c)
-        try {
-            let authResult = await authClient.Connect(account.address, account.authPort)
-            console.log("ConnectionManager.Connect: Authentication successful")
-
-            await mqttClient.Connect(account, authResult.access)
-            await dirClient.Connect(account.address, account.directoryPort, authResult.access)
-        } catch (err) {
-            console.log("Authentication failed: ", err)
-        }
-        return c
+        // after login, connect to mqtt and directory client using the access token
+        let password = "user1" // FIXME - for testing
+        let p = authClient.ConnectWithLoginID(account.loginName, password)
+            .then((accessToken:string)=>{
+                    console.log("ConnectionManager.Connect: Authentication successful. Connecting to mqtt and directory")
+                    // FIXME support login to mqtt with access token
+                    mqttClient.Connect(account, password)
+                    dirClient.Connect(account.address, account.directoryPort, accessToken)
+                })
+            .catch((err:Error)=>{
+                console.error("ConnectionManager.Connect: failed to connect: ", err)
+                throw(err.message)
+            })
+        return p;
     }
 
     // Re-connect all enabled accounts
@@ -75,7 +77,7 @@ export default class ConnectionManager {
     get connectionCount(): number {
         let count = 0
         this.connections.forEach((connection: AccountConnection) => {
-            if (connection.authClient && connection.authClient.IsConnected) {
+            if (connection.authClient && connection.authClient.IsConnected()) {
                 count++
             }
         })
@@ -87,13 +89,22 @@ export default class ConnectionManager {
         console.log("handleMqttMessage. topic:",topic)
     }
 
+    // Handle authentication login. This obtains the auth tokens for use with mqtt and directory service
+    handleAuthLogin() {
+
+    }
+
+    // Handle refresh of the authentication tokens
+    handleAuthRefresh() {
+
+    }
+
     Disconnect(accountId:string) {
         let connection = this.connections.get(accountId)
         if (connection) {
             console.log("AccountManager.Disconnect: Disconnecting account:", connection.name)
-            connection.mqttClient.Disconnect();
+            // connection.mqttClient.Disconnect();
             connection.directoryClient.Disconnect();
-            connection.authClient.Disconnect();
             this.connections.delete(connection.id)
         }
     }

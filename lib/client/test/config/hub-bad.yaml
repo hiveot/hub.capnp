@@ -3,7 +3,7 @@
 
 
 # Message bus server
-#mqttAddress: "localhost" # hostname or address to listen on
+#address: "localhost" # hostname or address to listen on
 #mqttCertPort: 9884 # certificate based auth over MQTT/TLS
 #mqttUnpwPortWS: 9885 # username password auth over WebSocket/TLS
 

@@ -64,8 +64,10 @@ const DefaultThingZone = "local"
 //
 type HubConfig struct {
 
-	// MQTT server address. The default "" is localhost
-	MqttAddress string `yaml:"mqttAddress,omitempty"`
+	// Server address of auth, idprov, mqtt, directory services. The default "" is the outbound IP address
+	// If DNS is used override this with the server domain name. 
+	// Clients that use the hubconfig must override this with the discovered server address as provided by idprov
+	Address string `yaml:"address,omitempty"`
 	// MQTT TLS port for certificate based authentication. Default is DefaultMqttPortCert
 	MqttPortCert int `yaml:"mqttPortCert,omitempty"`
 	// MQTT TLS port for login/password authentication. Default is DefaultMqttPortUnpw
@@ -148,7 +150,8 @@ func CreateDefaultHubConfig(appFolder string) *HubConfig {
 		LogsFolder:   path.Join(appFolder, DefaultLogsFolder),
 		Loglevel:     "warning",
 
-		MqttAddress:  "127.0.0.1",
+		// FIXME: use outbound IP address as default
+		Address:  		GetOutboundIP("").String(),
 		MqttPortCert: DefaultMqttPortCert,
 		MqttPortUnpw: DefaultMqttPortUnpw,
 		MqttPortWS:   DefaultMqttPortWS,
