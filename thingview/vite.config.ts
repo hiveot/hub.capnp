@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import path from 'path'
 import {quasar, transformAssetUrls } from '@quasar/vite-plugin'
-// import { visualizer } from 'rollup-plugin-visualizer';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 // if (command === 'serve') {
 //   todo: use build config
@@ -22,10 +22,9 @@ export default defineConfig({
   plugins: [
       vue({
         template: {transformAssetUrls},
-        // template: {},
       }),
       quasar(),
-      // visualizer(),
+      visualizer(),
     ],
     resolve: {
     alias: {

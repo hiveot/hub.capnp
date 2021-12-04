@@ -1,6 +1,6 @@
 // AppState data for reactive access to non persistent application state
 import { reactive, readonly } from "vue";
-import {mdiViewDashboard} from "@quasar/extras/mdi-v6";
+import {matDashboard} from "@quasar/extras/material-icons";
 
 // Router constants
 export const PagesPrefix = "/page"
@@ -19,7 +19,7 @@ export interface IPageRecord {
 export class AppStateData extends Object {
   editMode: boolean = false;
   pages: Array<IPageRecord> = [
-    {label:'Overview', to: PagesPrefix+'/overview', icon:mdiViewDashboard},
+    {label:'Overview', to: PagesPrefix+'/overview', icon:matDashboard},
   ];
 }
 

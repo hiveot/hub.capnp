@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import {QBtn, QDialog, QCard, QCardSection, QCardActions, QBar } from "quasar";
 
-import {mdiClose} from "@quasar/extras/mdi-v6";
+import {matClose} from "@quasar/extras/material-icons";
 
 interface IProps{
   // Dialog is visible on/off
@@ -55,7 +55,7 @@ const handleCancel = () => {
       <QBar>
         <div class="text-h6">{{title}}</div>
         <QSpace/>
-        <QBtn :icon="mdiClose" flat dense v-close-popup/>
+        <QBtn :icon="matClose" flat dense v-close-popup/>
       </QBar>
 
 <!--  default Slot for the dialog content-->

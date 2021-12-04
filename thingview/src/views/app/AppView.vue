@@ -1,13 +1,15 @@
 <script lang="ts" setup>
 
 import {onMounted} from 'vue';
+import {useQuasar} from "quasar";
 import AppHeader from "./AppHeader.vue";
 import {IMenuItem} from "@/components/MenuButton.vue";
 
 import appState from '@/data/AppState'
 import accountStore, {AccountRecord} from "@/data/AccountStore";
 import ConnectionManager from '@/data/ConnectionManager';
-import {useQuasar} from "quasar";
+
+const $q = useQuasar()
 
 // debugger
 let cm = new ConnectionManager()
@@ -15,7 +17,6 @@ let cm = new ConnectionManager()
 // accountStore.Load()
 const connectToHub = (accounts: Array<AccountRecord>) => {
   accounts.forEach((account) => {
-    const $q = useQuasar()
     if (account.enabled) {
       cm.Connect(account)
           .then((args)=>{
@@ -44,7 +45,6 @@ onMounted(()=>{
 })
 
 // future option for dark theme setting
-// const $q = useQuasar()
 // $q.dark.set(true) // or false or "auto"
 // $q.dark.toggle()
 

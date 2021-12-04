@@ -1,8 +1,8 @@
-import tls from 'tls'
-import {json, text} from "stream/consumers";
-import axios from "axios";
-import fs from "fs";
-import https from "https";
+// import tls from 'tls'
+// import {json, text} from "stream/consumers";
+// import axios from "axios";
+// import fs from "fs";
+// import https from "https";
 
 // Default port of the Hub authentication service
 const DefaultPort = 8881
@@ -38,14 +38,14 @@ export default class AuthClient {
 
     // issue https get request
     private async httpsPost(path:string, jsonPayload:string) {
-        let options = {
-            hostname: this.address,
-            port: this.port,
-            path: path,
-            method: 'POST',
-            ca: this.caCert,
-            body: jsonPayload,
-        }
+        // let options = {
+        //     hostname: this.address,
+        //     port: this.port,
+        //     path: path,
+        //     method: 'POST',
+        //     ca: this.caCert,
+        //     body: jsonPayload,
+        // }
 
         let url = "https://"+this.address+":"+this.port.toString()+path
         const response = fetch(url, {

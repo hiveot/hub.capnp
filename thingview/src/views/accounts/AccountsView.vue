@@ -1,13 +1,16 @@
 <script lang="ts" setup>
 
 import {reactive,unref} from "vue";
+import {useQuasar} from "quasar";
 import {QCard, QCardSection, QToolbar, QToolbarTitle} from "quasar";
-import {mdiAccountPlus} from "@quasar/extras/mdi-v6";
+import {matAdd, matAssignmentInd} from "@quasar/extras/material-icons";
 
 import AccountsTable from './AccountsTable.vue'
 import accountStore, {AccountRecord} from '@/data/AccountStore'
 import appState from '@/data/AppState'
 import EditAccountDialog from "@/views/accounts/EditAccountDialog.vue";
+
+// const $q = useQuasar()
 
 //
 const data = reactive({
@@ -42,7 +45,14 @@ const handleCancelEdit = () => {
 const handleStartDelete = (record: AccountRecord) => {
   console.log("handleStartDelete")
   // todo: ask for confirmation
-  accountStore.Remove(record.id)
+  // let $q = useQuasar()
+  // $q.dialog({
+  //   title:"Delete Account?",
+  //   message:"Please confirm delete account "+record.name,
+  //   ok:true, cancel:true,
+  // }).onOk(payload => {
+  //   accountStore.Remove(record.id)
+  // })
 }
 
 // toggle the enabled
@@ -74,9 +84,10 @@ const handleToggleEnabled = (record: AccountRecord) => {
         // Add account button
         <template v-slot:top>
           <QToolbar>
-            <QToolbarTitle  shrink>Hub Accounts</QToolbarTitle>
+            <QIcon :name="matAssignmentInd" size="28px"/>
+            <QToolbarTitle shrink>Hub Accounts</QToolbarTitle>
             <QBtn v-if="appState.State().editMode"
-                size="sm" round color="primary" :icon="mdiAccountPlus"
+                size="sm" round color="primary" :icon="matAdd"
               @click="handleStartAdd"
             />
           </QToolbar>

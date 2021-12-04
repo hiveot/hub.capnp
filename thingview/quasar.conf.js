@@ -4,7 +4,7 @@ module.exports = function (ctx) {
         supportTS: true,
         framework: {
             plugins: [
-                'Notify'
+                'Notify', 'Dialog'
             ]
         }
     }

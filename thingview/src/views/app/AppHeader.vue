@@ -2,9 +2,8 @@
 <script lang="ts" setup>
 import {reactive} from "vue";
 
-import {QTabs, QRouteTab, QToggle} from 'quasar';
-import {mdiLink, mdiLinkOff, mdiViewDashboard} from "@quasar/extras/mdi-v6";
-// import {mdiClose} from "@quasar/extras/mdi-v6";
+import {QBtn, QTabs, QRouteTab, QToggle, QTooltip} from 'quasar';
+import {matLink, matLinkOff, matDashboard} from "@quasar/extras/material-icons";
 
 import AppMenu, { MenuAbout, MenuEditMode, MenuAddPage} from './AppMenu.vue';
 import AboutDialog from "./AppAboutDialog.vue";
@@ -32,7 +31,7 @@ const data =reactive({
 })
 
 const handleAddPage = (name:string) => {
-  props.appState.AddPage({label:name, to:PagesPrefix+'/'+name, icon:mdiViewDashboard});
+  props.appState.AddPage({label:name, to:PagesPrefix+'/'+name, icon:matDashboard});
   console.log("Added page: ",name)
 }
 const handleEditModeChange = (ev:any)=>{
@@ -85,7 +84,7 @@ const handleMenuSelect = (menuItem:IMenuItem) => {
       <QRouteTab v-for="page in currentState.pages"
              :label="page.label"
              :icon="page.icon"
-             :to="(page.to == undefined) ? '' : page.to"
+             :to="(page.to === undefined) ? '' : page.to"
       />
     </QTabs>
 
@@ -100,7 +99,7 @@ const handleMenuSelect = (menuItem:IMenuItem) => {
 
     <!-- Connection Status -->
 <!--    <TButton  icon="mdi-link-off" flat tooltip="Connection Status & Configuration"/>-->
-    <QBtn  :icon="mdiLinkOff" flat
+    <QBtn  :icon="matLinkOff" flat
            :to="{name: AccountsRouteName}"
     ><QTooltip>Connection Status & Configuration</QTooltip>
     </QBtn>

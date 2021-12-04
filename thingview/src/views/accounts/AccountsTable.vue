@@ -5,7 +5,7 @@
 import {h} from 'vue';
 import  {AccountRecord} from "@/data/AccountStore";
 import {QBtn, QIcon, QToolbar, QTable, QTd, QToggle, QToolbarTitle, QTableProps} from "quasar";
-import {mdiAccountPlus, mdiDelete, mdiAccountEdit, mdiLinkOff, mdiLink} from "@quasar/extras/mdi-v6";
+import {matAdd, matDelete, matEdit, matLinkOff, matLink} from "@quasar/extras/material-icons";
 
 
 // Accounts table API
@@ -46,6 +46,9 @@ const isEditMode = ():boolean => {
   return !!props.editMode
 }
 
+const hasAccounts = ():boolean => {
+  return props.accounts.length > 1
+}
 const columns: Array<ICol> = [
   {name: "edit", label: "", field: "edit", align:"center"},
     // Use large width to minimize the other columns
@@ -57,7 +60,7 @@ const columns: Array<ICol> = [
   {name: "directoryPort", label: "Directory Port", field:"directoryPort", align:"left"},
   {name: "enabled", label: "Enabled", field:"enabled", align:"center"},
   {name: "connected", label: "Connected", field:"connected", align:"center"},
-  // {name: "delete", label: "", field:"delete", align:"center"},
+  {name: "delete", label: "", field:"delete", align:"center"},
 ]
 console.log("AccountsTable: editMode=%s", props.editMode)
 
@@ -82,7 +85,7 @@ console.log("AccountsTable: editMode=%s", props.editMode)
 <!--    <template v-slot:top>-->
 <!--      <QToolbar>-->
 <!--        <QToolbarTitle  shrink>{{props.title}}</QToolbarTitle>-->
-<!--        <QBtn size="sm" round color="primary" :icon="mdiAccountPlus"/>-->
+<!--        <QBtn size="sm" round color="primary" :icon="matAdd"/>-->
 <!--      </QToolbar>-->
 <!--    </template>-->
 
@@ -102,7 +105,7 @@ console.log("AccountsTable: editMode=%s", props.editMode)
     <template v-slot:body-cell-connected="props" >
       <QTd>
         <QIcon flat :color="isConnected(props.row.id)?'green':'red'"
-               :name="isConnected(props.row.id)?mdiLink:mdiLinkOff"
+               :name="isConnected(props.row.id)?matLink:matLinkOff"
                size="2em"
               />
       </QTd>
@@ -112,14 +115,14 @@ console.log("AccountsTable: editMode=%s", props.editMode)
     <!-- button for edit-->
     <template v-if="isEditMode()"  v-slot:body-cell-edit="props" >
       <QTd>
-        <QBtn dense flat round color="blue" field="edit" :icon="mdiAccountEdit"
+        <QBtn dense flat round color="blue" field="edit" :icon="matEdit"
               @click="emit('onEdit', props.row)"/>
       </QTd>
     </template>
-    <!-- button for delete-->
-    <template v-if="isEditMode()"  v-slot:body-cell-delete="props" >
+    <!-- button for delete. Can't delete the last record -->
+    <template v-if="isEditMode() && hasAccounts()"  v-slot:body-cell-delete="props" >
       <QTd>
-        <QBtn dense flat round color="blue" field="edit" :icon="mdiDelete"
+        <QBtn dense flat round color="blue" field="edit" :icon="matDelete"
               @click="emit('onDelete', props.row)"/>
       </QTd>
     </template>

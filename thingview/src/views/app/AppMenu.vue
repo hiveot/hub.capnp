@@ -12,13 +12,13 @@ export default defineComponent({});
 
 import MenuButton, {IMenuItem} from "@/components/MenuButton.vue";
 import {
-  mdiMenu,
-  mdiInformation,
-  mdiLink,
-  mdiPlus,
-  mdiCheckboxOutline,
-  mdiCheckboxBlankOutline
-} from "@quasar/extras/mdi-v6";
+  matMenu,
+  matInfo,
+  matLink,
+  matAdd,
+  matCheckBox,
+  matCheckBoxOutlineBlank
+} from "@quasar/extras/material-icons";
 
 interface IAppMenu {
   editMode: boolean;
@@ -46,21 +46,21 @@ const getMenuItems = (pages: Array<IMenuItem>, editMode:boolean): Array<IMenuIte
     separator: true,
   }, {
     label: "Add Page...",
-    icon: mdiPlus,
+    icon: matAdd,
     id: MenuAddPage,
   }, {
     label: "Edit Mode",
-    icon: editMode ? mdiCheckboxOutline : mdiCheckboxBlankOutline,
+    icon: editMode ? matCheckBox : matCheckBoxOutlineBlank,
     id: MenuEditMode,
   }, {
     id: MenuAccounts,
     label: "Accounts...",
-    icon: mdiLink,
+    icon: matLink,
     to: "/accounts",
   },{
     id: MenuAbout,
     label: "About...",
-    icon: mdiInformation,
+    icon: matInfo,
   }]
 }
 
@@ -70,7 +70,7 @@ const getMenuItems = (pages: Array<IMenuItem>, editMode:boolean): Array<IMenuIte
 
 
 <template>
-  <MenuButton :icon="mdiMenu"
+  <MenuButton :icon="matMenu"
             :items="getMenuItems(props.pages, props.editMode)"
    @onMenuSelect='handleMenuSelect'
   />

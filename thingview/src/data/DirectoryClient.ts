@@ -1,7 +1,7 @@
 // Constants for use by applications
 import fs from 'fs'
-import axios from 'axios'
-import https from 'https'
+// import axios from 'axios'
+// import https from 'https'
 
 const DefaultServiceName = "thingdir"
 const DefaultPort = 8886
@@ -27,6 +27,9 @@ interface ThingTD {
 // Client for connecting to a Hub Directory service
 export default class DirectoryClient {
     private hostport: string = ""
+    private _accessToken: string = ""
+    private _refreshToken: string = ""
+    private caCert: string = "" // in PEM format
     // private tlsClient: TLSSocket|null = null
 
     constructor() {
@@ -88,13 +91,30 @@ export default class DirectoryClient {
      */
     async ListTDs(offset: number, limit: number): Promise<Array<ThingTD>> {
         // https://smallstep.com/hello-mtls/doc/client/axios
-        const httpsAgent = new https.Agent({
-            // cert: fs.readFileSync('clientCert.pem'),
-            // key: fs.readFileSync('clientKey.pem'),
-            ca: fs.readFileSync('caCert.pem'),
-        });
+        // const httpsAgent = new https.Agent({
+        //     // cert: fs.readFileSync('clientCert.pem'),
+        //     // key: fs.readFileSync('clientKey.pem'),
+        //     ca: fs.readFileSync('caCert.pem'),
+        // });
         let url =this.hostport + RouteThings
-        axios.get(url, {httpsAgent})
+        // axios.get(url, {httpsAgent})
+        // let options = {
+        //     hostname: this.address,
+        //     port: this.port,
+        //     path: path,
+        //     method: 'POST',
+        //     ca: this.caCert,
+        //     body: jsonPayload,
+        // }
+
+        const response = fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'bearer '+this._accessToken,
+            },
+        })
+
         return Array<ThingTD>()
     }
 
