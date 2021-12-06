@@ -1,76 +1,52 @@
+import {reactive} from "vue";
 
 import {AccountRecord} from "@/data/AccountStore";
 import MqttClient from "@/data/MqttClient";
 import DirectoryClient from "@/data/DirectoryClient";
 import AuthClient from "@/data/AuthClient";
 
-
-type AccountConnection = {
+// Account connection status
+export interface IConnectionStatus {
+    readonly accountID: string        // ID of the account
+    connected: boolean       // authenticated and at least one service connected
+    authenticated: boolean   // authentication was successful
+    directory: boolean       // the directory is obtained
+    messaging: boolean       // message bus connection is established
+}
+export type AccountConnection = {
+    readonly accountID: string
     name: string
-    id: string
-    authClient: AuthClient
-    // mqttClient: MqttClient
-    directoryClient: DirectoryClient
+    authClient: AuthClient|null
+    mqttClient: MqttClient|null
+    dirClient: DirectoryClient|null
+    state: IConnectionStatus
 }
 
 // Manage account connections to MQTT and Directory services
-export default class ConnectionManager {
+export class ConnectionManager {
     // accounts that are watched
     // active mqtt broker clients by account ID
     private connections: Map<string, AccountConnection>
     private started: boolean
+    // active connection state
+    private status: IConnectionStatus
 
     // Create a new connection manager
     constructor() {
         this.connections = new Map<string, AccountConnection>()
+        this.status = reactive(<IConnectionStatus>{
+            accountID:"",
+            connected:false,
+            authenticated:false,
+            directory:false,
+            messaging:false
+        })
         this.started = false
     }
 
-    // Connect or reconnect
-    async Connect(account: AccountRecord) {
-        this.Disconnect(account.id);
-        let authClient = new AuthClient(account.address, account.authPort);
-
-        let mqttClient = new MqttClient(
-            // this.handleMqttConnected.bind(this),
-            // this.handleMqttDisconnected.bind(this),
-            this.handleMqttMessage.bind(this)
-        )
-        let dirClient = new DirectoryClient()
-
-        let c: AccountConnection = {
-            name:account.name,
-            id:account.id,
-            authClient: authClient,
-            // mqttClient: mqttClient,
-            directoryClient: dirClient,
-        }
-
-        console.log("ConnectionManager.Connect: Connecting to", account.address, "as", account.loginName)
-        this.connections.set(c.id, c)
-        // after login, connect to mqtt and directory client using the access token
-        let password = "user1" // FIXME - for testing
-        let p = authClient.ConnectWithLoginID(account.loginName, password)
-            .then((accessToken:string)=>{
-                    console.log("ConnectionManager.Connect: Authentication successful. Connecting to mqtt and directory")
-                    // FIXME support login to mqtt with access token
-                    mqttClient.Connect(account, password)
-                    dirClient.Connect(account.address, account.directoryPort, accessToken)
-                })
-            .catch((err:Error)=>{
-                console.error("ConnectionManager.Connect: failed to connect: ", err)
-                throw(err.message)
-            })
-        return p;
-    }
-
-    // Re-connect all enabled accounts
-    ConnectAll(accounts: Array<AccountRecord>) {
-        accounts.map((item: AccountRecord) => {
-            if (item.enabled) {
-                this.Connect(item)
-            }
-        })
+    // Active connection status
+    get connectionStatus(): IConnectionStatus {
+        return this.status
     }
 
     // Nr of authenticated connections
@@ -84,36 +60,173 @@ export default class ConnectionManager {
         return count
     }
 
-    // Handle an incoming MQTT message
-    handleMqttMessage(topic: string, payload:Buffer, accountId: string, retain: boolean): void {
-        console.log("handleMqttMessage. topic:",topic)
+    // Connect or reconnect.
+    // This provides both a promise for the initial connection result and a callback that is invoked each time
+    // the connection changes. If a connection fails, then a new connection attempt will be made periodically.
+    //
+    //  @param account is the account to connect to authentication, mqtt and directory services
+    //  @param onConnectChanged optional callback when the connection status changes
+    // This returns a promise for async operation of the first connection attempt.
+    async Connect(account: AccountRecord,
+                  onConnectChanged: ((record:AccountRecord, connected:boolean, error:Error|null)=>void)|undefined =undefined ) {
+        this.Disconnect(account.id);
+
+        let ac = this.GetAccountConnection(account)
+        if (ac.authClient == null || ac.mqttClient == null || ac.dirClient == null) {
+            ac.authClient = new AuthClient(account.address,account.authPort)
+            ac.mqttClient = new MqttClient(
+                account.id,
+                account.address,
+                account.mqttPort,
+                this.handleMqttConnected.bind(this),
+                this.handleMqttDisconnected.bind(this),
+                this.handleMqttMessage.bind(this)
+            )
+            ac.dirClient = new DirectoryClient(account.address, account.directoryPort)
+        }
+
+        console.log("ConnectionManager.Connect: Connecting to", account.address, "as", account.loginName)
+        this.connections.set(ac.accountID, ac)
+        // after login, connect to mqtt and directory client using the access token
+        let password = "user1" // FIXME - for testing
+
+        return ac.authClient.ConnectWithLoginID(account.loginName, password)
+            .then((accessToken: string) => {
+                console.log("ConnectionManager.Connect: Authentication successful. Connecting to mqtt and directory")
+                ac.state.authenticated = true
+                this.status.authenticated = true
+                // this.status.connected = true
+
+                // FIXME support login to mqtt with access token
+                if (ac.mqttClient) {
+                    ac.mqttClient.Connect(account.loginName, password)
+                }
+                if (ac.dirClient) {
+                    ac.dirClient.Connect(accessToken)
+                }
+                if (onConnectChanged) {
+                    onConnectChanged(account, true, null)
+                }
+            })
+            .catch((err: Error) => {
+                ac.state.authenticated = false
+                this.status.authenticated = false // assume single connection for now
+                console.error("ConnectionManager.Connect: failed to connect: ", err)
+                if (onConnectChanged) {
+                    onConnectChanged(account, false, err)
+                }
+                throw(err.message)
+            });
     }
 
-    // Handle authentication login. This obtains the auth tokens for use with mqtt and directory service
-    handleAuthLogin() {
-
-    }
-
-    // Handle refresh of the authentication tokens
-    handleAuthRefresh() {
-
-    }
-
+    // Disable the connection
     Disconnect(accountId:string) {
         let connection = this.connections.get(accountId)
         if (connection) {
             console.log("AccountManager.Disconnect: Disconnecting account:", connection.name)
-            // connection.mqttClient.Disconnect();
-            connection.directoryClient.Disconnect();
-            this.connections.delete(connection.id)
+            // if (connection.authClient) {
+            //     connection.authClient.Disconnect()
+            // }
+            if (connection.dirClient) {
+                connection.dirClient.Disconnect();
+            }
+            if (connection.mqttClient) {
+                connection.mqttClient.Disconnect();
+            }
+            // TODO: auto determine the following status using events
+            // connection.state.connected = false
+            // connection.state.messaging = false
+            // this.status.connected = false
+            // this.status.messaging = false
         }
     }
 
     // Close all existing connections (modify the map as we go)
-    DisconnectAll() {
-        for(let key of Array.from( this.connections.keys()) ) {
-           this.Disconnect(key)
+    // DisconnectAll() {
+    //     for(let key of Array.from( this.connections.keys()) ) {
+    //         this.Disconnect(key)
+    //     }
+    // }
+
+
+    // Re-connect all enabled accounts
+    // async ConnectAll(accounts: Array<AccountRecord>,
+    //                  onConnectChanged: (record:AccountRecord, connected:boolean, err:Error|null) => void) {
+    //     let p: Promise<Awaited<void[][number]>>;
+    //
+    //     p = Promise.any(
+    //         accounts.map((item: AccountRecord) => {
+    //             if (item.enabled) {
+    //                 this.Connect(item, onConnectChanged)
+    //             }
+    //         })
+    //     );
+    //     return p
+    // }
+
+
+    // Get the connection of an account or create on if it doesn't exist
+    // If an account connection isn't yet known, it will be created
+    //
+    // account to get the status of
+    // return the connection instance
+    protected GetAccountConnection(account: AccountRecord): AccountConnection {
+        let connection = this.connections.get(account.id)
+        if (!connection) {
+            connection = {
+                name: account.name,
+                accountID: account.id,
+                authClient: null,
+                mqttClient: null,
+                dirClient: null,
+                state: reactive(<IConnectionStatus>{})
+            }
+            this.connections.set(account.id, connection)
         }
+        return connection
+    }
+
+    // Get the reactive connection status of an account.
+    // The result is reactive and can be used directly in a UI
+    // This returns an empty status object if the account is not known
+    // If no accountID is specified, then return the currently active account status
+    //
+    // accountID to get or "" for the active account status
+    // return the connection status object
+    GetConnectionStatus(account:AccountRecord): IConnectionStatus {
+        let connection = this.GetAccountConnection(account)
+        return connection.state
+    }
+
+    // Handle an incoming MQTT message
+    handleMqttMessage(_accountID:string, topic: string, payload:Buffer, _retain: boolean): void {
+        console.log("handleMqttMessage. topic:",topic, "Message size:", payload.length)
+    }
+
+    // track the MQTT account connection status
+    handleMqttConnected(accountID:string) {
+        let connection = this.connections.get(accountID)
+        if (connection) {
+            connection.state.messaging = true
+            connection.state.connected = true
+        }
+        this.status.connected = true
+        this.status.messaging = true
+    }
+    // track the MQTT account connection status
+    handleMqttDisconnected(accountID:string) {
+        let connection = this.connections.get(accountID)
+        if (connection) {
+            connection.state.messaging = false
+            connection.state.connected = false
+        }
+        // todo: support multiple accounts
+        this.status.connected = false
+        this.status.messaging = false
     }
 
 }
+
+// the global connection manager
+const cm = new ConnectionManager()
+export default cm

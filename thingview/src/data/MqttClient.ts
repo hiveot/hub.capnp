@@ -24,38 +24,51 @@ const SYS_TOPIC = "$SYS/"
 // export const SYS_BYTES_SENT_PERMIN = "$SYS/broker/load/bytes/sent/1min"
 
 
-interface IMqttAccount {
-    id: string
-    address: string
-    mqttPort?: number
-    loginName: string
-    // publishers: Array<{publisherID:string, subscribed:boolean}>
-}
-
-// Client for connecting to a Hub MQTT broker
+/**
+ * Create MQTT client instance
+ * @param accountID for identifying the account in callbacks
+ * @param address to connect to
+ * @param port optional port to use. Use 0 to use the default port
+ * @param onConnected  connection established callback
+ * @param onDisconnected connection list callback
+ * @param onMessage message received callback
+ */
 export default class MqttClient {
-    private accountInfo: IMqttAccount|null
+    private accountID: string
+    private address: string
+    private port: number
+    private loginID: string
     private connectedTimeStamp: number | null
     // private messageCount: number
     private mqttJS: mqtt.Client|null
-    private onConnectedCallback?: (account: IMqttAccount, client: &MqttClient)=>void
-    private onDisconnectedCallback?: (account: IMqttAccount)=>void
-    private onMessageCallback: (topic: string, payload:Buffer, accountId: string, retain: boolean)=>void
+    private readonly onConnected?: (accountID: string, client: &MqttClient)=>void
+    private readonly onDisconnected?: (accountID: string, client: &MqttClient)=>void
+    private readonly onMessage: (accountID: string, topic: string, payload:Buffer, retain: boolean)=>void
     private msgCount:number
     private subscriptions: Array<any>
     private sysValues: Map<string,string> // map of broker $SYS topics and their values
 
     constructor(
-        // onConnect: (account: IMqttAccount, client: &MqttClient)=>void,   // callback invoked when connected
-        // onDisconnect: (account: IMqttAccount)=>void,
-        onMessage: (topic: string, payload:Buffer, accountId: string, retained:boolean)=>void,
+        accountID: string,
+        address: string,
+        port: number|undefined,
+        onConnected: (accountID: string, client: &MqttClient)=>void,   // callback invoked when connected
+        onDisconnected: (accountID: string, account: &MqttClient)=>void,
+        onMessage: (accountID: string, topic: string, payload:Buffer, retained:boolean)=>void,
     ) {
-        this.accountInfo = null
+        if (!port) {
+            port = DefaultPort
+        }
+        this.accountID = accountID
+        this.address = address
+        this.port = port
+        this.loginID = ""
+
         this.msgCount = 0
         this.mqttJS = null
-        // this.onConnectedCallback = onConnect
-        // this.onDisconnectedCallback = onDisconnect
-        this.onMessageCallback = onMessage
+        this.onConnected = onConnected
+        this.onDisconnected = onDisconnected
+        this.onMessage = onMessage
 
         // this.isConnected = false
         this.connectedTimeStamp = null
@@ -67,15 +80,17 @@ export default class MqttClient {
     /**
      * Connect to the MQTT broker
      */
-    async Connect(accountInfo:IMqttAccount, accessToken: string) {
+    async Connect(loginID: string, accessToken: string) {
         if (this.isConnected) {
             this.Disconnect()
         }
+        this.loginID = loginID
+
         // Create a client instance
         // TODO: use template to populate server and port
         // let now = new Date()
         this.msgCount = 0
-        this.accountInfo = accountInfo
+
         // let clientId = this.accountInfo.clientId ? this.accountInfo.clientId :
         //                "iotrain-dashboard-" + now.toISOString()
         // let port = this.accountInfo.port ? this.accountInfo.port : 1883
@@ -84,14 +99,10 @@ export default class MqttClient {
         // WebSockets use a different port. FIXME. let server handle connections
         // this.pahoClient = new Paho.Client(this.accountInfo.host, port, "", clientId)
 
-        let mqttPort = accountInfo.mqttPort
-        if (mqttPort == undefined || mqttPort == 0) {
-            mqttPort = DefaultPort
-        }
-        let url = 'wss://' + this.accountInfo.address+":"+mqttPort.toString()
+        let url = 'wss://' + this.address+":"+this.port.toString()
         let options:mqtt.IClientOptions = {
             reconnectPeriod: 3000,
-            username: accountInfo.loginName,
+            username: loginID,
             password: accessToken,
         }
         this.mqttJS = mqtt.connect(url, options);
@@ -121,13 +132,13 @@ export default class MqttClient {
      */
     Disconnect() {
         if (this.mqttJS != null && this.mqttJS.connected) {
-            this.mqttJS.end( false, {}, () =>{
-                if (this.onDisconnectedCallback) {
+            console.log("MqttClient.Disconnect from %s:%s", this.address, this.port)
+            this.mqttJS.end( false, {}, (err:any) =>{
+                console.log("MqttClient.Disconnected:", err)
+                if (this.onDisconnected) {
                     this.mqttJS = null
                     // Satisfy compiler check. A disconnect can only happen when accountInfo is set
-                    if (this.accountInfo) {
-                        this.onDisconnectedCallback(this.accountInfo)
-                    }
+                    this.onDisconnected(this.accountID, this)
                 }
             })
         }
@@ -157,11 +168,9 @@ export default class MqttClient {
         console.warn("MqttClient.handleConnectFailed: Connection to MQTT broker failed: " + responseObject, "Retrying in 30 seconds...")
 
         this.subscriptions.length = 0
-        if (this.onDisconnectedCallback) {
+        if (this.onDisconnected) {
             // satisfy typescript
-            if (this.accountInfo) {
-                this.onDisconnectedCallback(this.accountInfo)
-            }
+            this.onDisconnected(this.accountID, this)
         }
         // Wait 30 seconds before retrying
         // setTimeout(this.doConnect.bind(this), 30000)
@@ -172,8 +181,8 @@ export default class MqttClient {
     handleConnectionLost() {
         this.subscriptions.length = 0
         console.warn("MqttClient.handleConnectionLost: Connection to MQTT broker lost")
-        if (this.onDisconnectedCallback && this.accountInfo) {
-            this.onDisconnectedCallback( this.accountInfo)
+        if (this.onDisconnected) {
+            this.onDisconnected(this.accountID, this)
         }
         // paho client auto reconnects
         // setTimeout(this.doConnect.bind(this), 10000)
@@ -187,8 +196,8 @@ export default class MqttClient {
         // if (this.accountInfo && this.accountInfo.subscribeToSys) {
         //     this.Subscribe([SYS_TOPIC+"#"])
         // }
-        if (this.onConnectedCallback && this.accountInfo) {
-            this.onConnectedCallback(this.accountInfo, this)
+        if (this.onConnected) {
+            this.onConnected(this.accountID, this)
         }
     }
     // get sysTopicValues(): Map<string, string> {
@@ -206,14 +215,12 @@ export default class MqttClient {
         // let payloadBytes = responseObject.payloadBytes
         if (topic.startsWith(SYS_TOPIC)) {
             this.sysValues.set(topic, message.toString())
-        } else if (this.onMessageCallback) {
+        } else if (this.onMessage) {
             let that = this
             // Don't block the next message, prevent dropping of messages?
             setTimeout(()=>{
                 try {
-                    if (that.accountInfo) {
-                        this.onMessageCallback(topic, message, that.accountInfo.id, retained)
-                    }
+                    this.onMessage(that.accountID, topic, message, retained)
                 } catch (err:any) {
                     console.error("MqttClient.handleMessage: Exception handling message on topic", topic, ". Stack trace:")
                     console.error(err.stack)   // this provides proper stack filename and line numbers

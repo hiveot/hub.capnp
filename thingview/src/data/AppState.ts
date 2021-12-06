@@ -1,11 +1,14 @@
 // AppState data for reactive access to non persistent application state
-import { reactive, readonly } from "vue";
+import { reactive, watch } from "vue";
 import {matDashboard} from "@quasar/extras/material-icons";
 
 // Router constants
 export const PagesPrefix = "/page"
 export const AccountsRouteName = "Accounts"
 export const PagesRouteName = "Pages"
+
+// load/save key
+const storageKey:string = "appState"
 
 
 export interface IPageRecord {
@@ -14,10 +17,12 @@ export interface IPageRecord {
   to: string
 }
 
+
 // The global application state
-// TODO move persistent pages configuration into its own data
 export class AppStateData extends Object {
   editMode: boolean = false;
+
+// TODO move persistent pages configuration into its own data
   pages: Array<IPageRecord> = [
     {label:'Overview', to: PagesPrefix+'/overview', icon:matDashboard},
   ];
@@ -29,11 +34,28 @@ export class AppState {
 
   constructor() {
     this.state = reactive(new AppStateData())
+    watch(this.state, ()=>{
+      this.Save()
+    })
   }
 
   public AddPage(record:IPageRecord) {
     this.state.pages.push(record)
   }
+
+
+  // load state from local storage
+  Load() {
+    console.log("AppState.Loading state")
+    let serializedState = localStorage.getItem(storageKey)
+    if (serializedState != null) {
+      let state = JSON.parse(serializedState)
+      this.state.editMode = state.editMode
+      this.state.pages.splice(0, this.state.pages.length)
+      this.state.pages.push(...state.pages )
+    }
+  }
+
   public RemovePage(record:IPageRecord) {
     let index = this.state.pages.indexOf(record)
     if (index >= 0) {
@@ -53,6 +75,12 @@ export class AppState {
     this.state.editMode = on;
   }
 
+  // save to local storage
+  Save() {
+    console.log("AppState.Saving state")
+    let serializedStore = JSON.stringify(this.state)
+    localStorage.setItem(storageKey, serializedStore)
+  }
 }
 
 const appState = new AppState();

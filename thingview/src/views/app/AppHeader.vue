@@ -2,19 +2,21 @@
 <script lang="ts" setup>
 import {reactive} from "vue";
 
-import {QBtn, QTabs, QRouteTab, QToggle, QTooltip} from 'quasar';
-import {matLink, matLinkOff, matDashboard} from "@quasar/extras/material-icons";
+import {QBtn, QTabs, QRouteTab, QToggle} from 'quasar';
+import {matDashboard} from "@quasar/extras/material-icons";
 
 import AppMenu, { MenuAbout, MenuEditMode, MenuAddPage} from './AppMenu.vue';
 import AboutDialog from "./AppAboutDialog.vue";
 import AddPageDialog from "../page/AppAddPageDialog.vue";
+import TConnectionStatus from "@/components/TConnectionStatus.vue"
 import {IMenuItem} from "@/components/MenuButton.vue";
 
 import {AccountsRouteName, AppState, PagesPrefix} from '@/data/AppState'
-
+import cm, {IConnectionStatus} from "@/data/ConnectionManager";
 
 interface IAppHeader {
   appState: AppState
+  connectionStatus: IConnectionStatus
 }
 const props = defineProps<IAppHeader>()
 
@@ -64,6 +66,7 @@ const handleMenuSelect = (menuItem:IMenuItem) => {
   }
 }
 
+
 </script>
 
 <template>
@@ -99,11 +102,10 @@ const handleMenuSelect = (menuItem:IMenuItem) => {
 
     <!-- Connection Status -->
 <!--    <TButton  icon="mdi-link-off" flat tooltip="Connection Status & Configuration"/>-->
-    <QBtn  :icon="matLinkOff" flat
-           :to="{name: AccountsRouteName}"
-    ><QTooltip>Connection Status & Configuration</QTooltip>
-    </QBtn>
-
+    <TConnectionStatus :value="cm.connectionStatus"
+                      :to="{name: AccountsRouteName}"
+                      tooltip="Connection Status & Configuration"
+    />
 
     <!-- Dropdown menu -->
     <AppMenu :pages="currentState.pages"

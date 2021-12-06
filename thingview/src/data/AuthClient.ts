@@ -17,13 +17,16 @@ const DefaultJWTConfigPath = "/auth/config"
 // Client for connecting to a Hub authentication service
 export default class AuthClient {
     private address: string = ""
-    private port: number = 8881
+    private port: number = DefaultPort
     private _accessToken: string = ""
     private _refreshToken: string = ""
     private caCert: string = "" // in PEM format
     private loginID: string = ""
 
     // Create the authentication client for the given hub
+    // @param accountID for callbacks
+    // @param address of the auth service to connect
+    // @param port of the auth service to connect to
     constructor(address: string, port: number|undefined) {
         this.address = address
         if (!!port) {

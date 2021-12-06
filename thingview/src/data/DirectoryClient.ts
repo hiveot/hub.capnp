@@ -26,14 +26,20 @@ interface ThingTD {
 
 // Client for connecting to a Hub Directory service
 export default class DirectoryClient {
-    private hostport: string = ""
+    private hostPort: string = ""
     private _accessToken: string = ""
     private _refreshToken: string = ""
     private caCert: string = "" // in PEM format
     // private tlsClient: TLSSocket|null = null
 
-    constructor() {
-        this.hostport = ""
+    // Directory service client
+    // @param address of directory service to connect to.
+    // @param port the directory service is listening on. Use default port if not provided
+    constructor(address: string, port: number|undefined) {
+        if (!port) {
+            port = DefaultPort
+        }
+        this.hostPort = address + ":"+ port.toString()
         // this.tlsClient = null
     }
 
@@ -56,13 +62,9 @@ export default class DirectoryClient {
     // }
 
     // Connect open the connection to the directory server using an access token
-    // @param address
-    // @param port, 0 or undefined uses the default port
     // @param accessToken
-    async Connect(address: string, port: number|undefined, accessToken: string) {
-        if (port == 0 || port == undefined) {
-            port = DefaultPort
-        }
+    async Connect(accessToken: string) {
+        this._accessToken = accessToken
     }
 
     /* Delete a TD
@@ -96,7 +98,7 @@ export default class DirectoryClient {
         //     // key: fs.readFileSync('clientKey.pem'),
         //     ca: fs.readFileSync('caCert.pem'),
         // });
-        let url =this.hostport + RouteThings
+        let url =this.hostPort + RouteThings
         // axios.get(url, {httpsAgent})
         // let options = {
         //     hostname: this.address,

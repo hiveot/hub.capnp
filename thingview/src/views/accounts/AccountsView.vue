@@ -1,18 +1,15 @@
 <script lang="ts" setup>
 
-import {reactive,unref} from "vue";
-import {useQuasar} from "quasar";
-import {QCard, QCardSection, QToolbar, QToolbarTitle} from "quasar";
+import {reactive} from "vue";
+import {QBtn, QCard, QCardSection, QIcon, QToolbar, QToolbarTitle} from "quasar";
 import {matAdd, matAssignmentInd} from "@quasar/extras/material-icons";
 
 import AccountsTable from './AccountsTable.vue'
 import accountStore, {AccountRecord} from '@/data/AccountStore'
 import appState from '@/data/AppState'
 import EditAccountDialog from "@/views/accounts/EditAccountDialog.vue";
+import connectionManager from "@/data/ConnectionManager";
 
-// const $q = useQuasar()
-
-//
 const data = reactive({
   selectedRow : AccountRecord,
   showAddDialog: false,
@@ -55,10 +52,16 @@ const handleStartDelete = (record: AccountRecord) => {
   // })
 }
 
-// toggle the enabled
+// toggle the enabled status
 const handleToggleEnabled = (record: AccountRecord) => {
   console.log("handleOnToggleEnabled")
-  accountStore.SetEnabled(record.id, !record.enabled)
+  if (record.enabled) {
+    accountStore.SetEnabled(record.id, false)
+    connectionManager.Disconnect(record.id)
+  } else {
+    accountStore.SetEnabled(record.id, true)
+    connectionManager.Connect(record)
+  }
 }
 
 </script>
@@ -77,6 +80,7 @@ const handleToggleEnabled = (record: AccountRecord) => {
                      title="Hub Accounts"
                      style="width: 100%"
                      :editMode="appState.State().editMode"
+                     :cm="connectionManager"
                      @onEdit="handleStartEdit"
                      @onDelete="handleStartDelete"
                      @onToggleEnabled="handleToggleEnabled"

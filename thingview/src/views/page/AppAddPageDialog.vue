@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import {ref} from "vue";
 import TDialog from "@/components/TDialog.vue";
-import {QDialog, QBtn, QCard, QBar, QCardActions, QCardSection, QForm, QInput} from "quasar";
+import {QDialog, QBtn, QCard, QBar, QSpace, QCardActions, QCardSection, QForm, QInput} from "quasar";
 import {mdiClose} from "@quasar/extras/mdi-v6";
 
 const props = defineProps({

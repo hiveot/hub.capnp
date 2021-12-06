@@ -7,19 +7,29 @@ import {IMenuItem} from "@/components/MenuButton.vue";
 
 import appState from '@/data/AppState'
 import accountStore, {AccountRecord} from "@/data/AccountStore";
-import ConnectionManager from '@/data/ConnectionManager';
+import cm from '@/data/ConnectionManager';
 
 const $q = useQuasar()
 
-// debugger
-let cm = new ConnectionManager()
+
+// Callback handling connection status updates
+// TODO: handle multiple connections
+const handleUpdate = (record:AccountRecord, connected:boolean, error:Error|null) => {
+  if (connected) {
+    console.log("AppView.handleUpdate: Connection with '" + record.name + "' established.")
+  } else {
+    console.log("AppView.handleUpdate: Connection with '" + record.name + "' failed: ", error)
+  }
+  // appState.State().connectionCount = cm.connectionCount
+}
 
 // accountStore.Load()
 const connectToHub = (accounts: Array<AccountRecord>) => {
+
   accounts.forEach((account) => {
     if (account.enabled) {
-      cm.Connect(account)
-          .then((args)=>{
+      cm.Connect(account, handleUpdate)
+          .then(()=>{
             console.log("Connection to %s successful: ", account.name)
             $q.notify({
               position: 'top',
@@ -40,8 +50,9 @@ const connectToHub = (accounts: Array<AccountRecord>) => {
 }
 
 onMounted(()=>{
+  appState.Load()
+  accountStore.Load()
   connectToHub(accountStore.GetAccounts());
-  // $q.notify({type:'positive', message:'Ready to rock'});
 })
 
 // future option for dark theme setting
@@ -53,7 +64,8 @@ onMounted(()=>{
 
 <template>
 <div class="appView">
-  <AppHeader  :appState="appState" />
+  <AppHeader  :appState="appState"
+              :connectionStatus="cm.connectionStatus"/>
   <router-view></router-view>
 </div>
 </template>

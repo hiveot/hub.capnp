@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {QBtn, QDialog, QCard, QCardSection, QCardActions, QBar } from "quasar";
+import {QBtn, QDialog, QCard, QCardSection, QCardActions, QBar, QSpace } from "quasar";
 
 import {matClose} from "@quasar/extras/material-icons";
 

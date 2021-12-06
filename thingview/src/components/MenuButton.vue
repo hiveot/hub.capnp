@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {QBtn, QMenu, QList, QItem, QItemLabel, QItemSection} from "quasar";
+import {QBtn, QMenu, QIcon,QSeparator, QList, QItem, QItemLabel, QItemSection} from "quasar";
 
 // Menu item description
 export interface IMenuItem {
@@ -41,7 +41,7 @@ const handleMenuSelect = (item:IMenuItem) => {
                    @click='handleMenuSelect(item)'
            >
              <QItemSection v-if='item.icon !== ""' avatar>
-                 <QIcon :name="item.icon"/>
+               <QIcon :name="item.icon"/>
              </QItemSection>
 
              <QItemSection v-if='item.label !== ""'>

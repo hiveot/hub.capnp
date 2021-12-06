@@ -2,16 +2,19 @@
 
 // Wrapper around the QTable for showing a list of accounts
 // QTable slots are available to the parent
-import {h} from 'vue';
 import  {AccountRecord} from "@/data/AccountStore";
 import {QBtn, QIcon, QToolbar, QTable, QTd, QToggle, QToolbarTitle, QTableProps} from "quasar";
-import {matAdd, matDelete, matEdit, matLinkOff, matLink} from "@quasar/extras/material-icons";
+import {matDelete, matEdit, matLinkOff, matLink} from "@quasar/extras/material-icons";
+import {ConnectionManager, IConnectionStatus} from "@/data/ConnectionManager";
+import TConnectionStatus from "@/components/TConnectionStatus.vue";
 
 
 // Accounts table API
 interface IAccountsTable {
   // Collection of accounts to display
   accounts: Array<AccountRecord>
+  // connection manager for presenting the connection state of an account
+  cm: ConnectionManager
   // Allow editing of accounts
   editMode?: boolean
   // optional title to display above the table
@@ -36,19 +39,22 @@ interface ICol {
   format?: (val:any, row:any)=>any
 }
 
-// calculated property
-const isConnected = (accountID: string): boolean => {
-  return false
+// Get the account's reactive connection status
+const connectState = (account: AccountRecord): IConnectionStatus => {
+  let state = props.cm.GetConnectionStatus(account)
+  return state
 }
 
-// reactive edit mode
+// get reactive edit mode
 const isEditMode = ():boolean => {
   return !!props.editMode
 }
 
-const hasAccounts = ():boolean => {
-  return props.accounts.length > 1
+// Toggle the 'enabled' status of the account
+const toggleEnabled = (account:AccountRecord) => {
+  emit("onToggleEnabled", account)
 }
+
 const columns: Array<ICol> = [
   {name: "edit", label: "", field: "edit", align:"center"},
     // Use large width to minimize the other columns
@@ -63,8 +69,6 @@ const columns: Array<ICol> = [
   {name: "delete", label: "", field:"delete", align:"center"},
 ]
 console.log("AccountsTable: editMode=%s", props.editMode)
-
-
 
 </script>
 
@@ -89,13 +93,11 @@ console.log("AccountsTable: editMode=%s", props.editMode)
 <!--      </QToolbar>-->
 <!--    </template>-->
 
-
-
     <!-- toggle 'enabled' switch. Use computed property to be reactive inside the slot -->
     <template v-slot:body-cell-enabled="props">
       <QTd :props="props">
         <QToggle :model-value="props.row.enabled"
-                  @update:model-value="emit('onToggleEnabled', props.row)"
+                  @update:model-value="toggleEnabled(props.row)"
                  :disable="!isEditMode()"
         />
       </QTd>
@@ -104,13 +106,13 @@ console.log("AccountsTable: editMode=%s", props.editMode)
     <!-- icon for connected-->
     <template v-slot:body-cell-connected="props" >
       <QTd>
-        <QIcon flat :color="isConnected(props.row.id)?'green':'red'"
-               :name="isConnected(props.row.id)?matLink:matLinkOff"
-               size="2em"
-              />
+        <TConnectionStatus :value="connectState(props.row)" />
+<!--        <QIcon flat :color="connectState(props.row).authenticated?'green':'red'"-->
+<!--               :name="connectState(props.row).connected?matLink:matLinkOff"-->
+<!--               size="2em"-->
+<!--              />-->
       </QTd>
     </template>
-
 
     <!-- button for edit-->
     <template v-if="isEditMode()"  v-slot:body-cell-edit="props" >
@@ -119,8 +121,9 @@ console.log("AccountsTable: editMode=%s", props.editMode)
               @click="emit('onEdit', props.row)"/>
       </QTd>
     </template>
+
     <!-- button for delete. Can't delete the last record -->
-    <template v-if="isEditMode() && hasAccounts()"  v-slot:body-cell-delete="props" >
+    <template v-if="isEditMode() && (props.accounts.length > 1)"  v-slot:body-cell-delete="props" >
       <QTd>
         <QBtn dense flat round color="blue" field="edit" :icon="matDelete"
               @click="emit('onDelete', props.row)"/>

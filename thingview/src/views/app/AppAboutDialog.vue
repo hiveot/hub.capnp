@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 // import {reactive} from "vue";
 
+// import TDialog from '@/components/TDialog.vue'
 import TDialog from '@/components/TDialog.vue'
 
 const version = "0.3 alpha";

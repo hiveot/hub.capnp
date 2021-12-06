@@ -30,12 +30,13 @@ export class AccountRecord extends Object {
   enabled: boolean = false;
 }
 
+class AccountData {
+  accounts = Array<AccountRecord>()
+}
 
 // Hub account data implementation with additional methods for loading and saving
-export class AccountStore<IAccountStore> {
-  state: {
-    accounts: Array<AccountRecord>
-  }
+export class AccountStore {
+  data: AccountData
   storageKey: string = "accountStore"
 
   constructor() {
@@ -45,60 +46,59 @@ export class AccountStore<IAccountStore> {
     defaultAccount.address = location.hostname
     defaultAccount.loginName = "user1" // for testing
     defaultAccount.enabled = true
-    this.state = reactive( {
-      accounts: [defaultAccount]
-    })
+    this.data = reactive( new AccountData() )
   }
 
-  // add a new account to the list
+  // add a new account to the list and save the account list
   Add(account: AccountRecord):void {
     // always update the record ID to ensure uniqueness
     account.id = nanoid(8)
-    this.state.accounts.push(account)
+    this.data.accounts.push(account)
+    this.Save()
   }
 
   // Return a list of accounts
   GetAccounts(): AccountRecord[] {
-    return this.state.accounts
+    return this.data.accounts
   }
 
   // Get the account with the given id
   GetAccountById(id: string): AccountRecord|undefined {
-    let accounts = this.state.accounts
+    let accounts = this.data.accounts
 
-    let el = accounts.find( el => el.id == id)
-    return el
+    return accounts.find( el => (el.id === id))
   }
 
   // load accounts from local storage
   Load() {
     let serializedStore = localStorage.getItem(this.storageKey)
     if (serializedStore != null) {
-      let accountList:AccountRecord[] = JSON.parse(serializedStore)
-      if (accountList != null && accountList.length > 0) {
-        this.state.accounts.splice(0, this.state.accounts.length)
-        this.state.accounts.push(...accountList )
-        console.debug("Loaded %s accounts from local storage", accountList.length)
+      let accountData:AccountData = JSON.parse(serializedStore)
+      if (accountData != null && accountData.accounts.length > 0) {
+        this.data.accounts.splice(0, this.data.accounts.length)
+        this.data.accounts.push(...accountData.accounts )
+        console.debug("Loaded %s accounts from local storage", accountData.accounts.length)
       } else {
         console.log("No accounts in storage. Keeping existing accounts")
       }
     }
   }
+
   // remove the given account by id
   Remove(id: string) {
-    let remainingAccounts = this.state.accounts.filter((item:AccountRecord) => {
+    let remainingAccounts = this.data.accounts.filter((item:AccountRecord) => {
       // console.log("Compare id '",id,"' with item id: ", item.id)
       return (item.id != id)
     })
     console.log("Removing account with id", id, )
-    this.state.accounts.splice(0, this.state.accounts.length)
-    this.state.accounts.push(...remainingAccounts )
+    this.data.accounts.splice(0, this.data.accounts.length)
+    this.data.accounts.push(...remainingAccounts )
   }
 
   // save to local storage
   Save() {
-    console.log("Saving %s accounts to local storage", this.state.accounts.length)
-    let serializedStore = JSON.stringify(this.state)
+    console.log("Saving %s accounts to local storage", this.data.accounts.length)
+    let serializedStore = JSON.stringify(this.data)
     localStorage.setItem(this.storageKey, serializedStore)
   }
 
@@ -110,24 +110,26 @@ export class AccountStore<IAccountStore> {
     if (account) {
       console.log("SetEnabled of account", account.name, ":", enabled)
       account.enabled = enabled
+      this.Save()
     } else {
       console.log("SetEnabled: ERROR account with ID", id, " not found")
     }
   }
 
-  // Update the account with the given record
+  // Update the account with the given record and save
   // If the record ID does not exist, and ID will be assigned and the record is added
   // If the record ID exists, the record is updated
   Update(record: AccountRecord) {
     let existing = this.GetAccountById(record.id)
     if (!existing) {
       console.log("Adding account", record)
-      this.state.accounts.push(record) // why would it not exist?
+      this.data.accounts.push(record) // why would it not exist?
     } else {
       console.log("Update account", record)
       // reactive update of the existing record
       Object.assign(existing, record)
     }
+    this.Save()
   }
 }
 
