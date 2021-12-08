@@ -13,6 +13,19 @@ const DefaultJWTRefreshPath = "/auth/refresh"
 // DefaultJWTConfigPath for storing client configuration on the auth service
 const DefaultJWTConfigPath = "/auth/config"
 
+export class ResponseError extends Error {
+    constructor(message: string) {
+        super(message)
+    }
+    public errorCode: number = 0
+}
+
+export class UnauthorizedError extends ResponseError {
+    constructor(message: string) {
+        super(message)
+        this.errorCode = 401
+    }
+}
 
 // Client for connecting to a Hub authentication service
 export default class AuthClient {
@@ -40,7 +53,7 @@ export default class AuthClient {
     }
 
     // issue https get request
-    private async httpsPost(path:string, jsonPayload:string) {
+    private async httpsPost(path:string, jsonPayload:string):Promise<Response> {
         // let options = {
         //     hostname: this.address,
         //     port: this.port,
@@ -51,7 +64,7 @@ export default class AuthClient {
         // }
 
         let url = "https://"+this.address+":"+this.port.toString()+path
-        const response = fetch(url, {
+        const response:Promise<Response> = fetch(url, {
             method: 'POST',
             body: jsonPayload,
             headers: {
@@ -126,7 +139,16 @@ export default class AuthClient {
         //
         let payload = JSON.stringify({login:loginID, password:password})
         return this.httpsPost(DefaultJWTLoginPath, payload)
-            .then(response => response.json())
+            .then(response => {
+                if (response.status == 401) {
+                    console.error("AuthClient: Authentication Error", response.statusText)
+                    throw( new UnauthorizedError("Authentication Error"))
+                } else if (response.status >= 400) {
+                    console.error("AuthClient: Authentication failed", response.status)
+                    throw( new ResponseError("Authentication failed: "+response.statusText))
+                }
+                return response.json()
+            })
             .then(jsonResponse=>{
                 console.log("AuthClient.Connect: Authentication successful")
                 this._accessToken = jsonResponse.accessToken

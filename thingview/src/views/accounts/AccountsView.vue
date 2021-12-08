@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 
 import {reactive} from "vue";
-import {QBtn, QCard, QCardSection, QIcon, QToolbar, QToolbarTitle} from "quasar";
+import {useQuasar, QBtn, QCard, QCardSection, QIcon, QToolbar, QToolbarTitle} from "quasar";
 import {matAdd, matAssignmentInd} from "@quasar/extras/material-icons";
 
 import AccountsTable from './AccountsTable.vue'
@@ -9,6 +9,7 @@ import accountStore, {AccountRecord} from '@/data/AccountStore'
 import appState from '@/data/AppState'
 import EditAccountDialog from "@/views/accounts/EditAccountDialog.vue";
 import connectionManager from "@/data/ConnectionManager";
+import {nanoid} from "nanoid";
 
 const data = reactive({
   selectedRow : AccountRecord,
@@ -19,10 +20,14 @@ const data = reactive({
 })
 
 const accounts = accountStore.GetAccounts()
+const $q = useQuasar()
 
 const handleStartAdd = () => {
   console.log("handleStartAdd")
   data.showAddDialog = !data.showAddDialog
+  data.editRecord = new AccountRecord()
+  data.editRecord.id = nanoid(5)
+  data.showEditDialog = !data.showEditDialog
 }
 
 const handleStartEdit = (record: AccountRecord) => {
@@ -30,10 +35,14 @@ const handleStartEdit = (record: AccountRecord) => {
   data.editRecord = record
   data.showEditDialog = !data.showEditDialog
 }
+// update the account and re-connect if connect
 const handleSubmitEdit = (record: AccountRecord) => {
   console.log("handleSubmitEdit")
   accountStore.Update(record)
   data.showEditDialog = false
+  if (record.enabled) {
+    connectionManager.Connect(record)
+  }
 }
 const handleCancelEdit = () => {
   data.showEditDialog = false
@@ -42,14 +51,13 @@ const handleCancelEdit = () => {
 const handleStartDelete = (record: AccountRecord) => {
   console.log("handleStartDelete")
   // todo: ask for confirmation
-  // let $q = useQuasar()
-  // $q.dialog({
-  //   title:"Delete Account?",
-  //   message:"Please confirm delete account "+record.name,
-  //   ok:true, cancel:true,
-  // }).onOk(payload => {
-  //   accountStore.Remove(record.id)
-  // })
+  $q.dialog({
+    title:"Delete Account?",
+    message:"Please confirm delete account: '"+record.name+"'",
+    ok:true, cancel:true,
+  }).onOk(payload => {
+    accountStore.Remove(record.id)
+  })
 }
 
 // toggle the enabled status

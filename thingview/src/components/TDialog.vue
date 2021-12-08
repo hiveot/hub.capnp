@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {QBtn, QDialog, QCard, QCardSection, QCardActions, QBar, QSpace } from "quasar";
+import {QBtn, QDialog, QCard, QCardActions, QCardSection, QBar, QSpace } from "quasar";
 
 import {matClose} from "@quasar/extras/material-icons";
 
@@ -69,19 +69,21 @@ const handleCancel = () => {
       </QCardActions>
 
 <!--  default Cancel/OK footer buttons-->
-      <QCardActions v-if="(props.showCancel || props.showOk)" align="right">
+      <q-separator />
+      <QCardSection v-if="(props.showCancel || props.showOk)" class="row"
+        >
           <QBtn v-if="props.showCancel"
-            label="Cancel" flat
+            label="Cancel"
             @click="handleCancel"
           />
+          <QSpace/>
           <QBtn v-if="props.showOk"
             label="Ok"
             :disabled="props.okDisabled"
             color="primary"
-            class="q-ml-sm"
             @click="handleSubmit"
           />
-      </QCardActions>
+      </QCardSection>
     </QCard>
   </QDialog>
 </template>

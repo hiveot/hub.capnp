@@ -2,6 +2,7 @@
 
 // Wrapper around the QTable for showing a list of accounts
 // QTable slots are available to the parent
+import {ref} from 'vue'
 import  {AccountRecord} from "@/data/AccountStore";
 import {QBtn, QIcon, QToolbar, QTable, QTd, QToggle, QToolbarTitle, QTableProps} from "quasar";
 import {matDelete, matEdit, matLinkOff, matLink} from "@quasar/extras/material-icons";
@@ -45,6 +46,23 @@ const connectState = (account: AccountRecord): IConnectionStatus => {
   return state
 }
 
+// Return the connections status description
+const getTooltip = (account: AccountRecord): string => {
+  var tooltipText = ""
+  let state = props.cm.GetConnectionStatus(account)
+
+  if (state.authenticated) {
+    tooltipText += "The user is authenticated"
+  }
+  if (state.directory) {
+    tooltipText += ", the directory of Things is retrieved"
+  }
+  if (state.messaging) {
+    tooltipText += " and a message bus connection is established."
+  }
+  return tooltipText
+}
+
 // get reactive edit mode
 const isEditMode = ():boolean => {
   return !!props.editMode
@@ -60,22 +78,27 @@ const columns: Array<ICol> = [
     // Use large width to minimize the other columns
   {name: "name", label: "Name", field:"name" , align:"left", required:true, style:"width:400px",
     },
-  {name: "address", label: "Address", field:"address", align:"left"},
+  {name: "address", label: "Address", field:"address", align:"left", required:true, },
   {name: "authPort", label: "Authentication Port", field:"authPort", align:"left"},
   {name: "mqttPort", label: "MQTT Port", field:"mqttPort", align:"left"},
   {name: "directoryPort", label: "Directory Port", field:"directoryPort", align:"left"},
-  {name: "enabled", label: "Enabled", field:"enabled", align:"center"},
-  {name: "connected", label: "Connected", field:"connected", align:"center"},
+  {name: "enabled", label: "Enabled", field:"enabled", align:"center",  },
+  {name: "connected", label: "Connected", field:"connected", align:"center", required:true, },
+
+  // connection status message
+  // {name: "message", label: "Message", field:"message", align:"left"},
   {name: "delete", label: "", field:"delete", align:"center"},
 ]
 console.log("AccountsTable: editMode=%s", props.editMode)
 
+const visibleColumns = ref([ 'edit', 'name', 'address', 'enabled', 'connected', 'message','delete' ])
 </script>
 
 
 <template>
   <QTable :rows="props.accounts"
           :columns="columns"
+          :visible-columns="visibleColumns"
           hide-pagination
           row-key="address"
           hide-selected-banner
@@ -95,9 +118,9 @@ console.log("AccountsTable: editMode=%s", props.editMode)
 
     <!-- toggle 'enabled' switch. Use computed property to be reactive inside the slot -->
     <template v-slot:body-cell-enabled="props">
-      <QTd :props="props">
+      <QTd>
         <QToggle :model-value="props.row.enabled"
-                  @update:model-value="toggleEnabled(props.row)"
+                  @update:model-value="toggleEnabled(props.row as AccountRecord)"
                  :disable="!isEditMode()"
         />
       </QTd>
@@ -106,7 +129,8 @@ console.log("AccountsTable: editMode=%s", props.editMode)
     <!-- icon for connected-->
     <template v-slot:body-cell-connected="props" >
       <QTd>
-        <TConnectionStatus :value="connectState(props.row)" />
+        <TConnectionStatus :value="connectState(props.row as AccountRecord)"
+        :tooltip="getTooltip(props.row as AccountRecord)"/>
 <!--        <QIcon flat :color="connectState(props.row).authenticated?'green':'red'"-->
 <!--               :name="connectState(props.row).connected?matLink:matLinkOff"-->
 <!--               size="2em"-->
@@ -123,10 +147,11 @@ console.log("AccountsTable: editMode=%s", props.editMode)
     </template>
 
     <!-- button for delete. Can't delete the last record -->
-    <template v-if="isEditMode() && (props.accounts.length > 1)"  v-slot:body-cell-delete="props" >
+    <template v-slot:body-cell-delete="propz"
+              v-if="isEditMode() && (props.accounts.length > 1)" >
       <QTd>
         <QBtn dense flat round color="blue" field="edit" :icon="matDelete"
-              @click="emit('onDelete', props.row)"/>
+              @click="emit('onDelete', propz.row)"/>
       </QTd>
     </template>
     </QTable>

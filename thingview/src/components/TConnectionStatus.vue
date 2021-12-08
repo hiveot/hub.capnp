@@ -19,7 +19,9 @@ const props = defineProps<{
          :color="(props.value.authenticated) ? 'green' : 'red'"
          :to="to"
   >
-    <QTooltip>Connection Status & Configuration</QTooltip>
+    <QTooltip  class="text-body2" transition-show="scale">
+      {{tooltip}}
+    </QTooltip>
   </QBtn>
 
 </template>

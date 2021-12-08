@@ -72,18 +72,16 @@ export class ConnectionManager {
         this.Disconnect(account.id);
 
         let ac = this.GetAccountConnection(account)
-        if (ac.authClient == null || ac.mqttClient == null || ac.dirClient == null) {
-            ac.authClient = new AuthClient(account.address,account.authPort)
-            ac.mqttClient = new MqttClient(
-                account.id,
-                account.address,
-                account.mqttPort,
-                this.handleMqttConnected.bind(this),
-                this.handleMqttDisconnected.bind(this),
-                this.handleMqttMessage.bind(this)
-            )
-            ac.dirClient = new DirectoryClient(account.address, account.directoryPort)
-        }
+        ac.authClient = new AuthClient(account.address,account.authPort)
+        ac.mqttClient = new MqttClient(
+            account.id,
+            account.address,
+            account.mqttPort,
+            this.handleMqttConnected.bind(this),
+            this.handleMqttDisconnected.bind(this),
+            this.handleMqttMessage.bind(this))
+
+        ac.dirClient = new DirectoryClient(account.address, account.directoryPort)
 
         console.log("ConnectionManager.Connect: Connecting to", account.address, "as", account.loginName)
         this.connections.set(ac.accountID, ac)
@@ -110,7 +108,6 @@ export class ConnectionManager {
             })
             .catch((err: Error) => {
                 ac.state.authenticated = false
-                this.status.authenticated = false // assume single connection for now
                 console.error("ConnectionManager.Connect: failed to connect: ", err)
                 if (onConnectChanged) {
                     onConnectChanged(account, false, err)
@@ -133,11 +130,6 @@ export class ConnectionManager {
             if (connection.mqttClient) {
                 connection.mqttClient.Disconnect();
             }
-            // TODO: auto determine the following status using events
-            // connection.state.connected = false
-            // connection.state.messaging = false
-            // this.status.connected = false
-            // this.status.messaging = false
         }
     }
 
@@ -210,8 +202,7 @@ export class ConnectionManager {
             connection.state.messaging = true
             connection.state.connected = true
         }
-        this.status.connected = true
-        this.status.messaging = true
+        this.updateStatus()
     }
     // track the MQTT account connection status
     handleMqttDisconnected(accountID:string) {
@@ -220,11 +211,21 @@ export class ConnectionManager {
             connection.state.messaging = false
             connection.state.connected = false
         }
-        // todo: support multiple accounts
-        this.status.connected = false
-        this.status.messaging = false
+        this.updateStatus()
     }
 
+    // update the aggregate connection status of all accounts
+    updateStatus() {
+        let messaging = false, connected = false, directory = false;
+        this.connections.forEach( c => {
+            messaging = messaging || c.state.messaging
+            connected = connected || c.state.connected
+            directory = directory || c.state.directory
+        })
+        this.status.connected = connected
+        this.status.messaging = messaging
+        this.status.directory = directory
+    }
 }
 
 // the global connection manager
