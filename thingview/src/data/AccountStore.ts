@@ -82,6 +82,10 @@ export class AccountStore {
         console.log("No accounts in storage. Keeping existing accounts")
       }
     }
+    // ensure there is at least 1 account to display
+    if (this.data.accounts.length == 0) {
+      this.data.accounts.push(new AccountRecord())
+    }
   }
 
   // remove the given account by id

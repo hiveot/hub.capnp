@@ -104,7 +104,6 @@ const handleMenuSelect = (menuItem:IMenuItem) => {
 <!--    <TButton  icon="mdi-link-off" flat tooltip="Connection Status & Configuration"/>-->
     <TConnectionStatus :value="cm.connectionStatus"
                       :to="{name: AccountsRouteName}"
-                      tooltip="Connection Status & Configuration"
     />
 
     <!-- Dropdown menu -->

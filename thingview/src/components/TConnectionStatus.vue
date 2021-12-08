@@ -8,7 +8,6 @@ import {matLink, matLinkOff} from "@quasar/extras/material-icons";
 const props = defineProps<{
   value: IConnectionStatus,
   to?: String|Object,
-  tooltip?: String,
 }>()
 
 </script>
@@ -20,7 +19,7 @@ const props = defineProps<{
          :to="to"
   >
     <QTooltip  class="text-body2" transition-show="scale">
-      {{tooltip}}
+      {{value.statusMessage}}
     </QTooltip>
   </QBtn>
 

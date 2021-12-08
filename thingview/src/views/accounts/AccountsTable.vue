@@ -46,23 +46,6 @@ const connectState = (account: AccountRecord): IConnectionStatus => {
   return state
 }
 
-// Return the connections status description
-const getTooltip = (account: AccountRecord): string => {
-  var tooltipText = ""
-  let state = props.cm.GetConnectionStatus(account)
-
-  if (state.authenticated) {
-    tooltipText += "The user is authenticated"
-  }
-  if (state.directory) {
-    tooltipText += ", the directory of Things is retrieved"
-  }
-  if (state.messaging) {
-    tooltipText += " and a message bus connection is established."
-  }
-  return tooltipText
-}
-
 // get reactive edit mode
 const isEditMode = ():boolean => {
   return !!props.editMode
@@ -129,8 +112,7 @@ const visibleColumns = ref([ 'edit', 'name', 'address', 'enabled', 'connected', 
     <!-- icon for connected-->
     <template v-slot:body-cell-connected="props" >
       <QTd>
-        <TConnectionStatus :value="connectState(props.row as AccountRecord)"
-        :tooltip="getTooltip(props.row as AccountRecord)"/>
+        <TConnectionStatus :value="connectState(props.row as AccountRecord)" />
 <!--        <QIcon flat :color="connectState(props.row).authenticated?'green':'red'"-->
 <!--               :name="connectState(props.row).connected?matLink:matLinkOff"-->
 <!--               size="2em"-->

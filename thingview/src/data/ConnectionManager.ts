@@ -7,11 +7,12 @@ import AuthClient from "@/data/AuthClient";
 
 // Account connection status
 export interface IConnectionStatus {
-    readonly accountID: string        // ID of the account
-    connected: boolean       // authenticated and at least one service connected
-    authenticated: boolean   // authentication was successful
-    directory: boolean       // the directory is obtained
-    messaging: boolean       // message bus connection is established
+  readonly accountID: string        // ID of the account
+  connected: boolean        // authenticated and at least one service connected
+  authenticated: boolean    // authentication was successful
+  directory: boolean        // the directory is obtained
+  messaging: boolean        // message bus connection is established
+  statusMessage: string     // human description of connection status
 }
 export type AccountConnection = {
     readonly accountID: string
@@ -39,7 +40,8 @@ export class ConnectionManager {
             connected:false,
             authenticated:false,
             directory:false,
-            messaging:false
+          messaging: false,
+          statusMessage: "Not connected"
         })
         this.started = false
     }
@@ -92,6 +94,7 @@ export class ConnectionManager {
             .then((accessToken: string) => {
                 console.log("ConnectionManager.Connect: Authentication successful. Connecting to mqtt and directory")
                 ac.state.authenticated = true
+              ac.state.statusMessage = "Authentication successful"
                 this.status.authenticated = true
                 // this.status.connected = true
 
@@ -108,7 +111,8 @@ export class ConnectionManager {
             })
             .catch((err: Error) => {
                 ac.state.authenticated = false
-                console.error("ConnectionManager.Connect: failed to connect: ", err)
+              ac.state.statusMessage = "Failed to authenticate: " + err.message
+              console.error("ConnectionManager.Connect: failed to authenticate: ", err)
                 if (onConnectChanged) {
                     onConnectChanged(account, false, err)
                 }
@@ -171,7 +175,9 @@ export class ConnectionManager {
                 authClient: null,
                 mqttClient: null,
                 dirClient: null,
-                state: reactive(<IConnectionStatus>{})
+              state: reactive(<IConnectionStatus>{
+                statusMessage: "Not connected"
+              })
             }
             this.connections.set(account.id, connection)
         }
@@ -201,6 +207,7 @@ export class ConnectionManager {
         if (connection) {
             connection.state.messaging = true
             connection.state.connected = true
+          connection.state.statusMessage = "Connected to message bus"
         }
         this.updateStatus()
     }
@@ -210,21 +217,42 @@ export class ConnectionManager {
         if (connection) {
             connection.state.messaging = false
             connection.state.connected = false
+          connection.state.statusMessage = "Disconnected from messaging"
         }
         this.updateStatus()
     }
 
     // update the aggregate connection status of all accounts
     updateStatus() {
-        let messaging = false, connected = false, directory = false;
+      let messaging = false, connected = false, directory = false, authenticated = false;
         this.connections.forEach( c => {
             messaging = messaging || c.state.messaging
             connected = connected || c.state.connected
             directory = directory || c.state.directory
+          authenticated = authenticated || c.state.authenticated
         })
         this.status.connected = connected
         this.status.messaging = messaging
         this.status.directory = directory
+      this.status.authenticated = authenticated
+
+      let newMessage = "Not connected"
+      if (authenticated) {
+        newMessage = "The user is authenticated"
+        if (directory) {
+          newMessage += ", the directory of Things is retrieved"
+        }
+        if (messaging) {
+          newMessage += " and message bus connection is established"
+        }
+        if (!directory && !messaging) {
+          newMessage = "Authenticated but not connected"
+        }
+      } else {
+        newMessage = "Not authenticated"
+      }
+      this.status.statusMessage = newMessage
+
     }
 }
 
