@@ -5,7 +5,7 @@ import (
 	"github.com/wostzone/hub/lib/serve/pkg/certsetup"
 )
 
-// ACL filter function for authorization of thing access
+// AclFilter function for authorization of thing access
 // Todo: include groups the user is a member of to
 type AclFilter struct {
 	userID     string
@@ -27,7 +27,7 @@ func (aclFilter *AclFilter) FilterThing(thingID string) bool {
 	return hasAccess
 }
 
-// NewAclFilter. Provide authorization context needed to authorize requests
+// NewAclFilter provides authorization context needed to authorize requests
 // userID to filter on. An empty userID always fails.
 // authorizer is the function that performs the actual authorization
 func NewAclFilter(userID string, certOU string, authorizer authorize.VerifyAuthorization) AclFilter {

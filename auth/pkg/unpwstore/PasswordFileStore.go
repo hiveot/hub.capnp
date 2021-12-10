@@ -77,6 +77,7 @@ func (pwStore *PasswordFileStore) Reload() error {
 	file, err := os.Open(pwStore.storePath)
 	if err != nil {
 		err := fmt.Errorf("PasswordFileStore.Reload: clientID='%s', Failed to open password file: %s", pwStore.clientID, err)
+		logrus.Error(err)
 		return err
 	}
 	defer file.Close()

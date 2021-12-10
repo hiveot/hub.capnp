@@ -25,7 +25,7 @@ var unpwFilePath string
 
 // TestMain for all auth tests, setup of default folders and filenames
 func TestMain(m *testing.M) {
-	config.SetLogging("info", "")
+	_ = config.SetLogging("info", "")
 	cwd, _ := os.Getwd()
 	homeFolder := path.Join(cwd, "../../test")
 	configFolder := path.Join(homeFolder, "config")
@@ -33,10 +33,10 @@ func TestMain(m *testing.M) {
 	// Make sure ACL and password files exist
 	aclFilePath = path.Join(configFolder, aclFileName)
 	fp, _ := os.Create(aclFilePath)
-	fp.Close()
+	_ = fp.Close()
 	unpwFilePath = path.Join(configFolder, unpwFileName)
 	fp, _ = os.Create(unpwFilePath)
-	fp.Close()
+	_ = fp.Close()
 	// creating these files takes a bit of time,
 	time.Sleep(time.Second)
 
@@ -47,9 +47,9 @@ func TestMain(m *testing.M) {
 // Create auth handler with empty username/pw and acl list
 func createEmptyTestAuthHandler() *authorize.Authorizer {
 	fp, _ := os.Create(aclFilePath)
-	fp.Close()
+	_ = fp.Close()
 	fp, _ = os.Create(unpwFilePath)
-	fp.Close()
+	_ = fp.Close()
 	aclStore := aclstore.NewAclFileStore(aclFilePath, "createEmptyTestAuthHandler")
 	ah := authorize.NewAuthorizer(aclStore)
 	return ah
@@ -96,7 +96,7 @@ func TestIsPublisher(t *testing.T) {
 	thingID2 := "urn:zone:" + testDevice1 + ":sensor1"
 	thingID3 := "urn:zone:" + testDevice1 + ""
 	ah := createEmptyTestAuthHandler()
-	ah.Start()
+	_ = ah.Start()
 
 	isPublisher := ah.IsPublisher(testDevice1, thingID1)
 	assert.True(t, isPublisher)
@@ -111,7 +111,7 @@ func TestHasPermission(t *testing.T) {
 	logrus.Infof("---TestHasPermission---")
 
 	ah := createEmptyTestAuthHandler()
-	ah.Start()
+	_ = ah.Start()
 	// read permission
 	hasPerm := ah.VerifyRolePermission(authorize.GroupRoleThing, false, td.MessageTypeTD)
 	assert.True(t, hasPerm)
@@ -139,13 +139,13 @@ func TestCheckDeviceAuthorization(t *testing.T) {
 	aclStore := aclstore.NewAclFileStore(aclFilePath, "TestCheckDeviceAuthorization")
 
 	ah := authorize.NewAuthorizer(aclStore)
-	ah.Start()
+	_ = ah.Start()
 
 	group1 := "group1"
 	userName := "pub1"
 	thingID1 := "urn:zone1:pub1:device1:sensor1"
 	thingID2 := "urn:zone1:pub2:device1:sensor1"
-	writing := true
+	const writing = true
 	msgType := td.MessageTypeTD
 
 	// publishers can publish to things with thingID that contains the publisher
@@ -169,14 +169,14 @@ func TestCheckDeviceAuthorization(t *testing.T) {
 	grps := aclStore.GetGroups(thingID1)
 	assert.Zero(t, len(grps))
 	// viewer roles cannot publish
-	aclStore.SetRole(thingID1, group1, authorize.GroupRoleThing)
-	aclStore.SetRole("user1", group1, authorize.GroupRoleViewer)
+	_ = aclStore.SetRole(thingID1, group1, authorize.GroupRoleThing)
+	_ = aclStore.SetRole("user1", group1, authorize.GroupRoleViewer)
 	time.Sleep(time.Millisecond * 200) // reload
 
 	authorized = ah.VerifyAuthorization("user1", "", thingID1, writing, msgType)
 	assert.False(t, authorized)
 	// editor role can control thing with actions
-	aclStore.SetRole("user1", group1, authorize.GroupRoleEditor)
+	_ = aclStore.SetRole("user1", group1, authorize.GroupRoleEditor)
 	time.Sleep(time.Millisecond * 200) // reload
 	authorized = ah.VerifyAuthorization("user1", "", thingID1, writing, td.MessageTypeAction)
 	assert.True(t, authorized)

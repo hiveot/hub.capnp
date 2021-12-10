@@ -16,7 +16,9 @@ import (
 	"github.com/wostzone/hub/thingdir/pkg/dirstore/dirfilestore"
 )
 
-const DirectoryPluginID = "directory"
+// const DirectoryPluginID = "directory"
+
+// DefaultDirectoryStoreFile is the default filename under which to store the directory
 const DefaultDirectoryStoreFile = "directory.json"
 
 // const RouteUpdateTD = "/things/{thingID}"

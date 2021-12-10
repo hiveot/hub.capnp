@@ -5,17 +5,75 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0c1e6961-9e54-4948-b084-6d0502132342" name="Changes" comment="dev iteration, refactor packages">
-      <change beforePath="$PROJECT_DIR$/thingview/src/data/AccountStore.ts" beforeDir="false" afterPath="$PROJECT_DIR$/thingview/src/data/AccountStore.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingview/src/data/MqttClient.ts" beforeDir="false" afterPath="$PROJECT_DIR$/thingview/src/data/MqttClient.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth/pkg/aclstore/AclFileStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/auth/pkg/aclstore/AclFileStore.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth/pkg/aclstore/AclFileStore_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/auth/pkg/aclstore/AclFileStore_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth/pkg/authorize/Authorizer.go" beforeDir="false" afterPath="$PROJECT_DIR$/auth/pkg/authorize/Authorizer.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth/pkg/authorize/Authorizer_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/auth/pkg/authorize/Authorizer_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth/pkg/authorize/IAclStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/auth/pkg/authorize/IAclStore.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/auth/pkg/unpwstore/PasswordFileStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/auth/pkg/unpwstore/PasswordFileStore.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/client/pkg/td/config.go" beforeDir="false" afterPath="$PROJECT_DIR$/lib/client/pkg/td/config.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/client/pkg/td/td.go" beforeDir="false" afterPath="$PROJECT_DIR$/lib/client/pkg/td/td.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/client/pkg/vocab/IoTVocabulary.go" beforeDir="false" afterPath="$PROJECT_DIR$/lib/client/pkg/vocab/IoTVocabulary.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingdir/pkg/dirserver/AclFilter.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/dirserver/AclFilter.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingdir/pkg/dirserver/DirServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/dirserver/DirServer.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingdir/pkg/dirserver/ServeThings.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/dirserver/ServeThings.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingdir/pkg/dirstore/IDirStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/dirstore/IDirStore.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingdir/pkg/dirstore/dirfilestore/dirfilestore.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/dirstore/dirfilestore/dirfilestore.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingdir/pkg/thingdir-pb/thingdir-pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/thingdir-pb/thingdir-pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingview/dist/favicon.ico" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingview/dist/index.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingview/src/App.vue" beforeDir="false" afterPath="$PROJECT_DIR$/thingview/src/App.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingview/src/components/MenuButton.vue" beforeDir="false" afterPath="$PROJECT_DIR$/thingview/src/components/MenuButton.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingview/src/data/AccountStore.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingview/src/data/AppState.ts" beforeDir="false" afterPath="$PROJECT_DIR$/thingview/src/data/AppState.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingview/src/data/ConnectionManager.ts" beforeDir="false" afterPath="$PROJECT_DIR$/thingview/src/data/ConnectionManager.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingview/src/data/DashboardStore.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingview/src/data/DirectoryClient.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingview/src/data/DirectoryStore.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingview/src/router/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/thingview/src/router/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingview/src/views/AppStartup.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingview/src/views/LoginView.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingview/src/views/accounts/AccountsTable.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingview/src/views/accounts/AccountsView.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingview/src/views/accounts/EditAccountDialog.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingview/src/views/app/AppAboutDialog.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingview/src/views/app/AppHeader.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingview/src/views/app/AppMenu.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingview/src/views/app/AppView.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingview/src/views/page/AppAddPageDialog.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingview/src/views/page/PageView.vue" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingview/stats.html" beforeDir="false" afterPath="$PROJECT_DIR$/thingview/stats.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingview/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/thingview/tsconfig.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="ChangesViewManager">
+    <option name="groupingKeys">
+      <option value="directory" />
+    </option>
+  </component>
+  <component name="FormatOnSaveOptions">
+    <option name="myAllFileTypesSelected" value="true" />
+    <option name="mySelectedFileTypes">
+      <set />
+    </option>
+  </component>
   <component name="GOROOT" url="file:///snap/go/8627" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="OptimizeOnSaveOptions">
+    <option name="myAllFileTypesSelected" value="true" />
+    <option name="mySelectedFileTypes">
+      <set />
+    </option>
   </component>
   <component name="ProjectId" id="20iBRYSILKWb1NgiiO6Uzi4LzWe" />
   <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
@@ -34,17 +92,17 @@
     <property name="code.cleanup.on.save" value="true" />
     <property name="configurable..is.expanded" value="true" />
     <property name="configurable.GoLibrariesConfigurable.is.expanded" value="true" />
-    <property name="format.on.save" value="true" />
+    <property name="go.format.on.save.advertiser.fired" value="true" />
     <property name="go.formatter.settings.were.checked" value="true" />
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.modules.go.list.on.any.changes.was.set" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
+    <property name="go.watchers.conflict.with.on.save.actions.check.performed" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$/thingdir" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
-    <property name="optimize.imports.on.save" value="true" />
     <property name="settings.editor.selected.configurable" value="editor.preferences.folding" />
   </component>
   <component name="RecentsManager">
@@ -52,25 +110,13 @@
       <recent name="$PROJECT_DIR$/idprov/test" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Test.go test github.com/wostzone/hub/thingdir/pkg/dirstore/dirfilestore">
+  <component name="RunManager" selected="Go Test.TestSetRoleAndRestart in github.com/wostzone/hub/auth/pkg/aclstore">
     <configuration default="true" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <module name="hub" />
       <working_directory value="$PROJECT_DIR$" />
       <kind value="FILE" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
-      <method v="2" />
-    </configuration>
-    <configuration name="TestPatch in github.com/wostzone/hub/thingdir/pkg/dirserver" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="thingdir" />
-      <working_directory value="$PROJECT_DIR$/thingdir/pkg/dirserver" />
-      <root_directory value="$PROJECT_DIR$/thingdir" />
-      <kind value="PACKAGE" />
-      <package value="github.com/wostzone/hub/thingdir/pkg/dirserver" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <pattern value="^\QTestPatch\E$" />
       <method v="2" />
     </configuration>
     <configuration name="TestPatch in github.com/wostzone/hub/thingdir/pkg/dirstore/dirfilestore" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -85,22 +131,33 @@
       <pattern value="^\QTestPatch\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestStartStop in github.com/wostzone/hub/thingdir/pkg/dirserver" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="thingdir" />
-      <working_directory value="$PROJECT_DIR$/thingdir/pkg/dirserver" />
-      <root_directory value="$PROJECT_DIR$/thingdir" />
+    <configuration name="TestSetRoleAndRestart in github.com/wostzone/hub/auth/pkg/aclstore" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="auth" />
+      <working_directory value="$PROJECT_DIR$/auth/pkg/aclstore" />
+      <root_directory value="$PROJECT_DIR$/auth" />
       <kind value="PACKAGE" />
-      <package value="github.com/wostzone/hub/thingdir/pkg/dirserver" />
+      <package value="github.com/wostzone/hub/auth/pkg/aclstore" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestStartStop\E$" />
+      <pattern value="^\QTestSetRoleAndRestart\E$" />
       <method v="2" />
     </configuration>
     <configuration default="true" type="GoTestRunConfiguration" factoryName="Go Test">
       <module name="hub" />
       <working_directory value="$PROJECT_DIR$" />
       <kind value="DIRECTORY" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <method v="2" />
+    </configuration>
+    <configuration name="go test github.com/wostzone/hub/auth/pkg/aclstore" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="auth" />
+      <working_directory value="$PROJECT_DIR$/auth/pkg/aclstore" />
+      <root_directory value="$PROJECT_DIR$/auth" />
+      <kind value="PACKAGE" />
+      <package value="github.com/wostzone/hub/auth/pkg/aclstore" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
@@ -129,19 +186,19 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Go Test.TestStartStop in github.com/wostzone/hub/thingdir/pkg/dirserver" />
-      <item itemvalue="Go Test.TestPatch in github.com/wostzone/hub/thingdir/pkg/dirserver" />
       <item itemvalue="Go Test.TestPatch in github.com/wostzone/hub/thingdir/pkg/dirstore/dirfilestore" />
       <item itemvalue="Go Test.go test github.com/wostzone/hub/thingdir/pkg/dirstore/dirfilestore" />
       <item itemvalue="Go Test.go test github.com/wostzone/hub/thingdir/pkg/thingdir-pb" />
+      <item itemvalue="Go Test.go test github.com/wostzone/hub/auth/pkg/aclstore" />
+      <item itemvalue="Go Test.TestSetRoleAndRestart in github.com/wostzone/hub/auth/pkg/aclstore" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Go Test.TestSetRoleAndRestart in github.com/wostzone/hub/auth/pkg/aclstore" />
+        <item itemvalue="Go Test.go test github.com/wostzone/hub/auth/pkg/aclstore" />
         <item itemvalue="Go Test.go test github.com/wostzone/hub/thingdir/pkg/dirstore/dirfilestore" />
         <item itemvalue="Go Test.go test github.com/wostzone/hub/thingdir/pkg/thingdir-pb" />
         <item itemvalue="Go Test.TestPatch in github.com/wostzone/hub/thingdir/pkg/dirstore/dirfilestore" />
-        <item itemvalue="Go Test.TestPatch in github.com/wostzone/hub/thingdir/pkg/dirserver" />
-        <item itemvalue="Go Test.TestStartStop in github.com/wostzone/hub/thingdir/pkg/dirserver" />
       </list>
     </recent_temporary>
   </component>
@@ -159,7 +216,6 @@
         </entry>
       </map>
     </option>
-    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />

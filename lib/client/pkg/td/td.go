@@ -168,7 +168,6 @@ func CreateTD(thingID string, deviceType vocab.DeviceType) ThingTD {
 //  A thingID without zone: URN:deviceID:deviceType
 //  A thingID without publisher: URN:zone:deviceID:deviceType.
 //  A thingID with publisher: URN:zone:publisherID:deviceID:deviceType.
-//  thingID is the multi-part identified of the thing and the device it is part of
 func SplitThingID(thingID string) (
 	zone string, publisherID string, deviceID string, deviceType vocab.DeviceType) {
 	parts := strings.Split(thingID, ":")
@@ -176,18 +175,22 @@ func SplitThingID(thingID string) (
 		// not a conventional thing ID
 		return "", "", "", ""
 	} else if len(parts) == 5 {
+		// this is a full thingID  zone:publisher:deviceID:deviceType
 		zone = parts[1]
 		publisherID = parts[2]
 		deviceID = parts[3]
 		deviceType = vocab.DeviceType(parts[4])
 	} else if len(parts) == 4 {
+		// this is a partial thingID  zone:deviceID:deviceType
 		zone = parts[1]
 		deviceID = parts[2]
 		deviceType = vocab.DeviceType(parts[3])
 	} else if len(parts) == 3 {
+		// this is a partial thingID  deviceID:deviceType
 		deviceID = parts[1]
 		deviceType = vocab.DeviceType(parts[2])
 	} else if len(parts) == 2 {
+		// the thingID is the deviceID
 		deviceID = parts[1]
 	}
 	return

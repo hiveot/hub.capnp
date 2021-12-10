@@ -53,8 +53,10 @@ func (ah *Authorizer) VerifyAuthorization(
 		// A publishing device of IoT things can access their own things
 		if !ah.IsPublisher(userID, thingID) {
 			// err := fmt.Errorf("CheckAuthorization: Refused access by device '%s' to thingID '%s'. Thing belongs to a different publisher", username, thingID)
+			logrus.Debugf("CheckAuthorization - IoT device cannot impersonate a different publisher: false")
 			return false
 		}
+		logrus.Debugf("CheckAuthorization - IoT device can access its own devices: true")
 		return true
 	}
 	// Consumers must be in the same group as the thing
@@ -68,6 +70,7 @@ func (ah *Authorizer) VerifyAuthorization(
 	// Consumer must have the correct read/write role for the message type (td, action, ..)
 	role := ah.aclStore.GetRole(userID, groups)
 	allowed := ah.VerifyRolePermission(role, writing, writeType)
+	logrus.Debugf("CheckAuthorization - role ('%s') in groups('%s') permission check for (r/w=%t): %t", role, groups, writing, allowed)
 	return allowed
 }
 
@@ -115,7 +118,7 @@ func (ah *Authorizer) IsPublisher(deviceID string, thingID string) bool {
 	return publisherID == deviceID
 }
 
-// Start the authhandler. This opens the ACL and password stores for reading
+// Start the authorizer. This opens the ACL store for reading
 func (ah *Authorizer) Start() error {
 	logrus.Infof("AuthHandler.Start Opening ACL store")
 	if ah.aclStore == nil {

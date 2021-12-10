@@ -5,7 +5,7 @@ type IAclStore interface {
 	// GetGroups returns a list of groups a thing or user is a member of
 	GetGroups(clientID string) []string
 
-	// Get highest role of a user has in a list of group
+	// GetRole returns the highest role of a user has in a list of group
 	// Intended to get client permissions in case of overlapping groups
 	// Returns the role
 	GetRole(clientID string, groupIDs []string) string
@@ -16,6 +16,6 @@ type IAclStore interface {
 	// Open the store
 	Open() error
 
-	// Write the role for the client in a group
+	// SetRole writes the role for the client in a group
 	SetRole(clientID string, groupID string, role string) error
 }

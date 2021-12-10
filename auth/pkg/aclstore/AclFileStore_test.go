@@ -20,7 +20,7 @@ var configFolder string
 
 // TestMain for all auth tests, setup of default folders and filenames
 func TestMain(m *testing.M) {
-	config.SetLogging("info", "")
+	_ = config.SetLogging("info", "")
 	cwd, _ := os.Getwd()
 	homeFolder := path.Join(cwd, "../../test")
 	configFolder = path.Join(homeFolder, "config")
@@ -29,7 +29,7 @@ func TestMain(m *testing.M) {
 	aclFilePath = path.Join(configFolder, aclFileName)
 	fp, _ := os.Create(aclFilePath)
 	// fp.WriteString("group1:\n  user1: manager\n")
-	fp.Close()
+	_ = fp.Close()
 
 	res := m.Run()
 	os.Exit(res)
@@ -47,13 +47,18 @@ func TestOpenCloseAclStore(t *testing.T) {
 
 func TestSetRoleAndRestart(t *testing.T) {
 	user1 := "user1"
+	user2 := "user2"
 	role1 := authorize.GroupRoleManager
+	role2 := authorize.GroupRoleManager
 	group1 := "group1"
+	group2 := "all"
 	aclStore := aclstore.NewAclFileStore(aclFilePath, "TestSetRole")
 	err := aclStore.Open()
 	assert.NoError(t, err)
 
 	err = aclStore.SetRole(user1, group1, role1)
+	err = aclStore.SetRole(user1, group2, role1)
+	err = aclStore.SetRole(user2, group2, role2)
 	assert.NoError(t, err)
 
 	// stop and reload
@@ -66,9 +71,12 @@ func TestSetRoleAndRestart(t *testing.T) {
 
 	groups := aclStore.GetGroups(user1)
 	assert.GreaterOrEqual(t, len(groups), 1)
+	ur1 := aclStore.GetRole(user1, groups)
+	assert.Equal(t, role1, ur1)
 
-	role := aclStore.GetRole(user1, groups)
-	assert.Equal(t, authorize.GroupRoleManager, role)
+	groups = aclStore.GetGroups(user2)
+	ur2 := aclStore.GetRole(user2, groups)
+	assert.Equal(t, role1, ur2)
 
 	aclStore.Close()
 }

@@ -13,7 +13,7 @@ func CreateConfigRequest(propertyName string, newValue string) map[string]interf
 	return config
 }
 
-// Add a property value to a configuration request
+// AddConfigRequest adds a property value to a configuration request
 func AddConfigRequest(config map[string]interface{}, propertyName string, newValue string) {
 	config[propertyName] = newValue
 }

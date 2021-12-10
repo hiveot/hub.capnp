@@ -50,7 +50,7 @@ type ThingDirPBConfig struct {
 	DirectoryStoreFolder string `yaml:"storeFolder"` // location of directory files
 }
 
-// Thing Directory Protocol Binding for the WoST Hub
+// ThingDirPB Directory Protocol Binding for the WoST Hub
 type ThingDirPB struct {
 	config        ThingDirPBConfig
 	hubConfig     config.HubConfig
@@ -59,6 +59,8 @@ type ThingDirPB struct {
 	hubClient     *mqttclient.MqttHubClient
 	authenticator authenticate.VerifyUsernamePassword
 	authorizer    authorize.VerifyAuthorization
+	aclStore      *aclstore.AclFileStore
+	unpwStore     *unpwstore.PasswordFileStore
 }
 
 // Start the ThingDir service.
@@ -82,6 +84,15 @@ func (pb *ThingDirPB) Start() error {
 		if pb.config.EnableLogin {
 			loginAuth = pb.authenticator
 		}
+		err = pb.unpwStore.Open()
+		if err != nil {
+			return err
+		}
+		pb.aclStore.Open()
+		if err != nil {
+			return err
+		}
+
 		pb.dirServer = dirserver.NewDirectoryServer(
 			pb.config.PbClientID,
 			pb.config.DirectoryStoreFolder,
@@ -127,6 +138,9 @@ func (pb *ThingDirPB) Stop() {
 	if pb.dirServer != nil {
 		pb.dirServer.Stop()
 	}
+	pb.unpwStore.Close()
+	pb.aclStore.Close()
+
 }
 
 // NewThingDirPB creates a new Thing Directory protocol binding instance
@@ -188,17 +202,20 @@ func NewThingDirPB(thingdirconf *ThingDirPBConfig, hubConfig *config.HubConfig) 
 	}
 
 	// The file based stores are the only option for now
-	aclFile := aclstore.DefaultAclFile
+
+	aclFile := path.Join(hubConfig.ConfigFolder, aclstore.DefaultAclFile)
 	aclStore := aclstore.NewAclFileStore(aclFile, "ThingDirPB")
 
-	unpwFile := unpwstore.DefaultPasswordFile
+	unpwFile := path.Join(hubConfig.ConfigFolder, unpwstore.DefaultPasswordFile)
 	unpwStore := unpwstore.NewPasswordFileStore(unpwFile, "ThingDirPB")
 
 	tdir := ThingDirPB{
 		config:        *thingdirconf,
 		hubConfig:     *hubConfig,
 		hubClient:     mqttclient.NewMqttHubClient(PluginID, hubConfig.CaCert),
+		aclStore:      aclStore,
 		authenticator: authenticate.NewAuthenticator(unpwStore).VerifyUsernamePassword,
+		unpwStore:     unpwStore,
 		authorizer:    authorize.NewAuthorizer(aclStore).VerifyAuthorization,
 	}
 	return &tdir

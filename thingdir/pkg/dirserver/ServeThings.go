@@ -39,10 +39,8 @@ func (srv *DirectoryServer) ServeThings(userID string, response http.ResponseWri
 	aclFilter := NewAclFilter(userID, certOU, srv.authorizer)
 
 	if jsonPath == "" {
-		logrus.Infof("ServeThings: list offset=%d, limit=%d", offset, limit)
 		tdList = srv.store.List(offset, limit, aclFilter.FilterThing)
 	} else {
-		logrus.Infof("ServeThings: Query='%s', offset=%d, limit=%d", jsonPath, offset, limit)
 		tdList, err = srv.store.Query(jsonPath, offset, limit, aclFilter.FilterThing)
 		if err != nil {
 			msg := fmt.Sprintf("ServeThings: query error: %s", err)
@@ -51,6 +49,8 @@ func (srv *DirectoryServer) ServeThings(userID string, response http.ResponseWri
 		}
 	}
 
+	logrus.Infof("ServeThings: user=%s (ou=%s), query='%s', offset=%d, limit=%d, #items=%d of %d",
+		userID, certOU, jsonPath, offset, limit, len(tdList), srv.store.Size())
 	msg, err := json.Marshal(tdList)
 	if err != nil {
 		msg := fmt.Sprintf("ServeThings: Marshal error %s", err)

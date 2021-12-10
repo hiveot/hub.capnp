@@ -55,7 +55,7 @@ func (aclStore *AclFileStore) GetGroups(clientID string) []string {
 	return groupsMemberOf
 }
 
-// Get highest role of a user has in a list of group
+// GetRole returns the highest role of a user has in a list of group
 // Intended to get client permissions in case of overlapping groups
 func (aclStore *AclFileStore) GetRole(clientID string, groupIDs []string) string {
 	highestRole := authorize.GroupRoleNone
@@ -71,6 +71,7 @@ func (aclStore *AclFileStore) GetRole(clientID string, groupIDs []string) string
 			highestRole = role
 		}
 	}
+	logrus.Debugf("AclFileStore.GetRole: clientID=%s, highestRole=%s", clientID, highestRole)
 	return highestRole
 }
 
@@ -139,7 +140,7 @@ func (aclStore *AclFileStore) Reload() error {
 	return nil
 }
 
-// Set a user ACL and update the store.
+// SetRole sets a user ACL and update the store.
 // This updates the user's role, saves it to a temp file and move the result to the store file.
 // Interruptions will not lead to data corruption as the resulting acl file is only moved after successful write.
 // Note that concurrent writes by different processes is not supported and can lead to one of the
@@ -165,13 +166,13 @@ func (aclStore *AclFileStore) SetRole(clientID string, groupID string, role stri
 	folder := path.Dir(aclStore.storePath)
 	tempFileName, err := WriteAclsToTempFile(folder, aclStore.Groups)
 	if err != nil {
-		logrus.Infof("AclFileStore.SetRole clientID='%s': %s", aclStore.clientID, err)
+		logrus.Errorf("AclFileStore.SetRole clientID='%s': %s", aclStore.clientID, err)
 		return err
 	}
 
 	err = os.Rename(tempFileName, aclStore.storePath)
 	if err != nil {
-		logrus.Infof("AclFileStore.SetRole. clientID='%s'. Error renaming temp file to store: %s", aclStore.clientID, err)
+		logrus.Errorf("AclFileStore.SetRole. clientID='%s'. Error renaming temp file to store: %s", aclStore.clientID, err)
 		return err
 	}
 

@@ -26,7 +26,7 @@ import (
 	"github.com/wostzone/hub/lib/client/pkg/td"
 )
 
-// Max nr of items to return in list
+// DefaultListLimit is the default max nr of items to return in list
 const DefaultListLimit = 100
 
 // DirFileStore is a crude little file based Directory store
@@ -119,7 +119,10 @@ func (store *DirFileStore) AutoSaveLoop() {
 		default:
 			store.mutex.Lock()
 			if store.updateCount > 0 {
-				writeStoreFile(store.storePath, store.docs)
+				err := writeStoreFile(store.storePath, store.docs)
+				if err != nil {
+					logrus.Errorf("DirFileStore.AutoSaveLoop: Writing directory to %s failed: %s", store.storePath, err)
+				}
 				store.updateCount = 0
 			}
 			store.mutex.Unlock()
@@ -141,7 +144,10 @@ func (store *DirFileStore) Close() {
 	defer store.mutex.Unlock()
 
 	if store.updateCount > 0 {
-		writeStoreFile(store.storePath, store.docs)
+		err := writeStoreFile(store.storePath, store.docs)
+		if err != nil {
+			logrus.Errorf("DirFileStore.Close: Writing directory to %s failed: %s", store.storePath, err)
+		}
 	}
 }
 
@@ -159,7 +165,7 @@ func (store *DirFileStore) Get(thingID string) (interface{}, error) {
 	return doc, nil
 }
 
-// Return a list of documents
+// List returns a list of documents
 //  offset is the offset in the document list that is sorted by document ID
 //  limit is the maximum nr of documents to return or 0 for the default
 //  aclFilter filters the things by ID. Use nil to ignore.
@@ -308,6 +314,11 @@ func (store *DirFileStore) Replace(id string, document map[string]interface{}) e
 	store.docs[id] = document
 	store.updateCount++
 	return nil
+}
+
+// Size returns the number of items in the store
+func (store *DirFileStore) Size() int {
+	return len(store.docs)
 }
 
 // NewDirFileStore creates a new directory file store instance

@@ -2,16 +2,17 @@
 // This is an interface to support different backend implementations
 package dirstore
 
-// Interface to the directory JSON object store
+// IDirStore is the interface to the directory JSON object store
 // Simple CRUD interface with JSONPATH support
 type IDirStore interface {
 	// Close the store
 	Close()
+
 	// Get a document by its ID
 	// Returns an error if it doesn't exist
 	Get(id string) (interface{}, error)
 
-	// Get a list of documents
+	// List returns a list of documents
 	//  offset to start
 	//  limit is the maximum nr of documents to return
 	//	filter is a function to filter things
@@ -39,4 +40,7 @@ type IDirStore interface {
 	// Replace a document
 	// The document does not have to exist
 	Replace(id string, document map[string]interface{}) error
+
+	// Size returns the total number of item in the store
+	Size() int
 }
