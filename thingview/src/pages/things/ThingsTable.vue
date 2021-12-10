@@ -1,0 +1,61 @@
+<script lang="ts" setup>
+
+// Wrapper around the QTable for showing a list of Things
+// QTable slots are available to the parent
+import {ref} from 'vue'
+import  {ThingTD} from "@/data/td/ThingTD";
+import {QBtn, QIcon, QToolbar, QTable, QTd, QToggle, QToolbarTitle, QTableProps} from "quasar";
+
+
+// Accounts table API
+interface IThingsTable {
+  // Collection of things
+  things: Array<ThingTD>
+  // optional title to display above the table
+  title?: string
+}
+const props = defineProps<IThingsTable>()
+
+// table columns
+interface IThingCol {
+  name: string
+  label: string
+  field: string
+  required?: boolean
+  align?: "left"| "right" | "center" | undefined
+  style?: string
+  format?: (val:any, row:any)=>any
+}
+
+// The column field name should match the TD field names
+const columns: Array<IThingCol> = [
+  // {name: "edit", label: "", field: "edit", align:"center"},
+ // Use large width to minimize the other columns
+  {name: "id", label: "ID", field:"id" , align:"left", required:true, style:"width:400px",
+    },
+  {name: "desc", label: "Description", field:"description" , align:"left", required:true,
+    },
+  {name: "type", label: "Device Type", field:"@type", align:"left", required:true, },
+  // {name: "pub", label: "Publisher", field:"pub", align:"left", required:true, },
+
+]
+
+const visibleColumns = ref([ 'name', 'type', 'pub' ])
+</script>
+
+
+<template>
+  <QTable :rows="props.things"
+          :columns="columns"
+          :visible-columns="visibleColumns"
+          hide-pagination
+          row-key="id"
+          hide-selected-banner
+  >
+    <!-- export the slots-->
+    <template v-for="(index, name:string|number) in $slots" v-slot:[name]>
+      <slot :name="name" />
+    </template>
+
+  </QTable>
+</template>

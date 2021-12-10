@@ -3,10 +3,19 @@ import {QBtn, QMenu, QIcon,QSeparator, QList, QItem, QItemLabel, QItemSection} f
 
 // Menu item description
 export interface IMenuItem {
+  // unique id
   id?:string
+
+  // label to display on the menu
   label?:string
+
+  // optional icon to display with the menu
   icon?: string
-  to?: string
+   
+  // route path or object with {routename:name}
+  to?: string  | Object
+
+  // this is a separator
   separator?: boolean
 }
 

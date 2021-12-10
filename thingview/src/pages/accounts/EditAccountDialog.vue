@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import {ref, watchEffect} from "vue";
 import TDialog from "@/components/TDialog.vue";
-import {QCard, QCardSection, QForm, QInput, QToggle} from "quasar";
-import {AccountRecord} from "@/data/AccountStore";
+import {QCardSection, QForm, QInput, QToggle} from "quasar";
+import {AccountRecord} from "@/data/accounts/AccountStore";
 
 // since EditAccountDialog is not recreated when re-used, the account is not updated
 //

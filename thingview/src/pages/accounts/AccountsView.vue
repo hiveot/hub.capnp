@@ -1,15 +1,16 @@
 <script lang="ts" setup>
 
+import {nanoid} from "nanoid";
 import {reactive} from "vue";
 import {useQuasar, QBtn, QCard, QCardSection, QIcon, QToolbar, QToolbarTitle} from "quasar";
 import {matAdd, matAssignmentInd} from "@quasar/extras/material-icons";
 
+import EditAccountDialog from "./EditAccountDialog.vue";
 import AccountsTable from './AccountsTable.vue'
-import accountStore, {AccountRecord} from '@/data/AccountStore'
 import appState from '@/data/AppState'
-import EditAccountDialog from "@/views/accounts/EditAccountDialog.vue";
+import accountStore, {AccountRecord} from '@/data/accounts/AccountStore'
 import connectionManager from "@/data/ConnectionManager";
-import {nanoid} from "nanoid";
+
 
 const data = reactive({
   selectedRow : AccountRecord,

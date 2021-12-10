@@ -2,16 +2,17 @@
 import { reactive, watch } from "vue";
 import {matDashboard} from "@quasar/extras/material-icons";
 
-// Router constants
-export const PagesPrefix = "/page"
-export const AccountsRouteName = "Accounts"
-export const PagesRouteName = "Pages"
+// Router constants shared between router and navigation components
+export const DashboardPrefix = "/dashboard"
+export const AccountsRouteName = "accounts"
+export const DashboardRouteName = "dashboard"
+export const ThingsRouteName = "things"
 
-// load/save key
+// localstorage load/save key
 const storageKey:string = "appState"
 
 
-export interface IPageRecord {
+export interface IDashboardRecord {
   label: string
   icon: string
   to: string
@@ -23,8 +24,8 @@ export class AppStateData extends Object {
   editMode: boolean = false;
 
 // TODO move persistent pages configuration into its own data
-  pages: Array<IPageRecord> = [
-    {label:'Overview', to: PagesPrefix+'/overview', icon:matDashboard},
+  dashboards: Array<IDashboardRecord> = [
+    { label: 'Overview', to: DashboardPrefix + '/overview', icon: matDashboard },
   ];
 }
 
@@ -39,8 +40,8 @@ export class AppState {
     })
   }
 
-  public AddPage(record:IPageRecord) {
-    this.state.pages.push(record)
+  public AddDashboard(record: IDashboardRecord) {
+    this.state.dashboards.push(record)
   }
 
 
@@ -51,15 +52,22 @@ export class AppState {
     if (serializedState != null) {
       let state = JSON.parse(serializedState)
       this.state.editMode = state.editMode
-      this.state.pages.splice(0, this.state.pages.length)
-      this.state.pages.push(...state.pages )
+      this.state.dashboards.splice(0, this.state.dashboards.length)
+      this.state.dashboards.push(...state.dashboards)
+    }
+    // ensure there is at least 1 dashboard
+    if (this.state.dashboards.length < 1) {
+      this.state.dashboards.push({
+        label: 'Overview', to: DashboardPrefix + '/overview', icon: matDashboard
+      })
     }
   }
 
-  public RemovePage(record:IPageRecord) {
-    let index = this.state.pages.indexOf(record)
+  // Remove a dashboard
+  public RemoveDashboard(record: IDashboardRecord) {
+    let index = this.state.dashboards.indexOf(record)
     if (index >= 0) {
-      this.state.pages.splice(index, 1)
+      this.state.dashboards.splice(index, 1)
     }
   }
 

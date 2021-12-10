@@ -1,6 +1,6 @@
 <script  lang="ts" setup>
 import {reactive} from "vue";
-import {hubAuth} from '../data/HubAuth';
+import {hubAuth} from '@/data/HubAuth';
 import {QInput, QCheckbox} from "quasar";
 
 const props = defineProps({

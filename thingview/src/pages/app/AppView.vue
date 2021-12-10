@@ -6,7 +6,8 @@ import AppHeader from "./AppHeader.vue";
 import {IMenuItem} from "@/components/MenuButton.vue";
 
 import appState from '@/data/AppState'
-import accountStore, {AccountRecord} from "@/data/AccountStore";
+import accountStore, {AccountRecord} from "@/data/accounts/AccountStore";
+import dirStore from '@/data/td/DirectoryStore'
 import cm from '@/data/ConnectionManager';
 
 const $q = useQuasar()
@@ -37,6 +38,7 @@ const connectToHub = (accounts: Array<AccountRecord>) => {
               message: 'Connected to '+account.name,
             })
           })
+          .then()
           .catch((reason:any)=>{
             console.log("Connection to %s at %s failed: ", account.name, account.address, reason)
             $q.notify({

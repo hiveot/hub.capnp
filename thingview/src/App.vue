@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AppView from '@/views/app/AppView.vue';
+import AppView from '@/pages/app/AppView.vue';
 
 
 </script>

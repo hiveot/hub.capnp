@@ -5,22 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0c1e6961-9e54-4948-b084-6d0502132342" name="Changes" comment="dev iteration, refactor packages">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth/pkg/aclstore/AclFileStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/auth/pkg/aclstore/AclFileStore.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth/pkg/aclstore/AclFileStore_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/auth/pkg/aclstore/AclFileStore_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth/pkg/authorize/Authorizer.go" beforeDir="false" afterPath="$PROJECT_DIR$/auth/pkg/authorize/Authorizer.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth/pkg/authorize/Authorizer_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/auth/pkg/authorize/Authorizer_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth/pkg/authorize/IAclStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/auth/pkg/authorize/IAclStore.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/auth/pkg/unpwstore/PasswordFileStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/auth/pkg/unpwstore/PasswordFileStore.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/td/config.go" beforeDir="false" afterPath="$PROJECT_DIR$/lib/client/pkg/td/config.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/td/td.go" beforeDir="false" afterPath="$PROJECT_DIR$/lib/client/pkg/td/td.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/vocab/IoTVocabulary.go" beforeDir="false" afterPath="$PROJECT_DIR$/lib/client/pkg/vocab/IoTVocabulary.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/pkg/dirserver/AclFilter.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/dirserver/AclFilter.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/pkg/dirserver/DirServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/dirserver/DirServer.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/pkg/dirserver/ServeThings.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/dirserver/ServeThings.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/pkg/dirstore/IDirStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/dirstore/IDirStore.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/pkg/dirstore/dirfilestore/dirfilestore.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/dirstore/dirfilestore/dirfilestore.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/pkg/thingdir-pb/thingdir-pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/thingdir-pb/thingdir-pb.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/thingview/dist/favicon.ico" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/thingview/dist/index.html" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/thingview/src/App.vue" beforeDir="false" afterPath="$PROJECT_DIR$/thingview/src/App.vue" afterDir="false" />
@@ -224,7 +208,8 @@
       <path value="$PROJECT_DIR$/lib/client" />
     </ignored-roots>
     <MESSAGE value="dev iteration, refactor packages" />
-    <option name="LAST_COMMIT_MESSAGE" value="dev iteration, refactor packages" />
+    <MESSAGE value="dev iteration, bug fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="dev iteration, bug fixes" />
   </component>
   <component name="VgoProject">
     <integration-enabled>true</integration-enabled>

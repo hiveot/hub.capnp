@@ -2,16 +2,16 @@
 <script lang="ts" setup>
 import {reactive} from "vue";
 
-import {QBtn, QTabs, QRouteTab, QToggle} from 'quasar';
+import {QTabs, QRouteTab, QToggle} from 'quasar';
 import {matDashboard} from "@quasar/extras/material-icons";
 
-import AppMenu, { MenuAbout, MenuEditMode, MenuAddPage} from './AppMenu.vue';
+import AppMenu, { MenuAbout, MenuEditMode, MenuAddDashboard} from './AppMenu.vue';
 import AboutDialog from "./AppAboutDialog.vue";
-import AddPageDialog from "../page/AppAddPageDialog.vue";
+import AddPageDialog from "@/pages/dashboards/AddDashboardDialog.vue";
 import TConnectionStatus from "@/components/TConnectionStatus.vue"
 import {IMenuItem} from "@/components/MenuButton.vue";
 
-import {AccountsRouteName, AppState, PagesPrefix} from '@/data/AppState'
+import {AccountsRouteName, AppState, DashboardPrefix} from '@/data/AppState'
 import cm, {IConnectionStatus} from "@/data/ConnectionManager";
 
 interface IAppHeader {
@@ -33,7 +33,7 @@ const data =reactive({
 })
 
 const handleAddPage = (name:string) => {
-  props.appState.AddPage({label:name, to:PagesPrefix+'/'+name, icon:matDashboard});
+  props.appState.AddDashboard({label:name, to:DashboardPrefix+'/'+name, icon:matDashboard});
   console.log("Added page: ",name)
 }
 const handleEditModeChange = (ev:any)=>{
@@ -60,7 +60,7 @@ const handleMenuSelect = (menuItem:IMenuItem) => {
     handleOpenAbout();
   } else if (menuItem.id == MenuEditMode) {
     handleEditModeChange(!currentState.editMode);
-  } else if (menuItem.id == MenuAddPage) {
+  } else if (menuItem.id == MenuAddDashboard) {
     handleOpenAddPage();
   } else {
   }
@@ -84,10 +84,10 @@ const handleMenuSelect = (menuItem:IMenuItem) => {
 
     <!-- On larger screens show a tab bar for dashboard page -->
     <QTabs   inline-label indicator-color="green">
-      <QRouteTab v-for="page in currentState.pages"
-             :label="page.label"
-             :icon="page.icon"
-             :to="(page.to === undefined) ? '' : page.to"
+      <QRouteTab v-for="dashboard in currentState.dashboards"
+             :label="dashboard.label"
+             :icon="dashboard.icon"
+             :to="(dashboard.to === undefined) ? '' : dashboard.to"
       />
     </QTabs>
 
@@ -107,7 +107,7 @@ const handleMenuSelect = (menuItem:IMenuItem) => {
     />
 
     <!-- Dropdown menu -->
-    <AppMenu :pages="currentState.pages"
+    <AppMenu :dashboards="currentState.dashboards"
              :editMode="currentState.editMode"
              @onMenuSelect="handleMenuSelect"
     />

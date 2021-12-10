@@ -1,29 +1,36 @@
-import {createWebHistory, createRouter, RouteRecordRaw, RouteLocationRaw} from "vue-router";
-import PageView from "@/views/page/PageView.vue"
-import AccountsView from '@/views/accounts/AccountsView.vue'
-
+import { createWebHistory, createRouter, RouteRecordRaw, RouteLocationRaw } from "vue-router";
 import { hubAuth } from "@/data/HubAuth";
-
-import {PagesPrefix, PagesRouteName, AccountsRouteName} from "@/data/AppState";
+import {
+  DashboardPrefix,
+  ThingsRouteName,
+  DashboardRouteName,
+  AccountsRouteName
+} from "@/data/AppState";
 
 
 const routes: Array<RouteRecordRaw> = [
-  {
-    name: "home",
-    path: "/",
-    component: PageView,
-    // beforeEnter: checkAuth,
-  },
+  // {
+  //   name: "home",
+  //   path: "/",
+  //   component: AppStartupView,
+  //   // beforeEnter: checkAuth,
+  // },
   {
     name: AccountsRouteName,
     path: "/accounts",
-    component: ()=>import("@/views/accounts/AccountsView.vue"),
-    // component: AccountsView,
+    // use dynamic loading to reduce load waits
+    component: () => import("@/pages/accounts/AccountsView.vue"),
   },
   {
-    name: PagesRouteName,
-    path: PagesPrefix+"/:page",
-    component: PageView,
+    name: ThingsRouteName,
+    path: "/things",
+    // use dynamic loading to reduce load waits
+    component: () => import("@/pages/things/ThingsView.vue"),
+  },
+  {
+    name: DashboardRouteName,
+    path: DashboardPrefix + "/:page",
+    component: () => import("@/pages/dashboards/DashboardView.vue"),
 
     // props, see: https://router.vuejs.org/guide/essentials/passing-props.html
     // boolean mode: when props is true use route.params as component props

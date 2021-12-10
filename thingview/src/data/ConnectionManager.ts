@@ -1,9 +1,10 @@
 import {reactive} from "vue";
 
-import {AccountRecord} from "@/data/AccountStore";
+import { AccountRecord } from "@/data/accounts/AccountStore";
 import MqttClient from "@/data/MqttClient";
-import DirectoryClient from "@/data/DirectoryClient";
+import DirectoryClient from "@/data/td/DirectoryClient";
 import AuthClient from "@/data/AuthClient";
+import { ThingTD } from "./td/ThingTD";
 
 // Account connection status
 export interface IConnectionStatus {
@@ -102,6 +103,7 @@ export class ConnectionManager {
                 if (ac.mqttClient) {
                     ac.mqttClient.Connect(account.loginName, password)
                 }
+                // if a directory client exists, get the directory
                 if (ac.dirClient) {
                     ac.dirClient.Connect(accessToken)
                 }
@@ -199,6 +201,9 @@ export class ConnectionManager {
     // Handle an incoming MQTT message
     handleMqttMessage(_accountID:string, topic: string, payload:Buffer, _retain: boolean): void {
         console.log("handleMqttMessage. topic:",topic, "Message size:", payload.length)
+
+        // if a TD is received, update the Directory store
+
     }
 
     // track the MQTT account connection status
@@ -221,6 +226,7 @@ export class ConnectionManager {
         }
         this.updateStatus()
     }
+
 
     // update the aggregate connection status of all accounts
     updateStatus() {

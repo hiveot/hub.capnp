@@ -1,7 +1,6 @@
 // HubAccountStore is a local storage persistent data for hub accounts
-import Store from './Store'
-import {reactive} from "vue";
-import {nanoid} from 'nanoid'
+import { reactive, readonly } from "vue";
+import { nanoid } from 'nanoid'
 
 // Hub Account record
 export class AccountRecord extends Object {
@@ -46,11 +45,11 @@ export class AccountStore {
     defaultAccount.address = location.hostname
     defaultAccount.loginName = "user1" // for testing
     defaultAccount.enabled = true
-    this.data = reactive( new AccountData() )
+    this.data = reactive(new AccountData())
   }
 
   // add a new account to the list and save the account list
-  Add(account: AccountRecord):void {
+  Add(account: AccountRecord): void {
     // always update the record ID to ensure uniqueness
     account.id = nanoid(8)
     this.data.accounts.push(account)
@@ -59,24 +58,29 @@ export class AccountStore {
 
   // Return a list of accounts
   GetAccounts(): AccountRecord[] {
-    return this.data.accounts
+    return readonly(this.data.accounts) as AccountRecord[]
   }
 
   // Get the account with the given id
-  GetAccountById(id: string): AccountRecord|undefined {
+  GetAccountById(id: string): AccountRecord | undefined {
     let accounts = this.data.accounts
 
-    return accounts.find( el => (el.id === id))
+    let ac = accounts.find(el => (el.id === id))
+    if (!ac) {
+      return undefined
+    }
+    return readonly(ac) as AccountRecord
+
   }
 
   // load accounts from local storage
   Load() {
     let serializedStore = localStorage.getItem(this.storageKey)
     if (serializedStore != null) {
-      let accountData:AccountData = JSON.parse(serializedStore)
+      let accountData: AccountData = JSON.parse(serializedStore)
       if (accountData != null && accountData.accounts.length > 0) {
         this.data.accounts.splice(0, this.data.accounts.length)
-        this.data.accounts.push(...accountData.accounts )
+        this.data.accounts.push(...accountData.accounts)
         console.debug("Loaded %s accounts from local storage", accountData.accounts.length)
       } else {
         console.log("No accounts in storage. Keeping existing accounts")
@@ -90,13 +94,13 @@ export class AccountStore {
 
   // remove the given account by id
   Remove(id: string) {
-    let remainingAccounts = this.data.accounts.filter((item:AccountRecord) => {
+    let remainingAccounts = this.data.accounts.filter((item: AccountRecord) => {
       // console.log("Compare id '",id,"' with item id: ", item.id)
       return (item.id != id)
     })
-    console.log("Removing account with id", id, )
+    console.log("Removing account with id", id,)
     this.data.accounts.splice(0, this.data.accounts.length)
-    this.data.accounts.push(...remainingAccounts )
+    this.data.accounts.push(...remainingAccounts)
   }
 
   // save to local storage
@@ -109,7 +113,7 @@ export class AccountStore {
   // Enable or disable the hub account
   // When enabled is true, an attempt will be made to connect to the Hub on the port(s)
   // When enabled is false, any existing connections will be closed
-  SetEnabled(id: string, enabled:boolean) {
+  SetEnabled(id: string, enabled: boolean) {
     let account = this.GetAccountById(id)
     if (account) {
       console.log("SetEnabled of account", account.name, ":", enabled)
@@ -124,7 +128,8 @@ export class AccountStore {
   // If the record ID does not exist, and ID will be assigned and the record is added
   // If the record ID exists, the record is updated
   Update(record: AccountRecord) {
-    let existing = this.GetAccountById(record.id)
+    let existing = this.data.accounts.find(el => (el.id === record.id))
+
     if (!existing) {
       console.log("Adding account", record)
       this.data.accounts.push(record) // why would it not exist?

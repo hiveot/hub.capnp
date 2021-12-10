@@ -3,7 +3,7 @@
 // Wrapper around the QTable for showing a list of accounts
 // QTable slots are available to the parent
 import {ref} from 'vue'
-import  {AccountRecord} from "@/data/AccountStore";
+import {AccountRecord} from "@/data/accounts/AccountStore";
 import {QBtn, QIcon, QToolbar, QTable, QTd, QToggle, QToolbarTitle, QTableProps} from "quasar";
 import {matDelete, matEdit, matLinkOff, matLink} from "@quasar/extras/material-icons";
 import {ConnectionManager, IConnectionStatus} from "@/data/ConnectionManager";

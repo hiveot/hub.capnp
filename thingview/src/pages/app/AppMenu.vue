@@ -1,10 +1,13 @@
 <script lang="ts">
+
 // exports must be in a separate script block https://github.com/vuejs/rfcs/pull/227
 import { defineComponent} from "vue";
 export const MenuAbout = "about";
-export const MenuAddPage = "addPage";
-export const MenuEditMode = "editMode";
 export const MenuAccounts = "accounts"
+export const MenuAddDashboard = "addDashboard";
+export const MenuEditMode = "editMode";
+export const MenuThings = "allthings"
+
 export default defineComponent({});
 </script>
 
@@ -14,15 +17,18 @@ import MenuButton, {IMenuItem} from "@/components/MenuButton.vue";
 import {
   matMenu,
   matInfo,
+  matLensBlur,
   matLink,
   matAdd,
   matCheckBox,
   matCheckBoxOutlineBlank
 } from "@quasar/extras/material-icons";
 
+import { AccountsRouteName, ThingsRouteName } from "@/data/AppState";
+
 interface IAppMenu {
   editMode: boolean;
-  pages: Array<IMenuItem>;
+  dashboards: Array<IMenuItem>;
 }
 const props = withDefaults(
     defineProps<IAppMenu>(),
@@ -41,13 +47,18 @@ const handleMenuSelect = (item:IMenuItem) => {
 }
 
 
-const getMenuItems = (pages: Array<IMenuItem>, editMode:boolean): Array<IMenuItem> => {
-  return  [...pages, {
+const getMenuItems = (dashboards: Array<IMenuItem>, editMode:boolean): Array<IMenuItem> => {
+  return  [...dashboards, {
     separator: true,
   }, {
-    label: "Add Page...",
+    label: "All Things...",
+    icon: matLensBlur,
+    id: MenuThings,
+    to: {name:ThingsRouteName},
+  }, {
+    label: "Add Dashboard...",
     icon: matAdd,
-    id: MenuAddPage,
+    id: MenuAddDashboard,
   }, {
     label: "Edit Mode",
     icon: editMode ? matCheckBox : matCheckBoxOutlineBlank,
@@ -56,7 +67,7 @@ const getMenuItems = (pages: Array<IMenuItem>, editMode:boolean): Array<IMenuIte
     id: MenuAccounts,
     label: "Accounts...",
     icon: matLink,
-    to: "/accounts",
+    to: {name: AccountsRouteName},
   },{
     id: MenuAbout,
     label: "About...",
@@ -71,7 +82,7 @@ const getMenuItems = (pages: Array<IMenuItem>, editMode:boolean): Array<IMenuIte
 
 <template>
   <MenuButton :icon="matMenu"
-            :items="getMenuItems(props.pages, props.editMode)"
+            :items="getMenuItems(props.dashboards, props.editMode)"
    @onMenuSelect='handleMenuSelect'
   />
 
