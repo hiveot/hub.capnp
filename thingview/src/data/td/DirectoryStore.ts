@@ -1,11 +1,12 @@
 // directory holds the thing directory entries obtained from the directory service
 // and updated from mqtt TD update messages
-import { reactive, readonly } from "vue";
+import { reactive, readonly, computed } from "vue";
 import { ThingTD } from "./ThingTD";
 
 // Directory data data
 class TDCollection extends Object {
   index: Map<string, ThingTD> = new Map<string, ThingTD>();
+  array: Array<ThingTD> = new Array<ThingTD>()
 }
 
 
@@ -27,13 +28,11 @@ export class DirectoryStore {
 
   // Add or replace a new discovered thing to the collection
   Add(td: ThingTD): void {
-    this.data.index.set(td.id, td)
+    this.Update(td)
   }
 
-  // Return a list of all things
-  GetAll(): ThingTD[] {
-    let values = Array.from(this.data.index.values())
-    return readonly(values) as ThingTD[]
+  get all(): ThingTD[] {
+    return this.data.array
   }
 
   // Get the account with the given id
@@ -46,9 +45,19 @@ export class DirectoryStore {
     return readonly(td) as ThingTD
   }
 
-  // update/replace a new discovered thing to the collection
+  // update/replace a new discovered thing in the collection
   Update(td: ThingTD): void {
-    this.data.index.set(td.id, td)
+    let existing = this.data.index.get(td.id)
+    if (!existing) {
+      // add new
+      this.data.array.push(td)
+      this.data.index.set(td.id, td)
+    } else {
+      // update existing, keep reactivity
+      existing.description = td.description
+      existing["@type"] = td["@type"]
+      existing.properties = td.properties
+    }
   }
 }
 

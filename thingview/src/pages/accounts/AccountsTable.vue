@@ -4,7 +4,7 @@
 // QTable slots are available to the parent
 import {ref} from 'vue'
 import {AccountRecord} from "@/data/accounts/AccountStore";
-import {QBtn, QIcon, QToolbar, QTable, QTd, QToggle, QToolbarTitle, QTableProps} from "quasar";
+import {QBtn, QTooltip, QTable, QTd, QToggle} from "quasar";
 import {matDelete, matEdit, matLinkOff, matLink} from "@quasar/extras/material-icons";
 import {ConnectionManager, IConnectionStatus} from "@/data/ConnectionManager";
 import TConnectionStatus from "@/components/TConnectionStatus.vue";
@@ -66,7 +66,7 @@ const columns: Array<ICol> = [
   {name: "mqttPort", label: "MQTT Port", field:"mqttPort", align:"left"},
   {name: "directoryPort", label: "Directory Port", field:"directoryPort", align:"left"},
   {name: "enabled", label: "Enabled", field:"enabled", align:"center",  },
-  {name: "connected", label: "Connected", field:"connected", align:"center", required:true, },
+  {name: "status", label: "Status", field:"status", align:"center", required:true, },
 
   // connection status message
   // {name: "message", label: "Message", field:"message", align:"left"},
@@ -91,13 +91,21 @@ const visibleColumns = ref([ 'edit', 'name', 'address', 'enabled', 'connected', 
       <slot :name="name" />
     </template>
 
-    <!-- add account button-->
-<!--    <template v-slot:top>-->
-<!--      <QToolbar>-->
-<!--        <QToolbarTitle  shrink>{{props.title}}</QToolbarTitle>-->
-<!--        <QBtn size="sm" round color="primary" :icon="matAdd"/>-->
-<!--      </QToolbar>-->
-<!--    </template>-->
+    <!-- Header style: large and primary -->
+    <template #header-cell="props">
+      <q-th class="text-primary" style="font-size:1.1rem;" :props="props">{{props.col.label}}</q-th>
+    </template>
+
+    <!-- Edit button when edit is enabled -->
+    <template v-if="isEditMode()"  v-slot:body-cell-edit="props" >
+      <QTd>
+        <QBtn dense flat round color="blue" field="edit" :icon="matEdit"
+              @click="emit('onEdit', props.row)">
+              <QTooltip>Edit the account</QTooltip>
+        </QBtn>
+      </QTd>
+    </template>
+
 
     <!-- toggle 'enabled' switch. Use computed property to be reactive inside the slot -->
     <template v-slot:body-cell-enabled="props">
@@ -109,22 +117,10 @@ const visibleColumns = ref([ 'edit', 'name', 'address', 'enabled', 'connected', 
       </QTd>
     </template>
 
-    <!-- icon for connected-->
-    <template v-slot:body-cell-connected="props" >
+    <!-- Connection status -->
+    <template v-slot:body-cell-status="props" >
       <QTd>
-        <TConnectionStatus :value="connectState(props.row as AccountRecord)" />
-<!--        <QIcon flat :color="connectState(props.row).authenticated?'green':'red'"-->
-<!--               :name="connectState(props.row).connected?matLink:matLinkOff"-->
-<!--               size="2em"-->
-<!--              />-->
-      </QTd>
-    </template>
-
-    <!-- button for edit-->
-    <template v-if="isEditMode()"  v-slot:body-cell-edit="props" >
-      <QTd>
-        <QBtn dense flat round color="blue" field="edit" :icon="matEdit"
-              @click="emit('onEdit', props.row)"/>
+        <TConnectionStatus :value="connectState(props.row as AccountRecord)" withText/>
       </QTd>
     </template>
 

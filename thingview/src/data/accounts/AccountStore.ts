@@ -101,6 +101,7 @@ export class AccountStore {
     console.log("Removing account with id", id,)
     this.data.accounts.splice(0, this.data.accounts.length)
     this.data.accounts.push(...remainingAccounts)
+    this.Save()
   }
 
   // save to local storage

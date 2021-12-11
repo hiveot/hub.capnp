@@ -42,7 +42,7 @@ const handleMenuSelect = (item:IMenuItem) => {
   <QBtn style="margin-right: 10px" flat
          :label="props.label" :icon="props.icon">
     <QMenu auto-close>
-        <QList style="min-width: 150px;">
+        <QList style="min-width: 200px">
           <template  v-for="item in props.items">
 
            <QSeparator v-if='item.separator'/>
