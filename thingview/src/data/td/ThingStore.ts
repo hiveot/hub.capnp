@@ -1,6 +1,6 @@
 // directory holds the thing directory entries obtained from the directory service
 // and updated from mqtt TD update messages
-import { reactive, readonly, computed } from "vue";
+import { reactive, readonly } from "vue";
 import { ThingTD } from "./ThingTD";
 
 // Directory data data
@@ -11,7 +11,7 @@ class TDCollection extends Object {
 
 
 // DirectoryStore implements the data of Thing Description records
-export class DirectoryStore {
+export class ThingStore {
   private data: TDCollection
 
   constructor() {
@@ -45,6 +45,7 @@ export class DirectoryStore {
     return readonly(td) as ThingTD
   }
 
+
   // update/replace a new discovered thing in the collection
   Update(td: ThingTD): void {
     let existing = this.data.index.get(td.id)
@@ -62,6 +63,6 @@ export class DirectoryStore {
 }
 
 // Singleton instance
-const dirStore = new DirectoryStore()
+const dirStore = new ThingStore()
 
 export default (dirStore)
