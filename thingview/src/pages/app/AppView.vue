@@ -7,7 +7,7 @@ import {IMenuItem} from "@/components/MenuButton.vue";
 
 import appState from '@/data/AppState'
 import accountStore, {AccountRecord} from "@/data/accounts/AccountStore";
-import dirStore from '@/data/td/DirectoryStore'
+import dirStore from '@/data/td/ThingStore'
 import cm from '@/data/ConnectionManager';
 
 const $q = useQuasar()

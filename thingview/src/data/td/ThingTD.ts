@@ -17,11 +17,16 @@ class ThingIDParts {
 
 
 // Thing Description property describing a property of a Thing
-class TDProperty extends Object {
-  // Name of the property
-  public name: string = "";
-  // Value of the property
-  public value: string = "";
+export class TDProperty extends Object {
+  public id: string = ""
+
+  public atType: string = ""  // type of propert wost:configuration, wost:output, wost:attr
+  public title: string = "" // description of property
+  public unit: string = ""  // unit of value 
+  public value: string = ""  // current value of property
+  public type: string = ""  // value type: string (default), number, bool
+  public default: string = "" // default value of property
+  public writable: boolean = false  // configuration is writable
 }
 
 
@@ -39,7 +44,7 @@ export class ThingTD extends Object {
   // Collection of properties of a thing
   public properties = new Map<string, TDProperty>();
 
-
+  // Split the ID into its parts to determine zone, publisher, device ID and type
   public get ThingIDParts(): ThingIDParts {
     let parts = this.id.split(":")
     let tidp = new ThingIDParts()

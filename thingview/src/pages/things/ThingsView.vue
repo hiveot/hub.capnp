@@ -1,33 +1,42 @@
 <script lang="ts" setup>
 
 import {useQuasar} from "quasar"
+import {reactive, ref} from 'vue'
 import {QCard, QCardSection, QIcon} from "quasar"
 import {matLensBlur} from "@quasar/extras/material-icons"
 
-import ds from "@/data/td/DirectoryStore"
+import ds from "@/data/td/ThingStore"
 import ThingsTable from "./ThingsTable.vue"
 import { ThingTD } from "@/data/td/ThingTD"
-import ThingDetails from "./ThingDetails.vue"
+import ThingDetails from "./ThingDetailsDialog.vue"
 
 // const things = (ds.all: TDCollection):Array<ThingTD>  {
 //     return Array.from(ds.index.values())
 // }
 // const $q = useQuasar()
 
-const handleViewDetails = (row:ThingTD) => {
-//  $q.dialog({
-//     title:"Details of Thing: "+row.description,
-//     cancel:true,
-//     // component: ThingDetails,
-//     componentProps: {td:row}
-//   })
-}
 
+const tdToShow = ref(new ThingTD())
+const data =reactive({
+  showDetails: false,
+  tdToShow: new ThingTD()
+})
+
+const handleViewDetails = (row:ThingTD) => {
+  tdToShow.value = row
+  data.tdToShow = row
+  data.showDetails = !data.showDetails
+}
 
 </script>
 
 
 <template>
+
+  <ThingDetails :visible="data.showDetails"
+    :td="tdToShow"
+    @on-closed="data.showDetails=false"
+  />
 
   <QCard class="q-pa-md" flat>
     <!-- Header -->

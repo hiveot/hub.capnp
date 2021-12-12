@@ -1,8 +1,7 @@
 // Constants for use by applications
 import fs from 'fs'
 import { ThingTD } from './ThingTD'
-import dirStore, { DirectoryStore } from "./DirectoryStore"
-import { json } from 'stream/consumers'
+import dirStore, { ThingStore } from "./ThingStore"
 
 
 const DefaultServiceName = "thingdir"
@@ -11,7 +10,6 @@ const DefaultPort = 8886
 // paths with REST commands
 const PathThings = "/things"           // list or query path
 const PathThingID = "/things/{thingID}" // for methods get, post, patch, delete
-
 
 // query parameters
 const ParamOffset = "offset"
@@ -29,7 +27,7 @@ export default class DirectoryClient {
   private _accessToken: string = ""
   private _refreshToken: string = ""
   private caCert: string = "" // in PEM format
-  private store: DirectoryStore
+  private store: ThingStore
   // private tlsClient: TLSSocket|null = null
 
   // Directory service client
