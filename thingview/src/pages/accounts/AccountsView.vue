@@ -83,8 +83,22 @@ const handleToggleEnabled = (record: AccountRecord) => {
                      @onSubmit="handleSubmitEdit"
                      @onClosed="handleCancelEdit"
   />
+
   <QCard class="my-card" flat>
-    <QCardSection class="">
+        <!-- Title with 'add account' button  -->
+    <QCardSection >
+          <QToolbar>
+            <QIcon :name="matAssignmentInd" size="28px"/>
+            <QToolbarTitle shrink>Hub Accounts</QToolbarTitle>
+            <QBtn v-if="appState.State().editMode"
+                round  size="sm"
+                color="primary" 
+                :icon="matAdd"
+              @click="handleStartAdd"
+            />
+          </QToolbar>
+    </QCardSection>
+    <QCardSection >
       <AccountsTable :accounts="accounts"
                      title="Hub Accounts"
                      style="width: 100%"
@@ -94,17 +108,6 @@ const handleToggleEnabled = (record: AccountRecord) => {
                      @onDelete="handleStartDelete"
                      @onToggleEnabled="handleToggleEnabled"
       >
-        // Add account button
-        <template v-slot:top>
-          <QToolbar>
-            <QIcon :name="matAssignmentInd" size="28px"/>
-            <QToolbarTitle shrink>Hub Accounts</QToolbarTitle>
-            <QBtn v-if="appState.State().editMode"
-                size="sm" round color="primary" :icon="matAdd"
-              @click="handleStartAdd"
-            />
-          </QToolbar>
-        </template>
 
       </AccountsTable>
     </QCardSection>

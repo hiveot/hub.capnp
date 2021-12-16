@@ -115,14 +115,15 @@ export class AccountStore {
   // When enabled is true, an attempt will be made to connect to the Hub on the port(s)
   // When enabled is false, any existing connections will be closed
   SetEnabled(id: string, enabled: boolean) {
-    let account = this.GetAccountById(id)
-    if (account) {
-      console.log("SetEnabled of account", account.name, ":", enabled)
-      account.enabled = enabled
-      this.Save()
-    } else {
+    let account = this.data.accounts.find(el => (el.id === id))
+    if (!account) {
       console.log("SetEnabled: ERROR account with ID", id, " not found")
+      return
     }
+    console.log("SetEnabled of account", account.name, ":", enabled)
+    account.enabled = enabled
+    this.Save()
+
   }
 
   // Update the account with the given record and save

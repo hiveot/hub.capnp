@@ -18,10 +18,12 @@ const emit = defineEmits(["onClosed"])
 <template>
 
 <TDialog :visible="props.visible" 
-  :title="props.td.description"
-      @onClosed="emit('onClosed')"
-      showCancel
-  >
+        :title="props.td.description"
+        @onClosed="emit('onClosed')"
+        showClose
+         width="100%"
+         maxWidth="800px"
+        >
   <ThingDetailsView :td="props.td" />
 
 </TDialog>
