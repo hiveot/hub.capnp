@@ -17,7 +17,7 @@
     "vue-router": "^4.0.12"
   },
   "devDependencies": {
-    "@quasar/vite-plugin": "^1.0.2",
+    "@quasar/vite-plugin": "^1.0.3",
     "@rollup/plugin-node-resolve": "^13.0.6",
     "@types/node": "^16.11.10",
     "@vitejs/plugin-vue": "^1.10.1",

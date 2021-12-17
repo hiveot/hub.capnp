@@ -17,7 +17,7 @@
       "src/*": ["src/*"]
     },
     "strict": true,
-    "sourceMap": true,
+    "sourceMap": false,
     "target": "esnext",
     "types": [
       "vite/client"

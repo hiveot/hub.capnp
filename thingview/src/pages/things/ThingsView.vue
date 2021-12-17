@@ -47,7 +47,7 @@ const handleViewDetails = (row:ThingTD) => {
 
     <!-- List of all things -->
     <QCardSection class="text-h6">
-      <ThingsTable  :things="ds.all"
+      <ThingsTable  :things="ds.all" dense
                     title="Hub Things"
                     style="width: 100%"
                     @on-view-details="handleViewDetails"

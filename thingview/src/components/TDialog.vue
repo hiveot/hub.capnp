@@ -11,6 +11,12 @@ interface IProps{
   cancelLabel?: string
   // optional override of Close button label
   closeLabel?: string
+  // dialog height, %, px, vh, ...
+  height?: string,
+  // Minimum dialog height
+  minHeight?: string,
+  // Min width of dialog, default 400px
+  minWidth?: string
   // Maximum width of dialog, default 100vw
   maxWidth?: string
   // optional override of Ok button label
@@ -34,13 +40,16 @@ const props = withDefaults(
     {
       cancelLabel: "Cancel",
       closeLabel: "Close",
+      minHeight: "20%",
       okDisabled: false,
       okLabel: "Ok",
+      maxWidth: "100vw",
+      minWidth: "300px",
       showCancel: false,
       showClose: false,
       showOk: false,
       visible: false,
-      maxWidth: "100vw"
+      width: "60%"
     }
 )
 
@@ -56,8 +65,6 @@ const handleCancel = () => {
   emit('onClosed')
 }
 
-const maxWidth = "50vw"
-
 </script>
 
 <!--Dialog component with title and Ok/Cancel buttons with standardized dialog configuration
@@ -65,30 +72,39 @@ const maxWidth = "50vw"
 <template>
   <QDialog  :model-value="props.visible"
             @hide='handleCancel'
-
     >
 <!--    maxWidth must be set for width to work-->
-    <QCard class="column" :style="{height:'100%', width: props.width, maxWidth: props.maxWidth}" >
+    <QCard :style="{
+      display: 'flex', flexDirection: 'column',
+      height: props.height,
+      minHeight: props.minHeight,
+      minWidth: props.minWidth,
+      maxWidth: props.maxWidth,
+      width: props.width,
+    }">
 
-<!--  dialog title with close button -->
-      <QToolbar  class="text-primary bg-grey-3" style="height: 40px">
+      <!--  dialog title with close button -->
+      <QToolbar  class="text-primary bg-grey-3">
         <QToolbarTitle>{{props.title}}</QToolbarTitle>
         <QBtn :icon="matClose" flat dense v-close-popup/>
       </QToolbar>
 
-<!--  default Slot for the dialog content-->
-      <QCardSection style="width:100%;display: flex;overflow: auto" class="col" >
+<!--       Slot for the dialog content-->
+<!--       To keep vertical scrolling within the slot, use flex column with overflow-->
+      <QCardSection
+          style="height: 100%; display:flex; flex-direction:column; overflow: auto"
+      >
         <slot></slot>
       </QCardSection>
 
-<!--  optional override of footer-->
-      <QCardActions>
-        <slot name="footer"></slot>
-      </QCardActions>
+<!--&lt;!&ndash;  optional override of footer&ndash;&gt;-->
+<!--      <QCardActions >-->
+<!--        <slot name="footer"></slot>-->
+<!--      </QCardActions>-->
 
 <!--  default Cancel/OK footer buttons-->
       <q-separator />
-      <QCardSection v-if="(props.showCancel || props.showOk || props.showClose)" 
+      <QCardSection style="height:50px" v-if="(props.showCancel || props.showOk || props.showClose)"
         class="row q-pa-xs bg-grey-3 text-primary"
         >
           <QBtn v-if="props.showCancel"
@@ -102,7 +118,7 @@ const maxWidth = "50vw"
             label="Close"
             @click="handleCancel"
           />
-          <QBtn v-if="props.showOk" 
+          <QBtn v-if="props.showOk"
             :label="props.okLabel"
             :disabled="props.okDisabled"
             color="primary"
