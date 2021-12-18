@@ -30,19 +30,19 @@ const selectedTab = ref('attr')
     </QTabs>
 
     <QTabPanels v-model="selectedTab">
-      <QTabPanel name="attr">
+      <QTabPanel name="attr"  class="q-pa-xs">
         <ThingAttributes :td="props.td"/>
       </QTabPanel>
 
-      <QTabPanel name="config">
+      <QTabPanel name="config" class="q-pa-xs">
         <ThingConfiguration :td="props.td"/>
       </QTabPanel>
 
-      <QTabPanel name="events">
+      <QTabPanel name="events" class="q-pa-xs">
         <ThingEvents :td="props.td"/>
       </QTabPanel>
 
-      <QTabPanel name="actions">
+      <QTabPanel name="actions" class="q-pa-xs">
         <ThingActions :td="props.td"/>
       </QTabPanel>
 

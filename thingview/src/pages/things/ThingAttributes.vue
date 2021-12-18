@@ -5,18 +5,6 @@ import TTable, {ITableCol} from "@/components/TTable.vue";
 
 const props= defineProps<{td:ThingTD}>()
 
-// Convert the attributes into an array for display
-const getThingAttributes = (td: ThingTD): Array<TDProperty> => {
-  let res = Array<TDProperty>()
-  if (!!td && !!td.properties) {
-    for (let [key, val] of Object.entries(td.properties)) {
-      if (!val.writable) {
-        res.push(val)
-      }
-    }
-  }
-  return res
-}
 
 // columns to display properties
 const attributesColumns = <Array<ITableCol>>[
@@ -35,7 +23,7 @@ const attributesColumns = <Array<ITableCol>>[
 <template>
   <TTable row-key="id"
           :columns="attributesColumns"
-          :rows="getThingAttributes(props.td)"
+          :rows="ThingTD.GetThingAttributes(props.td)"
           no-data-label="No attributes available"
   />
 

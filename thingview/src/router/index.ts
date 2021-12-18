@@ -8,6 +8,8 @@ import {
 } from "@/data/AppState";
 
 
+// Router paths and components
+// Use dynamic components to reduce chunk size
 const routes: Array<RouteRecordRaw> = [
   // {
   //   name: "home",

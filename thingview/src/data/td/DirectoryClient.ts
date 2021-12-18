@@ -141,6 +141,11 @@ export default class DirectoryClient {
     return this.ListTDs(0, 0).then((things: ThingTD[]) => {
       console.log("Received directory update containing '%s' items", things.length)
       for (let td of things) {
+        let parts = ThingTD.GetThingIDParts(td.id)
+        td.zone = parts.zone
+        td.deviceID = parts.deviceID
+        td.publisher = parts.publisherID
+        td.deviceType = parts.deviceType
         this.store.Update(td)
       }
     }).catch((reason: any) => {

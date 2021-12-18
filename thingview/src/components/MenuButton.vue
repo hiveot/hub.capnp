@@ -1,21 +1,21 @@
 <script lang="ts" setup>
 import {QBtn, QMenu, QIcon,QSeparator, QList, QItem, QItemLabel, QItemSection} from "quasar";
 
-// Menu item description
+/** Menu item description */
 export interface IMenuItem {
-  // unique id
+  /** unique id of menu item */
   id?:string
 
-  // label to display on the menu
+  /** label to display on the menu */
   label?:string
 
-  // optional icon to display with the menu
+  /** optional icon to display with the menu */
   icon?: string
    
-  // route path or object with {routename:name}
+  /** route path, or object with {routename:name} */
   to?: string  | Object
 
-  // this is a separator
+  /** this is a separator */
   separator?: boolean
 }
 

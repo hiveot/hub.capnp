@@ -7,19 +7,6 @@ import TTable, {ITableCol} from "@/components/TTable.vue";
 const props= defineProps<{td:ThingTD}>()
 
 
-// Convert the writable properties into an array for display
-const getThingConfiguration = (td: ThingTD): Array<TDProperty> => {
-  let res = Array<TDProperty>()
-  if (!!td && !!td.properties) {
-    for (let [key, val] of Object.entries(td.properties)) {
-      if (val.writable) {
-        res.push(val)
-      }
-    }
-  }
-  return res
-}
-
 
 // columns to display configuration
 const configurationColumns = <Array<ITableCol>>[
@@ -41,7 +28,7 @@ const configurationColumns = <Array<ITableCol>>[
 
   <TTable row-key="id"
           :columns="configurationColumns"
-          :rows="getThingConfiguration(props.td)"
+          :rows="ThingTD.GetThingConfiguration(props.td)"
           no-data-label="No configuration available"
   />
 

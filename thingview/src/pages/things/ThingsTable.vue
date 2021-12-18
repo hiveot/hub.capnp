@@ -5,6 +5,7 @@
 import {ref} from 'vue'
 import  {ThingTD} from "@/data/td/ThingTD";
 import {QBtn, QIcon, QToolbar, QTable, QTd, QToggle, QToolbarTitle, QTableProps} from "quasar";
+import TTable, {ITableCol} from '@/components/TTable.vue'
 import {matVisibility} from "@quasar/extras/material-icons"
 
 
@@ -22,60 +23,59 @@ const emit = defineEmits([
   'onViewDetails'
 ])
 
-// table columns
-interface IThingCol {
-  name: string
-  label: string
-  field: string
-  required?: boolean
-  align?: "left"| "right" | "center" | undefined
-  style?: string
-  format?: (val:any, row:any)=>any
-}
-
 // The column field name should match the TD field names
-const columns: Array<IThingCol> = [
+const columns: Array<ITableCol> = [
   // {name: "edit", label: "", field: "edit", align:"center"},
  // Use large width to minimize the other columns
-  {name: "id", label: "Thing ID", field:"id" , align:"left", required:true, style:"width:400px",
+  {name: "id", label: "Thing ID", field:"id" , align:"left", style:"width:400px",
+    sortable:true,
     },
-  {name: "desc", label: "Description", field:"description" , align:"left", required:true,
+  {name: "deviceID", label: "Device ID", field:"deviceID" , align:"left",
+    sortable:true,
     },
-  {name: "type", label: "Device Type", field:"@type", align:"left", required:true, },
-  // {name: "pub", label: "Publisher", field:"pub", align:"left", required:true, },
-  {name: "details", label: "Detail", field:"", align:"center", required:true, },
-
+  {name: "publisherID", label: "Publisher", field:"publisher" , align:"left",
+    sortable:true,
+    },
+  {name: "deviceType", label: "Device Type", field:"deviceType" , align:"left",
+    sortable:true,
+    },
+  {name: "desc", label: "Description", field:"description" , align:"left",
+    sortable:true,
+    },
+  {name: "type", label: "Device Type", field:"@type", align:"left", 
+    sortable:true,
+    },
+  // {name: "pub", label: "Publisher", field:"pub", align:"left",  },
+  {name: "details", label: "Detail", field:"", align:"center",  
+    sortable:true,
+    },
 ]
 
-const visibleColumns = ref([ 'name', 'type', 'pub' ])
+const visibleColumns = ['id', 'deviceID', 'publisherID', 'deviceType', 'desc', 'type', 'details']
+
 </script>
 
 
 <template>
-  <QTable :rows="props.things"
+  <TTable :rows="props.things"
           :columns="columns"
           :visible-columns="visibleColumns"
-          hide-pagination
           row-key="id"
-          hide-selected-banner
-          table-header-class="text-primary text-h5"
   >
-    <!-- export the slots-->
-    <template v-for="(index, name:string|number) in $slots" v-slot:[name]>
-      <slot :name="name" />
-    </template>
-
     <!-- Header style: large and primary -->
-    <template #header-cell="props">
-      <q-th style="font-size:1.1rem;" :props="props">{{props.col.label}}</q-th>
-    </template>
+    <!-- <template #header-cell="propz">
+      <q-th style="font-size:1.1rem;" :props="props">{{propz.col.label}}</q-th>
+    </template> -->
 
     <!-- button for viewing the Thing TD -->
     <template v-slot:body-cell-details="propz">
       <QTd>
-        <QBtn dense flat round color="blue" field="edit" :icon="matVisibility"
+        <!-- <QBtn dense flat round color="blue" field="edit" :icon="matVisibility"
+              @click="emit('onViewDetails', propz.row)"/> -->
+        <QBtn dense flat round :icon="matVisibility"
+              color="primary"
               @click="emit('onViewDetails', propz.row)"/>
       </QTd>
     </template>
-  </QTable>
+  </TTable>
 </template>

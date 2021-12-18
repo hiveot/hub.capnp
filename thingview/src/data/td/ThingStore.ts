@@ -1,5 +1,5 @@
-// directory holds the thing directory entries obtained from the directory service
-// and updated from mqtt TD update messages
+// The Thing store holds the discovered thing TD's
+// This is updated from the directory (see DirectoryClient) and MQTT messages
 import { reactive, readonly } from "vue";
 import { ThingTD } from "./ThingTD";
 
@@ -35,7 +35,7 @@ export class ThingStore {
     return this.data.array
   }
 
-  // Get the account with the given id
+  // Get the ThingTD with the given id
   GetThingTDById(id: string): ThingTD | undefined {
 
     let td = this.data.index.get(id)
@@ -46,7 +46,7 @@ export class ThingStore {
   }
 
 
-  // update/replace a new discovered thing in the collection
+  // Update/replace a new discovered ThingTD in the collection
   Update(td: ThingTD): void {
     let existing = this.data.index.get(td.id)
     if (!existing) {

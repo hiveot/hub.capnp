@@ -1,13 +1,16 @@
 <script lang="ts" setup>
+
 import {QBtn, QTooltip} from 'quasar';
-// import TButton from './TButton.vue';
 import {IConnectionStatus} from "@/data/ConnectionManager";
 import {matLink, matLinkOff} from "@quasar/extras/material-icons";
 
-
+/** Button showing the connection status with colored link icon */
 const props = defineProps<{
+  /** The connection status to show */
   value: IConnectionStatus,
+  /** optional route to navigate to when clicking the button */
   to?: String|Object,
+  /** optionally show text description of the connection status below the icon */
   withText?:boolean,
 }>()
 

@@ -1,17 +1,7 @@
-<script lang="ts">
-
-// exports must be in a separate script block https://github.com/vuejs/rfcs/pull/227
-import { defineComponent} from "vue";
-export const MenuAbout = "about";
-export const MenuAccounts = "accounts"
-export const MenuAddDashboard = "addDashboard";
-export const MenuEditMode = "editMode";
-export const MenuThings = "allthings"
-
-export default defineComponent({});
-</script>
-
 <script lang="ts" setup>
+
+import  {MenuAbout, MenuEditMode, MenuAddDashboard, MenuAccounts, MenuThings} from "@/pages/app/MenuConstants";
+
 
 import MenuButton, {IMenuItem} from "@/components/MenuButton.vue";
 import {

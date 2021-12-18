@@ -6,15 +6,6 @@ import TTable, {ITableCol} from "@/components/TTable.vue";
 
 const props= defineProps<{td:ThingTD}>()
 
-const getThingEvents = (td: ThingTD): Array<TDEvent> => {
-  let res = Array<TDEvent>()
-  if (!!td && !!td.events) {
-    for (let [key, val] of Object.entries(td.actions)) {
-      res.push(val)
-    }
-  }
-  return res
-}
 // columns to display events (outputs)
 const eventColumns = <Array<ITableCol>>[
   {name: "name", label: "Event", field:"name", align:"left",
@@ -29,7 +20,7 @@ const eventColumns = <Array<ITableCol>>[
 <template>
   <TTable row-key="id"
           :columns="eventColumns"
-          :rows="getThingEvents(props.td)"
+          :rows="ThingTD.GetThingEvents(props.td)"
           no-data-label="No events available"
   />
 </template>

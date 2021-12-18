@@ -4,39 +4,40 @@ import {QBtn, QDialog, QCard, QCardActions, QCardSection, QSeparator, QScrollAre
 
 import {matClose} from "@quasar/extras/material-icons";
 
-interface IProps{
-  // disable the Ok button
+/** Standardized Dialog that handles header, footer, inner scrollbars */
+interface IDialog {
+  /** disable the Ok button */
   okDisabled?: boolean
-  // optional override of Cancel button label
+  /** optional override of Cancel button label */
   cancelLabel?: string
-  // optional override of Close button label
+  /** optional override of Close button label */
   closeLabel?: string
-  // dialog height, %, px, vh, ...
+  /** dialog height, %, px, vh, ... */
   height?: string,
-  // Minimum dialog height
+  /** Minimum dialog height */
   minHeight?: string,
-  // Min width of dialog, default 400px
+  /** Min width of dialog, default 400px */
   minWidth?: string
-  // Maximum width of dialog, default 100vw
+  /** Maximum width of dialog, default 100vw */
   maxWidth?: string
-  // optional override of Ok button label
+  /** optional override of Ok button label */
   okLabel?: string
-  // show the Cancel button
+  /** show the Cancel button */
   showCancel?: boolean
-  // show the Close button
+  /** show the Close button */
   showClose?: boolean
-  // show the Ok button
+  /** show the Ok button */
   showOk?: boolean
-  // Dialog title
+  /** Dialog title */
   title?: string
-  // Dialog is visible on/off
+  /** Dialog is visible on/off */
   visible: boolean
-  // Width of dialog, eg 80%
+  /** Width of dialog, eg 80% */
   width?: string
 }
 
 const props = withDefaults(
-    defineProps<IProps>(),
+    defineProps<IDialog>(),
     {
       cancelLabel: "Cancel",
       closeLabel: "Close",

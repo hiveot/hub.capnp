@@ -1,14 +1,16 @@
 {
+  // https://vitejs.dev/guide/features.html#typescript-compiler-options
   "compilerOptions": {
 //    "allowJs": true,
-//    "noImplicitAny": false,
     "baseUrl": ".",
-    "jsx": "preserve",
-    // https://vitejs.dev/guide/features.html#typescript-compiler-options
-    "isolatedModules": true,
-    "module": "esnext",
-    "resolveJsonModule": true,
     "esModuleInterop": true,
+    "isolatedModules": true,
+    "lib": [
+      "esnext",
+      "dom",
+    ],
+    "jsx": "preserve",
+    "module": "esnext",
     "moduleResolution": "node",
     "paths": {
       "@/*": [
@@ -16,20 +18,17 @@
       ],
       "src/*": ["src/*"]
     },
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
     "strict": true,
-    "sourceMap": false,
     "target": "esnext",
     "types": [
       "vite/client"
     ],
-    "skipLibCheck": true,
-    "lib": [
-      "esnext",
-      "dom",
-    ]
   },
   "include": [
-    "decs.d.ts",
+    "*.ts",
     "src/**/*.ts",
     "src/**/*.d.ts",
     "src/**/*.tsx",
@@ -38,7 +37,6 @@
   "exclude": [
     "dist",
     "node_modules",
-    "stories",
     ".quasar"
   ],
 }

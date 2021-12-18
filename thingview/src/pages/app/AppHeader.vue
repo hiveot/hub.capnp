@@ -5,7 +5,8 @@ import {reactive} from "vue";
 import {QTabs, QRouteTab, QToggle} from 'quasar';
 import {matDashboard} from "@quasar/extras/material-icons";
 
-import AppMenu, { MenuAbout, MenuEditMode, MenuAddDashboard} from './AppMenu.vue';
+import { MenuAbout, MenuEditMode, MenuAddDashboard} from './MenuConstants';
+import AppMenu from './AppMenu.vue';
 import AboutDialog from "./AppAboutDialog.vue";
 import AddPageDialog from "@/pages/dashboards/AddDashboardDialog.vue";
 import TConnectionStatus from "@/components/TConnectionStatus.vue"

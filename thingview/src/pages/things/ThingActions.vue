@@ -6,19 +6,6 @@ import TTable, {ITableCol} from "@/components/TTable.vue";
 
 const props= defineProps<{td:ThingTD}>()
 
-
-// Convert the actions map into an array for display
-const getThingActions = (td: ThingTD): Array<TDAction> => {
-  let res = Array<TDAction>()
-  if (!!td && !!td.actions) {
-    for (let [key, val] of Object.entries(td.actions)) {
-      res.push(val)
-    }
-  }
-  return res
-}
-
-
 // columns to display action
 const actionColumns = <Array<ITableCol>>[
   {name: "title", label: "Action", field:"title", align:"left",
@@ -35,7 +22,7 @@ const actionColumns = <Array<ITableCol>>[
 
   <TTable row-key="id"
           :columns="actionColumns"
-          :rows="getThingActions(props.td)"
+          :rows="ThingTD.GetThingActions(props.td)"
           no-data-label="No actions available"
   />
 

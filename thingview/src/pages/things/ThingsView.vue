@@ -23,6 +23,7 @@ const data =reactive({
 })
 
 const handleViewDetails = (row:ThingTD) => {
+  console.log("ThingsView.handleViewDetails showing the TD details. TD=",row)
   tdToShow.value = row
   data.tdToShow = row
   data.showDetails = !data.showDetails

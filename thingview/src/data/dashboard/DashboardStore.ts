@@ -1,7 +1,5 @@
 import { reactive, readonly } from '@vue/reactivity';
-import { Loading } from 'quasar';
 // import { ListenOptions } from 'net';
-import Store from '../Store'
 
 export class DashboardWidgetDefinition extends Object {
   title: string = "";
