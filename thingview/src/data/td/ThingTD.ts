@@ -63,17 +63,20 @@ export class ThingTD extends Object {
   /** Unique thing ID */
   public id: string = "";
 
-  /** Publisher computed from thing ID */
+  /** Computed: Publisher from thing ID */
   public publisher: string = "";
 
-  /** DeviceID computed from thing ID */
+  /** Computed: DeviceID from thing ID */
   public deviceID: string = "";
 
-  /** DeviceType computed from thing ID */
+  /** Computed: DeviceType from thing ID */
   public deviceType: string = "";
 
-  /** Zone computed from thing ID */
+  /** Computed: Zone from thing ID */
   public zone: string = "";
+
+  /** Document creation date in ISO8601 */
+  public created: string = "";
 
   /** Human description for a thing */
   public description: string = "";

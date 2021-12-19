@@ -18,7 +18,7 @@ const getHeight = (td: ThingTD):string => {
   let attrCount = ThingTD.GetThingAttributes(td).length
   let configCount = ThingTD.GetThingConfiguration(td).length
   // row height is approx 29px + estimated header and footer size around 300px
-  let height = Math.max(attrCount, configCount)*29+310;
+  let height = Math.max(attrCount, configCount)*29+340;
   return height.toString() + 'px'
 }
 

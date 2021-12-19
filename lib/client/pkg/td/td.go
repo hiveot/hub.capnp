@@ -2,13 +2,23 @@ package td
 
 import (
 	"fmt"
-	"strings"
-	"time"
-
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/lib/client/pkg/vocab"
+	"strings"
+	"time"
 )
 
+// ThingTD contains the Thing Description document
+// Its structure is:
+// {
+//      @context: "http://www.w3.org/ns/td",
+//      id: <thingID>,
+//      @type: <deviceType>,
+//      created: <iso8601>,
+//      actions: {id:TDAction, ...},
+//      events:  {id: TDEvent, ...},
+//      properties: {id: TDProperty, ...}
+// }
 type ThingTD map[string]interface{}
 
 // tbd json-ld parsers:
@@ -54,6 +64,20 @@ func AddTDProperty(td ThingTD, name string, property interface{}) {
 	}
 }
 
+// CreatePublisherThingID creates a globally unique Thing ID that includes the zone and publisher
+// name where the Thing originates from. The publisher is especially useful where protocol
+// bindings create thing IDs. In this case the publisher is the gateway used by the protocol binding
+// or the PB itself.  See also SplitThingID.
+//
+// This creates a Thing ID: URN:zone:publisher:deviceID:deviceType
+//  zone is the name of the zone the device is part of
+//  publisher is the deviceID of the publisher of the thing.
+//  deviceID is the ID of the device to use as part of the Thing ID
+func CreatePublisherThingID(zone string, publisher string, deviceID string, deviceType vocab.DeviceType) string {
+	thingID := fmt.Sprintf("urn:%s:%s:%s:%s", zone, publisher, deviceID, deviceType)
+	return thingID
+}
+
 // CreateThingID creates a ThingID from the zone it belongs to, the hardware device ID and device Type
 // This creates a Thing ID: URN:zone:deviceID:deviceType.
 //  zone is the name of the zone the device is part of
@@ -63,7 +87,34 @@ func CreateThingID(zone string, deviceID string, deviceType vocab.DeviceType) st
 	return thingID
 }
 
-// return the ID of the given thing TD
+// CreateTD creates a new Thing Description document with properties, events and actions
+// Its structure:
+// {
+//      @context: "http://www.w3.org/ns/td",
+//      id: <thingID>,
+//      @type: <deviceType>,
+//      created: <iso8601>,
+//      actions: {id:TDAction, ...},
+//      events:  {id: TDEvent, ...},
+//      properties: {id: TDProperty, ...}
+// }
+func CreateTD(thingID string, deviceType vocab.DeviceType) ThingTD {
+	td := make(ThingTD)
+	td[vocab.WoTAtContext] = "http://www.w3.org/ns/td"
+	td[vocab.WoTID] = thingID
+	// TODO @type is a JSON-LD keyword to label using semantic tags, eg it needs a schema
+	if deviceType != "" {
+		// deviceType must be a string for serialization and querying
+		td[vocab.WoTAtType] = string(deviceType)
+	}
+	td[vocab.WoTCreated] = time.Now().Format(vocab.TimeFormat)
+	td[vocab.WoTActions] = make(map[string]interface{})
+	td[vocab.WoTEvents] = make(map[string]interface{})
+	td[vocab.WoTProperties] = make(map[string]interface{})
+	return td
+}
+
+// GetID returns the ID of the given thing TD
 func GetID(td ThingTD) string {
 	if td == nil {
 		return ""
@@ -90,7 +141,7 @@ func SetThingVersion(td ThingTD, version map[string]string) {
 	td[vocab.WoTVersion] = version
 }
 
-// SetThingTitle sets the title and description of the Thing in the TD
+// SetThingDescription sets the title and description of the Thing in the TD
 //  td is a TD created with 'CreateTD'
 //  title of the Thing
 //  description of the Thing
@@ -113,54 +164,13 @@ func SetThingErrorStatus(td ThingTD, errorStatus string) {
 	status.(map[string]interface{})["error"] = errorStatus
 }
 
-// SetTDForm sets the top level forms section of the TD
+// SetTDForms sets the top level forms section of the TD
 // NOTE: In WoST actions are always routed via the Hub using the Hub's protocol binding.
 // Under normal circumstances forms are therefore not needed.
 //  td to add form to
 //  forms with list of forms to add. See also CreateForm to create a single form
 func SetTDForms(td ThingTD, formList []map[string]interface{}) {
 	td[vocab.WoTForms] = formList
-}
-
-// CreatePublisherThingID creates a globally unique Thing ID that includes the zone and publisher
-// name where the Thing originates from. The publisher is especially useful where protocol
-// bindings create thing IDs. In this case the publisher is the gateway used by the protocol binding
-// or the PB itself.  See also SplitThingID.
-//
-// This creates a Thing ID: URN:zone:publisher:deviceID:deviceType
-//  zone is the name of the zone the device is part of
-//  publisher is the deviceID of the publisher of the thing.
-//  deviceID is the ID of the device to use as part of the Thing ID
-func CreatePublisherThingID(zone string, publisher string, deviceID string, deviceType vocab.DeviceType) string {
-	thingID := fmt.Sprintf("urn:%s:%s:%s:%s", zone, publisher, deviceID, deviceType)
-	return thingID
-}
-
-// CreateTD creates a new Thing Description document with properties, events and actions
-// This creates a structure:
-//   {
-//      @context: "http://www.w3.org/ns/td",
-//      id: <thingID>,
-//      @type: <deviceType>,
-//      created: <iso8601>,
-//      actions: {},
-//      events: {},
-//      properties: {}
-//   }
-func CreateTD(thingID string, deviceType vocab.DeviceType) ThingTD {
-	td := make(ThingTD)
-	td[vocab.WoTAtContext] = "http://www.w3.org/ns/td"
-	td[vocab.WoTID] = thingID
-	// TODO @type is a JSON-LD keyword to label using semantic tags, eg it needs a schema
-	if deviceType != "" {
-		// deviceType must be a string for serialization and querying
-		td[vocab.WoTAtType] = string(deviceType)
-	}
-	td[vocab.WoTCreated] = time.Now().Format(vocab.TimeFormat)
-	td[vocab.WoTActions] = make(map[string]interface{})
-	td[vocab.WoTEvents] = make(map[string]interface{})
-	td[vocab.WoTProperties] = make(map[string]interface{})
-	return td
 }
 
 // SplitThingID takes a ThingID and breaks it down into individual parts. Supported formats:

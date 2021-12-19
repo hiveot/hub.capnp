@@ -3,6 +3,7 @@
 // Wrapper around the QTable for showing a list of Things
 // QTable slots are available to the parent
 import {ref} from 'vue'
+import {date} from 'quasar'
 import  {ThingTD} from "@/data/td/ThingTD";
 import {QBtn, QIcon, QToolbar, QTable, QTd, QToggle, QToolbarTitle, QTableProps} from "quasar";
 import TTable, {ITableCol} from '@/components/TTable.vue'
@@ -42,7 +43,11 @@ const columns: Array<ITableCol> = [
   {name: "desc", label: "Description", field:"description" , align:"left",
     sortable:true,
     },
-  {name: "type", label: "Device Type", field:"@type", align:"left", 
+  {name: "type", label: "@Type", field:"@type", align:"left", 
+    sortable:true,
+    },
+  {name: "created", label: "Created", field:"created", align:"left", 
+    format: (val, row) => getDateText(val),
     sortable:true,
     },
   // {name: "pub", label: "Publisher", field:"pub", align:"left",  },
@@ -50,8 +55,14 @@ const columns: Array<ITableCol> = [
     sortable:true,
     },
 ]
+// Convert iso9601 date format to text representation 
+const getDateText = (iso:string): string => {
+  let timeStamp = new Date(iso)
+  // return date.formatDate(timeStamp, "ddd Do MMM YYYY HH:mm:ss (Z)")
+  return date.formatDate(timeStamp, "ddd YYYY-MM-DD HH:mm:ss (Z)")
+}
 
-const visibleColumns = ['id', 'deviceID', 'publisherID', 'deviceType', 'desc', 'type', 'details']
+const visibleColumns = ['id', 'deviceID', 'publisherID', 'deviceType', 'desc', 'type', 'created', 'details']
 
 </script>
 

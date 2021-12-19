@@ -14,7 +14,7 @@ const attributesColumns = <Array<ITableCol>>[
     style:"max-width:200px; overflow-x: auto"
   },
   {name: "unit", label: "Unit", field:"unit", align:"left",
-    sortable: true,
+    style:"width:20px", sortable: true,
   },
 ]
 

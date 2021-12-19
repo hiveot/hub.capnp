@@ -18,6 +18,7 @@ export interface ITableCol {
   name:string,
   label:string,
   field:string,
+  format?: (val:any, row:any)=>string,
   align?:"left"|"right"|"center",
   sortable?:boolean
   style?:string
@@ -94,7 +95,7 @@ const pagination = ref({
 } 
 
 .q-table__bottom {
-  background-color: lightgrey;
+  /* background-color: lightgrey; */
   height: 30px !important;
   min-height: 20px !important;
 }
