@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/../auth/.idea/auth.iml" filepath="$PROJECT_DIR$/../auth/.idea/auth.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../idprov/.idea/idprov.iml" filepath="$PROJECT_DIR$/../idprov/.idea/idprov.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/launcher.iml" filepath="$PROJECT_DIR$/.idea/launcher.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../lib/.idea/lib.iml" filepath="$PROJECT_DIR$/../lib/.idea/lib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../logger/.idea/logger.iml" filepath="$PROJECT_DIR$/../logger/.idea/logger.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../mosquittomgr/.idea/mosquittomgr.iml" filepath="$PROJECT_DIR$/../mosquittomgr/.idea/mosquittomgr.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../thingdir/.idea/thingdir.iml" filepath="$PROJECT_DIR$/../thingdir/.idea/thingdir.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../thingview/.idea/thingview.iml" filepath="$PROJECT_DIR$/../thingview/.idea/thingview.iml" />
+    </modules>
+  </component>
+</project>
