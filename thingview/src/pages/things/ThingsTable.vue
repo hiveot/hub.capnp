@@ -53,10 +53,6 @@ const columns: Array<ITableCol> = [
     format: (val, row) => getDateText(val),
     sortable:true,
     },
-  // {name: "pub", label: "Publisher", field:"pub", align:"left",  },
-  {name: "details", label: "Detail", field:"", align:"center",  
-    sortable:true,
-    },
 ]
 // Convert iso9601 date format to text representation 
 const getDateText = (iso:string): string => {
@@ -64,7 +60,7 @@ const getDateText = (iso:string): string => {
   return formatDate(timeStamp, "ddd YYYY-MM-DD HH:mm:ss (Z)")
 }
 
-const visibleColumns = ['deviceID', 'publisherID', 'deviceType', 'desc', 'type', 'created', 'details']
+const visibleColumns = ['deviceID', 'publisherID', 'deviceType', 'desc', 'type', 'created']
 
 </script>
 
@@ -83,7 +79,7 @@ const visibleColumns = ['deviceID', 'publisherID', 'deviceType', 'desc', 'type',
 
     <!-- router-link for viewing the Thing TD -->
     <template v-slot:body-cell-deviceID="propz">
-      <QTd>
+      <QTd style="text-align:left" >
         <a href="" target="_blank" >
           <router-link :to="'/things/'+propz.row.id">{{propz.row.deviceID}}</router-link>
         </a>
@@ -91,16 +87,5 @@ const visibleColumns = ['deviceID', 'publisherID', 'deviceType', 'desc', 'type',
     </template>
 
 
-    <!-- button for viewing the Thing TD -->
-    <template v-slot:body-cell-details="propz">
-      <QTd>
-        <!-- <QBtn dense flat round color="blue" field="edit" :icon="matVisibility"
-              @click="emit('onViewDetails', propz.row)"/> -->
-        <QBtn dense flat round :icon="matVisibility" 
-              style="font-size: 12px"
-              color="primary"
-              @click="emit('onViewDetails', propz.row)"/>
-      </QTd>
-    </template>
   </TTable>
 </template>
