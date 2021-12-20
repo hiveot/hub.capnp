@@ -9,7 +9,7 @@ const props= defineProps<{td:ThingTD}>()
 // columns to display properties
 const attributesColumns = <Array<ITableCol>>[
   {name: "title", label: "Attributes", field:"title", align:"left",
-    sortable:true},
+    style:"width:50px; max-width:300px",  sortable:true},
   {name: "value", label: "Value", field:"value", align:"left",
     style:"max-width:200px; overflow-x: auto"
   },
@@ -25,6 +25,8 @@ const attributesColumns = <Array<ITableCol>>[
           :columns="attributesColumns"
           :rows="ThingTD.GetThingAttributes(props.td)"
           no-data-label="No attributes available"
+          dense
+          striped
   />
 
 </template>

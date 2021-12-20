@@ -34,10 +34,10 @@ const handleViewDetails = (row:ThingTD) => {
 
 <template>
 
-  <ThingDetails :visible="data.showDetails"
-    :td="tdToShow"
-    @on-closed="data.showDetails=false"
-  />
+<!--  <ThingDetails :visible="data.showDetails"-->
+<!--    :td="tdToShow"-->
+<!--    @on-closed="data.showDetails=false"-->
+<!--  />-->
 
   <QCard class="q-pa-md" flat>
     <!-- Header -->

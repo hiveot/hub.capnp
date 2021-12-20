@@ -56,13 +56,14 @@ const props = withDefaults(
 
 const emit = defineEmits(['onClosed', 'onSubmit'])
 
-const handleSubmit = (ev:any) => {
+const handleSubmit = () => {
   console.log("handleSubmit emit onSubmit")
   emit('onSubmit')
 }
 
-const handleCancel = () => {
-  console.log("cancel dialog")
+// Notify listeners this dialog is closed
+const handleClose = () => {
+  console.log("TDialog. Close Dialog")
   emit('onClosed')
 }
 
@@ -71,8 +72,8 @@ const handleCancel = () => {
 <!--Dialog component with title and Ok/Cancel buttons with standardized dialog configuration
  -->
 <template>
-  <QDialog  :model-value="props.visible"
-            @hide='handleCancel'
+  <QDialog :model-value="props.visible"
+            @hide='handleClose'
     >
 <!--    maxWidth must be set for width to work-->
     <QCard :style="{
@@ -111,13 +112,13 @@ const handleCancel = () => {
           <QBtn v-if="props.showCancel"
             label="Cancel"
             :label="props.cancelLabel"
-            @click="handleCancel"
+            @click="handleClose"
           />
           <QSpace/>
           <QBtn v-if="props.showClose" flat
             :label="props.closeLabel"
             label="Close"
-            @click="handleCancel"
+            @click="handleClose"
           />
           <QBtn v-if="props.showOk"
             :label="props.okLabel"

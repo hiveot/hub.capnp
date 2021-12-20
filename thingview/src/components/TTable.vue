@@ -8,19 +8,33 @@ import {ref} from "vue";
 //  header-cell-[name]  
 //  body-cell-[name]
 const props = defineProps<{
+  // columns to display
   columns: Array<ITableCol>
+  // the collection to display
   rows: any
+  // unique ID of each row, typically 'id' 
   rowKey: string
+  // dense rows
+  dense?: boolean
+  // striped rows
+  striped?: boolean
 }>()
 
 // types for columns (fixes a typescript error on align)
 export interface ITableCol {
+  // Name of column for show/hide
   name:string,
+  // Column header label
   label:string,
+  // Data field in rows to display
   field:string,
+  // Optional field conversion 
   format?: (val:any, row:any)=>string,
+  // Align the field content left, right or center
   align?:"left"|"right"|"center",
+  // Column can be sorted
   sortable?:boolean
+  // Optional style for display of the column data
   style?:string
 }
 
@@ -35,15 +49,14 @@ const pagination = ref({
   <QTable
       :row-key="props.rowKey"
       :columns="props.columns"
+      :dense="props.dense"
+      :class="'simpleTableStyle ' + ((props.striped)? 'tableStriped' : '')"
+      :pagination="pagination"
       :rows="props.rows"
-      class="simpleTableStyle"
+      :rows-per-page-options="[0]"
       table-header-class="ttable-header text-primary"
       table-header-style="background-color: lightgrey"
-      dense
-      striped
-      :rows-per-page-options="[0]"
       virtual-scroll
-      :pagination="pagination"
   >
    <!-- export the slots -->
     <template v-for="(index, name:string|number) in $slots" v-slot:[name]="props">
@@ -93,6 +106,12 @@ const pagination = ref({
   /* font-size only seem to have effect here, not in table-header-class, nor in table-header-style */
   font-size:1.1rem;
 } 
+
+/* Table header style */
+.tableStriped tr:nth-child(even) {
+  background-color: rgb(240, 242, 245);
+}
+
 
 .q-table__bottom {
   /* background-color: lightgrey; */

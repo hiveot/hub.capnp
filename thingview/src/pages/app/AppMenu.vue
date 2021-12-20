@@ -45,6 +45,7 @@ const getMenuItems = (dashboards: Array<IMenuItem>, editMode:boolean): Array<IMe
     icon: matLensBlur,
     id: MenuThings,
     to: {name:ThingsRouteName},
+    // to: "/things"
   }, {
     label: "Add Dashboard...",
     icon: matAdd,

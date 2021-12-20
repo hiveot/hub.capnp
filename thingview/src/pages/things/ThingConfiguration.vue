@@ -4,14 +4,16 @@ import {ref} from 'vue';
 import {TDProperty, ThingTD} from "@/data/td/ThingTD";
 import TTable, {ITableCol} from "@/components/TTable.vue";
 
-const props= defineProps<{td:ThingTD}>()
+const props= defineProps<{
+  td:ThingTD
+  }>()
 
 
 
 // columns to display configuration
 const configurationColumns = <Array<ITableCol>>[
   {name: "title", label: "Configuration", field:"title", align:"left",
-    sortable:true},
+    style:"width:50px; max-width:350px", sortable:true},
   {name: "value", label: "Value", field:"value", align:"left",
     style:"max-width:400px; overflow: auto"},
   {name: "type", label: "Type", field:"type", align:"left",
@@ -30,6 +32,7 @@ const configurationColumns = <Array<ITableCol>>[
           :columns="configurationColumns"
           :rows="ThingTD.GetThingConfiguration(props.td)"
           no-data-label="No configuration available"
+          dense striped
   />
 
 </template>

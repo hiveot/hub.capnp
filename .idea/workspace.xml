@@ -5,30 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0c1e6961-9e54-4948-b084-6d0502132342" name="Changes" comment="dev iteration, refactor packages">
-      <change beforePath="$PROJECT_DIR$/thingview/dist/favicon.ico" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingview/dist/index.html" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingview/src/App.vue" beforeDir="false" afterPath="$PROJECT_DIR$/thingview/src/App.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingview/src/components/MenuButton.vue" beforeDir="false" afterPath="$PROJECT_DIR$/thingview/src/components/MenuButton.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingview/src/data/AccountStore.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingview/src/data/AppState.ts" beforeDir="false" afterPath="$PROJECT_DIR$/thingview/src/data/AppState.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingview/src/data/ConnectionManager.ts" beforeDir="false" afterPath="$PROJECT_DIR$/thingview/src/data/ConnectionManager.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingview/src/data/DashboardStore.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingview/src/data/DirectoryClient.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingview/src/data/DirectoryStore.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingview/src/router/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/thingview/src/router/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingview/src/views/AppStartup.vue" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingview/src/views/LoginView.vue" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingview/src/views/accounts/AccountsTable.vue" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingview/src/views/accounts/AccountsView.vue" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingview/src/views/accounts/EditAccountDialog.vue" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingview/src/views/app/AppAboutDialog.vue" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingview/src/views/app/AppHeader.vue" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingview/src/views/app/AppMenu.vue" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingview/src/views/app/AppView.vue" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingview/src/views/page/AppAddPageDialog.vue" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingview/src/views/page/PageView.vue" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingview/stats.html" beforeDir="false" afterPath="$PROJECT_DIR$/thingview/stats.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingview/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/thingview/tsconfig.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingview/src/pages/things/ThingAttributes.vue" beforeDir="false" afterPath="$PROJECT_DIR$/thingview/src/pages/things/ThingAttributes.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingview/src/pages/things/ThingDetailsView.vue" beforeDir="false" afterPath="$PROJECT_DIR$/thingview/src/pages/things/ThingDetailsView.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -82,7 +61,7 @@
     <property name="go.modules.go.list.on.any.changes.was.set" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
     <property name="go.watchers.conflict.with.on.save.actions.check.performed" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/thingdir" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/auth" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.selected.package.eslint" value="(autodetect)" />

@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 
 import {ref} from 'vue'
-import {date, QCard, QCardSection, QField, QForm, QTab, QTabs, QTabPanel, QTabPanels } from 'quasar';
+import { date, QCard, QCardSection, QField, QForm, QTab, QTabs, QTabPanel, QTabPanels } from 'quasar';
+const {formatDate}= date
+
 import {matSettings, matSettingsRemote, matDescription, matDirectionsRun} from '@quasar/extras/material-icons'
 
 
@@ -23,7 +25,7 @@ const selectedTab = ref('attr')
 // Convert iso9601 date format to text representation 
 const getDateText = (iso:string): string => {
   let timeStamp = new Date(iso)
-  return date.formatDate(timeStamp, "ddd Do MMM YYYY HH:mm:ss (Z)")
+  return formatDate(timeStamp, "ddd Do MMM YYYY HH:mm:ss (Z)")
 }
 
 </script>
