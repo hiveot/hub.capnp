@@ -39,15 +39,18 @@ const handleMenuSelect = (item:IMenuItem) => {
 
 
 <template>
-  <QBtn style="margin-right: 10px" flat
-         :label="props.label" :icon="props.icon">
+  <QBtn flat
+         :label="props.label" 
+         :icon="props.icon">
     <QMenu auto-close>
         <QList style="min-width: 200px">
           <template  v-for="item in props.items">
 
            <QSeparator v-if='item.separator'/>
-           <QItem v-else clickable :to="item.to"
-                   @click='handleMenuSelect(item)'
+           
+           <QItem v-else 
+            :to="item.to"
+            clickable @click='handleMenuSelect(item)'
            >
              <QItemSection v-if='item.icon !== ""' avatar>
                <QIcon :name="item.icon"/>

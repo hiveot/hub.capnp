@@ -2,8 +2,7 @@
 
 import  {MenuAbout, MenuEditMode, MenuAddDashboard, MenuAccounts, MenuThings} from "@/pages/app/MenuConstants";
 
-
-import MenuButton, {IMenuItem} from "@/components/MenuButton.vue";
+import TMenuButton, {IMenuItem} from "@/components/TMenuButton.vue";
 import {
   matMenu,
   matInfo,
@@ -20,16 +19,14 @@ interface IAppMenu {
   editMode: boolean;
   dashboards: Array<IMenuItem>;
 }
-const props = withDefaults(
-    defineProps<IAppMenu>(),
-    {
+const props = withDefaults(defineProps<IAppMenu>(), {
       editMode: false,
       pages: ()=>[],
     })
 
-const emit = defineEmits(['onMenuSelect']) // IMenuItem
-
-// defineExpose({MenuAbout, MenuAddPage, MenuEditMode, MenuSettings})
+const emit = defineEmits<{
+  (e: 'onMenuSelect', item:IMenuItem):void // IMenuItem
+}>()
 
 const handleMenuSelect = (item:IMenuItem) => {
   console.log('AppMenu: onMenuSelect: ', item);
@@ -72,9 +69,10 @@ const getMenuItems = (dashboards: Array<IMenuItem>, editMode:boolean): Array<IMe
 
 
 <template>
-  <MenuButton :icon="matMenu"
-            :items="getMenuItems(props.dashboards, props.editMode)"
-   @onMenuSelect='handleMenuSelect'
+  <TMenuButton 
+    :icon="matMenu"
+    :items="getMenuItems(props.dashboards, props.editMode)"
+    @onMenuSelect='handleMenuSelect'
   />
 
 </template>

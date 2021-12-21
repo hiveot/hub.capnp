@@ -1,51 +1,54 @@
 <script lang="ts" setup>
-import {ref} from "vue";
+import {reactive} from "vue";
+import {useDialogPluginComponent, QForm, QInput} from "quasar";
+
 import TDialog from "@/components/TDialog.vue";
-import {QDialog, QBtn, QCard, QBar, QSpace, QCardActions, QCardSection, QForm, QInput} from "quasar";
+import {IDashboardRecord} from '@/data/AppState'
 
-const props = defineProps({
-    visible:Boolean,
-  })
+// inject handlers
+const { dialogRef, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
-const emit = defineEmits({
-    'onAdd': String,
-    'onClosed': null,
-    })
 
-const pageName = ref("");
+const props = defineProps<{
+    title: string,
+    dashboard?: IDashboardRecord,
+}>()
+
+// editDash is a copy the dashboard being edited or empty on add
+const editDash = reactive<IDashboardRecord>(
+    props.dashboard ? {...props.dashboard} : {}
+);
+
+const emits = defineEmits( [
+    // REQUIRED; need to specify some events that your
+    // component will emit through useDialogPluginComponent()
+    ...useDialogPluginComponent.emits,
+]);
 
 const handleSubmit = (ev:any) =>{
-  console.log("AppAddPageDialog.handleSubmit: ", pageName.value)
-  emit("onAdd", pageName.value);
-  pageName.value = "";
-  emit("onClosed");
+  console.log("AppAddPageDialog.handleSubmit: ", editDash)
+  onDialogOK(editDash)
  };
-console.log("AddPageDialog: visible=",props.visible);
-
-const handleCancel = (ev:any) => {
-  console.log("AppAddPageDialog.cancelled")
-  emit("onClosed");
-}
 
 </script>
 
 <template>
-      <TDialog
-      :visible="props.visible"
-      title="New Dashboard Page"
-      @onClosed="handleCancel"
+  <TDialog 
+      ref="dialogRef" 
+      :title="props.title"
+      @onClosed="onDialogCancel"
       @onSubmit="handleSubmit"
       showCancel showOk
-      :okDisabled="(pageName==='')"
+      :okDisabled="(editDash.label==='')"
   >
     <QForm @submit="handleSubmit" class="q-gutter-md" style="min-width: 350px">
-          <QInput v-model="pageName"
+          <QInput v-model="editDash.label"
                   no-error-icon
                   autofocus filled required lazy-rules
                   id="pageName" type="text"
                   label="Page name"
-                  hint="Name of the dashboard as shown on the Tabs"
-                  :rules="[()=>pageName !== ''||'Please provide a name']"
+                  :hint="'Name of the dashboard as shown on the Tabs (' + props.dashboard?.label"
+                  :rules="[()=>editDash.label !== ''||'Please provide a name']"
                   stack-label
           >
           </QInput>

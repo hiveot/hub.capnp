@@ -2,18 +2,21 @@
 <script lang="ts" setup>
 import {reactive} from "vue";
 
-import {QTabs, QRouteTab, QToggle} from 'quasar';
+import {useQuasar, QToggle} from 'quasar';
+const $q = useQuasar()
 import {matDashboard} from "@quasar/extras/material-icons";
 
-import { MenuAbout, MenuEditMode, MenuAddDashboard} from './MenuConstants';
+import { MenuAbout, MenuEditMode, MenuAddDashboard, MenuDeleteDashboard, MenuEditDashboard} from './MenuConstants';
 import AppMenu from './AppMenu.vue';
 import AboutDialog from "./AppAboutDialog.vue";
-import AddPageDialog from "@/pages/dashboards/AddDashboardDialog.vue";
+import AddDashboardDialog from "@/pages/dashboards/AddDashboardDialog.vue";
+import AppPagesBar from "./AppPagesBar.vue";
 import TConnectionStatus from "@/components/TConnectionStatus.vue"
-import {IMenuItem} from "@/components/MenuButton.vue";
+import {IMenuItem} from "@/components/TMenuButton.vue";
 
-import {AccountsRouteName, AppState, DashboardPrefix} from '@/data/AppState'
+import appState, {AccountsRouteName, AppState, DashboardPrefix, IDashboardRecord} from '@/data/AppState'
 import cm, {IConnectionStatus} from "@/data/ConnectionManager";
+
 
 interface IAppHeader {
   appState: AppState
@@ -33,39 +36,87 @@ const data =reactive({
   showAddPage: false,
 })
 
-const handleAddPage = (name:string) => {
-  props.appState.AddDashboard({label:name, to:DashboardPrefix+'/'+name, icon:matDashboard});
-  console.log("Added page: ",name)
+// Show the add dashboard dialog
+const handleAddDashboard = () => {
+  console.log("Opening add dashboard...");
+  $q.dialog({
+    component: AddDashboardDialog,
+    componentProps: {
+      title: "Add Dashboard"
+    },
+    // cancel: true,
+    // ok: true,
+  }).onOk((newDashboard:IDashboardRecord)=> {
+    props.appState.AddDashboard(newDashboard)
+  })
 }
+
+// Show the edit dashboard dialog
+const handleEditDashboard = (dashboard:IDashboardRecord) => {
+  console.log("Opening edit dashboard for '"+dashboard.label+"'");
+  $q.dialog({
+    component: AddDashboardDialog,
+    componentProps: {
+      dashboard: dashboard,
+      title: "Edit Dashboard"
+    },
+    // cancel: true,
+    // ok: true,
+  }).onOk((newDashboard:IDashboardRecord)=> {
+    // TODO: user proper reactive store
+    dashboard.label = newDashboard.label
+  })
+}
+
+
+// Show the delete dashboard confirmation dialog
+const handleDeleteDashboard = (dashboard: IDashboardRecord) => {
+  $q.dialog({
+    title: 'Confirm Delete',
+    message: "This will delete dashboard '"+dashboard.label+"'. Please confirm",
+    cancel: true,
+  }).onOk(()=> {
+    appState.RemoveDashboard(dashboard)
+  })
+}
+
 const handleEditModeChange = (ev:any)=>{
   console.log("AppHeader: emit onEditModeChange")
   props.appState.SetEditMode(ev == true)
 }
+
+// Show the about dialog
 const handleOpenAbout = () => {
   console.log("Opening about...");
-  data.showAbout = !data.showAbout;
-}
-const handleOpenAddPage = () => {
-  console.log("Opening add page...");
-  data.showAddPage = !data.showAddPage;
-}
-const handleAboutClosed = () => {
-  // console.log("About closed...");
-  data.showAbout = false;
+  $q.dialog({
+    component: AboutDialog,
+  })
 }
 
+
 // handle Dialog and edit mode select
-const handleMenuSelect = (menuItem:IMenuItem) => {
+const handleMenuSelect = (menuItem:IMenuItem, dashboard?:IDashboardRecord) => {
   console.log("handleMenuSelect: ", menuItem);
+  // These items require a dashboard
+  if (dashboard) {
+    if (menuItem.id == MenuDeleteDashboard) {
+      handleDeleteDashboard(dashboard)
+    }
+    else if (menuItem.id == MenuEditDashboard) {
+      handleEditDashboard(dashboard)
+    } 
+  }
+// menu items that do not require a  dashboard
   if (menuItem.id == MenuAbout) {
     handleOpenAbout();
   } else if (menuItem.id == MenuEditMode) {
     handleEditModeChange(!currentState.editMode);
   } else if (menuItem.id == MenuAddDashboard) {
-    handleOpenAddPage();
-  } else {
+    handleAddDashboard();
   }
 }
+
+
 
 
 </script>
@@ -73,44 +124,47 @@ const handleMenuSelect = (menuItem:IMenuItem) => {
 <template>
   <div class="header">
 
-    <AboutDialog :visible="data.showAbout"
-                 @onClosed='handleAboutClosed'/>
-    <AddPageDialog :visible="data.showAddPage"
-                   @onClosed='data.showAddPage=false'
-                   @onAdd="handleAddPage"/>
+    <!-- <AboutDialog v-if="data.showAbout" 
+      :visible="true"
+      @onClosed='data.showAbout = false'/>
 
+    <AddDashboardDialog 
+      :visible="data.showAddPage"
+      @onClosed='data.showAddPage=false'
+      @onAdd="handleAddDashboard"/>
+ -->
     <img alt="logo" src="@/assets/logo.svg" @click="handleOpenAbout"
          style="height: 40px;cursor:pointer; padding:5px;"
     />
 
-    <!-- On larger screens show a tab bar for dashboard page -->
-    <QTabs   inline-label indicator-color="green">
-      <QRouteTab v-for="dashboard in currentState.dashboards"
-             :label="dashboard.label"
-             :icon="dashboard.icon"
-             :to="(dashboard.to === undefined) ? '' : dashboard.to"
+    <AppPagesBar 
+      :dashboards="currentState.dashboards" 
+      :edit-mode="currentState.editMode"
+      @onMenuSelect="handleMenuSelect"
       />
-    </QTabs>
 
     <div style="flex-grow:1"/>
 
     <!-- Edit mode switching -->
-    <QToggle :model-value="currentState.editMode"
-              @update:model-value="handleEditModeChange"
-              label="Edit"
-              inactive-color="gray"
+    <QToggle 
+      :model-value="currentState.editMode"
+      @update:model-value="handleEditModeChange"
+      label="Edit"
+      inactive-color="gray"
     />
 
     <!-- Connection Status -->
 <!--    <TButton  icon="mdi-link-off" flat tooltip="Connection Status & Configuration"/>-->
-    <TConnectionStatus :value="cm.connectionStatus"
-                      :to="{name: AccountsRouteName}"
+    <TConnectionStatus 
+      :value="cm.connectionStatus"
+      :to="{name: AccountsRouteName}"
     />
 
     <!-- Dropdown menu -->
-    <AppMenu :dashboards="currentState.dashboards"
-             :editMode="currentState.editMode"
-             @onMenuSelect="handleMenuSelect"
+    <AppMenu
+      :dashboards="currentState.dashboards"
+      :editMode="currentState.editMode"
+      @onMenuSelect="handleMenuSelect"
     />
 
   </div>

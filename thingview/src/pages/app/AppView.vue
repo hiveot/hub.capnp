@@ -3,7 +3,7 @@
 import {onMounted} from 'vue';
 import {useQuasar} from "quasar";
 import AppHeader from "./AppHeader.vue";
-import {IMenuItem} from "@/components/MenuButton.vue";
+import {IMenuItem} from "@/components/TMenuButton.vue";
 
 import appState from '@/data/AppState'
 import accountStore, {AccountRecord} from "@/data/accounts/AccountStore";

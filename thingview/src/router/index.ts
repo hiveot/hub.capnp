@@ -44,7 +44,7 @@ const routes: Array<RouteRecordRaw> = [
     // DialogRouterView displays both the things as the dialog
     //   name: ThingsRouteName,
       path: "/things",
-      component: DialogRouterView, // ignore the error in webstorm
+    component: DialogRouterView, // (note: ignore the TS error in webstorm)
       children: [
       {
         // Display the list of things if no additional parameters are provided

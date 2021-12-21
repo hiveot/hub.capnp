@@ -13,9 +13,9 @@ const storageKey:string = "appState"
 
 
 export interface IDashboardRecord {
-  label: string
-  icon: string
-  to: string
+  label?: string
+  icon?: string
+  to?: string
 }
 
 
@@ -44,7 +44,6 @@ export class AppState {
     this.state.dashboards.push(record)
   }
 
-
   // load state from local storage
   Load() {
     console.log("AppState.Loading state")
@@ -62,6 +61,14 @@ export class AppState {
       })
     }
   }
+
+  // // Update a dashboard
+  // public UpdateDashboard(record: IDashboardRecord) {
+  //   let index = this.state.dashboards.indexOf(record)
+  //   if (index >= 0) {
+  //     this.state.dashboards.splice(index, 1)
+  //   }
+  // }
 
   // Remove a dashboard
   public RemoveDashboard(record: IDashboardRecord) {

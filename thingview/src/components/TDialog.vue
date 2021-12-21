@@ -1,10 +1,19 @@
 <script lang="ts" setup>
-import {QBtn, QDialog, QCard, QCardActions, QCardSection, QSeparator, QScrollArea, QSpace, QToolbar, QToolbarTitle, } from "quasar";
-// import TButton from '@/components/TButton.vue'
 
+import {ref, defineExpose} from 'vue'
+import {useDialogPluginComponent, QBtn, QDialog, QCard, QCardActions, QCardSection, QSeparator, QScrollArea, QSpace, QToolbar, QToolbarTitle, } from "quasar";
+
+
+// import TButton from '@/components/TButton.vue'
 import {matClose} from "@quasar/extras/material-icons";
 
-/** Standardized Dialog that handles header, footer, inner scrollbars */
+// This is REQUIRED; Need to inject these (from useDialogPluginComponent() call)
+// into the vue scope for the vue html template
+const { dialogRef, onDialogHide, onDialogOK, onDialogCancel } = useDialogPluginComponent()
+
+/**
+ *  Standardized Dialog that handles header, footer, inner scrollbars 
+ */
 interface IDialog {
   /** disable the Ok button */
   okDisabled?: boolean
@@ -31,7 +40,7 @@ interface IDialog {
   /** Dialog title */
   title?: string
   /** Dialog is visible on/off */
-  visible: boolean
+  visible?: boolean
   /** Width of dialog, eg 80% */
   width?: string
 }
@@ -49,31 +58,53 @@ const props = withDefaults(
       showCancel: false,
       showClose: false,
       showOk: false,
-      visible: false,
+      visible: true,
       width: "60%"
     }
 )
 
-const emit = defineEmits(['onClosed', 'onSubmit'])
-
+const emits = defineEmits( [
+    'onClosed', 'onSubmit', 'hide',
+    // REQUIRED; need to specify some events that your
+    // component will emit through useDialogPluginComponent()
+    ...useDialogPluginComponent.emits,
+]);
 const handleSubmit = () => {
   console.log("handleSubmit emit onSubmit")
-  emit('onSubmit')
+  emits('onSubmit')
+  onDialogOK()
 }
 
 // Notify listeners this dialog is closed
 const handleClose = () => {
-  console.log("TDialog. Close Dialog")
-  emit('onClosed')
+  console.log("TDialog. Closing Dialog")
+  // emit('onClosed')
+
+  onDialogHide()
 }
+
+// show and hide are for use by $q.dialog. Pass it on the the QDialog child
+const hide = () => {
+  dialogRef.value?.hide()
+}
+
+// show and hide are for use by $q.dialog. Pass it on the the QDialog child
+const show = () => {
+  dialogRef.value?.show()
+}
+
+// Export show and hide
+defineExpose({show, hide})
 
 </script>
 
 <!--Dialog component with title and Ok/Cancel buttons with standardized dialog configuration
  -->
 <template>
-  <QDialog :model-value="props.visible"
-            @hide='handleClose'
+  <QDialog ref="dialogRef"
+           :model-value="props.visible"
+           @hide='handleClose'
+
     >
 <!--    maxWidth must be set for width to work-->
     <QCard :style="{
@@ -112,7 +143,7 @@ const handleClose = () => {
           <QBtn v-if="props.showCancel"
             label="Cancel"
             :label="props.cancelLabel"
-            @click="handleClose"
+            @click="onDialogCancel"
           />
           <QSpace/>
           <QBtn v-if="props.showClose" flat

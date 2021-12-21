@@ -1,25 +1,25 @@
 <script lang="ts" setup>
-// import {reactive} from "vue";
 
 // import TDialog from '@/components/TDialog.vue'
 import TDialog from '@/components/TDialog.vue'
+import {useDialogPluginComponent} from 'quasar'
 
 const version = "0.3 alpha";
 const licenseURL = "https://github.com/wostzone/wostzone.github.io/blob/81f41a781dfd37d82a5e37bf9ac905199161ee85/LICENSE"
 const wostSiteURL = "https://wostzone.github.io/"
-import {mdiClose} from "@quasar/extras/mdi-v6";
 
 interface IProps {
-  visible: boolean
+  visible?: boolean
 }
 const props = withDefaults(
     defineProps<IProps>(),
-    {visible: false}
+    {visible: true}
 )
 
 const emit = defineEmits(['onClosed'])
 
-console.log("ShowAbout: visible=",props.visible)
+// inject handler for using plugin dialog instance
+const { dialogRef } = useDialogPluginComponent();
 
 const handleCloseDialog = () => {
   console.log("handleCloseDialog")
@@ -29,9 +29,10 @@ const handleCloseDialog = () => {
 
 
 <template>
-<TDialog
+<TDialog ref="dialogRef"
     :visible="props.visible"
   title="About ThingView"
+  show-close
   @onClosed="handleCloseDialog"
   >
 
