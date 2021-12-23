@@ -1,25 +1,21 @@
 <script lang="ts" setup>
 
 import {QTabs, QRouteTab} from 'quasar'
-import { IDashboardRecord } from '@/data/AppState';
+import { DashboardDefinition } from '@/data/dashboard/DashboardStore';
 import TMenuButton, { IMenuItem } from '@/components/TMenuButton.vue';
-import {matMenu, matAdd, matEdit, matDelete} from "@quasar/extras/material-icons"
+import {DashboardPrefix} from '@/router'
 import { MenuAddTile, MenuAddDashboard, MenuEditDashboard, MenuDeleteDashboard } from './MenuConstants';
+import {matMenu, matAdd, matEdit, matDelete} from "@quasar/extras/material-icons"
 
 const props = defineProps<{
-  dashboards: IDashboardRecord[]
+  dashboards: ReadonlyArray<DashboardDefinition>
   editMode?: boolean
 }>()
 
 const emit=defineEmits<{
-  (e:'onMenuSelect', item:IMenuItem, dashboard:IDashboardRecord):void,
+  (e:'onMenuAction', item:IMenuItem, dashboard:DashboardDefinition):void,
 }>()
 
-// Pass selected menu
-const handleMenuSelect = (item:IMenuItem, dashboard:IDashboardRecord) => {
-  console.log('AppPagesBar: onMenuSelect: id=%s, dashboard=%s', item.id, dashboard.label);
-  emit("onMenuSelect", item, dashboard);
-}
 
 // Page tab bar dropdown menu items
 const pageMenuItems: IMenuItem[] = [
@@ -41,14 +37,14 @@ const pageMenuItems: IMenuItem[] = [
              :to="(dashboard.to === undefined) ? '' : dashboard.to"
       > -->
       <QRouteTab v-for="dashboard in props.dashboards"
-             :label="dashboard.label"
-             :to="(dashboard.to === undefined) ? '' : dashboard.to"
+             :label="dashboard.name"
+             :to="DashboardPrefix+'/'+dashboard.name"
       >
         <TMenuButton v-if="props.editMode" 
           class="q-pa-xs"
           :icon="matMenu" 
           :items="pageMenuItems" 
-          @on-menu-select="(item)=>handleMenuSelect(item, dashboard)"
+          @onMenuAction="(item)=>emit('onMenuAction', item, dashboard)"
         />
       </QRouteTab>
     </QTabs>

@@ -20,7 +20,8 @@
     },
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "sourceMap": true,
+//    "sourceMap": true,
+    "outDir": "dist/tmp",
     "strict": true,
     "target": "esnext",
     "types": [

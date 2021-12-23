@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 
-import {ref, defineExpose} from 'vue'
+// import {ref} from 'vue'
 import {useDialogPluginComponent, QBtn, QDialog, QCard, QCardActions, QCardSection, QSeparator, QScrollArea, QSpace, QToolbar, QToolbarTitle, } from "quasar";
 
 
@@ -70,14 +70,14 @@ const emits = defineEmits( [
     ...useDialogPluginComponent.emits,
 ]);
 const handleSubmit = () => {
-  console.log("handleSubmit emit onSubmit")
+  console.debug("TDialog.handleSubmit emit onSubmit")
   emits('onSubmit')
   onDialogOK()
 }
 
 // Notify listeners this dialog is closed
 const handleClose = () => {
-  console.log("TDialog. Closing Dialog")
+  console.debug("TDialog. Closing Dialog")
   // emit('onClosed')
 
   onDialogHide()

@@ -4,22 +4,37 @@ import {reactive} from "vue";
 
 import {useQuasar, QToggle} from 'quasar';
 const $q = useQuasar()
+import router from '@/router'
 import {matDashboard} from "@quasar/extras/material-icons";
 
-import { MenuAbout, MenuEditMode, MenuAddDashboard, MenuDeleteDashboard, MenuEditDashboard} from './MenuConstants';
+import {
+  MenuAbout,
+  MenuEditMode,
+  MenuAddDashboard,
+  MenuDeleteDashboard,
+  MenuEditDashboard,
+  MenuAddTile
+} from './MenuConstants';
+
+import {DashboardPrefix, AccountsRouteName} from '@/router/index'
+
 import AppMenu from './AppMenu.vue';
 import AboutDialog from "./AppAboutDialog.vue";
-import AddDashboardDialog from "@/pages/dashboards/AddDashboardDialog.vue";
+import EditDashboardDialog from "@/pages/dashboards/EditDashboardDialog.vue";
+import EditTileDialog from "@/pages/dashboards/EditTileDialog.vue"
 import AppPagesBar from "./AppPagesBar.vue";
 import TConnectionStatus from "@/components/TConnectionStatus.vue"
 import {IMenuItem} from "@/components/TMenuButton.vue";
 
-import appState, {AccountsRouteName, AppState, DashboardPrefix, IDashboardRecord} from '@/data/AppState'
-import cm, {IConnectionStatus} from "@/data/ConnectionManager";
+import {ConnectionManager, IConnectionStatus} from "@/data/ConnectionManager";
+import {DashboardDefinition, DashboardStore, DashboardTile} from "@/data/dashboard/DashboardStore";
+import {AppState} from '@/data/AppState'
 
 
 interface IAppHeader {
   appState: AppState
+  cm: ConnectionManager
+  dashStore: DashboardStore
   connectionStatus: IConnectionStatus
 }
 const props = defineProps<IAppHeader>()
@@ -28,7 +43,7 @@ const props = defineProps<IAppHeader>()
 const currentState = props.appState.State()
 
 const emit = defineEmits([
-    "onMenuSelect",
+    "onMenuAction",
   ])
 
 const data =reactive({
@@ -38,45 +53,63 @@ const data =reactive({
 
 // Show the add dashboard dialog
 const handleAddDashboard = () => {
-  console.log("Opening add dashboard...");
+  console.debug("Opening add dashboard...");
   $q.dialog({
-    component: AddDashboardDialog,
+    component: EditDashboardDialog,
     componentProps: {
       title: "Add Dashboard"
     },
     // cancel: true,
     // ok: true,
-  }).onOk((newDashboard:IDashboardRecord)=> {
-    props.appState.AddDashboard(newDashboard)
+  }).onOk((newDashboard:DashboardDefinition)=> {
+    props.dashStore.AddDashboard(newDashboard)
+    // select the new dashboard
+    router.push(DashboardPrefix+"/" +newDashboard.name)
+  })
+}
+// Show the add tile dialog
+const handleAddTile = (dashboard:DashboardDefinition) => {
+  console.debug("Opening add tile...");
+  $q.dialog({
+    component: EditTileDialog,
+    componentProps: {
+      title: "Add Tile",
+      tile: new DashboardTile(),
+    },
+  }).onOk((newTile:DashboardTile)=> {
+    props.dashStore.AddTile(dashboard, newTile)
+  })
+}
+// Show the delete dashboard confirmation dialog
+const handleDeleteDashboard = (dashboard: DashboardDefinition) => {
+  $q.dialog({
+    title: 'Confirm Delete',
+    message: "This will delete dashboard '"+dashboard.name+"'. Please confirm",
+    cancel: true,
+  }).onOk(()=> {
+    props.dashStore.RemoveDashboard(dashboard)
+    let newDashName = DashboardPrefix+"/"+props.dashStore.dashboards[0]?.name
+    console.log("handleDeleteDashboard: Changing route to ", newDashName)
+    router.push(newDashName )
   })
 }
 
 // Show the edit dashboard dialog
-const handleEditDashboard = (dashboard:IDashboardRecord) => {
-  console.log("Opening edit dashboard for '"+dashboard.label+"'");
+const handleEditDashboard = (dashboard:DashboardDefinition) => {
+  console.log("handleEditDashboard: Opening edit dashboard for '"+dashboard.name+"'");
   $q.dialog({
-    component: AddDashboardDialog,
+    component: EditDashboardDialog,
     componentProps: {
       dashboard: dashboard,
       title: "Edit Dashboard"
     },
     // cancel: true,
     // ok: true,
-  }).onOk((newDashboard:IDashboardRecord)=> {
-    // TODO: user proper reactive store
-    dashboard.label = newDashboard.label
-  })
-}
-
-
-// Show the delete dashboard confirmation dialog
-const handleDeleteDashboard = (dashboard: IDashboardRecord) => {
-  $q.dialog({
-    title: 'Confirm Delete',
-    message: "This will delete dashboard '"+dashboard.label+"'. Please confirm",
-    cancel: true,
-  }).onOk(()=> {
-    appState.RemoveDashboard(dashboard)
+  }).onOk((newDashboard:DashboardDefinition)=> {
+    props.dashStore.UpdateDashboard(newDashboard)
+    let newDashName = DashboardPrefix+"/"+newDashboard.name
+    console.log("Changing route to ", newDashName)
+    router.push(newDashName )
   })
 }
 
@@ -85,9 +118,24 @@ const handleEditModeChange = (ev:any)=>{
   props.appState.SetEditMode(ev == true)
 }
 
+// Show the edit tile dialog
+const handleEditTile = (dashboard:DashboardDefinition, tile:DashboardTile) => {
+  console.log("handleEditTile: Opening edit tile...");
+  $q.dialog({
+    component: EditTileDialog,
+    componentProps: {
+      title: "Edit Tile",
+      tile: tile,
+    },
+  }).onOk((newTile:DashboardTile)=> {
+    props.dashStore.UpdateTile(dashboard, newTile)
+  })
+}
+
+
 // Show the about dialog
 const handleOpenAbout = () => {
-  console.log("Opening about...");
+  console.log("handleOpenAbout: Opening about...");
   $q.dialog({
     component: AboutDialog,
   })
@@ -95,15 +143,16 @@ const handleOpenAbout = () => {
 
 
 // handle Dialog and edit mode select
-const handleMenuSelect = (menuItem:IMenuItem, dashboard?:IDashboardRecord) => {
-  console.log("handleMenuSelect: ", menuItem);
-  // These items require a dashboard
+const handleMenuAction = (menuItem:IMenuItem, dashboard?:DashboardDefinition) => {
+  console.info("AppHeader.handleMenuAction: ", menuItem);
+  // These menu actions require a dashboard
   if (dashboard) {
     if (menuItem.id == MenuDeleteDashboard) {
       handleDeleteDashboard(dashboard)
-    }
-    else if (menuItem.id == MenuEditDashboard) {
+    } else if (menuItem.id == MenuEditDashboard) {
       handleEditDashboard(dashboard)
+    } else if (menuItem.id == MenuAddTile) {
+      handleAddTile(dashboard)
     } 
   }
 // menu items that do not require a  dashboard
@@ -115,8 +164,6 @@ const handleMenuSelect = (menuItem:IMenuItem, dashboard?:IDashboardRecord) => {
     handleAddDashboard();
   }
 }
-
-
 
 
 </script>
@@ -138,9 +185,9 @@ const handleMenuSelect = (menuItem:IMenuItem, dashboard?:IDashboardRecord) => {
     />
 
     <AppPagesBar 
-      :dashboards="currentState.dashboards" 
+      :dashboards="props.dashStore.dashboards"
       :edit-mode="currentState.editMode"
-      @onMenuSelect="handleMenuSelect"
+      @onMenuAction="handleMenuAction"
       />
 
     <div style="flex-grow:1"/>
@@ -156,15 +203,15 @@ const handleMenuSelect = (menuItem:IMenuItem, dashboard?:IDashboardRecord) => {
     <!-- Connection Status -->
 <!--    <TButton  icon="mdi-link-off" flat tooltip="Connection Status & Configuration"/>-->
     <TConnectionStatus 
-      :value="cm.connectionStatus"
+      :value="props.cm.connectionStatus"
       :to="{name: AccountsRouteName}"
     />
 
     <!-- Dropdown menu -->
     <AppMenu
-      :dashboards="currentState.dashboards"
+      :dashboards="props.dashStore.dashboards"
       :editMode="currentState.editMode"
-      @onMenuSelect="handleMenuSelect"
+      @onMenuAction="handleMenuAction"
     />
 
   </div>

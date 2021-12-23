@@ -4,6 +4,7 @@ import  {MenuAbout, MenuEditMode, MenuAddDashboard, MenuAccounts, MenuThings} fr
 
 import TMenuButton, {IMenuItem} from "@/components/TMenuButton.vue";
 import {
+  matDashboard,
   matMenu,
   matInfo,
   matLensBlur,
@@ -13,11 +14,12 @@ import {
   matCheckBoxOutlineBlank
 } from "@quasar/extras/material-icons";
 
-import { AccountsRouteName, ThingsRouteName } from "@/data/AppState";
+import { DashboardPrefix, AccountsRouteName, ThingsRouteName } from "@/router";
+import {DashboardDefinition} from "@/data/dashboard/DashboardStore";
 
 interface IAppMenu {
   editMode: boolean;
-  dashboards: Array<IMenuItem>;
+  dashboards: ReadonlyArray<DashboardDefinition>;
 }
 const props = withDefaults(defineProps<IAppMenu>(), {
       editMode: false,
@@ -25,19 +27,25 @@ const props = withDefaults(defineProps<IAppMenu>(), {
     })
 
 const emit = defineEmits<{
-  (e: 'onMenuSelect', item:IMenuItem):void // IMenuItem
+  (e: 'onMenuAction', item:IMenuItem):void // IMenuItem
 }>()
 
-const handleMenuSelect = (item:IMenuItem) => {
-  console.log('AppMenu: onMenuSelect: ', item);
-  emit("onMenuSelect", item);
+const handleMenuAction = (item:IMenuItem) => {
+  console.debug("AppMenu.handleMenuAction. label=",item.label)
+  emit('onMenuAction', item)
 }
 
-
-const getMenuItems = (dashboards: Array<IMenuItem>, editMode:boolean): Array<IMenuItem> => {
-  return  [...dashboards, {
-    separator: true,
-  }, {
+const getMenuItems = (dashboards: ReadonlyArray<DashboardDefinition>, editMode:boolean): Array<IMenuItem> => {
+  let items:IMenuItem[] = dashboards.map(dash=>{
+    return {
+      id: dash.id,
+      label: dash.name,
+      icon: matDashboard,
+      to: DashboardPrefix+"/"+dash.name
+    }
+  })
+  items.push({separator:true})
+  items.push({
     label: "All Things...",
     icon: matLensBlur,
     id: MenuThings,
@@ -60,7 +68,8 @@ const getMenuItems = (dashboards: Array<IMenuItem>, editMode:boolean): Array<IMe
     id: MenuAbout,
     label: "About...",
     icon: matInfo,
-  }]
+  })
+  return items
 }
 
 
@@ -72,7 +81,7 @@ const getMenuItems = (dashboards: Array<IMenuItem>, editMode:boolean): Array<IMe
   <TMenuButton 
     :icon="matMenu"
     :items="getMenuItems(props.dashboards, props.editMode)"
-    @onMenuSelect='handleMenuSelect'
+    @onMenuAction="handleMenuAction"
   />
 
 </template>

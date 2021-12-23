@@ -7,9 +7,9 @@ import {IMenuItem} from "@/components/TMenuButton.vue";
 
 import appState from '@/data/AppState'
 import accountStore, {AccountRecord} from "@/data/accounts/AccountStore";
-import dirStore from '@/data/td/ThingStore'
+// import dirStore from '@/data/td/ThingStore'
 import cm from '@/data/ConnectionManager';
-
+import dashStore from '@/data/dashboard/DashboardStore'
 const $q = useQuasar()
 
 
@@ -54,7 +54,8 @@ const connectToHub = (accounts: Array<AccountRecord>) => {
 onMounted(()=>{
   appState.Load()
   accountStore.Load()
-  connectToHub(accountStore.GetAccounts());
+  dashStore.Load()
+  connectToHub(accountStore.accounts);
 })
 
 // future option for dark theme setting
@@ -67,6 +68,8 @@ onMounted(()=>{
 <template>
 <div class="appView">
   <AppHeader  :appState="appState"
+              :cm="cm"
+              :dashStore="dashStore"
               :connectionStatus="cm.connectionStatus"/>
   <router-view></router-view>
 </div>

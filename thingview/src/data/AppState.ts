@@ -2,31 +2,15 @@
 import { reactive, watch } from "vue";
 import {matDashboard} from "@quasar/extras/material-icons";
 
-// Router constants shared between router and navigation components
-export const DashboardPrefix = "/dashboard"
-export const AccountsRouteName = "accounts"
-export const DashboardRouteName = "dashboard"
-export const ThingsRouteName = "things"
+
 
 // localstorage load/save key
-const storageKey:string = "appState"
-
-
-export interface IDashboardRecord {
-  label?: string
-  icon?: string
-  to?: string
-}
+const  storageKey:string = "appState"
 
 
 // The global application state
 export class AppStateData extends Object {
   editMode: boolean = false;
-
-// TODO move persistent pages configuration into its own data
-  dashboards: Array<IDashboardRecord> = [
-    { label: 'Overview', to: DashboardPrefix + '/overview', icon: matDashboard },
-  ];
 }
 
 // The non-persistent runtime application state is kept here
@@ -40,10 +24,6 @@ export class AppState {
     })
   }
 
-  public AddDashboard(record: IDashboardRecord) {
-    this.state.dashboards.push(record)
-  }
-
   // load state from local storage
   Load() {
     console.log("AppState.Loading state")
@@ -51,30 +31,6 @@ export class AppState {
     if (serializedState != null) {
       let state = JSON.parse(serializedState)
       this.state.editMode = state.editMode
-      this.state.dashboards.splice(0, this.state.dashboards.length)
-      this.state.dashboards.push(...state.dashboards)
-    }
-    // ensure there is at least 1 dashboard
-    if (this.state.dashboards.length < 1) {
-      this.state.dashboards.push({
-        label: 'Overview', to: DashboardPrefix + '/overview', icon: matDashboard
-      })
-    }
-  }
-
-  // // Update a dashboard
-  // public UpdateDashboard(record: IDashboardRecord) {
-  //   let index = this.state.dashboards.indexOf(record)
-  //   if (index >= 0) {
-  //     this.state.dashboards.splice(index, 1)
-  //   }
-  // }
-
-  // Remove a dashboard
-  public RemoveDashboard(record: IDashboardRecord) {
-    let index = this.state.dashboards.indexOf(record)
-    if (index >= 0) {
-      this.state.dashboards.splice(index, 1)
     }
   }
 

@@ -29,11 +29,11 @@ const props = withDefaults(defineProps<IMenu>(),{
   icon: "mdi-menu"
 })
 
-const emit = defineEmits(['onMenuSelect']) // IMenuItem
+const emit = defineEmits(['onMenuAction']) // IMenuItem
 
-const handleMenuSelect = (item:IMenuItem) => {
-  console.log('MenuButton: onMenuSelect: ', item.label);
-  emit("onMenuSelect", item);
+const handleMenuAction = (item:IMenuItem) => {
+  console.debug('MenuButton: handleMenuAction: ', item.label);
+  emit("onMenuAction", item);
 }
 </script>
 
@@ -50,7 +50,7 @@ const handleMenuSelect = (item:IMenuItem) => {
            
            <QItem v-else 
             :to="item.to"
-            clickable @click='handleMenuSelect(item)'
+            clickable @click='handleMenuAction(item)'
            >
              <QItemSection v-if='item.icon !== ""' avatar>
                <QIcon :name="item.icon"/>

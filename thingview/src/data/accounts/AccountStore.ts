@@ -29,13 +29,13 @@ export class AccountRecord extends Object {
   enabled: boolean = false;
 }
 
-class AccountData {
+class AccountsData {
   accounts = Array<AccountRecord>()
 }
 
 // Hub account data implementation with additional methods for loading and saving
 export class AccountStore {
-  data: AccountData
+  data: AccountsData
   storageKey: string = "accountStore"
 
   constructor() {
@@ -45,19 +45,20 @@ export class AccountStore {
     defaultAccount.address = location.hostname
     defaultAccount.loginName = "user1" // for testing
     defaultAccount.enabled = true
-    this.data = reactive(new AccountData())
+    this.data = reactive(new AccountsData())
   }
 
   // add a new account to the list and save the account list
   Add(account: AccountRecord): void {
     // always update the record ID to ensure uniqueness
-    account.id = nanoid(8)
-    this.data.accounts.push(account)
+    account.id = nanoid(5)
+    let newAccount = JSON.parse(JSON.stringify(account))
+    this.data.accounts.push(newAccount)
     this.Save()
   }
 
   // Return a list of accounts
-  GetAccounts(): AccountRecord[] {
+  get accounts(): readonly AccountRecord[] {
     return readonly(this.data.accounts) as AccountRecord[]
   }
 
@@ -77,7 +78,7 @@ export class AccountStore {
   Load() {
     let serializedStore = localStorage.getItem(this.storageKey)
     if (serializedStore != null) {
-      let accountData: AccountData = JSON.parse(serializedStore)
+      let accountData: AccountsData = JSON.parse(serializedStore)
       if (accountData != null && accountData.accounts.length > 0) {
         this.data.accounts.splice(0, this.data.accounts.length)
         this.data.accounts.push(...accountData.accounts)
@@ -88,7 +89,8 @@ export class AccountStore {
     }
     // ensure there is at least 1 account to display
     if (this.data.accounts.length == 0) {
-      this.data.accounts.push(new AccountRecord())
+      let defaultAccount = new AccountRecord()
+      this.data.accounts.push(defaultAccount)
     }
   }
 
@@ -129,16 +131,18 @@ export class AccountStore {
   // Update the account with the given record and save
   // If the record ID does not exist, and ID will be assigned and the record is added
   // If the record ID exists, the record is updated
-  Update(record: AccountRecord) {
-    let existing = this.data.accounts.find(el => (el.id === record.id))
+  Update(account: AccountRecord) {
+    let newAccount = JSON.parse(JSON.stringify(account))
+
+    let existing = this.data.accounts.find(el => (el.id === account.id))
 
     if (!existing) {
-      console.log("Adding account", record)
-      this.data.accounts.push(record) // why would it not exist?
+      console.log("Adding account", newAccount)
+      this.data.accounts.push(newAccount) // why would it not exist?
     } else {
-      console.log("Update account", record)
+      console.log("Update account", newAccount)
       // reactive update of the existing record
-      Object.assign(existing, record)
+      Object.assign(existing, newAccount)
     }
     this.Save()
   }
@@ -146,7 +150,5 @@ export class AccountStore {
 
 // accountStore is a singleton
 let accountStore = new AccountStore()
-// accountStore.Add({name: "account1", id:"account1",
-//   address:"localhost", loginName:"account1#email", enabled:false})
 
 export default accountStore

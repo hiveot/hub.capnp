@@ -20,7 +20,6 @@ const data = reactive({
   editRecord: new AccountRecord(),
 })
 
-const accounts = accountStore.GetAccounts()
 const $q = useQuasar()
 
 const handleStartAdd = () => {
@@ -99,7 +98,7 @@ const handleToggleEnabled = (record: AccountRecord) => {
           </QToolbar>
     </QCardSection>
     <QCardSection >
-      <AccountsTable :accounts="accounts"
+      <AccountsTable :accounts="accountStore.accounts"
                      title="Hub Accounts"
                      style="width: 100%"
                      :editMode="appState.State().editMode"
