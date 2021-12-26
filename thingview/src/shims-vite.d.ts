@@ -10,6 +10,9 @@ declare module "*.vue" {
     export default Vue;
 }
 
+
+declare module "vue3-grid-layout";
+
 // workaround for 'global is not defined' error
 declare module 'mqtt/dist/mqtt.min' {
     import MQTT from 'mqtt'

@@ -8,12 +8,13 @@ import {QBtn, QTooltip, QTable, QTd, QToggle} from "quasar";
 import {matDelete, matEdit, matLinkOff, matLink} from "@quasar/extras/material-icons";
 import {ConnectionManager, IConnectionStatus} from "@/data/ConnectionManager";
 import TConnectionStatus from "@/components/TConnectionStatus.vue";
+import TTable from '@/components/TTable.vue'
 
 
 // Accounts table API
 interface IAccountsTable {
   // Collection of accounts to display
-  accounts: Array<AccountRecord>
+  accounts: ReadonlyArray<AccountRecord>
   // connection manager for presenting the connection state of an account
   cm: ConnectionManager
   // Allow editing of accounts
@@ -79,7 +80,7 @@ const visibleColumns = ref([ 'edit', 'name', 'address', 'enabled', 'connected', 
 
 
 <template>
-  <QTable :rows="props.accounts"
+  <TTable :rows="props.accounts"
           :columns="columns"
           :visible-columns="visibleColumns"
           hide-pagination
@@ -92,15 +93,15 @@ const visibleColumns = ref([ 'edit', 'name', 'address', 'enabled', 'connected', 
     </template>
 
     <!-- Header style: large and primary -->
-    <template #header-cell="props">
-      <q-th class="text-primary" style="font-size:1.1rem;" :props="props">{{props.col.label}}</q-th>
+    <template #header-cell="propz">
+      <q-th class="text-primary" style="font-size:1.1rem;" :props="propz">{{propz.col.label}}</q-th>
     </template>
 
     <!-- Edit button when edit is enabled -->
-    <template v-if="isEditMode()"  v-slot:body-cell-edit="props" >
+    <template v-if="isEditMode()"  v-slot:body-cell-edit="propz" >
       <QTd>
         <QBtn dense flat round color="blue" field="edit" :icon="matEdit"
-              @click="emit('onEdit', props.row)">
+              @click="emit('onEdit', propz.row)">
               <QTooltip>Edit the account</QTooltip>
         </QBtn>
       </QTd>
@@ -108,19 +109,19 @@ const visibleColumns = ref([ 'edit', 'name', 'address', 'enabled', 'connected', 
 
 
     <!-- toggle 'enabled' switch. Use computed property to be reactive inside the slot -->
-    <template v-slot:body-cell-enabled="props">
+    <template v-slot:body-cell-enabled="propz">
       <QTd>
-        <QToggle :model-value="props.row.enabled"
-                  @update:model-value="toggleEnabled(props.row as AccountRecord)"
+        <QToggle :model-value="propz.row.enabled"
+                  @update:model-value="toggleEnabled(propz.row as AccountRecord)"
                  :disable="!isEditMode()"
         />
       </QTd>
     </template>
 
     <!-- Connection status -->
-    <template v-slot:body-cell-status="props" >
+    <template v-slot:body-cell-status="propz" >
       <QTd>
-        <TConnectionStatus :value="connectState(props.row as AccountRecord)" withText/>
+        <TConnectionStatus :value="connectState(propz.row as AccountRecord)" withText/>
       </QTd>
     </template>
 
@@ -132,5 +133,5 @@ const visibleColumns = ref([ 'edit', 'name', 'address', 'enabled', 'connected', 
               @click="emit('onDelete', propz.row)"/>
       </QTd>
     </template>
-    </QTable>
+    </TTable>
 </template>

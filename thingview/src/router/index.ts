@@ -2,7 +2,7 @@ import {
   createWebHistory,
   createRouter,
   RouteRecordRaw,
-  RouteLocationRaw,
+  RouteLocationRaw, RouteParams,
 } from "vue-router";
 
 // import AccountsView from '@/pages/accounts/AccountsView.vue'
@@ -31,18 +31,18 @@ const getTD = (id:string): ThingTD => {
 
 // Return the dashboard for the current route
 // If no dashboard name is specified, return the first dashboard
-const dashboardPropsFn = (route:any):any => {
-  let dashboardName = route.params.dashboardName
-  console.debug('dashboardPropsFn. Getting dashboard with name ', dashboardName)
-  let dash = ds.GetDashboardByName(dashboardName)
-  if (!dash) {
-    // Dashboard not found.
-    console.warn("dashboardPropsFn: dashboard %s not found. Redirecting to first valid dashboard", dashboardName)
-  }
-  return {
-    dashboard: dash
-  }
-}
+// const dashboardPropsFn = (route:any):any => {
+//   let dashboardName = route.params.dashboardName
+//   console.debug('dashboardPropsFn. Getting dashboard with name ', dashboardName)
+//   let dash = ds.GetDashboardByName(dashboardName)
+//   if (!dash) {
+//     // Dashboard not found.
+//     console.warn("dashboardPropsFn: dashboard %s not found. Redirecting to first valid dashboard", dashboardName)
+//   }
+//   return {
+//     dashboard: dash
+//   }
+// }
 
 // Router paths and components
 // Use dynamic components to reduce chunk size
@@ -88,10 +88,8 @@ const routes: Array<RouteRecordRaw> = [
     name: DashboardRouteName,
     path: DashboardPrefix + "/:dashboardName",
     component: () => import("@/pages/dashboards/DashboardView.vue"),
-    props: dashboardPropsFn,
+    props: true,
     // props: (route) => ( {dashboard: ds.GetDashboardByName(route.params.dashboardName as string)} )
-
-
     // beforeEnter: checkAuth,
   },
   {

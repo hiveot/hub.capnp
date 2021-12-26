@@ -1,7 +1,7 @@
 {
   // https://vitejs.dev/guide/features.html#typescript-compiler-options
   "compilerOptions": {
-//    "allowJs": true,
+  "allowJs": true,
     "baseUrl": ".",
     "esModuleInterop": true,
     "isolatedModules": true,

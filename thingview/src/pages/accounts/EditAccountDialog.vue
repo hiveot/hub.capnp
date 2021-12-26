@@ -8,7 +8,6 @@ import {AccountRecord} from "@/data/accounts/AccountStore";
 //
 interface IEditAccountDialog {
   account: AccountRecord
-  visible: boolean
 }
 const props = defineProps<IEditAccountDialog>()
 
@@ -41,7 +40,6 @@ const handleClose = () => {
 
 <template>
   <TDialog
-      :visible="props.visible"
       title="Edit Account"
       @onClosed="handleClose"
       @onSubmit="handleSubmit"

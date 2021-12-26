@@ -1,5 +1,5 @@
 // AppState data for reactive access to non persistent application state
-import { reactive, watch } from "vue";
+import { reactive, readonly, watch } from "vue";
 import {matDashboard} from "@quasar/extras/material-icons";
 
 
@@ -37,8 +37,7 @@ export class AppState {
   // Return the reactive state
   // note, this should be readonly but that doesn't work on Array for some reason
   public State(): AppStateData {
-    // return readonly(this.state);
-    return this.state;
+    return readonly<AppStateData>(this.state);
   }
 
   // Change the edit mode on (true) or off (false)

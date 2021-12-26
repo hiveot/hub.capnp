@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 
-import {onMounted} from 'vue';
+import {onMounted, nextTick} from 'vue';
 import {useQuasar} from "quasar";
 import AppHeader from "./AppHeader.vue";
 import {IMenuItem} from "@/components/TMenuButton.vue";
@@ -10,6 +10,7 @@ import accountStore, {AccountRecord} from "@/data/accounts/AccountStore";
 // import dirStore from '@/data/td/ThingStore'
 import cm from '@/data/ConnectionManager';
 import dashStore from '@/data/dashboard/DashboardStore'
+// import { nextTick } from 'process';
 const $q = useQuasar()
 
 
@@ -25,7 +26,7 @@ const handleUpdate = (record:AccountRecord, connected:boolean, error:Error|null)
 }
 
 // accountStore.Load()
-const connectToHub = (accounts: Array<AccountRecord>) => {
+const connectToHub = (accounts: ReadonlyArray<AccountRecord>) => {
 
   accounts.forEach((account) => {
     if (account.enabled) {
@@ -55,7 +56,9 @@ onMounted(()=>{
   appState.Load()
   accountStore.Load()
   dashStore.Load()
-  connectToHub(accountStore.accounts);
+  nextTick(()=>{
+    connectToHub(accountStore.accounts);
+  })
 })
 
 // future option for dark theme setting

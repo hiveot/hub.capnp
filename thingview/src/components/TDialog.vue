@@ -78,7 +78,7 @@ const handleSubmit = () => {
 // Notify listeners this dialog is closed
 const handleClose = () => {
   console.debug("TDialog. Closing Dialog")
-  // emit('onClosed')
+  emits('onClosed')
 
   onDialogHide()
 }

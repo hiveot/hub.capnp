@@ -4,18 +4,56 @@ import {nanoid} from "nanoid";
 // key to store dashboard in localstorage
 const storageKey:string = "dashboards"
 
-
-
 // Data definition of a dashboard tile
 export class DashboardTile extends Object {
   id: string = nanoid(5);
   title: string = "";
 }
+//
+// export interface IDashboardGridItem {
+//   i: string,
+//   x: number,
+//   y: number,
+//   w: number,
+//   h: number
+// }
+// A responsive layout contain a list of items for each layout key
+// export interface ILayout {
+//   [key:string]: Array<{i: string,
+//    x: number,
+//    y: number,
+//    w: number,
+//    h: number}>
+// }
 
 export class DashboardDefinition extends Object {
-  name: string = "New Dashboard";
-  id: string = nanoid(5);
-  tiles: DashboardTile[] = new Array<DashboardTile>();
+  /**
+   * Name of the dashboard for presentation and selection
+   */
+  name: string = "New Dashboard"
+
+  /**
+   * Unique ID of the dashboard
+   */
+  id: string = nanoid(5)
+
+  /**
+   * Tiles to show in the dashboard view
+   */
+  //  tiles: Map<string, DashboardTile> = new Map<string, DashboardTile>();
+  tiles: any = {}
+
+  /**
+   * The layout of the tiles in the dashboard, as used and updated by vue-grid-layout.
+   * Each responsive breakpoint "lg", "md", "sm", "xs", "xxs" has its own layout array as follows:
+   *   {
+   *      lg: [ {i:,x:,y:,w:,h:}, {...}, ...] }.
+   *      md: [ {...}, ... ],
+   *   },
+   *  where 'i' is the unique key of the tile
+   */
+  // layouts: Map<string, Object[]> = new Map<string, Object[]>()
+  layouts = {}
 }
 
 
@@ -55,8 +93,8 @@ export class DashboardStore {
       console.error("AddTile: Dashboard with ID '"+dashboard.id+"' not found")
       return
     }
-    let newTile = JSON.parse(JSON.stringify(tile))
-    dash.tiles.push(newTile)
+    let clone = JSON.parse(JSON.stringify(tile))
+    dash.tiles[clone.id] = clone
     this.Save()
   }
 
@@ -165,14 +203,14 @@ export class DashboardStore {
       console.error(msg)
       throw(new Error(msg))
     }
-    const tileIndex = dash.tiles.findIndex( item=>item.id == tile.id)
-    if (tileIndex < 0) {
-      let msg = `UpdateTile: Tile with ID '${tile.id}' not found for dashboard '${dashboard.name}'`
-      console.error(msg)
-      throw(new Error(msg))
-    }
+    // const tileIndex = dash.tiles.findIndex( item=>item.id == tile.id)
+    // if (tileIndex < 0) {
+    //   let msg = `UpdateTile: Tile with ID '${tile.id}' not found for dashboard '${dashboard.name}'`
+    //   console.error(msg)
+    //   throw(new Error(msg))
+    // }
     let newTile = JSON.parse(JSON.stringify(tile))
-    dash.tiles[tileIndex] = newTile
+    dash.tiles.set(newTile.id, newTile)
     this.Save()
   }
 

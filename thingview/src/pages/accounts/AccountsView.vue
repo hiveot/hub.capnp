@@ -77,10 +77,10 @@ const handleToggleEnabled = (record: AccountRecord) => {
 
 <template>
   <div>
-  <EditAccountDialog :visible="data.showEditDialog"
-                     :account="data.editRecord"
-                     @onSubmit="handleSubmitEdit"
-                     @onClosed="handleCancelEdit"
+  <EditAccountDialog v-if="data.showEditDialog"
+      :account="data.editRecord"
+      @onSubmit="handleSubmitEdit"
+      @onClosed="handleCancelEdit"
   />
 
   <QCard class="my-card" flat>
