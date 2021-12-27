@@ -53,7 +53,8 @@ export class DashboardDefinition extends Object {
    *  where 'i' is the unique key of the tile
    */
   // layouts: Map<string, Object[]> = new Map<string, Object[]>()
-  layouts = {}
+  layouts: {[key:string]:[]} = {}
+  // layouts: Object = {}// {[key:string]:[]} = {}
 }
 
 

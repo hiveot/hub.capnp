@@ -22,62 +22,60 @@ export interface ILayoutItem {
   h: number
 }
 
+interface LooseObject {[key:string]: ILayoutItem[]}
+
 const data = reactive({
   dashboard: ds.GetDashboardByName(props.dashboardName),
   currentLayout:  Array<ILayoutItem>(),
+  // allLayouts: {[key:string]:Array<ILayoutItem>()},
+  // responsiveLayouts: <LooseObject>{},
   initializing: false,
 })
 
 watch(()=>props.dashboardName, (newName:string)=>{
-  console.log("DashboardView.watch")
-  data.dashboard = ds.GetDashboardByName(props.dashboardName)
-  // a new dashboard needs restoring the layouts of all breakpoints
-  if (data.dashboard) {
-    handleNewDashboard(data.dashboard)
+  console.log("DashboardView.watch(dashboardName)")
+  let dashboard = ds.GetDashboardByName(props.dashboardName)
+  if (dashboard) {
+    handleNewDashboard(dashboard)
   }
 })
 
 onMounted(()=>{
-  nextTick(()=>{
-
   console.log("DashboardView.onMounted")
-  data.dashboard = ds.GetDashboardByName(props.dashboardName)
-
-  // a new dashboard needs restoring the layouts of all breakpoints
-  if (data.dashboard) {
-    handleNewDashboard(data.dashboard)
+  let dashboard = ds.GetDashboardByName(props.dashboardName)
+  if (dashboard) {
+    handleNewDashboard(dashboard)
   }
-  })
 })
 
 // After changing the dashboard this updates the layouts for all breakpoints
-// FIXME: this results an a layout update that saves the new layout back to the dashboard .. twice
-// Options:
-//  1. Detect in updateLayout that initialization is in progress and don't save
-//  2. Detect that the layout is modified instead of changed (due to breakpoint changes)
-//     only need to save when items are add/removed/resized/moved
-//
-// FIXME: when dashboard changes re-initialize. This doesn't seem to work.
 const handleNewDashboard = (dashboard:DashboardDefinition) => {
   data.initializing = true
   // a new dashboard needs restoring the layouts of all breakpoints
-  if (!dashboard) {
+  data.dashboard = ds.GetDashboardByName(props.dashboardName)
+  if (!dashboard.layouts) {
+    console.error("handleNewDashboard: no layouts. Ignored")
+    data.initializing = false
     return
-  } else if (!dashboard.layouts) {
-    console.error("handleNewDashboard: no layouts")
   }
   console.info("DashboardView.handleNewDashboard. Start. Restoring all layouts from saved dashboard",
       dashboard.name, ". \nlayouts: ", dashboard.layouts)
 
   // reset the layout and trigger an update of the current layout
-  // gridLayout.value.responsiveLayouts = dashboard.layouts
-  gridLayout.value.lastBreakpoint = null
-  // debugger
-  gridLayout.value.initResponsiveFeatures()
-  gridLayout.value.responsiveGridLayout()
+  // unfortunately can't set responsiveLayouts directly, so wait for next-tick
+  // gridLayout.value.responsiveLayouts = {...dashboard.layouts}
+  gridLayout.value.layouts = {...dashboard.layouts}
 
-  console.log("DashboardView.handleNewDashboard. Done")
-  data.initializing = false
+  // FIXME: this seems to be the trigger to re-initialize the layout. Is there an 'official' way?
+  // nextTick so the grid property bindings are updated with the new responsiveLayout
+  nextTick(()=>{
+    // clearing lastBreakpoint prevents overwriting the new layout with the layout from the previous dashboard
+    gridLayout.value.lastBreakpoint = null
+    gridLayout.value.initResponsiveFeatures()
+    gridLayout.value.responsiveGridLayout()
+    console.log("DashboardView.handleNewDashboard. Done")
+    data.initializing = false
+  })
 }
 
 /**
@@ -90,35 +88,71 @@ const handleNewDashboard = (dashboard:DashboardDefinition) => {
  */
 const handleBreakpointChange = (newBreakpoint:string, newBPLayout:any) => {
   console.log("DashboardView.handleBreakpointChange: newBreakpoint ", newBreakpoint, ". New layout:", newBPLayout)
-  
+
+  // debugger
   let lastBreakpoint:string = gridLayout.value.lastBreakpoint
   if (lastBreakpoint ) {
     // Workaround: GridLayout hasn't saved the previous layout
-    gridLayout.value.layouts[lastBreakpoint] = [...data.currentLayout]
-
-    // Make sure the new layout contain all tiles and clone the layout
-    const {newLayout, changeCount} = fixLayout(data.dashboard, newBPLayout)
-    data.currentLayout = newLayout
+    gridLayout.value.layouts[lastBreakpoint] = data.currentLayout
   }
-  Save()
+  // Make sure the new layout contain all tiles and clone the layout
+  const {newLayout, changeCount} = fixLayout(data.dashboard, newBPLayout)
+  data.currentLayout = newLayout
 }
 
 // dashboard layout has changed.
-const handleLayoutUpdated = (newLayout:any) => {
-  console.log("DashboardView.handleLayoutUpdated: newLayout", newLayout)
-  // console.log("handleLayoutUpdate: newLayout", newLayout)
-  // data.currentLayout = newLayout
-  let lastBreakpoint = gridLayout.value.lastBreakpoint
-  gridLayout.value.layouts[lastBreakpoint] = data.currentLayout
+// This event is received when:
+//  1. dragging ended -> save layout
+//  2. resizing ended -> save layout
+//  3. gridlayout was mounted -> don't save layout as nothing changed
+//  4. method layoutUpdate() was invoked and differs from original layout -> don't save layout
+const handleLayoutUpdated = (newLayout:[]) => {
+  // if newLayout is empty then there is nothing to save
+  if (!data.dashboard) {
+    console.log("DashboardView.handleLayoutUpdated: Missing dashboard. Update ignored.")
+    return
+  } else if (!newLayout || newLayout.length == 0) {
+    console.log("DashboardView.handleLayoutUpdated: newLayout is empty. Update ignored.")
+    return
+  } else if (data.initializing) {
+    console.log("DashboardView.handleLayoutUpdated: initializing. Update ignored.")
+    return;
+  }
+  let breakpoint = gridLayout.value.lastBreakpoint
+  // let oldLayout:{}[] = data.dashboard.layouts?.[breakpoint] // dashboard might not have layouts
+  let oldLayout:{}[] = gridLayout.value.layouts[breakpoint]
+  if (!oldLayout || (newLayout.length != oldLayout.length)) {
+    console.info("DashboardView.handleLayoutUpdated: old layout differs from new. Saving...: oldLayout:", oldLayout, " newLayout:", newLayout)
+    Save()
+    return
+  }
+  let misMatch = newLayout.find( (newItem:any) => {
+    let oldItem:any = oldLayout.find( (item:any) => item.i == newItem.i)
+    if (!oldItem) {
+      return true // there is a mismatch
+    }
+    return (oldItem.x != newItem.x || oldItem.y != newItem.y || oldItem.w != newItem.w || oldItem.h != newItem.h)
+  })
+  if (misMatch) {
+    console.info("DashboardView.handleLayoutUpdated: Layout has differences. Saving")
+    Save()
+  } else {
+    console.log("DashboardView.handleLayoutUpdated: Layout has no differences. Update ignored. oldLayout:", oldLayout, "newLayout:", newLayout)
+  }
 }
 
 // Save the layouts to the dashboard
+// FIXME: when to save?
+// Options:
+//  1. In updateLayout, but not during initialization
+//  2. Detect that the layout is modified instead of selected due to breakpoint or initialization
+//     only need to save when items are add/removed/resized/moved
 const Save = () => {
   if (data.dashboard) {
     let newDash = {...data.dashboard}
     // Make sure the current layout is saved as well
-    // let lastBreakpoint = gridLayout.value.lastBreakpoint
-    // gridLayout.value.layouts[lastBreakpoint] = data.currentLayout
+    let lastBreakpoint = gridLayout.value.lastBreakpoint
+    gridLayout.value.layouts[lastBreakpoint] = data.currentLayout
     newDash.layouts = gridLayout.value.layouts
     console.info("DashboardView.Save: saving layouts", newDash.layouts)
     ds.UpdateDashboard(newDash)
@@ -143,7 +177,7 @@ const fixLayout = (dashboard: DashboardDefinition|undefined, currentLayout: Arra
   for (let id in dashboard.tiles) {
     let item = currentLayout.find( (item)=>{
       if (!item) {
-        console.error("fixLayout. CurrentLayout contains null item. Ignored")
+        console.warn("fixLayout. CurrentLayout contains unexpected null item. Ignored")
         return false
       }
       return (item.i === id)
