@@ -1,13 +1,31 @@
 <script lang="ts" setup>
+
+// This is a POC implementation of the DashboardView based on vue3-grid-layout
+// The problems with vue3-grid-layout are:
+// 1. It is not possible to simply iterate the widgets and let the grid-layout manage
+//    the placement and responsive layout. Instead, the layout needs to be iterated and
+//    you're on own to make sure each widget has a layout defined. Add 5 responsive layouts
+//    and the problem multiplies.
+// 2. There is no method to load or import a responsive layout.
+//    Its internal state has undocumented variables that need to be reset properly
+// 3. There is no method to save or export the current responsive layout after changes.
+//    The responsive layout has to be updated first to include the current layout.
+// 4. There is no easy way to detect if a widget has moved or resized, so the changes to the
+//    layout can be saved.
+// 3. There is no easy way to switch dashboards and update the layout
+//    Ideally you bind a new responsive layout and done. That doesn't work though.
+
 import {nextTick, onMounted, reactive, ref, watch} from "vue";
 import {GridLayout, GridItem} from 'vue3-grid-layout'
 
-import ds, {DashboardDefinition, DashboardTile } from '@/data/dashboard/DashboardStore'
+import ds, {DashboardDefinition } from '@/data/dashboard/DashboardStore'
 import appState from '@/data/AppState'
-import TGridTile from "@/components/TGridTile.vue";
+import DashboardWidget from "./DashboardWidget.vue";
 
 
-// Dashboard view shows the dashboard with the given name 
+/**
+ * Dashboard view shows the dashboard with the given name
+ */
 const props = defineProps<{
     dashboardName: string
 }>()
@@ -22,17 +40,13 @@ export interface ILayoutItem {
   h: number
 }
 
-interface LooseObject {[key:string]: ILayoutItem[]}
-
 const data = reactive({
   dashboard: ds.GetDashboardByName(props.dashboardName),
   currentLayout:  Array<ILayoutItem>(),
-  // allLayouts: {[key:string]:Array<ILayoutItem>()},
-  // responsiveLayouts: <LooseObject>{},
   initializing: false,
 })
 
-watch(()=>props.dashboardName, (newName:string)=>{
+watch(()=>props.dashboardName, ()=>{
   console.log("DashboardView.watch(dashboardName)")
   let dashboard = ds.GetDashboardByName(props.dashboardName)
   if (dashboard) {
@@ -50,16 +64,19 @@ onMounted(()=>{
 
 // After changing the dashboard this updates the layouts for all breakpoints
 const handleNewDashboard = (dashboard:DashboardDefinition) => {
-  data.initializing = true
   // a new dashboard needs restoring the layouts of all breakpoints
   data.dashboard = ds.GetDashboardByName(props.dashboardName)
   if (!dashboard.layouts) {
     console.error("handleNewDashboard: no layouts. Ignored")
-    data.initializing = false
+    return
+  } else if (!gridLayout || !gridLayout.value) {
+    console.warn('handleNewDashboard: ref gridLayout not initialized')
     return
   }
   console.info("DashboardView.handleNewDashboard. Start. Restoring all layouts from saved dashboard",
       dashboard.name, ". \nlayouts: ", dashboard.layouts)
+
+  data.initializing = true
 
   // reset the layout and trigger an update of the current layout
   // unfortunately can't set responsiveLayouts directly, so wait for next-tick
@@ -96,7 +113,7 @@ const handleBreakpointChange = (newBreakpoint:string, newBPLayout:any) => {
     gridLayout.value.layouts[lastBreakpoint] = data.currentLayout
   }
   // Make sure the new layout contain all tiles and clone the layout
-  const {newLayout, changeCount} = fixLayout(data.dashboard, newBPLayout)
+  const {newLayout} = fixLayout(data.dashboard, newBPLayout)
   data.currentLayout = newLayout
 }
 
@@ -119,7 +136,6 @@ const handleLayoutUpdated = (newLayout:[]) => {
     return;
   }
   let breakpoint = gridLayout.value.lastBreakpoint
-  // let oldLayout:{}[] = data.dashboard.layouts?.[breakpoint] // dashboard might not have layouts
   let oldLayout:{}[] = gridLayout.value.layouts[breakpoint]
   if (!oldLayout || (newLayout.length != oldLayout.length)) {
     console.info("DashboardView.handleLayoutUpdated: old layout differs from new. Saving...: oldLayout:", oldLayout, " newLayout:", newLayout)
@@ -206,10 +222,10 @@ const fixLayout = (dashboard: DashboardDefinition|undefined, currentLayout: Arra
 
 <template>
   <div v-if="!data.dashboard">
-    <h4>Oops, this dashboard is not found.</h4>
+    <h4>Oops, dashboard {{props.dashboardName}} is not found. </h4>
   </div>
   <div v-else>
-    <h4>Dashboard name={{data.dashboard.name}} </h4>
+    <h4>Dashboard name={{props.dashboardName}} </h4>
 
     <!-- draggableCancel is used to prevent interference with tile menu click -->
     <GridLayout ref="gridLayout"
@@ -232,7 +248,7 @@ const fixLayout = (dashboard: DashboardDefinition|undefined, currentLayout: Arra
                  :w="item.w"
                  :h="item.h"
       >
-        <TGridTile :id="item.i" :tile="data.dashboard.tiles[item.i]"/>
+        <DashboardWidget :id="item.i" :tile="data.dashboard.tiles[item.i]"/>
       </grid-item>
     </GridLayout>
 
