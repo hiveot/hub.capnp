@@ -10,23 +10,26 @@
 //    Its internal state has undocumented variables that need to be reset properly
 // 3. There is no method to save or export the current responsive layout after changes.
 //    The responsive layout has to be updated first to include the current layout.
-// 4. There is no easy way to detect if a widget has moved or resized, so the changes to the
-//    layout can be saved.
-// 3. There is no easy way to switch dashboards and update the layout
+// 4. There is no easy way to switch dashboards and update the layout
 //    Ideally you bind a new responsive layout and done. That doesn't work though.
 
 import {nextTick, onMounted, reactive, ref, watch} from "vue";
 import {GridLayout, GridItem} from 'vue3-grid-layout'
 
 import ds, {DashboardDefinition } from '@/data/dashboard/DashboardStore'
+import ts from '@/data/td/ThingStore'
 import appState from '@/data/AppState'
 import DashboardWidget from "./DashboardWidget.vue";
+import dashboardStore from "@/data/dashboard/DashboardStore";
 
 
 /**
  * Dashboard view shows the dashboard with the given name
  */
 const props = defineProps<{
+    /**
+     * Name of dashboard to display
+     */
     dashboardName: string
 }>()
 
@@ -43,7 +46,6 @@ export interface ILayoutItem {
 const data = reactive({
   dashboard: ds.GetDashboardByName(props.dashboardName),
   currentLayout:  Array<ILayoutItem>(),
-  initializing: false,
 })
 
 watch(()=>props.dashboardName, ()=>{
@@ -53,6 +55,20 @@ watch(()=>props.dashboardName, ()=>{
     handleNewDashboard(dashboard)
   }
 })
+
+/**
+ * FIXME: how to detect dashboard replacement in the store?
+ */
+watch( ()=>data.dashboard, 
+       ()=>{
+            console.info("DashboardView.watch(dashboard). Dashboard %s has updated!", data.dashboard?.name)
+            let newDashboard = ds.GetDashboardByName(props.dashboardName)
+            if (newDashboard) {
+              handleNewDashboard(newDashboard)
+            }
+        },
+        {deep:true} // watch options
+     )
 
 onMounted(()=>{
   console.log("DashboardView.onMounted")
@@ -76,8 +92,6 @@ const handleNewDashboard = (dashboard:DashboardDefinition) => {
   console.info("DashboardView.handleNewDashboard. Start. Restoring all layouts from saved dashboard",
       dashboard.name, ". \nlayouts: ", dashboard.layouts)
 
-  data.initializing = true
-
   // reset the layout and trigger an update of the current layout
   // unfortunately can't set responsiveLayouts directly, so wait for next-tick
   // gridLayout.value.responsiveLayouts = {...dashboard.layouts}
@@ -91,7 +105,6 @@ const handleNewDashboard = (dashboard:DashboardDefinition) => {
     gridLayout.value.initResponsiveFeatures()
     gridLayout.value.responsiveGridLayout()
     console.log("DashboardView.handleNewDashboard. Done")
-    data.initializing = false
   })
 }
 
@@ -117,45 +130,19 @@ const handleBreakpointChange = (newBreakpoint:string, newBPLayout:any) => {
   data.currentLayout = newLayout
 }
 
-// dashboard layout has changed.
-// This event is received when:
-//  1. dragging ended -> save layout
-//  2. resizing ended -> save layout
-//  3. gridlayout was mounted -> don't save layout as nothing changed
-//  4. method layoutUpdate() was invoked and differs from original layout -> don't save layout
-const handleLayoutUpdated = (newLayout:[]) => {
-  // if newLayout is empty then there is nothing to save
-  if (!data.dashboard) {
-    console.log("DashboardView.handleLayoutUpdated: Missing dashboard. Update ignored.")
-    return
-  } else if (!newLayout || newLayout.length == 0) {
-    console.log("DashboardView.handleLayoutUpdated: newLayout is empty. Update ignored.")
-    return
-  } else if (data.initializing) {
-    console.log("DashboardView.handleLayoutUpdated: initializing. Update ignored.")
-    return;
-  }
-  let breakpoint = gridLayout.value.lastBreakpoint
-  let oldLayout:{}[] = gridLayout.value.layouts[breakpoint]
-  if (!oldLayout || (newLayout.length != oldLayout.length)) {
-    console.info("DashboardView.handleLayoutUpdated: old layout differs from new. Saving...: oldLayout:", oldLayout, " newLayout:", newLayout)
-    Save()
-    return
-  }
-  let misMatch = newLayout.find( (newItem:any) => {
-    let oldItem:any = oldLayout.find( (item:any) => item.i == newItem.i)
-    if (!oldItem) {
-      return true // there is a mismatch
-    }
-    return (oldItem.x != newItem.x || oldItem.y != newItem.y || oldItem.w != newItem.w || oldItem.h != newItem.h)
-  })
-  if (misMatch) {
-    console.info("DashboardView.handleLayoutUpdated: Layout has differences. Saving")
-    Save()
-  } else {
-    console.log("DashboardView.handleLayoutUpdated: Layout has no differences. Update ignored. oldLayout:", oldLayout, "newLayout:", newLayout)
-  }
+
+// Grid item has moved. Save the updated layout
+const handleItemMoved = (item:{}) => {
+  console.log("DashboardView.handleItemMoved: ", item)
+  Save()
 }
+
+// Grid item has resized. Save the updated layout
+const handleItemResized = (item:{}) => {
+  console.log("DashboardView.handleItemResized: ", item)
+  Save()
+}
+
 
 // Save the layouts to the dashboard
 // FIXME: when to save?
@@ -172,12 +159,16 @@ const Save = () => {
     newDash.layouts = gridLayout.value.layouts
     console.info("DashboardView.Save: saving layouts", newDash.layouts)
     ds.UpdateDashboard(newDash)
+    // As the dashboard is replaced in the store, changes to the existing 
+    // dashboard won't be detected. Manual update instead.
+    data.dashboard = ds.GetDashboardByName(props.dashboardName)
   }
 }
 
 // Ensure that the given layout contains all the dashboard tiles and remove unknown items
 // Returns repaired layout and the number of changes made.
-const fixLayout = (dashboard: DashboardDefinition|undefined, currentLayout: Array<ILayoutItem>):
+const fixLayout = (dashboard: DashboardDefinition|undefined, 
+        currentLayout: Array<ILayoutItem>):
     {newLayout: Array<ILayoutItem>, changeCount: number} => {
 
   let newLayout = new Array<ILayoutItem>()
@@ -216,6 +207,20 @@ const fixLayout = (dashboard: DashboardDefinition|undefined, currentLayout: Arra
   return {newLayout, changeCount}
 }
 
+// // Provide the dashboard tile with the given ID and warn of unexpected errors
+// const getTileByID = (id: string) : DashboardTileConfig|undefined => {
+//   if (!data.dashboard || !data.dashboard.tiles) {
+//     console.warn("DashboardView:getTileByID No Dashboard or missing dashboard tiles")
+//     return undefined
+//   }
+//   let tile = data.dashboard.tiles[id]
+//   if (!tile) {
+//     console.warn("DashboardView:getTileByID can't find tile with ID", id)
+//   }
+//   return tile
+// }
+
+
 
 </script>
 
@@ -229,16 +234,15 @@ const fixLayout = (dashboard: DashboardDefinition|undefined, currentLayout: Arra
 
     <!-- draggableCancel is used to prevent interference with tile menu click -->
     <GridLayout ref="gridLayout"
+                :cols='{lg:24, md:16, sm:12, xs:8, xxs:4}'
                 :layout="data.currentLayout"
                 :responsiveLayouts="data.dashboard.layouts"
-        :col-num="12"
-        :row-height="40"
+                :row-height="40"
+                :verticalCompact="true"
         :is-draggable="appState.State().editMode"
         :is-resizable="appState.State().editMode"
         :responsive="true"
         :useCSSTransforms="true"
-        draggableCancel=".not-draggable-area"
-        @layout-updated="handleLayoutUpdated"
         @breakpoint-changed="handleBreakpointChange"
     >
       <grid-item v-for="item in data.currentLayout"
@@ -247,9 +251,19 @@ const fixLayout = (dashboard: DashboardDefinition|undefined, currentLayout: Arra
                  :y="item.y"
                  :w="item.w"
                  :h="item.h"
+                 :minW="2"
+                 :minH="2"
+                 drag-ignore-from=".no-drag-area"
+                 @moved="handleItemMoved"
+                 @resized="handleItemResized"
       >
-        <DashboardWidget :id="item.i" :tile="data.dashboard.tiles[item.i]"/>
-      </grid-item>
+       <DashboardWidget 
+          :config="data.dashboard?.tiles?.[item.i]"
+          :dashboard="data.dashboard"
+          :thing-store="ts"
+          :dash-store="ds"
+          />
+      </grid-item> 
     </GridLayout>
 
   </div>

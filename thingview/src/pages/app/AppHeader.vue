@@ -27,7 +27,7 @@ import TConnectionStatus from "@/components/TConnectionStatus.vue"
 import {IMenuItem} from "@/components/TMenuButton.vue";
 
 import {ConnectionManager, IConnectionStatus} from "@/data/ConnectionManager";
-import {DashboardDefinition, DashboardStore, DashboardTile} from "@/data/dashboard/DashboardStore";
+import {DashboardDefinition, DashboardStore, DashboardTileConfig} from "@/data/dashboard/DashboardStore";
 import {AppState} from '@/data/AppState'
 
 
@@ -74,9 +74,9 @@ const handleAddTile = (dashboard:DashboardDefinition) => {
     component: EditTileDialog,
     componentProps: {
       title: "Add Tile",
-      tile: new DashboardTile(),
+      tile: new DashboardTileConfig(),
     },
-  }).onOk((newTile:DashboardTile)=> {
+  }).onOk((newTile:DashboardTileConfig)=> {
     props.dashStore.AddTile(dashboard, newTile)
   })
 }
@@ -87,7 +87,7 @@ const handleDeleteDashboard = (dashboard: DashboardDefinition) => {
     message: "This will delete dashboard '"+dashboard.name+"'. Please confirm",
     cancel: true,
   }).onOk(()=> {
-    props.dashStore.RemoveDashboard(dashboard)
+    props.dashStore.DeleteDashboard(dashboard)
     let newDashName = DashboardPrefix+"/"+props.dashStore.dashboards[0]?.name
     console.log("handleDeleteDashboard: Changing route to ", newDashName)
     router.push(newDashName )
@@ -119,7 +119,7 @@ const handleEditModeChange = (ev:any)=>{
 }
 
 // Show the edit tile dialog
-const handleEditTile = (dashboard:DashboardDefinition, tile:DashboardTile) => {
+const handleEditTile = (dashboard:DashboardDefinition, tile:DashboardTileConfig) => {
   console.log("handleEditTile: Opening edit tile...");
   $q.dialog({
     component: EditTileDialog,
@@ -127,7 +127,7 @@ const handleEditTile = (dashboard:DashboardDefinition, tile:DashboardTile) => {
       title: "Edit Tile",
       tile: tile,
     },
-  }).onOk((newTile:DashboardTile)=> {
+  }).onOk((newTile:DashboardTileConfig)=> {
     props.dashStore.UpdateTile(dashboard, newTile)
   })
 }

@@ -17,6 +17,9 @@ export interface IMenuItem {
 
   /** this is a separator */
   separator?: boolean
+
+  /** Item is disabled */
+  disabled?: boolean
 }
 
 // Dropdown menu properties
@@ -43,13 +46,14 @@ const handleMenuAction = (item:IMenuItem) => {
          :label="props.label" 
          :icon="props.icon">
     <QMenu auto-close>
-        <QList style="min-width: 200px">
+        <QList style="min-width: 150px">
           <template  v-for="item in props.items">
 
            <QSeparator v-if='item.separator'/>
            
            <QItem v-else 
             :to="item.to"
+            :disable="item.disabled"
             clickable @click='handleMenuAction(item)'
            >
              <QItemSection v-if='item.icon !== ""' avatar>

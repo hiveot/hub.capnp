@@ -4,27 +4,49 @@ import {nanoid} from "nanoid";
 // key to store dashboard in localstorage
 const storageKey:string = "dashboards"
 
-// Data definition of a dashboard tile
-export class DashboardTile extends Object {
-  id: string = nanoid(5);
-  title: string = "";
+/**
+ * Dashboard tile item to display
+ */
+export interface IDashboardTileItem {
+  /**
+   * Optional override of the property name
+   */
+  label?: string
+  /**
+   * ID of the thing whose property to display
+   */
+  thingID: string
+  /**
+   * ID of the thing property to display
+   */
+  propertyID: string,
 }
-//
-// export interface IDashboardGridItem {
-//   i: string,
-//   x: number,
-//   y: number,
-//   w: number,
-//   h: number
-// }
-// A responsive layout contain a list of items for each layout key
-// export interface ILayout {
-//   [key:string]: Array<{i: string,
-//    x: number,
-//    y: number,
-//    w: number,
-//    h: number}>
-// }
+
+/**
+ * Dashboard tile configuration
+ */
+export class DashboardTileConfig extends Object {
+  /**
+* ID of the tile to display. Used to match the layout id.
+*/
+  id: string = nanoid(5);
+
+  /**
+   * Title of dashboard tile when displaying
+   * Default is the first property name
+   */
+  title?: string
+
+  /**
+   * Type of widget to display in this tile
+   */
+  type: "Card" | "Image" | "LineChart" = "Card"  //
+
+  /**
+   * Collection of Thing items to display, in order of appearance
+   */
+  items: IDashboardTileItem[] = []
+}
 
 export class DashboardDefinition extends Object {
   /**
@@ -40,8 +62,7 @@ export class DashboardDefinition extends Object {
   /**
    * Tiles to show in the dashboard view
    */
-  //  tiles: Map<string, DashboardTile> = new Map<string, DashboardTile>();
-  tiles: any = {}
+  tiles: { [id: string]: DashboardTileConfig } = {}
 
   /**
    * The layout of the tiles in the dashboard, as used and updated by vue-grid-layout.
@@ -76,19 +97,20 @@ export class DashboardStore {
    * @param dashboard to add
    */
   AddDashboard(dashboard: DashboardDefinition) {
-    console.log("AddDashboard %s", dashboard.name)
+    console.info("AddDashboard %s", dashboard.name)
     let newDash = JSON.parse(JSON.stringify(dashboard))
     newDash.id = nanoid(8)
     this.data.dashboards.push(newDash)
     this.Save()
   }
+
   /**
    * Add a new dashboard tile
    * @param dashboard to add the tile to
    * @param tile to add
    */
-  AddTile(dashboard: DashboardDefinition, tile: DashboardTile) {
-    console.log("AddTile %s to dashboard %s", tile.title, dashboard.name)
+  AddTile(dashboard: DashboardDefinition, tile: DashboardTileConfig) {
+    console.info("AddTile %s to dashboard %s", tile.title, dashboard.name)
     const dash = this.data.dashboards.find((item)=>item.id == dashboard.id)
     if (!dash) {
       console.error("AddTile: Dashboard with ID '"+dashboard.id+"' not found")
@@ -98,6 +120,44 @@ export class DashboardStore {
     dash.tiles[clone.id] = clone
     this.Save()
   }
+
+  /**
+   * Delete a dashboard
+   * @param dashboard to remove.
+   */
+  DeleteDashboard(dashboard: DashboardDefinition) {
+    console.info("RemoveDashboard %s", dashboard.name)
+
+    // FIXME: concurrency ?
+    let index = this.data.dashboards.findIndex((db) => db.id == dashboard.id);
+    if (index < 0) {
+      console.error(`RemoveDashboard: Dashboard ${dashboard.name} not found`)
+      return
+    }
+    this.data.dashboards.splice(index, 1)
+    this.Save()
+  }
+
+  /**
+   * Delete a dashboard tile
+   * @param dashboard that contains the tile
+   * @param tile to remove
+   */
+  DeleteTile(dashboard: DashboardDefinition, tile: DashboardTileConfig) {
+    console.info("DeleteTile '%s' from dashboard '%s'", tile.title, dashboard.name)
+
+    let index = this.data.dashboards.findIndex((db) => db.id == dashboard.id);
+    if (index < 0) {
+      console.error(`RemoveTile: Dashboard ${dashboard.name} not found`)
+      return
+    }
+    // The given dashboard is immutable. Use in-store reactive update. 
+    let dashboardInStore = this.data.dashboards[index]
+    delete dashboardInStore.tiles[tile.id]
+
+    this.Save()
+  }
+
 
   /**
    * Get the list of dashboards
@@ -157,22 +217,6 @@ export class DashboardStore {
   }
 
   /**
-   * Remove a dashboard
-   * @param dashboard to remove.
-   */
-  RemoveDashboard(dashboard: DashboardDefinition) {
-    console.log("RemoveDashboard %s", dashboard.name)
-
-    let index = this.data.dashboards.findIndex((db)=>db.id == dashboard.id);
-    if (index < 0) {
-      console.error(`RemoveDashboard: Dashboard ${dashboard.name} not found`)
-      return
-    }
-    this.data.dashboards.splice(index, 1)
-    this.Save()
-  }
-
-  /**
    * Update an existing dashboard or add a new one
    * If the dashboard does not exist this will throw an error
    * @param dashboard to update
@@ -196,22 +240,17 @@ export class DashboardStore {
    * @param dashboard the tile belongs to
    * @param tile to update
    */
-  UpdateTile(dashboard: DashboardDefinition, tile:DashboardTile) {
+  UpdateTile(dashboard: DashboardDefinition, tile: DashboardTileConfig) {
     console.log("UpdateTile '%s' in dashboard %s'", tile.title, dashboard.name)
-    const dash = this.data.dashboards.find((item)=>item.id == dashboard.id)
-    if (!dash) {
+    let index = this.data.dashboards.findIndex((db) => db.id == dashboard.id);
+    if (index < 0) {
       let msg = `UpdateTile: Dashboard '${dashboard.name}' with id '${dashboard.id}' does not exist in the store.')`
       console.error(msg)
       throw(new Error(msg))
     }
-    // const tileIndex = dash.tiles.findIndex( item=>item.id == tile.id)
-    // if (tileIndex < 0) {
-    //   let msg = `UpdateTile: Tile with ID '${tile.id}' not found for dashboard '${dashboard.name}'`
-    //   console.error(msg)
-    //   throw(new Error(msg))
-    // }
+    let dash = this.data.dashboards[index]
     let newTile = JSON.parse(JSON.stringify(tile))
-    dash.tiles.set(newTile.id, newTile)
+    dash.tiles[newTile.id] = newTile
     this.Save()
   }
 

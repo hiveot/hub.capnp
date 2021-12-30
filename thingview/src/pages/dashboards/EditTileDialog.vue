@@ -1,9 +1,9 @@
 <script lang="ts" setup>
 import {reactive} from "vue";
-import {useDialogPluginComponent, QForm, QInput} from "quasar";
+import {useDialogPluginComponent, QForm, QInput, QSelect} from "quasar";
 
 import TDialog from "@/components/TDialog.vue";
-import {DashboardDefinition, DashboardTile} from "@/data/dashboard/DashboardStore";
+import {DashboardDefinition, DashboardTileConfig} from "@/data/dashboard/DashboardStore";
 
 // inject handlers
 const { dialogRef, onDialogOK } = useDialogPluginComponent();
@@ -11,12 +11,12 @@ const { dialogRef, onDialogOK } = useDialogPluginComponent();
 
 const props = defineProps<{
   title: string,
-  tile?: DashboardTile,
+  tile?: DashboardTileConfig,
 }>()
 
 // editTile is a copy the tile being edited or empty on add
-const editTile = reactive<DashboardTile>(
-    props.tile ? {...props.tile} : new DashboardTile()
+const editTile = reactive<DashboardTileConfig>(
+    props.tile ? {...props.tile} : new DashboardTileConfig()
 );
 
 const emits = defineEmits( [
@@ -48,6 +48,8 @@ const handleSubmit = () =>{
               :rules="[()=>editTile.title !== ''||'Please provide a title']"
               stack-label
       />
+
+      <QSelect :model-value="['Card']"/>
     </QForm>
 
   </TDialog>

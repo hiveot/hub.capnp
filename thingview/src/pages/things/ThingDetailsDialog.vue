@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 
-import {defineProps} from "vue";
 import TDialog from '@/components/TDialog.vue'
 import ThingDetailsView from './ThingDetailsView.vue'
 import {ThingTD} from "@/data/td/ThingTD";
