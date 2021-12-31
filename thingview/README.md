@@ -1,6 +1,6 @@
 # Thing View
 
-The thingview Hub plugin provides a web user interface on Things available through the Hub. This user interfaces uses the ThingClient service to access the client configuration, known TDs and update events published by Thing devices.
+This thingview plugin lets users view and update Things through a webbrowser.
 
 ## Objective
 

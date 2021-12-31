@@ -69,17 +69,21 @@ const emits = defineEmits( [
     // component will emit through useDialogPluginComponent()
     ...useDialogPluginComponent.emits,
 ]);
+
+/**
+ * Send the 'submit' event. The parent component must validate and include the result
+ * in a call to onDialogOK(result) from 'useDialogPluginComponent'
+ */
 const handleSubmit = () => {
   console.debug("TDialog.handleSubmit emit onSubmit")
   emits('onSubmit')
-  onDialogOK()
+  // to be done by parent: onDialogOK()
 }
 
 // Notify listeners this dialog is closed
 const handleClose = () => {
   console.debug("TDialog. Closing Dialog")
   emits('onClosed')
-
   onDialogHide()
 }
 

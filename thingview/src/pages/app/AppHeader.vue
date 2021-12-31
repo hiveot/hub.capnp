@@ -78,6 +78,7 @@ const handleAddTile = (dashboard:DashboardDefinition) => {
     },
   }).onOk((newTile:DashboardTileConfig)=> {
     props.dashStore.AddTile(dashboard, newTile)
+    $q.notify("A new Tile has been added to Dashboard "+dashboard.name)
   })
 }
 // Show the delete dashboard confirmation dialog
@@ -91,6 +92,7 @@ const handleDeleteDashboard = (dashboard: DashboardDefinition) => {
     let newDashName = DashboardPrefix+"/"+props.dashStore.dashboards[0]?.name
     console.log("handleDeleteDashboard: Changing route to ", newDashName)
     router.push(newDashName )
+    $q.notify("Dashboard "+dashboard.name+ " has been deleted")
   })
 }
 

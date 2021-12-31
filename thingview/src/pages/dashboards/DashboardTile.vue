@@ -75,6 +75,9 @@ const handleEditTile = (config:DashboardTileConfig) => {
     },
   }).onOk((newTile:DashboardTileConfig)=> {
     props.dashStore.UpdateTile(props.dashboard, newTile)
+    $q.notify({position: 'top',type: 'positive',
+      message: 'Tile '+props.config.title+' has been saved.'
+    })
   })
 }
 
@@ -89,10 +92,8 @@ const handleDeleteTile = () => {
     // delete props.dashboard.tiles[props.config.id]
 
     console.info("Dashboard tile %s deleted", props.config.title)
-    $q.notify({
-      position: 'top',
-      type: 'positive',
-      message: 'Dashboard Tile '+props.config.title+' has been deleted.'
+    $q.notify({position: 'top',type: 'positive',
+      message: 'Tile '+props.config.title+' has been deleted.'
     })
 
   })

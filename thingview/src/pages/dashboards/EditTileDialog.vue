@@ -1,21 +1,23 @@
 <script lang="ts" setup>
-import {reactive} from "vue";
-import {useDialogPluginComponent, QForm, QInput, QSelect} from "quasar";
+import {ref, reactive} from "vue";
+import {useDialogPluginComponent, QBtn, QForm, QInput, QSpace, QSelect} from "quasar";
 
 import TDialog from "@/components/TDialog.vue";
-import {DashboardDefinition, DashboardTileConfig} from "@/data/dashboard/DashboardStore";
+import {DashboardDefinition, DashboardTileConfig,
+  TileTypeCard, TileTypeImage} from "@/data/dashboard/DashboardStore";
 
 // inject handlers
-const { dialogRef, onDialogOK } = useDialogPluginComponent();
-
+const { dialogRef, onDialogOK, onDialogCancel } = useDialogPluginComponent();
 
 const props = defineProps<{
   title: string,
   tile?: DashboardTileConfig,
 }>()
 
+const formRef = ref()
+
 // editTile is a copy the tile being edited or empty on add
-const editTile = reactive<DashboardTileConfig>(
+const editTile:DashboardTileConfig = reactive<DashboardTileConfig>(
     props.tile ? {...props.tile} : new DashboardTileConfig()
 );
 
@@ -27,7 +29,16 @@ const emits = defineEmits( [
 
 const handleSubmit = () =>{
   console.log("EditTileDialog.handleSubmit: ", editTile)
-  onDialogOK(editTile)
+  // put focus on invalid component
+  formRef.value.validate(true)
+      .then((isValid:boolean)=>{
+        if (isValid) {
+          console.info("EditTileDialog.handleSubmit:",isValid)
+          onDialogOK(editTile)
+        } else {
+          console.info("EditTileDialog.handleSubmit invalid")
+        }
+      })
 };
 
 </script>
@@ -37,19 +48,38 @@ const handleSubmit = () =>{
       ref="dialogRef"
       :title="props.title"
       @onSubmit="handleSubmit"
-      showCancel showOk
+      showOk
+      showCancel
   >
-    <QForm @submit="handleSubmit" class="q-gutter-md" style="min-width: 350px">
+    <QForm @submit="handleSubmit"
+           ref="formRef"
+           class="q-gutter-md" style="min-width: 350px">
       <QInput v-model="editTile.title"
+              :autocomplete="TileTypeCard"
               autofocus filled required
               id="title" type="text"
               label="Title"
-              hint="Title of this tile"
               :rules="[()=>editTile.title !== ''||'Please provide a title']"
               stack-label
       />
-
-      <QSelect :model-value="['Card']"/>
+      <QSelect v-model="editTile.type"
+               :options="[
+                  {label:'Card', value:TileTypeCard},
+                  {label:'Image', value:TileTypeImage}]"
+               :rules="[val=> (!!val && !!val.label && (val.label.length > 0)) || 'please select a valid type']"
+               options-dense
+               menu-shrink
+               filled
+               label="Type of tile"
+      />
+<!--      <QBtn label="Cancel"-->
+<!--            @click="onDialogCancel"-->
+<!--      />-->
+<!--      <QSpace/>-->
+<!--      <QBtn label="Save"-->
+<!--            color="primary"-->
+<!--            type="submit"-->
+<!--      />-->
     </QForm>
 
   </TDialog>

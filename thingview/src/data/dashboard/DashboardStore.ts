@@ -4,6 +4,10 @@ import {nanoid} from "nanoid";
 // key to store dashboard in localstorage
 const storageKey:string = "dashboards"
 
+export const TileTypeCard = "card"
+export const TileTypeImage = "image"
+export const TileTypeLineChart = "linechart"
+
 /**
  * Dashboard tile item to display
  */
@@ -40,7 +44,7 @@ export class DashboardTileConfig extends Object {
   /**
    * Type of widget to display in this tile
    */
-  type: "Card" | "Image" | "LineChart" = "Card"  //
+  type: typeof TileTypeCard | typeof TileTypeImage | typeof TileTypeLineChart = TileTypeCard  //
 
   /**
    * Collection of Thing items to display, in order of appearance

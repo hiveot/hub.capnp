@@ -19,7 +19,7 @@ import {GridLayout, GridItem} from 'vue3-grid-layout'
 import ds, {DashboardDefinition } from '@/data/dashboard/DashboardStore'
 import ts from '@/data/td/ThingStore'
 import appState from '@/data/AppState'
-import DashboardWidget from "./DashboardWidget.vue";
+import DashboardWidget from "./DashboardTile.vue";
 import dashboardStore from "@/data/dashboard/DashboardStore";
 
 
@@ -50,10 +50,8 @@ const data = reactive({
 
 watch(()=>props.dashboardName, ()=>{
   console.log("DashboardView.watch(dashboardName)")
-  let dashboard = ds.GetDashboardByName(props.dashboardName)
-  if (dashboard) {
-    handleNewDashboard(dashboard)
-  }
+  data.dashboard = ds.GetDashboardByName(props.dashboardName)
+  // updateDashboard(data.dashboard)
 })
 
 /**
@@ -62,28 +60,22 @@ watch(()=>props.dashboardName, ()=>{
 watch( ()=>data.dashboard, 
        ()=>{
             console.info("DashboardView.watch(dashboard). Dashboard %s has updated!", data.dashboard?.name)
-            let newDashboard = ds.GetDashboardByName(props.dashboardName)
-            if (newDashboard) {
-              handleNewDashboard(newDashboard)
-            }
+            updateDashboard(data.dashboard)
         },
         {deep:true} // watch options
      )
 
 onMounted(()=>{
   console.log("DashboardView.onMounted")
-  let dashboard = ds.GetDashboardByName(props.dashboardName)
-  if (dashboard) {
-    handleNewDashboard(dashboard)
-  }
+  data.dashboard = ds.GetDashboardByName(props.dashboardName)
+  updateDashboard(data.dashboard)
 })
 
 // After changing the dashboard this updates the layouts for all breakpoints
-const handleNewDashboard = (dashboard:DashboardDefinition) => {
+const updateDashboard = (dashboard:DashboardDefinition|undefined) => {
   // a new dashboard needs restoring the layouts of all breakpoints
-  data.dashboard = ds.GetDashboardByName(props.dashboardName)
-  if (!dashboard.layouts) {
-    console.error("handleNewDashboard: no layouts. Ignored")
+  if (!dashboard || !dashboard.layouts) {
+    console.error("updateDashboard: no dashboards or layouts. Ignored")
     return
   } else if (!gridLayout || !gridLayout.value) {
     console.warn('handleNewDashboard: ref gridLayout not initialized')
@@ -192,7 +184,7 @@ const fixLayout = (dashboard: DashboardDefinition|undefined,
     count++
     if (!item) {
       // The tile doesn't have a layout item, add one
-      newLayout.push({i:id, x:0, y:newCount, w:1, h:1})
+      newLayout.push({i:id, x:0, y:newCount, w:3, h:3})
       newCount++
     } else {
       // The tile already has a layout item, keep it
