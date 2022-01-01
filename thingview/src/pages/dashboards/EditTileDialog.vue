@@ -1,10 +1,16 @@
 <script lang="ts" setup>
-import {ref, reactive} from "vue";
-import {useDialogPluginComponent, QBtn, QForm, QInput, QSpace, QSelect} from "quasar";
+import {h, ref, reactive} from "vue";
+import {useDialogPluginComponent, QBtn, QForm, QIcon, QInput, QSelect} from "quasar";
+import {matAdd, matRemove} from "@quasar/extras/material-icons";
+
 
 import TDialog from "@/components/TDialog.vue";
-import {DashboardDefinition, DashboardTileConfig,
-  TileTypeCard, TileTypeImage} from "@/data/dashboard/DashboardStore";
+import {
+  DashboardDefinition, DashboardTileConfig, IDashboardTileItem,
+  TileTypeCard, TileTypeImage
+} from "@/data/dashboard/DashboardStore";
+import SimpleTable, { ISimpleTableColumn } from "@/components/TSimpleTable.vue";
+import TSimpleTable from "@/components/TSimpleTable.vue";
 
 // inject handlers
 const { dialogRef, onDialogOK, onDialogCancel } = useDialogPluginComponent();
@@ -41,11 +47,31 @@ const handleSubmit = () =>{
       })
 };
 
+const propertyItemColumns:ISimpleTableColumn[] = [
+  {title: "", width:"40px", field:"remove", 
+    component:()=>h(QBtn,{icon:matRemove, round:true, flat:true})
+  }, // remove
+  {title: "Name", field: "name"},
+  {title: "Value", field: "value"}
+]
+
+/**
+ * Return the list of Thing properties and their value to display in a table
+ */
+const getThingsProperties = (items:IDashboardTileItem[]|undefined):{}[] => {
+  let itemAndValues: {}[] = []
+  if (items) {
+    itemAndValues.push({name:"test item 1", value:"21"})
+  }
+  return itemAndValues
+}
+
 </script>
 
 <template>
   <TDialog
       ref="dialogRef"
+      width="400px"
       :title="props.title"
       @onSubmit="handleSubmit"
       showOk
@@ -53,10 +79,10 @@ const handleSubmit = () =>{
   >
     <QForm @submit="handleSubmit"
            ref="formRef"
-           class="q-gutter-md" style="min-width: 350px">
+           >
       <QInput v-model="editTile.title"
               :autocomplete="TileTypeCard"
-              autofocus filled required
+              autofocus  required
               id="title" type="text"
               label="Title"
               :rules="[()=>editTile.title !== ''||'Please provide a title']"
@@ -66,21 +92,22 @@ const handleSubmit = () =>{
                :options="[
                   {label:'Card', value:TileTypeCard},
                   {label:'Image', value:TileTypeImage}]"
-               :rules="[val=> (!!val && !!val.label && (val.label.length > 0)) || 'please select a valid type']"
-               options-dense
-               menu-shrink
-               filled
+               :rules="[(val:any)=> (!!val && !!val.label && (val.label.length > 0)) || 'please select a valid type']"
+
                label="Type of tile"
       />
-<!--      <QBtn label="Cancel"-->
-<!--            @click="onDialogCancel"-->
-<!--      />-->
-<!--      <QSpace/>-->
-<!--      <QBtn label="Save"-->
-<!--            color="primary"-->
-<!--            type="submit"-->
-<!--      />-->
+      <p>Properties <QBtn round flat :icon="matAdd"/></p>
+      <TSimpleTable class="propTable"
+          :columns="propertyItemColumns"
+          :rows="getThingsProperties(props.tile?.items)"
+      />
     </QForm>
 
   </TDialog>
 </template>
+
+<style scoped>
+.prop-table > .thead {
+  background-color: lightgray;
+}
+</style>

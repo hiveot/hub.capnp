@@ -37,10 +37,11 @@ const props = defineProps<{
   dashboard: DashboardDefinition
 }>()
 
-const widgetTypes = {
-  "Card": CardWidget,
-  "Image": CardWidget,
-  "LineChart": CardWidget,
+interface IWidgetTypes { [key:string]:any};
+const widgetTypes:IWidgetTypes = {
+  "card": CardWidget,
+  "image": CardWidget,
+  // TileTypeLineChart: CardWidget,
 }
 
 const getWidgetComponent = (config:DashboardTileConfig, ts:ThingStore):any => {
@@ -57,8 +58,8 @@ const getWidgetComponent = (config:DashboardTileConfig, ts:ThingStore):any => {
 
 // Tile header dropdown menu 
 const menuItems:IMenuItem[] = [
-  {id: "edit", label: "Edit Tile", icon: matEdit},
-  {id: "copy", label: "Copy Tile Items", icon: matContentCopy, disabled:true},
+  {id: "edit",  label: "Edit Tile", icon: matEdit},
+  {id: "copy",  label: "Copy Tile Items", icon: matContentCopy, disabled:true},
   {id: "paste", label: "Paste Tile Items", icon: matContentPaste, disabled:true},
   {separator: true},
   {id: "delete", label: "Delete Tile", icon: matDelete },

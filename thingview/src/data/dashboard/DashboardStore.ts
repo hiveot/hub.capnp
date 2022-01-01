@@ -44,7 +44,7 @@ export class DashboardTileConfig extends Object {
   /**
    * Type of widget to display in this tile
    */
-  type: typeof TileTypeCard | typeof TileTypeImage | typeof TileTypeLineChart = TileTypeCard  //
+  type: string = TileTypeCard  //
 
   /**
    * Collection of Thing items to display, in order of appearance

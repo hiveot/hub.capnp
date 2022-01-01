@@ -227,6 +227,18 @@
   resolved "https://registry.yarnpkg.com/@types/estree/-/estree-0.0.39.tgz#e177e699ee1b8c22d23174caaa7422644389509f"
   integrity sha512-EYNwp3bU+98cpU4lAWYYL7Zz+2gryWH1qbdDTidVd6hkiR6weksdbMadyXKXNPEkQFhXM+hVO9ZygomHXp+AIw==
 
+"@types/lodash-es@^4.17.5":
+  version "4.17.5"
+  resolved "https://registry.yarnpkg.com/@types/lodash-es/-/lodash-es-4.17.5.tgz#1c3fdd16849d84aea43890b1c60da379fb501353"
+  integrity sha512-SHBoI8/0aoMQWAgUHMQ599VM6ZiSKg8sh/0cFqqlQQMyY9uEplc0ULU5yQNzcvdR4ZKa0ey8+vFmahuRbOCT1A==
+  dependencies:
+    "@types/lodash" "*"
+
+"@types/lodash@*":
+  version "4.14.178"
+  resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.178.tgz#341f6d2247db528d4a13ddbb374bcdc80406f4f8"
+  integrity sha512-0d5Wd09ItQWH1qFbEyQ7oTQ3GZrMfth5JkbN3EvTKLXcHLRDSXeLnlvlOn0wvxVIwK5o2M8JzP/OWz7T3NRsbw==
+
 "@types/node@*":
   version "17.0.0"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-17.0.0.tgz#62797cee3b8b497f6547503b2312254d4fe3c2bb"
@@ -1089,6 +1101,11 @@ local-pkg@^0.4.0:
   integrity sha512-2XBWjO/v63JeR1HPzLJxdTVRQDB84Av2p2KtBA5ahvpyLUPubcAU6iXlAJrONcY7aSqgJhXxElAnKtnYsRolPQ==
   dependencies:
     mlly "^0.2.2"
+
+lodash-es@^4.17.21:
+  version "4.17.21"
+  resolved "https://registry.yarnpkg.com/lodash-es/-/lodash-es-4.17.21.tgz#43e626c46e6591b7750beb2b50117390c609e3ee"
+  integrity sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==
 
 lodash@^4.17.21:
   version "4.17.21"

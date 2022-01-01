@@ -2,7 +2,7 @@
 
 import {QCard, QCardSection} from "quasar";
 import {DashboardTileConfig, IDashboardTileItem} from "@/data/dashboard/DashboardStore";
-import SimpleTable, {ISimpleTableColumn} from '@/components/SimpleTable.vue'
+import TSimpleTable, {ISimpleTableColumn} from '@/components/TSimpleTable.vue'
 import {ThingStore} from "@/data/td/ThingStore";
 import {TDProperty} from "@/data/td/ThingTD";
 import { ref } from "vue";
@@ -50,7 +50,7 @@ console.info("CardWidget. props.config=", props.config)
       <div>{{config}} </div>
       </QCardSection>
     <QCardSection>
-      <SimpleTable
+      <TSimpleTable
           v-if="props.config.items?.length>1"
           :hideHeader="true"
           dense
