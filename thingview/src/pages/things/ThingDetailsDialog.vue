@@ -26,7 +26,7 @@ const getHeight = (td: ThingTD|undefined):string => {
   }
   // the height should ideally accommodate the tallest view. However we don't know what that is.
   // so, just estimate based on nr of attributes and configuration.
-  let attrCount = ThingTD.GetThingAttributes(td).length
+  let attrCount = ThingTD.GetThingProperties(td).length
   let configCount = ThingTD.GetThingConfiguration(td).length
   // row height is approx 29px + estimated header and footer size around 300px
   let height = Math.max(attrCount, configCount)*29+340;

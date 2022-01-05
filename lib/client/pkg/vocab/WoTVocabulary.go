@@ -58,6 +58,15 @@ const (
 	WoTUnit      = "unit"
 )
 
-// additional security schema
+// additional security schemas
+// Intended for use by Hub services. WoST devices don't need them as they don't run a server
+const (
+	WoTNoSecurityScheme = "NoSecurityScheme"
+	WoTBasicSecurityScheme = "BasicSecurityScheme"
+	WoTDigestSecurityScheme = "DigestSecurityScheme"
+	WoTAPIKeySecurityScheme = "APIKeySecurityScheme"
+	WoTBearerSecurityScheme = "BearerSecurityScheme"
+	WoTPSKSecurityScheme = "PSKSecurityScheme"
+	WoTOAuth2SecurityScheme = "OAuth2SecurityScheme"
+)
 
-//

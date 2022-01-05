@@ -2,7 +2,6 @@
 
 // import TDialog from '@/components/TDialog.vue'
 import TDialog from '@/components/TDialog.vue'
-import {useDialogPluginComponent} from 'quasar'
 
 const version = "0.3 alpha";
 const licenseURL = "https://github.com/wostzone/wostzone.github.io/blob/81f41a781dfd37d82a5e37bf9ac905199161ee85/LICENSE"
@@ -18,9 +17,6 @@ const props = withDefaults(
 
 const emit = defineEmits(['onClosed'])
 
-// inject handler for using plugin dialog instance
-const { dialogRef } = useDialogPluginComponent();
-
 const handleCloseDialog = () => {
   console.log("handleCloseDialog")
   emit("onClosed");
@@ -29,8 +25,8 @@ const handleCloseDialog = () => {
 
 
 <template>
-<TDialog ref="dialogRef"
-    :visible="props.visible"
+<TDialog 
+  :visible="props.visible"
   title="About ThingView"
   show-close
   @onClosed="handleCloseDialog"

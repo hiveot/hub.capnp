@@ -6,18 +6,20 @@ import "github.com/wostzone/hub/lib/client/pkg/vocab"
 
 // CreateProperty creates a new property instance
 //  {
-//     @type: propType,
-//     title: title,
-//     description: description,
-//     writable: true,
-//     readOnly: false,
-//     writeOnly: true
+//     @type: propType,       // recommended; see vocab.PropertyTypeXyz
+//     title: title,          // recommended; for human display
+//     description: description, // optional; for additional display
+//     writable: true,        // not defined in WoT. true for configuration properties
+//     forms: [Form],         // WoT mandatory. unclear on how to use
+//     observable: false,     // WoST properties are not directly observable (use message bus instead)
 //  }
-//  title propery title for presentation
-//  description optional extra description of what the property does
-//  propType provides @type value for a property
-//  writable property is a configuration value and is writable
-func CreateProperty(title string, description string,
+//  title for human presentation. Highly recommended.
+//  description  of what the property does. recommended especially for configuration
+//  propType provides '@type' value for a property
+//  writable indicates the property is a configuration value and can be modified
+func CreateProperty(
+	title string,
+	description string,
 	propType vocab.ThingPropType) map[string]interface{} {
 
 	var writable = (propType == vocab.PropertyTypeConfig)
@@ -38,8 +40,8 @@ func CreateProperty(title string, description string,
 	return prop
 }
 
-// Return the value of a property in the TD
-// If the property doesn't exist in the TD or there is not value attribute, then found returns false
+// GetPropertyValue returns the value of a property in the TD
+// If the property doesn't exist in the TD or doesn't contain a value attribute, then found returns false
 func GetPropertyValue(thingTD map[string]interface{}, propName string) (value string, found bool) {
 	props, found := thingTD[vocab.WoTProperties].(map[string]interface{})
 	if !found || props == nil {
@@ -47,7 +49,7 @@ func GetPropertyValue(thingTD map[string]interface{}, propName string) (value st
 	}
 	propOfName, found := props[propName].(map[string]interface{})
 	if !found || propOfName == nil {
-		return // TD does not have this property or it is not a map[string]interface[}
+		return // TD does not have this property, or it is not a map[string]interface[}
 	}
 	valueInterface, found := propOfName[vocab.AttrNameValue]
 	if found && valueInterface != nil {
@@ -56,9 +58,9 @@ func GetPropertyValue(thingTD map[string]interface{}, propName string) (value st
 	return value, found
 }
 
-// SetPropertyEnum sets a enumerated list of valid values of a property
+// SetPropertyEnum sets an enumerated list of valid values of a property
 func SetPropertyEnum(prop map[string]interface{}, enumValues ...interface{}) {
-	prop[string(vocab.WoTEnum)] = enumValues
+	prop[vocab.WoTEnum] = enumValues
 }
 
 // SetPropertyDataTypeArray sets the property data type as an array (of ?)
@@ -66,22 +68,22 @@ func SetPropertyEnum(prop map[string]interface{}, enumValues ...interface{}) {
 //  minItems is the minimum nr of items required
 //  maxItems sets the maximum nr of items required
 func SetPropertyDataTypeArray(prop map[string]interface{}, minItems uint, maxItems uint) {
-	prop[string(vocab.WoTDataType)] = string(vocab.WoTDataTypeArray)
+	prop[vocab.WoTDataType] = vocab.WoTDataTypeArray
 	if maxItems > 0 {
-		prop[string(vocab.WoTMinItems)] = minItems
-		prop[string(vocab.WoTMaxItems)] = maxItems
+		prop[vocab.WoTMinItems] = minItems
+		prop[vocab.WoTMaxItems] = maxItems
 	}
 }
 
-// SetPropertyTypeNumber sets the property data type as an integer
+// SetPropertyDataTypeInteger sets the property data type as an integer
 // If min and max are both 0, they are ignored
 //  min is the minimum value
 //  max sets the maximum value
 func SetPropertyDataTypeInteger(prop map[string]interface{}, min int, max int) {
-	prop[string(vocab.WoTDataType)] = string(vocab.WoTDataTypeInteger)
+	prop[vocab.WoTDataType] = vocab.WoTDataTypeInteger
 	if !(min == 0 && max == 0) {
-		prop[string(vocab.WoTMinimum)] = min
-		prop[string(vocab.WoTMaximum)] = max
+		prop[vocab.WoTMinimum] = min
+		prop[vocab.WoTMaximum] = max
 	}
 }
 
@@ -90,7 +92,7 @@ func SetPropertyDataTypeInteger(prop map[string]interface{}, min int, max int) {
 //  min is the minimum value
 //  max sets the maximum value
 func SetPropertyDataTypeNumber(prop map[string]interface{}, min float64, max float64) {
-	prop[vocab.WoTDataType] = string(vocab.WoTDataTypeNumber)
+	prop[vocab.WoTDataType] = vocab.WoTDataTypeNumber
 	if !(min == 0 && max == 0) {
 		prop[vocab.WoTMinimum] = min
 		prop[vocab.WoTMaximum] = max
@@ -99,7 +101,7 @@ func SetPropertyDataTypeNumber(prop map[string]interface{}, min float64, max flo
 
 // SetPropertyDataTypeObject sets the property data type as an object
 func SetPropertyDataTypeObject(prop map[string]interface{}, object interface{}) {
-	prop[vocab.WoTDataType] = string(vocab.WoTDataTypeObject)
+	prop[vocab.WoTDataType] = vocab.WoTDataTypeObject
 	prop[vocab.WoTDataTypeObject] = object
 }
 
@@ -108,21 +110,22 @@ func SetPropertyDataTypeObject(prop map[string]interface{}, object interface{}) 
 //  minLength is the minimum value
 //  maxLength sets the maximum value
 func SetPropertyDataTypeString(prop map[string]interface{}, minLength int, maxLength int) {
-	prop["type"] = string(vocab.WoTDataTypeString)
+	prop["type"] = vocab.WoTDataTypeString
 	if !(minLength == 0 && maxLength == 0) {
 		prop[vocab.WoTMinLength] = minLength
 		prop[vocab.WoTMaxLength] = maxLength
 	}
 }
 
-// SetTDPropertyEnum sets the unit of a property
+// SetPropertyUnit sets the unit of a property
 func SetPropertyUnit(prop map[string]interface{}, unit string) {
 	prop[vocab.WoTUnit] = unit
 }
 
-// SetTDPropertyEnum sets the value of a property at the time of TD creation
+// SetPropertyValue sets the value of a property at the time of TD creation
 // Useful for attributes or configuration properties that don't change very often. When a TD is received
 // it can be usable immediately without waiting for value updates.
+//
 // Note1: it is recommended to only set values for properties that rarely change, and when
 // they do change to update the TD.
 // Note2: This is optional and not part of the WoT specification. It is however allowed

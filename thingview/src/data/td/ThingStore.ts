@@ -1,6 +1,7 @@
 // The Thing store holds the discovered thing TD's
 // This is updated from the directory (see DirectoryClient) and MQTT messages
 import { reactive, readonly } from "vue";
+import { cloneDeep as _cloneDeep, extend as _extend } from 'lodash-es'
 import { ThingTD } from "./ThingTD";
 
 // Directory data data
@@ -15,14 +16,14 @@ export class ThingStore {
   private data: TDCollection
 
   constructor() {
-    // remove when complete
-    let testThing = new ThingTD()
-    testThing.id = "default"
-    testThing.description = "Hub Thing"
-    testThing["@type"] = "Computer"
+    // // remove default placeholder TD when complete
+    // let testThing = new ThingTD()
+    // testThing.id = "default"
+    // testThing.description = "Hub Thing"
+    // testThing["@type"] = "Computer"
 
     this.data = reactive(new TDCollection())
-    this.Add(testThing)
+    // this.Add(testThing)
   }
 
 
@@ -47,17 +48,19 @@ export class ThingStore {
 
 
   // Update/replace a new discovered ThingTD in the collection
+  // This will do some cleanup on the TD to ensure the ID's are in place
   Update(td: ThingTD): void {
     let existing = this.data.index.get(td.id)
+    let newTD = _cloneDeep(td)
+
     if (!existing) {
-      // add new
-      this.data.array.push(td)
-      this.data.index.set(td.id, td)
+      // This is a new TD
+      let newTD = _cloneDeep(td)
+      this.data.array.push(newTD)
+      this.data.index.set(newTD.id, newTD)
     } else {
-      // update existing, keep reactivity
-      existing.description = td.description
-      existing["@type"] = td["@type"]
-      existing.properties = td.properties
+      // update existing TD
+      _extend(existing, td)
     }
   }
 }

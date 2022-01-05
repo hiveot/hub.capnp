@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 
-import {h, Component} from "vue";
+import {h, Component, reactive} from "vue";
 import {DashboardDefinition, DashboardStore, DashboardTileConfig, IDashboardTileItem} from "@/data/dashboard/DashboardStore";
 import {useQuasar, QCard, QCardSection, QBtn, QToolbar, QToolbarTitle} from "quasar";
 import CardWidget from './CardWidget.vue'
@@ -29,13 +29,14 @@ const props = defineProps<{
   /**
    * Tile to edit
    */
-  config: DashboardTileConfig
+  tile: DashboardTileConfig
 
   /** 
    * Dashboard the tile belongs to
    */
   dashboard: DashboardDefinition
 }>()
+
 
 interface IWidgetTypes { [key:string]:any};
 const widgetTypes:IWidgetTypes = {
@@ -44,16 +45,24 @@ const widgetTypes:IWidgetTypes = {
   // TileTypeLineChart: CardWidget,
 }
 
-const getWidgetComponent = (config:DashboardTileConfig, ts:ThingStore):any => {
-  try{
-  let c = widgetTypes[config.type]
-  return h(
-    CardWidget, 
-    {config:config, ts:ts}
-  )
-  } catch(e){
-    console.error("getWidgetComponent Exception:",e)
-  }
+// const getWidgetComponent = (config:DashboardTileConfig, ts:ThingStore):any => {
+//   try{
+//   let c = widgetTypes[config.type]
+//   return h(
+//     CardWidget, props{tile:props.tile, thingStore:props.thingStore}
+//   )} catch(e){
+//     console.error("getWidgetComponent Exception:",e)
+//   }
+// }
+
+/**
+ * Submit an updated tile to the store
+ */
+const handleSubmitTile = (newTile:DashboardTileConfig) => {
+    props.dashStore.UpdateTile(props.dashboard, newTile)
+    $q.notify({position: 'top',type: 'positive',
+      message: 'Tile '+props.tile.title+' has been saved.'
+    })
 }
 
 // Tile header dropdown menu 
@@ -72,12 +81,12 @@ const handleEditTile = (config:DashboardTileConfig) => {
     component: EditTileDialog,
     componentProps: {
       title: "Edit Tile",
-      tile: props.config,
+      tile: props.tile,
     },
   }).onOk((newTile:DashboardTileConfig)=> {
     props.dashStore.UpdateTile(props.dashboard, newTile)
     $q.notify({position: 'top',type: 'positive',
-      message: 'Tile '+props.config.title+' has been saved.'
+      message: 'Tile '+props.tile.title+' has been saved.'
     })
   })
 }
@@ -86,25 +95,23 @@ const handleEditTile = (config:DashboardTileConfig) => {
 const handleDeleteTile = () => {
   $q.dialog({
     title: 'Confirm Delete',
-    message: "This will delete Tile '"+props.config.title+"'. Please confirm",
+    message: "This will delete Tile '"+props.tile.title+"'. Please confirm",
     cancel: true,
   }).onOk(()=> {
-    props.dashStore.DeleteTile(props.dashboard, props.config)
+    props.dashStore.DeleteTile(props.dashboard, props.tile)
     // delete props.dashboard.tiles[props.config.id]
 
-    console.info("Dashboard tile %s deleted", props.config.title)
+    console.info("Dashboard tile %s deleted", props.tile.title)
     $q.notify({position: 'top',type: 'positive',
-      message: 'Tile '+props.config.title+' has been deleted.'
+      message: 'Tile '+props.tile.title+' has been deleted.'
     })
 
   })
 }
 
-
-
 const handleMenuAction = (menuItem:IMenuItem) => {
   switch (menuItem.id) {
-    case 'edit': {handleEditTile(props.config); break}
+    case 'edit': {handleEditTile(props.tile)}
     case 'copy': {; break}
     case 'paste': {; break}
     case 'delete': {handleDeleteTile(); break}
@@ -115,16 +122,21 @@ const handleMenuAction = (menuItem:IMenuItem) => {
 
 <!--Display a widget based on dashboard tile configuration-->
 <template>
-  <QCard
-    style="display:flex; flex-direction:column; width:100%; height:100%">
+  <QCard class="dashboard-tile-card">
 
-    <span v-if="props.config">
+    <span v-if="props.tile" 
+        style="display:flex; flex-direction:column; width:100%; height:100%"
+        >
        <!--  title with menu -->
-      <QToolbar  class="tile-header-bar" >
-        <QToolbarTitle  class="tile-header">
-           {{props.config.title}}
+      <QToolbar  class="tile-header-section" >
+        <QToolbarTitle  class="toolbar-header">
+           {{props.tile.title}}
         </QToolbarTitle>
-        <TMenuButton flat dense  class="tile-header no-drag-area"
+        
+        <!-- The menu is not a draggable area in the dashboard grid 
+           'no-drag-area' is defined in the DashboardView
+        -->
+        <TMenuButton flat dense  class="toolbar-header no-drag-area"
             :icon="matMenu" 
             :items="menuItems"
             @on-menu-action="handleMenuAction"
@@ -133,10 +145,8 @@ const handleMenuAction = (menuItem:IMenuItem) => {
 
       <!--       Slot for the widget content-->
       <!--       To keep vertical scrolling within the slot, use flex column with overflow-->
-      <QCardSection 
-        style="height: 100%; display:flex; flex-direction:column; overflow: auto"
-      >
-        <CardWidget :config="props.config" :ts="thingStore"/>
+      <QCardSection class="tile-content-section">
+        <CardWidget :tile="props.tile" :thingStore="props.thingStore"/>
       </QCardSection>
 
     </span>
@@ -150,15 +160,35 @@ const handleMenuAction = (menuItem:IMenuItem) => {
 
 <style scoped>
 
-.tile-header-bar {
-  background-color: lightgray;
+.dashboard-tile-card {
+  display: flex;
+  flex-direction: column;
+  width:100%;
+  height:100%;
+  padding: 0;
+  margin:0;
+}
+
+.tile-header-section {
+  background-color:  rgb(224, 229, 230);
   min-height: 20px;
   padding: 0;
 }
-.tile-header {
+.toolbar-header {
   font-size: 1.1em;
   min-height: 20px;
   padding: 4px;
   /*height: 1rem;*/
 }
+
+.tile-content-section {
+  /* height: 100%; */
+  display: flex;
+  flex-direction: column; 
+  height:100%;
+  width:100%;
+  overflow: auto;
+  padding: 0;
+}
+
 </style>

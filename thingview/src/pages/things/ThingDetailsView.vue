@@ -11,7 +11,7 @@ import {ThingTD, TDProperty, TDAction, TDEvent} from '@/data/td/ThingTD';
 
 import ThingEvents from './ThingEvents.vue'
 import ThingActions from "@/pages/things/ThingActions.vue";
-import ThingAttributes from "@/pages/things/ThingAttributes.vue";
+import ThingAttributes from "@/pages/things/ThingPropertiesTable.vue";
 import ThingConfiguration from "@/pages/things/ThingConfiguration.vue";
 
 // Thing Details View

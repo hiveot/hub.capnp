@@ -2,9 +2,10 @@
 
 import {QTabs, QRouteTab} from 'quasar'
 import { DashboardDefinition } from '@/data/dashboard/DashboardStore';
-import TMenuButton, { IMenuItem } from '@/components/TMenuButton.vue';
 import {DashboardPrefix} from '@/router'
 import { MenuAddTile, MenuAddDashboard, MenuEditDashboard, MenuDeleteDashboard } from './MenuConstants';
+import TMenuButton, { IMenuItem } from '@/components/TMenuButton.vue';
+
 import {matMenu, matAdd, matEdit, matDelete} from "@quasar/extras/material-icons"
 
 const props = defineProps<{

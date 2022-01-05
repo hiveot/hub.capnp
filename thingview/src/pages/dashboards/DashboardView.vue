@@ -16,12 +16,10 @@
 import {nextTick, onMounted, reactive, ref, watch} from "vue";
 import {GridLayout, GridItem} from 'vue3-grid-layout'
 
-import ds, {DashboardDefinition } from '@/data/dashboard/DashboardStore'
-import ts from '@/data/td/ThingStore'
+import dashStore, {DashboardDefinition } from '@/data/dashboard/DashboardStore'
+import thingStore from '@/data/td/ThingStore'
 import appState from '@/data/AppState'
-import DashboardWidget from "./DashboardTile.vue";
-import dashboardStore from "@/data/dashboard/DashboardStore";
-
+import DashboardTile from "./DashboardTile.vue";
 
 /**
  * Dashboard view shows the dashboard with the given name
@@ -44,13 +42,13 @@ export interface ILayoutItem {
 }
 
 const data = reactive({
-  dashboard: ds.GetDashboardByName(props.dashboardName),
+  dashboard: dashStore.GetDashboardByName(props.dashboardName),
   currentLayout:  Array<ILayoutItem>(),
 })
 
 watch(()=>props.dashboardName, ()=>{
   console.log("DashboardView.watch(dashboardName)")
-  data.dashboard = ds.GetDashboardByName(props.dashboardName)
+  data.dashboard = dashStore.GetDashboardByName(props.dashboardName)
   // updateDashboard(data.dashboard)
 })
 
@@ -67,7 +65,7 @@ watch( ()=>data.dashboard,
 
 onMounted(()=>{
   console.log("DashboardView.onMounted")
-  data.dashboard = ds.GetDashboardByName(props.dashboardName)
+  data.dashboard = dashStore.GetDashboardByName(props.dashboardName)
   updateDashboard(data.dashboard)
 })
 
@@ -150,10 +148,10 @@ const Save = () => {
     gridLayout.value.layouts[lastBreakpoint] = data.currentLayout
     newDash.layouts = gridLayout.value.layouts
     console.info("DashboardView.Save: saving layouts", newDash.layouts)
-    ds.UpdateDashboard(newDash)
+    dashStore.UpdateDashboard(newDash)
     // As the dashboard is replaced in the store, changes to the existing 
     // dashboard won't be detected. Manual update instead.
-    data.dashboard = ds.GetDashboardByName(props.dashboardName)
+    data.dashboard = dashStore.GetDashboardByName(props.dashboardName)
   }
 }
 
@@ -249,11 +247,11 @@ const fixLayout = (dashboard: DashboardDefinition|undefined,
                  @moved="handleItemMoved"
                  @resized="handleItemResized"
       >
-       <DashboardWidget 
-          :config="data.dashboard?.tiles?.[item.i]"
+       <DashboardTile 
+          :tile="data.dashboard?.tiles?.[item.i]"
           :dashboard="data.dashboard"
-          :thing-store="ts"
-          :dash-store="ds"
+          :thingStore="thingStore"
+          :dashStore="dashStore"
           />
       </grid-item> 
     </GridLayout>

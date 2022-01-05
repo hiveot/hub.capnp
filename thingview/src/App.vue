@@ -14,9 +14,11 @@ import AppView from '@/pages/app/AppView.vue';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2f2f44;
-  /*color: green;*/
-  /*font-size: large;*/
+  /* color: #373737; */
+  color: #5a5a5a;
+
+  font-size: medium;
+  /* font-weight: 100; */
   margin:0;
 }
 </style>

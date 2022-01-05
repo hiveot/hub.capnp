@@ -46,7 +46,7 @@ export class TDEvent extends Object {
 
 // Thing Description property describing a property of a Thing
 export class TDProperty extends Object {
-  public id: string = ""
+  // public key: string = ""     // property key is included in the property 
 
   public atType: string = ""  // type of property wost:configuration, wost:output, wost:attr
   public title: string = "" // description of property
@@ -85,13 +85,13 @@ export class ThingTD extends Object {
   public "@type": string = ""; 
 
   /** Collection of properties of a thing */
-  public properties = new Map<string, TDProperty>();
+  public properties: { [key: string]: TDProperty } = {};
 
   /** Collection of actions of a thing */
-  public actions = new Map<string, TDAction>();
+  public actions: { [key: string]: TDAction } = {};
 
   /** Collection of events (outputs) of a thing */
-  public events = new Map<string, TDEvent>();
+  public events: { [key: string]: TDEvent } = {};
 
 
   // Convert the actions map into an array for display
@@ -106,13 +106,14 @@ export class ThingTD extends Object {
   }
 
 
-  // Convert the attributes into an array for display
-  public static GetThingAttributes = (td: ThingTD): Array<TDProperty> => {
-    let res = Array<TDProperty>()
+  // Convert the properties into an array for display
+  // Returns table of {key, tdproperty}
+  public static GetThingProperties = (td: ThingTD): Array<{ key: string, prop: TDProperty }> => {
+    let res = Array<{ key: string, prop: TDProperty }>()
     if (!!td && !!td.properties) {
       for (let [key, val] of Object.entries(td.properties)) {
         if (!val.writable) {
-          res.push(val)
+          res.push({ key: key, prop: val })
         }
       }
     }
@@ -121,12 +122,13 @@ export class ThingTD extends Object {
 
 
   // Convert the writable properties into an array for display
-  public static GetThingConfiguration = (td: ThingTD): Array<TDProperty> => {
-    let res = Array<TDProperty>()
+  // Returns table of {key, tdproperty}
+  public static GetThingConfiguration = (td: ThingTD): Array<{ key: string, prop: TDProperty }> => {
+    let res = Array<{ key: string, prop: TDProperty }>()
     if (!!td && !!td.properties) {
       for (let [key, val] of Object.entries(td.properties)) {
         if (val.writable) {
-          res.push(val)
+          res.push({ key: key, prop: val })
         }
       }
     }
@@ -136,7 +138,7 @@ export class ThingTD extends Object {
   public static GetThingEvents = (td: ThingTD): Array<TDEvent> => {
     let res = Array<TDEvent>()
     if (!!td && !!td.events) {
-      for (let [key, val] of Object.entries(td.actions)) {
+      for (let [key, val] of Object.entries(td.events)) {
         res.push(val)
       }
     }

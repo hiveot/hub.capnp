@@ -2,6 +2,7 @@
 
 // import {ref} from 'vue'
 import {useDialogPluginComponent, QBtn, QDialog, QCard, QCardActions, QCardSection, QSeparator, QScrollArea, QSpace, QToolbar, QToolbarTitle, } from "quasar";
+// import {QBtn, QDialog, QCard, QCardActions, QCardSection, QSeparator, QScrollArea, QSpace, QToolbar, QToolbarTitle, } from "quasar";
 
 
 // import TButton from '@/components/TButton.vue'
@@ -64,11 +65,29 @@ const props = withDefaults(
 )
 
 const emits = defineEmits( [
-    'onClosed', 'onSubmit', 'hide',
+    // 'onClosed', 'onSubmit', 'onCancel',
+    'onClosed', 'onSubmit', 'onCancel', 'hide',
     // REQUIRED; need to specify some events that your
     // component will emit through useDialogPluginComponent()
     ...useDialogPluginComponent.emits,
 ]);
+
+// Notify listeners this dialog is cancelled
+const handleCancel = () => {
+  console.debug("TDialog. Cancelling Dialog")
+  emits('onCancel')
+  emits('onClosed')
+  // onDialogHide()
+  onDialogCancel()
+}
+
+// Notify listeners this dialog is closed
+const handleClose = () => {
+  console.debug("TDialog. Closing Dialog")
+  emits('onClosed')
+  // onDialogHide()
+  onDialogHide()
+}
 
 /**
  * Send the 'submit' event. The parent component must validate and include the result
@@ -80,12 +99,6 @@ const handleSubmit = () => {
   // to be done by parent: onDialogOK()
 }
 
-// Notify listeners this dialog is closed
-const handleClose = () => {
-  console.debug("TDialog. Closing Dialog")
-  emits('onClosed')
-  onDialogHide()
-}
 
 // show and hide are for use by $q.dialog. Pass it on the the QDialog child
 const hide = () => {
@@ -128,8 +141,7 @@ defineExpose({show, hide})
 
 <!--       Slot for the dialog content-->
 <!--       To keep vertical scrolling within the slot, use flex column with overflow-->
-      <QCardSection
-          style="height: 100%; display:flex; flex-direction:column; overflow: auto"
+      <QCardSection class="tdialog-content"
       >
         <slot></slot>
       </QCardSection>
@@ -147,7 +159,7 @@ defineExpose({show, hide})
           <QBtn v-if="props.showCancel"
             label="Cancel"
             :label="props.cancelLabel"
-            @click="onDialogCancel"
+            @click="handleCancel"
           />
           <QSpace/>
           <QBtn v-if="props.showClose" flat
@@ -167,8 +179,14 @@ defineExpose({show, hide})
 </template>
 
 <style>
-.tdialogcontent {
+.tdialog-content {
   height: 100%;
   overflow-y: auto;
+  /* color: #373737; same as app */
+  color: #5a5a5a;
+  display: flex;
+  flex-direction:column; 
+  overflow: auto;
+  font-size: medium;
 }
 </style>

@@ -42,9 +42,9 @@ const props = defineProps<IAppHeader>()
 // for convenience
 const currentState = props.appState.State()
 
-const emit = defineEmits([
-    "onMenuAction",
-  ])
+// const emit = defineEmits([
+//     "onMenuAction",
+//   ])
 
 const data =reactive({
   showAbout: false,
