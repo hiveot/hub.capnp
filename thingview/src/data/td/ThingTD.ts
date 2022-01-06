@@ -82,9 +82,13 @@ export class ThingTD extends Object {
   public description: string = "";
 
   /** Type of thing defined in the vocabulary */
+  // TODO: review correctness
   public "@type": string = ""; 
 
-  /** Collection of properties of a thing */
+  /**
+   * Collection of properties of a thing 
+   * @param key see WoST vocabulary PropNameXxx
+   */
   public properties: { [key: string]: TDProperty } = {};
 
   /** Collection of actions of a thing */
@@ -108,12 +112,12 @@ export class ThingTD extends Object {
 
   // Convert the properties into an array for display
   // Returns table of {key, tdproperty}
-  public static GetThingProperties = (td: ThingTD): Array<{ key: string, prop: TDProperty }> => {
-    let res = Array<{ key: string, prop: TDProperty }>()
+  public static GetThingProperties = (td: ThingTD): Array<{ propID: string, tdProperty: TDProperty }> => {
+    let res = Array<{ propID: string, tdProperty: TDProperty }>()
     if (!!td && !!td.properties) {
       for (let [key, val] of Object.entries(td.properties)) {
         if (!val.writable) {
-          res.push({ key: key, prop: val })
+          res.push({ propID: key, tdProperty: val })
         }
       }
     }
@@ -123,12 +127,12 @@ export class ThingTD extends Object {
 
   // Convert the writable properties into an array for display
   // Returns table of {key, tdproperty}
-  public static GetThingConfiguration = (td: ThingTD): Array<{ key: string, prop: TDProperty }> => {
-    let res = Array<{ key: string, prop: TDProperty }>()
+  public static GetThingConfiguration = (td: ThingTD): Array<{ propID: string, tdProperty: TDProperty }> => {
+    let res = Array<{ propID: string, tdProperty: TDProperty }>()
     if (!!td && !!td.properties) {
       for (let [key, val] of Object.entries(td.properties)) {
         if (val.writable) {
-          res.push({ key: key, prop: val })
+          res.push({ propID: key, tdProperty: val })
         }
       }
     }

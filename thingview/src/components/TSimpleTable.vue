@@ -169,6 +169,7 @@ const getVisibleColumns = (columns:ISimpleTableColumn[]):ISimpleTableColumn[] =>
   font-size: inherit !important;
   overflow: hidden;
   text-overflow: ellipsis;
+  /* padding: 0; */
 }
 /* use the same default font color as elsewhere */
 .q-table__card {

@@ -11,8 +11,7 @@ const $q = useQuasar()
 
 import { DashboardTileConfig, IDashboardTileItem, TileTypeCard, TileTypeImage } from "@/data/dashboard/DashboardStore";
 import thingStore from '@/data/td/ThingStore'
-import SelectTilePropertyDialog from "./SelectTilePropertyDialog.vue";
-import ThingPropertiesTable from "../ThingPropertiesTable.vue";
+import SelectThingPropertyDialog from "./SelectThingPropertyDialog.vue";
 import TileItemsTable from "./TileItemsTable.vue";
 
 // inject handlers
@@ -37,22 +36,23 @@ const emits = defineEmits( [
 ]);
 
 
-// popup an output selection dialog to add an output to the tile
-const handleAddTileProperty = () => {
+// Popup a selection dialog to add a thing's property to the tile
+const handleAddThingProperty = () => {
   console.info("EditTileDialog.handleAddTileProperty: Showing the add tile property dialog")
   $q.dialog({
-     component: SelectTilePropertyDialog,
+     component: SelectThingPropertyDialog,
      componentProps: {
-       tile: editTile,
-       thingStore: thingStore,
+      //  tile: editTile,
+       things: thingStore.all,
       },
-  // }).onOk( ({thingID, propID})=>{
   }).onOk( (props)=>{
     let thingID=props.thingID
     let propID=props.propID
     // Add a new view property to the tile
     console.log("EditTileDialog.handleAddTileProperty: props:", props)
-    editTile.items.push({thingID:thingID, propertyID:propID})
+    editTile.items.push(
+      {thingID:thingID, 
+       propertyID:propID })
     })
 }
 
@@ -116,7 +116,7 @@ const handleSubmit = () =>{
         <TButton round flat 
                  :icon="matAdd" 
                  tooltip="Add property to tile"
-                 @click="handleAddTileProperty"
+                 @click="handleAddThingProperty"
         />
       </p>
       <TileItemsTable v-if="editTile.items"

@@ -42,7 +42,9 @@ const getThingPropValue = (item:IDashboardTileItem):string => {
   let thing = props.thingStore.GetThingTDById(item.thingID)
   let tdProp = thing?.properties[item.propertyID]
   if (!tdProp) {
-    return "Property '"+item.propertyID+"' not found"
+    // Thing info not available
+    // return "Property '"+item.propertyID+"' not found"
+    return "N/A"
   }
   let valueStr = tdProp.value + " " + (tdProp.unit ? tdProp.unit:"")
   return valueStr
@@ -70,7 +72,7 @@ console.info("CardWidget. props.config=", props.tile)
     class="card-widget single-item-card"
   >
       <!-- {{props.tile?.items[0].label}} -->
-      <p>{{props.tile?.items[0].propertyID}}</p>
+      <!-- <p>{{props.tile?.items[0].propertyID}}</p> -->
       <p>{{getThingPropValue(props.tile?.items[0])}}</p>
       
   </div>
