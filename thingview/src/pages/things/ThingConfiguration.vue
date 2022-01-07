@@ -3,6 +3,7 @@
 import {ref} from 'vue';
 import {TDProperty, ThingTD} from "@/data/td/ThingTD";
 import TTable, {ITableCol} from "@/components/TTable.vue";
+import ThingPropertiesTable from './ThingPropertiesTable.vue';
 
 const props= defineProps<{
   td:ThingTD
@@ -28,8 +29,8 @@ const configurationColumns = <Array<ITableCol>>[
 
 <template>
 
-  <TTable row-key="id"
-          :columns="configurationColumns"
+  <ThingPropertiesTable
+          :td="props.td"
           :rows="ThingTD.GetThingConfiguration(props.td)"
           no-data-label="No configuration available"
           dense striped

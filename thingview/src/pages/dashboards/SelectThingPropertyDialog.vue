@@ -5,7 +5,7 @@ import { useDialogPluginComponent, QCard, QInput, QList, QExpansionItem } from '
 
 import TDialog from '@/components/TDialog.vue';
 import { TDProperty, ThingTD } from '@/data/td/ThingTD';
-import ThingPropertiesTable from './ThingPropertiesTable.vue';
+import ThingPropertiesTable from '../things/ThingPropertiesTable.vue';
 
 // inject handlers
 const { dialogRef, onDialogOK, onDialogCancel } = useDialogPluginComponent();
@@ -73,7 +73,7 @@ const handleThingPropertySelect = (td:ThingTD, propID:string, tdProp:TDProperty)
             <p style="font-size: small; font-style: italic;">ID: {{td.id}}</p>
             
             <ThingPropertiesTable :td="td"
-            @onThingPropertySelect="handleThingPropertySelect"
+             @onThingPropertySelect="handleThingPropertySelect"
             />
 
           </div>

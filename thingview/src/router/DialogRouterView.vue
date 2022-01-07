@@ -1,24 +1,19 @@
 <script lang="ts" setup>
-/**
- *  Closing dialog, parent has to revert the route with router.go(-1)
- */
-
 import { RouterView } from 'vue-router';
 
-/**
- * This component does not have any props
- */
-const props = defineProps()
+// const props = defineProps()
 
 </script>
 
 
-<!--RouterView to display a dialog on top of a view
-    Intended to enable routes to a dialog
+<!--RouterView to enable routes to a dialog
+    See the route for things/:thingID
   -->
 <template>
-<div>
+<div style="width: 100%; height:100%;">
+  <!-- Main view -->
   <RouterView></RouterView>
+  <!-- Dialog view -->
   <RouterView name="dialog" ></RouterView>
 </div>
 </template>

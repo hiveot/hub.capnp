@@ -15,12 +15,15 @@
 
 import {nextTick, onMounted, reactive, ref, watch} from "vue";
 import {GridLayout, GridItem} from 'vue3-grid-layout'
-
-import dashStore, {DashboardDefinition } from '@/data/dashboard/DashboardStore'
+import { useQuasar } from "quasar";
+import dashStore, {DashboardDefinition, DashboardTileConfig } from '@/data/dashboard/DashboardStore'
 import thingStore from '@/data/td/ThingStore'
 import appState from '@/data/AppState'
 import DashboardTile from "./DashboardTile.vue";
+import TButton from "@/components/TButton.vue";
+import EditTileDialog from "./EditTileDialog.vue";
 
+const $q = useQuasar()
 /**
  * Dashboard view shows the dashboard with the given name
  */
@@ -42,13 +45,14 @@ export interface ILayoutItem {
 }
 
 const data = reactive({
-  dashboard: dashStore.GetDashboardByName(props.dashboardName),
+  dashboard: dashStore.GetDashboardByName(props.dashboardName) ,
   currentLayout:  Array<ILayoutItem>(),
 })
 
 watch(()=>props.dashboardName, ()=>{
   console.log("DashboardView.watch(dashboardName)")
-  data.dashboard = dashStore.GetDashboardByName(props.dashboardName)
+  data.dashboard = dashStore.GetDashboardByName(props.dashboardName) 
+  // this will trigger the watch on data.dashboard
   // updateDashboard(data.dashboard)
 })
 
@@ -58,7 +62,7 @@ watch(()=>props.dashboardName, ()=>{
 watch( ()=>data.dashboard, 
        ()=>{
             console.info("DashboardView.watch(dashboard). Dashboard %s has updated!", data.dashboard?.name)
-            updateDashboard(data.dashboard)
+            updateDashboardLayout(data.dashboard)
         },
         {deep:true} // watch options
      )
@@ -66,35 +70,69 @@ watch( ()=>data.dashboard,
 onMounted(()=>{
   console.log("DashboardView.onMounted")
   data.dashboard = dashStore.GetDashboardByName(props.dashboardName)
-  updateDashboard(data.dashboard)
+  updateDashboardLayout(data.dashboard)
 })
 
-// After changing the dashboard this updates the layouts for all breakpoints
-const updateDashboard = (dashboard:DashboardDefinition|undefined) => {
-  // a new dashboard needs restoring the layouts of all breakpoints
-  if (!dashboard || !dashboard.layouts) {
-    console.error("updateDashboard: no dashboards or layouts. Ignored")
-    return
-  } else if (!gridLayout || !gridLayout.value) {
-    console.warn('handleNewDashboard: ref gridLayout not initialized')
+// Ensure that the given layout contains all the dashboard tiles and remove unknown items
+// Returns repaired layout and the number of changes made.
+const fixLayout = (dashboard: DashboardDefinition|undefined, 
+        currentLayout: Array<ILayoutItem>):
+    {newLayout: Array<ILayoutItem>, changeCount: number} => {
+
+  let newLayout = new Array<ILayoutItem>()
+  let changeCount = 0
+  if (!dashboard) {
+    return {newLayout, changeCount}
+  }
+  // make sure all tiles are represented and remove old layout items for which there are no tiles
+  let count=0, newCount = 0
+
+  // Re-use existing tile layout and create new ones
+  console.log("fixLayout: Finding items in currentLayout: ", currentLayout)
+  for (let id in dashboard.tiles) {
+    let item = currentLayout.find( (item)=>{
+      if (!item) {
+        console.warn("fixLayout. CurrentLayout contains unexpected null item. Ignored")
+        return false
+      }
+      return (item.i === id)
+    })
+    count++
+    if (!item) {
+      // The tile doesn't have a layout item, add one
+      newLayout.push({i:id, x:0, y:newCount, w:3, h:3})
+      newCount++
+    } else {
+      // The tile already has a layout item, keep it
+      newLayout.push(item)
+    }
+  }
+  console.log("DashboardView.fixLayout for dashboard '",dashboard.name,"'.", count, "items of which",newCount,"are new.",
+      "\nNew layout: ",newLayout)
+
+  let removedCount = currentLayout.length - (newLayout.length-newCount)
+  changeCount = (newCount+removedCount)
+  return {newLayout, changeCount}
+}
+
+/**
+ *  Show the add tile dialog
+ * FIXME:this is a duplication from the AppHeader
+ */
+const handleAddTile = (dashboard:DashboardDefinition|undefined) => {
+  console.debug("Opening add tile...");
+  if (!dashboard) {
     return
   }
-  console.info("DashboardView.handleNewDashboard. Start. Restoring all layouts from saved dashboard",
-      dashboard.name, ". \nlayouts: ", dashboard.layouts)
-
-  // reset the layout and trigger an update of the current layout
-  // unfortunately can't set responsiveLayouts directly, so wait for next-tick
-  // gridLayout.value.responsiveLayouts = {...dashboard.layouts}
-  gridLayout.value.layouts = {...dashboard.layouts}
-
-  // FIXME: this seems to be the trigger to re-initialize the layout. Is there an 'official' way?
-  // nextTick so the grid property bindings are updated with the new responsiveLayout
-  nextTick(()=>{
-    // clearing lastBreakpoint prevents overwriting the new layout with the layout from the previous dashboard
-    gridLayout.value.lastBreakpoint = null
-    gridLayout.value.initResponsiveFeatures()
-    gridLayout.value.responsiveGridLayout()
-    console.log("DashboardView.handleNewDashboard. Done")
+  $q.dialog({
+    component: EditTileDialog,
+    componentProps: {
+      title: "Add Tile",
+      tile: new DashboardTileConfig(),
+    },
+  }).onOk((newTile:DashboardTileConfig)=> {
+    dashStore.AddTile(dashboard, newTile)
+    $q.notify("A new Tile has been added to Dashboard "+dashboard.name)
   })
 }
 
@@ -147,6 +185,7 @@ const Save = () => {
     let lastBreakpoint = gridLayout.value.lastBreakpoint
     gridLayout.value.layouts[lastBreakpoint] = data.currentLayout
     newDash.layouts = gridLayout.value.layouts
+    
     console.info("DashboardView.Save: saving layouts", newDash.layouts)
     dashStore.UpdateDashboard(newDash)
     // As the dashboard is replaced in the store, changes to the existing 
@@ -155,62 +194,34 @@ const Save = () => {
   }
 }
 
-// Ensure that the given layout contains all the dashboard tiles and remove unknown items
-// Returns repaired layout and the number of changes made.
-const fixLayout = (dashboard: DashboardDefinition|undefined, 
-        currentLayout: Array<ILayoutItem>):
-    {newLayout: Array<ILayoutItem>, changeCount: number} => {
-
-  let newLayout = new Array<ILayoutItem>()
-  let changeCount = 0
-  if (!dashboard) {
-    return {newLayout, changeCount}
+// After changing the dashboard this updates the layouts for all breakpoints
+const updateDashboardLayout = (dashboard:DashboardDefinition|undefined) => {
+  // a new dashboard needs restoring the layouts of all breakpoints
+  if (!dashboard || !dashboard.layouts) {
+    console.error("updateDashboard: no dashboards or layouts. Ignored")
+    return
+  } else if (!gridLayout || !gridLayout.value) {
+    console.warn('handleNewDashboard: ref gridLayout not initialized')
+    return
   }
-  // make sure all tiles are represented and remove old layout items for which there are no tiles
-  let count=0, newCount = 0
+  console.info("DashboardView.handleNewDashboard. Start. Restoring all layouts from saved dashboard",
+      dashboard.name, ". \nlayouts: ", dashboard.layouts)
 
-  // Re-use existing tile layout and create new ones
-  console.log("fixLayout: Finding items in currentLayout: ", currentLayout)
-  for (let id in dashboard.tiles) {
-    let item = currentLayout.find( (item)=>{
-      if (!item) {
-        console.warn("fixLayout. CurrentLayout contains unexpected null item. Ignored")
-        return false
-      }
-      return (item.i === id)
-    })
-    count++
-    if (!item) {
-      // The tile doesn't have a layout item, add one
-      newLayout.push({i:id, x:0, y:newCount, w:3, h:3})
-      newCount++
-    } else {
-      // The tile already has a layout item, keep it
-      newLayout.push(item)
-    }
-  }
-  console.log("DashboardView.fixLayout for dashboard '",dashboard.name,"'.", count, "items of which",newCount,"are new.",
-      "\nNew layout: ",newLayout)
+  // reset the layout and trigger an update of the current layout
+  // unfortunately can't set responsiveLayouts directly, so wait for next-tick
+  // gridLayout.value.responsiveLayouts = {...dashboard.layouts}
+  gridLayout.value.layouts = {...dashboard.layouts}
 
-  let removedCount = currentLayout.length - (newLayout.length-newCount)
-  changeCount = (newCount+removedCount)
-  return {newLayout, changeCount}
+  // FIXME: this seems to be the trigger to re-initialize the layout. Is there an 'official' way?
+  // nextTick so the grid property bindings are updated with the new responsiveLayout
+  nextTick(()=>{
+    // clearing lastBreakpoint prevents overwriting the new layout with the layout from the previous dashboard
+    gridLayout.value.lastBreakpoint = null
+    gridLayout.value.initResponsiveFeatures()
+    gridLayout.value.responsiveGridLayout()
+    console.log("DashboardView.handleNewDashboard. Done")
+  })
 }
-
-// // Provide the dashboard tile with the given ID and warn of unexpected errors
-// const getTileByID = (id: string) : DashboardTileConfig|undefined => {
-//   if (!data.dashboard || !data.dashboard.tiles) {
-//     console.warn("DashboardView:getTileByID No Dashboard or missing dashboard tiles")
-//     return undefined
-//   }
-//   let tile = data.dashboard.tiles[id]
-//   if (!tile) {
-//     console.warn("DashboardView:getTileByID can't find tile with ID", id)
-//   }
-//   return tile
-// }
-
-
 
 </script>
 
@@ -220,8 +231,17 @@ const fixLayout = (dashboard: DashboardDefinition|undefined,
     <h4>Oops, dashboard {{props.dashboardName}} is not found. </h4>
   </div>
   <div v-else>
-    <h4>Dashboard name={{props.dashboardName}} </h4>
-
+    <div v-if="(data.currentLayout?.length == 0)">
+      <h5>This dashboard has no tiles.</h5>
+      <h5 class="row items-center justify-center">Add some tiles using the dashboard menu, or click
+        <TButton 
+          label="Add Tile" 
+          color="primary" flat style="font:inherit; text-decoration-line: underline;"
+          @click="()=>handleAddTile(data.dashboard)" 
+        />
+      </h5>
+      
+    </div>
     <!-- draggableCancel is used to prevent interference with tile menu click -->
     <GridLayout ref="gridLayout"
                 :cols='{lg:24, md:16, sm:12, xs:8, xxs:4}'

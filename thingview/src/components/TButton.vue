@@ -7,6 +7,7 @@ import {QBtn, QTooltip} from 'quasar'
  * This standardizes attributes and includes a tooltip
  */
 const props = defineProps<{
+  color?: string
   icon?: any
   dense?: boolean
   label?: string
@@ -22,7 +23,8 @@ const emits = defineEmits(["click"])
 
 
 <template>
-<QBtn :label="props.label"
+<QBtn :color="props.color"
+      :label="props.label"
       :icon="props.icon" 
       :round="round" 
       :flat="flat" 

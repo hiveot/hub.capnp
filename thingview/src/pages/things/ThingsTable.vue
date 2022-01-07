@@ -70,6 +70,7 @@ const visibleColumns = ['deviceID', 'publisherID', 'deviceType', 'desc', 'type',
           :columns="columns"
           :visible-columns="visibleColumns"
           row-key="id"
+          separator="cell"
           :dense="false"
   >
     <!-- Header style: large and primary -->

@@ -156,6 +156,7 @@ const getColumns = (editMode:boolean|undefined):ISimpleTableColumn[] => {
     // show the 'remove' button only in edit mode
       title: "", 
       width:"35px", 
+      // maxWidth: "35px",
       field:"remove", 
       align:'center', 
       hidden: !props.editMode,
@@ -169,6 +170,8 @@ const getColumns = (editMode:boolean|undefined):ISimpleTableColumn[] => {
       // Show property name. TODO: use label field
       title: "Property Name", 
       field: "tdProp.title", 
+      // width: "%", 
+      // maxWidth: "0",
       component: (row:IThingTileItem)=>h('span',
          {'style': 'width:"100%"'},
          getThingPropName(row)
@@ -184,6 +187,8 @@ const getColumns = (editMode:boolean|undefined):ISimpleTableColumn[] => {
       // show value and unit
       title: "Value", 
       field: "tdProp.value",
+      // width: "50%",
+      // maxWidth: "0",
       component: (row:IThingTileItem)=>h('span', {}, 
         { default: ()=>getThingPropValue(row) }
       )

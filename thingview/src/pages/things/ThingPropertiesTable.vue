@@ -1,43 +1,90 @@
-<script setup lang="ts">
+<script lang="ts" setup>
 
-import {ThingTD} from "@/data/td/ThingTD";
-import TSimpleTable, { ISimpleTableColumn } from "@/components/TSimpleTable.vue";
+import { h } from 'vue';
+import { TDProperty, ThingTD } from '@/data/td/ThingTD';
+import TSimpleTable, { ISimpleTableColumn } from '@/components/TSimpleTable.vue';
+
+
+const props = defineProps<{
+  /**
+   * The thing description document whose properties to show
+   */
+  td: ThingTD
+
+  /**
+   * List of properties to show. Default is the properties list from the td.
+   * This allows for filtering of properties, eg show configuration.
+   */
+  propList?: TDProperty[]
+}>()
+
+
+const emits = defineEmits(["onThingPropertySelect"])
+
+const getThingPropValue = (tdProp:TDProperty):string => {
+  if (!tdProp) {
+    return "Missing value"
+  }
+  let valueStr = tdProp.value + " " + (tdProp?.unit ? tdProp?.unit:"")
+  return valueStr
+}
 
 /**
- * Show a table of all properties of a thing TD
+ * Select property 
  */
-const props= defineProps<{
-  td:ThingTD,
-  // onlyConfiguration?: boolean, 
-  // noConfiguration?: boolean,
-  }>()
+const handleThingPropertySelect = (td:any,propInfo:any)=>{
+  console.log("ThingPropertiesTable.handleThingPropertySelect, \
+      thingID=%s, propID=%s, thingProperty", td.id, propInfo.propID, propInfo.tdProperty)
+  emits("onThingPropertySelect", td, propInfo.propID, propInfo.tdProperty)
+}
 
-
-// columns to display properties
-// A row contains {key:string, prop:TDProperty}
-const tdPropColumns = <Array<ISimpleTableColumn>>[
-  {field:"prop.title", title: "Property", align:"left", width: "50px",
-    //style:"max-width:300px",  
+/**
+ * Table columns from the tile item rows: [{propID:string, tdProperty:TDProperty}]
+ */
+const propertyItemColumns:ISimpleTableColumn[] = [
+  {
+    title: "Name", 
+    field: "tdProperty.title",
+    // maxWidth: "0",
+    // width: "50%",
+    component: (row:any) => h('span', 
+      { 
+        style: 'cursor:pointer', 
+        onClick: ()=>handleThingPropertySelect(props.td, row),
+      }, 
+      {default: ()=>row.tdProperty.title}
+    ),
+  },
+  {
+    title: "Value", 
+    // maxWidth: "0",
+    // width: "50%",
+    field: "tdProperty.value",
+    component: (row:any)=>h('span', {}, 
+        { default: ()=>getThingPropValue(row.tdProperty) }
+      )
+  },
+  {title: "Type", field:"tdProperty.type", align:"left",
+    // maxWidth: "0",
+    // width: "50%",
     sortable:true
   },
-
-  {field:"prop.value", title: "Value", align:"left",
-    style:"max-width:200px; overflow-x: auto"
+  {title: "Default", field:"tdProperty.default", align:"left",
+    // width: "50%",
+    // maxWidth: "0",
   },
-
-  {field:"prop.unit", title: "Unit", align:"left", width: "20px", sortable: true },
-  
 ]
 
 </script>
 
-<template>
-  <TSimpleTable row-key="id"
-          :columns="tdPropColumns"
-          :rows="ThingTD.GetThingProperties(props.td)"
-          dense
-          empty-text="No properties available"
 
-  />
+<template>
+
+ <TSimpleTable 
+  dense
+  :columns="propertyItemColumns"
+  :rows="propList? propList : ThingTD.GetThingProperties(td)"
+  :emptyText="'Thing \''+td.description+'\' has no properties'"
+/>
 
 </template>

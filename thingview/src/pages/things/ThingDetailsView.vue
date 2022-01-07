@@ -11,7 +11,7 @@ import {ThingTD, TDProperty, TDAction, TDEvent} from '@/data/td/ThingTD';
 
 import ThingEvents from './ThingEvents.vue'
 import ThingActions from "@/pages/things/ThingActions.vue";
-import ThingAttributes from "@/pages/things/ThingPropertiesTable.vue";
+import ThingPropertiesTable from "@/pages/things/ThingPropertiesTable.vue";
 import ThingConfiguration from "@/pages/things/ThingConfiguration.vue";
 
 // Thing Details View
@@ -52,7 +52,7 @@ const getDateText = (iso:string): string => {
 
     <QTabPanels v-model="selectedTab">
       <QTabPanel name="attr"  class="q-pa-xs">
-        <ThingAttributes :td="props.td"/>
+        <ThingPropertiesTable :td="props.td"/>
       </QTabPanel>
 
       <QTabPanel name="config" class="q-pa-xs">

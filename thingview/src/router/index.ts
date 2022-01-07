@@ -5,6 +5,7 @@ import {
   RouteLocationRaw, RouteParams,
 } from "vue-router";
 
+import { h } from 'vue'
 // import AccountsView from '@/pages/accounts/AccountsView.vue'
 import DialogRouterView from './DialogRouterView.vue'
 import {ThingTD} from "@/data/td/ThingTD";
@@ -60,7 +61,7 @@ const routes: Array<RouteRecordRaw> = [
     // DialogRouterView displays both the things as the dialog
     //   name: ThingsRouteName,
       path: "/things",
-      component: DialogRouterView,  // webstorm shows an error incorrectly
+    component: () => h(DialogRouterView),  // webstorm shows an error incorrectly
       children: [
       {
         // Display the list of things if no additional parameters are provided

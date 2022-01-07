@@ -1,14 +1,15 @@
 <script lang="ts" setup>
 
-import {useQuasar} from "quasar"
+// import {useQuasar} from "quasar"
 import {reactive, ref} from 'vue'
 import {QCard, QCardSection, QIcon} from "quasar"
 import {matLensBlur} from "@quasar/extras/material-icons"
 
 import ds from "@/data/td/ThingStore"
-import ThingsTable from "./ThingsTable.vue"
+// import ThingsTable from "./ThingsTable.vue"
 import { ThingTD } from "@/data/td/ThingTD"
-import ThingDetails from "./ThingDetailsDialog.vue"
+// import ThingDetails from "./ThingDetailsDialog.vue"
+import ThingsTable2 from "./ThingsTable2.vue"
 
 // const things = (ds.all: TDCollection):Array<ThingTD>  {
 //     return Array.from(ds.index.values())
@@ -48,12 +49,17 @@ const handleViewDetails = (row:ThingTD) => {
 
     <!-- List of all things -->
     <QCardSection class="text-h6">
-      <ThingsTable  :things="ds.all" dense
+      <!-- <ThingsTable  :things="ds.all" dense
                     title="Hub Things"
                     style="width: 100%"
                     @on-view-details="handleViewDetails"
       >
-      </ThingsTable>
+      </ThingsTable> -->
+      <ThingsTable2  :things="ds.all" dense
+                    title="Hub Things"
+                    style="width: 100%"
+                    @on-view-details="handleViewDetails"
+      />
     </QCardSection>
 
   </QCard>

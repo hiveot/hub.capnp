@@ -46,15 +46,15 @@ const getMenuItems = (dashboards: ReadonlyArray<DashboardDefinition>, editMode:b
   })
   items.push({separator:true})
   items.push({
+    label: "Add Dashboard...",
+    icon: matAdd,
+    id: MenuAddDashboard,
+  }, {
     label: "All Things...",
     icon: matLensBlur,
     id: MenuThings,
     to: {name:ThingsRouteName},
     // to: "/things"
-  }, {
-    label: "Add Dashboard...",
-    icon: matAdd,
-    id: MenuAddDashboard,
   }, {
     label: "Edit Mode",
     icon: editMode ? matCheckBox : matCheckBoxOutlineBlank,

@@ -19,6 +19,14 @@ export interface ISimpleTableColumn {
    */
   field: string
   /**
+   * show/hide column
+   */
+  hidden?: boolean,
+  /**
+   * maximum column width
+   */
+  maxWidth?: string,
+  /**
    * Column is sortable (TODO)
    */
   sortable?: boolean
@@ -26,10 +34,6 @@ export interface ISimpleTableColumn {
    * column header title
    */
   title?: string
-  /**
-   * show/hide column
-   */
-  hidden?: boolean,
   /**
    * Field width
    */
@@ -97,7 +101,7 @@ const getVisibleColumns = (columns:ISimpleTableColumn[]):ISimpleTableColumn[] =>
   <QMarkupTable 
     :dense="props.dense" 
     :flat="props.flat" 
-    :class="
+    :class="'t-simple-table '+
       (props.grow ? 't-simple-table-grow':'') +
       (props.noLines ? ' no-table-lines':' table-lines')+
       (props.noBorder ? ' no-border' : ' with-border')
@@ -109,7 +113,9 @@ const getVisibleColumns = (columns:ISimpleTableColumn[]):ISimpleTableColumn[] =>
           :key="column.field" 
           :style="{
               textAlign: column.align? column.align:'left',
-              width:column.width
+              // width: column.width,
+              // maxWidth: column.maxWidth,
+              // minWidth: '1px',
             }"
           >
           {{column.title}}
@@ -127,16 +133,24 @@ const getVisibleColumns = (columns:ISimpleTableColumn[]):ISimpleTableColumn[] =>
             :key="column.field"
             :style="{
               textAlign: column.align? column.align:'left',
-              width:column.width
+              // width: column.width,
+              // maxWidth: column.maxWidth,
+              // minWidth: '1px',
               }"
           >
-          <span v-if="column.component">
-            <component :is="column.component" v-bind="row" />
-          </span>
-          <span v-else>
-            {{_get(row, column.field, "field '"+column.field+"' not found")}}
-            <!-- <QTooltip>hello</QTooltip> -->
-          </span>
+          <div v-if="column.component" 
+              class="simple-table-td-div"
+          >
+            <component :is="column.component" v-bind="row"/>
+              <!-- <QTooltip>hello</QTooltip> -->
+          </div>
+          <div v-else 
+            class="simple-table-td-div"
+          >
+            {{_get(row, column.field, "")}}
+            <!-- {{_get(row, column.field, "field '"+column.field+"' not found")}} -->
+          </div>
+          <!-- <QTooltip v-if="column.tooltip">column.tooltip</QTooltip> -->
         </td>
       </tr>
       <tr v-if="props.rows.length===0">
@@ -151,36 +165,64 @@ const getVisibleColumns = (columns:ISimpleTableColumn[]):ISimpleTableColumn[] =>
 
 /* cells fill the table and do not cause a scrollbar; overflow td with ellipsis
  */
-.q-table {
-  table-layout: fixed;
-}
 
 /* make QTable dense a bit denser */
 .q-table--dense .q-table td {
-  padding: 4px 4px !important;
+  /* padding: 4px 4px !important; */
   /* text-overflow: ellipsis; */
 }
 .q-table--dense .q-table th:first-child,
 .q-table--dense .q-table td:first-child {
   padding: 4px 4px !important;
 }
-/* use the same default font size as elsewhere */
-.q-table tbody td {
-  font-size: inherit !important;
-  overflow: hidden;
+
+/* Table body should use the same default font size as elsewhere */
+.q-table  tbody td {
+  font-size: 1rem !important;
+  overflow: hidden; 
   text-overflow: ellipsis;
+  white-space: nowrap;
   /* padding: 0; */
 }
 /* use the same default font color as elsewhere */
 .q-table__card {
   color: inherit !important;
 }
-/* use the heavier font */ 
+/* use the heavier font for the header */ 
 .q-table th {
   font-weight: bold !important;
-  font-size: 0.8rem !important;
+  font-size: 0.9rem !important;
 }
 
+
+.simple-table-td-div {
+   /* max-height:1.1.em; */
+   /* overflow: hidden; */
+   /* position: relative; */
+   /* color: transparent; */
+ }
+.simple-table-td-div::after{
+  /* content: attr(title); */
+  /* position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  color: black;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden; */
+}
+
+/*
+ */
+.t-simple-table table {
+  /** auto-size columns based on cell content */
+  table-layout: auto;
+  width:100%;
+  /* overflow: hidden; */
+  /* overflow-x: auto; */
+  table-layout: fixed;
+}
 
 /* grow table in available space as used in dashboard widgets */
 .t-simple-table-grow  {
@@ -192,8 +234,8 @@ const getVisibleColumns = (columns:ISimpleTableColumn[]):ISimpleTableColumn[] =>
 
 .header-row   {
   background-color: rgb(224, 229, 230);
-  text-transform: uppercase;
-  font-weight: 800;
+  color: #1976d2;
+  /* text-transform: uppercase; */
 }
 
 /** stripes rows */
