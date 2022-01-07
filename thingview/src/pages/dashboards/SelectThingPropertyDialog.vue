@@ -72,8 +72,10 @@ const handleThingPropertySelect = (td:ThingTD, propID:string, tdProp:TDProperty)
           <div style="width:99%">
             <p style="font-size: small; font-style: italic;">ID: {{td.id}}</p>
             
-            <ThingPropertiesTable :td="td"
-             @onThingPropertySelect="handleThingPropertySelect"
+            <ThingPropertiesTable 
+              :td="td"
+              enable-prop-select
+              @onThingPropertySelect="handleThingPropertySelect"
             />
 
           </div>

@@ -16,9 +16,16 @@ const props = defineProps<{
    * This allows for filtering of properties, eg show configuration.
    */
   propList?: TDProperty[]
+
+  /**
+   * Enable selecting a property. This shows a pointer cursor on the property name
+   */
+  enablePropSelect?: boolean
 }>()
 
-
+/**
+ * Optional event when enabled
+ */
 const emits = defineEmits(["onThingPropertySelect"])
 
 const getThingPropValue = (tdProp:TDProperty):string => {
@@ -49,7 +56,7 @@ const propertyItemColumns:ISimpleTableColumn[] = [
     // width: "50%",
     component: (row:any) => h('span', 
       { 
-        style: 'cursor:pointer', 
+        style: (props.enablePropSelect ? 'cursor:pointer':''), 
         onClick: ()=>handleThingPropertySelect(props.td, row),
       }, 
       {default: ()=>row.tdProperty.title}
@@ -66,12 +73,12 @@ const propertyItemColumns:ISimpleTableColumn[] = [
   },
   {title: "Type", field:"tdProperty.type", align:"left",
     // maxWidth: "0",
-    // width: "50%",
+    width: "80px",
     sortable:true
   },
   {title: "Default", field:"tdProperty.default", align:"left",
-    // width: "50%",
-    // maxWidth: "0",
+    width: "70px",
+    // maxWidth: "70px",
   },
 ]
 

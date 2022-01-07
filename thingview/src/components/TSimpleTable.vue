@@ -98,7 +98,7 @@ const getVisibleColumns = (columns:ISimpleTableColumn[]):ISimpleTableColumn[] =>
 </script>
 
 <template>
-  <QMarkupTable 
+  <QMarkupTable  style="overflow: auto; height:100%"
     :dense="props.dense" 
     :flat="props.flat" 
     :class="'t-simple-table '+
@@ -107,15 +107,19 @@ const getVisibleColumns = (columns:ISimpleTableColumn[]):ISimpleTableColumn[] =>
       (props.noBorder ? ' no-border' : ' with-border')
       "
   >
-    <thead v-if="!props.noHeader">
-      <tr key="header" class="header-row" >
+    <thead v-if="!props.noHeader" 
+        style="height:40px; width:100%"
+        >
+      <tr key="header" class="header-row" 
+      >
         <th v-for="column in getVisibleColumns(props.columns)" 
           :key="column.field" 
           :style="{
+              position: 'sticky', top: 0, //height: '40px', zIndex: 1,
               textAlign: column.align? column.align:'left',
-              // width: column.width,
-              // maxWidth: column.maxWidth,
-              // minWidth: '1px',
+              width: column.width,
+              maxWidth: column.maxWidth,
+              minWidth: '1px',
             }"
           >
           {{column.title}}
@@ -123,8 +127,12 @@ const getVisibleColumns = (columns:ISimpleTableColumn[]):ISimpleTableColumn[] =>
       </tr>
     </thead>
 
-    <tbody style="height:100%; width: 100%;">
+    <tbody style="height:100%;
+      overflow-y:auto;
+      "
+    >
       <tr v-for="row in props.rows" 
+      style="width:100%"
         :key="row.key"
         :class="props.noStripes ? '' : 'with-stripes'"
         @click="()=>{emit('onRowSelect', row)}"
@@ -133,9 +141,9 @@ const getVisibleColumns = (columns:ISimpleTableColumn[]):ISimpleTableColumn[] =>
             :key="column.field"
             :style="{
               textAlign: column.align? column.align:'left',
-              // width: column.width,
-              // maxWidth: column.maxWidth,
-              // minWidth: '1px',
+              width: column.width,
+              maxWidth: column.maxWidth,
+              minWidth: '1px',
               }"
           >
           <div v-if="column.component" 
@@ -181,7 +189,7 @@ const getVisibleColumns = (columns:ISimpleTableColumn[]):ISimpleTableColumn[] =>
   font-size: 1rem !important;
   overflow: hidden; 
   text-overflow: ellipsis;
-  white-space: nowrap;
+  /* white-space: nowrap; */
   /* padding: 0; */
 }
 /* use the same default font color as elsewhere */
@@ -195,9 +203,14 @@ const getVisibleColumns = (columns:ISimpleTableColumn[]):ISimpleTableColumn[] =>
 }
 
 
+/* Trick to auto size fields with ellipsis for overflow and tooltip for extras.
+ * See also: https://stackoverflow.com/questions/9789723/css-text-overflow-in-a-table-cell/30362531
+ * Unfortunately this only works with plain text, not cell components...?
+ */
 .simple-table-td-div {
+   text-overflow: ellipsis;
+   overflow: hidden;
    /* max-height:1.1.em; */
-   /* overflow: hidden; */
    /* position: relative; */
    /* color: transparent; */
  }
@@ -216,11 +229,11 @@ const getVisibleColumns = (columns:ISimpleTableColumn[]):ISimpleTableColumn[] =>
 /*
  */
 .t-simple-table table {
-  /** auto-size columns based on cell content */
-  table-layout: auto;
-  width:100%;
-  /* overflow: hidden; */
+  /** auto-size columns based on cell content? */
+  /* width:100%; */
+  overflow: auto;
   /* overflow-x: auto; */
+  /* table-layout: auto; */
   table-layout: fixed;
 }
 
@@ -232,9 +245,15 @@ const getVisibleColumns = (columns:ISimpleTableColumn[]):ISimpleTableColumn[] =>
   height: 100%;
 }
 
+/** Fixed header that won't scroll
+ */
 .header-row   {
   background-color: rgb(224, 229, 230);
   color: #1976d2;
+  position: sticky; 
+  top: 0; 
+  z-index:1;
+
   /* text-transform: uppercase; */
 }
 
