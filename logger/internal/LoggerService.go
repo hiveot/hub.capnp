@@ -42,6 +42,7 @@ type LoggerService struct {
 func (wlog *LoggerService) logToFile(thingID string, msgType string, payload []byte, sender string) {
 	logrus.Infof("Received message of type '%s' about Thing %s", msgType, thingID)
 	// var err error
+	_ = sender
 
 	if wlog.loggers == nil {
 		logrus.Errorf("logToFile called after logger has stopped")
@@ -71,13 +72,13 @@ func (wlog *LoggerService) logToFile(thingID string, msgType string, payload []b
 	logMsg["payload"] = parsedMsg
 	logMsg["thingID"] = thingID
 	logMsg["msgType"] = msgType
-	json.Unmarshal(payload, &parsedMsg)
+	_ = json.Unmarshal(payload, &parsedMsg)
 	pretty, _ := json.MarshalIndent(logMsg, " ", "  ")
 	prettyStr := string(pretty) + ",\n"
-	logger.WriteString(prettyStr)
+	_, _ = logger.WriteString(prettyStr)
 }
 
-// PublishServiceTD publishes the Thing Description of the logger service
+// PublishServiceTD publishes the Thing Description of the logger service itself
 func (wlog *LoggerService) PublishServiceTD() {
 	if !wlog.Config.PublishTD {
 		return
@@ -85,7 +86,7 @@ func (wlog *LoggerService) PublishServiceTD() {
 	deviceType := vocab.DeviceTypeService
 	thingID := td.CreatePublisherThingID(wlog.hubConfig.Zone, "hub", wlog.Config.ClientID, deviceType)
 	logrus.Infof("Publishing this service TD %s", thingID)
-	thingTD := td.CreateTD(thingID, deviceType)
+	thingTD := td.CreateTD(thingID, PluginID, deviceType)
 	// Include the logging folder as a property
 	prop := td.CreateProperty("Logging Folder", "Directory where to store the log files", vocab.PropertyTypeAttr)
 	td.SetPropertyDataTypeString(prop, 0, 0)

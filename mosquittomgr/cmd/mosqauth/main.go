@@ -173,13 +173,13 @@ func AuthUnpwdCheck(clientID string, username string, password string, clientIP 
 			jwtToken, claims, err := jwtAuthenticator.DecodeToken(password)
 			_ = jwtToken
 			if err != nil {
-				logrus.Warningf("AuthUnpwdCheck: Invalid credentials token for user %s", username)
+				logrus.Warningf("AuthUnpwdCheck: Invalid JWT token for user %s: %s", username, err)
 				match = false
 			} else if claims.Username != username {
 				logrus.Warningf("AuthUnpwdCheck: User '%s' attempt to login with token that belongs to user '%s'", username, claims.Username)
 				match = false
 			} else {
-				logrus.Infof("AuthUnpwdCheck: User '%s' autenticated with a valid JWT token", username)
+				logrus.Infof("AuthUnpwdCheck: User '%s' authenticated with a valid JWT token", username)
 				match = true
 			}
 		}

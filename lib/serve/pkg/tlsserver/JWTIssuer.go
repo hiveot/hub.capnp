@@ -135,7 +135,7 @@ func (issuer *JWTIssuer) DecodeToken(tokenString string) (
 // Attach this method to the router with the login route. For example:
 //  > router.HandleFunc("/login", HandleJWTLogin)
 //
-// The body contains provided userID and password
+// The body contains a tlsclient.JwtAuthLogin message providing the userID and password
 // This:
 //  1. returns a JWT access and refresh token pair
 //  2. sets a secure, httpOnly, sameSite refresh cookie with the name 'JwtRefreshCookieName'
@@ -163,7 +163,11 @@ func (issuer *JWTIssuer) HandleJWTLogin(resp http.ResponseWriter, req *http.Requ
 		resp.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	issuer.WriteJWTTokens(accessToken, refreshToken, refreshExpTime, resp)
+	// Store the tokens in a cookie if rememberMe is set
+	if loginCred.RememberMe {
+		issuer.StoreJWTTokens(refreshToken, refreshExpTime, resp)
+	}
+	_ = issuer.WriteJWTTokens(accessToken, refreshToken, resp)
 }
 
 // HandleJWTRefresh refreshes the access/refresh token pair
@@ -177,18 +181,24 @@ func (issuer *JWTIssuer) HandleJWTLogin(resp http.ResponseWriter, req *http.Requ
 //  2. returns a JWT access and refresh token pair if the refresh token was valid
 //  3. sets a secure, httpOnly, sameSite refresh cookie with the name 'JwtRefreshCookieName'
 func (issuer *JWTIssuer) HandleJWTRefresh(resp http.ResponseWriter, req *http.Request) {
-	logrus.Infof("HttpAuthenticator.HandleJWTRefresh")
-	var refreshTokenString string
+	var useCookie bool = false
 
-	// validate the provided refresh token
-	cookie, err := req.Cookie(JwtRefreshCookieName)
-	if err == nil {
-		refreshTokenString = cookie.Value
+	// validate the provided refresh token.
+	// If no bearer token is provided then fall back to cookie.
+	refreshTokenString, err := hubnet.GetBearerToken(req)
+	if err != nil {
+		cookie, err := req.Cookie(JwtRefreshCookieName)
+		if err == nil {
+			logrus.Infof("JWTIssuer.HandleJWTRefresh using cookie token")
+			refreshTokenString = cookie.Value
+			useCookie = true
+		}
 	} else {
-		refreshTokenString, err = hubnet.GetBearerToken(req)
+		logrus.Infof("JWTIssuer.HandleJWTRefresh bearer token provided")
 	}
 	// no refresh token found
 	if err != nil || refreshTokenString == "" {
+		logrus.Infof("JWTIssuer.HandleJWTRefresh Unauthorized. no refresh token provided")
 		resp.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -205,19 +215,23 @@ func (issuer *JWTIssuer) HandleJWTRefresh(resp http.ResponseWriter, req *http.Re
 	accessToken, refreshToken, err := issuer.CreateJWTTokens(claims.Id)
 	if err != nil {
 		// If there is an error in creating the JWT return an internal server error
-		logrus.Errorf("HttpAuthenticator.HandleJWTLogin: error %s", err)
+		logrus.Errorf("JWTIssuer.HandleJWTRefresh: error %s", err)
 		resp.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	issuer.WriteJWTTokens(accessToken, refreshToken, refreshExpTime, resp)
+	if useCookie {
+		issuer.StoreJWTTokens(refreshToken, refreshExpTime, resp)
+	}
+	_ = issuer.WriteJWTTokens(accessToken, refreshToken, resp)
 
 }
 
-// WriteJWTTokens writes the access and refresh tokens as response message and in a
-// secure client cookie. The cookieExpTime should be set to the refresh token expiration time.
-func (issuer *JWTIssuer) WriteJWTTokens(
-	accessToken string, refreshToken string, cookieExpTime time.Time, resp http.ResponseWriter) error {
-
+// StoreJWTTokens stores the refresh token in a secure client cookie. The cookieExpTime should
+// be set to the refresh token expiration time.
+// This must be called before WriteJWTTokens which completes the response.
+func (issuer *JWTIssuer) StoreJWTTokens(
+	refreshToken string, cookieExpTime time.Time, resp http.ResponseWriter) {
+	logrus.Infof("JWTIssuer.StoreJWTTokens in cookie %s", JwtRefreshCookieName)
 	// Set a client cookie for refresh "token" as the JWT we just generated
 	// we also set an expiry time which is the same as the token itself
 	http.SetCookie(resp, &http.Cookie{
@@ -229,9 +243,19 @@ func (issuer *JWTIssuer) WriteJWTTokens(
 		// assume that the client service/website runs on the same server to use cookies
 		SameSite: http.SameSiteStrictMode,
 	})
+}
+
+// WriteJWTTokens writes the access and refresh tokens as response message and store them in a
+// secure client cookie. The cookieExpTime should be set to the refresh token expiration time.
+func (issuer *JWTIssuer) WriteJWTTokens(
+	accessToken string, refreshToken string, resp http.ResponseWriter) error {
 
 	resp.Header().Set("Content-Type", "application/json")
-	response := tlsclient.JwtAuthResponse{AccessToken: accessToken, RefreshToken: refreshToken}
+	//resp.Header().Set("Content-Type", "application/json")
+	response := tlsclient.JwtAuthResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		RefreshURL:   ""} // todo
 	responseMsg, _ := json.Marshal(response)
 	_, err := resp.Write(responseMsg)
 	return err

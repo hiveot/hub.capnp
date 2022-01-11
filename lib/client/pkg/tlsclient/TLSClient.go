@@ -39,8 +39,9 @@ const (
 
 // JwtAuthLogin defines the login request message to sent when using JWT authentication
 type JwtAuthLogin struct {
-	LoginID  string `json:"login"`          // typically the email
-	Password string `json:"password"`
+	LoginID    string `json:"login"` // typically the email
+	Password   string `json:"password"`
+	RememberMe bool   `json:"rememberMe"` // store refresh token in cookie
 }
 
 // JwtAuthResponse defines the login or refresh response
