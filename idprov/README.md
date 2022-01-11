@@ -45,9 +45,9 @@ devices, with corresponding permissions.
 This project provides:
 
 1. The ['idprov-standard'](https://github.com/wostzone/idprov-standard)) provisioning protocol definition
-2. A ['client library'](https://github.com/wostzone/hubclient-go/) (pkg/idprovclient)
-3. The ['provisioning server'](https://github.com/wostzone/idprov)
-4. An [out-of-band commandline utility](https://github.com/wostzone/idprov) (cmd/oob)
+2. A ['client library'](https://github.com/wostzone/hub/idprov/pkg/idprovclient) 
+3. The ['provisioning server'](https://github.com/wostzone/hub/idprov/pkg/idprovserver)
+4. An [out-of-band commandline utility](https://github.com/wostzone/hub/idprov/cmd/oob) (cmd/oob)
 
 ## Features
 
@@ -61,52 +61,50 @@ This server supports the following features:
 
 ## Usage
 
-The hubclient-go library makes server discovery and IoT device provisioning a simple endeavor. (other languages are
-planned)
+The hub/lib/client library makes server discovery and IoT device provisioning a simple endeavor. (other languages are planned)
 
-In this example the 'clientCertFolder' is the folder where the client stores its public/private key-pair and the issued
-certificates. The public/private key-pair is created on first start if no existing key is found.
+In this example the 'clientCertFolder' is the folder where the client stores its public/private key-pair and the issued certificates. The public/private key-pair is created on first start if no existing key is found.
 
 (This code is an example only and won't work unless a running server is available)
 
 ```golang
-import "github.com/wostzone/hubclient-go/pkg/idprovclient"
+import "github.com/wostzone/hub/idprov/pkg/idprovclient"
 
 func provisionMe() error {
-// Create instance of the client
-// Use the MAC as unique deviceID and serialnr as oob secret. 
-myDeviceID := "AA:BB:CC:DD:EE:FF"
-secret := "12345678"
-// use a secure location to store certificate info
-certPath := "./clientcerts/cert.pem"
-keyPath := "./clientcerts/key.pem"
-caCertPath := "./clientcerts/caCert.pem"
-// without server address, discovery will be used to locate it on the local network 
-idpClient := idprovclient.NewIDProvClient( myDeviceID, "", certPath, keyPath, caCertPath)
-
-// Connect to the server and obtain the provisioning directory and CA certificate
-// This also creates a ECDSA public/private key-pair if they don't yet exist
-err := idpClient.Start()
-if err != nil {
-return err
-}
-
-// Request a certificate using the out-of-band secret
-// Certificate is stored in the provided certPath location
-// If a certificate already exists it is refreshed
-caCert, myCert, err := idprov.Provision(deviceID, secret)
-if err != nil {
-return err
-}
+  // Create instance of the client
+  // Use the MAC as unique deviceID and serialnr as oob secret. 
+  myDeviceID := "AA:BB:CC:DD:EE:FF"
+  secret := "12345678"
+  // use a secure location to store certificate info
+  certPath := "./clientcerts/cert.pem"
+  keyPath := "./clientcerts/key.pem"
+  caCertPath := "./clientcerts/caCert.pem"
+  // without server address, discovery will be used to locate it on the local network 
+  idpClient := idprovclient.NewIDProvClient( myDeviceID, "", certPath, keyPath, caCertPath)
+  
+  // Connect to the server and obtain the provisioning directory and CA certificate
+  // This also creates a ECDSA public/private key-pair if they don't yet exist
+  err := idpClient.Start()
+  if err != nil {
+    return err
+  }
+  
+  // Request a certificate using the out-of-band secret
+  // Certificate is stored in the provided certPath location
+  // If a certificate already exists it is refreshed
+  caCert, myCert, err := idprov.Provision(deviceID, secret)
+  if err != nil {
+    return err
+  }
 }
 ```
 
 Next, the client uses the certificate connecting to the hub message bus and publish messages:
 
 ```golang
-    import "github.com/wostzone/hubclient-go/pkg/certs"
+    import "github.com/wostzone/hub/lib/client/pkg/certs"
 
-// The provisioned services list is stored somewhere, or queried from the provisioning server on startup. 
+// The provisioned services list can be queried from the provisioning server on startup. 
 mqttAddress := idprov.GetService("mqtt")
 
 myCert := certs.LoadTLSCertFromPEM(certPath, keyPath)
