@@ -1,4 +1,4 @@
-// Package vocab with iotschema vocabulary for sensor, actuator and unitname names
+// Package vocab with WoST iotschema vocabulary for sensor, actuator and unitname names
 // TODO: base this of a universally accepted ontology. Closest is iotschema.org but that seems incomplete
 package vocab
 
@@ -104,26 +104,26 @@ const (
 const (
 	PropNameAcceleration           string = "acceleration"
 	PropNameAddress                string = "address" // device domain or ip address
-	PropNameAirQuality             string = "airquality"
+	PropNameAirQuality             string = "airQuality"
 	PropNameAlarm                  string = "alarm"
-	PropNameAtmosphericPressure    string = "atmosphericpressure"
+	PropNameAtmosphericPressure    string = "atmosphericPressure"
 	PropNameBatch                  string = "batch" // Batch publishing size
 	PropNameBattery                string = "battery"
 	PropNameCarbonDioxideLevel     string = "co2level"
-	PropNameCarbonMonoxideDetector string = "codetector"
-	PropNameCarbonMonoxideLevel    string = "colevel"
-	PropNameChannel                string = "avchannel"
+	PropNameCarbonMonoxideDetector string = "coDetector"
+	PropNameCarbonMonoxideLevel    string = "coLevel"
+	PropNameChannel                string = "avChannel"
 	PropNameColor                  string = "color" // Color in hex notation
-	PropNameColorTemperature       string = "colortemperature"
+	PropNameColorTemperature       string = "colorTemperature"
 	PropNameConnections            string = "connections"
-	PropNameCPULevel               string = "cpulevel"
+	PropNameCPULevel               string = "cpuLevel"
 	PropNameDateTime               string = "dateTime"    //
 	PropNameDescription            string = "description" // Device description
 	PropNameDeviceType             string = "deviceType"  // Device type from list below
 	PropNameDewpoint               string = "dewpoint"
 	PropNameDimmer                 string = "dimmer"
 	PropNameDisabled               string = "disabled" // device or sensor is disabled
-	PropNameDoorWindowSensor       string = "doorwindowsensor"
+	PropNameDoorWindowSensor       string = "doorWindowSensor"
 	PropNameElectricCurrent        string = "current"
 	PropNameElectricEnergy         string = "energy"
 	PropNameElectricPower          string = "power"
@@ -155,28 +155,28 @@ const (
 	PropNameMin            string = "min"            // [number] minimum value of sensor or config
 	PropNameModel          string = "model"          // [string] device model
 	PropNameMotion         string = "motion"         // [boolean]
-	PropNameMute           string = "avmute"         // [boolean]
+	PropNameMute           string = "avMute"         // [boolean]
 	PropNameName           string = "name"           // [string] Name of device or service
 	PropNameNetmask        string = "netmask"        // [string] IP network mask
 	PropNameOnOffSwitch    string = "switch"         // [boolean]
 	//
 	PropNamePassword        string = "password" // password to connect. Value is not published.
-	PropNamePlay            string = "avplay"
+	PropNamePlay            string = "avPlay"
 	PropNamePollInterval    string = "pollInterval" // polling interval in seconds
 	PropNamePort            string = "port"         // network address port
 	PropNamePowerSource     string = "powerSource"  // battery, usb, mains
 	PropNameProduct         string = "product"      // device product or model name
 	PropNamePublicKey       string = "publicKey"    // public key for encrypting sensitive configuration settings
-	PropNamePushButton      string = "pushbutton"   // with nr of pushes
+	PropNamePushButton      string = "pushButton"   // with nr of pushes
 	PropNameRain            string = "rain"
 	PropNameRelay           string = "relay"
 	PropNameSaturation      string = "saturation"
 	PropNameScale           string = "scale"
-	PropNameSignalStrength  string = "signalstrength"
-	PropNameSmokeDetector   string = "smokedetector"
+	PropNameSignalStrength  string = "signalStrength"
+	PropNameSmokeDetector   string = "smokeDetector"
 	PropNameSnow            string = "snow"
 	PropNameSoftwareVersion string = "softwareVersion" // version of the software running the node
-	PropNameSoundDetector   string = "sounddetector"
+	PropNameSoundDetector   string = "soundDetector"
 	PropNameSubnet          string = "subnet" // IP subnets configuration
 	PropNameSwitch          string = "switch" // on/off switch: "on" "off"
 	PropNameTemperature     string = "temperature"
@@ -184,14 +184,14 @@ const (
 	PropNameUltraviolet       string = "ultraviolet"
 	PropNameUnknown           string = ""    // Not a known output
 	PropNameURL               string = "url" // node URL
-	PropNameVibrationDetector string = "vibrationdetector"
+	PropNameVibrationDetector string = "vibrationDetector"
 	PropNameValue             string = "value" // generic value
 	PropNameVoltage           string = "voltage"
 	PropNameVolume            string = "volume"
-	PropNameWaterLevel        string = "waterlevel"
+	PropNameWaterLevel        string = "waterLevel"
 	PropNameWeather           string = "weather" // description of weather, eg sunny
-	PropNameWindHeading       string = "windheading"
-	PropNameWindSpeed         string = "windspeed"
+	PropNameWindHeading       string = "windHeading"
+	PropNameWindSpeed         string = "windSpeed"
 )
 
 // Standard ISO8601 timeformat

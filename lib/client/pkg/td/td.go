@@ -13,6 +13,7 @@ import (
 // {
 //      @context: "http://www.w3.org/ns/td",
 //      id: <thingID>,
+//      title: <human description>,  (why is this not a property?)
 //      @type: <deviceType>,
 //      created: <iso8601>,
 //      actions: {id:TDAction, ...},
@@ -25,7 +26,7 @@ type ThingTD map[string]interface{}
 // Most popular; https://github.com/xeipuuv/gojsonschema
 // Other:  https://github.com/piprate/json-gold
 
-// AddTDAction adds or replaces an action in the TD
+// AddTDAction adds or replaces an action in the TD.
 //  td is a TD created with 'CreateTD'
 //  name of action to add
 //  action created with 'CreateAction'
@@ -38,7 +39,7 @@ func AddTDAction(td ThingTD, name string, action interface{}) {
 	}
 }
 
-// AddTDEvent adds or replaces an event in the TD
+// AddTDEvent adds or replaces an event in the TD.
 //  td is a TD created with 'CreateTD'
 //  name of action to add
 //  event created with 'CreateEvent'
@@ -51,7 +52,7 @@ func AddTDEvent(td ThingTD, name string, event interface{}) {
 	}
 }
 
-// AddTDProperty adds or replaces a property in the TD
+// AddTDProperty adds or replaces a property in the TD.
 //  td is a TD created with 'CreateTD'
 //  name of property to add
 //  property created with 'CreateProperty'
@@ -91,17 +92,19 @@ func CreateThingID(zone string, deviceID string, deviceType vocab.DeviceType) st
 // Its structure:
 // {
 //      @context: "http://www.w3.org/ns/td",
-//      id: <thingID>,
-//      @type: <deviceType>,
-//      created: <iso8601>,
+//      id: <thingID>,      		// required in WoST. See CreateThingID for recommended format
+//      title: string,              // required. Human description of the thing
+//      @type: <deviceType>,        // required in WoST. See WoST DeviceType vocabulary
+//      created: <iso8601>,         // will be the current timestamp. See vocabulary TimeFormat
 //      actions: {id:TDAction, ...},
 //      events:  {id: TDEvent, ...},
 //      properties: {id: TDProperty, ...}
 // }
-func CreateTD(thingID string, deviceType vocab.DeviceType) ThingTD {
+func CreateTD(thingID string, title string, deviceType vocab.DeviceType) ThingTD {
 	td := make(ThingTD)
 	td[vocab.WoTAtContext] = "http://www.w3.org/ns/td"
 	td[vocab.WoTID] = thingID
+	td[vocab.WoTTitle] = title
 	// TODO @type is a JSON-LD keyword to label using semantic tags, eg it needs a schema
 	if deviceType != "" {
 		// deviceType must be a string for serialization and querying
@@ -111,6 +114,8 @@ func CreateTD(thingID string, deviceType vocab.DeviceType) ThingTD {
 	td[vocab.WoTActions] = make(map[string]interface{})
 	td[vocab.WoTEvents] = make(map[string]interface{})
 	td[vocab.WoTProperties] = make(map[string]interface{})
+	// security schemas don't apply to WoST devices, except services exposed by the hub itself
+	td[vocab.WoTSecurity] = vocab.WoTNoSecurityScheme
 	return td
 }
 
@@ -134,14 +139,14 @@ func RemoveTDProperty(td ThingTD, name string) {
 
 }
 
-// SetThingVersion adds or replace Thing version info in the TD
+// SetThingVersion adds or replace Thing version info in the TD.
 //  td is a TD created with 'CreateTD'
 //  version with map of 'name: version'
 func SetThingVersion(td ThingTD, version map[string]string) {
 	td[vocab.WoTVersion] = version
 }
 
-// SetThingDescription sets the title and description of the Thing in the TD
+// SetThingDescription sets the title and description of the Thing in the TD.
 //  td is a TD created with 'CreateTD'
 //  title of the Thing
 //  description of the Thing
@@ -151,9 +156,9 @@ func SetThingDescription(td ThingTD, title string, description string) {
 }
 
 // SetThingErrorStatus sets the error status of a Thing
-// This is set under the 'status' property, 'error' subproperty
+// This is set under the 'status' property, 'error' sub-property
 //  td is a TD created with 'CreateTD'
-//  status is a status tring
+//  errorStatus is a status text
 func SetThingErrorStatus(td ThingTD, errorStatus string) {
 	// FIXME:is this a property
 	status := td["status"]
@@ -168,7 +173,7 @@ func SetThingErrorStatus(td ThingTD, errorStatus string) {
 // NOTE: In WoST actions are always routed via the Hub using the Hub's protocol binding.
 // Under normal circumstances forms are therefore not needed.
 //  td to add form to
-//  forms with list of forms to add. See also CreateForm to create a single form
+//  formList with list of forms to add. See also CreateForm to create a single form
 func SetTDForms(td ThingTD, formList []map[string]interface{}) {
 	td[vocab.WoTForms] = formList
 }
