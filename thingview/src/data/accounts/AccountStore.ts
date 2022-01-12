@@ -5,7 +5,7 @@ import { nanoid } from 'nanoid'
 // Hub Account record
 export class AccountRecord extends Object {
   // unique account id (required)
-  id: string = "";
+  id: string = nanoid(5);
 
   // Account friendly name for display
   name: string = "new account";
@@ -27,6 +27,10 @@ export class AccountRecord extends Object {
 
   // when enabled, attempt to connect
   enabled: boolean = false;
+
+  // Persist this account and the refresh token between sessions. The refresh is stored
+  // in a secure cookie. This should be disabled on shared computers.
+  rememberMe: boolean = false
 }
 
 class AccountsData {
@@ -40,7 +44,6 @@ export class AccountStore {
 
   constructor() {
     let defaultAccount = new AccountRecord()
-    defaultAccount.id = "default"
     defaultAccount.name = "Hub server"
     defaultAccount.address = location.hostname
     defaultAccount.loginName = "user1" // for testing
@@ -106,7 +109,7 @@ export class AccountStore {
     this.Save()
   }
 
-  // save to local storage
+  // Save account in local storage (only use this on a secure system)
   Save() {
     console.log("Saving %s accounts to local storage", this.data.accounts.length)
     let serializedStore = JSON.stringify(this.data)

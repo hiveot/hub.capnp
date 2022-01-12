@@ -5,11 +5,13 @@ import {useQuasar} from "quasar";
 import AppHeader from "./AppHeader.vue";
 import {IMenuItem} from "@/components/TMenuButton.vue";
 
+import router from '@/router'
 import appState from '@/data/AppState'
 import accountStore, {AccountRecord} from "@/data/accounts/AccountStore";
 // import dirStore from '@/data/td/ThingStore'
 import cm from '@/data/ConnectionManager';
 import dashStore from '@/data/dashboard/DashboardStore'
+import {AccountsRouteName} from "@/router";
 // import { nextTick } from 'process';
 const $q = useQuasar()
 
@@ -32,7 +34,7 @@ const connectToHub = (accounts: ReadonlyArray<AccountRecord>) => {
     if (account.enabled) {
       cm.Connect(account, handleUpdate)
           .then(()=>{
-            console.log("Connection to %s successful: ", account.name)
+            console.log("AppView.connectToHub: Connection to %s successful: ", account.name)
             $q.notify({
               position: 'top',
               type: 'positive',
@@ -41,12 +43,17 @@ const connectToHub = (accounts: ReadonlyArray<AccountRecord>) => {
           })
           .then()
           .catch((reason:any)=>{
-            console.log("Connection to %s at %s failed: ", account.name, account.address, reason)
+            console.log("AppView.connectToHub: Connection to %s at %s failed: ", account.name, account.address, reason)
             $q.notify({
               position: 'top',
               type: 'negative',
               message: 'Connection to '+account.name+' at '+account.address+' failed: '+reason,
             })
+            // popup login page
+            let newPath = AccountsRouteName+"/"+account.id
+            console.log("AppView.connectToHub: Navigating to account edit for account '%s': path=%s", account.name, newPath)
+            router.push(AccountsRouteName)
+            // router.push({name: AccountsRouteName, params: { accountID: account.id}})
           })
       }
   })

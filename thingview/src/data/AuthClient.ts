@@ -1,8 +1,5 @@
-// import tls from 'tls'
-// import {json, text} from "stream/consumers";
-// import axios from "axios";
-// import fs from "fs";
-// import https from "https";
+import jwt from 'jwt-simple'
+import {matRememberMe} from "@quasar/extras/material-icons";
 
 // Default port of the Hub authentication service
 const DefaultPort = 8881
@@ -25,6 +22,15 @@ export class UnauthorizedError extends ResponseError {
         super(message)
         this.errorCode = 401
     }
+}
+
+/**
+ * Login request message format. Must match that of the auth service authenticator
+ */
+interface LoginRequestMessage {
+    login: string        // username/email
+    password: string     // password
+    rememberMe: boolean  // persist the refresh token in a secure cookie
 }
 
 // Client for connecting to a Hub authentication service
@@ -52,7 +58,7 @@ export default class AuthClient {
         };
     }
 
-    // issue https get request
+    // issue https request
     private async httpsPost(path:string, jsonPayload:string):Promise<Response> {
         // let options = {
         //     hostname: this.address,
@@ -67,6 +73,7 @@ export default class AuthClient {
         const response:Promise<Response> = fetch(url, {
             method: 'POST',
             body: jsonPayload,
+            // credentials: "same-origin",
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'bearer '+this._accessToken,
@@ -92,11 +99,8 @@ export default class AuthClient {
         return this._refreshToken
     }
 
-    // ConnectWithLoginID creates a connection with the server using loginID/password authentication.
-    // If a CA certificate is not available then insecure-skip-verify is used to allow
-    // connection to an unverified server (leap of faith).
-    // Authenticate with the auth service. This obtains access and refresh tokens that can be used
-    // to connect to other hub services.
+    // AuthenticateWithLoginID connects to the authentication server and requests JWT access and refresh
+    // tokens using loginID/password authentication.
     //
     // This uses JWT authentication using the POST /login path with a Json encoded
     // JwtAuthLogin message as body.
@@ -104,29 +108,27 @@ export default class AuthClient {
     // The server returns a JwtAuthResponse message with an access/refresh token pair and a refresh URL.
     // The access token is used as bearer token in the Authentication header for followup requests.
     //
-    // If the access token is expired, the client will perform a refresh request using the refresh URL,
-    // before invoking the request.
-    //
-    // @param loginID to login with, usually the email
-    // @param password to login with. This should not be stored and needs to be provided by the user
+    // @param loginID to login with, for example the user's email
+    // @param password to login with. This password is not stored and only used to obtain the tokens.
+    // @param rememberMe stores the resulting refresh token in a secure cookie
     // This returns a promise that completes on success or fails if the credentials are invalid
     // or the auth service cannot be reached
-    public async ConnectWithLoginID(loginID: string, password: string):Promise<string> {
+    public async AuthenticateWithLoginID(loginID: string, password: string, rememberMe: boolean):Promise<string> {
         this.loginID = loginID
         let url = "https://"+this.address+":"+this.port.toString()+DefaultJWTLoginPath
-        let data = JSON.stringify({login:loginID, password:password})
+        // let data = JSON.stringify({login:loginID, password:password, rememberMe:true})
         // const httpsAgent = new https.Agent(
         //     {
         //         rejectUnauthorized: false
         //     });
-        let options = {
-            url: url,
-            data: data,
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': 'bearer ' + this._accessToken,
-            },
-        }
+        // let options = {
+        //     url: url,
+        //     data: data,
+        //     headers: {
+        //         'Content-Type': 'application/json',
+        //         // 'Authorization': 'bearer ' + this._accessToken,
+        //     },
+        // }
         // return axios.post(url,data,options)
         //     // .then(results => results.json())
         //     .then(jsonResponse=>{
@@ -137,7 +139,12 @@ export default class AuthClient {
         //         return responseMessage.accessToken
         //     })
         //
-        let payload = JSON.stringify({login:loginID, password:password})
+        let loginMessage:LoginRequestMessage = {
+            login: loginID,
+            password: password,
+            // FIXME: use the rememberMe parameter after this works
+            rememberMe: true } // rememberMe }
+        let payload = JSON.stringify(loginMessage)
         return this.httpsPost(DefaultJWTLoginPath, payload)
             .then(response => {
                 if (response.status == 401) {
@@ -147,26 +154,56 @@ export default class AuthClient {
                     console.error("AuthClient: Authentication failed", response.status)
                     throw( new ResponseError("Authentication failed: "+response.statusText))
                 }
+                // convert the result to json
                 return response.json()
             })
             .then(jsonResponse=>{
-                console.log("AuthClient.Connect: Authentication successful")
+                console.log("AuthClient.Connect: Authentication as %s successful", loginID)
                 this._accessToken = jsonResponse.accessToken
                 this._refreshToken = jsonResponse.refreshToken
                 return jsonResponse.accessToken
             })
     }
 
-    // Return true if a connection to obtain a token pair has succeeded, either through login or token refresh
-    public IsConnected(): boolean {
-        return this._accessToken != ""
+    // Return true if the access token is valid
+    // This returns 0 if the token is not valid or has expired
+    // It returns the number of seconds of validity remaining if valid, useful to
+    // know if the token must be refreshed.
+    public IsAuthenticated(): number {
+        if (this._accessToken) {
+            let decoded = jwt.decode(this._accessToken, "", true)
+            console.log("IsAuthenticated: decoded=", decoded)
+            return 10
+        }
+        return 0
     }
 
-    // Renew the access and refresh tokens
+    // Renew the access and refresh token pair
     // This returns a promise that completes on success, or fails if no valid refresh token is held.
-    // If it fails, call Authenticate() to renew the tokens.
-    public async Refresh() {
+    // If no refresh token is provided then assume that 'rememberMe' was last used and a token
+    //  is stored in a secured cookie.
+    //
+    // If refresh fails then AuthenticateWithLoginID() must be called to renew the tokens. This
+    // requires a loginID and password which the user needs to supply.
+    //
+    // @param refreshToken optional refresh token to use if rememberMe is not enabled
+    public async Refresh(refreshToken?: string) {
+        // TODO: use refresh token if provided
         return this.httpsPost(DefaultJWTRefreshPath, "")
+            .then(response => {
+                if (response.status >= 400) {
+                    console.error("AuthClient: Authentication Error", response.statusText)
+                    throw(new UnauthorizedError("Authentication Error"))
+                }
+                // response contains access and refresh tokens
+                return response.json()
+            })
+            .then(jsonResponse=>{
+                console.log("AuthClient.Connect: Authentication token refresh for user: %s", this.loginID )
+                this._accessToken = jsonResponse.accessToken
+                this._refreshToken = jsonResponse.refreshToken
+                return (jsonResponse.accessToken)
+            })
     }
 
 }

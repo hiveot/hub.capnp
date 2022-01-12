@@ -12,6 +12,7 @@
     "@quasar/extras": "^1.12.1",
     "@types/lodash-es": "^4.17.5",
     "@vueuse/core": "^7.4.0",
+    "jwt-simple": "^0.5.6",
     "lodash-es": "^4.17.21",
     "mqtt": "^4.2.8",
     "nanoid": "^3.1.30",

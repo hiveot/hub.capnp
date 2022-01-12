@@ -56,18 +56,83 @@ export class ConnectionManager {
     get connectionCount(): number {
         let count = 0
         this.connections.forEach((connection: AccountConnection) => {
-            if (connection.authClient && connection.authClient.IsConnected()) {
+            if (connection.authClient && connection.authClient.IsAuthenticated()) {
                 count++
             }
         })
         return count
     }
 
-    // Connect or reconnect.
-    // This provides both a promise for the initial connection result and a callback that is invoked each time
-    // the connection changes. If a connection fails, then a new connection attempt will be made periodically.
+
+    // Authenticate.
+    // Obtain new authentication tokens for the account using the given password
+    //
+    //  @param account is the account to authenticate
+    //  @password to authenticate with
+    // This returns a promise for async operation of the first connection attempt.
+    async Authenticate(account: AccountRecord, password:string ) {
+        let ac = this.GetAccountConnection(account)
+        if (!ac.authClient) {
+            ac.authClient = new AuthClient(account.address, account.authPort)
+        }
+        console.log("ConnectionManager.Authenticate: Authenticate with", account.address, "as", account.loginName)
+
+        // AuthClient holds the tokens
+        return ac.authClient.AuthenticateWithLoginID(account.loginName, password, account.rememberMe)
+            .then((accessToken: string) => {
+                console.log("ConnectionManager.Authenticate: Authentication successful")
+                // save the auth status of the connection and overall status for presentation
+                ac.state.authenticated = true
+                ac.state.statusMessage = "Authentication successful"
+                this.status.authenticated = true
+            })
+            .catch((err: Error) => {
+                ac.state.authenticated = false
+                ac.state.statusMessage = "Failed to authenticate: " + err.message
+                console.error("ConnectionManager.Authenticate: failed to authenticate: ", err)
+                throw(err.message)
+            });
+    }
+
+    // Refresh authentication tokens
     //
     //  @param account is the account to connect to authentication, mqtt and directory services
+    //  @param refreshToken. Optionally saved refresh token from last session
+    // This returns a promise for async operation of the first connection attempt.
+    async AuthenticationRefresh(account: AccountRecord, refreshToken: string) {
+        let ac = this.GetAccountConnection(account)
+        if (!ac.authClient) {
+            ac.authClient = new AuthClient(account.address, account.authPort)
+        }
+        console.log("ConnectionManager.AuthenticationRefresh: Refresh authentication with", account.address)
+        this.connections.set(ac.accountID, ac)
+
+        return ac.authClient.Refresh(refreshToken)
+            .then((accessToken: string) => {
+                console.log("ConnectionManager.AuthenticationRefresh: Authentication successful. Connecting to mqtt and directory")
+                ac.state.authenticated = true
+                ac.state.statusMessage = "Authentication successful"
+                this.status.authenticated = true
+                // this.status.connected = true
+            })
+            .catch((err: Error) => {
+                ac.state.authenticated = false
+                ac.state.statusMessage = "Failed to refresh authentication token: " + err.message
+                console.error("ConnectionManager.AuthenticationRefresh: failed to re-authenticate: ", err)
+                throw(err.message)
+            });
+    }
+
+
+    // Connect to Hub services using the access/refresh token obtained in authentication.
+    // Authenticate or AuthenticationRefresh must be called first to obtain a valid token pair.
+    //
+    // This:
+    //  1. Refreshes the authentication tokens
+    //  2. Request the directory service - publishers/things/??? limit the scope?
+    //  3. Connects to the MQTT broker to receive real-time updates
+    //
+    //  @param account is the account to connect to mqtt and directory services
     //  @param onConnectChanged optional callback when the connection status changes
     // This returns a promise for async operation of the first connection attempt.
     async Connect(account: AccountRecord,
@@ -75,7 +140,12 @@ export class ConnectionManager {
         this.Disconnect(account.id);
 
         let ac = this.GetAccountConnection(account)
-        ac.authClient = new AuthClient(account.address,account.authPort)
+        if (!ac.authClient) {
+            ac.authClient = new AuthClient(account.address, account.authPort)
+            // console.error("ConnectionManager.Connect: called before authentication is successful")
+            // return
+        }
+        // ac.authClient = new AuthClient(account.address,account.authPort)
         ac.mqttClient = new MqttClient(
             account.id,
             account.address,
@@ -86,22 +156,20 @@ export class ConnectionManager {
 
         ac.dirClient = new DirectoryClient(account.address, account.directoryPort)
 
-        console.log("ConnectionManager.Connect: Connecting to", account.address, "as", account.loginName)
+        console.log("ConnectionManager.Connect: address: ", account.address, "as", account.loginName)
         this.connections.set(ac.accountID, ac)
-        // after login, connect to mqtt and directory client using the access token
-        let password = "user1" // FIXME - for testing
 
-        return ac.authClient.ConnectWithLoginID(account.loginName, password)
+        // First, refresh the authentication tokens
+        return ac.authClient.Refresh()
             .then((accessToken: string) => {
-                console.log("ConnectionManager.Connect: Authentication successful. Connecting to mqtt and directory")
+                console.log("ConnectionManager.Connect: Auth token refresh successful. Connecting to mqtt and directory")
                 ac.state.authenticated = true
-              ac.state.statusMessage = "Authentication successful"
+                ac.state.statusMessage = "Authentication successful"
                 this.status.authenticated = true
-                // this.status.connected = true
 
-                // FIXME support login to mqtt with access token
-                if (ac.mqttClient) {
-                    ac.mqttClient.Connect(account.loginName, password)
+                // Mqtt login accepts a valid access token
+                if (ac.mqttClient && ac.authClient) {
+                    ac.mqttClient.Connect(account.loginName, ac.authClient.accessToken)
                 }
                 // if a directory client exists, get the directory
                 if (ac.dirClient) {
@@ -122,14 +190,12 @@ export class ConnectionManager {
             });
     }
 
+
     // Disable the connection
     Disconnect(accountId:string) {
         let connection = this.connections.get(accountId)
         if (connection) {
             console.log("AccountManager.Disconnect: Disconnecting account:", connection.name)
-            // if (connection.authClient) {
-            //     connection.authClient.Disconnect()
-            // }
             if (connection.dirClient) {
                 connection.dirClient.Disconnect();
             }

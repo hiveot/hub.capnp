@@ -1,13 +1,9 @@
 <script lang="ts" setup>
 
-// Wrapper around the QTable for showing a list of Things
-// QTable slots are available to the parent
-// import { RouterLink } from 'vue-router';
+import { RouterLink } from 'vue-router';
 // import {ref} from 'vue'
-
-
 import {ThingTD} from "@/data/td/ThingTD";
-import {date, QBtn, QIcon, QToolbar, QTable, QTd, QToggle, QToolbarTitle, QTableProps} from "quasar";
+import {date, QTd} from "quasar";
 import TTable, {ITableCol} from '@/components/TTable.vue'
 import {matVisibility} from "@quasar/extras/material-icons"
 // use formatDate without pulling in the rest of quasar
@@ -82,7 +78,7 @@ const visibleColumns = ['deviceID', 'publisherID', 'deviceType', 'desc', 'type',
     <template v-slot:body-cell-deviceID="propz">
       <QTd style="text-align:left" >
         <a href="" target="_blank" >
-          <router-link :to="'/things/'+propz.row.id">{{propz.row.deviceID}}</router-link>
+          <RouterLink :to="'/things/'+propz.row.id">{{propz.row.deviceID}}</RouterLink>
         </a>
       </QTd>
     </template>

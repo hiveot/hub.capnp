@@ -2,10 +2,11 @@
 
 import { RouterLink } from "vue-router";
 import {ThingTD} from "@/data/td/ThingTD";
-import {date, QBtn, QIcon, QToolbar, QTable, QTd, QToggle, QToolbarTitle, QTableProps} from "quasar";
+import {date} from "quasar";
 import {matVisibility} from "@quasar/extras/material-icons"
 import TSimpleTable, { ISimpleTableColumn } from "@/components/TSimpleTable.vue";
 import { h } from "vue";
+import {ThingsRouteName} from "@/router";
 // use formatDate without pulling in the rest of quasar
 const {formatDate} = date
 
@@ -33,6 +34,7 @@ const columns: Array<ISimpleTableColumn> = [
   },
   {title: "Device ID", field:"deviceID" , align:"left",
     component: (row:any) => h(RouterLink, {
+      // FIXME: use route name and property instead of hard coded path
       to: "/things/"+row.id
       },
       row.deviceID

@@ -10,43 +10,48 @@ import AccountsTable from './AccountsTable.vue'
 import appState from '@/data/AppState'
 import accountStore, {AccountRecord} from '@/data/accounts/AccountStore'
 import connectionManager from "@/data/ConnectionManager";
-
+import router from '@/router'
 
 const data = reactive({
   selectedRow : AccountRecord,
-  showAddDialog: false,
-  showEditDialog: false,
+  // showAddDialog: false,
+  // showEditDialog: false,
   // record for editing. This is mutable
-  editRecord: new AccountRecord(),
+  // editRecord: new AccountRecord(),
 })
 
 const $q = useQuasar()
 
+/**
+ * Login to the account with the given password
+ */
+const handleLogin = (account:AccountRecord, password:string) => {
+  connectionManager.Connect(account)
+}
+
 const handleStartAdd = () => {
   console.log("handleStartAdd")
-  data.showAddDialog = !data.showAddDialog
-  data.editRecord = new AccountRecord()
-  data.editRecord.id = nanoid(5)
-  data.showEditDialog = !data.showEditDialog
+  router.push("/accounts/"+nanoid(5))
+  // data.showAddDialog = !data.showAddDialog
+  // data.editRecord = new AccountRecord()
+  // data.editRecord.id = nanoid(5)
+  // data.showEditDialog = !data.showEditDialog
 }
 
 const handleStartEdit = (record: AccountRecord) => {
   console.log("handleStartEdit. record=", record)
-  data.editRecord = record
-  data.showEditDialog = !data.showEditDialog
+  // data.editRecord = record
+  // data.showEditDialog = !data.showEditDialog
+  router.push("/accounts/"+record.id)
 }
+
 // update the account and re-connect if connect
-const handleSubmitEdit = (record: AccountRecord) => {
-  console.log("handleSubmitEdit")
-  accountStore.Update(record)
-  data.showEditDialog = false
-  if (record.enabled) {
-    connectionManager.Connect(record)
-  }
-}
-const handleCancelEdit = () => {
-  data.showEditDialog = false
-}
+// const handleSubmitEdit = (record: AccountRecord) => {
+//   data.showEditDialog = false
+// }
+// const handleCancelEdit = () => {
+//   data.showEditDialog = false
+// }
 
 const handleStartDelete = (record: AccountRecord) => {
   console.log("handleStartDelete")
@@ -74,14 +79,16 @@ const handleToggleEnabled = (record: AccountRecord) => {
 
 </script>
 
-
+ <!-- Display table of accounts.
+      Popup a login dialog if authentication failed
+   -->
 <template>
   <div>
-  <EditAccountDialog v-if="data.showEditDialog"
-      :account="data.editRecord"
-      @onSubmit="handleSubmitEdit"
-      @onClosed="handleCancelEdit"
-  />
+<!--  <EditAccountDialog v-if="data.showEditDialog"-->
+<!--      :account="data.editRecord"-->
+<!--      @onSubmit="handleSubmitEdit"-->
+<!--      @onClosed="handleCancelEdit"-->
+<!--  />-->
 
   <QCard class="my-card" flat>
         <!-- Title with 'add account' button  -->
@@ -106,6 +113,7 @@ const handleToggleEnabled = (record: AccountRecord) => {
                      @onEdit="handleStartEdit"
                      @onDelete="handleStartDelete"
                      @onToggleEnabled="handleToggleEnabled"
+                     @onLogin="handleLogin"
       >
 
       </AccountsTable>

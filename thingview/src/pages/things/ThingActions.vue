@@ -1,6 +1,5 @@
 <script setup lang="ts">
 
-import {QTable} from 'quasar';
 import {TDAction, ThingTD} from "@/data/td/ThingTD";
 import TTable, {ITableCol} from "@/components/TTable.vue";
 

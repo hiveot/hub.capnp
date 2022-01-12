@@ -1,11 +1,10 @@
-// Launch dashboard using node 
-// $ node ./server.js &
+// Launch dashboard using node from the hub home folder (~/bin/hub
+//  >  node ./bin/server.js &
+// this will serve thingview on port 8443
 const express = require('express');
-const bodyParser = require('body-parser')
-const cors = require('cors')
+// const bodyParser = require('body-parser')
 const path = require('path');
 const fs = require('fs')
-const http = require('http')
 const https = require('https')
 
 const privateKey = fs.readFileSync('./certs/serverKey.pem')
@@ -13,38 +12,24 @@ const certificate = fs.readFileSync('./certs/serverCert.pem')
 
 var credentials = {key: privateKey, cert:certificate}
 
-
 const app = express();
-//app.use(cors)
-app.use(express.static(__dirname+'/dist'));
 
 
-var corsOptions = {
-  // origin: 'https://localhost',
-  // optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
-}
-
-app.get('/ping', function (req, res) {
- return res.send('pong');
-});
+const publicPath = path.join(__dirname, 'thingview');
+app.use(express.static(publicPath));
 
 // for browserHistory:
 // https://github.com/reactjs/react-router/blob/1.0.x/docs/guides/basics/Histories.md
-app.get('/favicon*', function(req, res) {
-  res.sendFile(path.resolve(__dirname, 'dist', 'favicon.png'));
+app.get('/favicon*', function(req, resp) {
+  resp.sendFile(path.resolve(__dirname, 'thingview', 'favicon.png'));
 });
-app.get('*', function(req, res) {
-  res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
+// For Vue (and react) all requests lead to index.html
+app.get('*', function(req, resp) {
+  resp.sendFile(path.resolve(__dirname, 'thingview', 'index.html'));
 });
 
-// port must match the proxy line in the frontend package.json
-console.log("Listening on port " + (process.env.PORT || 8443) + " and 8080" ) 
-
-
-var httpServer = http.createServer(app)
-var httpsServer = https.createServer(credentials,app)
-httpServer.listen(8080)
+console.log("Service %s/thingview on port %s", __dirname, (process.env.PORT || 8443) )
+let httpsServer = https.createServer(credentials,app)
 httpsServer.listen(8443)
-//app.listen(process.env.PORT || 8080);
 
 

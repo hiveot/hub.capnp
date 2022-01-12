@@ -49,21 +49,22 @@ const getMenuItems = (dashboards: ReadonlyArray<DashboardDefinition>, editMode:b
     label: "Add Dashboard...",
     icon: matAdd,
     id: MenuAddDashboard,
+  },  {
+    id: MenuAccounts,
+    label: "Accounts...",
+    icon: matLink,
+    to: {name: AccountsRouteName},
+    // to: "/accounts"
   }, {
+    id: MenuThings,
     label: "All Things...",
     icon: matLensBlur,
-    id: MenuThings,
     to: {name:ThingsRouteName},
     // to: "/things"
   }, {
     label: "Edit Mode",
     icon: editMode ? matCheckBox : matCheckBoxOutlineBlank,
     id: MenuEditMode,
-  }, {
-    id: MenuAccounts,
-    label: "Accounts...",
-    icon: matLink,
-    to: {name: AccountsRouteName},
   },{
     id: MenuAbout,
     label: "About...",

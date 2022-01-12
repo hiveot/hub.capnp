@@ -5,18 +5,24 @@ import ThingDetailsView from './ThingDetailsView.vue'
 import {ThingTD} from "@/data/td/ThingTD";
 import {useRouter} from "vue-router";
 
+
+/**
+ * View ThingTD details dialog
+ * @param td: ThingTD document to view
+ * @param returnTo: navigation to return on close
+ */
 const props = defineProps<{
   /** Thing TD to view */
   td?: ThingTD,
   /** Route to go to on close */
-  to: string|object,
+  returnTo: string|object,
 }>()
-const emit = defineEmits(["onClosed"])
+// const emit = defineEmits(["onClosed"])
 
 const router = useRouter()
 const handleClosed = (ev:any) => {
-  if (props.to) {
-    router.push(props.to)
+  if (props.returnTo) {
+    router.push(props.returnTo)
   }
 }
 
