@@ -2,7 +2,6 @@ import {
   createWebHistory,
   createRouter,
   RouteRecordRaw,
-  RouteLocationRaw, RouteParams,
 } from "vue-router";
 
 import { h } from 'vue'
@@ -10,8 +9,6 @@ import { h } from 'vue'
 import DialogRouterView from './DialogRouterView.vue'
 import {ThingTD} from "@/data/td/ThingTD";
 import dirStore from '@/data/td/ThingStore'
-import { hubAuth } from "@/data/HubAuth";
-import ds from "@/data/dashboard/DashboardStore";
 import accountStore, {AccountRecord} from "@/data/accounts/AccountStore";
 
 // Router constants shared between router and navigation components
@@ -130,8 +127,6 @@ const routes: Array<RouteRecordRaw> = [
     path: DashboardPrefix + "/:dashboardName",
     component: () => import("@/pages/dashboards/DashboardView.vue"),
     props: true,
-    // props: (route) => ( {dashboard: ds.GetDashboardByName(route.params.dashboardName as string)} )
-    // beforeEnter: checkAuth,
   },
   {
     // vue router 4 no longer keeps it simple
@@ -140,15 +135,6 @@ const routes: Array<RouteRecordRaw> = [
   }
 
 ];
-
-// checkAuth redirects routes that require authentication to the login page when not logged in
-function checkAuth(to: RouteLocationRaw, from: RouteLocationRaw, next: any) {
-  if (!hubAuth.getState().isAuthenticated) {
-    next("/login");
-  } else {
-    next();
-  }
-}
 
 const router = createRouter({
   history: createWebHistory(),

@@ -7,12 +7,10 @@ import {IMenuItem} from "@/components/TMenuButton.vue";
 
 import router from '@/router'
 import appState from '@/data/AppState'
+import cm from '@/data/accounts/ConnectionManager';
 import accountStore, {AccountRecord} from "@/data/accounts/AccountStore";
-// import dirStore from '@/data/td/ThingStore'
-import cm from '@/data/ConnectionManager';
 import dashStore from '@/data/dashboard/DashboardStore'
 import {AccountsRouteName} from "@/router";
-// import { nextTick } from 'process';
 const $q = useQuasar()
 
 
@@ -50,10 +48,10 @@ const connectToHub = (accounts: ReadonlyArray<AccountRecord>) => {
               message: 'Connection to '+account.name+' at '+account.address+' failed: '+reason,
             })
             // popup login page
-            let newPath = AccountsRouteName+"/"+account.id
+            let newPath = "/accounts/"+account.id
             console.log("AppView.connectToHub: Navigating to account edit for account '%s': path=%s", account.name, newPath)
-            router.push(AccountsRouteName)
-            // router.push({name: AccountsRouteName, params: { accountID: account.id}})
+            // router.push(newPath)
+            router.push({name: "accounts.dialog", params: { accountID: account.id}})
           })
       }
   })

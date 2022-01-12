@@ -9,7 +9,7 @@ import EditAccountDialog from "./EditAccountDialog.vue";
 import AccountsTable from './AccountsTable.vue'
 import appState from '@/data/AppState'
 import accountStore, {AccountRecord} from '@/data/accounts/AccountStore'
-import connectionManager from "@/data/ConnectionManager";
+import connectionManager from "@/data/accounts/ConnectionManager";
 import router from '@/router'
 
 const data = reactive({
@@ -30,7 +30,7 @@ const handleLogin = (account:AccountRecord, password:string) => {
 }
 
 const handleStartAdd = () => {
-  console.log("handleStartAdd")
+  console.log("AccountsView.handleStartAdd")
   router.push("/accounts/"+nanoid(5))
   // data.showAddDialog = !data.showAddDialog
   // data.editRecord = new AccountRecord()
@@ -39,7 +39,7 @@ const handleStartAdd = () => {
 }
 
 const handleStartEdit = (record: AccountRecord) => {
-  console.log("handleStartEdit. record=", record)
+  console.log("AccountsView.handleStartEdit. record=", record)
   // data.editRecord = record
   // data.showEditDialog = !data.showEditDialog
   router.push("/accounts/"+record.id)
@@ -54,7 +54,7 @@ const handleStartEdit = (record: AccountRecord) => {
 // }
 
 const handleStartDelete = (record: AccountRecord) => {
-  console.log("handleStartDelete")
+  console.log("AccountsView.handleStartDelete")
   // todo: ask for confirmation
   $q.dialog({
     title:"Delete Account?",
@@ -67,7 +67,7 @@ const handleStartDelete = (record: AccountRecord) => {
 
 // toggle the enabled status
 const handleToggleEnabled = (record: AccountRecord) => {
-  console.log("handleOnToggleEnabled")
+  console.log("AccountsView.handleOnToggleEnabled")
   if (record.enabled) {
     accountStore.SetEnabled(record.id, false)
     connectionManager.Disconnect(record.id)

@@ -4,7 +4,7 @@ import TDialog from "@/components/TDialog.vue";
 import {QCardSection, QForm, QInput, QToggle} from "quasar";
 import accountStore, {AccountRecord} from "@/data/accounts/AccountStore";
 import {useRouter} from "vue-router";
-import connectionManager from "@/data/ConnectionManager";
+import connectionManager from "@/data/accounts/ConnectionManager";
 
 /**
  * View/Edit account details

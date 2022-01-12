@@ -3,7 +3,7 @@
 import {QTabs, QRouteTab} from 'quasar'
 import { DashboardDefinition } from '@/data/dashboard/DashboardStore';
 import {DashboardPrefix} from '@/router'
-import { MenuAddTile, MenuAddDashboard, MenuEditDashboard, MenuDeleteDashboard } from './MenuConstants';
+import { MenuAddTile,  MenuEditDashboard, MenuDeleteDashboard } from './MenuConstants';
 import TMenuButton, { IMenuItem } from '@/components/TMenuButton.vue';
 
 import {matMenu, matAdd, matEdit, matDelete} from "@quasar/extras/material-icons"
@@ -23,7 +23,6 @@ const pageMenuItems: IMenuItem[] = [
   {id: MenuAddTile, label: 'Add Tile', icon: matAdd},
   {separator: true},
   {id: MenuEditDashboard, label: 'Edit Dashboard', icon: matEdit},
-  // {id: MenuAddDashboard, label: 'Add Dashboard', icon: matAdd},
   {id: MenuDeleteDashboard, label: 'Delete Dashboard', icon: matDelete},
 ]
 

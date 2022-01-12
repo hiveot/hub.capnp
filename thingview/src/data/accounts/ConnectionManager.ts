@@ -1,10 +1,9 @@
 import {reactive} from "vue";
 
 import { AccountRecord } from "@/data/accounts/AccountStore";
-import MqttClient from "@/data/MqttClient";
+import MqttClient from "./MqttClient";
 import DirectoryClient from "@/data/td/DirectoryClient";
-import AuthClient from "@/data/AuthClient";
-import { ThingTD } from "./td/ThingTD";
+import AuthClient from "./AuthClient";
 
 // Account connection status
 export interface IConnectionStatus {

@@ -1,5 +1,4 @@
 import jwt from 'jwt-simple'
-import {matRememberMe} from "@quasar/extras/material-icons";
 
 // Default port of the Hub authentication service
 const DefaultPort = 8881

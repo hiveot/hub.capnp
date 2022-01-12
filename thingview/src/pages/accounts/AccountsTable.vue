@@ -6,7 +6,7 @@ import {ref} from 'vue'
 import {AccountRecord} from "@/data/accounts/AccountStore";
 import {QBtn, QTooltip, QTable, QTd, QToggle} from "quasar";
 import {matDelete, matEdit, matLinkOff, matLink} from "@quasar/extras/material-icons";
-import {ConnectionManager, IConnectionStatus} from "@/data/ConnectionManager";
+import {ConnectionManager, IConnectionStatus} from "@/data/accounts/ConnectionManager";
 import TConnectionStatus from "@/components/TConnectionStatus.vue";
 import TTable from '@/components/TTable.vue'
 

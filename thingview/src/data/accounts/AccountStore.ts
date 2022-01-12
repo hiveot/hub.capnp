@@ -27,14 +27,14 @@ export class AccountRecord extends Object {
 
   // when enabled, attempt to connect
   enabled: boolean = false;
-
-  // Persist this account and the refresh token between sessions. The refresh is stored
-  // in a secure cookie. This should be disabled on shared computers.
-  rememberMe: boolean = false
 }
 
 class AccountsData {
   accounts = Array<AccountRecord>()
+
+  // RememberMe persists account(s) in local storage on Save.
+  // If enabled, the refresh token will be saved in a secure cookie.
+  rememberMe: boolean = false
 }
 
 // Hub account data implementation with additional methods for loading and saving
@@ -53,8 +53,10 @@ export class AccountStore {
 
   // add a new account to the list and save the account list
   Add(account: AccountRecord): void {
-    // always update the record ID to ensure uniqueness
-    account.id = nanoid(5)
+    // ensure each account has an ID
+    if (!account.id) {
+      account.id = nanoid(5)
+    }
     let newAccount = JSON.parse(JSON.stringify(account))
     this.data.accounts.push(newAccount)
     this.Save()
@@ -63,6 +65,15 @@ export class AccountStore {
   // Return a list of accounts
   get accounts(): readonly AccountRecord[] {
     return readonly(this.data.accounts) as AccountRecord[]
+  }
+
+  // Get the current status of rememberMe
+  get rememberMe(): boolean {
+    return this.data.rememberMe
+  }
+  // Set the current status of rememberMe
+  set rememberMe(remember) {
+    this.data.rememberMe = remember
   }
 
   // Get the account with the given id
@@ -77,9 +88,14 @@ export class AccountStore {
 
   }
 
-  // load accounts from local storage
+  /** Load accounts from session/local storage
+   * First load from session storage. If session storage is empty, try local storage
+   */
   Load() {
-    let serializedStore = localStorage.getItem(this.storageKey)
+    let serializedStore = sessionStorage.getItem(this.storageKey)
+    if (!serializedStore) {
+      serializedStore = localStorage.getItem(this.storageKey)
+    }
     if (serializedStore != null) {
       let accountData: AccountsData = JSON.parse(serializedStore)
       if (accountData != null && accountData.accounts.length > 0) {
@@ -109,11 +125,18 @@ export class AccountStore {
     this.Save()
   }
 
-  // Save account in local storage (only use this on a secure system)
+  // Save account in session storage
+  // If RememberMe is set, also save the data in localStorage for use between sessions.
+  // If RememberMe is not set, the localstorage key is removed
   Save() {
     console.log("Saving %s accounts to local storage", this.data.accounts.length)
     let serializedStore = JSON.stringify(this.data)
-    localStorage.setItem(this.storageKey, serializedStore)
+    sessionStorage.setItem(this.storageKey, serializedStore)
+    if (this.data.rememberMe) {
+      localStorage.setItem(this.storageKey, serializedStore)
+    } else {
+      localStorage.removeItem(this.storageKey)
+    }
   }
 
   // Enable or disable the hub account

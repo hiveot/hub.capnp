@@ -26,7 +26,7 @@ import AppPagesBar from "./AppPagesBar.vue";
 import TConnectionStatus from "@/components/TConnectionStatus.vue"
 import {IMenuItem} from "@/components/TMenuButton.vue";
 
-import {ConnectionManager, IConnectionStatus} from "@/data/ConnectionManager";
+import {ConnectionManager, IConnectionStatus} from "@/data/accounts/ConnectionManager";
 import {DashboardDefinition, DashboardStore, DashboardTileConfig} from "@/data/dashboard/DashboardStore";
 import {AppState} from '@/data/AppState'
 
