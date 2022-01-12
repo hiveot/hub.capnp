@@ -152,8 +152,10 @@ func CreateHubCA() (cert *x509.Certificate, key *ecdsa.PrivateKey) {
 
 	// set up our CA certificate
 	// see also: https://superuser.com/questions/738612/openssl-ca-keyusage-extension
+	// firefox complains if serial is the same as that of the CA. So generate a unique one based on timestamp.
+	serial := time.Now().Unix() - 10 // prevent duplicate timestamp with server cert
 	rootTemplate := &x509.Certificate{
-		SerialNumber: big.NewInt(2021),
+		SerialNumber: big.NewInt(serial),
 		Subject: pkix.Name{
 			Country:      []string{"CA"},
 			Organization: []string{CertOrgName},
@@ -164,8 +166,11 @@ func CreateHubCA() (cert *x509.Certificate, key *ecdsa.PrivateKey) {
 		NotBefore: time.Now().Add(-10 * time.Second),
 		NotAfter:  time.Now().Add(validity),
 		// CA cert can be used to sign certificate and revocation lists
-		KeyUsage:    x509.KeyUsageCertSign | x509.KeyUsageDigitalSignature | x509.KeyUsageCRLSign | x509.KeyUsageDataEncipherment|x509.KeyUsageKeyEncipherment,
-		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageOCSPSigning},
+		KeyUsage: x509.KeyUsageCertSign | x509.KeyUsageDigitalSignature | x509.KeyUsageCRLSign | x509.KeyUsageDataEncipherment | x509.KeyUsageKeyEncipherment,
+		//KeyUsage: x509.KeyUsageCertSign | x509.KeyUsageDigitalSignature | x509.KeyUsageCRLSign,
+		// firefox seems to consider a CA invalid if extended key usage is combined with regular (critical) key usage???
+		//ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageOCSPSigning},
+		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageOCSPSigning},
 
 		// This hub cert is the only CA. Not using intermediate CAs
 		BasicConstraintsValid: true,
@@ -210,8 +215,9 @@ func CreateHubClientCert(clientID string, ou string,
 		logrus.Error(err)
 		return nil, err
 	}
+	serial := time.Now().Unix()
 	template := &x509.Certificate{
-		SerialNumber: big.NewInt(2021),
+		SerialNumber: big.NewInt(serial),
 		Subject: pkix.Name{
 			Organization:       []string{CertOrgName},
 			Locality:           []string{CertOrgLocality},
@@ -222,8 +228,10 @@ func CreateHubClientCert(clientID string, ou string,
 		NotBefore: start,
 		NotAfter:  start.AddDate(0, 0, durationDays),
 
-		KeyUsage:    x509.KeyUsageDigitalSignature,
-		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth,x509.ExtKeyUsageServerAuth},
+		KeyUsage: x509.KeyUsageDigitalSignature | x509.KeyUsageDataEncipherment | x509.KeyUsageKeyEncipherment,
+		//KeyUsage: x509.KeyUsageDigitalSignature,
+		//ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageServerAuth},
+		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 
 		IsCA:                  false,
 		BasicConstraintsValid: true,
@@ -263,9 +271,10 @@ func CreateHubServerCert(names []string, caCert *x509.Certificate, caPrivKey *ec
 	}
 
 	logrus.Infof("CertSetup.CreateServiceCert: Refresh server certificate for IP/name: %s", names)
-
+	// firefox complains if serial is the same as that of the CA. So generate a unique one based on timestamp.
+	serial := time.Now().Unix() - 3
 	template := &x509.Certificate{
-		SerialNumber: big.NewInt(2021),
+		SerialNumber: big.NewInt(serial),
 		Subject: pkix.Name{
 			Organization:       []string{CertOrgName},
 			Country:            []string{"CA"},
@@ -277,9 +286,10 @@ func CreateHubServerCert(names []string, caCert *x509.Certificate, caPrivKey *ec
 		NotBefore: time.Now(),
 		NotAfter:  time.Now().AddDate(0, 0, DefaultCertDurationDays),
 
-		KeyUsage:    x509.KeyUsageDigitalSignature | x509.KeyUsageCRLSign | x509.KeyUsageDataEncipherment|x509.KeyUsageKeyEncipherment,
-		ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageOCSPSigning},
-		// ExtKeyUsage:    []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth},
+		//KeyUsage:    x509.KeyUsageDigitalSignature | x509.KeyUsageCRLSign | x509.KeyUsageDataEncipherment | x509.KeyUsageKeyEncipherment,
+		KeyUsage: x509.KeyUsageDigitalSignature | x509.KeyUsageDataEncipherment | x509.KeyUsageKeyEncipherment,
+		//ExtKeyUsage: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth, x509.ExtKeyUsageOCSPSigning},
+		ExtKeyUsage:    []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
 		IsCA:           false,
 		MaxPathLenZero: true,
 		// BasicConstraintsValid: true,

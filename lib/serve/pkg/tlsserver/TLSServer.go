@@ -162,7 +162,7 @@ func (srv *TLSServer) Start() error {
 	// TODO: add configuration for CORS origin: allowed, sameaddress, exact
 	c := cors.New(cors.Options{
 		// return the origin as allowed origin
-		AllowOriginFunc:  func(orig string) bool {
+		AllowOriginFunc: func(orig string) bool {
 			// local requests are always allowed, even over http (for testing) - todo: disable in production
 			if strings.HasPrefix(orig, "https://127.0.0.1") || strings.HasPrefix(orig, "https://localhost") ||
 				strings.HasPrefix(orig, "http://127.0.0.1") || strings.HasPrefix(orig, "http://localhost") {
@@ -173,9 +173,9 @@ func (srv *TLSServer) Start() error {
 			return false
 		},
 		// default allowed headers is "Origin", "Accept", "Content-Type", "X-Requested-With" (missing authorization)
-		AllowedHeaders:   []string{"Origin", "Accept", "Content-Type", "Authorization"},
+		AllowedHeaders: []string{"Origin", "Accept", "Content-Type", "Authorization"},
 		// default is get/put/patch/post/delete/head
-		//AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch},
+		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete, http.MethodOptions},
 		Debug:            true,
 		AllowCredentials: true,
 	})
@@ -234,7 +234,7 @@ func NewTLSServer(address string, port uint,
 	srv := &TLSServer{
 		caCert:     caCert,
 		serverCert: serverCert,
-		router: mux.NewRouter(),
+		router:     mux.NewRouter(),
 	}
 	//// support for CORS response headers
 	//srv.router.Use(mux.CORSMethodMiddleware(srv.router))

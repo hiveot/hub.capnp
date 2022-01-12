@@ -15,6 +15,14 @@ What it does:
 - configure authentication using the included username/password authentication plugin
 - configure group/role authorization using the included ACL plugin
 
+### Known Issues
+
+Firefox connections to Mosquitto over websockets fails using HTTP/2 due to a bug in Mosquitto. It works fine for chrome and other browsers. The issue in discussion in this thread: https://github.com/eclipse/mosquitto/issues/1211
+The workaround is to disable Websocket SPDY in Firefox which in turn prevents Firefox to use HTTP/2. This is of course not a good solution as it disables HTTP/2 for everything.
+Until Mosquitto fixes this bug the best option is to build Mosquitto using libwebsockets with http/2 disabled. Note that Mosquitto doesn't benefit from http/2 so disabling it is not a concern. 
+
+Update: As of version 2.0.14, Debian packages from http://repo.mosquitto.org are build with newer libwebsockets.  
+
 ## Audience
 
 This project is aimed at web-of-things developers that share concerns about the security and privacy risk of running a server on every WoT Thing. WoST developers choose to not run servers on Things and instead use a hub and spokes model. The WoST project provides this Hub.
@@ -61,7 +69,7 @@ This plugin is started by the hub. It requires that the plugin is included in th
 
 ### System Requirements
 
-The 'mosquitto' MQTT message broker version 1.5 or newer must be installed.
+The 'mosquitto' MQTT message broker version 2.0.14 or newer must be installed to avoid websocket problems in firefox.
 
 To build this plugin from source the package libmosquitto-dev must be installed.
 
