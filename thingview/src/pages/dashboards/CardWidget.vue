@@ -52,7 +52,7 @@ const getThingPropValue = (item:IDashboardTileItem):string => {
 
 
 const item0 = ref(props.tile?.items?.[0])
-console.info("CardWidget. props.config=", props.tile)
+// console.debug("CardWidget. props.config=", props.tile)
 
 </script>
 

@@ -48,7 +48,14 @@ const currentState = props.appState.State()
 
 const data =reactive({
   showAbout: false,
+  /**
+   * Display the add dashboard dialog
+   */
   showAddPage: false,
+  /**
+   * Name of the selected dashboard or null if a non-dashboard view is shown
+   */
+  selectedDashboard: "",
 })
 
 // Show the add dashboard dialog
@@ -190,12 +197,13 @@ const handleMenuAction = (menuItem:IMenuItem, dashboard?:DashboardDefinition) =>
       :dashboards="props.dashStore.dashboards"
       :edit-mode="currentState.editMode"
       @onMenuAction="handleMenuAction"
+      @onSelectedTab="(value)=>{data.selectedDashboard = value}"
       />
 
     <div style="flex-grow:1"/>
 
-    <!-- Edit mode switching -->
-    <QToggle 
+    <!-- Edit mode switching only visible when showing dashboard -->
+    <QToggle v-if="!!data.selectedDashboard"
       :model-value="currentState.editMode"
       @update:model-value="handleEditModeChange"
       label="Edit"

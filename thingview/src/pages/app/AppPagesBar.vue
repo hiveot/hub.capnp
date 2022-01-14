@@ -7,6 +7,8 @@ import { MenuAddTile,  MenuEditDashboard, MenuDeleteDashboard } from './MenuCons
 import TMenuButton, { IMenuItem } from '@/components/TMenuButton.vue';
 
 import {matMenu, matAdd, matEdit, matDelete} from "@quasar/extras/material-icons"
+import { ref } from 'vue';
+import { emitKeypressEvents } from 'readline';
 
 const props = defineProps<{
   dashboards: ReadonlyArray<DashboardDefinition>
@@ -15,8 +17,10 @@ const props = defineProps<{
 
 const emit=defineEmits<{
   (e:'onMenuAction', item:IMenuItem, dashboard:DashboardDefinition):void,
+  (e:'onSelectedTab', value:string):void,
 }>()
 
+const selectedTab = ref("")
 
 // Page tab bar dropdown menu items
 const pageMenuItems: IMenuItem[] = [
@@ -26,11 +30,22 @@ const pageMenuItems: IMenuItem[] = [
   {id: MenuDeleteDashboard, label: 'Delete Dashboard', icon: matDelete},
 ]
 
+// Submit event if the selected tab changes
+// This submits null if not tab is selected, eg a different view is shown
+const selectedTabUpdated = (value:any)=>{
+  console.log("AppPagesBar.selectedTabUpdated. New value: ", value)
+  selectedTab.value = value
+  emit('onSelectedTab', value)
+}
+
 </script>
 
 <template>
     <!-- On larger screens show a tab bar for dashboard page -->
-    <QTabs   inline-label indicator-color="green">
+    <QTabs   inline-label indicator-color="red"
+    :model-value="selectedTab"
+     @update:modelValue="selectedTabUpdated"
+    >
       <!-- <QRouteTab v-for="dashboard in props.dashboards"
              :label="dashboard.label"
              :icon="dashboard.icon"

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 
 import {QBtn, QTooltip} from 'quasar';
-import {IConnectionStatus} from "@/data/ConnectionManager";
+import {IConnectionStatus} from "@/data/accounts/ConnectionManager";
 import {matLink, matLinkOff} from "@quasar/extras/material-icons";
 
 /** Button showing the connection status with colored link icon */

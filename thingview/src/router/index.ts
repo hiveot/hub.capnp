@@ -10,6 +10,7 @@ import DialogRouterView from './DialogRouterView.vue'
 import {ThingTD} from "@/data/td/ThingTD";
 import dirStore from '@/data/td/ThingStore'
 import accountStore, {AccountRecord} from "@/data/accounts/AccountStore";
+import dashboardStore from "@/data/dashboard/DashboardStore";
 
 // Router constants shared between router and navigation components
 // Should this move to router?index.ts
@@ -38,6 +39,15 @@ const getTD = (id:string): ThingTD => {
   console.log("Router getTD id: ", id, 'found!')
   return td
 }
+// Get the first dashboard name
+// const getFirstDashboard = (): string => {
+//   if (dashboardStore.dashboards.length > 0) {
+//     return dashboardStore.dashboards[0].name
+//   } else {
+//     console.log("getFirstDashboard. No dashboards found")
+//     return "nodashboards"
+//   }
+// }
 
 // Return the dashboard for the current route
 // If no dashboard name is specified, return the first dashboard
@@ -128,8 +138,12 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import("@/pages/dashboards/DashboardView.vue"),
     props: true,
   },
+  // this doesn't work if the dashboard haven't yet been loaded
+  // {
+  //   path: '/dashboard', redirect: '/dashboard/' + getFirstDashboard()
+  // },
   {
-    // vue router 4 no longer keeps it simple
+    // vue router 4 no longer keeps default redirect simple
     // path: '*', redirect: '/',
     path: '/:pathMatch(.*)*', redirect: '/accounts'
   }

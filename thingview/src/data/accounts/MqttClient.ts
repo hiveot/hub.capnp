@@ -1,8 +1,7 @@
-// import mqtt, {QoS, Packet} from 'mqtt'
+// const mqtt = require('mqtt/dist/mqtt.min')
 
 // must use dist/mqtt.min see https://github.com/mqttjs/MQTT.js/issues/1269
-import * as mqtt from 'mqtt/dist/mqtt.min'
-import {QoS} from "mqtt";
+import * as MQTT from 'mqtt/dist/mqtt.min'
 
 const DefaultPort = 8885 // websocket protocol port. Use 8883 for mqtt protocol
 const SYS_TOPIC = "$SYS/"
@@ -40,7 +39,7 @@ export default class MqttClient {
     private loginID: string
     private connectedTimeStamp: number | null
     // private messageCount: number
-    private mqttJS: mqtt.Client|null
+  private mqttJS: MQTT.Client | null
     private readonly onConnected?: (accountID: string, client: &MqttClient)=>void
     private readonly onDisconnected?: (accountID: string, client: &MqttClient)=>void
     private readonly onMessage: (accountID: string, topic: string, payload:Buffer, retain: boolean)=>void
@@ -100,29 +99,33 @@ export default class MqttClient {
         // this.pahoClient = new Paho.Client(this.accountInfo.host, port, "", clientId)
 
         let url = 'wss://' + this.address+":"+this.port.toString()
-        let options:mqtt.IClientOptions = {
+      let options: MQTT.IClientOptions = {
             reconnectPeriod: 3000,
             username: loginID,
             password: accessToken,
         }
-        this.mqttJS = mqtt.connect(url, options);
-        this.mqttJS.on('connect', this.handleConnected.bind(this))
-        this.mqttJS.on('reconnect', this.handleReconnect.bind(this))
+      this.mqttJS = MQTT.connect(url, options);
 
-        this.mqttJS.on('disconnect', this.handleConnectionLost.bind(this))
-        this.mqttJS.on('offline', this.handleConnectionLost.bind(this))
-        this.mqttJS.on('error', this.handleConnectFailed.bind(this))
+      if (!this.mqttJS) {
+        throw ("Mqtt connectect failed")
+      }
+      this.mqttJS.on('connect', this.handleConnected.bind(this))
+      this.mqttJS.on('reconnect', this.handleReconnect.bind(this))
 
-        this.mqttJS.on('message', this.handleMessage.bind(this))
+      this.mqttJS.on('disconnect', this.handleConnectionLost.bind(this))
+      this.mqttJS.on('offline', this.handleConnectionLost.bind(this))
+      this.mqttJS.on('error', this.handleConnectFailed.bind(this))
 
-        // this.messageCount = 0
-        this.connectedTimeStamp = null
+      this.mqttJS.on('message', this.handleMessage.bind(this))
 
-        // this.pahoClient.onConnectionLost = this.onConnectionLost.bind(this)
-        // this.pahoClient.onMessageArrived = this.onMessage.bind(this)
+      // this.messageCount = 0
+      this.connectedTimeStamp = null
 
-        // connect the MQTT client
-        // this.doConnect()
+      // this.pahoClient.onConnectionLost = this.onConnectionLost.bind(this)
+      // this.pahoClient.onMessageArrived = this.onMessage.bind(this)
+
+      // connect the MQTT client
+      // this.doConnect()
     }
 
     get ConnectedTimeStamp() {return this.connectedTimeStamp}
@@ -254,7 +257,7 @@ export default class MqttClient {
         // let s = {topic:topic}
         // this.subscriptions.push(s)
         let subscribeOptions = {
-            qos: qos as QoS,
+          qos: qos as MQTT.QoS,
         }
         // console.log("MqttClient.Subscribe: qos="+qos+" topics=",topics.toString())
         if (this.mqttJS) {

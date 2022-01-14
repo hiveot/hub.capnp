@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import {reactive, ref, watchEffect} from "vue";
 import TDialog from "@/components/TDialog.vue";
-import {QCardSection, QForm, QInput, QToggle} from "quasar";
+import {QCardSection, QForm, QInput, QSpace, QToggle} from "quasar";
 import accountStore, {AccountRecord} from "@/data/accounts/AccountStore";
 import {useRouter} from "vue-router";
 import connectionManager from "@/data/accounts/ConnectionManager";
@@ -42,6 +42,7 @@ const emit = defineEmits({
 const handleSubmit = () =>{
   console.log("EditAccountDialog.handleSubmit: ", data.editRecord)
   accountStore.Update(data.editRecord)
+  connectionManager.Connect(data.editRecord)
   if (data.editRecord.enabled) {
     // re-authenticate
     connectionManager.Authenticate(data.editRecord, data.password)
@@ -115,6 +116,13 @@ const handleClose = () => {
       <QToggle v-model="data.editRecord.enabled"
               id="enabled" type="boolean" class="q-mt-md q-mb-none q-pb-none"
               label="Enabled"
+      />
+      <QSpace/>
+      <QToggle v-model="data.editRecord.rememberMe"
+              id="rememberMe" type="boolean" class="q-mt-md q-mb-none q-pb-none"
+              label="Remember Login (use only on trusted computers)"
+              
+
       />
     </QForm>
 

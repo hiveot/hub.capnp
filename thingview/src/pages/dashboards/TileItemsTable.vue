@@ -58,8 +58,8 @@ const emits = defineEmits(["onRemoveTileItem"])
 interface IThingTileItem {
   key: string,
   item: IDashboardTileItem,
-  td: ThingTD,
-  tdProp: TDProperty,
+  td?: ThingTD,
+  tdProp?: TDProperty,
 }
 
 /**
@@ -72,23 +72,36 @@ const getThingTileItems = (items:IDashboardTileItem[]|undefined):
   if (items) {
     items.forEach(item=>{
       let td = props.thingStore.GetThingTDById(item.thingID)
-      let tdProp = td?.properties[item.propertyID]
-      if (td && tdProp) {
+      if (!td) {
+        // FIXME: when not connected. Should the item still be shown with a N/A value?
+        console.warn("TileItemsTable.getThingTileItems. Missing TD '%s'", item.thingID)
         itemAndProps.push({
           key: item.thingID+"."+item.propertyID,
           item: item, 
-          td: td,
-          tdProp: tdProp,
+          // td: td,
+          // tdProp: tdProp,
         })
+        return
       }
+      let tdProp = td.properties[item.propertyID]
+      if (!tdProp) {
+        console.warn("TileItemsTable.getThingTileItems. Missing prop '%s' in TD '%s'", item.propertyID, item.thingID)
+      }
+      itemAndProps.push({
+        key: item.thingID+"."+item.propertyID,
+        item: item, 
+        td: td,
+        tdProp: tdProp,
+      })
     })
   }
+  // console.log("TileItemsTable.getThingTileItems. dashboard items count=",items?.length, ". Tile items count=", itemAndProps.length)
   return itemAndProps
 }
 
 const getThingPropValue = (item:IThingTileItem):string => {
   if (!item || !item.tdProp) {
-    return "Missing value"
+    return "n/a"
   }
   let valueStr = item.tdProp.value + " " + (item.tdProp?.unit ? item.tdProp?.unit:"")
   return valueStr
@@ -109,7 +122,7 @@ const getThingPropName = (tileItem:IThingTileItem):VNode => {
   let thingName = tileItem.item.label
   // 2. use thing's name property  (not property name)
   if (!thingName) {
-    let tdProps = tileItem.td.properties
+    let tdProps = tileItem.td?.properties
     let thingNameProp = _get(tdProps, PropNameName)
     if (thingNameProp) {
       thingName = thingNameProp.value
@@ -118,18 +131,22 @@ const getThingPropName = (tileItem:IThingTileItem):VNode => {
   // 3. use thing's description (if no name property is defined)
   if (!thingName) {
     thingName = tileItem.td?.description
-    if (tileItem.td.deviceType) {
+    if (tileItem.td?.deviceType) {
       thingName += " (" + tileItem.td.deviceType + ")"
     }
   }
   // 4. finally, use property 'title' 
   if (!thingName) {
-    thingName = tileItem.tdProp.title
+    thingName = tileItem.tdProp?.title
+  } 
+  // 5. last resort use property ID
+  if (!thingName) {
+    thingName = tileItem.item.propertyID
   }
 
   let comp = h('span',
               {'style': 'width:"100%"'},
-              [ tileItem.tdProp.title,
+              [ (tileItem.tdProp) ? tileItem.tdProp.title : tileItem.item.propertyID,
                 h(QTooltip, {
                     style: 'font-size:inherit',
                   }, ()=>thingName

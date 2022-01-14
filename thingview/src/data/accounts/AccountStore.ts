@@ -27,14 +27,13 @@ export class AccountRecord extends Object {
 
   // when enabled, attempt to connect
   enabled: boolean = false;
+
+  // remember the refresh token to avoid asking for login for this account (until it expires)
+  rememberMe: boolean = false;
 }
 
 class AccountsData {
   accounts = Array<AccountRecord>()
-
-  // RememberMe persists account(s) in local storage on Save.
-  // If enabled, the refresh token will be saved in a secure cookie.
-  rememberMe: boolean = false
 }
 
 // Hub account data implementation with additional methods for loading and saving
@@ -65,15 +64,6 @@ export class AccountStore {
   // Return a list of accounts
   get accounts(): readonly AccountRecord[] {
     return readonly(this.data.accounts) as AccountRecord[]
-  }
-
-  // Get the current status of rememberMe
-  get rememberMe(): boolean {
-    return this.data.rememberMe
-  }
-  // Set the current status of rememberMe
-  set rememberMe(remember) {
-    this.data.rememberMe = remember
   }
 
   // Get the account with the given id
@@ -125,14 +115,21 @@ export class AccountStore {
     this.Save()
   }
 
-  // Save account in session storage
+  // Save account in session and local storage
   // If RememberMe is set, also save the data in localStorage for use between sessions.
   // If RememberMe is not set, the localstorage key is removed
   Save() {
     console.log("Saving %s accounts to local storage", this.data.accounts.length)
     let serializedStore = JSON.stringify(this.data)
     sessionStorage.setItem(this.storageKey, serializedStore)
-    if (this.data.rememberMe) {
+
+    // If one account is to be remembered, Keep them all. 
+    let rememberMe = false
+    for (let account of this.data.accounts) {
+      rememberMe = rememberMe || account.rememberMe
+    }
+
+    if (rememberMe) {
       localStorage.setItem(this.storageKey, serializedStore)
     } else {
       localStorage.removeItem(this.storageKey)
