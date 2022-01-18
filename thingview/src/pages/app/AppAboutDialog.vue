@@ -2,7 +2,7 @@
 
 // import TDialog from '@/components/TDialog.vue'
 import TDialog from '@/components/TDialog.vue'
-
+import {useDialogPluginComponent } from 'quasar'
 const version = "0.3 alpha";
 const licenseURL = "https://github.com/wostzone/wostzone.github.io/blob/81f41a781dfd37d82a5e37bf9ac905199161ee85/LICENSE"
 const wostSiteURL = "https://wostzone.github.io/"
@@ -14,22 +14,24 @@ const props = withDefaults(
     defineProps<IProps>(),
     {visible: true}
 )
+const { dialogRef, onDialogCancel } = useDialogPluginComponent();
 
-const emit = defineEmits(['onClosed'])
+const emit = defineEmits(['onClosed',
+    // REQUIRED; need to specify some events that your
+    // component will emit through useDialogPluginComponent()
+    ...useDialogPluginComponent.emits,   
+]);
 
-const handleCloseDialog = () => {
-  console.log("handleCloseDialog")
-  emit("onClosed");
-}
+
 </script>
 
 
 <template>
-<TDialog 
+<TDialog ref="dialogRef"
   :visible="props.visible"
   title="About ThingView"
   show-close
-  @onClosed="handleCloseDialog"
+  @onClosed="onDialogCancel"
   >
 
     <div style="display: flex; width:100%">

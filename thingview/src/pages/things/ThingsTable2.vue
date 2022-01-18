@@ -37,7 +37,7 @@ const columns: Array<ISimpleTableColumn> = [
       // FIXME: use route name and property instead of hard coded path
       to: "/things/"+row.id
       },
-      row.deviceID
+      ()=>row.deviceID
     )
   },
   {title: "Device Type", field:"deviceType" , align:"left",

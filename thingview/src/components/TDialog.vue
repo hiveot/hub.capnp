@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 
-// import {ref} from 'vue'
-import {useDialogPluginComponent, QBtn, QDialog, QCard, QCardActions, QCardSection, QSeparator, QScrollArea, QSpace, QToolbar, QToolbarTitle, } from "quasar";
-// import {QBtn, QDialog, QCard, QCardActions, QCardSection, QSeparator, QScrollArea, QSpace, QToolbar, QToolbarTitle, } from "quasar";
+import {nextTick} from 'vue'
+
+import {useDialogPluginComponent, QBtn, QDialog, QCard, QCardSection, QSeparator, QSpace, QToolbar, QToolbarTitle, } from "quasar";
 
 
 // import TButton from '@/components/TButton.vue'
@@ -113,6 +113,11 @@ const show = () => {
 // Export show and hide
 defineExpose({show, hide})
 
+// make sure the dialog has focus
+nextTick(()=>{
+  dialogRef.value?.focus()
+})
+
 </script>
 
 <!--Dialog component with title and Ok/Cancel buttons with standardized dialog configuration
@@ -165,11 +170,13 @@ defineExpose({show, hide})
           <QBtn v-if="props.showClose" flat
             :label="props.closeLabel"
             label="Close"
+            type="submit"
             @click="handleClose"
           />
           <QBtn v-if="props.showOk"
             :label="props.okLabel"
             :disabled="props.okDisabled"
+            type="submit"
             color="primary"
             @click="handleSubmit"
           />

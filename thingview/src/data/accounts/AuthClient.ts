@@ -74,7 +74,7 @@ export default class AuthClient {
     const response: Promise<Response> = fetch(url, {
       method: 'POST',
       body: jsonPayload,
-      // credentials: "same-origin",
+      credentials: "include",
       headers: {
         'Content-Type': 'application/json',
         // 'Authorization': 'bearer '+this._accessToken,

@@ -21,14 +21,16 @@ app.use(express.static(publicPath));
 // for browserHistory:
 // https://github.com/reactjs/react-router/blob/1.0.x/docs/guides/basics/Histories.md
 app.get('/favicon*', function(req, resp) {
-  resp.sendFile(path.resolve(__dirname, 'thingview', 'favicon.png'));
+  resp.sendFile(path.resolve(publicPath, 'favicon.png'));
 });
 // For Vue (and react) all requests lead to index.html
 app.get('*', function(req, resp) {
-  resp.sendFile(path.resolve(__dirname, 'thingview', 'index.html'));
+  console.log(".get", req.path, req.body, req.headers )
+  // resp.sendFile(path.resolve(publicPath, 'index.html'));
+  resp.sendFile(path.resolve(path.join(publicPath, req.path)));
 });
 
-console.log("Service %s/thingview on port %s", __dirname, (process.env.PORT || 8443) )
+console.log("Service %s on port %s", publicPath, (process.env.PORT || 8443) )
 let httpsServer = https.createServer(credentials,app)
 httpsServer.listen(8443)
 

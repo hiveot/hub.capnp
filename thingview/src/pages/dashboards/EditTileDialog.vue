@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import {ref, reactive} from "vue";
+import {ref, reactive, nextTick} from "vue";
 import {cloneDeep as _cloneDeep, remove as _remove} from 'lodash-es'
 import {useDialogPluginComponent, useQuasar, QForm, QInput, QSelect} from "quasar";
 import {matAdd} from "@quasar/extras/material-icons";
@@ -77,6 +77,7 @@ const handleSubmit = () =>{
       })
 };
 
+
 </script>
 
 <template>
@@ -94,7 +95,7 @@ const handleSubmit = () =>{
            >
       <QInput v-model="editTile.title"
               :autocomplete="TileTypeCard"
-              autofocus  required
+              required autofocus
               id="title" type="text"
               label="Title"
               :rules="[()=>editTile.title !== ''||'Please provide a title']"
