@@ -188,25 +188,24 @@ func (issuer *JWTIssuer) HandleJWTRefresh(resp http.ResponseWriter, req *http.Re
 	refreshTokenString, err := hubnet.GetBearerToken(req)
 	if err != nil {
 		cookie, err := req.Cookie(JwtRefreshCookieName)
-		if err == nil {
+		if err == nil && (cookie.Value != "") {
 			logrus.Infof("JWTIssuer.HandleJWTRefresh using cookie token")
 			refreshTokenString = cookie.Value
 			useCookie = true
+		} else {
+			logrus.Infof("JWTIssuer.HandleJWTRefresh Unauthorized. Missing cookie/refresh token. Err: '%s'", err)
+			resp.WriteHeader(http.StatusUnauthorized)
+			return
 		}
 	} else {
 		logrus.Infof("JWTIssuer.HandleJWTRefresh bearer token provided")
-	}
-	// no refresh token found
-	if err != nil || refreshTokenString == "" {
-		logrus.Infof("JWTIssuer.HandleJWTRefresh Unauthorized. no refresh token provided")
-		resp.WriteHeader(http.StatusUnauthorized)
-		return
 	}
 
 	// is the token valid?
 	_, claims, err := issuer.DecodeToken(refreshTokenString)
 	if err != nil || claims.Id == "" {
 		// refresh token is invalid. Authorization refused
+		logrus.Warningf("JWTIssuer.HandleJWTRefresh DecodeToken failed with: %s. Claims=%v", err, claims)
 		resp.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -240,8 +239,12 @@ func (issuer *JWTIssuer) StoreJWTTokens(
 		Expires:  cookieExpTime,
 		HttpOnly: true, // prevent XSS attack (client cant read value)
 		Secure:   true, //
-		// assume that the client service/website runs on the same server to use cookies
-		SameSite: http.SameSiteStrictMode,
+		// assume that the client service/website runs on the same domain to use cookies
+		//SameSite: http.SameSiteLaxMode,
+		SameSite: http.SameSiteNoneMode,
+		// testing
+		Domain: "localhost",
+		Path:   "/auth",
 	})
 }
 
@@ -278,8 +281,9 @@ func NewJWTIssuer(
 		signingKey:             signingKey,
 		verificationKey:        &signingKey.PublicKey,
 		issuerName:             issuerName,
-		AccessTokenValidity:    15 * time.Minute,
-		RefreshTokenValidity:   7 * 24 * time.Hour,
+		//AccessTokenValidity:    60 * time.Minute,
+		AccessTokenValidity:  10 * time.Second, // for testing
+		RefreshTokenValidity: 7 * 24 * time.Hour,
 	}
 	return issuer
 }

@@ -166,14 +166,17 @@ func (srv *TLSServer) Start() error {
 			// local requests are always allowed, even over http (for testing) - todo: disable in production
 			if strings.HasPrefix(orig, "https://127.0.0.1") || strings.HasPrefix(orig, "https://localhost") ||
 				strings.HasPrefix(orig, "http://127.0.0.1") || strings.HasPrefix(orig, "http://localhost") {
+				logrus.Infof("TLSServer.AllowOriginFunc: Cors: orig: %s (localhost). Is True", orig)
 				return true
 			} else if strings.HasPrefix(orig, "https://"+srv.address) {
+				logrus.Infof("TLSServer.AllowOriginFunc: Cors: orig:%s. Is True", orig)
 				return true
 			}
+			logrus.Warningf("TLSServer.AllowOriginFunc: Cors: orig:%s. Is False", orig)
 			return false
 		},
 		// default allowed headers is "Origin", "Accept", "Content-Type", "X-Requested-With" (missing authorization)
-		AllowedHeaders: []string{"Origin", "Accept", "Content-Type", "Authorization"},
+		AllowedHeaders: []string{"Origin", "Accept", "Content-Type", "Authorization", "Headers"},
 		// default is get/put/patch/post/delete/head
 		AllowedMethods:   []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete, http.MethodOptions},
 		Debug:            true,
