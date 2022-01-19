@@ -2,7 +2,6 @@
 //  >  node ./bin/server.js &
 // this will serve thingview on port 8443
 const express = require('express');
-// const bodyParser = require('body-parser')
 const path = require('path');
 const fs = require('fs')
 const https = require('https')
@@ -23,12 +22,17 @@ app.use(express.static(publicPath));
 app.get('/favicon*', function(req, resp) {
   resp.sendFile(path.resolve(publicPath, 'favicon.png'));
 });
-// For Vue (and react) all requests lead to index.html
-app.get('*', function(req, resp) {
-  console.log(".get", req.path, req.body, req.headers )
-  // resp.sendFile(path.resolve(publicPath, 'index.html'));
-  resp.sendFile(path.resolve(path.join(publicPath, req.path)));
+app.get('/', function(req, resp) {
+  resp.sendFile(path.resolve(publicPath, 'index.html'));
 });
+// For Vue (and react) all requests lead to index.html
+// app.get('*', function(req, resp) {
+//   console.log(".get", req.path, req.body, req.headers )
+//   // resp.sendFile(path.resolve(publicPath, 'index.html'));
+//   let filePath = path.resolve(path.join(publicPath, req.path));
+  
+//   resp.sendFile(filePath);
+// });
 
 console.log("Service %s on port %s", publicPath, (process.env.PORT || 8443) )
 let httpsServer = https.createServer(credentials,app)

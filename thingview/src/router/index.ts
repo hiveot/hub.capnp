@@ -2,6 +2,7 @@ import {
   createWebHistory,
   createRouter,
   RouteRecordRaw,
+  createWebHashHistory,
 } from "vue-router";
 
 import { h } from 'vue'
@@ -10,7 +11,7 @@ import DialogRouterView from './DialogRouterView.vue'
 import {ThingTD} from "@/data/td/ThingTD";
 import dirStore from '@/data/td/ThingStore'
 import accountStore, {AccountRecord} from "@/data/accounts/AccountStore";
-import dashboardStore from "@/data/dashboard/DashboardStore";
+// import dashboardStore from "@/data/dashboard/DashboardStore";
 
 // Router constants shared between router and navigation components
 // Should this move to router?index.ts
@@ -151,7 +152,8 @@ const routes: Array<RouteRecordRaw> = [
 ];
 
 const router = createRouter({
-  history: createWebHistory(),
+  // history: createWebHistory(),
+  history: createWebHashHistory(),
   routes,
 });
 
