@@ -11,11 +11,9 @@ func TestArgs(t *testing.T) {
 	wd, _ := os.Getwd()
 	homeFolder := path.Join(wd, "../../test")
 	os.Chdir(homeFolder)
-	fp, _ := os.Create("config/test.acl")
-	fp.Close()
 
 	// cmdline := "setpassword client1 bob -c ./config"
-	cmdline := "setrole client1 group1 viewer --aclfile=config/test.acl"
+	cmdline := "certbundle"
 	args := strings.Split(cmdline, " ")
 	ParseArgs(homeFolder, args)
 }

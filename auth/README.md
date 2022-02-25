@@ -1,8 +1,10 @@
-# hubauth
+# auth service
 
 ## Objective
 
-Single sign-on with access control for users to access Hub services.
+Provide single sign-on authentication with authorization for use by Hub clients on the local network.
+
+Hub access from outside the local network is out of scope for this service. External access is handled through inter-domain hub-to-hub communication which has its own domain authentication mechanism.  
 
 ## Status
 
@@ -16,23 +18,61 @@ information and receive actions.
 
 ## Summary
 
-This service provides authentication and authorization for services and their clients. All requests to the various Hub
-services requires authentication by the Auth service.
+This Hub service supports local authentication and authorization for use by services, IoT devices and end-users on the local network. This module manages:
+1. the Hub CA certificate for generating signed certificates
+2. the Hub server certificate for use by Hub services (currently a single server certificate for all Hub services)
+3. Manage client certificates for use by Hub services (currently a single client certificate for all Hub services)
+4. Manage client certificates for use by IoT client authentication as used by the idprov provisioning service
+5. Manage users for user authentication and authorization
+6. Manage groups for role based user access to Things that are provided by IoT devices 
+7. Manage JWT access and refresh tokens for user authentication
 
-Login provides the user with a pair of JWT tokens that can be used to authenticate at all services. Access tokens have a
-short lifetime and must be refreshed using the refresh token before they expire.
 
-This provides a
+### Hub CA Certificate
 
-* Authentication service for...
-    * Providing access and refresh tokens using the users login credentials
-    * Refreshing user access/refresh token pair
-    * Creating username/password by administrator
-    * Changing of the user password
+The WoST Hub utilizes a self-signed CA certificate. The Hub CA is an organization certificate and not a domain certificate, as it is intended for use on the local network.  
 
-* Library for validating access token by services
+A self-signed CA certificate is generated on first startup. The CA certificate is used to generate an intermediary certificate which is in turn used to generate  
 
-* Commandline utility to manage users, change passwords (by administrator) and generate certificates.
+This certificate must be distributed to clients so they can validate the server and client certificates. 
+
+
+
+
+### Hub Service Certificates 
+
+Hub Services use a CA signed server certificate to authenticate themselves to clients. Clients to hub services include other Hub services, IoT devices, mobile client and web applications. These clients verify the certificate against the CA certificate.
+
+
+### Certificate Based authentication
+
+Hub services and IoT devices authenticate using certificates that are signed by the Hub CA. In case of Hub services:
+- A self signed Hub CA is manually generated on first startup. It can be replaced by the administrator with another CA certificate and private key pair.
+- A new Hub server TLS certificate is generated on each restart. Hub services that offer an API use this certificate for incoming TLS connections.  
+- A new Hub client TLS certificate is also generated on each restart. Hub services that connect to other services use this certificate to authenticate themselves as a Hub service. Currently, all services use the same client certificate with full authorization. This implies that Hub services are fully trusted. 
+
+
+
+1. A login API to create access and refresh token pair when providing valid client credentials
+2. A UI with web service to login or refresh their token pair. 
+3. An API to refresh the access/refresh token pair
+4. A library to verify the access token using the CA certificate public key
+5. An API to verify the access token
+6. An API to authorize access to one or more 'Things' 
+
+A typical scenario for a user login follows the oauth2 'client credential' grant type. No redirect is used. SPA web apps will request the   
+
+Instead of automatic URL redirect when authentication fails, the client redirects itself and repeats the original request once tokens are obtained. This avoids the need to register a return URL with the auth service, which is not always possible in offline usage.   
+1. User starts a web client
+2. Web client accesses a Hub service API with the last known bearer access token in the authentication header
+3. Hub service verifies the access token and responds
+   1. If the access token is invalid, a 401 UnAuthenticated response is returned including an authentication URL of the hub auth service.
+4. The client redirects to the auth service URL
+5. The auth service presents a login screen for the user to enter credentials
+6. On success, the auth service returns an access token and stores a new refresh token in a secure cookie. This token is not accessible to the client.
+7. The client retries the original hub service API with the new access token.
+
+A commandline utility is provided for manual user management, changing passwords (by administrator) and generate certificates.
 
 ### Certificate Generation
 

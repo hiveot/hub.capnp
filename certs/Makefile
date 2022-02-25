@@ -2,15 +2,15 @@
 # To build including generating certificates: make all
 DIST_FOLDER=./dist
 INSTALL_HOME=~/bin/wosthub
-PKG_NAME="auth"
+PKG_NAME="certs"
 
 .DEFAULT_GOAL := help
 
 .PHONY: 
 
-all: auth authservice  ## Build auth and authservice 
+all: certs  ## Build cert management CLI
 
-install:  all ## Install the auth app 
+install:  all ## Install the certs app 
 	mkdir -p $(INSTALL_HOME)/bin
 	mkdir -p $(INSTALL_HOME)/config
 	mkdir -p $(INSTALL_HOME)/logs
@@ -32,15 +32,11 @@ clean: ## Clean distribution files
 	mkdir -p $(DIST_FOLDER)/bin
 	mkdir -p $(DIST_FOLDER)/config
 
-auth: ## Build authentication CLI to generate certificates, set password and set ACLs
+certs: ## Build certs CLI to generate certificates
 	mkdir -p $(DIST_FOLDER)/bin
 	go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go
 	@echo "> SUCCESS. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@"
 
-
-authservice: ## Build authentication service to run at startup
-	go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go
-	 
 
 upgrade:
 	go get -u all

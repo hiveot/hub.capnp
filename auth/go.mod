@@ -6,8 +6,10 @@ require (
 	github.com/alexedwards/argon2id v0.0.0-20210511081203-7d35d68092b8
 	github.com/docopt/docopt-go v0.0.0-20180111231733-ee0de3bc6815
 	github.com/fsnotify/fsnotify v1.5.1
+	github.com/go-oauth2/oauth2/v4 v4.4.3
+	github.com/go-session/session v3.1.2+incompatible
+	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/gorilla/mux v1.8.0
-	github.com/rs/cors v1.8.0 // indirect
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
 	github.com/wostzone/hub/lib/client v0.0.0-20211107002258-e0347d7dc2cd
