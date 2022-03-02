@@ -5,7 +5,6 @@ go 1.14
 require (
 	github.com/fsnotify/fsnotify v1.5.1
 	github.com/golang-jwt/jwt v3.2.2+incompatible
-	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/grandcat/zeroconf v1.0.0
 	github.com/kr/pretty v0.3.0 // indirect

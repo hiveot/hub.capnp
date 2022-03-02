@@ -12,8 +12,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/wostzone/hub/lib/client/pkg/tlsclient"
-
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 )
@@ -28,7 +26,7 @@ type TLSServer struct {
 	router            *mux.Router
 	httpAuthenticator *HttpAuthenticator
 
-	jwtIssuer *JWTIssuer
+	//jwtIssuer *JWTIssuer
 }
 
 // AddHandler adds a new handler for a path.
@@ -94,40 +92,18 @@ func (srv *TLSServer) EnableBasicAuth(validateCredentials func(loginName string,
 	srv.httpAuthenticator.EnableBasicAuth(validateCredentials)
 }
 
-// EnableJwtAuth enables JWT authentication using asymmetric keys
-// JWT tokens are included in the head authorization field and signed by an issuing authentication server using
-// the server's private key. The provided verification key is the server's public key.
-//  verificationKey is the public key to verify tokens. Use nil to use the server own public key
+// EnableJwtAuth enables JWT authentication using asymmetric keys.
+//
+// JWT access token is expected to be included in the http header authorization field, and signed by an issuing
+// authentication server using the server's private key.
+//
+// verificationKey is the public key used to verify tokens. Use nil to use the TLS server own public key
 func (srv *TLSServer) EnableJwtAuth(verificationKey *ecdsa.PublicKey) {
 	if verificationKey == nil {
 		issuerKey := srv.serverCert.PrivateKey.(*ecdsa.PrivateKey)
 		verificationKey = &issuerKey.PublicKey
 	}
 	srv.httpAuthenticator.EnableJwtAuth(verificationKey)
-}
-
-// EnableJwtIssuer enables JWT token issuer using asymmetric keys
-// Token are issued using the PUT /login request with payload carrying {username: , password:}
-// Tokens are refreshed using the PUT /refresh request
-//
-// The login/refresh paths are defined in tlsclient.DefaultJWTLoginPath, tlsclient.DefaultJWTRefreshPath
-//
-// issuerKey is the private key used to sign the tokens. Use nil to use the server's private key
-// validateCredentials is the handler that matches credentials with those in the credentials store
-func (srv *TLSServer) EnableJwtIssuer(issuerKey *ecdsa.PrivateKey,
-	validateCredentials func(loginName string, password string) bool) {
-	// for now the JWT login/refresh paths are fixed. Once a use-case comes up that requires something configurable
-	// this can be updated.
-	jwtLoginPath := tlsclient.DefaultJWTLoginPath
-	hwtRefreshPath := tlsclient.DefaultJWTRefreshPath
-	if issuerKey == nil {
-		issuerKey = srv.serverCert.PrivateKey.(*ecdsa.PrivateKey)
-	}
-	// handler of issuing JWT tokens
-	srv.jwtIssuer = NewJWTIssuer("tlsserver", issuerKey, validateCredentials)
-	srv.AddHandlerNoAuth(jwtLoginPath, srv.jwtIssuer.HandleJWTLogin).Methods(http.MethodPost, http.MethodOptions)
-	srv.AddHandlerNoAuth(hwtRefreshPath, srv.jwtIssuer.HandleJWTRefresh).Methods(http.MethodPost, http.MethodOptions)
-
 }
 
 // Start the TLS server using the provided CA and Server certificates.
@@ -244,7 +220,7 @@ func NewTLSServer(address string, port uint,
 
 	//issuerKey := serverCert.PrivateKey.(*ecdsa.PrivateKey)
 	//serverX509, _ := x509.ParseCertificate(serverCert.Certificate[0])
-	//pubKey := certs.PublicKeyFromCert(serverX509)
+	//pubKey := certsclient.PublicKeyFromCert(serverX509)
 
 	// Authenticate incoming https requests
 	srv.httpAuthenticator = NewHttpAuthenticator()

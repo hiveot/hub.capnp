@@ -1,0 +1,212 @@
+package jwtissuer_test
+
+import (
+	"bytes"
+	"encoding/json"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/wostzone/hub/authn/pkg/jwtissuer"
+	"github.com/wostzone/hub/lib/client/pkg/certsclient"
+	"github.com/wostzone/hub/lib/client/pkg/tlsclient"
+	"github.com/wostzone/hub/lib/serve/pkg/tlsserver"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+)
+
+// JWT token creation and verification test cases
+func TestCreateJWTToken(t *testing.T) {
+	user1 := "user1"
+
+	// pub/private key for signing tokens
+	privKey := certsclient.CreateECDSAKeys()
+	issuer := jwtissuer.NewJWTIssuer("issuerName", privKey,
+		func(loginID string, pass string) bool {
+			return false
+		})
+	accessToken, refreshToken, err := issuer.CreateJWTTokens(user1)
+	require.NoError(t, err)
+	assert.NotEmpty(t, accessToken)
+	assert.NotEmpty(t, refreshToken)
+
+	// authenticate with the access token
+	jauth := tlsserver.NewJWTAuthenticator(&privKey.PublicKey)
+
+	decodedToken, claims, err := jauth.DecodeToken(accessToken)
+	require.NoError(t, err)
+	assert.NotEmpty(t, decodedToken)
+	assert.NotNil(t, claims)
+	assert.Equal(t, user1, claims.Username)
+
+	decodedToken, claims, err = jauth.DecodeToken(refreshToken)
+	require.NoError(t, err)
+	assert.NotEmpty(t, decodedToken)
+	assert.NotNil(t, claims)
+	assert.Equal(t, user1, claims.Username)
+}
+
+func TestJWTIncorrectSigningUser(t *testing.T) {
+	// issue the tokens
+	privKey := certsclient.CreateECDSAKeys()
+	issuer := jwtissuer.NewJWTIssuer("", privKey,
+		func(loginID string, pass string) bool {
+			return false
+		})
+	// userID is required
+	accessToken, refreshToken, err := issuer.CreateJWTTokens("")
+	require.Error(t, err)
+	assert.Empty(t, accessToken)
+	assert.Empty(t, refreshToken)
+}
+
+func TestJWTIncorrectVerificationKey(t *testing.T) {
+	user1 := "user1"
+	someoneElseSecret := certsclient.CreateECDSAKeys()
+
+	// issue the tokens
+	privKey := certsclient.CreateECDSAKeys()
+	issuer := jwtissuer.NewJWTIssuer("issuerName", privKey,
+		func(loginID string, pass string) bool {
+			return false
+		})
+	accessToken, _, err := issuer.CreateJWTTokens(user1)
+
+	// verification should fail using someone else's key
+	jauth := tlsserver.NewJWTAuthenticator(&someoneElseSecret.PublicKey)
+	decodedToken, claims, err := jauth.DecodeToken(accessToken)
+	assert.Error(t, err)
+	assert.NotEmpty(t, decodedToken)
+	assert.NotNil(t, claims)
+	assert.Equal(t, user1, claims.Username)
+}
+
+func TestHandleJWTLoginLogout(t *testing.T) {
+	var didCheckCred = false
+	var userID = "user1"
+
+	// issue the tokens
+	privKey := certsclient.CreateECDSAKeys()
+	issuer := jwtissuer.NewJWTIssuer("issuerName", privKey,
+		func(loginID string, pass string) bool {
+			didCheckCred = true
+			return true
+		})
+
+	loginMessage := tlsclient.JwtAuthLogin{
+		LoginID:  userID,
+		Password: "pass",
+	}
+	body, _ := json.Marshal(loginMessage)
+	req, err := http.NewRequest("PUT", "someurl", bytes.NewBuffer(body))
+	assert.NoError(t, err)
+	resp := httptest.NewRecorder()
+	issuer.HandleJWTLogin(resp, req)
+
+	assert.True(t, didCheckCred)
+
+	// Test the response
+	respMsg := resp.Body.Bytes()
+	authResponse := tlsclient.JwtAuthResponse{}
+	err = json.Unmarshal(respMsg, &authResponse)
+	require.Equal(t, resp.Code, 200)
+	require.NoError(t, err)
+	require.NotEmpty(t, authResponse)
+
+	// Response token must be valid
+	jwtAuthr := tlsserver.NewJWTAuthenticator(&privKey.PublicKey)
+	_, claims, err := jwtAuthr.DecodeToken(authResponse.AccessToken)
+	assert.NoError(t, err)
+	assert.Equal(t, claims.Username, userID)
+	// test logout
+	//issuer.HandleJWTLogout(resp, req)
+	//issuer.ValidateToken()
+}
+
+func TestBadLogin(t *testing.T) {
+
+	// issue the tokens
+	privKey := certsclient.CreateECDSAKeys()
+	issuer := jwtissuer.NewJWTIssuer("issuerName", privKey,
+		func(loginID string, pass string) bool {
+			return false
+		})
+
+	body := http.NoBody
+	req, err := http.NewRequest("GET", "someurl", body)
+	assert.NoError(t, err)
+	resp := httptest.NewRecorder()
+	issuer.HandleJWTLogin(resp, req)
+}
+
+func TestHandleJWTRefresh(t *testing.T) {
+
+	// issue the tokens
+	privKey := certsclient.CreateECDSAKeys()
+	issuer := jwtissuer.NewJWTIssuer("issuerName", privKey, nil)
+	_, refreshToken, err := issuer.CreateJWTTokens("user1")
+	assert.NoError(t, err)
+
+	req, err := http.NewRequest("PUT", "someurl", http.NoBody)
+	req.Header.Add("Authorization", "Bearer "+refreshToken)
+	resp := httptest.NewRecorder()
+	issuer.HandleJWTRefresh(resp, req)
+
+	var result = string(resp.Body.Bytes())
+	assert.NotEmpty(t, result)
+	statusCode := resp.Result().StatusCode
+	assert.Equal(t, 200, statusCode)
+}
+
+func TestRefreshNoToken(t *testing.T) {
+	// issue the tokens
+	privKey := certsclient.CreateECDSAKeys()
+	issuer := jwtissuer.NewJWTIssuer("issuerName", privKey, nil)
+
+	// empty bearer token
+	req, _ := http.NewRequest("PUT", "someurl", http.NoBody)
+	req.Header.Add("Authorization", "Bearer ")
+	resp := httptest.NewRecorder()
+	issuer.HandleJWTRefresh(resp, req)
+
+	var result = string(resp.Body.Bytes())
+	assert.Empty(t, result)
+	statusCode := resp.Result().StatusCode
+	assert.Equal(t, http.StatusUnauthorized, statusCode)
+}
+
+func TestRefreshInvalidToken(t *testing.T) {
+	// issue the tokens
+	privKey := certsclient.CreateECDSAKeys()
+	issuer := jwtissuer.NewJWTIssuer("issuerName", privKey, nil)
+
+	// bad bearer token
+	req, _ := http.NewRequest("PUT", "someurl", http.NoBody)
+	req.Header.Add("Authorization", "Bearer badtoken")
+	resp := httptest.NewRecorder()
+	issuer.HandleJWTRefresh(resp, req)
+
+	var result = string(resp.Body.Bytes())
+	assert.Empty(t, result)
+	statusCode := resp.Result().StatusCode
+	assert.Equal(t, http.StatusUnauthorized, statusCode)
+}
+
+func TestBadAccessToken(t *testing.T) {
+	// issue the tokens
+	privKey := certsclient.CreateECDSAKeys()
+	//issuer := jwtissuer.NewJWTIssuer("issuerName", privKey, nil)
+	jauth := tlsserver.NewJWTAuthenticator(&privKey.PublicKey)
+
+	// bad bearer token
+	req, _ := http.NewRequest("GET", "someurl", http.NoBody)
+	req.Header.Add("Authorization", "Bearer badtoken")
+	resp := httptest.NewRecorder()
+	userId, match := jauth.AuthenticateRequest(resp, req)
+
+	assert.Empty(t, userId)
+	assert.False(t, match)
+}
+
+// Test JWT login using the TLS client
+func TestTlsClientLogin(t *testing.T) {
+}

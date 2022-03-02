@@ -4,6 +4,8 @@ import (
 	"crypto/ecdsa"
 	"crypto/x509"
 	"encoding/json"
+	"github.com/wostzone/hub/certs/pkg/certsetup"
+	"github.com/wostzone/hub/lib/client/pkg/certsclient"
 	"testing"
 	"time"
 
@@ -11,8 +13,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/wostzone/hub/idprov/pkg/idprovclient"
 	"github.com/wostzone/hub/idprov/pkg/oobclient"
-	"github.com/wostzone/hub/lib/client/pkg/certs"
-	"github.com/wostzone/hub/lib/serve/pkg/certsetup"
 )
 
 //--- This uses TestMain in IDProvServer_test to start the server
@@ -21,7 +21,7 @@ const testDeviceID = "device1"
 
 // convenience function to create a signed client certificate for a device
 func _createDeviceCert(deviceID string, ou string, startTime time.Time) (cert *x509.Certificate, key *ecdsa.PrivateKey, err error) {
-	privKey := certs.CreateECDSAKeys()
+	privKey := certsclient.CreateECDSAKeys()
 	deviceCert, err := certsetup.CreateHubClientCert(
 		testDeviceID, ou,
 		&privKey.PublicKey, testCerts.CaCert, testCerts.CaKey, startTime, 1)
@@ -127,10 +127,10 @@ func TestProvisionByDeviceRenew(t *testing.T) {
 	removeDeviceCerts()
 
 	// start with a device certificate so it can be renewed
-	deviceCert, privKey, err := _createDeviceCert(testDeviceID, certsetup.OUIoTDevice, time.Now())
+	deviceCert, privKey, err := _createDeviceCert(testDeviceID, certsclient.OUIoTDevice, time.Now())
 	require.NoError(t, err)
-	certs.SaveX509CertToPEM(deviceCert, device1CertPath)
-	certs.SaveKeysToPEM(privKey, device1KeyPath)
+	certsclient.SaveX509CertToPEM(deviceCert, device1CertPath)
+	certsclient.SaveKeysToPEM(privKey, device1KeyPath)
 
 	// the client loads the created certificate
 	idpc := idprovclient.NewIDProvClient(testDeviceID, idProvTestAddrPort,
@@ -167,11 +167,11 @@ func TestProvisionByDeviceRenewExpired(t *testing.T) {
 
 	// start with a device certificate so it can be renewed
 	deviceCert, privKey, err := _createDeviceCert(
-		testDeviceID, certsetup.OUIoTDevice, time.Now().AddDate(0, 0, -3))
+		testDeviceID, certsclient.OUIoTDevice, time.Now().AddDate(0, 0, -3))
 	require.NoError(t, err)
-	certs.SaveX509CertToPEM(deviceCert, device1CertPath)
-	certs.SaveKeysToPEM(privKey, device1KeyPath)
-	certs.SaveX509CertToPEM(testCerts.CaCert, device1CaCertPath)
+	certsclient.SaveX509CertToPEM(deviceCert, device1CertPath)
+	certsclient.SaveKeysToPEM(privKey, device1KeyPath)
+	certsclient.SaveX509CertToPEM(testCerts.CaCert, device1CaCertPath)
 
 	// refresh client certificate as a Thing. No secret provided as we use
 	// an existing client cert. As it is expired this will fail.
@@ -194,10 +194,10 @@ func TestProvisionByNoneOU(t *testing.T) {
 
 	// start with device certificate that is missing its OU
 	deviceCert, privKey, err := _createDeviceCert(
-		testDeviceID, certsetup.OUNone, time.Now())
+		testDeviceID, certsclient.OUNone, time.Now())
 	require.NoError(t, err)
-	certs.SaveX509CertToPEM(deviceCert, device1CertPath)
-	certs.SaveKeysToPEM(privKey, device1KeyPath)
+	certsclient.SaveX509CertToPEM(deviceCert, device1CertPath)
+	certsclient.SaveKeysToPEM(privKey, device1KeyPath)
 
 	// start the client to generate a private key
 	// idpc := idprovclient.NewIDProvClient(testDeviceID, idProvTestAddrPort,
@@ -302,10 +302,10 @@ func TestProvisionByPluginInvalidDeviceID(t *testing.T) {
 	removeDeviceCerts()
 
 	// start with a device certificate so it can be renewed
-	deviceCert, privKey, err := _createDeviceCert(testDeviceID, certsetup.OUIoTDevice, time.Now())
+	deviceCert, privKey, err := _createDeviceCert(testDeviceID, certsclient.OUIoTDevice, time.Now())
 	require.NoError(t, err)
-	certs.SaveX509CertToPEM(deviceCert, device1CertPath)
-	certs.SaveKeysToPEM(privKey, device1KeyPath)
+	certsclient.SaveX509CertToPEM(deviceCert, device1CertPath)
+	certsclient.SaveKeysToPEM(privKey, device1KeyPath)
 
 	// plugin clients use the client cert in server cert folder
 	idpc := idprovclient.NewIDProvClient(testDeviceID, idProvTestAddrPort,

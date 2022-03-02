@@ -25,7 +25,7 @@ var hostnames = []string{"localhost"}
 func TestMain(m *testing.M) {
 	cwd, _ := os.Getwd()
 	homeFolder = path.Join(cwd, "../test")
-	certsFolder = path.Join(homeFolder, "certs")
+	certsFolder = path.Join(homeFolder, "certsclient")
 	certsetup.CreateCertificateBundle(hostnames, certsFolder)
 
 	result := m.Run()

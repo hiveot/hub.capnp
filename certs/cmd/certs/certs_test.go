@@ -12,7 +12,6 @@ func TestArgs(t *testing.T) {
 	homeFolder := path.Join(wd, "../../test")
 	os.Chdir(homeFolder)
 
-	// cmdline := "setpassword client1 bob -c ./config"
 	cmdline := "certbundle"
 	args := strings.Split(cmdline, " ")
 	ParseArgs(homeFolder, args)

@@ -88,13 +88,13 @@ func TestLogTD(t *testing.T) {
 	assert.NoError(t, err)
 
 	client := mqttclient.NewMqttHubClient(clientID, testCerts.CaCert)
-	hostPort := fmt.Sprintf("%s:%d", hubConfig.MqttAddress, testenv.MqttPortCert)
+	hostPort := fmt.Sprintf("%s:%d", hubConfig.Address, testenv.MqttPortCert)
 	err = client.ConnectWithClientCert(hostPort, hubConfig.PluginCert)
 	require.Nil(t, err)
 	time.Sleep(100 * time.Millisecond)
 
 	// create a thing to publish with
-	tdObj := td.CreateTD(thingID1, vocab.DeviceTypeSensor)
+	tdObj := td.CreateTD(thingID1, "", vocab.DeviceTypeSensor)
 	client.PublishTD(thingID1, tdObj)
 
 	event := td.CreateThingEvent("event1", nil)
@@ -123,7 +123,7 @@ func TestLogSpecificIDs(t *testing.T) {
 
 	// create a client to publish with
 	client := mqttclient.NewMqttHubClient(clientID, testCerts.CaCert)
-	hostPort := fmt.Sprintf("%s:%d", hubConfig.MqttAddress, testenv.MqttPortCert)
+	hostPort := fmt.Sprintf("%s:%d", hubConfig.Address, testenv.MqttPortCert)
 	err = client.ConnectWithClientCert(hostPort, hubConfig.PluginCert)
 	require.NoError(t, err)
 	time.Sleep(100 * time.Millisecond)

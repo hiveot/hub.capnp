@@ -120,7 +120,7 @@ func TestUpdateTD(t *testing.T) {
 	require.NoError(t, err)
 
 	// write a TD document
-	td := td.CreateTD(id1, vocab.DeviceTypeSensor)
+	td := td.CreateTD(id1, "test sensor TD", vocab.DeviceTypeSensor)
 	err = dirClient.UpdateTD(id1, td)
 	assert.NoError(t, err)
 	assert.NoError(t, err2)
@@ -150,7 +150,7 @@ func TestQueryAndList(t *testing.T) {
 
 		if request.Method == "GET" {
 			q := request.URL.Query().Get(dirclient.ParamQuery)
-			thd := td.CreateTD("thing1", vocab.DeviceTypeSensor)
+			thd := td.CreateTD("thing1", "Test TD", vocab.DeviceTypeSensor)
 			prop := td.CreateProperty("query", "", vocab.PropertyTypeAttr)
 			td.SetPropertyDataTypeString(prop, 0, 0)
 			td.SetPropertyValue(prop, q)

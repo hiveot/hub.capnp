@@ -1,7 +1,7 @@
-// Package idprov with IDProv protocol message definitions
+// Package idprovclient with IDProv protocol message definitions
 package idprovclient
 
-// Default request path to get the IDProv server directory
+// IDProvDirectoryPath contains the default request path to get the IDProv server directory
 const IDProvDirectoryPath = "/idprov/directory"
 
 // Device provisioning status

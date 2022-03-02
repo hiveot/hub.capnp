@@ -8,18 +8,18 @@ import "C"
 import (
 	"strings"
 
-	"github.com/wostzone/hub/lib/client/pkg/certs"
+	"github.com/wostzone/hub/lib/client/pkg/certsclient"
+	"github.com/wostzone/hub/lib/client/pkg/config"
 	"github.com/wostzone/hub/lib/serve/pkg/tlsserver"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/auth/pkg/aclstore"
-	"github.com/wostzone/hub/auth/pkg/authenticate"
-	"github.com/wostzone/hub/auth/pkg/authorize"
-	"github.com/wostzone/hub/auth/pkg/unpwstore"
-	"github.com/wostzone/hub/lib/client/pkg/config"
+	"github.com/wostzone/hub/authn/pkg/authenticate"
+	"github.com/wostzone/hub/authn/pkg/unpwstore"
+	"github.com/wostzone/hub/authz/pkg/aclstore"
+	"github.com/wostzone/hub/authz/pkg/authorize"
 )
 
-// from mosquitto.h
+// Constants from mosquitto.h
 const (
 	MOSQ_ERR_AUTH_CONTINUE      = -4
 	MOSQ_ERR_NO_SUBSCRIBERS     = -3
@@ -134,11 +134,11 @@ func AuthPluginInit(keys []string, values []string, authOptsNum int) {
 	// Tokens are signed by the server private key.
 	// The server certificate holds the public key for verifying JWT access tokens.
 	if serverCertFile != "" {
-		serverCert, err := certs.LoadX509CertFromPEM(serverCertFile)
+		serverCert, err := certsclient.LoadX509CertFromPEM(serverCertFile)
 		if err != nil {
 			logrus.Warningf("AuthPluginInit: Failed loading the public key for JWT verification from '%s': %s", pemPath, err)
 		} else {
-			serverKey := certs.PublicKeyFromCert(serverCert)
+			serverKey := certsclient.PublicKeyFromCert(serverCert)
 			jwtAuthenticator = tlsserver.NewJWTAuthenticator(serverKey)
 		}
 	}

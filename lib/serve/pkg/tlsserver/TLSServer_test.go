@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"path"
 	"testing"
 	"time"
 
@@ -21,10 +20,6 @@ var serverPort uint = 4444
 var clientHostPort string
 var testCerts testenv.TestCerts
 
-// These are set in TestMain
-var homeFolder string
-var serverCertFolder string
-
 // TestMain runs a http server
 // Used for all test cases in this package
 func TestMain(m *testing.M) {
@@ -34,10 +29,6 @@ func TestMain(m *testing.M) {
 	serverAddress = "127.0.0.1"
 	// hostnames := []string{serverAddress}
 	clientHostPort = fmt.Sprintf("%s:%d", serverAddress, serverPort)
-
-	cwd, _ := os.Getwd()
-	homeFolder = path.Join(cwd, "../../test")
-	serverCertFolder = path.Join(homeFolder, "certs")
 
 	testCerts = testenv.CreateCertBundle()
 	res := m.Run()
@@ -153,94 +144,6 @@ func TestCertAuth(t *testing.T) {
 }
 
 // Test valid authentication using JWT
-func TestJWTLogin(t *testing.T) {
-	user1 := "user1"
-	user1Pass := "pass1"
-	loginHit := 0
-	path2 := "/hello"
-	path2Hit := 0
-	srv := tlsserver.NewTLSServer(serverAddress, serverPort,
-		testCerts.ServerCert, testCerts.CaCert)
-	srv.EnableJwtAuth(&testCerts.ServerKey.PublicKey)
-	srv.EnableJwtIssuer(testCerts.ServerKey, func(loginID1, password string) bool {
-		loginHit++
-		return loginID1 == user1 && password == user1Pass
-	})
-	err := srv.Start()
-	assert.NoError(t, err)
-	//
-	srv.AddHandler(path2, func(userID string, resp http.ResponseWriter, req *http.Request) {
-		path2Hit++
-	})
-
-	cl := tlsclient.NewTLSClient(clientHostPort, testCerts.CaCert)
-	require.NoError(t, err)
-
-	// first show that an incorrect password fails
-	_, err = cl.ConnectWithLoginID(user1, "wrongpassword")
-	assert.Error(t, err)
-	assert.Equal(t, 1, loginHit)
-	// this request should be unauthorized
-	_, err = cl.Get(path2)
-	assert.Error(t, err)
-	assert.Equal(t, 0, path2Hit) // should not increase
-	cl.Close()
-
-	// try again with the correct password
-	_, err = cl.ConnectWithLoginID(user1, user1Pass)
-	assert.NoError(t, err)
-	assert.Equal(t, 2, loginHit)
-
-	// use access token
-	_, err = cl.Get(path2)
-	require.NoError(t, err)
-	assert.Equal(t, 1, path2Hit)
-
-	cl.Close()
-	srv.Stop()
-}
-
-func TestJWTRefresh(t *testing.T) {
-	user1 := "user1"
-	user1Pass := "pass1"
-	loginHit := 0
-	path2 := "/hello"
-	path2Hit := 0
-	srv := tlsserver.NewTLSServer(serverAddress, serverPort,
-		testCerts.ServerCert, testCerts.CaCert)
-
-	srv.EnableJwtAuth(&testCerts.ServerKey.PublicKey)
-	srv.EnableJwtIssuer(testCerts.ServerKey, func(loginID1, password string) bool {
-		loginHit++
-		return loginID1 == user1 && password == user1Pass
-	})
-
-	err := srv.Start()
-	assert.NoError(t, err)
-	//
-	srv.AddHandler(path2, func(userID string, resp http.ResponseWriter, req *http.Request) {
-		path2Hit++
-	})
-
-	cl := tlsclient.NewTLSClient(clientHostPort, testCerts.CaCert)
-	require.NoError(t, err)
-
-	_, err = cl.ConnectWithLoginID(user1, user1Pass)
-	assert.NoError(t, err)
-	assert.Equal(t, 1, loginHit)
-
-	rt, err := cl.RefreshJWTTokens("")
-	assert.NoError(t, err)
-	assert.NotNil(t, rt)
-
-	// use access token
-	_, err = cl.Get(path2)
-	require.NoError(t, err)
-	assert.Equal(t, 1, path2Hit)
-	srv.Stop()
-
-}
-
 func TestQueryParams(t *testing.T) {
 	path2 := "/hello"
 	path2Hit := 0

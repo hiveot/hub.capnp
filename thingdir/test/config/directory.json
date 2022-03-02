@@ -3,16 +3,18 @@
       "@context": "http://www.w3.org/ns/td",
       "@type": "button",
       "actions": {},
-      "created": "2021-11-29T20:40:33.748-0800",
+      "created": "2022-03-01T16:07:41.728-0800",
       "events": {},
       "id": "thing1",
-      "properties": {}
+      "properties": {},
+      "security": "NoSecurityScheme",
+      "title": "test thing"
     },
     "thing3": {
       "@context": "http://www.w3.org/ns/td",
       "@type": "sensor",
       "actions": {},
-      "created": "2021-11-29T20:40:05.998-0800",
+      "created": "2022-03-01T16:07:16.830-0800",
       "events": {},
       "id": "thing3",
       "properties": {
@@ -20,13 +22,15 @@
           "@type": "wost:attr",
           "title": "garage sensor"
         }
-      }
+      },
+      "security": "NoSecurityScheme",
+      "title": "test thing"
     },
     "thing4": {
       "@context": "http://www.w3.org/ns/td",
       "@type": "netSwitch",
       "actions": {},
-      "created": "2021-11-29T20:40:05.998-0800",
+      "created": "2022-03-01T16:07:16.831-0800",
       "events": {},
       "id": "thing4",
       "properties": {
@@ -34,6 +38,8 @@
           "@type": "wost:attr",
           "title": "main switch"
         }
-      }
+      },
+      "security": "NoSecurityScheme",
+      "title": "test thing"
     }
   }

@@ -3,12 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/wostzone/hub/lib/client/pkg/certsclient"
 	"os"
 	"path"
 
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/idprov/pkg/oobclient"
-	"github.com/wostzone/hub/lib/client/pkg/certs"
 	"github.com/wostzone/hub/lib/client/pkg/config"
 	"github.com/wostzone/hub/lib/serve/pkg/hubnet"
 )
@@ -41,13 +41,13 @@ func main() {
 	addrPort := fmt.Sprintf("%s:%d", hostname, port)
 	pluginCertPath := path.Join(certFolder, config.DefaultPluginCertFile)
 	pluginKeyPath := path.Join(certFolder, config.DefaultPluginKeyFile)
-	clientCert, err := certs.LoadTLSCertFromPEM(pluginCertPath, pluginKeyPath)
+	clientCert, err := certsclient.LoadTLSCertFromPEM(pluginCertPath, pluginKeyPath)
 	if err != nil {
 		logrus.Infof("Unable to load the plugin certificate/key at %s: %s", pluginCertPath, err)
 		os.Exit(1)
 	}
 	caCertPath := path.Join(certFolder, config.DefaultCaCertFile)
-	caCert, err := certs.LoadX509CertFromPEM(caCertPath)
+	caCert, err := certsclient.LoadX509CertFromPEM(caCertPath)
 	if err != nil {
 		logrus.Infof("Unable to load the CA certificate at %s: %s", caCertPath, err)
 		os.Exit(1)

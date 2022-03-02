@@ -167,7 +167,7 @@ func TestPublishTD(t *testing.T) {
 	logrus.Infof("--- TestPublishTD ---")
 	deviceID := "thing1"
 	thingID := td.CreateThingID(zone, deviceID, vocab.DeviceTypeSensor)
-	td1 := td.CreateTD(thingID, vocab.DeviceTypeSensor)
+	td1 := td.CreateTD(thingID, "test TD", vocab.DeviceTypeSensor)
 	var rxTd map[string]interface{}
 
 	// Use plugin as client with certificate so no hassle with username/pwsswd in testing
@@ -202,7 +202,7 @@ func TestSubscribeAll(t *testing.T) {
 	logrus.Infof("--- TestSubscribeAll ---")
 	deviceID := "thing1"
 	thingID := td.CreateThingID(zone, deviceID, vocab.DeviceTypeSensor)
-	td1 := td.CreateTD(thingID, vocab.DeviceTypeSensor)
+	td1 := td.CreateTD(thingID, "Test TD", vocab.DeviceTypeSensor)
 	txTd, _ := json.MarshalIndent(td1, "  ", "  ")
 	var rxTd []byte
 	var rxThing string

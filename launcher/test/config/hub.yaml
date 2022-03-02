@@ -2,13 +2,13 @@
 
 # Message bus server
 address: "127.0.0.1" # LAN address to connect to the message bus
-mqttPortUnpw: 9883 # password based auth over MQTT/TLS
-mqttPortCert: 9884 # certificate based auth over MQTT/TLS
-mqttPortWS: 9885 # username password auth over WebSocket/TLS
+mqttPortUnpw: 9883 # password based authn over MQTT/TLS
+mqttPortCert: 9884 # certificate based authn over MQTT/TLS
+mqttPortWS: 9885 # username password authn over WebSocket/TLS
 mqttTimeout: 3
 
 # Logging
 logLevel: "info" # debug, info, warning, error. Default is warning
 
 #configFolder: "./config" # plugin config, relative to the working directory
-#certsFolder: "./certs" # set to activate TLS. Relative to app home folder
+#certsFolder: "./certsclient" # set to activate TLS. Relative to app home folder

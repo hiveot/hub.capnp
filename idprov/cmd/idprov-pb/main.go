@@ -3,13 +3,13 @@ package main
 import (
 	"crypto/ecdsa"
 	"flag"
+	"github.com/wostzone/hub/lib/client/pkg/certsclient"
 	"os"
 	"path"
 
 	"github.com/sirupsen/logrus"
 	idprovpb "github.com/wostzone/hub/idprov/pkg/idprov-pb"
 	"github.com/wostzone/hub/idprov/pkg/idprovclient"
-	"github.com/wostzone/hub/lib/client/pkg/certs"
 	"github.com/wostzone/hub/lib/client/pkg/config"
 	"github.com/wostzone/hub/lib/client/pkg/proc"
 )
@@ -46,10 +46,10 @@ func main() {
 	// flag.Parse()
 	serverCertPath := path.Join(hubConfig.CertsFolder, config.DefaultServerCertFile)
 	serverKeyPath := path.Join(hubConfig.CertsFolder, config.DefaultServerKeyFile)
-	serverCert, err := certs.LoadTLSCertFromPEM(serverCertPath, serverKeyPath)
+	serverCert, err := certsclient.LoadTLSCertFromPEM(serverCertPath, serverKeyPath)
 	if err == nil {
 		caKeyPath := path.Join(hubConfig.CertsFolder, config.DefaultServerKeyFile)
-		caKey, err = certs.LoadKeysFromPEM(caKeyPath)
+		caKey, err = certsclient.LoadKeysFromPEM(caKeyPath)
 	}
 	if err != nil {
 		logrus.Fatalf("idprov-pb.main: Missing CA and/or server certificate. Unable to continue: %s", err)

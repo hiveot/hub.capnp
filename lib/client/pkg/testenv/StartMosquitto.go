@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/lib/client/pkg/certs"
+	"github.com/wostzone/hub/lib/client/pkg/certsclient"
 )
 
 // MQTT ports for test environment in the 9xxx range
@@ -94,12 +94,12 @@ func CreateMosquittoConf(configFolder string, certFolder string) string {
 
 // SaveCerts saves the given CA and mosquitto server key and certificates as PEM files
 func SaveCerts(testCerts *TestCerts, certFolder string) {
-	certs.SaveX509CertToPEM(testCerts.CaCert, path.Join(certFolder, caCertFile))
-	certs.SaveKeysToPEM(testCerts.CaKey, path.Join(certFolder, caKeyFile))
-	certs.SaveTLSCertToPEM(testCerts.ServerCert,
+	certsclient.SaveX509CertToPEM(testCerts.CaCert, path.Join(certFolder, caCertFile))
+	certsclient.SaveKeysToPEM(testCerts.CaKey, path.Join(certFolder, caKeyFile))
+	certsclient.SaveTLSCertToPEM(testCerts.ServerCert,
 		path.Join(certFolder, serverCertFile),
 		path.Join(certFolder, serverKeyFile))
-	certs.SaveTLSCertToPEM(testCerts.PluginCert,
+	certsclient.SaveTLSCertToPEM(testCerts.PluginCert,
 		path.Join(certFolder, pluginCertFile),
 		path.Join(certFolder, pluginKeyFile))
 }
@@ -114,7 +114,7 @@ func SaveCerts(testCerts *TestCerts, certFolder string) {
 //
 //  configFolder is the location to generate mosquitto configuration
 //  certFolder is the location to save the certificates
-//  certs are the certificates to use.
+//  certsclient are the certificates to use.
 // Returns the mosquitto process
 func StartMosquitto(configFolder string, certFolder string, testCerts *TestCerts) (mqCmd *exec.Cmd, err error) {
 

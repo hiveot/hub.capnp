@@ -7,7 +7,7 @@ INSTALL_HOME=~/bin/wosthub
 
 .FORCE: 
 
-all: launcher auth idprov logger mosquittomgr thingdir  ## Build the launcher and core plugins
+all: launcher certs authn authz idprov logger mosquittomgr thingdir  ## Build the launcher and core plugins
 
 install:  all ## Install the launcher into ~/bin/wost/bin and config
 	mkdir -p $(INSTALL_HOME)/bin
@@ -25,7 +25,7 @@ clean: ## Clean distribution files
 	mkdir -p $(DIST_FOLDER)/bin
 	mkdir -p $(DIST_FOLDER)/config
 
-auth idprov launcher logger mosquittomgr thingdir:  .FORCE ## Build Hub services 
+authn authz certs idprov launcher logger mosquittomgr thingdir:  .FORCE ## Build Hub services 
 	make -C $@ all
 	cp $@/dist/bin/* dist/bin
 	cp $@/dist/config/* dist/config
@@ -35,4 +35,5 @@ help: ## Show this help
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
 
-addons: logger owserver-pb  ## Build addon plugins
+addons: logger owserver-pb   ## Build addon plugins
+

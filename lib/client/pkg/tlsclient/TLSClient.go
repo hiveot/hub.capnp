@@ -22,9 +22,10 @@ import (
 // Authentication methods for use with ConnectWithLoginID
 // Use AuthMethodDefault unless there is a good reason not to
 const (
-	AuthMethodBasic = "basic" // basic auth for backwards compatibility when connecting to non WoST servers
-	AuthMethodNone  = ""      // disable authentication, for testing
-	AuthMethodJwt   = "jwt"   // JSON web token for use with WoST server (default)
+	AuthMethodBasic    = "basic"  // basic auth for backwards compatibility when connecting to non WoST servers
+	AuthMethodNone     = ""       // disable authentication, for testing
+	AuthMethodJwt      = "jwt"    // JSON web token for use with WoST server (default)
+	AuthMethodJwtToken = "access" // JWT access token provided
 )
 
 // The default paths for user authentication and configuration
@@ -156,7 +157,7 @@ func (cl *TLSClient) ConnectWithClientCert(clientCert *tls.Certificate) (err err
 	return nil
 }
 
-// ConnectWithLoginID creates a connection with the server using loginID/password authentication.
+// ConnectWithLoginID creates a connection with the server using loginID/password or JWT token authentication.
 // If a CA certificate is not available then insecure-skip-verify is used to allow
 // connection to an unverified server (leap of faith).
 //
@@ -174,7 +175,8 @@ func (cl *TLSClient) ConnectWithClientCert(clientCert *tls.Certificate) (err err
 // The behavior can be modified:
 //  1. Alternate login URL by providing the 'authLoginURL' parameter
 //  2. Alternate authentication method by adding the AuthMethod as 4th parameter:
-//     - AuthMethodJwt: default. This will invoke the URL to obtain an authentication token from the server for further requests.
+//     - AuthMethodJwtLogin: default. This will invoke the URL to obtain an authentication token from the server for further requests.
+//     - AuthMethodJwtToken: each future request will include the given access token until it is updated
 //     - AuthMethodNone: the server doesn't require authentication
 //     - AuthMethodBasic: each future request will include basic authentication with the given credentials.
 //
@@ -222,8 +224,12 @@ func (cl *TLSClient) ConnectWithLoginID(loginID string, secret string,
 		Timeout:   cl.timeout,
 		Jar:       cjar,
 	}
-	// Authenticate with JWT requires a cookiejar to store the refresh token
-	if authMethod == AuthMethodJwt {
+	// Authenticate with JWT token simply uses the given access token
+	if authMethod == AuthMethodJwtToken {
+		cl.JwtTokens = &JwtAuthResponse{AccessToken: secret}
+		accessToken = secret
+	} else if authMethod == AuthMethodJwt {
+		// Authenticate with JWT requires a cookiejar to store the refresh token
 
 		loginMessage := JwtAuthLogin{
 			LoginID:  loginID,
@@ -308,6 +314,10 @@ func (cl *TLSClient) Invoke(method string, url string, msg interface{}) ([]byte,
 	} else if cl.authMethod == AuthMethodJwt {
 		if cl.JwtTokens.AccessToken != "" {
 			cl.RefreshJWTTokenIfExpired()
+			req.Header.Add("Authorization", "bearer "+cl.JwtTokens.AccessToken)
+		}
+	} else if cl.authMethod == AuthMethodJwtToken {
+		if cl.JwtTokens.AccessToken != "" {
 			req.Header.Add("Authorization", "bearer "+cl.JwtTokens.AccessToken)
 		}
 	}

@@ -58,13 +58,19 @@ func (dc *DirClient) ConnectWithClientCert(tlsClientCert *tls.Certificate) error
 }
 
 // ConnectWithLoginID open the connection to the directory server using a login ID and password for authentication
-// For testing. Use the auth service instead
 //  loginID  username or email
 //  password credentials
 func (dc *DirClient) ConnectWithLoginID(loginID string, password string) error {
-	// TODO, support access token instead loginID
 	accessToken, err := dc.tlsClient.ConnectWithLoginID(loginID, password)
 	_ = accessToken
+	return err
+}
+
+// ConnectWithJwtToken open the connection to the directory server using a login ID and given access token
+//  loginID  username or email
+//  accessToken JWT access token
+func (dc *DirClient) ConnectWithJwtToken(loginID string, accessToken string) error {
+	_, err := dc.tlsClient.ConnectWithLoginID(loginID, accessToken, "", tlsclient.AuthMethodJwtToken)
 	return err
 }
 

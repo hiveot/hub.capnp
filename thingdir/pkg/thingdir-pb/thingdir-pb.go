@@ -2,14 +2,13 @@ package thingdirpb
 
 import (
 	"fmt"
+	"github.com/wostzone/hub/lib/client/pkg/certsclient"
 	"path"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/auth/pkg/aclstore"
-	"github.com/wostzone/hub/auth/pkg/authenticate"
-	"github.com/wostzone/hub/auth/pkg/authorize"
-	"github.com/wostzone/hub/auth/pkg/unpwstore"
-	"github.com/wostzone/hub/lib/client/pkg/certs"
+	"github.com/wostzone/hub/authn/pkg/unpwstore"
+	"github.com/wostzone/hub/authz/pkg/aclstore"
+	"github.com/wostzone/hub/authz/pkg/authorize"
 	"github.com/wostzone/hub/lib/client/pkg/config"
 	"github.com/wostzone/hub/lib/client/pkg/mqttclient"
 	"github.com/wostzone/hub/thingdir/pkg/dirclient"
@@ -52,15 +51,15 @@ type ThingDirPBConfig struct {
 
 // ThingDirPB Directory Protocol Binding for the WoST Hub
 type ThingDirPB struct {
-	config        ThingDirPBConfig
-	hubConfig     config.HubConfig
-	dirServer     *dirserver.DirectoryServer
-	dirClient     *dirclient.DirClient
-	hubClient     *mqttclient.MqttHubClient
-	authenticator authenticate.VerifyUsernamePassword
-	authorizer    authorize.VerifyAuthorization
-	aclStore      *aclstore.AclFileStore
-	unpwStore     *unpwstore.PasswordFileStore
+	config    ThingDirPBConfig
+	hubConfig config.HubConfig
+	dirServer *dirserver.DirectoryServer
+	dirClient *dirclient.DirClient
+	hubClient *mqttclient.MqttHubClient
+	//authenticator authenticate.VerifyUsernamePassword
+	authorizer authorize.VerifyAuthorization
+	aclStore   *aclstore.AclFileStore
+	unpwStore  *unpwstore.PasswordFileStore
 }
 
 // Start the ThingDir service.
@@ -72,7 +71,7 @@ func (pb *ThingDirPB) Start() error {
 	logrus.Infof("ThingDirPB.Start")
 	var err error
 
-	serverCert, err := certs.LoadTLSCertFromPEM(pb.config.ServerCertPath, pb.config.ServerKeyPath)
+	serverCert, err := certsclient.LoadTLSCertFromPEM(pb.config.ServerCertPath, pb.config.ServerKeyPath)
 	if err != nil {
 		return err
 	}
@@ -80,15 +79,15 @@ func (pb *ThingDirPB) Start() error {
 	// First get the directory server up and running, if not disabled
 	if !pb.config.DisableDirServer {
 		// Using external or internal login authenticator?
-		var loginAuth func(string, string) bool
-		if pb.config.EnableLogin {
-			loginAuth = pb.authenticator
-		}
+		//var loginAuth func(string, string) bool
+		//if pb.config.EnableLogin {
+		//	loginAuth = pb.authenticator
+		//}
 		err = pb.unpwStore.Open()
 		if err != nil {
 			return err
 		}
-		pb.aclStore.Open()
+		err = pb.aclStore.Open()
 		if err != nil {
 			return err
 		}
@@ -99,7 +98,7 @@ func (pb *ThingDirPB) Start() error {
 			pb.config.DirAddress, pb.config.DirPort,
 			pb.config.ServiceName,
 			serverCert, pb.hubConfig.CaCert,
-			loginAuth,
+			//loginAuth,
 			pb.authorizer)
 
 		err = pb.dirServer.Start()
@@ -143,7 +142,7 @@ func (pb *ThingDirPB) Stop() {
 
 }
 
-// NewThingDirPB creates a new Thing Directory protocol binding instance
+// NewThingDirPB creates a new Thing Directory service instance
 // This uses the hub server certificate for the Thing Directory server. The server address must
 // therefore match that of the certificate. Default is the hub's mqtt address.
 //  config with the plugin configuration and overrides from the defaults
@@ -210,13 +209,13 @@ func NewThingDirPB(thingdirconf *ThingDirPBConfig, hubConfig *config.HubConfig) 
 	unpwStore := unpwstore.NewPasswordFileStore(unpwFile, "ThingDirPB")
 
 	tdir := ThingDirPB{
-		config:        *thingdirconf,
-		hubConfig:     *hubConfig,
-		hubClient:     mqttclient.NewMqttHubClient(PluginID, hubConfig.CaCert),
-		aclStore:      aclStore,
-		authenticator: authenticate.NewAuthenticator(unpwStore).VerifyUsernamePassword,
-		unpwStore:     unpwStore,
-		authorizer:    authorize.NewAuthorizer(aclStore).VerifyAuthorization,
+		config:    *thingdirconf,
+		hubConfig: *hubConfig,
+		hubClient: mqttclient.NewMqttHubClient(PluginID, hubConfig.CaCert),
+		aclStore:  aclStore,
+		//authenticator: authenticate.NewAuthenticator(unpwStore).VerifyUsernamePassword,
+		unpwStore:  unpwStore,
+		authorizer: authorize.NewAuthorizer(aclStore).VerifyAuthorization,
 	}
 	return &tdir
 }

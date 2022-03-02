@@ -2,7 +2,7 @@ package internal_test
 
 import (
 	"fmt"
-	"github.com/wostzone/hub/lib/serve/pkg/tlsserver"
+	"github.com/wostzone/hub/authn/pkg/jwtissuer"
 	"os"
 	"path"
 	"testing"
@@ -12,7 +12,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/wostzone/hub/auth/pkg/unpwstore"
+	"github.com/wostzone/hub/authn/pkg/unpwstore"
 	"github.com/wostzone/hub/lib/client/pkg/config"
 	"github.com/wostzone/hub/lib/client/pkg/mqttclient"
 	"github.com/wostzone/hub/lib/client/pkg/td"
@@ -47,15 +47,15 @@ func TestMain(m *testing.M) {
 
 	// load the plugin config with client cert
 	hubConfig = config.CreateDefaultHubConfig(homeFolder)
-	config.LoadHubConfig("", internal.PluginID, hubConfig)
+	_ = config.LoadHubConfig("", internal.PluginID, hubConfig)
 
 	// clean acls and passwd file
 	aclFilePath = path.Join(hubConfig.ConfigFolder, aclFileName)
 	unpwFilePath = path.Join(hubConfig.ConfigFolder, unpwFileName)
 	fp, _ := os.Create(aclFilePath)
-	fp.Close()
+	_ = fp.Close()
 	fp, _ = os.Create(unpwFilePath)
-	fp.Close()
+	_ = fp.Close()
 	result := m.Run()
 	os.Exit(result)
 }
@@ -93,8 +93,8 @@ func TestPluginConnect(t *testing.T) {
 	err = client.ConnectWithClientCert(hostPort, hubConfig.PluginCert)
 	if assert.NoError(t, err) {
 		// publish should succeed
-		td := td.CreateTD(thing1ID, vocab.DeviceTypeService)
-		err = client.PublishTD(thing1ID, td)
+		tdoc := td.CreateTD(thing1ID, "test thing", vocab.DeviceTypeService)
+		err = client.PublishTD(thing1ID, tdoc)
 		assert.NoError(t, err)
 		time.Sleep(time.Second)
 		client.Close()
@@ -120,7 +120,7 @@ func TestPasswdWithMosqManager(t *testing.T) {
 	// pwhash, err := authen.CreatePasswordHash(password1, authen.PWHASH_ARGON2id, 0)
 	assert.NoError(t, err)
 	logrus.Infof("--- TestPasswdWithMosqManager: Setting password for %s", username)
-	pfs.SetPasswordHash(username, pwhash)
+	err = pfs.SetPasswordHash(username, pwhash)
 	assert.NoError(t, err)
 
 	// for logging timestamps - dont mix setting passwd with starting mosq mgr
@@ -163,7 +163,7 @@ func TestJWTWithMosqManager(t *testing.T) {
 	hostPort := fmt.Sprintf("%s:%d", hubConfig.Address, hubConfig.MqttPortUnpw)
 	client := mqttclient.NewMqttHubClient("clientID", hubConfig.CaCert)
 
-	issuer := tlsserver.NewJWTIssuer("test", testCerts.ServerKey, nil)
+	issuer := jwtissuer.NewJWTIssuer("test", testCerts.ServerKey, nil)
 	accessToken, _, _ := issuer.CreateJWTTokens(username)
 	err = client.ConnectWithPassword(hostPort, username, accessToken)
 	assert.NoError(t, err)

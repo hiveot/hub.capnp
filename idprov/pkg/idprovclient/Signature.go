@@ -7,7 +7,7 @@ import (
 	"errors"
 )
 
-// Create an HMAC signature from a JSON message with the out of band secret
+// Sign creates an HMAC signature from a JSON message with the out of band secret
 // This generates the HMAC of the message with SHA256 hash of the secret
 //  message is the JSON message
 //  secret is the secret shared with the receiver

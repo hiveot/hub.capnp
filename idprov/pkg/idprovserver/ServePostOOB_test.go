@@ -9,8 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/wostzone/hub/idprov/pkg/oobclient"
-	"github.com/wostzone/hub/lib/client/pkg/certs"
-	"github.com/wostzone/hub/lib/serve/pkg/certsetup"
+	"github.com/wostzone/hub/lib/client/pkg/certsclient"
 )
 
 //--- This uses TestMain in IDProvServer_test to start the server
@@ -72,17 +71,17 @@ func TestServeOOBClientCert(t *testing.T) {
 	// Fresh set of client keys
 	removeDeviceCerts()
 	// start with a device certificate so it can be renewed
-	deviceCert, privKey, err := _createDeviceCert(testDeviceID, certsetup.OUIoTDevice, time.Now())
+	deviceCert, privKey, err := _createDeviceCert(testDeviceID, certsclient.OUIoTDevice, time.Now())
 	require.NoError(t, err)
-	certs.SaveX509CertToPEM(deviceCert, device1CertPath)
-	certs.SaveKeysToPEM(privKey, device1KeyPath)
+	certsclient.SaveX509CertToPEM(deviceCert, device1CertPath)
+	certsclient.SaveKeysToPEM(privKey, device1KeyPath)
 
 	// require.NoError(t, err)
 	clientCertPEMPath := path.Join(clientCertFolder, clientID+"Cert.pem")
 	clientKeyPEMPath := path.Join(clientCertFolder, clientID+"Key.pem")
 	// certs.SaveTLSCertToPEM(newTLSCert, clientCertPEMPath, clientKeyPEMPath)
 
-	clientCert, err := certs.LoadTLSCertFromPEM(clientCertPEMPath, clientKeyPEMPath)
+	clientCert, err := certsclient.LoadTLSCertFromPEM(clientCertPEMPath, clientKeyPEMPath)
 	assert.NoError(t, err)
 	// assert.NoError(t, err)
 	// start client using the client cert and key

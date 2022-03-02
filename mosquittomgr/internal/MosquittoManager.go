@@ -99,7 +99,7 @@ func (mm *MosquittoManager) Stop() {
 	}
 }
 
-// Start the mosquitto manager plugin
+// NewMosquittoManager creates the mosquitto manager plugin
 func NewMosquittoManager() *MosquittoManager {
 	mm := &MosquittoManager{
 		Config: PluginConfig{

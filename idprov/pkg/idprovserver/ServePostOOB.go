@@ -3,12 +3,12 @@ package idprovserver
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/wostzone/hub/lib/client/pkg/certsclient"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/idprov/pkg/idprovclient"
-	"github.com/wostzone/hub/lib/serve/pkg/certsetup"
 )
 
 // ServePostOOB receives out of band secret from the administrator
@@ -39,10 +39,10 @@ func (srv *IDProvServer) ServePostOOB(userID string, resp http.ResponseWriter, r
 
 	// Admin or plugins have permission
 	hasPermission := false
-	highestOU := certsetup.OUNone
+	highestOU := certsclient.OUNone
 	for _, ou := range peerCert.Subject.OrganizationalUnit {
 		highestOU = ou
-		if ou == certsetup.OUAdmin || ou == certsetup.OUPlugin {
+		if ou == certsclient.OUAdmin || ou == certsclient.OUPlugin {
 			hasPermission = true
 			break
 		}

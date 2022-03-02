@@ -1,8 +1,8 @@
 package dirserver
 
 import (
-	"github.com/wostzone/hub/auth/pkg/authorize"
-	"github.com/wostzone/hub/lib/serve/pkg/certsetup"
+	"github.com/wostzone/hub/authz/pkg/authorize"
+	"github.com/wostzone/hub/lib/client/pkg/certsclient"
 )
 
 // AclFilter function for authorization of thing access
@@ -16,7 +16,7 @@ type AclFilter struct {
 // FilterThing returns true if user can read the Thing with ID thingID
 // plugin certificates have full read access
 func (aclFilter *AclFilter) FilterThing(thingID string) bool {
-	if aclFilter.certOU == certsetup.OUPlugin {
+	if aclFilter.certOU == certsclient.OUPlugin {
 		return true
 	}
 	if aclFilter.userID == "" || thingID == "" {

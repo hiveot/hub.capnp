@@ -118,7 +118,7 @@ func TestUpdateTD(t *testing.T) {
 	mqttClient := mqttclient.NewMqttHubClient("testUpdateTD", hubConfig.CaCert)
 	mqttClient.ConnectWithClientCert(mqttHostPort, hubConfig.PluginCert)
 	require.NotNil(t, mqttClient)
-	td1 := td.CreateTD("thing1", vocab.DeviceTypeButton)
+	td1 := td.CreateTD("thing1", "test thing", vocab.DeviceTypeButton)
 	err = mqttClient.PublishTD("thing1", td1)
 	assert.NoError(t, err)
 

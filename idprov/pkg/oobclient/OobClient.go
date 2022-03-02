@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Admin tool to set the OOB secret
+// OOBClient admin tool to set the OOB secret
 type OOBClient struct {
 	addrPort   string // address and port of server
 	client     *tlsclient.TLSClient

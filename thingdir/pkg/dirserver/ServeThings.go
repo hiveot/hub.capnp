@@ -3,10 +3,10 @@ package dirserver
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/wostzone/hub/lib/client/pkg/certsclient"
 	"net/http"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/lib/serve/pkg/certsetup"
 	"github.com/wostzone/hub/thingdir/pkg/dirclient"
 )
 
@@ -15,7 +15,7 @@ import (
 func (srv *DirectoryServer) ServeThings(userID string, response http.ResponseWriter, request *http.Request) {
 	var offset = 0
 	var tdList []interface{}
-	certOU := certsetup.OUNone
+	certOU := certsclient.OUNone
 	if len(request.TLS.PeerCertificates) > 0 {
 		cert := request.TLS.PeerCertificates[0]
 		if len(cert.Subject.OrganizationalUnit) > 0 {
@@ -57,5 +57,5 @@ func (srv *DirectoryServer) ServeThings(userID string, response http.ResponseWri
 		srv.tlsServer.WriteInternalError(response, msg)
 		return
 	}
-	response.Write(msg)
+	_, _ = response.Write(msg)
 }

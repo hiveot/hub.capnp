@@ -15,10 +15,10 @@ type JwtClaims struct {
 	jwt.StandardClaims
 }
 
-// JWTAuthenticator verifies issued JWT tokens using the provided public certificate
+// JWTAuthenticator verifies issued JWT access token using the provided public key.
+// See JWTIssuer for test cases of the authenticator.
 // The application must use .AuthenticateRequest() to authenticate the incoming request using the
 // access token.
-//
 type JWTAuthenticator struct {
 	// Service certificate whose public key is used for token verification
 	publicKey *ecdsa.PublicKey

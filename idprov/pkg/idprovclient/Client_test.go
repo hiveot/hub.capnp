@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/wostzone/hub/idprov/pkg/idprovclient"
-	"github.com/wostzone/hub/lib/client/pkg/certs"
+	"github.com/wostzone/hub/lib/client/pkg/certsclient"
 	"github.com/wostzone/hub/lib/client/pkg/testenv"
 )
 
@@ -102,7 +102,7 @@ func TestMain(m *testing.M) {
 	caCertPath = path.Join(clientCertFolder, "caCert.pem")
 
 	testCerts = testenv.CreateCertBundle()
-	mockDirectory.CaCertPEM = []byte(certs.X509CertToPEM(testCerts.CaCert))
+	mockDirectory.CaCertPEM = []byte(certsclient.X509CertToPEM(testCerts.CaCert))
 
 	res := m.Run()
 
@@ -257,10 +257,10 @@ func TestProvision(t *testing.T) {
 		// if status is accepted then generate a cert
 		// next, create a new pretent certificate to be returned in the idprov request
 		if responseStatus == idprovclient.ProvisionStatusApproved {
-			clientPubKey, _ := certs.PublicKeyFromPEM(provReq.PublicKeyPEM)
+			clientPubKey, _ := certsclient.PublicKeyFromPEM(provReq.PublicKeyPEM)
 			clientCert, _, _ := testenv.CreateX509Cert(rxDeviceID, testenv.OUDevice, false,
 				clientPubKey, testCerts.CaCert, testCerts.CaKey)
-			respMsg.ClientCertPEM = certs.X509CertToPEM(clientCert)
+			respMsg.ClientCertPEM = certsclient.X509CertToPEM(clientCert)
 		}
 		serialized, _ := json.Marshal(respMsg)
 		// the protocol only uses
@@ -383,10 +383,10 @@ func TestBadCertPaths(t *testing.T) {
 		}
 		// if status is accepted then generate a cert
 		// next, create a new pretent certificate to be returned in the idprov request
-		clientPubKey, _ := certs.PublicKeyFromPEM(provReq.PublicKeyPEM)
+		clientPubKey, _ := certsclient.PublicKeyFromPEM(provReq.PublicKeyPEM)
 		clientCert, _, _ := testenv.CreateX509Cert(deviceID1, testenv.OUDevice, false,
 			clientPubKey, testCerts.CaCert, testCerts.CaKey)
-		respMsg.ClientCertPEM = certs.X509CertToPEM(clientCert)
+		respMsg.ClientCertPEM = certsclient.X509CertToPEM(clientCert)
 		serialized, _ := json.Marshal(respMsg)
 		signature, _ := idprovclient.Sign(string(serialized), deviceSecret)
 		respMsg.Signature = signature

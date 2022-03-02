@@ -28,7 +28,7 @@ const (
 // AddTDs adds two TDs with two properties each: Title and version
 func addTDs(store *dirfilestore.DirFileStore) {
 	id1 := Thing1ID
-	td1 := td.CreateTD(id1, vocab.DeviceTypeSensor)
+	td1 := td.CreateTD(id1, "test TD", vocab.DeviceTypeSensor)
 
 	prop1 := td.CreateProperty(PropNameTitle, "Property title", vocab.PropertyTypeAttr)
 	td.SetPropertyValue(prop1, PropTitle1Value)
@@ -39,20 +39,20 @@ func addTDs(store *dirfilestore.DirFileStore) {
 	td.AddTDProperty(td1, PropNameVersion, prop2)
 
 	id2 := Thing2ID
-	td2 := td.CreateTD(id2, vocab.DeviceTypeSensor)
+	td2 := td.CreateTD(id2, "test TD", vocab.DeviceTypeSensor)
 	td.AddTDProperty(td2, PropNameTitle, prop1)
 	td.AddTDProperty(td2, PropNameVersion, prop2)
 
 	tdd := map[string]interface{}(td1)
-	store.Replace(id1, tdd)
+	_ = store.Replace(id1, tdd)
 	tdd = map[string]interface{}(td2)
-	store.Replace(id2, tdd)
+	_ = store.Replace(id2, tdd)
 
 }
 
 func makeFileStore() *dirfilestore.DirFileStore {
 	filename := "/tmp/test-dirfilestore.json"
-	os.Remove(filename) // remove if exist
+	_ = os.Remove(filename) // remove if exist
 	store := dirfilestore.NewDirFileStore(filename)
 	return store
 }
@@ -97,7 +97,7 @@ func TestFileStoreWrite(t *testing.T) {
 
 func TestList(t *testing.T) {
 	fileStore := makeFileStore()
-	fileStore.Open()
+	_ = fileStore.Open()
 	addTDs(fileStore)
 
 	items := fileStore.List(0, 0, nil)
@@ -203,7 +203,7 @@ func TestQueryBracketNotationA(t *testing.T) {
 func TestQueryBracketNotationB(t *testing.T) {
 	queryString := "$[?(@['@type']==\"sensor\")]"
 	id1 := "thing1"
-	td1 := td.CreateTD(id1, vocab.DeviceTypeSensor)
+	td1 := td.CreateTD(id1, "test TD", vocab.DeviceTypeSensor)
 	titleProp := td.CreateProperty("Title", "Sensor title", vocab.PropertyTypeAttr)
 	td.AddTDProperty(td1, "title", titleProp)
 	valueProp := td.CreateProperty("value", "Sensor value", vocab.PropertyTypeSensor)
@@ -219,11 +219,11 @@ func TestQueryBracketNotationB(t *testing.T) {
 	td.AddTDProperty(td2, "title", "The switch")
 
 	fileStore := makeFileStore()
-	fileStore.Open()
+	_ = fileStore.Open()
 
 	// replace will add if it doesn't exist
-	fileStore.Replace(id1, td1)
-	fileStore.Replace(id2, td2)
+	_ = fileStore.Replace(id1, td1)
+	_ = fileStore.Replace(id2, td2)
 
 	// query returns 2 sensors. not sure about the sort order
 	res, err := fileStore.Query(queryString, 0, 2, nil)
@@ -241,7 +241,7 @@ func TestQueryBracketNotationB(t *testing.T) {
 func TestQueryValueProp(t *testing.T) {
 	queryString := "$[?(@.properties..title=='The switch')]"
 	id1 := "thing1"
-	td1 := td.CreateTD(id1, vocab.DeviceTypeSensor)
+	td1 := td.CreateTD(id1, "test TD", vocab.DeviceTypeSensor)
 	titleProp := td.CreateProperty("Title", "Device title", vocab.PropertyTypeAttr)
 	td.AddTDProperty(td1, "title", titleProp)
 	valueProp := td.CreateProperty("value", "Sensor value", vocab.PropertyTypeSensor)
@@ -257,11 +257,11 @@ func TestQueryValueProp(t *testing.T) {
 	td.AddTDProperty(td2, "title", "The switch")
 
 	fileStore := makeFileStore()
-	fileStore.Open()
+	_ = fileStore.Open()
 
 	// dirstore.DirStoreCrud(t, fileStore)
-	fileStore.Replace(id1, td1)
-	fileStore.Replace(id2, td2)
+	_ = fileStore.Replace(id1, td1)
+	_ = fileStore.Replace(id2, td2)
 
 	res, err := fileStore.Query(queryString, 0, 2, nil)
 	require.NoError(t, err)
@@ -276,7 +276,7 @@ func TestQueryValueProp(t *testing.T) {
 func TestQueryAclFilter(t *testing.T) {
 	queryString := "$..id"
 	fileStore := makeFileStore()
-	fileStore.Open()
+	_ = fileStore.Open()
 	addTDs(fileStore)
 
 	// result of a normal query
@@ -297,15 +297,15 @@ func TestQueryAclFilter(t *testing.T) {
 // TODO: improve tests to verify a correct merge
 func TestPatch(t *testing.T) {
 	fileStore := makeFileStore()
-	fileStore.Open()
+	_ = fileStore.Open()
 	addTDs(fileStore)
 
 	id2 := "thing2"
-	td2 := td.CreateTD(id2, vocab.DeviceTypeSensor)
+	td2 := td.CreateTD(id2, "test TD", vocab.DeviceTypeSensor)
 	prop2 := td.CreateProperty("title2", "description2", vocab.PropertyTypeAttr)
 	td.SetPropertyValue(prop2, "value2")
 	td.AddTDProperty(td2, "title2", prop2)
-	fileStore.Patch(id2, td2)
+	_ = fileStore.Patch(id2, td2)
 
 	td2b, err := fileStore.Get(id2)
 	assert.NoError(t, err)
@@ -325,7 +325,7 @@ func TestPatch(t *testing.T) {
 
 func TestBadPatch(t *testing.T) {
 	fileStore := makeFileStore()
-	fileStore.Open()
+	_ = fileStore.Open()
 
 	id2 := "thing2"
 	err := fileStore.Patch(id2, nil)
@@ -334,7 +334,7 @@ func TestBadPatch(t *testing.T) {
 
 func TestBadReplace(t *testing.T) {
 	fileStore := makeFileStore()
-	fileStore.Open()
+	_ = fileStore.Open()
 
 	id2 := "thing2"
 	err := fileStore.Replace(id2, nil)

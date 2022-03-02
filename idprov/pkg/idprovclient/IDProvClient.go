@@ -10,7 +10,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/wostzone/hub/lib/client/pkg/certs"
+	"github.com/wostzone/hub/lib/client/pkg/certsclient"
 	"github.com/wostzone/hub/lib/client/pkg/config"
 	"github.com/wostzone/hub/lib/client/pkg/tlsclient"
 
@@ -186,9 +186,9 @@ func (cl *IDProvClient) PostProvisioningRequest(deviceID string, secret string) 
 	}
 
 	// Reload the received certificate for use. This also checks if the cert is valid
-	cl.caCert, err = certs.LoadX509CertFromPEM(cl.caCertPath)
+	cl.caCert, err = certsclient.LoadX509CertFromPEM(cl.caCertPath)
 	if err == nil {
-		cl.clientCert, err = certs.LoadTLSCertFromPEM(cl.clientCertPath, cl.clientKeyPath)
+		cl.clientCert, err = certsclient.LoadTLSCertFromPEM(cl.clientCertPath, cl.clientKeyPath)
 	}
 	if err != nil {
 		err := fmt.Errorf("PostProvisioningRequest: Failed loading new CA/client certificate: %s", err)
@@ -240,7 +240,7 @@ func (cl *IDProvClient) Start() (err error) {
 		cl.Stop()
 	}
 	if _, err := os.Stat(cl.caCertPath); err == nil {
-		cl.caCert, err = certs.LoadX509CertFromPEM(cl.caCertPath)
+		cl.caCert, err = certsclient.LoadX509CertFromPEM(cl.caCertPath)
 		hasCA = err == nil
 		if err != nil {
 			logrus.Errorf("IDProvClient.Start. A CA cert was provided at %s but failed when loaded: %s", cl.caCertPath, err)
@@ -252,10 +252,10 @@ func (cl *IDProvClient) Start() (err error) {
 	// A private key will be created if it doesn't exist. It is needed for a public key to request a certificate
 	// and for mutual auth TLS connection to renew a certificate.
 	// pkPath := path.Join(certFolder, deviceKeyFile)
-	privKey, err := certs.LoadKeysFromPEM(cl.clientKeyPath)
+	privKey, err := certsclient.LoadKeysFromPEM(cl.clientKeyPath)
 	if err != nil {
-		privKey = certs.CreateECDSAKeys()
-		err = certs.SaveKeysToPEM(privKey, cl.clientKeyPath)
+		privKey = certsclient.CreateECDSAKeys()
+		err = certsclient.SaveKeysToPEM(privKey, cl.clientKeyPath)
 		if err != nil {
 			logrus.Errorf("IDProvClient.Start, failed saving private key: %s", err)
 			return err
@@ -272,8 +272,8 @@ func (cl *IDProvClient) Start() (err error) {
 		}
 	}
 
-	cl.publicKeyPEM, _ = certs.PublicKeyToPEM(&privKey.PublicKey)
-	cl.clientCert, err = certs.LoadTLSCertFromPEM(cl.clientCertPath, cl.clientKeyPath)
+	cl.publicKeyPEM, _ = certsclient.PublicKeyToPEM(&privKey.PublicKey)
+	cl.clientCert, err = certsclient.LoadTLSCertFromPEM(cl.clientCertPath, cl.clientKeyPath)
 	if err != nil {
 		logrus.Infof("Loading client cert failed. Not using mutual auth.")
 	}

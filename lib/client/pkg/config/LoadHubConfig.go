@@ -8,7 +8,7 @@ import (
 	"path"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/lib/client/pkg/certs"
+	"github.com/wostzone/hub/lib/client/pkg/certsclient"
 )
 
 // DefaultHubConfigName with the configuration file name of the hub
@@ -65,7 +65,7 @@ const DefaultThingZone = "local"
 type HubConfig struct {
 
 	// Server address of auth, idprov, mqtt, directory services. The default "" is the outbound IP address
-	// If DNS is used override this with the server domain name. 
+	// If DNS is used override this with the server domain name.
 	// Clients that use the hubconfig must override this with the discovered server address as provided by idprov
 	Address string `yaml:"address,omitempty"`
 	// MQTT TLS port for certificate based authentication. Default is DefaultMqttPortCert
@@ -94,19 +94,19 @@ type HubConfig struct {
 	LogFile     string `yaml:"logFile"`     // log filename is pluginID.log
 	AppFolder   string `yaml:"appFolder"`   // Folder containing the application installation
 	BinFolder   string `yaml:"binFolder"`   // Folder containing plugin binaries, default is {appFolder}/bin
-	CertsFolder string `yaml:"certsFolder"` // Folder containing certificates, default is {appFolder}/certs
+	CertsFolder string `yaml:"certsFolder"` // Folder containing certificates, default is {appFolder}/certsclient
 	// ConfigFolder the location of additional configuration files. Default is {appFolder}/config
 	ConfigFolder string `yaml:"configFolder"`
 
-	// path to CA certificate in PEM format. Default is certs/caCert.pem
+	// path to CA certificate in PEM format. Default is certsclient/caCert.pem
 	CaCertPath string `yaml:"caCertPath"`
-	// path to client x509 certificate in PEM format. Default is certs/{clientID}Cert.pem
+	// path to client x509 certificate in PEM format. Default is certsclient/{clientID}Cert.pem
 	ClientCertPath string `yaml:"clientCertPath"`
-	// path to client private key in PEM format. Default is certs/{clientID}Key.pem
+	// path to client private key in PEM format. Default is certsclient/{clientID}Key.pem
 	ClientKeyPath string `yaml:"clientKeyPath"`
-	// path to plugin x509 certificate in PEM format. Default is certs/PluginCert.pem
+	// path to plugin x509 certificate in PEM format. Default is certsclient/PluginCert.pem
 	PluginCertPath string `yaml:"pluginCertPath"`
-	// path to plugin private key in PEM format. Default is certs/PluginKey.pem
+	// path to plugin private key in PEM format. Default is certsclient/PluginKey.pem
 	PluginKeyPath string `yaml:"pluginKeyPath"`
 
 	// CaCert contains the loaded CA certificate needed for establishing trusted connections to the
@@ -151,14 +151,14 @@ func CreateDefaultHubConfig(appFolder string) *HubConfig {
 		Loglevel:     "warning",
 
 		// FIXME: use outbound IP address as default
-		Address:  		GetOutboundIP("").String(),
+		Address:      GetOutboundIP("").String(),
 		MqttPortCert: DefaultMqttPortCert,
 		MqttPortUnpw: DefaultMqttPortUnpw,
 		MqttPortWS:   DefaultMqttPortWS,
 		// Plugins:      make([]string, 0),
 		Zone: "local",
 	}
-	// config.Messenger.CertsFolder = path.Join(homeFolder, "certs")
+	// config.Messenger.CertsFolder = path.Join(homeFolder, "certsclient")
 	// config.AclStorePath = path.Join(config.ConfigFolder, DefaultAclFile)
 	// config.UnpwStorePath = path.Join(config.ConfigFolder, DefaultUnpwFile)
 	return config
@@ -247,17 +247,17 @@ func LoadHubConfig(configFile string, clientID string, hubConfig *HubConfig) err
 	}
 
 	// Certificate are optional as they might not yet exist
-	hubConfig.CaCert, err = certs.LoadX509CertFromPEM(hubConfig.CaCertPath)
+	hubConfig.CaCert, err = certsclient.LoadX509CertFromPEM(hubConfig.CaCertPath)
 	if err != nil {
 		logrus.Warningf("LoadHubConfig: Unable to load the CA Certificate: %s. This is not good but continuing for now.", err)
 	}
 	// optional client certificate, if available
-	hubConfig.ClientCert, err = certs.LoadTLSCertFromPEM(hubConfig.ClientCertPath, hubConfig.ClientKeyPath)
+	hubConfig.ClientCert, err = certsclient.LoadTLSCertFromPEM(hubConfig.ClientCertPath, hubConfig.ClientKeyPath)
 	if err != nil {
 		logrus.Warningf("LoadHubConfig: Unable to load the Client Certificate: %s. This is only needed when not a plugin so continuing for now.", err)
 	}
 	// optional plugin certificate, if available
-	hubConfig.PluginCert, err = certs.LoadTLSCertFromPEM(hubConfig.PluginCertPath, hubConfig.PluginKeyPath)
+	hubConfig.PluginCert, err = certsclient.LoadTLSCertFromPEM(hubConfig.PluginCertPath, hubConfig.PluginKeyPath)
 	if err != nil {
 		logrus.Warningf("LoadHubConfig: Unable to load the Plugin Certificate: %s. This is only needed for plugins so continuing for now.", err)
 	}

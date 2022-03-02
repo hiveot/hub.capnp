@@ -1,4 +1,4 @@
-// Package mosquittomgr with launching of the mosquitto broker
+// Package internal with launching of the mosquitto broker
 package internal
 
 import (
@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// launch mosquitto with the given configuration file. This attaches stderr and stdout
+// LaunchMosquitto launches mosquitto with the given configuration file. This attaches stderr and stdout
 // to the current process.
 // This signals the 'done' channel when the mosquitto process has ended
 //  returns with the command or error. Use cmd.Process.Kill to terminate.

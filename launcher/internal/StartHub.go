@@ -22,7 +22,7 @@ type PluginConfig struct {
 // StartHub reads the launcher configuration and launches the plugins. If the configuration is invalid
 // then start is aborted. The plugins receive the same commandline arguments as the launcher.
 // Before starting the Hub, the certificates must have been generated as part of setup.
-// Use 'gencerts' to generate them in the {homeFolder}/certs folder.
+// Use 'gencerts' to generate them in the {homeFolder}/certsclient folder.
 //  homeFolder is the parent folder of the application binary and contains the config subfolder
 //  startPlugins set to false to only start the launcher with message bus server if configured
 // Return nil or error if the launcher configuration file or certificate are not found
@@ -42,7 +42,7 @@ func StartHub(homeFolder string, startPlugins bool) error {
 	pluginFolder := path.Join(hc.AppFolder, "bin")
 	fmt.Printf("Home=%s\nPluginFolder=%s\n", hc.AppFolder, pluginFolder)
 
-	// Create a CA if needed and update launcher and plugin certs
+	// Create a CA if needed and update launcher and plugin certsclient
 	sanNames := []string{hc.Address, "localhost", "127.0.0.1"}
 	err = certsetup.CreateCertificateBundle(sanNames, hc.CertsFolder)
 	if err != nil {

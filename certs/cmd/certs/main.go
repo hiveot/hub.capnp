@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"github.com/docopt/docopt-go"
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/lib/client/pkg/certs"
+	"github.com/wostzone/hub/certs/pkg/certsetup"
+	"github.com/wostzone/hub/lib/client/pkg/certsclient"
 	"github.com/wostzone/hub/lib/client/pkg/config"
 	"github.com/wostzone/hub/lib/client/pkg/signing"
-	"github.com/wostzone/hub/lib/serve/pkg/certsetup"
 	"github.com/wostzone/hub/lib/serve/pkg/hubnet"
 	"io/ioutil"
 	"os"
@@ -72,7 +72,7 @@ Arguments:
 Options:
   -e --certs=CertFolder      location of Hub certificates [default: ` + certsFolder + `]
   -c --config=ConfigFolder   location of Hub config folder [default: ` + configFolder + `]
-  -o --hostname=Hostname     name or IP address to use on the certificate
+  -n --hostname=Hostname     hostname or IP address to use on the certificate. Default is outbound IP
   -p --pubkey=PubKeyfile     use this public key file to generate certificate, instead of a new key pair
   -h --help                  show this help
   -v --verbose               show info logging
@@ -124,9 +124,9 @@ func CreateKeyPair(clientID string, certFolder string) (privKey *ecdsa.PrivateKe
 	privKey = signing.CreateECDSAKeys()
 	privKeyFile := path.Join(certFolder, clientID+"-priv.pem")
 	pubKeyFile := path.Join(certFolder, clientID+"-pub.pem")
-	err = certs.SaveKeysToPEM(privKey, privKeyFile)
+	err = certsclient.SaveKeysToPEM(privKey, privKeyFile)
 	if err == nil {
-		pubKeyPem, _ := certs.PublicKeyToPEM(&privKey.PublicKey)
+		pubKeyPem, _ := certsclient.PublicKeyToPEM(&privKey.PublicKey)
 		err = ioutil.WriteFile(pubKeyFile, []byte(pubKeyPem), 0644)
 	}
 	if err != nil {
@@ -157,21 +157,21 @@ func HandleCreateCertbundle(certsFolder string, sanName string) error {
 //  pubKeyFile with path to the client's public key of the certificate
 func HandleCreateClientCert(certFolder string, clientID string, pubKeyFile string) error {
 	var pubKey *ecdsa.PublicKey
-	ou := certsetup.OUClient
+	ou := certsclient.OUClient
 	pemPath := path.Join(certFolder, config.DefaultCaCertFile)
-	caCert, err := certs.LoadX509CertFromPEM(pemPath)
+	caCert, err := certsclient.LoadX509CertFromPEM(pemPath)
 	if err != nil {
 		return err
 	}
 	pemPath = path.Join(certFolder, config.DefaultCaKeyFile)
-	caKey, err := certs.LoadKeysFromPEM(pemPath)
+	caKey, err := certsclient.LoadKeysFromPEM(pemPath)
 	if err != nil {
 		return err
 	}
 	// If a public key file is given, use it, otherwise generate a pair
 	if pubKeyFile != "" {
 		fmt.Printf("Using public key file: %s\n", pubKeyFile)
-		pubKey, err = certs.LoadPublicKeyFromPEM(pubKeyFile)
+		pubKey, err = certsclient.LoadPublicKeyFromPEM(pubKeyFile)
 		if err != nil {
 			return err
 		}
@@ -190,7 +190,7 @@ func HandleCreateClientCert(certFolder string, clientID string, pubKeyFile strin
 		return err
 	}
 	pemPath = path.Join(".", clientID+"-cert.pem")
-	err = certs.SaveX509CertToPEM(cert, pemPath)
+	err = certsclient.SaveX509CertToPEM(cert, pemPath)
 
 	fmt.Printf("Client certificate saved at %s\n", pemPath)
 	return err
@@ -202,19 +202,19 @@ func HandleCreateDeviceCert(certFolder string, deviceID string, pubKeyFile strin
 	const deviceCertValidityDays = 30
 	var pubKey *ecdsa.PublicKey
 	pemPath := path.Join(certFolder, config.DefaultCaCertFile)
-	caCert, err := certs.LoadX509CertFromPEM(pemPath)
+	caCert, err := certsclient.LoadX509CertFromPEM(pemPath)
 	if err != nil {
 		return err
 	}
 	pemPath = path.Join(certFolder, config.DefaultCaKeyFile)
-	caKey, err := certs.LoadKeysFromPEM(pemPath)
+	caKey, err := certsclient.LoadKeysFromPEM(pemPath)
 	if err != nil {
 		return err
 	}
 	// If a public key file is given, use it, otherwise generate a pair
 	if pubKeyFile != "" {
 		fmt.Printf("Using public key file: %s\n", pubKeyFile)
-		pubKey, err = certs.LoadPublicKeyFromPEM(pubKeyFile)
+		pubKey, err = certsclient.LoadPublicKeyFromPEM(pubKeyFile)
 		if err != nil {
 			return err
 		}
@@ -228,7 +228,7 @@ func HandleCreateDeviceCert(certFolder string, deviceID string, pubKeyFile strin
 	}
 
 	certPEM, err := certsetup.CreateHubClientCert(
-		deviceID, certsetup.OUIoTDevice, pubKey,
+		deviceID, certsclient.OUIoTDevice, pubKey,
 		caCert, caKey,
 		time.Now(), deviceCertValidityDays)
 	if err != nil {
@@ -236,7 +236,7 @@ func HandleCreateDeviceCert(certFolder string, deviceID string, pubKeyFile strin
 	}
 	// save the new certificate
 	pemPath = path.Join(".", deviceID+"-cert.pem")
-	err = certs.SaveX509CertToPEM(certPEM, pemPath)
+	err = certsclient.SaveX509CertToPEM(certPEM, pemPath)
 
 	fmt.Printf("Device certificate saved at %s\n", pemPath)
 	return err

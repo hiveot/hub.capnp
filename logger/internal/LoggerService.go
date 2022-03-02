@@ -4,12 +4,12 @@ import (
 	"crypto/tls"
 	"encoding/json"
 	"fmt"
+	"github.com/wostzone/hub/lib/client/pkg/certsclient"
 	"os"
 	"path"
 	"time"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/lib/client/pkg/certs"
 	"github.com/wostzone/hub/lib/client/pkg/config"
 	"github.com/wostzone/hub/lib/client/pkg/mqttclient"
 	"github.com/wostzone/hub/lib/client/pkg/td"
@@ -119,9 +119,9 @@ func (wlog *LoggerService) Start(hubConfig *config.HubConfig) error {
 
 	// connect the the message bus to receive messages
 	caCertPath := path.Join(hubConfig.CertsFolder, config.DefaultCaCertFile)
-	caCert, err := certs.LoadX509CertFromPEM(caCertPath)
+	caCert, err := certsclient.LoadX509CertFromPEM(caCertPath)
 	if err == nil {
-		pluginCert, err = certs.LoadTLSCertFromPEM(
+		pluginCert, err = certsclient.LoadTLSCertFromPEM(
 			path.Join(hubConfig.CertsFolder, config.DefaultPluginCertFile),
 			path.Join(hubConfig.CertsFolder, config.DefaultPluginKeyFile),
 		)

@@ -9,8 +9,7 @@ import (
 
 	"github.com/grandcat/zeroconf"
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/auth/pkg/authenticate"
-	"github.com/wostzone/hub/auth/pkg/authorize"
+	"github.com/wostzone/hub/authz/pkg/authorize"
 	"github.com/wostzone/hub/lib/serve/pkg/tlsserver"
 	"github.com/wostzone/hub/thingdir/pkg/dirclient"
 	"github.com/wostzone/hub/thingdir/pkg/dirstore/dirfilestore"
@@ -31,13 +30,13 @@ const DefaultDirectoryStoreFile = "directory.json"
 // DirectoryServer for web of things
 type DirectoryServer struct {
 	// config
-	address       string            // listening address
-	caCert        *x509.Certificate // path to CA certificate PEM file
-	instanceID    string            // ID of this service
-	port          uint              // listening port
-	serverCert    *tls.Certificate  // path to server certificate PEM file
-	authenticator authenticate.VerifyUsernamePassword
-	authorizer    authorize.VerifyAuthorization
+	address    string            // listening address
+	caCert     *x509.Certificate // path to CA certificate PEM file
+	instanceID string            // ID of this service
+	port       uint              // listening port
+	serverCert *tls.Certificate  // path to server certificate PEM file
+	//authenticator authenticate.VerifyUsernamePassword
+	authorizer authorize.VerifyAuthorization
 
 	// the service name. Use dirclient.DirectoryServiceName for default or "" to disable DNS discovery
 	discoveryName string
@@ -75,11 +74,12 @@ func (srv *DirectoryServer) Start() error {
 			srv.serverCert, srv.caCert)
 		srv.tlsServer.EnableJwtAuth(nil)
 
-		// Allow login on this server if an authenticator is provided
-		if srv.authenticator != nil {
-			srv.tlsServer.EnableJwtIssuer(nil, srv.authenticator)
-			//srv.tlsServer.EnableBasicAuth(srv.authenticator)
-		}
+		// Allow login on this server if an authenticator is provided, without it the client
+		// must obtain an access token elsewhere
+		//if srv.authenticator != nil {
+		//srv.tlsServer.EnableJwtIssuer(nil, srv.authenticator)
+		//srv.tlsServer.EnableBasicAuth(srv.authenticator)
+		//}
 
 		err = srv.tlsServer.Start()
 		if err != nil {
@@ -126,7 +126,7 @@ func (srv *DirectoryServer) Stop() {
 //  - port server listening port
 //  - caCertFolder location of CA Cert and server certificates and keys
 //  - discoveryName for use in dns-sd. Use "" to disable discover, or the dirclient.DirectoryServiceName for default
-//  - authenticator authenticates user login and issues JWT tokens. nil to use an external auth service
+//  - authenticator optional authenticator to verify user login and issues JWT tokens. nil to use an external auth service
 //  - authorizer verifies read or write access to a thing by a user. certOU is set when auth via certificate
 func NewDirectoryServer(
 	instanceID string,
@@ -136,7 +136,7 @@ func NewDirectoryServer(
 	discoveryName string,
 	serverCert *tls.Certificate,
 	caCert *x509.Certificate,
-	authenticator authenticate.VerifyUsernamePassword,
+	//authenticator authenticate.VerifyUsernamePassword,
 	authorizer authorize.VerifyAuthorization,
 ) *DirectoryServer {
 
@@ -153,8 +153,8 @@ func NewDirectoryServer(
 		instanceID:    instanceID,
 		port:          port,
 		store:         dirfilestore.NewDirFileStore(storePath),
-		authenticator: authenticator,
-		authorizer:    authorizer,
+		//authenticator: authenticator,
+		authorizer: authorizer,
 	}
 	return &srv
 }

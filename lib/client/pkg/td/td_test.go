@@ -12,7 +12,7 @@ const zone = "test"
 
 func TestCreateTD(t *testing.T) {
 	deviceID := zone + "Thing1"
-	thing := td.CreateTD(deviceID, vocab.DeviceTypeSensor)
+	thing := td.CreateTD(deviceID, "test TD", vocab.DeviceTypeSensor)
 	assert.NotNil(t, thing)
 
 	// Set version

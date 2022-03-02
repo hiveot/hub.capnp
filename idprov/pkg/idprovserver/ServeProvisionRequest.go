@@ -4,6 +4,8 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"github.com/wostzone/hub/certs/pkg/certsetup"
+	"github.com/wostzone/hub/lib/client/pkg/certsclient"
 	"io/ioutil"
 	"net/http"
 	"path"
@@ -11,8 +13,6 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/idprov/pkg/idprovclient"
-	"github.com/wostzone/hub/lib/client/pkg/certs"
-	"github.com/wostzone/hub/lib/serve/pkg/certsetup"
 )
 
 // ServeProvisionRequest handles request to provide a client certificate
@@ -86,13 +86,13 @@ func (srv *IDProvServer) ServeProvisionRequest(resp http.ResponseWriter, req *ht
 	}
 
 	// generate or refresh the certificate
-	ownerPubKey, err := certs.PublicKeyFromPEM(provReq.PublicKeyPEM)
+	ownerPubKey, err := certsclient.PublicKeyFromPEM(provReq.PublicKeyPEM)
 	if err != nil {
 		srv.tlsServer.WriteBadRequest(resp, fmt.Sprintf("ServeProvisionRequest: Invalid public key in request for %s: %s", provReq.DeviceID, err))
 		return
 	}
 	newClientCert, err := certsetup.CreateHubClientCert(
-		provReq.DeviceID, certsetup.OUIoTDevice,
+		provReq.DeviceID, certsclient.OUIoTDevice,
 		ownerPubKey, srv.caCert, srv.caKey,
 		time.Now().Add(-10*time.Second), int(srv.deviceCertValidityDays))
 	if err != nil {
@@ -104,7 +104,7 @@ func (srv *IDProvServer) ServeProvisionRequest(resp http.ResponseWriter, req *ht
 	newCertFile := provReq.DeviceID + "Cert.pem"
 	if srv.certStore != "" {
 		pemPath := path.Join(srv.certStore, newCertFile)
-		err = certs.SaveX509CertToPEM(newClientCert, pemPath)
+		err = certsclient.SaveX509CertToPEM(newClientCert, pemPath)
 		if err != nil {
 			srv.tlsServer.WriteInternalError(resp, fmt.Sprintf("ServeProvisionRequest: Failed creating client cert for %s: %s", provReq.DeviceID, err))
 			return
@@ -112,7 +112,7 @@ func (srv *IDProvServer) ServeProvisionRequest(resp http.ResponseWriter, req *ht
 	}
 
 	// return the certificate
-	clientCertPEM := certs.X509CertToPEM(newClientCert)
+	clientCertPEM := certsclient.X509CertToPEM(newClientCert)
 	respStatus := idprovclient.PostProvisionResponseMessage{
 		Status:        idprovclient.ProvisionStatusApproved,
 		CaCertPEM:     string(srv.directory.CaCertPEM),
@@ -147,21 +147,21 @@ func (srv *IDProvServer) ServeProvisionRequest(resp http.ResponseWriter, req *ht
 // This returns nil if the certificate is authorized to provision a new certificate or error when not
 func (srv *IDProvServer) validateCertificate(peerCert *x509.Certificate, deviceID string) error {
 	// Determine the OU with the highest permissions
-	highestOU := certsetup.OUNone
+	highestOU := certsclient.OUNone
 	for _, ou := range peerCert.Subject.OrganizationalUnit {
-		if ou == certsetup.OUAdmin || ou == certsetup.OUPlugin {
+		if ou == certsclient.OUAdmin || ou == certsclient.OUPlugin {
 			highestOU = ou
 			break
-		} else if ou == certsetup.OUIoTDevice {
+		} else if ou == certsclient.OUIoTDevice {
 			highestOU = ou
 		}
 	}
 	// No need to check for expiry as server rejects expired certificates
 
 	// Admin and plugin certificates have no further requirements
-	if highestOU == certsetup.OUAdmin || highestOU == certsetup.OUPlugin {
+	if highestOU == certsclient.OUAdmin || highestOU == certsclient.OUPlugin {
 		// nothing to do
-	} else if highestOU == certsetup.OUIoTDevice {
+	} else if highestOU == certsclient.OUIoTDevice {
 		// IoT device certificate renewal requested deviceID must match the certificate deviceID (CN)
 		if peerCert.Subject.CommonName != deviceID {
 			err := fmt.Errorf("validateCertificate: '%s' certificate of client %s is not for device %s",

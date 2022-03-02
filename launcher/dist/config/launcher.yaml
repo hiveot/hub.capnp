@@ -1,8 +1,8 @@
 # Plugin to start
 plugins:
   # Core plugins
-  - authservice # launcher authentication & authorization service
-  - mosquittomgr # Launch the mosquitto server and manage mosquitto auth
+  - authn # launcher authentication & authorization service
+  - mosquittomgr # Launch the mosquitto server and manage mosquitto authn
   - idprov-pb # Automated provisioning of devices
   - thingdir # Thing directory service
   # Other plugins

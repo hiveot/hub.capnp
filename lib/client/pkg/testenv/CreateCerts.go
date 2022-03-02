@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/lib/client/pkg/certs"
+	"github.com/wostzone/hub/lib/client/pkg/certsclient"
 )
 
 // FIXME: These OU names must match that in certsetup
@@ -40,9 +40,9 @@ type TestCerts struct {
 func CreateCertBundle() TestCerts {
 	testCerts := TestCerts{}
 	testCerts.CaCert, testCerts.CaKey = CreateCA()
-	testCerts.ServerKey = certs.CreateECDSAKeys()
-	testCerts.PluginKey = certs.CreateECDSAKeys()
-	testCerts.DeviceKey = certs.CreateECDSAKeys()
+	testCerts.ServerKey = certsclient.CreateECDSAKeys()
+	testCerts.PluginKey = certsclient.CreateECDSAKeys()
+	testCerts.DeviceKey = certsclient.CreateECDSAKeys()
 	testCerts.ServerCert = CreateTlsCert("Server", "wost", true,
 		testCerts.ServerKey, testCerts.CaCert, testCerts.CaKey)
 	testCerts.PluginCert = CreateTlsCert("Plugin", OUPlugin, false,
@@ -57,7 +57,7 @@ func CreateCertBundle() TestCerts {
 func CreateCA() (caCert *x509.Certificate, caKey *ecdsa.PrivateKey) {
 	validity := time.Hour
 
-	caKey = certs.CreateECDSAKeys()
+	caKey = certsclient.CreateECDSAKeys()
 
 	// set up our CA certificate
 	// see also: https://superuser.com/questions/738612/openssl-ca-keyusage-extension

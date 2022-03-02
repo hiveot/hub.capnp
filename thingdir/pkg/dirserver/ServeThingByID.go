@@ -3,13 +3,13 @@ package dirserver
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/wostzone/hub/lib/client/pkg/certsclient"
 	"io/ioutil"
 	"net/http"
 	"strings"
 
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/lib/client/pkg/td"
-	"github.com/wostzone/hub/lib/serve/pkg/certsetup"
 )
 
 // AclReadFilter determines read access to a thing TD. Intended for querying things.
@@ -18,13 +18,13 @@ import (
 // 	return true
 // }
 
-// ServeThingID serves a request for a particular Thing by its ID
+// ServeThingByID serves a request for a particular Thing by its ID
 // This splits the request by its REST method: GET, POST, PUT, PATCH, DELETE
 func (srv *DirectoryServer) ServeThingByID(userID string, response http.ResponseWriter, request *http.Request) {
 	// determine the ID
 	parts := strings.Split(request.URL.Path, "/")
 	thingID := parts[len(parts)-1] // expect the thing ID
-	certOU := certsetup.OUNone
+	certOU := certsclient.OUNone
 	if len(request.TLS.PeerCertificates) > 0 {
 		cert := request.TLS.PeerCertificates[0]
 		if len(cert.Subject.OrganizationalUnit) > 0 {
@@ -49,7 +49,7 @@ func (srv *DirectoryServer) ServeThingByID(userID string, response http.Response
 	}
 }
 
-// serveGetThing retrieve the requested TD
+// ServeGetTD retrieve the requested TD
 func (srv *DirectoryServer) ServeGetTD(userID, certOU, thingID string, response http.ResponseWriter) {
 
 	if srv.authorizer != nil &&
@@ -58,19 +58,19 @@ func (srv *DirectoryServer) ServeGetTD(userID, certOU, thingID string, response 
 		return
 	}
 
-	td, err := srv.store.Get(thingID)
+	tdMap, err := srv.store.Get(thingID)
 	if err != nil {
 		msg := fmt.Sprintf("ServeGetTD: Unknown Thing with ID '%s'", thingID)
 		srv.tlsServer.WriteNotFound(response, msg)
 		return
 	}
-	msg, err := json.Marshal(td)
+	msg, err := json.Marshal(tdMap)
 	if err != nil {
 		msg := fmt.Sprintf("ServeGetTD: Unable to marshal thing with ID %s", thingID)
 		srv.tlsServer.WriteInternalError(response, msg)
 		return
 	}
-	response.Write(msg)
+	_, _ = response.Write(msg)
 }
 
 // ServeDeleteTD deletes the requested TD
@@ -84,7 +84,7 @@ func (srv *DirectoryServer) ServeDeleteTD(userID, certOU, thingID string, respon
 	// should we return the original? no, return 204
 }
 
-// ServeUpdateThing update only the provided parts of a thing's TD
+// ServePatchTD update only the provided parts of a thing's TD
 func (srv *DirectoryServer) ServePatchTD(userID, certOU, thingID string, response http.ResponseWriter, request *http.Request) {
 
 	if srv.authorizer != nil && !srv.authorizer(userID, certOU, thingID, true, td.MessageTypeTD) {
@@ -92,14 +92,14 @@ func (srv *DirectoryServer) ServePatchTD(userID, certOU, thingID string, respons
 		return
 	}
 
-	td := make(map[string]interface{})
+	tdMap := make(map[string]interface{})
 	body, err := ioutil.ReadAll(request.Body)
 
 	if err == nil {
-		err = json.Unmarshal(body, &td)
+		err = json.Unmarshal(body, &tdMap)
 	}
 	if err == nil {
-		err = srv.store.Patch(thingID, td)
+		err = srv.store.Patch(thingID, tdMap)
 	}
 	if err != nil {
 		srv.tlsServer.WriteBadRequest(response, fmt.Sprintf("ServePatchTD: %s", err))
@@ -107,17 +107,17 @@ func (srv *DirectoryServer) ServePatchTD(userID, certOU, thingID string, respons
 	}
 }
 
-// Create or replace a TD
+// ServeReplaceTD Creates or replace a TD
 func (srv *DirectoryServer) ServeReplaceTD(userID, certOU, thingID string, response http.ResponseWriter, request *http.Request) {
 	if srv.authorizer != nil && !srv.authorizer(userID, certOU, thingID, true, td.MessageTypeTD) {
 		srv.tlsServer.WriteUnauthorized(response, "ServeReplaceTD: permission denied")
 		return
 	}
 
-	td := make(map[string]interface{})
+	tdMap := make(map[string]interface{})
 	body, err := ioutil.ReadAll(request.Body)
 	if err == nil {
-		err = json.Unmarshal(body, &td)
+		err = json.Unmarshal(body, &tdMap)
 	}
 	if err != nil {
 		srv.tlsServer.WriteBadRequest(response, fmt.Sprintf("ServeReplaceTD: %s", err))
@@ -125,7 +125,7 @@ func (srv *DirectoryServer) ServeReplaceTD(userID, certOU, thingID string, respo
 	}
 	existingTD, _ := srv.store.Get(thingID)
 
-	err = srv.store.Replace(thingID, td)
+	err = srv.store.Replace(thingID, tdMap)
 	if err != nil {
 		srv.tlsServer.WriteBadRequest(response, fmt.Sprintf("ServeReplaceTD: %s", err))
 		return

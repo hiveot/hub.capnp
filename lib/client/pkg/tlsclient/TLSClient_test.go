@@ -63,7 +63,7 @@ func TestMain(m *testing.M) {
 	caCertPool := x509.NewCertPool()
 	caCertPool.AddCert(certs.CaCert)
 
-	// serverTLSCert := testenv.X509ToTLS(certs.ServerCert, nil)
+	// serverTLSCert := testenv.X509ToTLS(certsclient.ServerCert, nil)
 	serverTLSConf = &tls.Config{
 		Certificates:       []tls.Certificate{*certs.ServerCert},
 		ClientAuth:         tls.VerifyClientCertIfGiven,
