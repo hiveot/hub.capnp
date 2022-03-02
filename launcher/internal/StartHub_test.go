@@ -10,8 +10,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/wostzone/hub/certs/pkg/certsetup"
 	"github.com/wostzone/hub/launcher/internal"
-	"github.com/wostzone/hub/lib/serve/pkg/certsetup"
 )
 
 // testing takes place using the test folder on localhost

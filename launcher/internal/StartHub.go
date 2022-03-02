@@ -7,8 +7,8 @@ import (
 	"path"
 
 	"github.com/sirupsen/logrus"
+	"github.com/wostzone/hub/certs/pkg/certsetup"
 	"github.com/wostzone/hub/lib/client/pkg/config"
-	"github.com/wostzone/hub/lib/serve/pkg/certsetup"
 )
 
 // This is the launcher launcher
