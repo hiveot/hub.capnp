@@ -1,0 +1,8 @@
+# Authentication service configuration
+
+
+# enable the client configuration store
+configStoreEnabled: true
+
+# folder to store client configuration
+configStoreFolder: clientconfig
