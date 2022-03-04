@@ -13,8 +13,6 @@ import (
 	"github.com/wostzone/hub/lib/serve/pkg/tlsserver"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/authn/pkg/authenticate"
-	"github.com/wostzone/hub/authn/pkg/unpwstore"
 	"github.com/wostzone/hub/authz/pkg/aclstore"
 	"github.com/wostzone/hub/authz/pkg/authorize"
 )
@@ -77,7 +75,6 @@ const (
 	MosqOptServerCertFile = "serverCertFile"
 )
 
-var authenticator *authenticate.Authenticator
 var jwtAuthenticator *tlsserver.JWTAuthenticator
 var authorizer *authorize.Authorizer
 
@@ -93,14 +90,11 @@ type MosqAuthConfig struct {
 //export AuthPluginInit
 func AuthPluginInit(keys []string, values []string, authOptsNum int) {
 
-	logrus.Warningf("mosqauth: AuthPluginInit invoked. Keys=%s", keys)
-
 	logFile := DefaultLogFile
 	logLevel := DefaultLogLevel
 	aclFile := aclstore.DefaultAclFile
 	pemPath := ""
 	serverCertFile := ""
-	unpwFile := "" // authen.DefaultUnpwFilename optional
 	for index, key := range keys {
 		if key == MosqOptLogFile {
 			logFile = values[index]
@@ -108,8 +102,6 @@ func AuthPluginInit(keys []string, values []string, authOptsNum int) {
 			logLevel = values[index]
 		} else if key == MosqOptAclFile {
 			aclFile = values[index]
-		} else if key == MosqOptUnpwFile {
-			unpwFile = values[index]
 		} else if key == "certfile" {
 			// the certificate has a public key
 			pemPath = values[index]
@@ -118,14 +110,11 @@ func AuthPluginInit(keys []string, values []string, authOptsNum int) {
 		}
 	}
 	config.SetLogging(logLevel, logFile)
+	logrus.Warningf("mosqauth: AuthPluginInit invoked. Keys=%s", keys)
 
 	// The file based store is the only option for now
 	if aclFile == "" {
 		aclFile = aclstore.DefaultAclFile
-	}
-	// TODO: disable unpw when no path? eg cert auth config (or always deny access)
-	if unpwFile == "" {
-		unpwFile = unpwstore.DefaultPasswordFile
 	}
 	aclStore := aclstore.NewAclFileStore(aclFile, "mosqauth.AuthPluginInit")
 	authorizer = authorize.NewAuthorizer(aclStore)
@@ -142,18 +131,13 @@ func AuthPluginInit(keys []string, values []string, authOptsNum int) {
 			jwtAuthenticator = tlsserver.NewJWTAuthenticator(serverKey)
 		}
 	}
-	// only needed for username/password login
-	unpwStore := unpwstore.NewPasswordFileStore(unpwFile, "mosqauth.AuthPluginInit")
-	authenticator = authenticate.NewAuthenticator(unpwStore)
-	authenticator.Start()
-
 }
 
-// AuthUnpwdCheck checks for a correct username/password
-// This matches the given password against the stored password hash
+// AuthUnpwdCheck checks for a correct username/password (jwt token)
+// This verifies the JWT access token given as the password
 //  clientID used to connect
 //  username is the login user name
-//  password is the login password
+//  password is the JWT access token
 //  clientIP
 //  certSubjName when authenticated using a certificate instead of username/password
 // Returns:
@@ -162,18 +146,18 @@ func AuthPluginInit(keys []string, values []string, authOptsNum int) {
 //export AuthUnpwdCheck
 func AuthUnpwdCheck(clientID string, username string, password string, clientIP string, certSubjName string) uint8 {
 
-	logrus.Warningf("AuthUnpwdCheck (incl JWT): clientID=%s, username=%s, clientIP=%s, subjname=%s",
+	logrus.Warningf("AuthUnpwdCheck (JWT token check): clientID=%s, username=%s, clientIP=%s, subjname=%s",
 		clientID, username, clientIP, certSubjName)
 
 	// any client certificate is a match
 	match := certSubjName != ""
 	if !match {
-		match = authenticator.VerifyUsernamePassword(username, password)
+		//match = authenticator.VerifyUsernamePassword(username, password)
 		if !match && jwtAuthenticator != nil {
 			jwtToken, claims, err := jwtAuthenticator.DecodeToken(password)
 			_ = jwtToken
 			if err != nil {
-				logrus.Warningf("AuthUnpwdCheck: Invalid JWT token for user %s: %s", username, err)
+				logrus.Warningf("AuthUnpwdCheck: Invalid JWT token '%s' for user %s: %s", password, username, err)
 				match = false
 			} else if claims.Username != username {
 				logrus.Warningf("AuthUnpwdCheck: User '%s' attempt to login with token that belongs to user '%s'", username, claims.Username)
@@ -182,6 +166,8 @@ func AuthUnpwdCheck(clientID string, username string, password string, clientIP 
 				logrus.Infof("AuthUnpwdCheck: User '%s' authenticated with a valid JWT token", username)
 				match = true
 			}
+		} else {
+			logrus.Warningf("AuthUnpwdCheck: No JWT Authenticator. User login of '%s' declined", username)
 		}
 	}
 	if !match {
@@ -247,10 +233,6 @@ func AuthAclCheck(clientID string, userID string, certSubjName string, topic str
 //export AuthPluginCleanup
 func AuthPluginCleanup() {
 	logrus.Info("AuthPluginCleanup: Cleaning up plugin")
-	if authenticator != nil {
-		authenticator.Stop()
-		authenticator = nil
-	}
 	if authorizer != nil {
 		authorizer.Stop()
 		authorizer = nil

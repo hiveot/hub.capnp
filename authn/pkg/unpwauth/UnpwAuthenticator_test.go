@@ -1,4 +1,4 @@
-package authenticate_test
+package unpwauth_test
 
 import (
 	"os"
@@ -8,7 +8,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"github.com/wostzone/hub/authn/pkg/authenticate"
+	"github.com/wostzone/hub/authn/pkg/unpwauth"
 	"github.com/wostzone/hub/authn/pkg/unpwstore"
 	"github.com/wostzone/hub/lib/client/pkg/config"
 )
@@ -36,11 +36,11 @@ func TestMain(m *testing.M) {
 }
 
 // Create authn handler with empty username/pw
-func createEmptyTestAuthenticator() *authenticate.Authenticator {
+func createEmptyTestAuthenticator() *unpwauth.UnpwAuthenticator {
 	fp, _ := os.Create(unpwFilePath)
 	fp.Close()
 	unpwStore := unpwstore.NewPasswordFileStore(unpwFilePath, "createEmptyTestAuthHandler")
-	ah := authenticate.NewAuthenticator(unpwStore)
+	ah := unpwauth.NewUnPwAuthenticator(unpwStore)
 	return ah
 }
 
@@ -56,7 +56,7 @@ func TestAuthenticatorStartStop(t *testing.T) {
 func TestAuthHandlerBadStart(t *testing.T) {
 	logrus.Infof("---TestAuthHandlerBadStart---")
 	unpwStore := unpwstore.NewPasswordFileStore("/bad/file", "TestAuthHandlerBadStart")
-	ah := authenticate.NewAuthenticator(unpwStore)
+	ah := unpwauth.NewUnPwAuthenticator(unpwStore)
 
 	// opening the password store should fail
 	err := ah.Start()
@@ -64,7 +64,7 @@ func TestAuthHandlerBadStart(t *testing.T) {
 	ah.Stop()
 
 	//
-	ah = authenticate.NewAuthenticator(nil)
+	ah = unpwauth.NewUnPwAuthenticator(nil)
 	err = ah.Start()
 	assert.Error(t, err)
 
@@ -110,12 +110,12 @@ func TestUnpwMatch(t *testing.T) {
 func TestBadHashAlgo(t *testing.T) {
 	logrus.Infof("---TestBadHashAlgo---")
 	password1 := "password1"
-	_, err := authenticate.CreatePasswordHash(password1, "Badalgo", 0)
+	_, err := unpwauth.CreatePasswordHash(password1, "Badalgo", 0)
 	assert.Error(t, err)
-	_, err = authenticate.CreatePasswordHash("", "", 0)
+	_, err = unpwauth.CreatePasswordHash("", "", 0)
 	assert.Error(t, err)
 
-	hash, err := authenticate.CreatePasswordHash("user1", authenticate.PWHASH_ARGON2id, 0)
+	hash, err := unpwauth.CreatePasswordHash("user1", unpwauth.PWHASH_ARGON2id, 0)
 	assert.NoError(t, err)
 	ah := createEmptyTestAuthenticator()
 	match := ah.VerifyPasswordHash(hash, "password1", "badalgo")
@@ -128,9 +128,9 @@ func TestBCrypt(t *testing.T) {
 	ah := createEmptyTestAuthenticator()
 	err := ah.Start()
 	assert.NoError(t, err)
-	hash, err := authenticate.CreatePasswordHash(password1, authenticate.PWHASH_BCRYPT, 0)
+	hash, err := unpwauth.CreatePasswordHash(password1, unpwauth.PWHASH_BCRYPT, 0)
 	assert.NoError(t, err)
-	match := ah.VerifyPasswordHash(hash, password1, authenticate.PWHASH_BCRYPT)
+	match := ah.VerifyPasswordHash(hash, password1, unpwauth.PWHASH_BCRYPT)
 	assert.True(t, match)
 	ah.Stop()
 }

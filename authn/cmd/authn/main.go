@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/docopt/docopt-go"
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/authn/pkg/authenticate"
+	"github.com/wostzone/hub/authn/pkg/unpwauth"
 	"github.com/wostzone/hub/authn/pkg/unpwstore"
 	"os"
 	"path"
@@ -109,7 +109,7 @@ func HandleSetPasswd(configFolder string, username string, passwd string, iterat
 			return fmt.Errorf("missing password")
 		}
 		// pwHash, err = authen.CreatePasswordHash(passwd, authen.PWHASH_ARGON2id, uint(iterations))
-		pwHash, err = authenticate.CreatePasswordHash(passwd, authenticate.PWHASH_ARGON2id, uint(iterations))
+		pwHash, err = unpwauth.CreatePasswordHash(passwd, unpwauth.PWHASH_ARGON2id, uint(iterations))
 	}
 	if err == nil {
 		err = unpwStore.SetPasswordHash(username, pwHash)

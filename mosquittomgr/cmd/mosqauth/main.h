@@ -70,11 +70,11 @@ extern "C" {
 
 extern void AuthPluginInit(GoSlice keys, GoSlice values, GoInt authOptsNum);
 
-// AuthUnpwdCheck checks for a correct username/password
-// This matches the given password against the stored password hash
+// AuthUnpwdCheck checks for a correct username/password (jwt token)
+// This verifies the JWT access token given as the password
 //  clientID used to connect
 //  username is the login user name
-//  password is the login password
+//  password is the JWT access token
 //  clientIP
 //  certSubjName when authenticated using a certificate instead of username/password
 // Returns:

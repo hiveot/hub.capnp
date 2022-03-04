@@ -19,7 +19,7 @@ func Main() {
 	main()
 }
 
-// Main entry point to start the authentication authservice
+// Main entry point to start the authentication service
 func main() {
 	// with defaults
 	authServiceConfig := authservice.AuthServiceConfig{}
@@ -52,7 +52,7 @@ func main() {
 		logrus.Printf("Failed load TLS Server certificate for the Auth Service.: %s\n", err)
 		os.Exit(1)
 	}
-
+	// signing of tokens is done using the server certificate, available to all servers
 	signingKey := serverCert.PrivateKey.(*ecdsa.PrivateKey)
 	pb := authservice.NewJwtAuthService(
 		authServiceConfig,

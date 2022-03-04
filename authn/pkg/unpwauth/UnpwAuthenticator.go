@@ -1,4 +1,4 @@
-package authenticate
+package unpwauth
 
 import (
 	"fmt"
@@ -17,8 +17,8 @@ const (
 // VerifyUsernamePassword is an interface to verify username/password authentication
 type VerifyUsernamePassword func(userID string, password string) bool
 
-// Authenticator manages client username/password authentication for access to Things
-type Authenticator struct {
+// UnpwAuthenticator manages client username/password authentication for access to Things
+type UnpwAuthenticator struct {
 	unpwStore IUnpwStore
 }
 
@@ -54,7 +54,7 @@ func CreatePasswordHash(password string, algo string, iterations uint) (hash str
 
 // SetPassword hashes the given password and stores it in the password store
 // Returns if username or password are not provided
-func (ah *Authenticator) SetPassword(username string, password string) error {
+func (ah *UnpwAuthenticator) SetPassword(username string, password string) error {
 	if username == "" || password == "" {
 		return fmt.Errorf("SetPassword: Missing username or password")
 	}
@@ -71,22 +71,22 @@ func (ah *Authenticator) SetPassword(username string, password string) error {
 
 // Start the authhandler. This opens the password store.
 // if no password store was provided this simply returns nil
-func (ah *Authenticator) Start() error {
+func (ah *UnpwAuthenticator) Start() error {
 	if ah.unpwStore == nil {
-		return fmt.Errorf("Authenticator.Start: missing password store")
+		return fmt.Errorf("UnpwAuthenticator.Start: missing password store")
 	}
 	err := ah.unpwStore.Open()
 	if err != nil {
-		err2 := fmt.Errorf("Authenticator.Start Failed opening password store: %s", err)
+		err2 := fmt.Errorf("UnpwAuthenticator.Start Failed opening password store: %s", err)
 		logrus.Errorf("%s", err2)
 		return err2
 	}
-	logrus.Infof("Authenticator.Start Success")
+	logrus.Infof("UnpwAuthenticator.Start Success")
 	return nil
 }
 
 // Stop the authn handler and close the password store.
-func (ah *Authenticator) Stop() {
+func (ah *UnpwAuthenticator) Stop() {
 	if ah.unpwStore != nil {
 		ah.unpwStore.Close()
 	}
@@ -94,7 +94,7 @@ func (ah *Authenticator) Stop() {
 
 // VerifyUsernamePassword verifies if the given password is valid for login
 // Returns true if valid, false if the user is unknown or the password is invalid
-func (ah *Authenticator) VerifyUsernamePassword(loginName string, password string) bool {
+func (ah *UnpwAuthenticator) VerifyUsernamePassword(loginName string, password string) bool {
 	if ah.unpwStore == nil {
 		return false
 	}
@@ -113,7 +113,7 @@ func (ah *Authenticator) VerifyUsernamePassword(loginName string, password strin
 //  password to verify against
 //  algo is the algorithm to use, PWHASH_ARGON2id or PWHASH_BCRYPT
 // returns true if the password matches the hash, or false on mismatch
-func (ah *Authenticator) VerifyPasswordHash(hash string, password string, algo string) bool {
+func (ah *UnpwAuthenticator) VerifyPasswordHash(hash string, password string, algo string) bool {
 	if algo == PWHASH_ARGON2id {
 		match, _ := argon2id.ComparePasswordAndHash(password, hash)
 		return match
@@ -124,10 +124,10 @@ func (ah *Authenticator) VerifyPasswordHash(hash string, password string, algo s
 	return false
 }
 
-// NewAuthenticator creates a new instance of the authentication handler to update and verify user passwords.
+// NewUnPwAuthenticator creates a new instance of the username password authentication handler to update and verify user passwords.
 //  unpwStore provides the functions to access the password store.
-func NewAuthenticator(unpwStore IUnpwStore) *Authenticator {
-	a := Authenticator{
+func NewUnPwAuthenticator(unpwStore IUnpwStore) *UnpwAuthenticator {
+	a := UnpwAuthenticator{
 		unpwStore: unpwStore,
 	}
 	return &a

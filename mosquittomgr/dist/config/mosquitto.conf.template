@@ -44,7 +44,6 @@ auth_plugin ${appFolder}/bin/mosqauth.so
 auth_opt_logFile ${logsFolder}/mosqauth-cert.log
 auth_opt_logLevel info
 auth_opt_aclFile ${configFolder}/hub.acl
-auth_opt_unpwFile ${configFolder}/hub.passwd
 
 
 #--- 2: MQTT protocol over TLS with username/password auth
@@ -62,8 +61,7 @@ auth_plugin ${appFolder}/bin/mosqauth.so
 auth_opt_logFile ${logsFolder}/mosqauth-unpw.log
 auth_opt_logLevel info
 auth_opt_aclFile ${configFolder}/hub.acl
-auth_opt_unpwFile ${configFolder}/hub.passwd
-# For JWT token verification
+# Server public key is used for JWT token verification
 auth_opt_serverCertFile ${hubCertFile}
 
 
@@ -86,8 +84,7 @@ auth_plugin ${appFolder}/bin/mosqauth.so
 auth_opt_logFile ${logsFolder}/mosqauth-ws.log
 auth_opt_logLevel info
 auth_opt_aclFile ${configFolder}/hub.acl
-auth_opt_unpwFile ${configFolder}/hub.passwd
-# For JWT token verification
+# Server public key is used for JWT token verification
 auth_opt_serverCertFile ${hubCertFile}
 
 allow_anonymous false

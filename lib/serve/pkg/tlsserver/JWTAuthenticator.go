@@ -41,8 +41,8 @@ func (jauth *JWTAuthenticator) AuthenticateRequest(resp http.ResponseWriter, req
 	jwtToken, claims, err := jauth.DecodeToken(accessTokenString)
 	_ = claims
 	if err != nil {
-		logrus.Infof("JWTAuthenticator: Invalid access token in request %s '%s' from %s",
-			req.Method, req.RequestURI, req.RemoteAddr)
+		logrus.Infof("JWTAuthenticator: Invalid access token in request %s '%s' from %s: %s",
+			req.Method, req.RequestURI, req.RemoteAddr, err)
 		return "", false
 	}
 	// TODO: verify claims: iat, iss, aud

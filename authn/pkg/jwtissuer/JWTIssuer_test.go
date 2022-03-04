@@ -29,7 +29,7 @@ func TestCreateJWTToken(t *testing.T) {
 	assert.NotEmpty(t, accessToken)
 	assert.NotEmpty(t, refreshToken)
 
-	// authenticate with the access token
+	// unpwauth with the access token
 	jauth := tlsserver.NewJWTAuthenticator(&privKey.PublicKey)
 
 	decodedToken, claims, err := jauth.DecodeToken(accessToken)

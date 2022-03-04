@@ -72,6 +72,7 @@ func (srv *DirectoryServer) Start() error {
 		// srv.address = hubconfig.GetOutboundIP("").String()
 		srv.tlsServer = tlsserver.NewTLSServer(srv.address, srv.port,
 			srv.serverCert, srv.caCert)
+		// the server public key is used to verify auth token
 		srv.tlsServer.EnableJwtAuth(nil)
 
 		// Allow login on this server if an authenticator is provided, without it the client
@@ -126,7 +127,6 @@ func (srv *DirectoryServer) Stop() {
 //  - port server listening port
 //  - caCertFolder location of CA Cert and server certificates and keys
 //  - discoveryName for use in dns-sd. Use "" to disable discover, or the dirclient.DirectoryServiceName for default
-//  - authenticator optional authenticator to verify user login and issues JWT tokens. nil to use an external auth service
 //  - authorizer verifies read or write access to a thing by a user. certOU is set when auth via certificate
 func NewDirectoryServer(
 	instanceID string,
@@ -136,7 +136,6 @@ func NewDirectoryServer(
 	discoveryName string,
 	serverCert *tls.Certificate,
 	caCert *x509.Certificate,
-	//authenticator authenticate.VerifyUsernamePassword,
 	authorizer authorize.VerifyAuthorization,
 ) *DirectoryServer {
 
@@ -153,8 +152,7 @@ func NewDirectoryServer(
 		instanceID:    instanceID,
 		port:          port,
 		store:         dirfilestore.NewDirFileStore(storePath),
-		//authenticator: authenticator,
-		authorizer: authorizer,
+		authorizer:    authorizer,
 	}
 	return &srv
 }

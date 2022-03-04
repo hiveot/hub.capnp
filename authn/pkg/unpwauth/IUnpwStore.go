@@ -1,4 +1,4 @@
-package authenticate
+package unpwauth
 
 // IUnpwStore defined the interface for accessing the username-password store
 type IUnpwStore interface {

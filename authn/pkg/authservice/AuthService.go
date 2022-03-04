@@ -12,15 +12,15 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/authn/pkg/authenticate"
 	"github.com/wostzone/hub/authn/pkg/configstore"
+	"github.com/wostzone/hub/authn/pkg/unpwauth"
 	"github.com/wostzone/hub/authn/pkg/unpwstore"
 	"github.com/wostzone/hub/lib/client/pkg/tlsclient"
 	"github.com/wostzone/hub/lib/serve/pkg/tlsserver"
 )
 
 // PluginID of the service
-const PluginID = "authn"
+const PluginID = "authservice"
 
 // DefaultAuthServicePort to connect to the authn service
 const DefaultAuthServicePort = 8881
@@ -60,7 +60,7 @@ type AuthService struct {
 	running       bool
 	tlsServer     *tlsserver.TLSServer
 	signingKey    *ecdsa.PrivateKey
-	authenticator *authenticate.Authenticator
+	authenticator *unpwauth.UnpwAuthenticator
 	jwtIssuer     *jwtissuer.JWTIssuer
 }
 
@@ -142,7 +142,7 @@ func (srv *AuthService) Start() error {
 		return err
 	}
 	pwStore := unpwstore.NewPasswordFileStore(srv.config.PasswordFile, srv.config.ClientID)
-	srv.authenticator = authenticate.NewAuthenticator(pwStore)
+	srv.authenticator = unpwauth.NewUnPwAuthenticator(pwStore)
 	err = srv.authenticator.Start()
 	if err != nil {
 		return err

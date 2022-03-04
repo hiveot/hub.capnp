@@ -60,7 +60,7 @@ type JWTIssuer struct {
 // The result is written to the response and a refresh token is set securely in a client cookie.
 //  userID is the login ID of the user to whom the token is assigned and will be included in the claims
 func (issuer *JWTIssuer) CreateJWTTokens(userID string) (accessToken string, refreshToken string, err error) {
-	logrus.Infof("CreateJWTTokens for user '%s'", userID)
+	logrus.Infof("CreateJWTTokens for user '%s'. Valid for %d seconds", userID, issuer.AccessTokenValidity)
 	accessExpTime := time.Now().Add(issuer.AccessTokenValidity)
 	refreshExpTime := time.Now().Add(issuer.RefreshTokenValidity)
 	if userID == "" {
@@ -105,28 +105,6 @@ func (issuer *JWTIssuer) CreateJWTTokens(userID string) (accessToken string, ref
 	refreshToken, err = jwtRefreshToken.SignedString(issuer.signingKey)
 	return accessToken, refreshToken, err
 }
-
-// DecodeToken and return its claims
-// Set error if token not valid
-//func (issuer *JWTIssuer) DecodeToken(tokenString string) (
-//	jwtToken *jwt.Token, claims *tlsserver.JwtClaims, err error) {
-//
-//	claims = &tlsserver.JwtClaims{}
-//	jwtToken, err = jwt.ParseWithClaims(tokenString, claims,
-//		func(token *jwt.Token) (interface{}, error) {
-//			return issuer.verificationKey, nil
-//		})
-//	if err != nil || jwtToken == nil || !jwtToken.Valid {
-//		return nil, nil, fmt.Errorf("invalid JWT token. Err=%s", err)
-//	}
-//	err = jwtToken.Claims.Valid()
-//	if err != nil {
-//		return jwtToken, nil, fmt.Errorf("invalid JWT claims: err=%s", err)
-//	}
-//	claims = jwtToken.Claims.(*tlsserver.JwtClaims)
-//
-//	return jwtToken, claims, nil
-//}
 
 // HandleJWTLogin handles a JWT login POST request.
 // Attach this method to the router with the login route. For example:
@@ -252,7 +230,6 @@ func (issuer *JWTIssuer) WriteJWTTokens(
 	accessToken string, refreshToken string, resp http.ResponseWriter) error {
 
 	resp.Header().Set("Content-Type", "application/json")
-	//resp.Header().Set("Content-Type", "application/json")
 	response := tlsclient.JwtAuthResponse{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
@@ -279,8 +256,8 @@ func NewJWTIssuer(
 		signingKey:             signingKey,
 		verificationKey:        &signingKey.PublicKey,
 		issuerName:             issuerName,
-		//AccessTokenValidity:    60 * time.Minute,
-		AccessTokenValidity:  10 * time.Second, // for testing
+		AccessTokenValidity:    60 * time.Minute,
+		//AccessTokenValidity:  10 * time.Second, // for testing
 		RefreshTokenValidity: 7 * 24 * time.Hour,
 	}
 	return issuer
