@@ -41,6 +41,7 @@ func (jauth *JWTAuthenticator) AuthenticateRequest(resp http.ResponseWriter, req
 	jwtToken, claims, err := jauth.DecodeToken(accessTokenString)
 	_ = claims
 	if err != nil {
+		// token needs a refresh
 		logrus.Infof("JWTAuthenticator: Invalid access token in request %s '%s' from %s: %s",
 			req.Method, req.RequestURI, req.RemoteAddr, err)
 		return "", false
@@ -48,7 +49,7 @@ func (jauth *JWTAuthenticator) AuthenticateRequest(resp http.ResponseWriter, req
 	// TODO: verify claims: iat, iss, aud
 
 	// hoora its valid
-	logrus.Infof("JWTAuthenticator. Request by %s authenticated with valid JWT token", jwtToken.Header)
+	logrus.Debugf("JWTAuthenticator. Request by %s authenticated with valid JWT token", jwtToken.Header)
 	return claims.Username, true
 }
 

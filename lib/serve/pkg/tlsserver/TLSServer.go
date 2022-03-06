@@ -142,10 +142,10 @@ func (srv *TLSServer) Start() error {
 			// local requests are always allowed, even over http (for testing) - todo: disable in production
 			if strings.HasPrefix(orig, "https://127.0.0.1") || strings.HasPrefix(orig, "https://localhost") ||
 				strings.HasPrefix(orig, "http://127.0.0.1") || strings.HasPrefix(orig, "http://localhost") {
-				logrus.Infof("TLSServer.AllowOriginFunc: Cors: orig: %s (localhost). Is True", orig)
+				logrus.Debugf("TLSServer.AllowOriginFunc: Cors: orig: %s (localhost). Is True", orig)
 				return true
 			} else if strings.HasPrefix(orig, "https://"+srv.address) {
-				logrus.Infof("TLSServer.AllowOriginFunc: Cors: orig:%s. Is True", orig)
+				logrus.Debugf("TLSServer.AllowOriginFunc: Cors: orig:%s. Is True", orig)
 				return true
 			}
 			logrus.Warningf("TLSServer.AllowOriginFunc: Cors: orig:%s. Is False", orig)

@@ -269,6 +269,15 @@ func TestQueryAndList(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, len(tdDefs), len(td3))
 
+	// test offset
+	td4, err := dirClient.ListTDs(1, 1)
+	require.NoError(t, err)
+	assert.Equal(t, 1, len(td4))
+
+	td5, err := dirClient.ListTDs(len(tdDefs), 1)
+	require.NoError(t, err)
+	assert.Equal(t, 0, len(td5))
+
 	dirClient.Close()
 }
 

@@ -22,7 +22,7 @@ func (srv *DirectoryServer) ServeThings(userID string, response http.ResponseWri
 			certOU = cert.Subject.OrganizationalUnit[0]
 		}
 	}
-
+	// offset and limit are optionally provided through query params
 	limit, err := srv.tlsServer.GetQueryInt(request, dirclient.ParamLimit, dirclient.DefaultLimit)
 	if limit > dirclient.MaxLimit {
 		limit = dirclient.MaxLimit

@@ -185,13 +185,19 @@ func (store *DirFileStore) List(offset int, limit int, aclFilter func(thingID st
 		}
 	}
 	sort.Strings(keyList)
-	sortedDocs := make([]interface{}, len(keyList))
+	nrResults := len(keyList) - offset
+	if nrResults < 0 {
+		nrResults = 0
+	}
+	if nrResults > limit {
+		nrResults = limit
+	}
+	sortedDocs := make([]interface{}, nrResults)
 
-	for index := offset; index < len(keyList) && index < offset+limit; index++ {
-		key := keyList[index]
+	for index := 0; index < nrResults; index++ {
+		key := keyList[offset+index]
 		sortedDocs[index] = store.docs[key]
 	}
-
 	return sortedDocs
 }
 
