@@ -21,6 +21,7 @@ func TestCreateJWTToken(t *testing.T) {
 	// pub/private key for signing tokens
 	privKey := certsclient.CreateECDSAKeys()
 	issuer := jwtissuer.NewJWTIssuer("issuerName", privKey,
+		60, 60,
 		func(loginID string, pass string) bool {
 			return false
 		})
@@ -48,7 +49,7 @@ func TestCreateJWTToken(t *testing.T) {
 func TestJWTIncorrectSigningUser(t *testing.T) {
 	// issue the tokens
 	privKey := certsclient.CreateECDSAKeys()
-	issuer := jwtissuer.NewJWTIssuer("", privKey,
+	issuer := jwtissuer.NewJWTIssuer("", privKey, 60, 60,
 		func(loginID string, pass string) bool {
 			return false
 		})
@@ -65,7 +66,7 @@ func TestJWTIncorrectVerificationKey(t *testing.T) {
 
 	// issue the tokens
 	privKey := certsclient.CreateECDSAKeys()
-	issuer := jwtissuer.NewJWTIssuer("issuerName", privKey,
+	issuer := jwtissuer.NewJWTIssuer("issuerName", privKey, 60, 60,
 		func(loginID string, pass string) bool {
 			return false
 		})
@@ -86,7 +87,7 @@ func TestHandleJWTLoginLogout(t *testing.T) {
 
 	// issue the tokens
 	privKey := certsclient.CreateECDSAKeys()
-	issuer := jwtissuer.NewJWTIssuer("issuerName", privKey,
+	issuer := jwtissuer.NewJWTIssuer("issuerName", privKey, 60, 60,
 		func(loginID string, pass string) bool {
 			didCheckCred = true
 			return true
@@ -126,7 +127,7 @@ func TestBadLogin(t *testing.T) {
 
 	// issue the tokens
 	privKey := certsclient.CreateECDSAKeys()
-	issuer := jwtissuer.NewJWTIssuer("issuerName", privKey,
+	issuer := jwtissuer.NewJWTIssuer("issuerName", privKey, 60, 60,
 		func(loginID string, pass string) bool {
 			return false
 		})
@@ -142,7 +143,7 @@ func TestHandleJWTRefresh(t *testing.T) {
 
 	// issue the tokens
 	privKey := certsclient.CreateECDSAKeys()
-	issuer := jwtissuer.NewJWTIssuer("issuerName", privKey, nil)
+	issuer := jwtissuer.NewJWTIssuer("issuerName", privKey, 60, 60, nil)
 	_, refreshToken, err := issuer.CreateJWTTokens("user1")
 	assert.NoError(t, err)
 
@@ -160,7 +161,7 @@ func TestHandleJWTRefresh(t *testing.T) {
 func TestRefreshNoToken(t *testing.T) {
 	// issue the tokens
 	privKey := certsclient.CreateECDSAKeys()
-	issuer := jwtissuer.NewJWTIssuer("issuerName", privKey, nil)
+	issuer := jwtissuer.NewJWTIssuer("issuerName", privKey, 60, 60, nil)
 
 	// empty bearer token
 	req, _ := http.NewRequest("PUT", "someurl", http.NoBody)
@@ -177,7 +178,8 @@ func TestRefreshNoToken(t *testing.T) {
 func TestRefreshInvalidToken(t *testing.T) {
 	// issue the tokens
 	privKey := certsclient.CreateECDSAKeys()
-	issuer := jwtissuer.NewJWTIssuer("issuerName", privKey, nil)
+	issuer := jwtissuer.NewJWTIssuer("issuerName", privKey,
+		60, 60, nil)
 
 	// bad bearer token
 	req, _ := http.NewRequest("PUT", "someurl", http.NoBody)

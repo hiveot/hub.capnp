@@ -14,7 +14,7 @@ import (
 	"github.com/wostzone/hub/lib/serve/pkg/hubnet"
 )
 
-const JwtRefreshCookieName = "authtoken"
+const JwtRefreshCookieName = "refreshtoken"
 
 // JWTIssuer creates JWT access and refresh tokens when a valid login/pw is provided.
 // The access token is intended to verify the user identity with a resource server while the refresh token is
@@ -60,7 +60,8 @@ type JWTIssuer struct {
 // The result is written to the response and a refresh token is set securely in a client cookie.
 //  userID is the login ID of the user to whom the token is assigned and will be included in the claims
 func (issuer *JWTIssuer) CreateJWTTokens(userID string) (accessToken string, refreshToken string, err error) {
-	logrus.Infof("CreateJWTTokens for user '%s'. Valid for %d seconds", userID, issuer.AccessTokenValidity)
+	logrus.Infof("CreateJWTTokens for user '%s'. Access token valid for %d seconds, refresh for %d seconds",
+		userID, issuer.AccessTokenValidity/time.Second, issuer.RefreshTokenValidity/time.Second)
 	accessExpTime := time.Now().Add(issuer.AccessTokenValidity)
 	refreshExpTime := time.Now().Add(issuer.RefreshTokenValidity)
 	if userID == "" {
@@ -215,12 +216,11 @@ func (issuer *JWTIssuer) StoreJWTTokens(
 		Expires:  cookieExpTime,
 		HttpOnly: true, // prevent XSS attack (javascript cant read value)
 		Secure:   true, // only transmit cookie over https
-		// assume that the client service/website runs on the same domain to use cookies
-		//SameSite: http.SameSiteLaxMode,
-		SameSite: http.SameSiteNoneMode,
-		// testing
-		Domain: "localhost",
-		Path:   "/authn",
+		// Use SameSiteLaxMode to allow refresh token to be stored in secure cookie when authservice listens on a
+		// different port.
+		//SameSite: http.SameSiteStrictMode,
+		SameSite: http.SameSiteLaxMode,
+		//SameSite: http.SameSiteNoneMode,
 	})
 }
 
@@ -246,6 +246,8 @@ func (issuer *JWTIssuer) WriteJWTTokens(
 func NewJWTIssuer(
 	issuerName string,
 	signingKey *ecdsa.PrivateKey,
+	accessTokenValiditySec int,
+	refreshTokenValiditySec int,
 	verifyUsernamePassword func(loginID, secret string) bool,
 ) *JWTIssuer {
 	if signingKey == nil {
@@ -256,9 +258,8 @@ func NewJWTIssuer(
 		signingKey:             signingKey,
 		verificationKey:        &signingKey.PublicKey,
 		issuerName:             issuerName,
-		AccessTokenValidity:    60 * time.Minute,
-		//AccessTokenValidity:  10 * time.Second, // for testing
-		RefreshTokenValidity: 7 * 24 * time.Hour,
+		AccessTokenValidity:    time.Duration(accessTokenValiditySec) * time.Second,
+		RefreshTokenValidity:   time.Duration(refreshTokenValiditySec) * time.Second,
 	}
 	return issuer
 }

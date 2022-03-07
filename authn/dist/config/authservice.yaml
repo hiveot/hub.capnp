@@ -1,7 +1,27 @@
 # Authentication service configuration
+# The service will work out of the box with the default values
 
-# enable the client configuration store
-configStoreEnabled: true
+# override the server address from hub.yaml
+#address: localhost
 
-# folder to store client configuration
-configStoreFolder: clientconfig
+# Service listening port or 0 to use the default port 8881
+#port: 8881
+
+# ClientID to identify this service as. Default is the pluginID
+#clientID: authservice
+
+# Enable the configuration store for authenticated users. Default is true
+#configStoreEnabled: true
+
+# Set the config store folder. Default is 'clientconfig' in the config folder
+#configStoreFolder: clientconfig
+
+# PasswordFile, in the config folder, to read from.
+# Use "" for default defined in 'unpwstore.DefaultPasswordFile'
+#passwordFile: "hub.passwd"
+
+# access token validity in seconds. Default is 1 hour
+#accessTokenValiditySec: 3600
+
+# refresh token validity in days. Default is 14 days
+#refreshTokenValidityDays: 14

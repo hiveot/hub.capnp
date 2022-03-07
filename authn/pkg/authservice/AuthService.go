@@ -25,6 +25,12 @@ const PluginID = "authservice"
 // DefaultAuthServicePort to connect to the authn service
 const DefaultAuthServicePort = 8881
 
+// DefaultAccessTokenValiditySec with access token validity in seconds
+const DefaultAccessTokenValiditySec = 3600
+
+// DefaultRefreshTokenValidityDays with Refresh token validity before refresh
+const DefaultRefreshTokenValidityDays = 14
+
 // internal constant for appID route parameter
 const appIDParam = "appid"
 
@@ -39,14 +45,20 @@ type AuthServiceConfig struct {
 	// ClientID to identify this service as. Default is the pluginID
 	ClientID string `yaml:"clientID"`
 
-	// Enable the configuration store for authenticated users. A folder MUST be set.
+	// Enable the configuration store for authenticated users. Default is true
 	ConfigStoreEnabled bool `yaml:"configStoreEnabled"`
 
-	// Set the config store folder. Required for enabling the config store
+	// Set the config store folder. Default is 'clientconfig' in the config folder
 	ConfigStoreFolder string `yaml:"configStoreFolder"`
 
 	// PasswordFile to read from. Use "" for default defined in 'unpwstore.DefaultPasswordFile'
 	PasswordFile string `yaml:"passwordFile"`
+
+	// Access token validity. Default is 1 hour
+	AccessTokenValiditySec int `yaml:"accessTokenValiditySec"`
+
+	// Refresh token validity. Default is 14 days
+	RefreshTokenValidityDays int `yaml:"refreshTokenValidityDays"`
 }
 
 // AuthService for handling authentication and token refresh requests
@@ -87,7 +99,9 @@ func (srv *AuthService) EnableConfigStore(storeFolder string) {
 // issuerKey is the private key used to sign the tokens. Use nil to use the server's private key
 // validateCredentials is the handler that matches credentials with those in the credentials store
 func (srv *AuthService) EnableJwtIssuer(issuerKey *ecdsa.PrivateKey,
-	validateCredentials func(loginName string, password string) bool) {
+	accessTokenValiditySec int, refreshTokenValiditySec int,
+	validateCredentials func(loginName string, password string) bool,
+) {
 	// for now the JWT login/refresh paths are fixed. Once a use-case comes up that requires something configurable
 	// this can be updated.
 	jwtLoginPath := tlsclient.DefaultJWTLoginPath
@@ -97,7 +111,11 @@ func (srv *AuthService) EnableJwtIssuer(issuerKey *ecdsa.PrivateKey,
 		issuerKey = srv.signingKey
 	}
 	// handler of issuing JWT tokens
-	srv.jwtIssuer = jwtissuer.NewJWTIssuer("AuthService", issuerKey, validateCredentials)
+	srv.jwtIssuer = jwtissuer.NewJWTIssuer("AuthService",
+		issuerKey,
+		accessTokenValiditySec, refreshTokenValiditySec,
+		validateCredentials,
+	)
 	srv.tlsServer.AddHandlerNoAuth(jwtLoginPath, srv.jwtIssuer.HandleJWTLogin).Methods(http.MethodPost, http.MethodOptions)
 	srv.tlsServer.AddHandlerNoAuth(hwtRefreshPath, srv.jwtIssuer.HandleJWTRefresh).Methods(http.MethodPost, http.MethodOptions)
 
@@ -155,7 +173,12 @@ func (srv *AuthService) Start() error {
 	}
 	// add authn handlers
 	srv.tlsServer.EnableJwtAuth(&srv.signingKey.PublicKey)
-	srv.EnableJwtIssuer(srv.signingKey, srv.authenticator.VerifyUsernamePassword)
+	srv.EnableJwtIssuer(
+		srv.signingKey,
+		srv.config.AccessTokenValiditySec,
+		srv.config.RefreshTokenValidityDays*24*3600,
+		srv.authenticator.VerifyUsernamePassword,
+	)
 
 	if srv.config.ConfigStoreEnabled && srv.config.ConfigStoreFolder != "" {
 		srv.EnableConfigStore(srv.config.ConfigStoreFolder)
@@ -197,6 +220,12 @@ func NewJwtAuthService(
 	}
 	if config.ClientID == "" {
 		config.ClientID = PluginID
+	}
+	if config.AccessTokenValiditySec <= 0 {
+		config.AccessTokenValiditySec = DefaultAccessTokenValiditySec
+	}
+	if config.RefreshTokenValidityDays <= 0 {
+		config.RefreshTokenValidityDays = DefaultRefreshTokenValidityDays
 	}
 
 	// The TLS server authenticates a request.
