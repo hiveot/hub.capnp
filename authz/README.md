@@ -22,11 +22,11 @@ Authenticated clients have a role in each group they are a member of. Authorizat
 * groups contain resources and clients. Clients can access resources in the same group based on their role. A client only has a single role.
   * The 'all' group includes all resources without need to add them explicitly. Use with care. 
 * role. Clients have a role in a group. The role determines the action the client is allowed on the resource ('Things'). Roles are:
-  * the viewer role allows read-only access to the resource attributes such as Thing properties and output values
-  * the operator role, in addition to viewer, allows operating the resource inputs such as a Thing switch
-  * the manager role, in addition to operator, allows changing the resource configuration
-  * the administrator, in addition to manager, can manage users to the group
-  * The 'thing' role is for IoT devices only and identifies it as the resource to access. Thing publishers are devices that have full access to the Things they publish. They are identified by their publisher ID in the device client certificate. 
+  * viewer: allows read-only access to the resource attributes such as Thing properties and output values
+  * operator: in addition to viewer, allows operating the resource inputs such as a Thing switch
+  * manager: in addition to operator, allows changing the resource configuration
+  * administrator: in addition to manager, can manage users to the group
+  * thing: role is for use by IoT devices only and identifies it as the resource to access. Thing publishers are devices that have full access to the Things they publish. They are identified by their publisher ID in the device client certificate. 
   
 The 'all' group is built-in and automatically includes all Things. To allow a user to view all Things, the loginID is added to the all group with the 'view' role.
 

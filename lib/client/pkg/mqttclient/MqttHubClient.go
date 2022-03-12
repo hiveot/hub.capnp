@@ -71,7 +71,16 @@ func (client *MqttHubClient) publish(topic string, object interface{}) error {
 	return err
 }
 
-// PublishAction publish a Thing action request to the Hub
+// PublishAction publish an action request to a Thing on the WoST Hub message bus.
+// Actions are defined in the WoT Thing definition standard: https://www.w3.org/TR/wot-architecture/#actions
+// WoST uses topic '{thingID}/action' to publish action requests.
+//
+// In the WoST context, an action leads to change of an output state of a Thing. Eg control a switch or set a dimmer value.
+// This differs from a configuration property change which has no immediate effect on the observable output state. To
+// request a configuration change use PublishConfigRequest instead.
+//
+// The device that hosts the thing will subscribe to message and execute the action.
+// The message bus performs authorization of this client before the message is accepted.
 func (client *MqttHubClient) PublishAction(thingID string, name string, params map[string]interface{}) error {
 	topic := strings.ReplaceAll(TopicAction, "{id}", thingID)
 	actions := map[string]interface{}{name: params}
@@ -79,15 +88,24 @@ func (client *MqttHubClient) PublishAction(thingID string, name string, params m
 	return err
 }
 
-// PublishConfigRequest publish a Thing configuration request to the Hub
+// PublishConfigRequest publishes a configuration change request to a Thing on the WoST Hub message bus
+// WoST uses topic '{thingID}/config' to publish configuration requests.
+//
+// WoT does not differentiate between actions and configuration. In the real world users consider them as different.
+// For example, switching a light on and off is a completely different concept than setting its auto-off configuration.
+// In addition, actions and configuration involve different authorizations. Therefore, WoST treats them separately.
 func (client *MqttHubClient) PublishConfigRequest(thingID string, values map[string]interface{}) error {
 	topic := strings.ReplaceAll(TopicSetConfig, "{id}", thingID)
 	err := client.publish(topic, values)
 	return err
 }
 
-// PublishEvent publish a Thing event to the WoST hub
-// Intended to by used by a Thing
+// PublishEvent publish a Thing event to consumers on the WoST hub message bus
+// Events are defined in the WoT Thing definition standard: https://www.w3.org/TR/wot-architecture/#events, and is
+// intended to push state transitions asynchronously from the Thing to the consumer.
+//
+// In WoST changes to properties and configuration are both reported using events. The distinction is irrelevant in this
+// case as consumers don't perceive events directly.
 func (client *MqttHubClient) PublishEvent(thingID string, event map[string]interface{}) error {
 	topic := strings.ReplaceAll(TopicThingEvent, "{id}", thingID)
 	err := client.publish(topic, event)
@@ -95,12 +113,13 @@ func (client *MqttHubClient) PublishEvent(thingID string, event map[string]inter
 }
 
 // PublishPropertyValues publish a Thing property values to the WoST hub
+// WoT does not differentiate between events and configuration changes. In the real world these are often treated differently
 // Intended to by used by a Thing to publish updates of property values
-func (client *MqttHubClient) PublishPropertyValues(thingID string, values map[string]interface{}) error {
-	topic := strings.ReplaceAll(TopicThingPropertyValues, "{id}", thingID)
-	err := client.publish(topic, values)
-	return err
-}
+//func (client *MqttHubClient) PublishPropertyValues(thingID string, values map[string]interface{}) error {
+//	topic := strings.ReplaceAll(TopicThingPropertyValues, "{id}", thingID)
+//	err := client.publish(topic, values)
+//	return err
+//}
 
 // PublishTD publish a Thing description to the WoST hub
 // Intended to by used by a Thing to publish an update to its TD

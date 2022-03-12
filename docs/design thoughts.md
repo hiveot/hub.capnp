@@ -1,32 +1,28 @@
 # Notes on Hub design.
 
+Just some random notes and thoughts
+
 ## Plan
 
-1. Phase 1: Hub MVP
+1. Phase 1: Hub MVP [done]
    1. Configuration management for hub and plugins (wostlib-go) [done]
    2. Certificate management (wostlib-go) [done]
    3. MQTT client (wostlib-go) [done]
    4. Launching of plugins (hub) [done]
    5. Logger plugin to track launching problems and test plugins (logger) [done]
    6. Mosquitto no-auth MQTT server configuration (pb_mosquitto) [done]
-   7. Discovery of hub services - tbd part of idprov?
 
-2.  Phase 2: Authentication & provisioning
+2. Phase 2: Authentication & Authorization [done]
     1. Certificate based client authentication for plugins and devices [done]
-    2. Thing provisioning protocol (idprov) [done]
-    3. Username/password authentication service for mosquitto/https services
-    4. Hub Auth CLI
-    5. Add Basic security schema to HTTP authentication
-    6. Add Digest security schema to HTTP authentication
-    7. Add Bearer security schema to HTTP authentication
-    8. Add PKS security schema to HTTP authentication
-    9. Provisioning approval process
+    2. Username/password authentication service for mosquitto/https services [done]
+    3. Hub Certificate, Authentication and Authorization CLI [done]
 
-3.  Phase 3: Directory service
-    1.  In-memory directory service
-    2.  Schema validation
+4. Phase 3: Core services [in progress]
+    1. Thing provisioning protocol (idprov) [done]
+    2. In-memory directory service [done]
+    3. Web client (thingview) service [in progress] 
    
-4.  Phase 4: Add protocol adapters
+5. Phase 4: protocol adapters [in progress]
     1.  EDS OWServer 1-wire protocol adapter POC [done]
     2.  Insteon
     3.  IPcam
@@ -34,14 +30,15 @@
     5.  OpenZwave
     6.  Weather
 
-5.  Phase 5: Potential Enhancements
-    1.  Hub CLI 
-    2.  Redis persistence backup
-    3.  Scripting engine plugin
-    4.  WebSocket protocol adapter
-    5.  JS Hub Client API's
-    6.  View discovered things
-    8.  Dashboard
+6. Phase 5: Potential Enhancements
+    1. Schema validation [is it worth the hassle?]
+    2. Discovery of directory and other services?
+    3. Redis persistence backup
+    4. Scripting engine plugin
+    5. WebSocket protocol adapter
+    6. JS Hub Client API's
+    7. View discovered things
+    8. Dashboard
 
 
 

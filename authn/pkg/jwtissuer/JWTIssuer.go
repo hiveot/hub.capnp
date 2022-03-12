@@ -219,8 +219,8 @@ func (issuer *JWTIssuer) StoreJWTTokens(
 		// Use SameSiteLaxMode to allow refresh token to be stored in secure cookie when authservice listens on a
 		// different port.
 		//SameSite: http.SameSiteStrictMode,
-		SameSite: http.SameSiteLaxMode,
-		//SameSite: http.SameSiteNoneMode,
+		//SameSite: http.SameSiteLaxMode,
+		SameSite: http.SameSiteNoneMode,
 	})
 }
 

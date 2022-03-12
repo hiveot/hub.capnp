@@ -3,84 +3,106 @@
 This section provides instructions on how to write a plugin for use with the WoST Hub. 
 
 
-> ## Under Development
-> This document is under development
+> ## Under Construction
+> This document is under construction.
+> 
+> More information on constructing TDs and other documents are needed
 
+
+## Introduction
+
+Plugins can be written in any programming language. The anatomy of a plugin breaks down into:
+1. Starting and stopping  
+2. Subscribe to and handle messages on the message bus: TDs, actions, events
+3. Publish messages on the message bus: TDs, actions, events
+
+A plugin typically works with an external information source, such as legacy IoT devices, internet services, local sensors, enrichment engine, database, etc. This leads to additional parts:
+
+4. Obtain information from external sources (legacy IoT device, internet services)
+5. Transform information for publication on the message bus
+
+Consumer facing services can provide an API to provide this information.
+
+6. Serve information via a REST API (optional)
 
 
 ## Starting And Stopping Plugins
 
-Plugins are launched by the Hub and passed the same commandline parameters used to start the Hub itself. These commandline parameters can be used to determine the location of configuration files, certificates and log files.
+Plugins are launched by the Hub and passed the same commandline parameters used to start the Hub itself. These commandline parameters can be used to override the location of configuration files, certificates and log files.
 
 Commandline options:
 ```
--c file.yaml           Use this configuration file instead of the default config/hub.yaml
- 
---home=path            Set the application working directory. Default is parent of the executable 
+-a folder              Change the application home folder that contains the certificates and configuration
 
---certFolder=path      Set a different TLS certificate folder. Default is ./certs
-
---configFolder=path    Set a different config folder. Default is ./config
-
---hostname=dnsname|ip  Message bus address host:port". Default is localhost:9678
-
---logFile=path         Write log message to this file. Default is ./logs/{pluginID}.log
-
---protocol=name        Message bus protocol: internal|mqtt
-
---pluginFolder=path    Alternate plugin folder. Empty to not load plugins.
-
---logLevel=level       Set loglevel to one of: error|warning|info|debug. Default is warning
+-c file.yaml           Use this as the global hub configuration file instead of the default config/hub.yaml
 ```
 
-Upon startup, a plugin reads the commandline to determine the configuration file and read the hub.yaml and plugin configuration. A library to do this in a single line is included in the "hubconfig" package of the hubapi-go repository.
+Upon startup, a plugin reads the commandline to determine the hub configuration file location, followed by loading both the hub.yaml and the plugin configuration files. A (go) library to do this in a single line is included in the "hub/lib/client/pkg/config" package. Other languages will be supported in the future.
 
-After loading the configuration, plugins connect to the message bus as a plugin using client certificates for authentication. The message bus address and certificate folder are configured in the config/hub.yaml configuration file.
+After loading the configuration, plugins connect to the message bus using its client certificate for authentication. The message bus address and certificate folder are configured in the config/hub.yaml configuration file. If the file is loaded using the client library the locations are directly available in the resulting object.
 
-The 'hubclient.NewPluginClient' function makes it easy to connect to the bus and deal with the certificate boilerplate. 
+To connect to the MQTT message bus, plugins can use the 'mqttclient.NewMqttHubClient' (package hub/lib/client/pkg/mqttclient) function. This handles the boilerplate including client certificate authentication. 
 
-Last, run the plugin service in a separate process and wait for the SIGTERM signal to end the service.
+Once connected, the plugin's internal service is started and will subscribe and respond to messages. It is recommended that a plugin creates and publishes its own TD document to be able to monitor the service. Once the service has started a wait for the SIGTERM signal to end the service commences.
 
 In summary:
 
 ```golang
-  import "github.com/wostzone/hubapi/pkg/hubconfig"
-  import "github.com/wostzone/hubapi/pkg/hubclient"
+  package myplugin
+  import "github.com/wostzone/hub/lib/client/pkg/config"
+  import "github.com/wostzone/hub/lib/client/pkg/mqttclient"
 
   const PluginID = "my-plugin"
-  pluginConfig := MyPluginConfig{}
+  
+  func main() {
+	  pluginConfig := MyPluginConfig{}
 
-  hubConfig, err := hubconfig.LoadCommandlineConfig("", PluginID, &pluginConfig)
-  client := hubclient.NewPluginClient(clientID, hubConfig)
-  err := client.Start()
-  if err != nil {
-    exit(1)
+	  // load configuration and connect to the message bus
+	  hubConfig, err := config.LoadAllConfig(os.Args, "", PluginID, &pluginConfig)
+	  if err != nil {
+	    logrus.Errorf("Failed loading configuration: %s", err)
+		os.Exit(1)
+	  }
+	  msgBusClient := mqttClient.NewMqttHubClient(clientID, hubConfig.CaCert)
+	  mqttHostPort := fmt.Sprintf("%s:%d", hubConfig.Address, hubConfig.MqttPortCert)
+	  err = msgBusClient.ConnectWithClientCert(mqttHostPort, hubConfig.PluginCert)
+	  if err != nil {
+		logrus.Errorf("Failed to connect to the message bus: %s", err)
+		exit(1)
+	  }
+
+	  // Run the service
+	  go myPluginService(client, hubConfig, &pluginConfig)
+
+	  // wait for the SIGTERM signal to end
+	  hub.WaitForSignal()
+
+	  // cleanup code goes here, if needed
   }
-
-  // Run the plugin
-  go myPluginService(client, hubConfig, &pluginConfig)
-
-  // wait for the SIGTERM signal to end
-	hub.WaitForSignal()
-
-  // cleanup code goes here if neccesary
 ```
-
-(note: the API is still subject to change)
-
-The provided client libraries in hubapi-go implement the connection logic for the various protocols using the configuration from hubconfig. Next, the plugin can use the Client API to receive, send or update TDs, send and receive events and action messages.
-
 
 ## Authentication
 
-Plugins authenticate using a client certificate. The location of this certificate is in the hub's certs folder defined in hub.yaml. Only the WoST process that runs the plugin has read access to the client certificate and corresponding private key. These are generated by the hub using the CA certificate in the same folder. All plugins use the same client certificate.
+Plugins authenticate using a TLS client certificate. The location of this certificate is in the hub's certs folder defined in hub.yaml. When installed correctly, only the WoST process that runs the plugin has read access to the client certificate and corresponding private key.  
 
-The NewPluginClient function handles the loading of the CA and client certificates and connects to the MQTT broker. In short, no need to do anything. You can write your own version if this if desired. The code should be self explanatory to developers.
+The 'config.LoadAllConfig' method automatically loads the client certificate, which is then available via hubconfig.PluginCert. See the previous paragraph for an example.
+
+Currently all plugins use the same client certificate. If the need arises it is possible to generate a certificate specific to each plugin but this is not high on the priority list at the moment.
+
+## Providing A Service With REST API  
+
+Plugins that provide a REST API can use the hub/lib/serve/pkg/tlsserver package. The TLSServer creates an instance that supports certificate based client authentication and JWT token based user authentication. JWT token authentication accepts a valid access token generated by the authn service.  
+
+The authz package provides library functions for authorizing user requests for Thing information based on their role in a group. This is implemented in the directory service and mosquitto manager authentication plugin.
+
+[TODO: Example]
 
 
-## Stopping The Plugin
+## Creating a TD Document
 
-When the Hub terminates it stops each plugin in turn using a SIGTERM signal.
-The plugin should close connections and exit with result code 0.
+Plugins that publish a TD document will need to create this document and make sure it adheres to the WoT TD specification. The package hub/lib/client/pkg/td provides helper methods to easily create a TD with its properties, event messages, and action messages. 
 
+[TODO: Example]
+
+[TODO: Instructions on how and when to construct a TD and other messages with these helper methods]
 

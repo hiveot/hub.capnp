@@ -5,6 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/../authn/.idea/authn.iml" filepath="$PROJECT_DIR$/../authn/.idea/authn.iml" />
       <module fileurl="file://$PROJECT_DIR$/../authz/.idea/authz.iml" filepath="$PROJECT_DIR$/../authz/.idea/authz.iml" />
       <module fileurl="file://$PROJECT_DIR$/../certs/.idea/certs.iml" filepath="$PROJECT_DIR$/../certs/.idea/certs.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../docs/.idea/docs.iml" filepath="$PROJECT_DIR$/../docs/.idea/docs.iml" />
       <module fileurl="file://$PROJECT_DIR$/../idprov/.idea/idprov.iml" filepath="$PROJECT_DIR$/../idprov/.idea/idprov.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/launcher.iml" filepath="$PROJECT_DIR$/.idea/launcher.iml" />
       <module fileurl="file://$PROJECT_DIR$/../lib/.idea/lib.iml" filepath="$PROJECT_DIR$/../lib/.idea/lib.iml" />

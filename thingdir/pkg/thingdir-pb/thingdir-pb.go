@@ -107,6 +107,7 @@ func (pb *ThingDirPB) Start() error {
 		}
 	}
 	// connect a client to the directory server for use by the protocol binding
+	// the protocol binding uses the server API to update the directory store with discovered Things.
 	dirHostPort := fmt.Sprintf("%s:%d", pb.config.DirAddress, pb.config.DirPort)
 	pb.dirClient = dirclient.NewDirClient(dirHostPort, pb.hubConfig.CaCert)
 	err = pb.dirClient.ConnectWithClientCert(pb.hubConfig.PluginCert)

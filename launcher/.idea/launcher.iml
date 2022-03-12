@@ -14,5 +14,6 @@
     <orderEntry type="module" module-name="idprov" />
     <orderEntry type="module" module-name="certs" />
     <orderEntry type="module" module-name="authz" />
+    <orderEntry type="module" module-name="docs" />
   </component>
 </module>
