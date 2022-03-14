@@ -5,9 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0c1e6961-9e54-4948-b084-6d0502132342" name="Changes" comment="dev iteration, refactor packages">
+      <change beforePath="$PROJECT_DIR$/authn/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/authn/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/authn/pkg/jwtissuer/JWTIssuer.go" beforeDir="false" afterPath="$PROJECT_DIR$/authn/pkg/jwtissuer/JWTIssuer.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/lib/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/mqttclient/MqttHubClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/lib/client/pkg/mqttclient/MqttHubClient.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../owserver-pb/dist/config/owserver-pb.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/../owserver-pb/dist/config/owserver-pb.yaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../owserver-pb/internal/OWServerPB.go" beforeDir="false" afterPath="$PROJECT_DIR$/../owserver-pb/internal/OWServerPB.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../owserver-pb/test/config/owserver-test.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/../owserver-pb/test/config/owserver-test.yaml" afterDir="false" />

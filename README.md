@@ -23,14 +23,13 @@ This document describes a technical overview of the WoST Hub. A [user manual](us
 
 Security is big concern with today's IoT devices. The Internet of Things contains billions of devices that when not properly secured can be hacked. Unfortunately the reality is that the security of many of these devices leaves a lot to be desired and are never upgraded with security patches. This problem is only going to get worse as more IoT devices are coming to market. Imagine a botnet of a billion devices on the Internet ready for use by in-scrupulous actors. 
 
-WoST compatible devices are much more secure simply by not running a server and by not being directly accessible. Instead WoST devices only connect to the Hub that is provisioned. This removes a large attack vector and greatly reduces the need for security updates on these devices.
+WoST compatible devices are much more secure simply by not running a server and by not being directly accessible. Instead, WoST devices only connect to the Hub that is provisioned. This removes a large attack vector and greatly reduces the need for security updates on these devices.
 
 This 'WoST Hub' repository provides core services to securely interact with IoT devices and consumers. This includes certificate management, authentication, authorization, provisioning, message bus service and directory service.
 
-WoST compatible IoT devices therefore do not need to implement these features. This not only reduces required device resources such as memory and CPU (and cost) but also improves security by isolating the IoT device from its consumers without the need to 'harden' devices for security. An additional benefit is that consumers receive a consistent user experience independent of the IoT device provider as all interaction takes place via the standardized Hub interface. 
+WoST compatible IoT devices therefore do not need to implement these features. This not only reduces required device resources such as memory and CPU (and cost) but also improves security by isolating the IoT device from its consumers with less need to 'harden' devices for security. An additional benefit is that consumers receive a consistent user experience independent of the IoT device provider as all interaction takes place via the  Hub interface. 
 
 WoST is based on the 'WoT' (Web of Things) open standard developed by the W3C organization. It aims to be compatible with this standard.
-
 
 
 ### Plugins
@@ -54,9 +53,7 @@ The Hub includes several services that listen on specific ports. The default por
 * 8885 mqtt message bus, websocket port requiring username-password authentication
 * 8886 thingdir thing directory service port for querying known Thing Description documents
 * 8443 thingview web based thing viewer application for managing and viewing things
-
-
-[Tentative] A proxy service to provide a single HTTPS API access point for the services.  
+* 8443 [Tentative] A proxy service to provide a single HTTPS API access point for the services.  
 
 
 ### Launcher Service
@@ -109,7 +106,9 @@ It is recommended to use a dedicated server or container for installing the Hub 
 
 The minimal requirement is 100MB of RAM and an Intel Celeron, or ARMv7 CPU. Additional resources might be required for some plugins. See plugin documentation.
 
-The Hub requires the installation of the Mosquitto MQTT message broker. The 'mosquittomgr' plugin manages the configuration and security of the Mosquitto broker on behalf of the Hub. Other MQTT brokers can be used instead of Mosquitto but will require an accompanying service to handle authentication and authorization. The MQTT broker can but does not have to run on the same system as the Hub.
+* mosquitto:
+The Hub requires the installation of the Mosquitto MQTT message broker version 2.0.14 or newer. To build from source the libmosquitto-dev package must be installed as well.
+* The 'mosquittomgr' plugin manages the configuration and security of the Mosquitto broker on behalf of the Hub. Other MQTT brokers can be used instead of Mosquitto but will require an accompanying service to handle authentication and authorization. The MQTT broker can but does not have to run on the same system as the Hub.
 
 ### Install From Package Manager
 
@@ -346,5 +345,7 @@ Contributions to WoST projects are always welcome. There are many areas where he
 # Credits
 
 This project builds on the Web of Things (WoT) standardization by the W3C.org standards organization. For more information https://www.w3.org/WoT/
+
+This project is inspired by the Mozilla Thing draft API [published here](https://iot.mozilla.org/wot/#web-thing-description). However, the Mozilla API is intended to be implemented by Things and is not intended for Things to register themselves. The WoST Hub will therefore deviate where necessary.
 
 Many thanks go to JetBrains for sponsoring the WoST open source project with development tools.  

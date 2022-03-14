@@ -6,19 +6,6 @@ Golang implementation of a Thing Directory Service client and server library.
 
 Provide a service for registering and querying of (WoT) Thing Descriptions.
 
-
-## Status
-
-The status of this library is Alpha. It is functional but breaking changes can be expected. 
-- CRUD Thing Descriptions
-- Update TD's that are published on the message bus
-- Certificate and password based authentication check 
-
-## Audience
-
-This project is aimed at IoT developers that value the security and interoperability that WoST brings.
-WoST Things are more secure than traditional IoT devices as they do not run a server, but instead connect to a Hub to publish their information and receive actions. 
-
 ## Summary
 
 This directory service provides the means to store and query Thing Description documents.

@@ -133,6 +133,7 @@ func TestPublishEvent(t *testing.T) {
 	consumerClient.Close()
 }
 
+// FIXME: should property updates be send as events?
 func TestPublishPropertyValues(t *testing.T) {
 	logrus.Infof("--- TestPublishPropertyValues ---")
 	thingID := "thing1"

@@ -31,7 +31,7 @@ const JwtRefreshCookieName = "refreshtoken"
 // In order to use JWT authentication, the client must do the following:
 // 1. On first use, login through the login endpoint of the authentication service. This returns the
 //    access and refresh tokens.
-// 2. Place the access token in the authorization header of the service request. The service
+// 2. Place 'bearer {access token}' in the authorization header of the service request. The service
 //    will use the token to verify the user identity using the shared public key of the server.
 // 3. Before the access token expires the client must invoke the refresh endpoint and receive a new set of tokens.
 // 4. Replace the access token in the authorization header again. Same as pt 2.

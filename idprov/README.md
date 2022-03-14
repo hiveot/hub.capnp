@@ -1,53 +1,33 @@
 # IoT Device Provisioning
 
-This project provides a golang implementation for the '[idprov standard](https://github.com/wostzone/idprov-standard)'
-IoT device provisioning server. The protocol describes how to issue signed certificates to IoT devices with support for
-out-of-band verification and bulk provisioning.
+## Objective
 
-The signed certificates are for use by IoT devices to make secure authenticated connections to service providers.
+Provides a simple means to securely provision IoT devices using out-of-band device verification and bulk provisioning. This is a golang implementation of the '[idprov standard](https://github.com/wostzone/idprov-standard)'
 
-## Project Status
-
-Status: Alpha
-
-The status of this library is alpha. It is functional but breaking changes can be expected.
-
-## Audience
-
-This project is aimed at IoT developers that need a method of provisioning IoT devices with support for out-of-band
-verification. 'WoST' developers choose not to run servers on Things and instead use a hub and spokes model.
+Provisioned devices receive a signed client certificate that can be used to authenticate themselves with the WoST Hub and its services.
 
 ## Summary
 
 This project implements the 'idprov' IoT device provisioning protocol. It provides a client (in
-hubclient-go/idprovclient) and server library, and commandline utilities for standalone operation. It is intended for
-automated provisioning of IoT devices to enable secure authenticated connections from an IoT device to IoT services.
+hubclient-go/idprovclient) and server library, and commandline utilities for standalone operation. It is intended for automated provisioning of IoT devices to enable secure authenticated connections from an IoT device to IoT services.
 
-The typical use-case is that upon installing one or more IoT devices, the administrator collects the device ID and
-corresponding out-of-band secret and provides these to the provisioning server using the commandline utility or (future)
-web interface. When the devices are powered on the following process takes place:
+The typical use-case is that upon installing one or more IoT devices, the administrator collects the device ID and corresponding out-of-band secret and provides these to the provisioning server using the commandline utility or (future) web interface. When the devices are powered on the following process takes place:
 
-* The IoT device discovers the provisioning server on the local network using DNS-SD )
-* The IoT device requests a certificate from the provisioning server providing device identity and a hash of the out of
-  band secret.
-* The provisioning server verifies the device identity by matching the device-ID and secret with the administrator
-  provided information. If there is a match then the device is issued a signed identity certificate.
-* The certificate is then used by the device to authenticate itself with IoT service providers, publish its information,
-  and receive actions and configuration updates.
+1. The IoT device discovers the provisioning server on the local network using DNS-SD )
+2. The IoT device requests a certificate from the provisioning server providing device identity and a hash of the out of band secret.
+3. The provisioning server verifies the device identity by matching the device-ID and secret with the administrator provided information. If there is a match then the device is issued a signed identity certificate.
+4. The certificate is then used by the device to authenticate itself with IoT service providers, publish its information, and receive actions and configuration updates.
 
-IoT devices can use the provided client library (hubclient-go) to implements this process in a few lines of code. If no
-special OOB secret is available or needed, the device MAC address can be used as secret. The client ID can be the
-device's hostname, serial number or dedicated ID.
+IoT devices can use the provided client library (hubclient-go) to implements this process in a few lines of code. If no special OOB secret is available or needed, the device MAC address can be used as secret. The client ID can be the device's hostname, serial number or dedicated ID.
 
-The protocol uses the organizational unit (ou) field of the certificate to assign devices to the organization of IoT
-devices, with corresponding permissions.
+The protocol uses the organizational unit (ou) field of the certificate to assign devices to the organization of IoT devices, with corresponding permissions.
 
 This project provides:
 
 1. The ['idprov-standard'](https://github.com/wostzone/idprov-standard)) provisioning protocol definition
-2. A ['client library'](https://github.com/wostzone/hub/idprov/pkg/idprovclient) 
-3. The ['provisioning server'](https://github.com/wostzone/hub/idprov/pkg/idprovserver)
-4. An [out-of-band commandline utility](https://github.com/wostzone/hub/idprov/cmd/oob) (cmd/oob)
+2. A ['client library'](https://github.com/wostzone/hub/tree/main/idprov/pkg/idprovclient) 
+3. The ['provisioning server'](https://github.com/wostzone/hub/tree/main/idprov/pkg/idprovserver)
+4. An [out-of-band commandline utility](https://github.com/wostzone/hub/tree/main/idprov/cmd/oob) (cmd/oob)
 
 ## Features
 

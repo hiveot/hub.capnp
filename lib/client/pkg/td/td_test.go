@@ -20,7 +20,7 @@ func TestCreateTD(t *testing.T) {
 	td.SetThingVersion(thing, versions)
 
 	// Define TD property
-	prop := td.CreateProperty("Prop1", "First property", vocab.PropertyTypeSensor)
+	prop := td.CreateProperty("Prop1", "First property", vocab.PropertyTypeOutput)
 	enumValues := make([]string, 0) //{"value1", "value2"}
 	td.SetPropertyEnum(prop, enumValues)
 	td.SetPropertyUnit(prop, "C")

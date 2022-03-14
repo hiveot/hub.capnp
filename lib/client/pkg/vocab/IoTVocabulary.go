@@ -84,23 +84,19 @@ type ThingPropType string
 // Since property types is not part of the WoT vocabulary they are defined
 // as part of the WoST vocabulary. Used in "@type" for TD Properties.
 const (
-	// PropertyTypeActuator is an actuator (readonly, use Actions)
-	PropertyTypeActuator ThingPropType = "wost:actuator"
-	// PropertyTypeAttr is a readonly internal Thing attribute
+	// PropertyTypeAttr is a readonly attribute describing the Thing
 	PropertyTypeAttr ThingPropType = "wost:attr"
 	// PropertyTypeConfig is a writable configuration
 	PropertyTypeConfig ThingPropType = "wost:configuration"
-	// PropertyTypeSensor is a readonly sensor
-	PropertyTypeSensor ThingPropType = "wost:sensor"
 	// PropertyTypeState is a readonly internal state
 	PropertyTypeState ThingPropType = "wost:state"
 	// PropertyTypeInput is an input (use in Actions)
 	PropertyTypeInput ThingPropType = "wost:input"
-	// PropertyTypeOutput is an output (when different from sensor)
+	// PropertyTypeOutput is an output
 	PropertyTypeOutput ThingPropType = "wost:output"
 )
 
-// Vocabulary property names to be used by Things and plugins.
+// Vocabulary attribute and configuration property names to be used by Things and plugins.
 const (
 	PropNameAcceleration           string = "acceleration"
 	PropNameAddress                string = "address" // device domain or ip address

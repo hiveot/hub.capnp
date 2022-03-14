@@ -9,25 +9,17 @@ Provide user based authentication for use by Hub clients on the local network wh
 In-scope is to provide identity management for users on the local network. Logging into the authn service will provide credentials required to authorize access to Thing resources. 
 
 Out of scope are:
-* User authorization to access Things. Authentication is not sufficient to access Thing data without authorization.
-* Authenticate from outside the local network. To share information with Hub's over the internet the architecture defines a hub bridge service. This service accepts incoming connections from local Hub's and shares Thing updates between connected Hubs. 
-* A cloud based Hub that is hardened for user authentication over the internet. A cloud Hub is intended to aggregate information from other Hubs via the Hub bridge and allow users to access this information. Although a regular Hub can be used as cloud Hub, the step to harden its authentication sufficiently is currently not in scope for this auth service.
-* IoT device authentication. IoT devices use a client certificate to authenticate via TLS. This is considered sufficiently secure to allow access from anywhere. Each IoT device has a dedicated certificate that is only authorized to access to the Thing information published by the device. A valid client certificate is required. 
-* Hub service authentication. Hub services use client certificates to authenticate via TLS. A valid client certificate is required. As Hub services have full access to the Hub it is recommended to keep Hub services running locally on the Hub or at least on the local network.  
-
-## Status
-
-The status of this plugin is alpha. It is functional but breaking changes are expected.
-
-## Audience
-
-This project is aimed at IoT developers that value the security and interoperability that WoST brings. WoST Things are more secure than traditional IoT devices as they do not run a server, but instead connect to a Hub to publish their information and receive actions.
+* OAuth2 authentication. Since internet access is not guaranteed for this service, authentication with oauth2 might not work. Integration with auth0 or other oauth2 provider might be added in the future if a strong use-case arises. 
+* Authorization is handled separately by the authz service.
+* Authentication for a cloud based Hub. A cloud based Hub requires an authentication implementation that is hardened for access from the Internet. This authn service has not gone through the hardening process and it is therefore not recommended for this usage.
+* IoT device authentication. IoT devices use a client certificate to authenticate via TLS. This is considered sufficiently secure to allow access from anywhere. Each IoT device has a dedicated certificate that is only authorized to access to the Thing information published by the device. A valid client certificate as provided by the idprov service is required. 
+* Hub plugin/service authentication. Hub services use client certificates to authenticate via TLS. A valid client certificate is required.   
 
 ## Summary
 
-This Hub service supports local user authentication for use by services, IoT devices and end-users on the local network. This module manages users and their credentials and issues JWT tokens in order to access resources.
+This Hub service provides local user authentication for use by services, IoT devices and end-users on the local network. It manages users and their credentials and issues JWT tokens in order to access resources.
 
-Login ID/password authentication is used for users that connect through a web client or mobile application. Clients use the authn API with their login ID and password to obtain a pair of tokens that are needed to use the services. 
+Login ID/password authentication is used for users that connect through a web client or mobile application. Clients use the authn API with their login ID and password to obtain a pair of tokens that are required to use the Hub services. 
 
 Administrators manage users and passwords through the 'authn' commandline utility or through the authn API. Creating users or resetting passwords requires an 'admin' client certificate.
 

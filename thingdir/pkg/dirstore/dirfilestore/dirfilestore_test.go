@@ -206,7 +206,7 @@ func TestQueryBracketNotationB(t *testing.T) {
 	td1 := td.CreateTD(id1, "test TD", vocab.DeviceTypeSensor)
 	titleProp := td.CreateProperty("Title", "Sensor title", vocab.PropertyTypeAttr)
 	td.AddTDProperty(td1, "title", titleProp)
-	valueProp := td.CreateProperty("value", "Sensor value", vocab.PropertyTypeSensor)
+	valueProp := td.CreateProperty("value", "Sensor value", vocab.PropertyTypeOutput)
 	td.AddTDProperty(td1, "title", valueProp)
 
 	id2 := "thing2"
@@ -244,8 +244,8 @@ func TestQueryValueProp(t *testing.T) {
 	td1 := td.CreateTD(id1, "test TD", vocab.DeviceTypeSensor)
 	titleProp := td.CreateProperty("Title", "Device title", vocab.PropertyTypeAttr)
 	td.AddTDProperty(td1, "title", titleProp)
-	valueProp := td.CreateProperty("value", "Sensor value", vocab.PropertyTypeSensor)
-	td.AddTDProperty(td1, string(vocab.PropertyTypeSensor), valueProp)
+	valueProp := td.CreateProperty("value", "Sensor value", vocab.PropertyTypeOutput)
+	td.AddTDProperty(td1, string(vocab.PropertyTypeOutput), valueProp)
 
 	id2 := "thing2"
 	td2 := make(map[string]interface{})

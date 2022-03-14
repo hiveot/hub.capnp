@@ -11,7 +11,7 @@ import (
 	"github.com/wostzone/hub/lib/client/pkg/config"
 )
 
-// This is the launcher launcher
+// This is the Hub launcher
 const pluginID = "launcher"
 
 // PluginConfig with list of plugins to launch

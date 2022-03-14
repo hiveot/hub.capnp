@@ -4,14 +4,6 @@
 
 Provide authorization to access resources based on the client role and group. 
 
-## Status
-
-The status of this plugin is alpha. It is functional but breaking changes are expected.
-
-## Audience
-
-This project is aimed at IoT developers that value the security and interoperability that WoST brings. WoST Things are more secure than traditional IoT devices as they do not run a server, but instead connect to a Hub to publish their information and receive actions.
-
 ## Summary
 
 This Hub service supports local user authorization for use by clients such as users, hub services and administrators. Users are identified by the user-ID, services and administrators by the CN in their certificate.

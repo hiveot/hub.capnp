@@ -1,18 +1,10 @@
-# cert service
+# certs service
 
 ## Objective
 
-CLI to manage certificates for authentication of hub services, IoT devices and inter-domain hub services.
+Manage certificates for authentication of hub services, IoT devices and inter-domain hub services.
 
 This manages the Hub certificates, including a Hub self-signed CA, Hub server certificate and hub service client certificates. The certificates are intended for machine-to-machine authentication of hub services and IoT devices. Users are authenticated using tokens and outside the scope of this plugin.   
-
-## Status
-
-The status of this plugin is alpha. It is functional but breaking changes are expected.
-
-## Audience
-
-This project is aimed at IoT developers that value the security and interoperability that WoST brings. WoST Things are more secure than traditional IoT devices as they do not run a server, but instead connect to a Hub to publish their information and receive actions.
 
 ## Summary
 
@@ -25,8 +17,6 @@ This Hub CLI manages authentication certificates for use by services, IoT device
 Limitations: Certificate revocation is not currently supported. If the private key of the CA, server or Hub service certificate is compromised then the recommended action is to delete all keys including the CA private key and regenerate the certificates. This requires importing the new CA certificate in the browser and re-authenticating all IoT devices. 
 
 Iot device certificates have a default validity of 30 days and should be renewed by the IoT device with the provisioning service before expiry.
-
-
 
 ### Hub CA Certificate
 

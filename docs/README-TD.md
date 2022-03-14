@@ -5,39 +5,234 @@ The latest known draft at the time of writing is [Mar 2022](https://www.w3.org/T
 
 Interpreting this specification is done as a best effort. In case where discrepancies are reported they will be corrected when possible as long as they do not conflict with the WoST core paradigm of 'Things do not run servers'.
 
-Below a collection of notes where differences or constraints might exist in WoST with a clarification on how WoST handles the particular issue.  
-
-# WoST Device Model
-
-The WoST device model is more specific than the WoT TD document. Where the WoT TD is quite generic and open to many forms of implementation, the WoST model provides practical description of IoT devices and services and limits its use to the core paradigm of 'things do not run services'.
+The WoT specification is closer to a framework than an application. As such it doesn't dictate how an application should use it. This document describes how the WoST information model and behavior maps to the WoT TD.   
 
 
-This section describes the WoST Device Model and its mapping to WoT TD document.
-
-In WoST Things are described as having:
-* attributes - readonly values that describe the state of the thing
-* configuration - configuration of the behavior of the thing 
-* inputs - to operate things
-* outputs - provide the result of the thing's function, For example, sensors have a sensor value as an output
-
-This device model is mapped to the WoT TD document 
+# WoST IoT Device Model
 
 
+## I/O Devices, Gateways and Publishers are IoT 'Things'
+
+Most IoT devices are pieces of hardware that have embedded software that manages its behavior. Virtual IoT devices are build with software only but are otherwise considered identical to hardware devices.
+
+IoT devices often fulfill multiple roles: a part provides network access, a part provides access to inputs and outputs, a part reports its state, and a part that manages its configuration.
+
+WoST makes the following distinction based on the primary role of the device:
+* A gateway is a Thing that provides access to other independent Things. A Z-Wave controller USB-stick is a gateway that uses the Z-Wave protocol to connect to I/O devices. A gateway is independent of the Things it provides access to and can have its own inputs or outputs. Gateways are often used when integrating with non-WoST Things. 
+* A publisher is a Thing that publishes other Thing information to the WoST Hub. Publishers have their own ID that is included as part of the Thing ID of all Things that it publishes. A publisher has by default  authorization to publish and subscribe to the things it is the publisher of. Publishers often are services that convert between the WoT/WoST standards and a native protocol.
+* An I/O device is Thing whose primary role is to provide access to inputs and outputs and has its own attributes and configuration. In case of hybrid hardware where attributes and configuration are managed by a parent device then the inputs and outputs are also considered to be part of the parent device.
+* A Hub bridge is a device that connects two Hubs and shares Thing information between them. 
+
+## Thing Description Document (TD)
+
+The Thing Description document is a [W3C WoT standard](https://www.w3.org/TR/wot-thing-description11/#thing) to describe Things. TDs that are published on the Hub MUST adhere to this standard and use the JSON representation format.  
+
+The TD consists of a set of attributes and properties that WoST uses to describe WoST things and their capabilities.
+
+## TD Attributes
+
+TD Attributes that WoST uses are as follows. Attributes marked here as optional in WoT are recommended in WoST:
+
+| name               | mandatory | description                                    |
+|--------------------|-----------|------------------------------------------------|
+| @context           | mandatory | "http://www.w3.org/ns/td"                      |
+| @type              | optional  | Device type from the WoST vocabulary           |
+| id                 | mandatory | Unique Thing ID following the WoST ID format   |
+| title              | mandatory | Human readable description of the Thing        |
+| modified           | optional  | ISO8601 date this document was last updated    |
+| properties         | optional  | Attributes and Configuration objects           |
+| version            | optional  | Thing version as a map of {'instance':version} |
+| actions            | optional  | Actions objects supported by the Thing         |
+| events             | optional  | Event objects as submitted by the Thing        |
+| security           | mandatory | "nosec". Not applicable in WoST                |
+| securityDefinition | mandatory | empty. Not applicable in WoST.                 | 
+
+Note: that security is not applicable to TD of IoT devices as they cannot be connected to. When services that provide a REST API are published as Things, the security attribute must be used to describe the security schema of the API.  
 
 
-## version
-Spec: The spec defines version as type VersionInfo or Array of VersionInfo.
+## WOST Thing ID Format
 
-Issue: The [spec definition of VersionInfo](https://www.w3.org/TR/2020/WD-wot-thing-description11-20201124/#versioninfo) is unclear. It is not clear what Vocuabulary term 'instance' means. It is interpreted that this can be a string.
+All Things have an ID that is unique to the Hub. To support uniqueness, authorization, and sharing with other Hubs, a WoST ID is constructed as follows:
 
-Recommendation: 
-- Clarify the definition of VersionInfo, for example string or struct.
+> urn:{zone}/{publisherID}/{deviceID}/{deviceType}
 
-## Created/Modified Dates
-Spec: type is of [datetime](https://www.w3.org/TR/2012/REC-xmlschema11-2-20120405/#dateTime)
-WoST: Date follows [ISO8601](https://en.wikipedia.org/wiki/ISO_8601) and creates dates in the format YYYY-MM-DDTHH:MM:SS.sss-TZ, where TZ is the -0000 offset or 'Z' for UTC.
+* urn: prefix defined by the WoT standard 
+* {zone} is the zone where the thing originates. All local things are in the 'local' zone. A bridge will change the zone of shared Things to that of the bridge domain.
+* {publisherID} is the deviceID of the IoT device that provides access to a Thing. It must be unique on the Hub it is publishing to. Publishers are WoST compliant and implement the WoT/WoST standard. IoT devices that publish their own Thing are also publishers. In that case the publisherID and deviceID are the same and must be unique on the Hub. 
+* {deviceID} is the ID of the hardware or software Thing being accessed. It must be unique on the publisher that is publishing it. In case of legacy devices this is the unique ID of the hardware. In case of an IoT Device that publishes its own Thing it is the same as the publisherID.
+* {deviceType} is the type of Thing as defined in the [WoST vocabulary](https://github.com/wostzone/hub/blob/main/lib/client/pkg/vocab/IoTVocabulary.go). See the constants with prefix DeviceType. It describes the primary role of the device and is intended for filtering subscriptions on the message bus. 
 
-The description of the TD datetime spec is hard to interpret. After reading it a few times I gave up and just stuck to the internationally accepted ISO8601 with timezone for datetimes generated by WoST. Since this seems to match the TD examples from the spec it is assumed to be compliant.
+When integrating with 3rd party systems that use a URI as the ID then the ID can be used as-is. If the ID is not a URI then it must be used as the deviceID, while the publisherID is that of the service that provides the protocol binding. Using a 3rd party ID as-is can lead to reduced capabilities for bridging, queries in the directory and other services.
+
+The Thing ID is created by the publisher of a Thing.
+
+## Thing Attributes (WoT read-only Properties)
+
+Thing Attributes describe the Thing and the state it is in. They can only be read. For example device type and version are attributes. In a WoT TD these are included in the 'Properties' section. The @type attribute is used to indicate the WoT Property as an attribute, eg: "wost:attr'. If the @type attribute is omitted 'attribute' is assumed. 
+
+Each attribute consists of a properties that describe it:
+
+These attributes are derived from the [interaction affordance](https://www.w3.org/TR/wot-thing-description11/#interactionaffordance) and [dataschema](https://www.w3.org/TR/wot-thing-description11/#dataschema) sections of the WoT TD specification. 
+
+| Attribute   | WoT       | description                                                          |
+|-------------|-----------|----------------------------------------------------------------------|
+| name        | optional  | Name used to identify the attribute in the TD Properties object. (1) |
+| @type       | optional  | Type of the attribute: eg "wost:attr" for attributes. (2)            |
+| type        | optional  | data type: string, number, integer, boolean, object, array, or null  |
+| title       | optional  | Human description of the attribute.                                  |
+| description | optional  | In case a more elaborate description is needed for humans            |
+| forms       | mandatory | Tbd. currently not used in WoST                                      | 
+| value       | optional  | Value of the attribute.                                              |
+| minimum     | optional  | Minimum range value for numbers                                      |
+| maximum     | optional  | Maximum range value for numbers                                      |
+| enum        | optional  | Restricted set of values                                             |
+| unit        | optional  | unit of the value                                                    |
+| readOnly    | optional  | true for properties that are attributes, false implies writable      |
+| writeOnly   | optional  | true for properties that are writable, eg configuration              |
+| default     | optional  | Default value to use if no value is provided                         |
+
+Notes:
+1. Attribute names are standardized as part of the vocabulary so consumers can understand their purpose. The name is used in the TD Document Property list and can be included in the attribute definition for readability.
+2. The '@type' attribute is used to identify the type of property (different from the data type), as suggested by @sebastiankb in this discussion: https://github.com/w3c/wot-thing-description/issues/1079. Property types have the "wost:" prefix are defined in hubapi api/vocabulary.go, eg: "wost:input", "wost:output", "wost:configuration", "wost:state", and "wost:attr". Configuration is the only writable attribute, state reflects the internal device state and can change in runtime, and attr is a static descriptive attribute such as vendor, version, and such.  When omitted, wost:attr is assumed.
+3. The PropertyAffordance description in the WoT specification doesn't seem to apply to WoST. It is therefore ignored. The observation mechanism is handled by the Hub pub/sub message bus. WoST uses the WoT events to notify of changes. 
+4. Attribute values can change as a result of an action. For example, upgrading firmware will change the device version attribute value. 
+5. Device state, input and output values can be distinguished from regular read-only attributes by using the @type "wost:input", "wost:output", "wost:state" values.
+
+
+## Thing Configuration (WoT writable Properties)
+
+Configurable properties are writable and as such have read-only set to false and write-only to true.
+To change configuration a 'configure' action is published. TBD. 
+
+## Events
+
+Changes to the state of a Thing are published using Events. The TD describes the events that a Thing publishes in its events section and is serialized as JSON in the following format:
+
+```json
+{
+  "events" : {
+    "{eventName}" : {
+      ...InteractionAffordance,
+      "data": {dataSchema},
+      "dataResponse: {EventResponseData}",
+    }
+  }
+}
+```
+Where:
+
+* eventName: The name the event is published as. WoST predefines common events for changes to properties.
+* data: Defines the data schema of event messages. The content follows the [dataSchema](https://www.w3.org/TR/wot-thing-description11/#dataschema) format, similar to properties.
+* dataResponse: Describes the data schema of a possible response to the event. EventResponses are currently not used in WoST.
+
+The [TD EventAffordance](https://www.w3.org/TR/wot-thing-description11/#eventaffordance) also describes optional subscription and cancellation attributes. These are not used in WoST as subscription is not handled by a Thing bu* by:hD MQTT message bus. # Property Event.
+
+### The "property" Event
+
+In WoST, changes to properties values (attribute, configuration, outputs), are signalled using events. For this purpose WoST defines a 'property' event. The 'property' event is required to be implemented by all WoST compatible devices. It does not have to be included in the 'events' section of the TD as it is part of the overall WoST schema and vocabulary.
+
+The "property" event has the following schema:
+
+```json
+{
+  "events": {
+    "property": {
+      "data": {
+        "title": "Map of property name and new value pairs",
+        "type": "object"
+      }
+    }
+  }
+}
+```
+
+For example, when a temperature has changed to 21 degrees and humidity to 55%, the event looks like this.
+```json
+{
+  "events":{
+    "property": {
+      "temperature" : "21",
+      "humidity" : "55"
+    }
+  }
+}
+```
+
+
+## Actions
+
+All interaction with Things take place via Actions. Actions are primarily used to change the value of configuration properties and to control inputs.
+
+Actions are defined in the Thing Description document through [action affordances](https://www.w3.org/TR/wot-thing-description/#actionaffordance) 
+
+```json
+{
+  "actions": {
+    "{actionName"}: {ActionAffordance}
+  }
+}
+```
+Where actionName is a unique identification of the action, and ActionAffordance describes the action details:
+```json
+{
+   ...interactionAffordance,
+   "input": {},
+   "output": {},
+   "safe": true|false,
+   "idempotent": true|false,
+}
+```
+
+For example, a simple switch might be defined as:
+```json
+{ 
+  "actions": {
+    "onoff": {
+      "title": "Control the on or off status of a switch",
+      "input": {
+        "type": "boolean"
+      }
+    }
+  }
+}
+```
+
+The actual action message to turn the switch on then looks like this:
+{
+  "actions": {
+    "onoff": true
+  }
+}
+
+
+### The "property" Action
+
+WoST defines a 'property' action that must be supported by all WoST Things. This action updates the value of a writable property. It does not have to be included in the 'action' section of the TD as it is part of the overall WoST schema and vocabulary. The following schema is used:
+
+```json
+{
+  "actions": {
+    "property": {
+      "title": "Update the value of writable properties",
+      "input": {
+        "type": "object",
+        "idempotent": "true"
+      }
+    }
+  }
+}
+```
+
+For example, when the Thing configuration property called "name" changes, the action looks like this.
+```json
+{
+  "action":{
+    "property": {
+      "name" : "Brand new name",
+    }
+  }
+}
+```
 
 ## Links
 
@@ -53,32 +248,18 @@ The WoT specification for a [Form](https://www.w3.org/TR/wot-thing-description11
 The provided example shows an HTTP POST to write a property. 
 
 In WoST an important constraint is that form operations that define HTTP operations on the Thing device are prohibited. Things don't run servers and can therefore not respond to HTTP commands.
-What is possible is a form describing a MQTT topic on the Hub message bus, on which the device publishes or subscribes. 
-Also allowed are forms that describe additional help information that is provided via an external http server.
+What is possible however is a form describing a MQTT topic on the Hub message bus, on which the device publishes or subscribes. Also allowed are forms that describe additional help information that is provided via an external http server.
 
+This is tbd as the whole idea of forms and how they should be used is kinda murky.
 
 ### SecuritySchema 'scheme' (1)
 
 In WoST all authentication and authorization is handled by the Hub. Therefore, the security scheme section only applies to Hub services and does not apply to WoST Things.
 
 
+# REST APIs
 
-
-### SecuritySchema 'scheme' (2)
-Spec: any type, one of ...
-WoST: The [combo scheme](https://www.w3.org/TR/wot-thing-description11/#combosecurityscheme) is not supported
-
-Rational: combo is too vague and complicated to know how to implement and test it. The problem it solves seems rather theoretical. Lightweight Things are unlikely to implement this complexity. Higher powered Things are more likely to implement additional regular security schemes, making it unnecesary. Also a concern is that ambiguity in security schemes increase the risk of vulnerabilities. 
-
-Recommendation: Remove it in favor of more explicit schema if needed. If an 'allof' combo is really needed then define this combo as a separate schema. 
-
-
-
-# WoST REST API
-
-WoST compliant Things do not implement servers. All interaction takes place via WoST Hub services and message bus. 
-
-WoST services can provide a web API. For example, the Directory Service and Provisioning Service provide web API's.
+WoST compliant Things do not implement servers. All interaction takes place via WoST Hub services and message bus. Therefore this section only applies to Hub services that provide a web API. For example, the Directory Service and Provisioning Service provide web API's.
 
 Hub services that implement a REST API follows the approach as described in Mozilla's Web Thing REST API](https://iot.mozilla.org/wot/#web-thing-rest-api). 
 
@@ -86,38 +267,12 @@ Hub services that implement a REST API follows the approach as described in Mozi
 GET https://address:port/things/{thingID}[/...]
 ```
 
-Note1: the Mozilla specification often assumes or suggests that Things are directly accessed, which is not allowed in WoST. Therefore the implementation of this API in WoST MUST follow the following rules:
+Note 1: the Mozilla specification often assumes or suggests that Things are directly accessed, which is not allowed in WoST. Therefore the implementation of this API in WoST MUST follow the following rules:
 1. The Thing address is that of the hub it is connected to.
 2. The full thing ID must be included in the API. The examples says 'lamp' where a Thing ID is a URN: "urn:zone:publisher:lamp" for example.
 3. Things cannot include action href fields in their TD, only MQTT urls. 
 
-Note2: The Mozilla API does not support queries.
+Note 2: The Mozilla API does not support queries.
 
-Note3:the WoST hub lib/client package provides a client implementation using MQTT. This is the most efficient way to communicate with the Hub. A https protocol binding that delegates to the MQTT message bus can be added in the future.
+Note 3: Similar to the REST API, WebSocket based access follows Mozilla's specification. In addition, the websocket API allows listening for events. At the time of writing no websocket API's are in use so this section is still subject to change.
 
-# WoST WebSocket API
-
-Similar to the REST API, WebSocket based access follows Mozilla's specification.
-
-In addition, the websocket API allows listening for events as per protocol definition. (tbd) 
-
-
-# Thing IDs
-
-Note: In WoST the ID of a Thing can be modified by the hub if the TD is received from an intermediary to reflect the domain of the Thing. Typically the 'zone' portion of the ID is modified to reflect the originating zone. 
-
-For example, a thing with ID "URN:local:publisherID:thingID" is made available by a Hub with domain 'home1' to an intermediary with domain 'bob.com'. On the Hub bob.com this Thing is shown with ID "URN:home1:publisher1:thing1".
-
-This will avoid naming collision on bob.com by other hubs that have Things with the same ID. Similarly any references to the original hub are replaced with bob.com's address.
-
-
-
-## Vocabulary Of TD Property Types 
-
-Thing properties can be used to describe sensors, actuators, internal attributes, internal state, and internal configuration. Unfortunately the WoT TD specification does not include a vocabulary of  Thing property names and types. 
-
-Therefore, WoST defines its own property vocabulary, using the prefix "wost:". Where an existing and commonly used vocabulary exists it will be prefered. 
-
-The '@type' attribute is used to identify the type of property (different from the data type), as suggested by @sebastiankb in this discussion: https://github.com/w3c/wot-thing-description/issues/1079. Property types are defined in hubapi api/vocabulary.go, eg: "sensor", "actuator", "configuration", "state", "attr", "input", "output" where configuration is the only writable attribute, state reflects the internal device state and can change in runtime, and attr is an static descriptive attribute such as vendor, version, and such.
-
-Property names are part of the IoT schema. Without a recommended or commonly accepted schema, WoST uses vocabulary from existing schema definitions such as schema.org and iotschema.org.

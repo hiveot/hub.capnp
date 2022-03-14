@@ -12,10 +12,10 @@ import (
 // Its structure is:
 // {
 //      @context: "http://www.w3.org/ns/td",
+//      @type: <deviceType>,
 //      id: <thingID>,
 //      title: <human description>,  (why is this not a property?)
-//      @type: <deviceType>,
-//      created: <iso8601>,
+//      modified: <iso8601>,
 //      actions: {id:TDAction, ...},
 //      events:  {id: TDEvent, ...},
 //      properties: {id: TDProperty, ...}
@@ -110,7 +110,7 @@ func CreateTD(thingID string, title string, deviceType vocab.DeviceType) ThingTD
 		// deviceType must be a string for serialization and querying
 		td[vocab.WoTAtType] = string(deviceType)
 	}
-	td[vocab.WoTCreated] = time.Now().Format(vocab.TimeFormat)
+	td[vocab.WoTModified] = time.Now().Format(vocab.TimeFormat)
 	td[vocab.WoTActions] = make(map[string]interface{})
 	td[vocab.WoTEvents] = make(map[string]interface{})
 	td[vocab.WoTProperties] = make(map[string]interface{})
