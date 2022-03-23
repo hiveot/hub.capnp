@@ -2,6 +2,16 @@
 // TODO: base this of a universally accepted ontology. Closest is iotschema.org but that seems incomplete
 package vocab
 
+// Action names
+const (
+	ActionNameProperty = "property"
+)
+
+// Event names
+const (
+	EventNameProperty = "property"
+)
+
 // DataType of configuration, input and ouput values.
 // type DataType string
 

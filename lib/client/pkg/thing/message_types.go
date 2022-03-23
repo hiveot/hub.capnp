@@ -1,5 +1,5 @@
-// Package td with WoST message types
-package td
+// Package thing with WoST message types
+package thing
 
 // Thing action message
 const MessageTypeAction = "action"
@@ -11,7 +11,7 @@ const MessageTypeConfig = "configure"
 const MessageTypeEvent = "event"
 
 // TD document update message
-const MessageTypeTD = "td"
+const MessageTypeTD = "thing"
 
 // TD property value update
 const MessageTypeValues = "values"

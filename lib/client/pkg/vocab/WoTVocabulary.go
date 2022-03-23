@@ -7,7 +7,7 @@ package vocab
 const (
 	WoTAtType       = "@type"
 	WoTAtContext    = "@context"
-	WoTAnyURI       = "https://www.w3.org/2019/wot/td/v1"
+	WoTAnyURI       = "https://www.w3.org/2019/wot/thing/v1"
 	WoTActions      = "actions"
 	WoTCreated      = "created"
 	WoTDescription  = "description"

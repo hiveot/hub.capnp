@@ -53,7 +53,7 @@ func (srv *DirectoryServer) ServeThingByID(userID string, response http.Response
 func (srv *DirectoryServer) ServeGetTD(userID, certOU, thingID string, response http.ResponseWriter) {
 
 	if srv.authorizer != nil &&
-		!srv.authorizer(userID, certOU, thingID, false, td.MessageTypeTD) {
+		!srv.authorizer(userID, certOU, thingID, false, thing.MessageTypeTD) {
 		srv.tlsServer.WriteUnauthorized(response, "ServeGetTD: permission denied")
 		return
 	}
@@ -75,7 +75,7 @@ func (srv *DirectoryServer) ServeGetTD(userID, certOU, thingID string, response 
 
 // ServeDeleteTD deletes the requested TD
 func (srv *DirectoryServer) ServeDeleteTD(userID, certOU, thingID string, response http.ResponseWriter) {
-	if srv.authorizer != nil && !srv.authorizer(userID, certOU, thingID, true, td.MessageTypeTD) {
+	if srv.authorizer != nil && !srv.authorizer(userID, certOU, thingID, true, thing.MessageTypeTD) {
 		srv.tlsServer.WriteUnauthorized(response, "ServeDeleteTD: permission denied")
 		return
 	}
@@ -87,7 +87,7 @@ func (srv *DirectoryServer) ServeDeleteTD(userID, certOU, thingID string, respon
 // ServePatchTD update only the provided parts of a thing's TD
 func (srv *DirectoryServer) ServePatchTD(userID, certOU, thingID string, response http.ResponseWriter, request *http.Request) {
 
-	if srv.authorizer != nil && !srv.authorizer(userID, certOU, thingID, true, td.MessageTypeTD) {
+	if srv.authorizer != nil && !srv.authorizer(userID, certOU, thingID, true, thing.MessageTypeTD) {
 		srv.tlsServer.WriteUnauthorized(response, "ServePatchTD: permission denied")
 		return
 	}
@@ -109,7 +109,7 @@ func (srv *DirectoryServer) ServePatchTD(userID, certOU, thingID string, respons
 
 // ServeReplaceTD Creates or replace a TD
 func (srv *DirectoryServer) ServeReplaceTD(userID, certOU, thingID string, response http.ResponseWriter, request *http.Request) {
-	if srv.authorizer != nil && !srv.authorizer(userID, certOU, thingID, true, td.MessageTypeTD) {
+	if srv.authorizer != nil && !srv.authorizer(userID, certOU, thingID, true, thing.MessageTypeTD) {
 		srv.tlsServer.WriteUnauthorized(response, "ServeReplaceTD: permission denied")
 		return
 	}

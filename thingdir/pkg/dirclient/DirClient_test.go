@@ -83,7 +83,7 @@ func TestConnectClose(t *testing.T) {
 }
 
 func TestUpdateTD(t *testing.T) {
-	var receivedTD td.ThingTD
+	var receivedTD thing.ThingTD
 	var body []byte
 	var receivedPatch bool
 	var err2 error
@@ -120,7 +120,7 @@ func TestUpdateTD(t *testing.T) {
 	require.NoError(t, err)
 
 	// write a TD document
-	td := td.CreateTD(id1, "test sensor TD", vocab.DeviceTypeSensor)
+	td := thing.CreateTD(id1, "test sensor TD", vocab.DeviceTypeSensor)
 	err = dirClient.UpdateTD(id1, td)
 	assert.NoError(t, err)
 	assert.NoError(t, err2)
@@ -150,12 +150,12 @@ func TestQueryAndList(t *testing.T) {
 
 		if request.Method == "GET" {
 			q := request.URL.Query().Get(dirclient.ParamQuery)
-			thd := td.CreateTD("thing1", "Test TD", vocab.DeviceTypeSensor)
-			prop := td.CreateProperty("query", "", vocab.PropertyTypeAttr)
-			td.SetPropertyDataTypeString(prop, 0, 0)
-			td.SetPropertyValue(prop, q)
-			td.AddTDProperty(thd, dirclient.ParamQuery, prop)
-			tdList := []td.ThingTD{thd}
+			thd := thing.CreateTD("thing1", "Test TD", vocab.DeviceTypeSensor)
+			prop := thing.CreateProperty("query", "", vocab.PropertyTypeAttr)
+			thing.SetPropertyDataTypeString(prop, 0, 0)
+			thing.SetPropertyValue(prop, q)
+			thing.AddTDProperty(thd, dirclient.ParamQuery, prop)
+			tdList := []thing.ThingTD{thd}
 			data, _ := json.Marshal(tdList)
 			response.Write(data)
 		} else {
@@ -172,7 +172,7 @@ func TestQueryAndList(t *testing.T) {
 	td2, err := dirClient.QueryTDs(query, 0, 0)
 	require.NoError(t, err)
 	assert.NotEmpty(t, td2)
-	val, _ := td.GetPropertyValue(td2[0], dirclient.ParamQuery)
+	val, _ := thing.GetPropertyValue(td2[0], dirclient.ParamQuery)
 	assert.Equal(t, query, val)
 
 	// test list

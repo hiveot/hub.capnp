@@ -89,11 +89,11 @@ func (ah *Authorizer) VerifyRolePermission(role string, writing bool, writeType 
 			return true
 		}
 		// editors can control the thing
-		if role == GroupRoleOperator && writeType == td.MessageTypeAction {
+		if role == GroupRoleOperator && writeType == thing.MessageTypeAction {
 			return true
 		}
 		// managers can configure and control the thing
-		if role == GroupRoleManager && (writeType == td.MessageTypeConfig || writeType == td.MessageTypeAction) {
+		if role == GroupRoleManager && (writeType == thing.MessageTypeConfig || writeType == thing.MessageTypeAction) {
 			return true
 		}
 		logrus.Debugf("VerifyRolePermission: Role %s has no write access to write type %s", role, writeType)
@@ -111,7 +111,7 @@ func (ah *Authorizer) VerifyRolePermission(role string, writing bool, writeType 
 // This requires that the thingID is formatted as "urn:publisherID:sensorID...""
 // Returns true if the deviceID is the publisher of the thingID, false if not.
 func (ah *Authorizer) IsPublisher(deviceID string, thingID string) bool {
-	zone, publisherID, thingDeviceID, deviceType := td.SplitThingID(thingID)
+	zone, publisherID, thingDeviceID, deviceType := thing.SplitThingID(thingID)
 	_ = zone
 	_ = thingDeviceID
 	_ = deviceType

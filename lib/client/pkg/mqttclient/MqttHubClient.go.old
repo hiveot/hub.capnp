@@ -5,6 +5,9 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"github.com/wostzone/hub/lib/client/pkg/mqttbinding"
+	"github.com/wostzone/hub/lib/client/pkg/thing"
+	"github.com/wostzone/hub/lib/client/pkg/vocab"
 	"strings"
 
 	"github.com/sirupsen/logrus"
@@ -77,49 +80,47 @@ func (client *MqttHubClient) publish(topic string, object interface{}) error {
 //
 // In the WoST context, an action leads to change of an output state of a Thing. Eg control a switch or set a dimmer value.
 // This differs from a configuration property change which has no immediate effect on the observable output state. To
-// request a configuration change use PublishConfigRequest instead.
+// request a configuration change use PublishConfigAction instead.
 //
 // The device that hosts the thing will subscribe to message and execute the action.
 // The message bus performs authorization of this client before the message is accepted.
-func (client *MqttHubClient) PublishAction(thingID string, name string, params map[string]interface{}) error {
-	topic := strings.ReplaceAll(TopicAction, "{id}", thingID)
-	actions := map[string]interface{}{name: params}
-	err := client.publish(topic, actions)
-	return err
-}
+//func (client *MqttHubClient) PublishAction(thingID string, actionName string, data map[string]interface{}) error {
+//	topic := strings.ReplaceAll(TopicAction, "{id}", thingID)
+//	actions := map[string]interface{}{actionName: data}
+//	err := client.publish(topic, actions)
+//	return err
+//}
 
-// PublishConfigRequest publishes a configuration change request to a Thing on the WoST Hub message bus
-// WoST uses topic '{thingID}/config' to publish configuration requests.
-//
-// WoT does not differentiate between actions and configuration. In the real world users consider them as different.
-// For example, switching a light on and off is a completely different concept than setting its auto-off configuration.
-// In addition, actions and configuration involve different authorizations. Therefore, WoST treats them separately.
-func (client *MqttHubClient) PublishConfigRequest(thingID string, values map[string]interface{}) error {
-	topic := strings.ReplaceAll(TopicSetConfig, "{id}", thingID)
-	err := client.publish(topic, values)
-	return err
-}
+// PublishConfigAction publishes a configuration property change action to a Thing on the WoST Hub message bus
+// WoST uses topic '/things/{thingID}/action' to publish actions.
+// The emitted action document contains the action 'property' for configuration property changes.
+//func (client *MqttHubClient) PublishConfigAction(thingID string, values map[string]interface{}) error {
+//	err := client.PublishAction(thingID, vocab.ActionNameProperty, values)
+//	return err
+//}
 
-// PublishEvent publish a Thing event to consumers on the WoST hub message bus
+// PublishEvent emits a Thing event to consumers on the WoST hub message bus
 // Events are defined in the WoT Thing definition standard: https://www.w3.org/TR/wot-architecture/#events, and is
 // intended to push state transitions asynchronously from the Thing to the consumer.
+// Events are published on topic  /things/id/event
 //
-// In WoST changes to properties and configuration are both reported using events. The distinction is irrelevant in this
-// case as consumers don't perceive events directly.
-func (client *MqttHubClient) PublishEvent(thingID string, event map[string]interface{}) error {
+// thingID whose event to publish
+// eventName containst the name of the event to publish. See vocab for EventNameXyz standardized names
+// data is a map with event data as defined in the TD.
+func (client *MqttHubClient) PublishEvent(thingID string, eventName string, data map[string]interface{}) error {
 	topic := strings.ReplaceAll(TopicThingEvent, "{id}", thingID)
+	event := thing.CreateEventInstance(eventName, data)
 	err := client.publish(topic, event)
 	return err
 }
 
-// PublishPropertyValues publish a Thing property values to the WoST hub
-// WoT does not differentiate between events and configuration changes. In the real world these are often treated differently
-// Intended to by used by a Thing to publish updates of property values
-//func (client *MqttHubClient) PublishPropertyValues(thingID string, values map[string]interface{}) error {
-//	topic := strings.ReplaceAll(TopicThingPropertyValues, "{id}", thingID)
-//	err := client.publish(topic, values)
-//	return err
-//}
+// PublishPropertyEvent emits a 'property' event with updated property values
+// Intended to by used by a Thing to publish updates of property values.
+// propValues is a map of {propName:newValue}
+func (client *MqttHubClient) PublishPropertyEvent(thingID string, propValues map[string]interface{}) error {
+	err := client.PublishEvent(thingID, vocab.EventNameProperty, propValues)
+	return err
+}
 
 // PublishTD publish a Thing description to the WoST hub
 // Intended to by used by a Thing to publish an update to its TD
@@ -147,7 +148,7 @@ func (client *MqttHubClient) Subscribe(
 	subscribedTopic := fmt.Sprintf("%s/%s/#", TopicRoot, thingID)
 	subscribedHandler := handler
 	client.mqttClient.Subscribe(subscribedTopic, func(topic string, payload []byte) {
-		// FIXME: determine sender and format for td message
+		// FIXME: determine sender and format for thing message
 		sender := ""
 		parts := strings.Split(topic, "/")
 		if len(parts) > 2 {
@@ -185,62 +186,107 @@ func (client *MqttHubClient) SubscribeToActions(
 	})
 }
 
-// SubscribeToConfig subscribes a handler to the request for configuration updates.
-func (client *MqttHubClient) SubscribeToConfig(
-	thingID string, handler func(thingID string, config map[string]interface{}, senderID string)) {
+// SubscribeToConfig subscribes a handler to the set property action intended to change configuration
+//func (client *MqttHubClient) SubscribeToConfig(
+//	thingID string, handler func(thingID string, config map[string]interface{}, senderID string)) {
+//
+//	topic := strings.ReplaceAll(TopicSetConfig, "{id}", thingID)
+//	// local copy of arguments
+//	subscribedThingID := thingID
+//	subscribedHandler := handler
+//	client.mqttClient.Subscribe(topic, func(address string, message []byte) {
+//		// FIXME: determine sender and format for event message
+//		sender := ""
+//		config := make(map[string]interface{})
+//		err := json.Unmarshal(message, &config)
+//		if err == nil {
+//			subscribedHandler(subscribedThingID, config, sender)
+//		}
+//	})
+//}
 
-	topic := strings.ReplaceAll(TopicSetConfig, "{id}", thingID)
+// SetActionHandler register a handler that is invoked when an action is received
+// thingID of the thing to listen for
+// name of the action to listen for
+// handler to invoke when the action with the given name is received
+//   action is the data portion of the action as per its schema
+func (client *MqttHubClient) SetActionHandler(
+	thingID string,
+	name string,
+	handler func(thingID string, action map[string]interface{})) {
+
+	topic := strings.ReplaceAll(mqttbinding.TopicAction, "{id}", thingID)
 	// local copy of arguments
 	subscribedThingID := thingID
 	subscribedHandler := handler
 	client.mqttClient.Subscribe(topic, func(address string, message []byte) {
 		// FIXME: determine sender and format for event message
-		sender := ""
-		config := make(map[string]interface{})
-		err := json.Unmarshal(message, &config)
+		//sender := ""
+		action := make(map[string]interface{})
+		err := json.Unmarshal(message, &action)
 		if err == nil {
-			subscribedHandler(subscribedThingID, config, sender)
+			subscribedHandler(subscribedThingID, action)
 		}
 	})
+
 }
 
 // SubscribeToEvents receives Thing events from the WoST hub.
-func (client *MqttHubClient) SubscribeToEvents(
-	thingID string, handler func(thingID string, event map[string]interface{}, senderID string)) {
-	topic := strings.ReplaceAll(TopicThingEvent, "{id}", thingID)
+//func (client *MqttHubClient) SubscribeToEvents(
+//	thingID string, handler func(thingID string, event map[string]interface{})) {
+//	topic := strings.ReplaceAll(mqttbinding.TopicThingEvent, "{id}", thingID)
+//
+//	// local copy of arguments
+//	subscribedThingID := thingID
+//	subscribedHandler := handler
+//	client.mqttClient.Subscribe(topic, func(address string, message []byte) {
+//		event := make(map[string]interface{})
+//		err := json.Unmarshal(message, &event)
+//		if err == nil {
+//			subscribedHandler(subscribedThingID, event)
+//		}
+//	})
+//}
 
-	// local copy of arguments
-	subscribedThingID := thingID
-	subscribedHandler := handler
-	client.mqttClient.Subscribe(topic, func(address string, message []byte) {
-		sender := ""
-		// FIXME: determine sender and format for event message
-		event := make(map[string]interface{})
-		err := json.Unmarshal(message, &event)
-		if err == nil {
-			subscribedHandler(subscribedThingID, event, sender)
-		}
-	})
-}
+//// SubscribeToPropertyAction receives updates to Thing property values from the WoST Hub
+//func (client *MqttHubClient) SubscribeToPropertyValues(
+//	thingID string, handler func(thingID string, values map[string]interface{}, senderID string)) {
+//
+//	topic := strings.ReplaceAll(TopicThingPropertyValues, "{id}", thingID)
+//
+//	// local copy of arguments
+//	subscribedThingID := thingID
+//	subscribedHandler := handler
+//	client.mqttClient.Subscribe(topic, func(address string, message []byte) {
+//		// FIXME: determine sender and format for property values message
+//		sender := ""
+//		values := make(map[string]interface{})
+//		err := json.Unmarshal(message, &values)
+//		if err == nil {
+//			subscribedHandler(subscribedThingID, values, sender)
+//		}
+//	})
+//}
 
-// SubscribeToPropertyValues receives updates to Thing property values from the WoST Hub
-func (client *MqttHubClient) SubscribeToPropertyValues(
-	thingID string, handler func(thingID string, values map[string]interface{}, senderID string)) {
+// SubscribeToPropertyAction receives action to update Thing property values
+func (client *MqttHubClient) SubscribeToPropertyAction(
+	thingID string, handler func(thingID string, values map[string]interface{})) {
 
-	topic := strings.ReplaceAll(TopicThingPropertyValues, "{id}", thingID)
-
-	// local copy of arguments
-	subscribedThingID := thingID
-	subscribedHandler := handler
-	client.mqttClient.Subscribe(topic, func(address string, message []byte) {
-		// FIXME: determine sender and format for property values message
-		sender := ""
-		values := make(map[string]interface{})
-		err := json.Unmarshal(message, &values)
-		if err == nil {
-			subscribedHandler(subscribedThingID, values, sender)
-		}
-	})
+	client.SetActionHandler(thingID, vocab.ActionNameProperty, handler)
+	//topic := strings.ReplaceAll(TopicThingPropertyValues, "{id}", thingID)
+	//
+	//// local copy of arguments
+	//subscribedThingID := thingID
+	//subscribedHandler := handler
+	//client.mqttClient.Subscribe(topic, func(address string, message []byte) {
+	//	// FIXME: determine sender and format for property values message
+	//	sender := ""
+	//	values := make(map[string]interface{})
+	//	err := json.Unmarshal(message, &values)
+	//	if err == nil {
+	//		subscribedHandler(subscribedThingID, values, sender)
+	//	}
+	//})
 }
 
 // SubscribeToTD subscribes to receive updates to TDs from the WoST Hub
@@ -251,12 +297,12 @@ func (client *MqttHubClient) SubscribeToTD(
 	if thingID == "" {
 		thingID = "+"
 	}
-	topic := strings.ReplaceAll(TopicThingTD, "{id}", thingID)
+	topic := strings.ReplaceAll(mqttbinding.TopicThingTD, "{id}", thingID)
 	// local copy of arguments
 	subscribedThingID := thingID
 	subscribedHandler := handler
 	client.mqttClient.Subscribe(topic, func(address string, message []byte) {
-		// FIXME: determine sender and format for td message
+		// FIXME: determine sender and format for thing message
 		sender := ""
 		// TODO: support for topics where thingID isn't the second part
 		addressParts := strings.Split(address, "/")
@@ -277,8 +323,8 @@ func (client *MqttHubClient) Unsubscribe(thingID string) {
 	if thingID == "" {
 		thingID = "+"
 	}
-	topic := TopicRoot + "/" + thingID + "/#"
-	client.mqttClient.Unsubscribe(topic)
+	//topic := mqttbinding.TopicRoot + "/" + thingID + "/#"
+	//client.mqttClient.Unsubscribe(topic)
 }
 
 // NewMqttHubClient creates a new hub connection for consumers

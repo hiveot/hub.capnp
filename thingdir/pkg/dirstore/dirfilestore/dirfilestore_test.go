@@ -28,20 +28,20 @@ const (
 // AddTDs adds two TDs with two properties each: Title and version
 func addTDs(store *dirfilestore.DirFileStore) {
 	id1 := Thing1ID
-	td1 := td.CreateTD(id1, "test TD", vocab.DeviceTypeSensor)
+	td1 := thing.CreateTD(id1, "test TD", vocab.DeviceTypeSensor)
 
-	prop1 := td.CreateProperty(PropNameTitle, "Property title", vocab.PropertyTypeAttr)
-	td.SetPropertyValue(prop1, PropTitle1Value)
-	td.AddTDProperty(td1, PropNameTitle, prop1)
+	prop1 := thing.CreateProperty(PropNameTitle, "Property title", vocab.PropertyTypeAttr)
+	thing.SetPropertyValue(prop1, PropTitle1Value)
+	thing.AddTDProperty(td1, PropNameTitle, prop1)
 
-	prop2 := td.CreateProperty(PropNameVersion, "Thing version", vocab.PropertyTypeAttr)
-	td.SetPropertyValue(prop2, "version1")
-	td.AddTDProperty(td1, PropNameVersion, prop2)
+	prop2 := thing.CreateProperty(PropNameVersion, "Thing version", vocab.PropertyTypeAttr)
+	thing.SetPropertyValue(prop2, "version1")
+	thing.AddTDProperty(td1, PropNameVersion, prop2)
 
 	id2 := Thing2ID
-	td2 := td.CreateTD(id2, "test TD", vocab.DeviceTypeSensor)
-	td.AddTDProperty(td2, PropNameTitle, prop1)
-	td.AddTDProperty(td2, PropNameVersion, prop2)
+	td2 := thing.CreateTD(id2, "test TD", vocab.DeviceTypeSensor)
+	thing.AddTDProperty(td2, PropNameTitle, prop1)
+	thing.AddTDProperty(td2, PropNameVersion, prop2)
 
 	tdd := map[string]interface{}(td1)
 	_ = store.Replace(id1, tdd)
@@ -203,11 +203,11 @@ func TestQueryBracketNotationA(t *testing.T) {
 func TestQueryBracketNotationB(t *testing.T) {
 	queryString := "$[?(@['@type']==\"sensor\")]"
 	id1 := "thing1"
-	td1 := td.CreateTD(id1, "test TD", vocab.DeviceTypeSensor)
-	titleProp := td.CreateProperty("Title", "Sensor title", vocab.PropertyTypeAttr)
-	td.AddTDProperty(td1, "title", titleProp)
-	valueProp := td.CreateProperty("value", "Sensor value", vocab.PropertyTypeOutput)
-	td.AddTDProperty(td1, "title", valueProp)
+	td1 := thing.CreateTD(id1, "test TD", vocab.DeviceTypeSensor)
+	titleProp := thing.CreateProperty("Title", "Sensor title", vocab.PropertyTypeAttr)
+	thing.AddTDProperty(td1, "title", titleProp)
+	valueProp := thing.CreateProperty("value", "Sensor value", vocab.PropertyTypeOutput)
+	thing.AddTDProperty(td1, "title", valueProp)
 
 	id2 := "thing2"
 	td2 := make(map[string]interface{})
@@ -216,7 +216,7 @@ func TestQueryBracketNotationB(t *testing.T) {
 	td2[vocab.WoTAtType] = "sensor"
 	td2["actions"] = make(map[string]interface{})
 	td2["properties"] = make(map[string]interface{})
-	td.AddTDProperty(td2, "title", "The switch")
+	thing.AddTDProperty(td2, "title", "The switch")
 
 	fileStore := makeFileStore()
 	_ = fileStore.Open()
@@ -241,11 +241,11 @@ func TestQueryBracketNotationB(t *testing.T) {
 func TestQueryValueProp(t *testing.T) {
 	queryString := "$[?(@.properties..title=='The switch')]"
 	id1 := "thing1"
-	td1 := td.CreateTD(id1, "test TD", vocab.DeviceTypeSensor)
-	titleProp := td.CreateProperty("Title", "Device title", vocab.PropertyTypeAttr)
-	td.AddTDProperty(td1, "title", titleProp)
-	valueProp := td.CreateProperty("value", "Sensor value", vocab.PropertyTypeOutput)
-	td.AddTDProperty(td1, string(vocab.PropertyTypeOutput), valueProp)
+	td1 := thing.CreateTD(id1, "test TD", vocab.DeviceTypeSensor)
+	titleProp := thing.CreateProperty("Title", "Device title", vocab.PropertyTypeAttr)
+	thing.AddTDProperty(td1, "title", titleProp)
+	valueProp := thing.CreateProperty("value", "Sensor value", vocab.PropertyTypeOutput)
+	thing.AddTDProperty(td1, string(vocab.PropertyTypeOutput), valueProp)
 
 	id2 := "thing2"
 	td2 := make(map[string]interface{})
@@ -254,7 +254,7 @@ func TestQueryValueProp(t *testing.T) {
 	td2[vocab.WoTAtType] = "sensor"
 	td2["actions"] = make(map[string]interface{})
 	td2["properties"] = make(map[string]interface{})
-	td.AddTDProperty(td2, "title", "The switch")
+	thing.AddTDProperty(td2, "title", "The switch")
 
 	fileStore := makeFileStore()
 	_ = fileStore.Open()
@@ -301,21 +301,21 @@ func TestPatch(t *testing.T) {
 	addTDs(fileStore)
 
 	id2 := "thing2"
-	td2 := td.CreateTD(id2, "test TD", vocab.DeviceTypeSensor)
-	prop2 := td.CreateProperty("title2", "description2", vocab.PropertyTypeAttr)
-	td.SetPropertyValue(prop2, "value2")
-	td.AddTDProperty(td2, "title2", prop2)
+	td2 := thing.CreateTD(id2, "test TD", vocab.DeviceTypeSensor)
+	prop2 := thing.CreateProperty("title2", "description2", vocab.PropertyTypeAttr)
+	thing.SetPropertyValue(prop2, "value2")
+	thing.AddTDProperty(td2, "title2", prop2)
 	_ = fileStore.Patch(id2, td2)
 
 	td2b, err := fileStore.Get(id2)
 	assert.NoError(t, err)
 	thing2 := td2b.(map[string]interface{})
 
-	val, found := td.GetPropertyValue(thing2, PropNameTitle)
+	val, found := thing.GetPropertyValue(thing2, PropNameTitle)
 	assert.True(t, found, "Expected propery title1 to still exist")
 	assert.Equal(t, PropTitle1Value, val)
 
-	val, found = td.GetPropertyValue(thing2, "title2")
+	val, found = thing.GetPropertyValue(thing2, "title2")
 	assert.True(t, found, "Expected propery title2 to exist")
 	// thing2b := td2b.(td.ThingTD)
 	// val := thing2b["title2"]

@@ -1,5 +1,5 @@
-// Package td with property value updates
-package td
+// Package thing with property value updates
+package thing
 
 // CreateValuesMessage creates a new values message to report value changes.
 // Intended for use by Things.

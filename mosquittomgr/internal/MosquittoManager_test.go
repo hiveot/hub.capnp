@@ -93,7 +93,7 @@ func TestPluginConnect(t *testing.T) {
 	err = client.ConnectWithClientCert(hostPort, hubConfig.PluginCert)
 	if assert.NoError(t, err) {
 		// publish should succeed
-		tdoc := td.CreateTD(thing1ID, "test thing", vocab.DeviceTypeService)
+		tdoc := thing.CreateTD(thing1ID, "test thing", vocab.DeviceTypeService)
 		err = client.PublishTD(thing1ID, tdoc)
 		assert.NoError(t, err)
 		time.Sleep(time.Second)

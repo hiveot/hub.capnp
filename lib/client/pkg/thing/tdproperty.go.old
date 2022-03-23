@@ -1,6 +1,9 @@
-package td
+package thing
 
-import "github.com/wostzone/hub/lib/client/pkg/vocab"
+import (
+	"github.com/wostzone/hub/lib/client/pkg/thing"
+	"github.com/wostzone/hub/lib/client/pkg/vocab"
+)
 
 // Thing property creation
 
@@ -38,6 +41,13 @@ func CreateProperty(
 		prop[vocab.WoTWriteOnly] = writable
 	}
 	return prop
+}
+
+// GetProperties returns a map of all properties by name
+// map key is the property name, value is property object
+func GetProperties(thingTD map[string]interface{}) map[string]interface{} {
+	props, _ := thingTD[vocab.WoTProperties].(map[string]interface{})
+	return props
 }
 
 // GetPropertyValue returns the value of a property in the TD
@@ -101,6 +111,10 @@ func SetPropertyDataTypeNumber(prop map[string]interface{}, min float64, max flo
 
 // SetPropertyDataTypeObject sets the property data type as an object
 func SetPropertyDataTypeObject(prop map[string]interface{}, object interface{}) {
+	io := thing.InteractionOutput{
+		value: object,
+	}
+
 	prop[vocab.WoTDataType] = vocab.WoTDataTypeObject
 	prop[vocab.WoTDataTypeObject] = object
 }
@@ -122,14 +136,9 @@ func SetPropertyUnit(prop map[string]interface{}, unit string) {
 	prop[vocab.WoTUnit] = unit
 }
 
-// SetPropertyValue sets the value of a property at the time of TD creation
-// Useful for attributes or configuration properties that don't change very often. When a TD is received
-// it can be usable immediately without waiting for value updates.
+// SetPropertyValue sets the cached value of a property in the TD property
 //
-// Note1: it is recommended to only set values for properties that rarely change, and when
-// they do change to update the TD.
-// Note2: This is optional and not part of the WoT specification. It is however allowed
-// by the specification (although it might need a schema specified???)
-func SetPropertyValue(prop map[string]interface{}, value string) {
+// This is not part of the WoT specification. It is however allowed by the specification,
+func SetPropertyValue(prop map[string]interface{}, value thing.InteractionOutput) {
 	prop[vocab.AttrNameValue] = value
 }

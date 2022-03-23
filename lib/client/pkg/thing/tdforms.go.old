@@ -1,5 +1,5 @@
-// Package td with TD form creation
-package td
+// Package thing with TD form creation
+package thing
 
 import "github.com/wostzone/hub/lib/client/pkg/vocab"
 

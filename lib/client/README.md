@@ -57,7 +57,7 @@ Note: The generated TD is basic and a best effort to conform to the WoT standard
 
 For example, to build a new TD of a temperature sensor Thing:
 ```golang
-	import "github.com/wostzone/hub/lib/client/pkg/td"
+	import "github.com/wostzone/hub/lib/client/pkg/thing"
 	import  "github.com/wostzone/hub/lib/client/pkg/vocab"
 
   ...

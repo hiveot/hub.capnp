@@ -3,6 +3,7 @@ package mqttclient
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -29,8 +30,10 @@ type MqttClient struct {
 	subQos   byte
 	timeout  int // connection timeout in seconds before giving up.
 	//
-	appID               string                        // Application ID used in MQTT client ID
-	isRunning           bool                          // listen for messages while running
+	appID     string // Application ID used in MQTT client ID
+	isRunning bool   // listen for messages while running
+	// json formatting indentation for PublishObject, if set
+	jsonIndent          string
 	pahoClient          pahomqtt.Client               // Paho MQTT Client
 	subscriptions       map[string]*TopicSubscription // map of TopicSubscription for re-subscribing after reconnect
 	tlsVerifyServerCert bool                          // verify the server certificate, this requires a Root CA signed cert
@@ -248,6 +251,23 @@ func (mqttClient *MqttClient) Publish(topic string, message []byte) error {
 		logrus.Warnf("MqttClient.Publish: Error during publish on address %s: %v", topic, err)
 		//return err
 	}
+	return err
+}
+
+// PublishObject marshals an object into json and publishes it to the given topic
+// If jsonIndent is provided then the message is formatted nicely for humans
+func (mqttClient *MqttClient) PublishObject(topic string, object interface{}) error {
+	var jsonText []byte
+	var err error
+	if mqttClient.jsonIndent != "" {
+		jsonText, err = json.MarshalIndent(object, mqttClient.jsonIndent, mqttClient.jsonIndent)
+	} else {
+		jsonText, err = json.Marshal(object)
+	}
+	if err != nil {
+		return err
+	}
+	err = mqttClient.Publish(topic, jsonText)
 	return err
 }
 

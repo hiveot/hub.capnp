@@ -25,7 +25,7 @@ const (
 	AuthMethodBasic    = "basic"  // basic auth for backwards compatibility when connecting to non WoST servers
 	AuthMethodNone     = ""       // disable authentication, for testing
 	AuthMethodJwt      = "jwt"    // JSON web token for use with WoST server (default)
-	AuthMethodJwtToken = "access" // JWT access token provided
+	AuthMethodJwtToken = "access" // JWT access token provided by 3rd party
 )
 
 // The default paths for user authentication and configuration
@@ -113,10 +113,10 @@ func (cl *TLSClient) ConnectNoAuth() {
 //  clientCert client tls certificate containing x509 cert and private key
 // Returns nil if successful, or an error if connection failed
 func (cl *TLSClient) ConnectWithClientCert(clientCert *tls.Certificate) (err error) {
-	var clientCertList = []tls.Certificate{}
+	var clientCertList = make([]tls.Certificate, 0)
 
 	if clientCert == nil {
-		err = fmt.Errorf("TLSClient.ConnectWithClientCert, No client key/certificate provided.")
+		err = fmt.Errorf("TLSClient.ConnectWithClientCert, No client key/certificate provided")
 		logrus.Error(err)
 		return err
 	}
@@ -283,7 +283,7 @@ func (cl *TLSClient) Invoke(method string, url string, msg interface{}) ([]byte,
 
 	if cl == nil || cl.httpClient == nil {
 		logrus.Errorf("Invoke: '%s'. Client is not started", url)
-		return nil, errors.New("Invoke: client is not started")
+		return nil, errors.New("error on Invoke: client is not started")
 	}
 	logrus.Infof("TLSClient.Invoke: %s: %s", method, url)
 
@@ -306,20 +306,23 @@ func (cl *TLSClient) Invoke(method string, url string, msg interface{}) ([]byte,
 		return nil, err
 	}
 
-	// use basic auth as fallback. WoST prefers JWT
+	// Set authentication for the request. Use basic auth as fallback. WoST prefers JWT
 	if cl.authMethod == AuthMethodBasic {
 		if cl.userID != "" && cl.secret != "" {
 			req.SetBasicAuth(cl.userID, cl.secret)
 		}
 	} else if cl.authMethod == AuthMethodJwt {
 		if cl.JwtTokens.AccessToken != "" {
-			cl.RefreshJWTTokenIfExpired()
+			err = cl.RefreshJWTTokenIfExpired()
 			req.Header.Add("Authorization", "bearer "+cl.JwtTokens.AccessToken)
 		}
 	} else if cl.authMethod == AuthMethodJwtToken {
 		if cl.JwtTokens.AccessToken != "" {
 			req.Header.Add("Authorization", "bearer "+cl.JwtTokens.AccessToken)
 		}
+	}
+	if err != nil {
+		return nil, err
 	}
 
 	// set headers
@@ -412,26 +415,29 @@ func (cl *TLSClient) RefreshJWTTokens(refreshURL string) (refreshTokens *JwtAuth
 // RefreshJWTTokenIfExpired checks if the JWT access token is expired. If so, then refresh it.
 // If the refresh token does not exist or the access token is not a JWT token then return
 // without further action.
-func (cl *TLSClient) RefreshJWTTokenIfExpired() {
+// If no refresh token exists or refresh fails then return an error. This means that a new login is required.
+func (cl *TLSClient) RefreshJWTTokenIfExpired() error {
 	if cl.JwtTokens.RefreshToken == "" {
-		return
+		return errors.New("RefreshJWTTokenIfExpired: no refresh token exists")
 	}
 
 	if cl.JwtTokens.AccessToken != "" {
 		claims := jwt.MapClaims{}
 		_, _, err := new(jwt.Parser).ParseUnverified(cl.JwtTokens.AccessToken, &claims)
 		if err != nil {
-			// if the access token is invalid then don't do anything
-			logrus.Warningf("RefreshJWTTokenIfExpired: Parse error on access token string: %s", err)
-			return
+			// if the access token is invalid then the refresh failed and a new login is needed
+			err := errors.New("RefreshJWTTokenIfExpired: Parse error on access token string. Refresh failed")
+			logrus.Error(err)
+			return err
 		}
 		err = claims.Valid()
 		if err == nil {
-			// the access token is still valid
-			return
+			// the access token is still valid so no action is taken
+			return nil
 		}
 	}
-	cl.RefreshJWTTokens("")
+	_, err := cl.RefreshJWTTokens("")
+	return err
 }
 
 // NewTLSClient creates a new TLS Client instance.

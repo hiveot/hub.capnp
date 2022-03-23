@@ -11,7 +11,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/wostzone/hub/lib/client/pkg/td"
 	"github.com/wostzone/hub/lib/client/pkg/testenv"
 	"github.com/wostzone/hub/lib/client/pkg/tlsclient"
 	"github.com/wostzone/hub/lib/client/pkg/vocab"
@@ -58,8 +57,8 @@ var authorizeResult = true
 // Add a bunch of TDs
 func AddTds(client *dirclient.DirClient) {
 	for _, tdDef := range tdDefs {
-		td1 := td.CreateTD(tdDef.id, "test thing", tdDef.deviceType)
-		td.AddTDProperty(td1, "name", td.CreateProperty(tdDef.name, "", vocab.PropertyTypeAttr))
+		td1 := thing.CreateTD(tdDef.id, "test thing", tdDef.deviceType)
+		thing.AddTDProperty(td1, "name", thing.CreateProperty(tdDef.name, "", vocab.PropertyTypeAttr))
 		client.UpdateTD(tdDef.id, td1)
 	}
 }
@@ -140,7 +139,7 @@ func TestUpdate(t *testing.T) {
 	require.NoError(t, err)
 
 	// Create
-	td1 := td.CreateTD(thingID1, "test thing", deviceType1)
+	td1 := thing.CreateTD(thingID1, "test thing", deviceType1)
 	err = dirClient.UpdateTD(thingID1, td1)
 	assert.NoError(t, err)
 
@@ -197,8 +196,8 @@ func TestPatch(t *testing.T) {
 
 	// Change the device type to sensor using patch
 	thingID1 := tdDefs[0].id
-	td1 := td.CreateTD(thingID1, "test thing", vocab.DeviceTypeSensor)
-	td.AddTDProperty(td1, "name", td.CreateProperty("name1", "just a name", vocab.PropertyTypeAttr))
+	td1 := thing.CreateTD(thingID1, "test thing", vocab.DeviceTypeSensor)
+	thing.AddTDProperty(td1, "name", thing.CreateProperty("name1", "just a name", vocab.PropertyTypeAttr))
 
 	err = dirClient.PatchTD(thingID1, td1)
 	assert.NoError(t, err)
@@ -229,8 +228,8 @@ func TestBadPatch(t *testing.T) {
 
 	AddTds(dirClient)
 	thingID1 := tdDefs[0].id
-	td1 := td.CreateTD(thingID1, "test thing", vocab.DeviceTypeSensor)
-	td.AddTDProperty(td1, "name", td.CreateProperty("name1", "just a name", vocab.PropertyTypeAttr))
+	td1 := thing.CreateTD(thingID1, "test thing", vocab.DeviceTypeSensor)
+	thing.AddTDProperty(td1, "name", thing.CreateProperty("name1", "just a name", vocab.PropertyTypeAttr))
 
 	err = dirClient.PatchTD(thingID1, nil)
 	assert.Error(t, err)
@@ -348,8 +347,8 @@ func TestNotAuthorized(t *testing.T) {
 	thingID1 := tdDefs[0].id
 	loginID := "user1"
 	dirClient := dirclient.NewDirClient(serverHostPort, testCerts.CaCert)
-	td1 := td.CreateTD(thingID1, "test thing", vocab.DeviceTypeSensor)
-	td.AddTDProperty(td1, "name", td.CreateProperty("name1", "just a name", vocab.PropertyTypeAttr))
+	td1 := thing.CreateTD(thingID1, "test thing", vocab.DeviceTypeSensor)
+	thing.AddTDProperty(td1, "name", thing.CreateProperty("name1", "just a name", vocab.PropertyTypeAttr))
 
 	authenticateResult = true
 	authorizeResult = false

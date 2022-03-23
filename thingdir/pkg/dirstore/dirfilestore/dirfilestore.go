@@ -275,7 +275,7 @@ func (store *DirFileStore) Query(jsonPath string, offset int, limit int,
 			// thingTD, ok := tdDoc.(td.ThingTD)
 			thingTD, ok := tdDoc.(map[string]interface{})
 			if ok {
-				thingID := td.GetID(thingTD)
+				thingID := thing.GetID(thingTD)
 				if aclFilter(thingID) {
 					filterResults[thingID] = thingTD
 				}

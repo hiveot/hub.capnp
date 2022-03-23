@@ -1,5 +1,5 @@
-// Package td with TD action creation
-package td
+// Package thing with TD action creation
+package thing
 
 import "github.com/wostzone/hub/lib/client/pkg/vocab"
 
@@ -19,7 +19,7 @@ func CreateTDAction(title string, description string) map[string]interface{} {
 //  name contains the name of the action to request, as defined in the TD action section
 //  params contains the corresponding parameters as defined in the TD action section
 //
-// This returns a message that can be published with IHubClient.PublishConfigRequest()
+// This returns a message that can be published with IHubClient.PublishConfigAction()
 func CreateActionRequest(name string, params map[string]interface{}) map[string]interface{} {
 	action := make(map[string]interface{})
 	action[name] = params

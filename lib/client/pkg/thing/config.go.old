@@ -1,12 +1,12 @@
-// Package td with configuration update request message
-package td
+// Package thing with configuration update request message
+package thing
 
 // CreateConfigRequest creates a new message for requesting updates to configuration properties
 // Use AddConfigRequest to add more configuration properties to the message
 //  propertyName contains the first configuration property to request
 //  newValue contains the new requested value
 //
-// This returns a message that can be published with IHubClient.PublishConfigRequest()
+// This returns a message that can be published with IHubClient.PublishConfigAction()
 func CreateConfigRequest(propertyName string, newValue string) map[string]interface{} {
 	config := make(map[string]interface{}, 0)
 	config[propertyName] = newValue

@@ -84,7 +84,7 @@ func (dc *DirClient) Delete(id string) error {
 
 // GetTD the TD with the given ID
 //  id is the ThingID whose TD to get
-func (dc *DirClient) GetTD(id string) (td td.ThingTD, err error) {
+func (dc *DirClient) GetTD(id string) (td thing.ThingTD, err error) {
 
 	path := strings.Replace(RouteThingID, "{thingID}", id, 1)
 	resp, err := dc.tlsClient.Get(path)
@@ -101,8 +101,8 @@ func (dc *DirClient) GetTD(id string) (td td.ThingTD, err error) {
 // value is used.
 //  offset of the list to query from
 //  limit result to nr of TDs. Use 0 for default.
-func (dc *DirClient) ListTDs(offset int, limit int) ([]td.ThingTD, error) {
-	var tdList []td.ThingTD
+func (dc *DirClient) ListTDs(offset int, limit int) ([]thing.ThingTD, error) {
+	var tdList []thing.ThingTD
 	if limit == 0 {
 		limit = DefaultLimit
 	}
@@ -117,7 +117,7 @@ func (dc *DirClient) ListTDs(offset int, limit int) ([]td.ThingTD, error) {
 }
 
 // PatchTD changes a TD with the attributes of the given TD
-func (dc *DirClient) PatchTD(id string, td td.ThingTD) error {
+func (dc *DirClient) PatchTD(id string, td thing.ThingTD) error {
 	var resp []byte
 	var err error
 	path := strings.Replace(RouteThingID, "{thingID}", id, 1)
@@ -132,8 +132,8 @@ func (dc *DirClient) PatchTD(id string, td td.ThingTD) error {
 // in which case the lowest value is used.
 //  offset of the list to query from
 //  limit result to nr of TDs. Use 0 for default.
-func (dc *DirClient) QueryTDs(jsonpath string, offset int, limit int) ([]td.ThingTD, error) {
-	var tdList []td.ThingTD
+func (dc *DirClient) QueryTDs(jsonpath string, offset int, limit int) ([]thing.ThingTD, error) {
+	var tdList []thing.ThingTD
 	path := fmt.Sprintf("%s?queryparams=%s&offset=%d&limit=%d", RouteThings, jsonpath, offset, limit)
 	response, err := dc.tlsClient.Get(path)
 	if err != nil {
@@ -145,7 +145,7 @@ func (dc *DirClient) QueryTDs(jsonpath string, offset int, limit int) ([]td.Thin
 }
 
 // UpdateTD updates the TD with the given ID, eg create/update
-func (dc *DirClient) UpdateTD(id string, td td.ThingTD) error {
+func (dc *DirClient) UpdateTD(id string, td thing.ThingTD) error {
 	var resp []byte
 	var err error
 	path := strings.Replace(RouteThingID, "{thingID}", id, 1)

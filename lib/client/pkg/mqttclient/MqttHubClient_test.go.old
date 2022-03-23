@@ -8,7 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/wostzone/hub/lib/client/pkg/mqttclient"
-	"github.com/wostzone/hub/lib/client/pkg/td"
+	"github.com/wostzone/hub/lib/client/pkg/thing"
 	"github.com/wostzone/hub/lib/client/pkg/vocab"
 )
 
@@ -79,8 +79,8 @@ func TestPublishConfig(t *testing.T) {
 	assert.NoError(t, err)
 
 	deviceClient := mqttclient.NewMqttHubClient(testDeviceID, certs.CaCert)
-	deviceClient.SubscribeToConfig(thingID, func(thingID string, config map[string]interface{}, sender string) {
-		logrus.Infof("TestPublishConfig: Received config of Thing %s from client %s", thingID, sender)
+	deviceClient.SubscribeToPropertyAction(thingID, func(thingID string, config map[string]interface{}) {
+		logrus.Infof("TestPublishConfig: Received config of Thing %s from client %s", thingID)
 		rx = config
 		rxID = thingID
 	})
@@ -89,7 +89,7 @@ func TestPublishConfig(t *testing.T) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	err = consumerClient.PublishConfigRequest(thingID, config1)
+	err = consumerClient.PublishConfigAction(thingID, config1)
 	assert.NoError(t, err)
 
 	// TODO, check if it was received by the Thing
@@ -103,10 +103,11 @@ func TestPublishConfig(t *testing.T) {
 func TestPublishEvent(t *testing.T) {
 	logrus.Infof("--- TestPublishEvent ---")
 	thingID := "thing1"
-	event1 := map[string]interface{}{"eventName": "eventValue"}
+	eventName := "event1"
+	eventData := map[string]interface{}{"eventName": "eventValue"}
 	var rx map[string]interface{}
 
-	// Use plugin as client with certificate so no hassle with username/pwsswd in testing
+	// Use plugin as client with certificate so no hassle with username/passwd in testing
 	consumerClient := mqttclient.NewMqttHubClient(testPluginID, certs.CaCert)
 	err := consumerClient.ConnectWithClientCert(mqttCertAddress, certs.PluginCert)
 	assert.NoError(t, err)
@@ -115,25 +116,25 @@ func TestPublishEvent(t *testing.T) {
 	err = deviceClient.ConnectWithClientCert(mqttCertAddress, certs.DeviceCert)
 	assert.NoError(t, err)
 
-	consumerClient.SubscribeToEvents(thingID, func(thingID string, event map[string]interface{}, sender string) {
-		logrus.Infof("TestPublishEvent: Received event of Thing %s from client %s", thingID, sender)
+	consumerClient.SubscribeToEvents(thingID, func(thingID string, event map[string]interface{}) {
+		logrus.Infof("TestPublishEvent: Received event of Thing %s from client %s", thingID)
 		rx = event
 	})
 
 	time.Sleep(time.Millisecond)
-	err = deviceClient.PublishEvent(thingID, event1)
+	err = deviceClient.PublishEvent(thingID, eventName, eventData)
 	assert.NoError(t, err)
 
 	// TODO, check if it was received by a consumer
 
 	time.Sleep(100 * time.Millisecond)
-	assert.Equal(t, event1["eventName"], rx["eventName"])
+	assert.Equal(t, eventData["eventName"], rx["eventName"])
 
 	deviceClient.Close()
 	consumerClient.Close()
 }
 
-// FIXME: should property updates be send as events?
+// TestPublishPropertyValues publishes properties using 'property' events
 func TestPublishPropertyValues(t *testing.T) {
 	logrus.Infof("--- TestPublishPropertyValues ---")
 	thingID := "thing1"
@@ -149,13 +150,13 @@ func TestPublishPropertyValues(t *testing.T) {
 
 	err = consumerClient.ConnectWithClientCert(mqttCertAddress, certs.PluginCert)
 	assert.NoError(t, err)
-	consumerClient.SubscribeToPropertyValues(thingID, func(thingID string, values map[string]interface{}, sender string) {
-		logrus.Infof("TestPublishPropertyValues: Received values of Thing %s from client %s", thingID, sender)
+	consumerClient.SubscribeToPropertyAction(thingID, func(thingID string, values map[string]interface{}) {
+		logrus.Infof("TestPublishPropertyValues: Received values of Thing %s from client %s", thingID)
 		rx = values
 	})
 
 	time.Sleep(time.Millisecond)
-	err = deviceClient.PublishPropertyValues(thingID, propValues)
+	err = deviceClient.PublishPropertyEvent(thingID, propValues)
 	assert.NoError(t, err)
 
 	time.Sleep(100 * time.Millisecond)
@@ -167,8 +168,8 @@ func TestPublishPropertyValues(t *testing.T) {
 func TestPublishTD(t *testing.T) {
 	logrus.Infof("--- TestPublishTD ---")
 	deviceID := "thing1"
-	thingID := td.CreateThingID(zone, deviceID, vocab.DeviceTypeSensor)
-	td1 := td.CreateTD(thingID, "test TD", vocab.DeviceTypeSensor)
+	thingID := thing.CreateThingID(zone, deviceID, vocab.DeviceTypeSensor)
+	td1 := thing.CreateTD(thingID, "test TD", vocab.DeviceTypeSensor)
 	var rxTd map[string]interface{}
 
 	// Use plugin as client with certificate so no hassle with username/pwsswd in testing
@@ -202,8 +203,8 @@ func TestPublishTD(t *testing.T) {
 func TestSubscribeAll(t *testing.T) {
 	logrus.Infof("--- TestSubscribeAll ---")
 	deviceID := "thing1"
-	thingID := td.CreateThingID(zone, deviceID, vocab.DeviceTypeSensor)
-	td1 := td.CreateTD(thingID, "Test TD", vocab.DeviceTypeSensor)
+	thingID := thing.CreateThingID(zone, deviceID, vocab.DeviceTypeSensor)
+	td1 := thing.CreateTD(thingID, "Test TD", vocab.DeviceTypeSensor)
 	txTd, _ := json.MarshalIndent(td1, "  ", "  ")
 	var rxTd []byte
 	var rxThing string

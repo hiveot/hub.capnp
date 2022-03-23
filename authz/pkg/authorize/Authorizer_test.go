@@ -113,21 +113,21 @@ func TestHasPermission(t *testing.T) {
 	ah := createEmptyTestAuthHandler()
 	_ = ah.Start()
 	// read permission
-	hasPerm := ah.VerifyRolePermission(authorize.GroupRoleThing, false, td.MessageTypeTD)
+	hasPerm := ah.VerifyRolePermission(authorize.GroupRoleThing, false, thing.MessageTypeTD)
 	assert.True(t, hasPerm)
-	hasPerm = ah.VerifyRolePermission(authorize.GroupRoleOperator, false, td.MessageTypeTD)
+	hasPerm = ah.VerifyRolePermission(authorize.GroupRoleOperator, false, thing.MessageTypeTD)
 	assert.True(t, hasPerm)
-	hasPerm = ah.VerifyRolePermission(authorize.GroupRoleViewer, false, td.MessageTypeTD)
+	hasPerm = ah.VerifyRolePermission(authorize.GroupRoleViewer, false, thing.MessageTypeTD)
 	assert.True(t, hasPerm)
-	hasPerm = ah.VerifyRolePermission(authorize.GroupRoleManager, false, td.MessageTypeTD)
+	hasPerm = ah.VerifyRolePermission(authorize.GroupRoleManager, false, thing.MessageTypeTD)
 	assert.True(t, hasPerm)
 
-	hasPerm = ah.VerifyRolePermission(authorize.GroupRoleNone, false, td.MessageTypeTD)
+	hasPerm = ah.VerifyRolePermission(authorize.GroupRoleNone, false, thing.MessageTypeTD)
 	assert.False(t, hasPerm)
 	// write permission
-	hasPerm = ah.VerifyRolePermission(authorize.GroupRoleThing, true, td.MessageTypeTD)
+	hasPerm = ah.VerifyRolePermission(authorize.GroupRoleThing, true, thing.MessageTypeTD)
 	assert.True(t, hasPerm)
-	hasPerm = ah.VerifyRolePermission(authorize.GroupRoleViewer, true, td.MessageTypeTD)
+	hasPerm = ah.VerifyRolePermission(authorize.GroupRoleViewer, true, thing.MessageTypeTD)
 	assert.False(t, hasPerm)
 
 	ah.Stop()
@@ -146,7 +146,7 @@ func TestCheckDeviceAuthorization(t *testing.T) {
 	thingID1 := "urn:zone1:pub1:device1:sensor1"
 	thingID2 := "urn:zone1:pub2:device1:sensor1"
 	const writing = true
-	msgType := td.MessageTypeTD
+	msgType := thing.MessageTypeTD
 
 	// publishers can publish to things with thingID that contains the publisher
 	authorized := ah.VerifyAuthorization(userName, certsclient.OUIoTDevice, thingID1, writing, msgType)
@@ -178,7 +178,7 @@ func TestCheckDeviceAuthorization(t *testing.T) {
 	// editor role can control thing with actions
 	_ = aclStore.SetRole("user1", group1, authorize.GroupRoleOperator)
 	time.Sleep(time.Millisecond * 200) // reload
-	authorized = ah.VerifyAuthorization("user1", "", thingID1, writing, td.MessageTypeAction)
+	authorized = ah.VerifyAuthorization("user1", "", thingID1, writing, thing.MessageTypeAction)
 	assert.True(t, authorized)
 	ah.Stop()
 

@@ -1,6 +1,6 @@
 # WoST Hub
 
-The WoST Hub is the reference implementation of the Hub for the *Web of Secure Things*. It acts as an intermediary between IoT devices 'Things' and consumers. Consumers interact with Things through Hub services without connecting directly to the Thing device. 
+The WoST Hub is the reference implementation of the Hub for the *Web of Secure Things*. It acts as an intermediary between IoT devices 'Things' and consumers using a hub-and-spokes architecture. Consumers interact with Things through Hub services without connecting directly to the Thing device. 
 
 ## Project Status
 
@@ -13,21 +13,23 @@ This project is aimed at software developers and system implementors that share 
 
 ## Objective
 
-The objective of WoST is to support the internet of things in a highly secure manner. The core mandate is that 'Things Do Not Run Servers'. The WoST Hub supports this objective by simplifying IoT device implementation and by isolating IoT devices from possible attacks via a secure Hub. 
+The primary objective of WoST is to support the internet of things in a highly secure manner. The WoST Hub supports this objective by not allowing servers to run on the device and by isolating IoT devices from the wider network via a secure Hub. 
 
-The intent is to follow the WoT and other open standard where possible.
+The WoST mandate is that 'Things Do Not Run Servers'.
+
+The secondary objective is to simplify development of IoT devices for the web of things. WoST supports this by requiring only minimal features to operate on an IoT device. No server is used and the WoST Hub handles authentication and authorization on behalf of the device. This simplifies the IoT device development and allows allocating most of the resources to the actual device operation.
+
+The third objective is to follow the WoT and other open standard where possible.
 
 
 ## Summary
 This document describes a technical overview of the WoST Hub. A [user manual](user-manual.md) is under development.
 
-Security is big concern with today's IoT devices. The Internet of Things contains billions of devices that when not properly secured can be hacked. Unfortunately the reality is that the security of many of these devices leaves a lot to be desired and are never upgraded with security patches. This problem is only going to get worse as more IoT devices are coming to market. Imagine a botnet of a billion devices on the Internet ready for use by in-scrupulous actors. 
-
-WoST compatible devices are much more secure simply by not running a server and by not being directly accessible. Instead, WoST devices only connect to the Hub that is provisioned. This removes a large attack vector and greatly reduces the need for security updates on these devices.
+Security is big concern with today's IoT devices. The Internet of Things contains billions of devices that when not properly secured can be hacked. Unfortunately the reality is that the security of many of these devices leaves a lot to be desired. Many devices are vulnerable to attacks and are never upgraded with security patches. This problem is only going to get worse as more IoT devices are coming to market. Imagine a botnet of a billion devices on the Internet ready for use by in-scrupulous actors. 
 
 This 'WoST Hub' repository provides core services to securely interact with IoT devices and consumers. This includes certificate management, authentication, authorization, provisioning, message bus service and directory service.
 
-WoST compatible IoT devices therefore do not need to implement these features. This not only reduces required device resources such as memory and CPU (and cost) but also improves security by isolating the IoT device from its consumers with less need to 'harden' devices for security. An additional benefit is that consumers receive a consistent user experience independent of the IoT device provider as all interaction takes place via the  Hub interface. 
+WoST compatible IoT devices therefore do not need to implement these features. This improves security as IoT devices do not run servers and are not directly accessible. They can remain isolated from the wider network and only require an outgoing connection to the Hub. This in turn reduces required device resources such as memory and CPU (and cost). An additional benefit is that consumers receive a consistent user experience independent of the IoT device provider as all interaction takes place via the Hub interface. 
 
 WoST is based on the 'WoT' (Web of Things) open standard developed by the W3C organization. It aims to be compatible with this standard.
 
@@ -38,6 +40,7 @@ All Hub functionality is provided through plugins and can be extended with addit
 
 Plugins can be written in any programming language but must follow some simple guidelines. The [writing-plugins.md] document describes how to write new plugins. Existing services/plugins can also serve as an example.  
 
+Plugin development is simplified when using the Hub's library for working with Thing Description (TD) documents and messaging.
 
 ## Core Services
 
@@ -48,9 +51,9 @@ The Hub includes several services that listen on specific ports. The default por
 * 8880 idprov provisioning for discovery of hub by IoT devices
 * 8881 wost hub authentication service for token creation and renewal
 * 8882 wost bridge service for linking two hubs
-* 8883 mqtt message bus, mqtt port requiring username-password authentication
-* 8884 mqtt message bus, mqtt port requiring certificate authentication
-* 8885 mqtt message bus, websocket port requiring username-password authentication
+* 8883 MQTT message bus port requiring username-password authentication
+* 8884 MQTT message bus port requiring certificate authentication
+* 8885 MQTT message websocket bus port requiring username-password authentication
 * 8886 thingdir thing directory service port for querying known Thing Description documents
 * 8443 thingview web based thing viewer application for managing and viewing things
 * 8443 [Tentative] A proxy service to provide a single HTTPS API access point for the services.  
@@ -70,31 +73,35 @@ The certs service provides a commandline interface for managing certificates.
 
 ### idprov: Provisioning Service
 
-IoT devices that support the [idprov protocol](https://github.com/wostzone/idprov-standard) can automatically discover the provisioning server on the local network using the DNS-SD protocol and initiate the provisioning process. When accepted, a CA signed certificate is issued. This certificate supports machine to machine authentication between IoT device and Hub Services such as the message bus along with a list of services that can be used to connect to. See [idprov service](https://github.com/wostzone/hub/tree/main/idprov) for more information. 
-
-In order to use provisioning IoT devices must support HTTPS/TLS clients with SSL encryption.
+IoT devices that support the [idprov protocol](https://github.com/wostzone/idprov-standard) can automatically discover the provisioning server on the local network using the DNS-SD protocol and initiate the provisioning process. When accepted, a CA signed client certificate is issued. This certificate supports machine to machine authentication between IoT device and Hub Services such as the message bus. See [idprov service](https://github.com/wostzone/hub/tree/main/idprov) for more information. 
 
 ### authn: Authentication Service
 
 The authentication service manages users and issues access and refresh tokens.
 It provides a CLI to add/remove users and a service with a REST API to handle authentication request and issue tokens. See [authn service](https://github.com/wostzone/hub/tree/main/authn) for more information.
 
+IoT devices do not implement authentication if its users. All authentication is handled by Hub services via the authn service.
+
 ### authz: Authorization Service
 
-The authorization service manages role based access control using groups of Consumers and Things.
+The authorization service manages role based access control using groups of consumers and Things.
 Consumers that are in the same group as a Thing have permission to access the Thing based on their role as viewer, operator, manager, administrator or thing. See the [authorization service](https://github.com/wostzone/hub/tree/main/authz) for more information. 
+
+Things do not implement authorization. All authorization is handled by Hub services using the authorization service. 
 
 ### mosquittomgr: Message Bus Manager and Mosquitto auth plugin
 
-Interaction with Things takes place via the MQTT message bus. Things publish their TD document and events onto the bus and subscribe to action messages. Services and consumers can subscribe to these publications and publish messages to the Thing. This is the only method to communicate with the Thing. 
+Interaction with Things takes place via a message bus. [Exposed Things](https://www.w3.org/TR/wot-architecture/#exposed-thing-and-consumed-thing-abstractions) publish their TD document and events onto the bus and subscribe to action messages. Consumers can subscribe to these messages and publish actions to the Thing. 
 
 The Mosquitto manager configures the Mosquitto MQTT broker (server) including authentication and authorization of things, services and consumers. See the [mosquittomgr service](https://github.com/wostzone/hub/tree/main/mosquittomgr) for more information.
 
-IoT devices must be able to connect to the MQTT message bus through an MQTT client with encryption and certificate authentication. The [Eclipse Paho](https://www.eclipse.org/paho/) project provides client libraries for many different programming environments. 
+IoT devices must be able to connect to the message bus through TLS and use client certificate authentication. The Hub library provides protocol bindings to accomplish this. 
 
 ### thingdir: Directory Service 
 
 The directory service provides a REST API for consumers to list or query known Things. The service stores the TD Documents published by Things. It uses the Authorization service to filter the TD's that a consumer is allowed to see. See the [directory service](https://github.com/wostzone/hub/tree/main/thingdir) for more information.
+
+The directory service is intended for use by consumers. IoT devices typically only need to use the message bus.
 
 ## Installation (draft)
 
@@ -102,11 +109,11 @@ The WoST Hub is designed to run on Linux based computers. It might be able to wo
 
 ### System Requirements
 
-It is recommended to use a dedicated server or container for installing the Hub and its plugins. For experimental industrial or automotive usage a dedicated embedded computer system with Intel or ARM processors is recommended. For home users a raspberry pi 2/3/4+ will be sufficient to run the Hub and most plugins.
+It is recommended to use a dedicated server or container for operating the Hub and its plugins. For industrial or automotive usage an industrial quality embedded computer system with Intel or ARM processors is recommended. Residential users will find that a raspberry pi 2/3/4+ will be sufficient to run the Hub and most plugins.
 
-The minimal requirement is 100MB of RAM and an Intel Celeron, or ARMv7 CPU. Additional resources might be required for some plugins. See plugin documentation.
+The minimal requirement for the Hub is 100MB of RAM and an Intel Celeron, or ARMv7 CPU. Additional resources might be required for some plugins. See plugin documentation.
 
-* mosquitto:
+* Mosquitto for MQTT:
 The Hub requires the installation of the Mosquitto MQTT message broker version 2.0.14 or newer. To build from source the libmosquitto-dev package must be installed as well.
 * The 'mosquittomgr' plugin manages the configuration and security of the Mosquitto broker on behalf of the Hub. Other MQTT brokers can be used instead of Mosquitto but will require an accompanying service to handle authentication and authorization. The MQTT broker can but does not have to run on the same system as the Hub.
 
@@ -284,7 +291,13 @@ After downloading or building the plugin executable:
 
 ## Overview
 
-The Hub operates using a message bus, a curated set of core plugins and optional additional plugins. The plugins fall into two categories, protocol bindings and services:
+The Hub is designed following a 'hub-and-spokes' architecture. IoT devices and consumers all communicate using the Hub services. At no point do IoT devices and consumers connect to each other directly unless this is explicitly by design, like for example a media server.
+
+IoT devices use the Hub message bus to publish their TD document, publish events, and receive action messages. 
+
+Consumers such as services and users use the message bus to receive TD's and events in real-time. 
+
+A curated set of core plugins and optional additional plugins provide the functionality to Hub clients. The plugins fall into two categories, protocol bindings and services:
 
 * Protocol bindings provide connectivity for WoST Things and legacy/3rd party IoT devices. For example, the idprov protocol binding provides IoT devices with the ability to self-provision. Legacy protocol bindings convert the legacy device description to a WoT compliant Thing Description (TD) document and submit these onto the Hub message bus. Actions received from the message bus are passed back to the device after converting it into the device's native format.
 
@@ -292,17 +305,23 @@ The Hub operates using a message bus, a curated set of core plugins and optional
 
 ## Hub Message Bus
 
-Central to the Hub is its MQTT publish/subscribe message bus. Messages sent over this message bus are WoT compatible and conform to the format defined in the [WoT TD standard](https://www.w3.org/TR/wot-thing-description/). 
+Central to the Hub is a publish/subscribe message bus. Messages sent over this message bus are WoT compatible and conform to the format defined in the [WoT TD standard](https://www.w3.org/TR/wot-thing-description/). 
 
-WoST uses Mosquitto as the MQTT message bus, which is configured and managed using the core 'mosquittomgr' service. 'mosquittomgr' handles the configuration, authentication and authorization of connections on the message bus. 
+WoST uses Mosquitto for the message bus that implements the MQTT protocol. Mosquitto is configured and managed using the core 'mosquittomgr' service. 'mosquittomgr' handles the configuration, authentication and authorization of connections on the message bus. 
 
-Other MQTT implementations can be used instead but will require their own manager service to handle configuration, authentication and authorization.
+Other message bus implementations can be used instead but will require their own manager service to handle configuration, authentication and authorization.
 
 Separate ports are used to support authentication using client certificates, username/password authentication using the MQTT protocol, and username/password authentication over Websockets. The ports are defined in the hub.yaml configuration file.
 
+### Intermittent Connectivity
+A limitation of MQTT is that messages are only received by connected devices. IoT devices will therefore not receive actions that were sent while they were asleep or otherwise disconnected. Consumers therefore need to delay publishing their actions when a Thing is not connected. 
+
+The MQTT protocol supports a so-called 'last will and testament' message which is used to automatically send a disconnect event when the device that publishes the exposed thing disconnects. This is used to track the connection status of an IoT device and update the 'connected' property of a consumed thing. The directory service automatically updates the connected property of the publisher Thing in its TD when their publisher is disconnected. When a publisher reconnects it in turn sends the 'connect' event. The consumer can check if a Thing is available for action by checking the connection status of its publisher. 
+
+
 ## Protocol Binding Plugins
 
-Protocol Binding plugins adapt 3rd party IoT protocols to WoT TD publications on the MQTT message bus. This turns the 3rd party devices into WoST compatible Things. For example, an openzwave protocol binding makes ZWave devices available via the Hub.
+Protocol Binding plugins adapt 3rd party IoT protocols to WoT TD publications on the message bus. This turns the 3rd party devices into WoST compatible Things. For example, an openzwave protocol binding makes ZWave devices available via the Hub.
 
 Consumers are agnostic to the IoT device protocols used and only need to access the WoST services. Protocol Bindings (and IoT devices) also do not need knowledge of authentication and authorization as this is handled via the message bus plugin.  
 
@@ -330,13 +349,15 @@ Core plugins are launched at startup by the Hub launcher and accept the Hub argu
 
 Most plugins have an optional configuration file named {pluginID}.yaml in the {wosthub}/config folder. A default file is provided with the plugin that describes the available options.
 
-## Client Library
+## Client Library For Developing IoT Devices And Consumers
 
-The WoST project provides a [WoST client library](https://github.com/wostzone/hub/lib/client). This library provides functions for building WoST IoT clients and plugins including connections to the MQTT message bus and to construct WoT compliant Thing Description models (TD).
+WoST compatible IoT devices must support at least one of the message bus protocols. Currently only the MQTT protocol is used but more options can be added in the future. 
 
-IoT devices will likely also use the [provisioning client](https://github.com/wostzone/hub/idprov/pkg/idprov) to automatically discovery the provisioning server and obtain a certificate used to connect to the message bus.
+The WoST project provides a [WoST client library for developing IoT devices](https://github.com/wostzone/hub/lib/client) and their consumers. This library provides an implementation of a subset of the [Exposed Thing](https://www.w3.org/TR/wot-scripting-api/#the-exposedthing-interface) and [Consumed Thing](https://www.w3.org/TR/wot-scripting-api/#the-consumedthing-interface) interface with a protocol binding for the message bus. In addition methods to construct WoT compliant Thing Description documents (TD) are included.
 
-The above library is written in golang Python and Javascript Hub API libraries are planned. They will be added to https://github.com/wostzone/lib/{python}|{js}|{...}
+IoT devices will likely also use the [provisioning protocol client](https://github.com/wostzone/hub/idprov/pkg/idprov) to automatically discovery the provisioning server and obtain a certificate used to connect to the message bus.
+
+The above library is written in Golang. Python and Javascript Hub API libraries are planned. They will be added to https://github.com/wostzone/lib/{python}|{js}|{...}
 
 # Contributing
 

@@ -78,7 +78,7 @@ func TestStartStop(t *testing.T) {
 func TestLogTD(t *testing.T) {
 	logrus.Infof("--- TestLogTD ---")
 	deviceID := "device1"
-	thingID1 := td.CreatePublisherThingID(zone, publisherID, deviceID, vocab.DeviceTypeSensor)
+	thingID1 := thing.CreatePublisherID(zone, publisherID, deviceID, vocab.DeviceTypeSensor)
 	clientID := "TestLogTD"
 
 	svc := internal.NewLoggerService()
@@ -94,10 +94,10 @@ func TestLogTD(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	// create a thing to publish with
-	tdObj := td.CreateTD(thingID1, "", vocab.DeviceTypeSensor)
+	tdObj := thing.CreateTD(thingID1, "", vocab.DeviceTypeSensor)
 	client.PublishTD(thingID1, tdObj)
 
-	event := td.CreateThingEvent("event1", nil)
+	event := thing.CreateEventInstance("event1", nil)
 	client.PublishEvent(thingID1, event)
 
 	time.Sleep(1 * time.Second)
@@ -128,10 +128,10 @@ func TestLogSpecificIDs(t *testing.T) {
 	require.NoError(t, err)
 	time.Sleep(100 * time.Millisecond)
 
-	event := td.CreateThingEvent("event1", nil)
+	event := thing.CreateEventInstance("event1", nil)
 	client.PublishEvent(thingID1, event)
 
-	event = td.CreateThingEvent("event2", nil)
+	event = thing.CreateEventInstance("event2", nil)
 	client.PublishEvent(thingID2, event)
 
 	time.Sleep(1 * time.Second)

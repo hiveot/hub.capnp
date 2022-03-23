@@ -1,0 +1,25 @@
+// Package thing with TD event creation
+package thing
+
+import "github.com/wostzone/hub/lib/client/pkg/vocab"
+
+// CreateTDEvent creates an event description for use in the 'events' section of the thing.
+// To create an event instance use CreateEventInstance()
+//  title contains title for presentation
+//  description optional extra description of what the event represents
+func CreateTDEvent(title string, description string) map[string]interface{} {
+	event := make(map[string]interface{}, 0)
+	event[vocab.WoTTitle] = title
+	event[vocab.WoTDescription] = description
+
+	return event
+}
+
+// CreateEventInstance creates a new event for publication
+//  name of the event
+//  data to store as the event data
+func CreateEventInstance(name string, data map[string]interface{}) map[string]interface{} {
+	event := make(map[string]interface{}, 0)
+	event[name] = data
+	return event
+}

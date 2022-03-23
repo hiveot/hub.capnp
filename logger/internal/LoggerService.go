@@ -84,16 +84,16 @@ func (wlog *LoggerService) PublishServiceTD() {
 		return
 	}
 	deviceType := vocab.DeviceTypeService
-	thingID := td.CreatePublisherThingID(wlog.hubConfig.Zone, "hub", wlog.Config.ClientID, deviceType)
+	thingID := thing.CreatePublisherID(wlog.hubConfig.Zone, "hub", wlog.Config.ClientID, deviceType)
 	logrus.Infof("Publishing this service TD %s", thingID)
-	thingTD := td.CreateTD(thingID, PluginID, deviceType)
+	thingTD := thing.CreateTD(thingID, PluginID, deviceType)
 	// Include the logging folder as a property
-	prop := td.CreateProperty("Logging Folder", "Directory where to store the log files", vocab.PropertyTypeAttr)
-	td.SetPropertyDataTypeString(prop, 0, 0)
+	prop := thing.CreateProperty("Logging Folder", "Directory where to store the log files", vocab.PropertyTypeAttr)
+	thing.SetPropertyDataTypeString(prop, 0, 0)
 	//
-	td.AddTDProperty(thingTD, "logsFolder", prop)
+	thing.AddTDProperty(thingTD, "logsFolder", prop)
 	wlog.hubConnection.PublishTD(thingID, thingTD)
-	td.SetThingDescription(thingTD, "Simple Hub message logging", "This service logs hub messages to file")
+	thing.SetThingDescription(thingTD, "Simple Hub message logging", "This service logs hub messages to file")
 }
 
 // Start connects, subscribe and start the recording
