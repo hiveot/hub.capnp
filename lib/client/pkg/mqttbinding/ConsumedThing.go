@@ -39,14 +39,15 @@ func (cThing *MqttConsumedThing) GetThingDescription() *thing.ThingTD {
 }
 
 // Handle incoming events.
-// If the event name is that of a property then use the property data schema, otherwise look for
-// the data schema in the events map of the TD.
-// Store the resulting event data as ActionOutput
-// Invoke the subscriber to the event name, if any, or the default subscriber
+// If the event name is a property name then update the property value store using the property data schema,
+// otherwise use the data schema in the events section of the TD.
+// Last invoke the subscriber to the event name, if any, or the default subscriber
 //  address is the MQTT topic that the event is published on as: things/{id}/event/{eventName}
 //  whereas message is the body of the event.
 func (cThing *MqttConsumedThing) handleEvent(address string, message []byte) {
 	var evData InteractionOutput
+
+	logrus.Infof("MqttConsumedThing.handleEvent: received event on topic %s", address)
 
 	// the event topic is "things/id/event/name"
 	parts := strings.Split(address, "/")
@@ -56,17 +57,10 @@ func (cThing *MqttConsumedThing) handleEvent(address string, message []byte) {
 	}
 	eventName := parts[3]
 
-	//evData := InteractionOutput{}
-	//err := json.Unmarshal(message, &evData)
-	//if err != nil {
-	//	logrus.Warningf("MqttConsumedThing.handleEvent: Unable to unmarshal event on topic %s", address)
-	//	return
-	//}
-
 	// handle property events
 	propAffordance := cThing.td.GetProperty(eventName)
 	if propAffordance != nil {
-		evData = NewInteractionOutput(message, &propAffordance.DataSchema)
+		evData = NewInteractionOutputFromJson(message, &propAffordance.DataSchema)
 
 		logrus.Infof("MqttConsumedThing.handleEvent: Event with topic %s is a property event", address)
 		// TODO validate the data
@@ -74,11 +68,11 @@ func (cThing *MqttConsumedThing) handleEvent(address string, message []byte) {
 		// not a property event
 		eventAffordance := cThing.td.GetEvent(eventName)
 		if eventAffordance != nil {
-			evData = NewInteractionOutput(message, &eventAffordance.Data)
+			evData = NewInteractionOutputFromJson(message, &eventAffordance.Data)
 			logrus.Infof("MqttConsumedThing.handleEvent: Event with topic %s is not a property event", address)
 		} else {
 			// unknown schema
-			evData = NewInteractionOutput(message, nil)
+			evData = NewInteractionOutputFromJson(message, nil)
 		}
 	}
 	// property or event, it is stored in the valueStore
@@ -97,52 +91,20 @@ func (cThing *MqttConsumedThing) handleEvent(address string, message []byte) {
 // InvokeAction makes a request for invoking an Action and returns once the
 // request is submitted.
 //
-// WoST actions are used to update properties and control inputs indicated by @type.
-// The TD action schema describes the inputs and protocol to submit the action. This
-// is still work in progress.
-//
-// TD example:
-// {
-//   "actions": {
-//        "actionName": {
-//            // type of action with namespace, eg iot:switch or wost:configuration
-//            "@type": "iot:SwitchOnOff",
-//            // input parameters of the action
-//            "input": {
-//                "title": "Switch on or off value"
-//                "type": "boolean",
-//             },
-//          },
-//          // protocol binding for the actions
-//          "forms": [{
-//             // TBD. MQTT topic. How to parameterize in a generic schema?
-//             "mqtt": "things/${thingID}/action/${actionName}",
-//             "op": ["invokeaction"],
-//             "mqv:controlPacketValue": "PUBLISH",
-//             "contentType": "application/json"
-//           }],
-//        }
-//    }
-// }
-//
-// This will be posted as:
-// MQTT publish on topic "things/thingID/action/actionName"
-// data: { "input": true|false }
+// This will be posted on topic: "things/{thingID}/action/{actionName}" with data as payload
 //
 // Takes as arguments actionName, optionally action data as defined in the TD.
 // Returns nil if the action request was submitted successfully or an error if failed
 func (cThing *MqttConsumedThing) InvokeAction(actionName string, data interface{}) error {
-	topic := strings.ReplaceAll(TopicAction, "{id}", cThing.td.ID)
-	topic += "/" + actionName
-	message := data
-
-	return cThing.mqttClient.PublishObject(topic, message)
+	topic := strings.ReplaceAll(TopicAction, "{id}", cThing.td.ID) + "/" + actionName
+	return cThing.mqttClient.PublishObject(topic, data)
 }
 
 // ObserveProperty makes a request for Property value change notifications.
 // Takes as arguments propertyName, listener.
 func (cThing *MqttConsumedThing) ObserveProperty(
 	name string, handler func(name string, data InteractionOutput)) error {
+
 	var err error = nil
 	sub := Subscription{
 		SubType: SubscriptionTypeProperty,
@@ -153,7 +115,7 @@ func (cThing *MqttConsumedThing) ObserveProperty(
 	return err
 }
 
-// ReadProperty reads a Property value
+// ReadProperty reads a Property value from the local cache
 // Returns the last known property value as a string or an error if
 // the name is not a known property.
 func (cThing *MqttConsumedThing) ReadProperty(name string) (InteractionOutput, error) {
@@ -219,37 +181,37 @@ func (cThing *MqttConsumedThing) SubscribeEvent(
 // This does not update the property immediately. It is up to the exposedThing to perform necessary validation
 // and notify subscribers with an event after the change has been applied.
 //
-// This will be posted as topic "things/thingID/property"
-// { "propertyName": true|false }
+// There is no error feedback in case the request cannot be handled. The requester will only receive a
+// property change event when the request has completed successfully. Failure to complete the request can be caused
+// by an invalid value or if the IoT device is not in a state to accept changes.
+//
+// TBD: if there is a need to be notified of failure then a future update can add a write-property failed event.
+//
+// This will be published on topic "things/{thingID}/property/{name}"
 //
 // It returns an error if the property update could not be sent and nil if it is successfully
 //  published. Final confirmation is obtained if an event is received with the updated property value.
-func (cThing *MqttConsumedThing) WriteProperty(name string, value interface{}) error {
-	messageObject := map[string]interface{}{name: value}
-
-	topic := strings.ReplaceAll(TopicThingProperty, "{id}", cThing.td.ID)
-	err := cThing.mqttClient.PublishObject(topic, messageObject)
+func (cThing *MqttConsumedThing) WriteProperty(propName string, value interface{}) error {
+	topic := strings.ReplaceAll(TopicThingProperty, "{id}", cThing.td.ID) + "/" + propName
+	err := cThing.mqttClient.PublishObject(topic, value)
+	if err != nil {
+		logrus.Errorf("MqttConsumedThing:WriteProperty: Failed publishing update request on topic %s: %s", topic, err)
+	}
 	return err
 }
 
-// WriteMultipleProperties writes multiple property values with one request.
+// WriteMultipleProperties writes multiple property values.
 // Takes as arguments properties - as a map keys being Property names and values as Property values.
 //
-// This will be posted as:
-// MQTT publish on topic "things/thingID/property"
-// {
-//     "propertyName1": value1,
-//     "propertyName2": value2,
-//     ...
-// }
+// This will be posted as individual update requests:
 //
 // It returns an error if the action could not be sent and nil if the action is successfully
 //  published. Final success is achieved if the property value will be updated through an event.
-func (cThing *MqttConsumedThing) WriteMultipleProperties(
-	properties map[string]interface{}) error {
-
-	topic := strings.ReplaceAll(TopicThingProperty, "{id}", cThing.td.ID)
-	err := cThing.mqttClient.PublishObject(topic, properties)
+func (cThing *MqttConsumedThing) WriteMultipleProperties(properties map[string]interface{}) error {
+	var err error
+	for propName, value := range properties {
+		err = cThing.WriteProperty(propName, value)
+	}
 	return err
 }
 

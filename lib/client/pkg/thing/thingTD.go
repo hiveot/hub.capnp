@@ -82,6 +82,15 @@ type ThingTD struct {
 // Most popular; https://github.com/xeipuuv/gojsonschema
 // Other:  https://github.com/piprate/json-gold
 
+// GetAction returns the schema and value for the action or nil if name is not an action
+func (tdoc *ThingTD) GetAction(name string) *ActionAffordance {
+	actionAffordance, found := tdoc.Actions[name]
+	if !found {
+		return nil
+	}
+	return actionAffordance
+}
+
 // GetEvent returns the schema for the event or nil if the event doesn't exist
 func (tdoc *ThingTD) GetEvent(name string) *EventAffordance {
 	eventAffordance, found := tdoc.Events[name]
@@ -106,6 +115,7 @@ func (tdoc *ThingTD) GetID() string {
 }
 
 // UpdateAction adds a new or replaces an existing action affordance (schema) of name. Intended for creating TDs
+// Use UpdateProperty if name is a property name.
 func (tdoc *ThingTD) UpdateAction(name string, affordance *ActionAffordance) {
 	tdoc.Actions[name] = affordance
 }

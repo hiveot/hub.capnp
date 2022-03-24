@@ -1,6 +1,7 @@
 package mqttbinding_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -28,7 +29,7 @@ var mqttCertAddress = fmt.Sprintf("%s:%d", testenv.ServerAddress, testenv.MqttPo
 
 // For running mosquitto in test
 const testPluginID = "test-plugin"
-
+const testActionName = "action1"
 const testDeviceID = "device1"
 const testDeviceType = vocab.DeviceTypeButton
 const testProp1Name = "prop1"
@@ -51,6 +52,13 @@ func createTestTD() *thing.ThingTD {
 	}
 	tdDoc.UpdateProperty(testProp1Name, prop)
 
+	// add action to TD
+	tdDoc.UpdateAction(testActionName, &thing.ActionAffordance{
+		//Input: StringSchema{},
+		Safe:       true,
+		Idempotent: true,
+	})
+
 	return tdDoc
 }
 
@@ -60,7 +68,7 @@ func TestMain(m *testing.M) {
 	homeFolder = path.Join(cwd, "../../test")
 	configFolder = path.Join(homeFolder, "config")
 	certFolder := path.Join(homeFolder, "certs")
-	os.Chdir(homeFolder)
+	_ = os.Chdir(homeFolder)
 
 	testenv.SetLogging("info", "")
 	certs = testenv.CreateCertBundle()
@@ -93,6 +101,8 @@ func TestStartStop(t *testing.T) {
 
 func TestReadProperty(t *testing.T) {
 	logrus.Infof("--- TestReadProperty ---")
+	var observedProperty = false
+
 	// step 1 create the MQTT message bus client
 	client := mqttclient.NewMqttClient(testPluginID, certs.CaCert, 0)
 	err := client.ConnectWithClientCert(mqttCertAddress, certs.PluginCert)
@@ -100,6 +110,11 @@ func TestReadProperty(t *testing.T) {
 
 	// step 2 create a ConsumedThing
 	cThing := mqttbinding.Consume(testTD, client)
+	err = cThing.ObserveProperty(testProp1Name, func(name string, data mqttbinding.InteractionOutput) {
+		assert.Equal(t, testProp1Name, name)
+		observedProperty = true
+	})
+	assert.NoError(t, err)
 
 	// step 3 publish the property value (impersonate an ExposedThing)
 	topic := strings.ReplaceAll(mqttbinding.TopicThingEvent, "{id}", testThingID) + "/" + testProp1Name
@@ -111,6 +126,14 @@ func TestReadProperty(t *testing.T) {
 	val1, err := cThing.ReadProperty(testProp1Name)
 	assert.NoError(t, err)
 	assert.NotNil(t, val1)
+	assert.True(t, observedProperty)
+
+	propNames := []string{testProp1Name}
+	propInfo := cThing.ReadMultipleProperties(propNames)
+	assert.Len(t, propInfo, 1)
+
+	propInfo = cThing.ReadAllProperties()
+	assert.Len(t, propInfo, 1)
 
 	// step 5 cleanup
 	cThing.Stop()
@@ -130,11 +153,12 @@ func TestReceiveEvent(t *testing.T) {
 
 	// step 2 create a ConsumedThing and subscribe to event
 	cThing := mqttbinding.Consume(testTD, client)
-	cThing.SubscribeEvent(eventName, func(ev string, data mqttbinding.InteractionOutput) {
+	err = cThing.SubscribeEvent(eventName, func(ev string, data mqttbinding.InteractionOutput) {
 		receivedEvent = eventName == ev
 		receivedText := data.ValueAsString()
 		assert.Equal(t, eventValue, receivedText)
 	})
+	assert.NoError(t, err)
 
 	// step 3 publish the event (impersonate an ExposedThing)
 	topic := strings.ReplaceAll(mqttbinding.TopicThingEvent, "{id}", testThingID) + "/" + eventName
@@ -144,6 +168,69 @@ func TestReceiveEvent(t *testing.T) {
 
 	// step 4 check result
 	assert.True(t, receivedEvent)
+
+	// step 5 cleanup
+	cThing.Stop()
+	client.Close()
+}
+
+func TestInvokeAction(t *testing.T) {
+	logrus.Infof("--- TestInvokeAction ---")
+	const actionValue = "1 2 3 action!"
+	var receivedAction = false
+
+	// step 1 create the MQTT message bus client
+	client := mqttclient.NewMqttClient(testPluginID, certs.CaCert, 0)
+	err := client.ConnectWithClientCert(mqttCertAddress, certs.PluginCert)
+	assert.NoError(t, err)
+
+	// step 2 create a ConsumedThing and listen for actions on the mqtt bus
+	cThing := mqttbinding.Consume(testTD, client)
+	actionTopic := strings.ReplaceAll(mqttbinding.TopicAction, "{id}", testThingID) + "/#"
+	client.Subscribe(actionTopic, func(address string, message []byte) {
+		receivedAction = true
+		var rxData string
+		err = json.Unmarshal(message, &rxData)
+		assert.Equal(t, actionValue, rxData)
+	})
+
+	// step 3 publish the action
+	err = cThing.InvokeAction(testActionName, actionValue)
+	assert.NoError(t, err)
+	time.Sleep(time.Second)
+
+	// step 4 check result
+	assert.True(t, receivedAction)
+
+	// step 5 cleanup
+	cThing.Stop()
+	client.Unsubscribe(actionTopic)
+	client.Close()
+}
+
+func TestWriteProperty(t *testing.T) {
+	const testNewPropValue1 = "new value 1"
+	const testNewPropValue2 = "new value 2"
+	logrus.Infof("--- TestWriteProperty ---")
+
+	// step 1 create the MQTT message bus client
+	client := mqttclient.NewMqttClient(testPluginID, certs.CaCert, 0)
+	err := client.ConnectWithClientCert(mqttCertAddress, certs.PluginCert)
+	assert.NoError(t, err)
+
+	// step 2 create a ConsumedThing
+	cThing := mqttbinding.Consume(testTD, client)
+
+	// step 3 submit the write request
+	err = cThing.WriteProperty(testProp1Name, testNewPropValue1)
+	assert.NoError(t, err)
+	time.Sleep(time.Second)
+
+	newProps := make(map[string]interface{})
+	newProps[testProp1Name] = testNewPropValue2
+	err = cThing.WriteMultipleProperties(newProps)
+	assert.NoError(t, err)
+	time.Sleep(time.Second)
 
 	// step 5 cleanup
 	cThing.Stop()
