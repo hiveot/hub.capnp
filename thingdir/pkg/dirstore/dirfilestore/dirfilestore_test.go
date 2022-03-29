@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/wostzone/hub/lib/client/pkg/td"
+	"github.com/wostzone/hub/lib/client/pkg/thing"
 	"github.com/wostzone/hub/lib/client/pkg/vocab"
 	"github.com/wostzone/hub/thingdir/pkg/dirstore"
 	"github.com/wostzone/hub/thingdir/pkg/dirstore/dirfilestore"
@@ -20,32 +20,25 @@ import (
 const (
 	Thing1ID        = "thing1"
 	Thing2ID        = "thing2"
-	PropNameTitle   = "title"
 	PropTitle1Value = "title1"
-	PropNameVersion = "version"
 )
 
 // AddTDs adds two TDs with two properties each: Title and version
 func addTDs(store *dirfilestore.DirFileStore) {
 	id1 := Thing1ID
 	td1 := thing.CreateTD(id1, "test TD", vocab.DeviceTypeSensor)
+	prop1 := td1.AddProperty(PropTitle1Value, PropTitle1Value, vocab.WoTDataTypeString)
 
-	prop1 := thing.CreateProperty(PropNameTitle, "Property title", vocab.PropertyTypeAttr)
-	thing.SetPropertyValue(prop1, PropTitle1Value)
-	thing.AddTDProperty(td1, PropNameTitle, prop1)
-
-	prop2 := thing.CreateProperty(PropNameVersion, "Thing version", vocab.PropertyTypeAttr)
-	thing.SetPropertyValue(prop2, "version1")
-	thing.AddTDProperty(td1, PropNameVersion, prop2)
+	prop2 := td1.AddProperty(vocab.PropNameSoftwareVersion, "Thing version", vocab.WoTDataTypeString)
 
 	id2 := Thing2ID
 	td2 := thing.CreateTD(id2, "test TD", vocab.DeviceTypeSensor)
-	thing.AddTDProperty(td2, PropNameTitle, prop1)
-	thing.AddTDProperty(td2, PropNameVersion, prop2)
+	td2.UpdateProperty(PropTitle1Value, prop1)
+	td2.UpdateProperty(vocab.PropNameSoftwareVersion, prop2)
 
-	tdd := map[string]interface{}(td1)
+	tdd := td1.AsMap()
 	_ = store.Replace(id1, tdd)
-	tdd = map[string]interface{}(td2)
+	tdd = td2.AsMap()
 	_ = store.Replace(id2, tdd)
 
 }
@@ -123,8 +116,8 @@ func TestQuery(t *testing.T) {
 		assert.NoError(t, err)
 		assert.NotEmpty(t, res)
 
-		// regular nested filter comparison
-		res, err = fileStore.Query(`$[?(@.properties.title.value=="title1")]`, 0, 0, nil)
+		// regular nested filter comparison. note that a TD does not hold values
+		res, err = fileStore.Query(`$[?(@.properties.title1.title=="title1")]`, 0, 0, nil)
 		assert.NoError(t, err)
 		assert.NotEmpty(t, res)
 
@@ -132,7 +125,7 @@ func TestQuery(t *testing.T) {
 		//res, err = fileStore.Query(`$[?(@.properties.title.value=="title1")]`, 0, 0)
 		// res, err = fileStore.Query(`$[?(@.*.title.value=="title1")]`, 0, 0)
 		// res, err = fileStore.Query(`$[?(@['properties']['title']['value']=="title1")]`, 0, 0)
-		res, err = fileStore.Query(`$[?(@..title.value=="title1")]`, 0, 0, nil)
+		res, err = fileStore.Query(`$[?(@..title1.title=="title1")]`, 0, 0, nil)
 
 		// these only return the properties - not good
 		// res, err = fileStore.Query(`$.*.properties[?(@.value=="title1")]`, 0, 0) // returns list of props, not tds
@@ -164,6 +157,8 @@ func TestQuery(t *testing.T) {
 
 func TestQueryBracketNotationA(t *testing.T) {
 	store := make(map[string]interface{})
+	query1 := `$[?(@['type']=="type1")]`
+	query2 := `$[?(@['@type']=="sensor")]`
 
 	jsondoc := `{
 		"thing1": {
@@ -183,8 +178,6 @@ func TestQueryBracketNotationA(t *testing.T) {
 			}
 		}
 	}`
-	query1 := `$[?(@['type']=="type1")]`
-	query2 := `$[?(@['@type']=="sensor")]`
 
 	err := json.Unmarshal([]byte(jsondoc), &store)
 	assert.NoError(t, err)
@@ -201,38 +194,32 @@ func TestQueryBracketNotationA(t *testing.T) {
 }
 
 func TestQueryBracketNotationB(t *testing.T) {
+	//store := make(map[string]interface{})
 	queryString := "$[?(@['@type']==\"sensor\")]"
 	id1 := "thing1"
 	td1 := thing.CreateTD(id1, "test TD", vocab.DeviceTypeSensor)
-	titleProp := thing.CreateProperty("Title", "Sensor title", vocab.PropertyTypeAttr)
-	thing.AddTDProperty(td1, "title", titleProp)
-	valueProp := thing.CreateProperty("value", "Sensor value", vocab.PropertyTypeOutput)
-	thing.AddTDProperty(td1, "title", valueProp)
+	td1.AddProperty(vocab.PropNameTitle, "Sensor title", vocab.WoTDataTypeString)
+	td1.AddProperty(vocab.PropNameValue, "Sensor value", vocab.WoTDataTypeNumber)
 
 	id2 := "thing2"
-	td2 := make(map[string]interface{})
-	td2["id"] = "thing2"
-	td2["type"] = "type2"
-	td2[vocab.WoTAtType] = "sensor"
-	td2["actions"] = make(map[string]interface{})
-	td2["properties"] = make(map[string]interface{})
-	thing.AddTDProperty(td2, "title", "The switch")
+	td2 := thing.CreateTD(id2, "test TD 2", vocab.DeviceTypeSensor)
+	td2.AddProperty("title", "The switch", vocab.WoTDataTypeBool)
 
 	fileStore := makeFileStore()
 	_ = fileStore.Open()
 
 	// replace will add if it doesn't exist
-	_ = fileStore.Replace(id1, td1)
-	_ = fileStore.Replace(id2, td2)
+	_ = fileStore.Replace(id1, td1.AsMap())
+	_ = fileStore.Replace(id2, td2.AsMap())
 
 	// query returns 2 sensors. not sure about the sort order
 	res, err := fileStore.Query(queryString, 0, 2, nil)
 	assert.NoError(t, err)
-	assert.Equal(t, 2, len(res))
-	// item1 := res[0].(map[string]interface{})
-	// item1ID := item1["id"]
-	// assert.(t, id1, item1ID)
-	// assert.Equal(t, res[0], td1)
+	require.Equal(t, 2, len(res))
+
+	readTD1 := res[0].(map[string]interface{})
+	read1ID := readTD1["id"]
+	assert.Equal(t, id1, read1ID)
 
 	fileStore.Close()
 
@@ -242,26 +229,29 @@ func TestQueryValueProp(t *testing.T) {
 	queryString := "$[?(@.properties..title=='The switch')]"
 	id1 := "thing1"
 	td1 := thing.CreateTD(id1, "test TD", vocab.DeviceTypeSensor)
-	titleProp := thing.CreateProperty("Title", "Device title", vocab.PropertyTypeAttr)
-	thing.AddTDProperty(td1, "title", titleProp)
-	valueProp := thing.CreateProperty("value", "Sensor value", vocab.PropertyTypeOutput)
-	thing.AddTDProperty(td1, string(vocab.PropertyTypeOutput), valueProp)
+	td1.AddProperty(vocab.PropNameTitle, "Device title", vocab.WoTDataTypeNumber)
+	td1.AddProperty(vocab.PropNameValue, "Sensor value", vocab.WoTDataTypeString)
 
-	id2 := "thing2"
-	td2 := make(map[string]interface{})
-	td2["id"] = "thing2"
-	td2["type"] = "type2"
-	td2[vocab.WoTAtType] = "sensor"
-	td2["actions"] = make(map[string]interface{})
-	td2["properties"] = make(map[string]interface{})
-	thing.AddTDProperty(td2, "title", "The switch")
+	td2Json := `{
+		"id": "thing2",
+		"type": "type2",
+		"@type": "sensor", 
+		"properties": { 
+		  "title": {  
+		   "title": "The switch" 
+		   	} 
+		  }
+		}`
+	var td2 map[string]interface{}
+	err := json.Unmarshal([]byte(td2Json), &td2)
+	assert.NoError(t, err)
 
 	fileStore := makeFileStore()
 	_ = fileStore.Open()
 
 	// dirstore.DirStoreCrud(t, fileStore)
-	_ = fileStore.Replace(id1, td1)
-	_ = fileStore.Replace(id2, td2)
+	_ = fileStore.Replace(id1, td1.AsMap())
+	_ = fileStore.Replace("thing2", td2)
 
 	res, err := fileStore.Query(queryString, 0, 2, nil)
 	require.NoError(t, err)
@@ -298,28 +288,35 @@ func TestQueryAclFilter(t *testing.T) {
 func TestPatch(t *testing.T) {
 	fileStore := makeFileStore()
 	_ = fileStore.Open()
+	// step 1: create TDs
 	addTDs(fileStore)
 
+	// step 2: create an updated TD with a property named title2 with 'description2' as title
 	id2 := "thing2"
 	td2 := thing.CreateTD(id2, "test TD", vocab.DeviceTypeSensor)
-	prop2 := thing.CreateProperty("title2", "description2", vocab.PropertyTypeAttr)
-	thing.SetPropertyValue(prop2, "value2")
-	thing.AddTDProperty(td2, "title2", prop2)
-	_ = fileStore.Patch(id2, td2)
+	td2.AddProperty("title2", "description2", vocab.WoTDataTypeString)
 
+	// step 3: patch should merge existing properties and add the 'title2' property
+	_ = fileStore.Patch(id2, td2.AsMap())
+
+	// step 4: get the resulting TD
 	td2b, err := fileStore.Get(id2)
 	assert.NoError(t, err)
 	thing2 := td2b.(map[string]interface{})
 
-	val, found := thing.GetPropertyValue(thing2, PropNameTitle)
-	assert.True(t, found, "Expected propery title1 to still exist")
-	assert.Equal(t, PropTitle1Value, val)
+	// step 5: get the combined properties
+	props, found := thing2["properties"].(map[string]interface{})
+	t1, found := props[PropTitle1Value]
+	assert.True(t, found, "Expected both title 1 and title 2 to still exist")
+	assert.NotNil(t, t1)
 
-	val, found = thing.GetPropertyValue(thing2, "title2")
-	assert.True(t, found, "Expected propery title2 to exist")
-	// thing2b := td2b.(td.ThingTD)
-	// val := thing2b["title2"]
-	assert.Equal(t, "value2", val)
+	t2, found := props["title2"]
+	assert.True(t, found, "Expected both title 1 and title 2 to still exist")
+	assert.NotNil(t, t2)
+
+	//val, found = thing.GetPropertyValue(thing2, "title2")
+	//assert.True(t, found, "Expected propery title2 to exist")
+	//assert.Equal(t, "value2", val)
 	fileStore.Close()
 }
 

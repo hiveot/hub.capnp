@@ -33,17 +33,19 @@ func CreateThingID(zone string, deviceID string, deviceType vocab.DeviceType) st
 	return thingID
 }
 
-// SplitThingID takes a ThingID and breaks it down into individual parts. Supported formats:
-//  A thingID without anything specific: URN:deviceID
+// SplitThingID takes a ThingID and breaks it down into individual parts.
+// Supported formats:
+//  A full thingID with zone and publisher: URN:zone:publisherID:deviceID:deviceType.
+//  A thingID without publisher: URN:zone:deviceID:deviceType
 //  A thingID without zone: URN:deviceID:deviceType
-//  A thingID without publisher: URN:zone:deviceID:deviceType.
-//  A thingID with publisher: URN:zone:publisherID:deviceID:deviceType.
+//  A thingID without anything specific: URN:deviceID
 func SplitThingID(thingID string) (
 	zone string, publisherID string, deviceID string, deviceType vocab.DeviceType) {
 	parts := strings.Split(thingID, ":")
 	if len(parts) < 2 || strings.ToLower(parts[0]) != "urn" {
-		// not a conventional thing ID
-		return "", "", "", ""
+		// not a valid thing ID.
+		// Handle graceful by using the whole ID as deviceID
+		return "", "", parts[0], ""
 	} else if len(parts) == 5 {
 		// this is a full thingID  zone:publisher:deviceID:deviceType
 		zone = parts[1]

@@ -3,10 +3,11 @@ package thingdirpb
 import (
 	"fmt"
 	"github.com/wostzone/hub/lib/client/pkg/certsclient"
+	"github.com/wostzone/hub/lib/client/pkg/mqttbinding"
 	"path"
+	"strings"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/authn/pkg/unpwstore"
 	"github.com/wostzone/hub/authz/pkg/aclstore"
 	"github.com/wostzone/hub/authz/pkg/authorize"
 	"github.com/wostzone/hub/lib/client/pkg/config"
@@ -51,15 +52,13 @@ type ThingDirPBConfig struct {
 
 // ThingDirPB Directory Protocol Binding for the WoST Hub
 type ThingDirPB struct {
-	config    ThingDirPBConfig
-	hubConfig config.HubConfig
-	dirServer *dirserver.DirectoryServer
-	dirClient *dirclient.DirClient
-	hubClient *mqttclient.MqttHubClient
-	//authenticator authenticate.VerifyUsernamePassword
+	config     ThingDirPBConfig
+	hubConfig  config.HubConfig
+	dirServer  *dirserver.DirectoryServer
+	dirClient  *dirclient.DirClient
+	mqttClient *mqttclient.MqttClient
 	authorizer authorize.VerifyAuthorization
 	aclStore   *aclstore.AclFileStore
-	unpwStore  *unpwstore.PasswordFileStore
 }
 
 // Start the ThingDir service.
@@ -83,10 +82,10 @@ func (pb *ThingDirPB) Start() error {
 		//if pb.config.EnableLogin {
 		//	loginAuth = pb.authenticator
 		//}
-		err = pb.unpwStore.Open()
-		if err != nil {
-			return err
-		}
+		//err = pb.unpwStore.Open()
+		//if err != nil {
+		//	return err
+		//}
 		err = pb.aclStore.Open()
 		if err != nil {
 			return err
@@ -117,11 +116,12 @@ func (pb *ThingDirPB) Start() error {
 
 	// last, start listening to TD updates on the message bus; use the same client certificate
 	mqttHostPort := fmt.Sprintf("%s:%d", pb.hubConfig.Address, pb.hubConfig.MqttPortCert)
-	err = pb.hubClient.ConnectWithClientCert(mqttHostPort, pb.hubConfig.PluginCert)
+	err = pb.mqttClient.ConnectWithClientCert(mqttHostPort, pb.hubConfig.PluginCert)
 	if err != nil {
 		return err
 	}
-	pb.hubClient.SubscribeToTD("", pb.handleTDUpdate)
+	topic := strings.ReplaceAll(mqttbinding.TopicThingTD, "{thingID}", "+")
+	pb.mqttClient.Subscribe(topic, pb.handleTDUpdate)
 
 	return err
 }
@@ -129,8 +129,8 @@ func (pb *ThingDirPB) Start() error {
 // Stop the ThingDir service
 func (pb *ThingDirPB) Stop() {
 	logrus.Infof("ThingDirPB.Stop")
-	if pb.hubClient != nil {
-		pb.hubClient.Close()
+	if pb.mqttClient != nil {
+		pb.mqttClient.Close()
 	}
 	if pb.dirClient != nil {
 		pb.dirClient.Close()
@@ -138,7 +138,7 @@ func (pb *ThingDirPB) Stop() {
 	if pb.dirServer != nil {
 		pb.dirServer.Stop()
 	}
-	pb.unpwStore.Close()
+	//pb.unpwStore.Close()
 	pb.aclStore.Close()
 
 }
@@ -206,16 +206,11 @@ func NewThingDirPB(thingdirconf *ThingDirPBConfig, hubConfig *config.HubConfig) 
 	aclFile := path.Join(hubConfig.ConfigFolder, aclstore.DefaultAclFile)
 	aclStore := aclstore.NewAclFileStore(aclFile, "ThingDirPB")
 
-	unpwFile := path.Join(hubConfig.ConfigFolder, unpwstore.DefaultPasswordFile)
-	unpwStore := unpwstore.NewPasswordFileStore(unpwFile, "ThingDirPB")
-
 	tdir := ThingDirPB{
-		config:    *thingdirconf,
-		hubConfig: *hubConfig,
-		hubClient: mqttclient.NewMqttHubClient(PluginID, hubConfig.CaCert),
-		aclStore:  aclStore,
-		//authenticator: authenticate.NewAuthenticator(unpwStore).VerifyUsernamePassword,
-		unpwStore:  unpwStore,
+		config:     *thingdirconf,
+		hubConfig:  *hubConfig,
+		mqttClient: mqttclient.NewMqttClient(PluginID, hubConfig.CaCert, 0),
+		aclStore:   aclStore,
 		authorizer: authorize.NewAuthorizer(aclStore).VerifyAuthorization,
 	}
 	return &tdir

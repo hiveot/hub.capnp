@@ -3,20 +3,19 @@ package internal_test
 import (
 	"fmt"
 	"github.com/wostzone/hub/authn/pkg/jwtissuer"
+	"github.com/wostzone/hub/lib/client/pkg/mqttbinding"
 	"os"
 	"path"
 	"testing"
 	"time"
 
-	"github.com/alexedwards/argon2id"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/wostzone/hub/authn/pkg/unpwstore"
 	"github.com/wostzone/hub/lib/client/pkg/config"
 	"github.com/wostzone/hub/lib/client/pkg/mqttclient"
-	"github.com/wostzone/hub/lib/client/pkg/td"
 	"github.com/wostzone/hub/lib/client/pkg/testenv"
+	"github.com/wostzone/hub/lib/client/pkg/thing"
 	"github.com/wostzone/hub/lib/client/pkg/vocab"
 	"github.com/wostzone/hub/mosquittomgr/internal"
 )
@@ -88,63 +87,21 @@ func TestPluginConnect(t *testing.T) {
 	assert.NoError(t, err)
 
 	// a plugin must be able to connect using a client certificate
-	client := mqttclient.NewMqttHubClient(pluginID, hubConfig.CaCert)
+	client := mqttclient.NewMqttClient(pluginID, hubConfig.CaCert, 0)
 	hostPort := fmt.Sprintf("%s:%d", hubConfig.Address, hubConfig.MqttPortCert)
 	err = client.ConnectWithClientCert(hostPort, hubConfig.PluginCert)
 	if assert.NoError(t, err) {
-		// publish should succeed
+
 		tdoc := thing.CreateTD(thing1ID, "test thing", vocab.DeviceTypeService)
-		err = client.PublishTD(thing1ID, tdoc)
+		eThing := mqttbinding.CreateExposedThing(tdoc, client)
+		// publish should succeed
+		err = eThing.Expose()
 		assert.NoError(t, err)
 		time.Sleep(time.Second)
 		client.Close()
 	}
 	// capture mosquitto printfs?
 	time.Sleep(time.Second * 3)
-	svc.Stop()
-}
-
-func TestPasswdWithMosqManager(t *testing.T) {
-	logrus.Infof("--- TestPasswdWithMosqManager ---")
-	var err error
-	username := "user2"
-	password1 := "user2"
-
-	pfs := unpwstore.NewPasswordFileStore(unpwFilePath, "TestPasswdWithMosqManager")
-	err = pfs.Open()
-	assert.NoError(t, err)
-	// for logging timestamps
-	time.Sleep(time.Millisecond * 100)
-
-	pwhash, err := argon2id.CreateHash(password1, argon2id.DefaultParams)
-	// pwhash, err := authen.CreatePasswordHash(password1, authen.PWHASH_ARGON2id, 0)
-	assert.NoError(t, err)
-	logrus.Infof("--- TestPasswdWithMosqManager: Setting password for %s", username)
-	err = pfs.SetPasswordHash(username, pwhash)
-	assert.NoError(t, err)
-
-	// for logging timestamps - dont mix setting passwd with starting mosq mgr
-	time.Sleep(time.Millisecond * 1000)
-
-	logrus.Infof("--- TestPasswdWithMosqManager: Creating MosquittoManager")
-	svc := internal.NewMosquittoManager()
-	err = svc.Start(hubConfig)
-	assert.NoError(t, err)
-	// for logging timestamps
-	time.Sleep(time.Millisecond * 100)
-
-	// a consumer must be able to subscribe using a valid password
-	hostPort := fmt.Sprintf("%s:%d", hubConfig.Address, hubConfig.MqttPortUnpw)
-	// caCertFile := path.Join(hubConfig.CertsFolder, certsetup.CaCertFile)
-	client := mqttclient.NewMqttHubClient("clientID", hubConfig.CaCert)
-
-	err = client.ConnectWithPassword(hostPort, username, password1)
-	assert.NoError(t, err)
-	client.Close()
-
-	time.Sleep(time.Second)
-	// close twice should not fail
-	client.Close()
 	svc.Stop()
 }
 
@@ -161,11 +118,11 @@ func TestJWTWithMosqManager(t *testing.T) {
 	time.Sleep(time.Millisecond * 100)
 
 	hostPort := fmt.Sprintf("%s:%d", hubConfig.Address, hubConfig.MqttPortUnpw)
-	client := mqttclient.NewMqttHubClient("clientID", hubConfig.CaCert)
+	client := mqttclient.NewMqttClient("clientID", hubConfig.CaCert, 0)
 
-	issuer := jwtissuer.NewJWTIssuer("test", testCerts.ServerKey, nil)
+	issuer := jwtissuer.NewJWTIssuer("test", testCerts.ServerKey, 10, 10, nil)
 	accessToken, _, _ := issuer.CreateJWTTokens(username)
-	err = client.ConnectWithPassword(hostPort, username, accessToken)
+	err = client.ConnectWithAccessToken(hostPort, username, accessToken)
 	assert.NoError(t, err)
 	client.Close()
 
@@ -187,8 +144,8 @@ func TestBadPasswd(t *testing.T) {
 	// a consumer must not be able to subscribe using a invalid password
 	hostPort := fmt.Sprintf("%s:%d", hubConfig.Address, hubConfig.MqttPortUnpw)
 	// caCertFile := path.Join(hubConfig.CertsFolder, certsetup.CaCertFile)
-	client := mqttclient.NewMqttHubClient("clientID", hubConfig.CaCert)
-	err = client.ConnectWithPassword(hostPort, username, password1)
+	client := mqttclient.NewMqttClient("clientID", hubConfig.CaCert, 0)
+	err = client.ConnectWithAccessToken(hostPort, username, password1)
 	require.Error(t, err)
 	client.Close() // should not panic
 

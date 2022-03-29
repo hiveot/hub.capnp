@@ -3,13 +3,13 @@ package dirserver
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/wostzone/hub/authz/pkg/authorize"
 	"github.com/wostzone/hub/lib/client/pkg/certsclient"
 	"io/ioutil"
 	"net/http"
 	"strings"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/lib/client/pkg/td"
 )
 
 // AclReadFilter determines read access to a thing TD. Intended for querying things.
@@ -53,7 +53,7 @@ func (srv *DirectoryServer) ServeThingByID(userID string, response http.Response
 func (srv *DirectoryServer) ServeGetTD(userID, certOU, thingID string, response http.ResponseWriter) {
 
 	if srv.authorizer != nil &&
-		!srv.authorizer(userID, certOU, thingID, false, thing.MessageTypeTD) {
+		!srv.authorizer(userID, certOU, thingID, authorize.AuthPubTD) {
 		srv.tlsServer.WriteUnauthorized(response, "ServeGetTD: permission denied")
 		return
 	}
@@ -75,7 +75,7 @@ func (srv *DirectoryServer) ServeGetTD(userID, certOU, thingID string, response 
 
 // ServeDeleteTD deletes the requested TD
 func (srv *DirectoryServer) ServeDeleteTD(userID, certOU, thingID string, response http.ResponseWriter) {
-	if srv.authorizer != nil && !srv.authorizer(userID, certOU, thingID, true, thing.MessageTypeTD) {
+	if srv.authorizer != nil && !srv.authorizer(userID, certOU, thingID, authorize.AuthPubTD) {
 		srv.tlsServer.WriteUnauthorized(response, "ServeDeleteTD: permission denied")
 		return
 	}
@@ -87,7 +87,7 @@ func (srv *DirectoryServer) ServeDeleteTD(userID, certOU, thingID string, respon
 // ServePatchTD update only the provided parts of a thing's TD
 func (srv *DirectoryServer) ServePatchTD(userID, certOU, thingID string, response http.ResponseWriter, request *http.Request) {
 
-	if srv.authorizer != nil && !srv.authorizer(userID, certOU, thingID, true, thing.MessageTypeTD) {
+	if srv.authorizer != nil && !srv.authorizer(userID, certOU, thingID, authorize.AuthPubTD) {
 		srv.tlsServer.WriteUnauthorized(response, "ServePatchTD: permission denied")
 		return
 	}
@@ -109,7 +109,7 @@ func (srv *DirectoryServer) ServePatchTD(userID, certOU, thingID string, respons
 
 // ServeReplaceTD Creates or replace a TD
 func (srv *DirectoryServer) ServeReplaceTD(userID, certOU, thingID string, response http.ResponseWriter, request *http.Request) {
-	if srv.authorizer != nil && !srv.authorizer(userID, certOU, thingID, true, thing.MessageTypeTD) {
+	if srv.authorizer != nil && !srv.authorizer(userID, certOU, thingID, authorize.AuthPubTD) {
 		srv.tlsServer.WriteUnauthorized(response, "ServeReplaceTD: permission denied")
 		return
 	}

@@ -1,65 +1,34 @@
 {
     "thing1": {
-      "@context": "http://www.w3.org/ns/td",
+      "@context": [
+        "http://www.w3.org/ns/thing"
+      ],
       "@type": "beacon",
-      "actions": {},
-      "created": "2022-03-05T22:21:42.558-0800",
-      "events": {},
+      "created": "2022-03-28T22:38:49.782-0700",
       "id": "thing1",
-      "properties": {
-        "name": {
-          "@type": "wost:attr",
-          "title": "a beacon"
-        }
-      },
-      "security": "NoSecurityScheme",
-      "title": "test thing"
-    },
-    "thing2": {
-      "@context": "http://www.w3.org/ns/td",
-      "@type": "sensor",
-      "actions": {},
-      "created": "2022-03-05T22:21:42.565-0800",
-      "events": {},
-      "id": "thing2",
-      "properties": {
-        "name": {
-          "@type": "wost:attr",
-          "title": "hallway sensor"
-        }
-      },
+      "modified": "2022-03-28T22:38:49.782-0700",
       "security": "NoSecurityScheme",
       "title": "test thing"
     },
     "thing3": {
-      "@context": "http://www.w3.org/ns/td",
+      "@context": [
+        "http://www.w3.org/ns/thing"
+      ],
       "@type": "sensor",
-      "actions": {},
-      "created": "2022-03-05T22:21:42.565-0800",
-      "events": {},
+      "created": "2022-03-28T22:38:49.782-0700",
       "id": "thing3",
-      "properties": {
-        "name": {
-          "@type": "wost:attr",
-          "title": "garage sensor"
-        }
-      },
+      "modified": "2022-03-28T22:38:49.782-0700",
       "security": "NoSecurityScheme",
       "title": "test thing"
     },
     "thing4": {
-      "@context": "http://www.w3.org/ns/td",
+      "@context": [
+        "http://www.w3.org/ns/thing"
+      ],
       "@type": "netSwitch",
-      "actions": {},
-      "created": "2022-03-05T22:21:42.566-0800",
-      "events": {},
+      "created": "2022-03-28T22:38:49.782-0700",
       "id": "thing4",
-      "properties": {
-        "name": {
-          "@type": "wost:attr",
-          "title": "main switch"
-        }
-      },
+      "modified": "2022-03-28T22:38:49.782-0700",
       "security": "NoSecurityScheme",
       "title": "test thing"
     }

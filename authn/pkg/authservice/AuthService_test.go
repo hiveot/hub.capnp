@@ -105,11 +105,11 @@ func TestLogin(t *testing.T) {
 	hostPort := fmt.Sprintf("%s:%d", serverAddress, serverPort)
 	authClient := tlsclient.NewTLSClient(hostPort, testCerts.CaCert)
 
-	accessToken, err := authClient.ConnectWithLoginID(user1, pass1)
+	accessToken, err := authClient.ConnectWithJWTLogin(user1, pass1, "")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, accessToken)
 
-	accessToken, err = authClient.ConnectWithLoginID(user1, pass2)
+	accessToken, err = authClient.ConnectWithJWTLogin(user1, pass2, "")
 	assert.Error(t, err)
 	assert.Empty(t, accessToken)
 
@@ -131,7 +131,7 @@ func TestGetConfig(t *testing.T) {
 	hostPort := fmt.Sprintf("%s:%d", serverAddress, serverPort)
 	authClient := tlsclient.NewTLSClient(hostPort, testCerts.CaCert)
 
-	accessToken, err := authClient.ConnectWithLoginID(user1, pass1)
+	accessToken, err := authClient.ConnectWithJWTLogin(user1, pass1, "")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, accessToken)
 
@@ -157,7 +157,7 @@ func TestUpdateConfigBadMethod(t *testing.T) {
 	myConfig := "my configuration object"
 	hostPort := fmt.Sprintf("%s:%d", serverAddress, serverPort)
 	authClient := tlsclient.NewTLSClient(hostPort, testCerts.CaCert)
-	accessToken, err := authClient.ConnectWithLoginID(user1, pass1)
+	accessToken, err := authClient.ConnectWithJWTLogin(user1, pass1, "")
 	_ = accessToken
 	assert.NoError(t, err)
 

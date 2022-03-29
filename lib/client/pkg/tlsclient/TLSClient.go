@@ -1,4 +1,4 @@
-// Package tlsclient with a simple TLS client helper with certificate and username password authentication
+// Package tlsclient with a TLS client helper supporting certificate or username password authentication
 package tlsclient
 
 import (
@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"golang.org/x/net/publicsuffix"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -16,7 +17,6 @@ import (
 
 	"github.com/golang-jwt/jwt"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/net/publicsuffix"
 )
 
 // Authentication methods for use with ConnectWithLoginID
@@ -65,15 +65,21 @@ type TLSClient struct {
 	// client certificate mutual authentication
 	clientCert *tls.Certificate
 
-	// jwt authentication, default is jwt using DefaultLoginPath
-	authMethod string
-	userID     string
-	secret     string
+	// User ID for authentication
+	userID string
+
+	// Secret when using basic authentication
+	basicSecret string
+
 	// JwtTokens with access and refresh tokens. The access token is passed as
 	// bearer token with each Invoke request. The refresh token is used to
 	// refresh both tokens. These tokens can be shared with clients that connect
 	// to other Hub services as a single-signon solution.
-	JwtTokens *JwtAuthResponse
+	//JwtTokens *JwtAuthResponse
+
+	// JWT access after login, refresh, or external source
+	// Invoke will use this if set.
+	jwtAccessToken string
 }
 
 // Certificate returns the client auth certificate or nil if none is used
@@ -91,9 +97,9 @@ func (cl *TLSClient) Close() {
 	}
 }
 
-// ConnectNoAuth creates a connection with the server without client authentication
-// Only requests that do not require authentication will succeed
-func (cl *TLSClient) ConnectNoAuth() {
+// connect sets-up the http client with TLS transport
+func (cl *TLSClient) connect() *http.Client {
+	// the CA certificate is set in NewTLSClient
 	tlsConfig := &tls.Config{
 		RootCAs:            cl.caCertPool,
 		InsecureSkipVerify: !cl.checkServerCert,
@@ -102,10 +108,36 @@ func (cl *TLSClient) ConnectNoAuth() {
 	tlsTransport := http.DefaultTransport
 	tlsTransport.(*http.Transport).TLSClientConfig = tlsConfig
 
-	cl.httpClient = &http.Client{
+	// FIXME:
+	// 1 does this work if the server is connected using an IP address?
+	// 2. How are cookies stored between sessions?
+	cjarOpts := &cookiejar.Options{PublicSuffixList: publicsuffix.List}
+	cjar, err := cookiejar.New(cjarOpts)
+	if err != nil {
+		logrus.Errorf("NewTLSClient: error setting cookiejar. The use of bearer tokens might not work: %s", err)
+	}
+
+	return &http.Client{
 		Transport: tlsTransport,
 		Timeout:   cl.timeout,
+		Jar:       cjar,
 	}
+}
+
+// ConnectNoAuth creates a connection with the server without client authentication
+// Only requests that do not require authentication will succeed
+func (cl *TLSClient) ConnectNoAuth() {
+	cl.httpClient = cl.connect()
+}
+
+// ConnectWithBasicAuth creates a server connection using the configured authentication
+// Intended to connect to services that do not support JWT authentication
+func (cl *TLSClient) ConnectWithBasicAuth(userID string, passwd string) {
+	cl.userID = userID
+	cl.basicSecret = passwd
+	// Invoke() will use basic auth if basicSecret is set
+
+	cl.httpClient = cl.connect()
 }
 
 // ConnectWithClientCert creates a connection with the server using a client certificate for mutual authentication.
@@ -157,6 +189,63 @@ func (cl *TLSClient) ConnectWithClientCert(clientCert *tls.Certificate) (err err
 	return nil
 }
 
+// ConnectWithJwtAccessToken Sets login ID and secret for JWT authentication using an access
+// token obtained elsewhere.
+// This uses the provided access token as bearer token in the authorization header
+func (cl *TLSClient) ConnectWithJwtAccessToken(loginID string, accessToken string) {
+	cl.userID = loginID
+	cl.jwtAccessToken = accessToken
+
+	cl.httpClient = cl.connect()
+}
+
+// ConnectWithJWTLogin requests JWT tokens using loginID/password
+// If a CA certificate is not available then insecure-skip-verify is used to allow
+// connection to an unverified server (leap of faith).
+//
+// This uses JWT authentication using the POST /login path with a Json encoded
+// JwtAuthLogin message as body.
+//
+// The server returns a JwtAuthResponse message with an access/refresh token pair and a refresh URL.
+// The access token is used as bearer token in the Authentication header for followup requests.
+//
+//  loginID username or application ID to identify as.
+//  secret to authenticate with.
+//  authLoginURL optional full address of the authentication server login, "" to authenticate using the application server /login
+// Returns nil if successful or an error if setting up of authentication failed.
+func (cl *TLSClient) ConnectWithJWTLogin(loginID string, secret string, authLoginURL string) (accessToken string, err error) {
+	cl.userID = loginID
+
+	loginURL := fmt.Sprintf("https://%s%s", cl.hostPort, DefaultJWTLoginPath)
+
+	if authLoginURL != "" {
+		loginURL = authLoginURL
+	}
+	// create tlsTransport
+	cl.httpClient = cl.connect()
+
+	// Authenticate with JWT requires a cookiejar to store the refresh token
+	loginMessage := JwtAuthLogin{
+		LoginID:  loginID,
+		Password: secret,
+	}
+	// resp, err2 := cl.Post(cl.jwtLoginPath, authLogin)
+	resp, err2 := cl.Invoke("POST", loginURL, loginMessage)
+	if err2 != nil {
+		err = fmt.Errorf("ConnectWithLoginID: JWT login to %s failed. %s", loginURL, err2)
+		return "", err
+	}
+	var jwtResp JwtAuthResponse
+
+	err2 = json.Unmarshal(resp, &jwtResp)
+	if err2 != nil {
+		err = fmt.Errorf("ConnectWithLoginID: JWT login to %s has unexpected response message: %s", loginURL, err2)
+		return "", err
+	}
+	cl.jwtAccessToken = jwtResp.AccessToken
+	return cl.jwtAccessToken, err
+}
+
 // ConnectWithLoginID creates a connection with the server using loginID/password or JWT token authentication.
 // If a CA certificate is not available then insecure-skip-verify is used to allow
 // connection to an unverified server (leap of faith).
@@ -185,73 +274,78 @@ func (cl *TLSClient) ConnectWithClientCert(clientCert *tls.Certificate) (err err
 //  authLoginURL optional full address of the authentication server login, "" to authenticate using the application server /login
 //  authMethod optional authentication method to use. Default is AuthMethodJwt
 // Returns nil if successful or authMethod is AuthMethodNone, or an error if setting up of authentication failed.
-func (cl *TLSClient) ConnectWithLoginID(loginID string, secret string,
-	authLoginURL ...string) (accessToken string, err error) {
-	cl.userID = loginID
-	cl.secret = secret
-	loginURL := fmt.Sprintf("https://%s%s", cl.hostPort, DefaultJWTLoginPath)
+//func (cl *TLSClient) ConnectWithLoginID(loginID string, secret string,
+//	authLoginURL ...string) (accessToken string, err error) {
+//	cl.userID = loginID
+//	cl.secret = secret
+//	loginURL := fmt.Sprintf("https://%s%s", cl.hostPort, DefaultJWTLoginPath)
+//
+//	if len(authLoginURL) > 0 && authLoginURL[0] != "" {
+//		loginURL = authLoginURL[0]
+//	}
+//	// AuthMethodNone or AuthMethodBasic can be used instead of the default AuthMethodJWT
+//	authMethod := AuthMethodJwt
+//	if len(authLoginURL) > 1 {
+//		authMethod = authLoginURL[1]
+//	}
+//
+//	tlsConfig := &tls.Config{
+//		RootCAs:            cl.caCertPool,
+//		InsecureSkipVerify: !cl.checkServerCert,
+//	}
+//	// tlsTransport := http.Transport{
+//	// 	TLSClientConfig: tlsConfig,
+//	// }
+//	tlsTransport := http.DefaultTransport
+//	tlsTransport.(*http.Transport).TLSClientConfig = tlsConfig
+//
+//	// FIXME:
+//	// 1 does this work if the server is connected using an IP address?
+//	// 2. How are cookies stored between sessions?
+//	cjarOpts := &cookiejar.Options{PublicSuffixList: publicsuffix.List}
+//	cjar, err := cookiejar.New(cjarOpts)
+//	if err != nil {
+//		logrus.Errorf("NewTLSClient: error setting cookiejar. The use of bearer tokens might not work: %s", err)
+//	}
+//
+//	cl.httpClient = &http.Client{
+//		Transport: tlsTransport,
+//		Timeout:   cl.timeout,
+//		Jar:       cjar,
+//	}
+//	// Authenticate with JWT token simply uses the given access token
+//	if authMethod == AuthMethodJwtToken {
+//		cl.JwtTokens = &JwtAuthResponse{AccessToken: secret}
+//		accessToken = secret
+//	} else if authMethod == AuthMethodJwt {
+//		// Authenticate with JWT requires a cookiejar to store the refresh token
+//
+//		loginMessage := JwtAuthLogin{
+//			LoginID:  loginID,
+//			Password: secret,
+//		}
+//		// resp, err2 := cl.Post(cl.jwtLoginPath, authLogin)
+//		resp, err2 := cl.Invoke("POST", loginURL, loginMessage)
+//		if err2 != nil {
+//			err = fmt.Errorf("ConnectWithLoginID: JWT login to %s failed. %s", loginURL, err2)
+//			return "", err
+//		}
+//		err2 = json.Unmarshal(resp, &cl.JwtTokens)
+//		if err2 != nil {
+//			err = fmt.Errorf("ConnectWithLoginID: JWT login to %s has unexpected response message: %s", loginURL, err2)
+//			return "", err
+//		}
+//		accessToken = cl.JwtTokens.AccessToken
+//	}
+//	// the authmethod is only valid after receiving a token
+//	cl.authMethod = authMethod
+//	return accessToken, err
+//}
 
-	if len(authLoginURL) > 0 && authLoginURL[0] != "" {
-		loginURL = authLoginURL[0]
-	}
-	// AuthMethodNone or AuthMethodBasic can be used instead of the default AuthMethodJWT
-	authMethod := AuthMethodJwt
-	if len(authLoginURL) > 1 {
-		authMethod = authLoginURL[1]
-	}
-
-	tlsConfig := &tls.Config{
-		RootCAs:            cl.caCertPool,
-		InsecureSkipVerify: !cl.checkServerCert,
-	}
-	// tlsTransport := http.Transport{
-	// 	TLSClientConfig: tlsConfig,
-	// }
-	tlsTransport := http.DefaultTransport
-	tlsTransport.(*http.Transport).TLSClientConfig = tlsConfig
-
-	// FIXME:
-	// 1 does this work if the server is connected using an IP address?
-	// 2. How are cookies stored between sessions?
-	cjarOpts := &cookiejar.Options{PublicSuffixList: publicsuffix.List}
-	cjar, err := cookiejar.New(cjarOpts)
-	if err != nil {
-		logrus.Errorf("NewTLSClient: error setting cookiejar. The use of bearer tokens might not work: %s", err)
-	}
-
-	cl.httpClient = &http.Client{
-		Transport: tlsTransport,
-		Timeout:   cl.timeout,
-		Jar:       cjar,
-	}
-	// Authenticate with JWT token simply uses the given access token
-	if authMethod == AuthMethodJwtToken {
-		cl.JwtTokens = &JwtAuthResponse{AccessToken: secret}
-		accessToken = secret
-	} else if authMethod == AuthMethodJwt {
-		// Authenticate with JWT requires a cookiejar to store the refresh token
-
-		loginMessage := JwtAuthLogin{
-			LoginID:  loginID,
-			Password: secret,
-		}
-		// resp, err2 := cl.Post(cl.jwtLoginPath, authLogin)
-		resp, err2 := cl.Invoke("POST", loginURL, loginMessage)
-		if err2 != nil {
-			err = fmt.Errorf("ConnectWithLoginID: JWT login to %s failed. %s", loginURL, err2)
-			return "", err
-		}
-		err2 = json.Unmarshal(resp, &cl.JwtTokens)
-		if err2 != nil {
-			err = fmt.Errorf("ConnectWithLoginID: JWT login to %s has unexpected response message: %s", loginURL, err2)
-			return "", err
-		}
-		accessToken = cl.JwtTokens.AccessToken
-	}
-	// the authmethod is only valid after receiving a token
-	cl.authMethod = authMethod
-	return accessToken, err
-}
+// Login requests JWT tokens using loginID/password
+// If a CA certificate is not available then insecure-skip-verify is used to allow
+// connection to an unverified server (leap of faith).
+//
 
 // Delete sends a delete message with json payload
 //  path to invoke
@@ -270,7 +364,7 @@ func (cl *TLSClient) Get(path string) ([]byte, error) {
 }
 
 // Invoke a HTTPS method and read response
-// If authentication is enabled then add the auth info to the headers
+// If Basic or JWT authentication is enabled then add the auth info to the headers
 //
 //  method: GET, PUT, POST, ...
 //  url: full URL to invoke
@@ -307,19 +401,13 @@ func (cl *TLSClient) Invoke(method string, url string, msg interface{}) ([]byte,
 	}
 
 	// Set authentication for the request. Use basic auth as fallback. WoST prefers JWT
-	if cl.authMethod == AuthMethodBasic {
-		if cl.userID != "" && cl.secret != "" {
-			req.SetBasicAuth(cl.userID, cl.secret)
-		}
-	} else if cl.authMethod == AuthMethodJwt {
-		if cl.JwtTokens.AccessToken != "" {
-			err = cl.RefreshJWTTokenIfExpired()
-			req.Header.Add("Authorization", "bearer "+cl.JwtTokens.AccessToken)
-		}
-	} else if cl.authMethod == AuthMethodJwtToken {
-		if cl.JwtTokens.AccessToken != "" {
-			req.Header.Add("Authorization", "bearer "+cl.JwtTokens.AccessToken)
-		}
+	if cl.userID != "" && cl.basicSecret != "" {
+		req.SetBasicAuth(cl.userID, cl.basicSecret)
+	} else if cl.jwtAccessToken != "" {
+		err = cl.RefreshJWTTokenIfExpired()
+		req.Header.Add("Authorization", "bearer "+cl.jwtAccessToken)
+	} else {
+		// no authentication
 	}
 	if err != nil {
 		return nil, err
@@ -379,9 +467,9 @@ func (cl *TLSClient) Patch(path string, msg interface{}) ([]byte, error) {
 //  refreshURL to use. "" for using the application server and default refresh path
 // This returns a struct with new access and refresh token
 func (cl *TLSClient) RefreshJWTTokens(refreshURL string) (refreshTokens *JwtAuthResponse, err error) {
-	if refreshURL == "" {
-		refreshURL = cl.JwtTokens.RefreshURL
-	}
+	//if refreshURL == "" {
+	//	refreshURL = cl.JwtTokens.RefreshURL
+	//}
 	if refreshURL == "" {
 		refreshURL = fmt.Sprintf("https://%s%s", cl.hostPort, DefaultJWTRefreshPath)
 	}
@@ -406,10 +494,12 @@ func (cl *TLSClient) RefreshJWTTokens(refreshURL string) (refreshTokens *JwtAuth
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		logrus.Infof("RefreshJWTTokens: failed with error %s", err)
-		return cl.JwtTokens, err
+		return nil, err
 	}
-	err = json.Unmarshal(respBody, &cl.JwtTokens)
-	return cl.JwtTokens, err
+	var jwtTokens JwtAuthResponse
+	err = json.Unmarshal(respBody, &jwtTokens)
+	cl.jwtAccessToken = jwtTokens.AccessToken
+	return &jwtTokens, err
 }
 
 // RefreshJWTTokenIfExpired checks if the JWT access token is expired. If so, then refresh it.
@@ -417,13 +507,13 @@ func (cl *TLSClient) RefreshJWTTokens(refreshURL string) (refreshTokens *JwtAuth
 // without further action.
 // If no refresh token exists or refresh fails then return an error. This means that a new login is required.
 func (cl *TLSClient) RefreshJWTTokenIfExpired() error {
-	if cl.JwtTokens.RefreshToken == "" {
-		return errors.New("RefreshJWTTokenIfExpired: no refresh token exists")
-	}
+	//if cl.JwtTokens.RefreshToken == "" {
+	//	return errors.New("RefreshJWTTokenIfExpired: no refresh token exists")
+	//}
 
-	if cl.JwtTokens.AccessToken != "" {
+	if cl.jwtAccessToken != "" {
 		claims := jwt.MapClaims{}
-		_, _, err := new(jwt.Parser).ParseUnverified(cl.JwtTokens.AccessToken, &claims)
+		_, _, err := new(jwt.Parser).ParseUnverified(cl.jwtAccessToken, &claims)
 		if err != nil {
 			// if the access token is invalid then the refresh failed and a new login is needed
 			err := errors.New("RefreshJWTTokenIfExpired: Parse error on access token string. Refresh failed")
@@ -466,7 +556,6 @@ func NewTLSClient(hostPort string, caCert *x509.Certificate) *TLSClient {
 		caCertPool:      caCertPool,
 		caCert:          caCert,
 		checkServerCert: checkServerCert,
-		authMethod:      AuthMethodNone,
 	}
 
 	return cl

@@ -11,64 +11,95 @@ import (
 const zone = "test"
 
 func TestCreateTD(t *testing.T) {
-	deviceID := zone + "Thing1"
-	thing := thing.CreateTD(deviceID, "test TD", vocab.DeviceTypeSensor)
-	assert.NotNil(t, thing)
+	thingID := thing.CreateThingID("", "thing1", vocab.DeviceTypeUnknown)
+	tdoc := thing.CreateTD(thingID, "test TD", vocab.DeviceTypeSensor)
+	assert.NotNil(t, tdoc)
 
 	// Set version
-	versions := map[string]string{"Software": "v10.1", "Hardware": "v2.0"}
-	thing.SetThingVersion(thing, versions)
+	//versions := map[string]string{"Software": "v10.1", "Hardware": "v2.0"}
+	propAffordance := &thing.PropertyAffordance{
+		DataSchema: thing.DataSchema{
+			Type:  vocab.WoTDataTypeArray,
+			Title: "version",
+		},
+	}
+	tdoc.UpdateProperty(vocab.PropNameSoftwareVersion, propAffordance)
 
 	// Define TD property
-	prop := thing.CreateProperty("Prop1", "First property", vocab.PropertyTypeOutput)
-	enumValues := make([]string, 0) //{"value1", "value2"}
-	thing.SetPropertyEnum(prop, enumValues)
-	thing.SetPropertyUnit(prop, "C")
-	thing.SetPropertyDataTypeInteger(prop, 1, 10)
-	thing.SetPropertyDataTypeNumber(prop, 1, 10)
-	thing.SetPropertyDataTypeString(prop, 1, 10)
-	thing.SetPropertyDataTypeObject(prop, nil)
-	thing.SetPropertyDataTypeArray(prop, 3, 10)
-	thing.AddTDProperty(thing, "prop1", prop)
-	// invalid prop should not blow up
-	thing.AddTDProperty(thing, "prop2", nil)
+	propAffordance = &thing.PropertyAffordance{
+		DataSchema: thing.DataSchema{
+			Type: vocab.WoTDataTypeString,
+			Enum: make([]interface{}, 0), //{"value1", "value2"},
+			Unit: "C",
+		},
+	}
+	tdoc.UpdateProperty("prop1", propAffordance)
+	prop := tdoc.GetProperty("prop1")
+	assert.NotNil(t, prop)
 
-	// Define event
-	ev1 := thing.CreateTDEvent("ev1", "First event")
-	thing.AddTDEvent(thing, "ev1", ev1)
-	// invalid event should not blow up
-	thing.AddTDEvent(thing, "ev1", nil)
+	tdoc.UpdateTitleDescription("title", "description")
 
-	// Set error status
-	thing.SetThingErrorStatus(thing, "there is an error")
+	tdoc.UpdateAction("action1", &thing.ActionAffordance{})
+	action := tdoc.GetAction("action1")
+	assert.NotNil(t, action)
 
-	// Define action
-	action1 := thing.CreateTDAction("setChannel", "Change the channel")
-	actionProp := thing.CreateProperty("channel", "Select channel", "input")
-	required := []string{"channel"}
-	thing.SetTDActionInput(action1, "string", actionProp, required)
-	thing.SetTDActionOutput(action1, "string")
+	tdoc.UpdateEvent("event1", &thing.EventAffordance{})
+	ev := tdoc.GetEvent("event1")
+	assert.NotNil(t, ev)
 
-	thing.AddTDAction(thing, "action1", action1)
-	// invalid action should not blow up
-	thing.AddTDAction(thing, "action1", nil)
+	tdoc.UpdateForms([]thing.Form{})
 
-	// Define form
-	f1 := thing.CreateTDForm("form1", "", "application/json", "GET")
-	formList := make([]map[string]interface{}, 0)
-	formList = append(formList, f1)
-	thing.SetTDForms(thing, formList)
-	// invalid form should not blow up
-	thing.SetTDForms(thing, nil)
+	tid2 := tdoc.GetID()
+	assert.Equal(t, thingID, tid2)
 }
 
-func TestCreateAction(t *testing.T) {
-	thing := thing.CreateTDAction("Action1", "Do stuff")
-	assert.NotNil(t, thing)
+func TestCreateThingID(t *testing.T) {
+	// A full ID with publisher
+	thingID1 := thing.CreatePublisherID("a", "pub1", "device2", vocab.DeviceTypeButton)
+	zone, pub, did, dtype := thing.SplitThingID(thingID1)
+	assert.Equal(t, "a", zone)
+	assert.Equal(t, "pub1", pub)
+	assert.Equal(t, "device2", did)
+	assert.Equal(t, vocab.DeviceTypeButton, dtype)
+
+	// An ID without publisher
+	thingID2 := thing.CreateThingID("", "device2", vocab.DeviceTypeUnknown)
+	zone, pub, did, dtype = thing.SplitThingID(thingID2)
+	assert.Equal(t, "local", zone)
+	assert.Equal(t, "", pub)
+	assert.Equal(t, "device2", did)
+	assert.Equal(t, vocab.DeviceTypeUnknown, dtype)
+
+	// An ID without zone or publisher
+	thingID3 := "urn:device3:pushbutton"
+	zone, pub, did, dtype = thing.SplitThingID(thingID3)
+	assert.Equal(t, "", zone)
+	assert.Equal(t, "", pub)
+	assert.Equal(t, "device3", did)
+	assert.Equal(t, "pushbutton", string(dtype))
+
+	// An ID without zone, publisher or device type
+	thingID4 := "urn:device4"
+	zone, pub, did, dtype = thing.SplitThingID(thingID4)
+	assert.Equal(t, "", zone)
+	assert.Equal(t, "", pub)
+	assert.Equal(t, "device4", did)
+	assert.Equal(t, "", string(dtype))
 }
 
-func TestCreateActionRequest(t *testing.T) {
-	param1 := map[string]interface{}{}
-	thing := thing.CreateActionRequest("Action1", param1)
-	assert.NotNil(t, thing)
+func TestMissingAffordance(t *testing.T) {
+	thingID := thing.CreateThingID("", "thing1", vocab.DeviceTypeUnknown)
+
+	// test return nil if no affordance is found
+	tdoc := thing.CreateTD(thingID, "test TD", vocab.DeviceTypeSensor)
+	assert.NotNil(t, tdoc)
+
+	prop := tdoc.GetProperty("prop1")
+	assert.Nil(t, prop)
+
+	action := tdoc.GetAction("action1")
+	assert.Nil(t, action)
+
+	ev := tdoc.GetEvent("event1")
+	assert.Nil(t, ev)
 }

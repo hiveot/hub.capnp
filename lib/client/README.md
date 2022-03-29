@@ -37,7 +37,7 @@ The MqttHubClient includes publishing and subscribing to WoST messages such as A
 
 For example, to connect to the message bus using a client certificate:
 ```golang
-	client := mqttclient.NewMqttHubClient(testPluginID, certs.CaCert)
+	client := mqttclient.NewMqttClient(testPluginID, certs.CaCert, 0)
     err := client.ConnectWithClientCert(mqttCertAddress, certs.PluginCert)
 ```
 ### signing
@@ -48,28 +48,28 @@ The signing package provides functions to JWS sign and JWE encrypt messages. Thi
 Signing and sender verification guarantees that the information has not been tampered with and originated from the sender. 
 
 
-### td
+### thing
 
-Helper functions to build a Thing Description document, action messages, event messages, and configuration messages for publishing on the message bus.
+Functions to build a Thing Description document with properties, events and action affordances (definitions).
 
-Note: The generated TD is basic and a best effort to conform to the WoT standard.
+Note: The generated TD is a best effort to conform to the WoT standard.
 
 
-For example, to build a new TD of a temperature sensor Thing:
+For example, to build a new TD of a temperature sensor with a temperature property:
 ```golang
 	import "github.com/wostzone/hub/lib/client/pkg/thing"
 	import  "github.com/wostzone/hub/lib/client/pkg/vocab"
 
   ...
-
-  thing := td.CreateTD("thingID1", vocab.DeviceTypeSensor)
-  versions := map[string]string{"Software": "v10.1", "Hardware": "v2.0"}
-  td.SetThingVersion(thing, versions)
-
- 	prop := td.CreateProperty("otemp", "Outdoor temperature", vocab.PropertyTypeSensor)
-	td.SetPropertyUnit(prop, "C")
-	td.SetPropertyDataTypeInteger(prop, -100, 100)
-	td.AddTDProperty(thing, "temperature", prop)
+    thingID := CreateThingID("local", "publisher1", "device1", vocab.DeviceTypeSensor)
+    tdoc := thing.CreateTD(thingID, "Sensor", vocab.DeviceTypeSensor)
+    prop := tdoc.UpdateProperty("otemp", thing.PropertyAffordance{
+		Title:"Outdoor temperature",
+		Unit: vocab.UnitNameCelcius,
+		Type: vocab.WoTDataTypeNumber,
+		ReadOnly: true,
+		AtType: vocab.PropertyTypeTemperature})
+    tdoc.SetPropertyDataTypeInteger(prop, -100, 100)
 ```
 
 Under consideration:
@@ -99,12 +99,15 @@ For example, an IoT device can connect to a Hub service using its client certifi
   clientCert := LoadCertFromPem(pathToClientCert)
   client, err := tlsclient.NewTLSClient("host:port", caCert)
   err = client.ConnectWithClientCert(clientCert)
-  ... do stuff ...
+  
+  // do stuff
+  client.Post(path, message)
+  
   client.Close()
 ```
 
 ## vocab
 
-Ontology with vocabulary used to describe Things. This is based on terminology from the WoT working group and other source. When no authorative source is known, the terminology is defined as part of the WoST vocabulary. 
+Ontology with vocabulary used to describe Things. This is based on terminology from the WoT working group and other source. 
 
-This includes devicetype names, Thing property types, property names, unit names and TD defined terms for describing a Thing Description document.
+When no authorative source is known, the terminology is defined as part of the WoST IoT vocabulary. This includes device-type names, Thing property types, property names, unit names and TD defined terms for describing a Thing Description document.

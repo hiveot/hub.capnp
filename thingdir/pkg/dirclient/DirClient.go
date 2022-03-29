@@ -9,7 +9,7 @@ import (
 	"strings"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/lib/client/pkg/td"
+	"github.com/wostzone/hub/lib/client/pkg/thing"
 	"github.com/wostzone/hub/lib/client/pkg/tlsclient"
 )
 
@@ -57,21 +57,11 @@ func (dc *DirClient) ConnectWithClientCert(tlsClientCert *tls.Certificate) error
 	return err
 }
 
-// ConnectWithLoginID open the connection to the directory server using a login ID and password for authentication
-//  loginID  username or email
-//  password credentials
-func (dc *DirClient) ConnectWithLoginID(loginID string, password string) error {
-	accessToken, err := dc.tlsClient.ConnectWithLoginID(loginID, password)
-	_ = accessToken
-	return err
-}
-
 // ConnectWithJwtToken open the connection to the directory server using a login ID and given access token
 //  loginID  username or email
 //  accessToken JWT access token
-func (dc *DirClient) ConnectWithJwtToken(loginID string, accessToken string) error {
-	_, err := dc.tlsClient.ConnectWithLoginID(loginID, accessToken, "", tlsclient.AuthMethodJwtToken)
-	return err
+func (dc *DirClient) ConnectWithJwtToken(loginID string, accessToken string) {
+	dc.tlsClient.ConnectWithJwtAccessToken(loginID, accessToken)
 }
 
 // Delete a TD.
@@ -84,7 +74,7 @@ func (dc *DirClient) Delete(id string) error {
 
 // GetTD the TD with the given ID
 //  id is the ThingID whose TD to get
-func (dc *DirClient) GetTD(id string) (td thing.ThingTD, err error) {
+func (dc *DirClient) GetTD(id string) (td *thing.ThingTD, err error) {
 
 	path := strings.Replace(RouteThingID, "{thingID}", id, 1)
 	resp, err := dc.tlsClient.Get(path)
@@ -117,14 +107,15 @@ func (dc *DirClient) ListTDs(offset int, limit int) ([]thing.ThingTD, error) {
 }
 
 // PatchTD changes a TD with the attributes of the given TD
-func (dc *DirClient) PatchTD(id string, td thing.ThingTD) error {
-	var resp []byte
-	var err error
-	path := strings.Replace(RouteThingID, "{thingID}", id, 1)
-	resp, err = dc.tlsClient.Patch(path, td)
-	_ = resp
-	return err
-}
+// Removed as this is not a client function
+//func (dc *DirClient) PatchTD(id string, td thing.ThingTD) error {
+//	var resp []byte
+//	var err error
+//	path := strings.Replace(RouteThingID, "{thingID}", id, 1)
+//	resp, err = dc.tlsClient.Patch(path, td)
+//	_ = resp
+//	return err
+//}
 
 // QueryTDs with the given JSONPATH expression
 // Returns a list of TDs matching the query, starting at the offset. The result is limited to the
@@ -145,24 +136,25 @@ func (dc *DirClient) QueryTDs(jsonpath string, offset int, limit int) ([]thing.T
 }
 
 // UpdateTD updates the TD with the given ID, eg create/update
-func (dc *DirClient) UpdateTD(id string, td thing.ThingTD) error {
-	var resp []byte
-	var err error
-	path := strings.Replace(RouteThingID, "{thingID}", id, 1)
-	resp, err = dc.tlsClient.Post(path, td)
-	// resp, err = dc.tlsClient.Post(path, doc)
-	_ = resp
-	return err
-}
+// Removed as this is not a client function
+//func (dc *DirClient) UpdateTD(id string, td *thing.ThingTD) error {
+//	var resp []byte
+//	var err error
+//	path := strings.Replace(RouteThingID, "{thingID}", id, 1)
+//	resp, err = dc.tlsClient.Post(path, td)
+//	// resp, err = dc.tlsClient.Post(path, doc)
+//	_ = resp
+//	return err
+//}
 
 // NewDirClient creates a new instance of the directory client
 //  address is the listening address of the client
 //  port to connect to
 //  caCertPath server CA certificate for verification, obtained during provisioning using idprov
-func NewDirClient(hostport string, caCert *x509.Certificate) *DirClient {
-	tlsClient := tlsclient.NewTLSClient(hostport, caCert)
+func NewDirClient(hostPort string, caCert *x509.Certificate) *DirClient {
+	tlsClient := tlsclient.NewTLSClient(hostPort, caCert)
 	dc := &DirClient{
-		hostport:  hostport,
+		hostport:  hostPort,
 		tlsClient: tlsClient,
 	}
 	return dc

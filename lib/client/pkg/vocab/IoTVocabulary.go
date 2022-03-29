@@ -93,18 +93,18 @@ type ThingPropType string
 
 // Since property types is not part of the WoT vocabulary they are defined
 // as part of the WoST vocabulary. Used in "@type" for TD Properties.
-const (
-	// PropertyTypeAttr is a readonly attribute describing the Thing
-	PropertyTypeAttr ThingPropType = "wost:attr"
-	// PropertyTypeConfig is a writable configuration
-	PropertyTypeConfig ThingPropType = "wost:configuration"
-	// PropertyTypeState is a readonly internal state
-	PropertyTypeState ThingPropType = "wost:state"
-	// PropertyTypeInput is an input (use in Actions)
-	PropertyTypeInput ThingPropType = "wost:input"
-	// PropertyTypeOutput is an output
-	PropertyTypeOutput ThingPropType = "wost:output"
-)
+//const (
+//	// PropertyTypeAttr is a readonly attribute describing the Thing
+//	PropertyTypeAttr ThingPropType = "wost:attr"
+//	// PropertyTypeConfig is a writable configuration
+//	PropertyTypeConfig ThingPropType = "wost:configuration"
+//	// PropertyTypeState is a readonly internal state
+//	PropertyTypeState ThingPropType = "wost:state"
+//	// PropertyTypeInput is an input (use in Actions)
+//	PropertyTypeInput ThingPropType = "wost:input"
+//	// PropertyTypeOutput is an output
+//	PropertyTypeOutput ThingPropType = "wost:output"
+//)
 
 // Vocabulary attribute and configuration property names to be used by Things and plugins.
 const (
@@ -166,27 +166,27 @@ const (
 	PropNameNetmask        string = "netmask"        // [string] IP network mask
 	PropNameOnOffSwitch    string = "switch"         // [boolean]
 	//
-	PropNamePassword        string = "password" // password to connect. Value is not published.
-	PropNamePlay            string = "avPlay"
-	PropNamePollInterval    string = "pollInterval" // polling interval in seconds
-	PropNamePort            string = "port"         // network address port
-	PropNamePowerSource     string = "powerSource"  // battery, usb, mains
-	PropNameProduct         string = "product"      // device product or model name
-	PropNamePublicKey       string = "publicKey"    // public key for encrypting sensitive configuration settings
-	PropNamePushButton      string = "pushButton"   // with nr of pushes
-	PropNameRain            string = "rain"
-	PropNameRelay           string = "relay"
-	PropNameSaturation      string = "saturation"
-	PropNameScale           string = "scale"
-	PropNameSignalStrength  string = "signalStrength"
-	PropNameSmokeDetector   string = "smokeDetector"
-	PropNameSnow            string = "snow"
-	PropNameSoftwareVersion string = "softwareVersion" // version of the software running the node
-	PropNameSoundDetector   string = "soundDetector"
-	PropNameSubnet          string = "subnet" // IP subnets configuration
-	PropNameSwitch          string = "switch" // on/off switch: "on" "off"
-	PropNameTemperature     string = "temperature"
-	// PropNameType              string = "type" // Node type
+	PropNamePassword          string = "password" // password to connect. Value is not published.
+	PropNamePlay              string = "avPlay"
+	PropNamePollInterval      string = "pollInterval" // polling interval in seconds
+	PropNamePort              string = "port"         // network address port
+	PropNamePowerSource       string = "powerSource"  // battery, usb, mains
+	PropNameProduct           string = "product"      // device product or model name
+	PropNamePublicKey         string = "publicKey"    // public key for encrypting sensitive configuration settings
+	PropNamePushButton        string = "pushButton"   // with nr of pushes
+	PropNameRain              string = "rain"
+	PropNameRelay             string = "relay"
+	PropNameSaturation        string = "saturation"
+	PropNameScale             string = "scale"
+	PropNameSignalStrength    string = "signalStrength"
+	PropNameSmokeDetector     string = "smokeDetector"
+	PropNameSnow              string = "snow"
+	PropNameSoftwareVersion   string = "softwareVersion" // version of the software running the node
+	PropNameSoundDetector     string = "soundDetector"
+	PropNameSubnet            string = "subnet" // IP subnets configuration
+	PropNameSwitch            string = "switch" // on/off switch: "on" "off"
+	PropNameTemperature       string = "temperature"
+	PropNameTitle             string = "title" // device title
 	PropNameUltraviolet       string = "ultraviolet"
 	PropNameUnknown           string = ""    // Not a known output
 	PropNameURL               string = "url" // node URL
@@ -200,7 +200,7 @@ const (
 	PropNameWindSpeed         string = "windSpeed"
 )
 
-// Standard ISO8601 timeformat
+// TimeFormat using standard ISO8601
 const TimeFormat = "2006-01-02T15:04:05.000-0700"
 
 //TODO: Match with UN/CEFACT unitname codes as defined in:

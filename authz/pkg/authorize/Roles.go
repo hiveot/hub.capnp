@@ -48,3 +48,24 @@ const (
 
 // AclGroupAll defines the 'all' resources group
 const AclGroupAll = "all"
+
+// Authorization of actions
+const (
+	// AuthRead to read a TD
+	AuthRead = "read"
+
+	// AuthEmitAction to authorize emit an action
+	AuthEmitAction = "emitAction"
+
+	// AuthPubEvent to authorize publishing of events
+	AuthPubEvent = "pubEvent"
+
+	// AuthPubPropValue to authorize publishing of property values
+	AuthPubPropValue = "pubPropValues"
+
+	// AuthPubTD to authorize publishing of a TD document
+	AuthPubTD = "pubTD"
+
+	// AuthWriteProperty to authorize writing property value
+	AuthWriteProperty = "writeProperty"
+)

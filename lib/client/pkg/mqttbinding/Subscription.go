@@ -29,7 +29,7 @@ type Subscription struct {
 }
 
 // Stop delivering notifications for this subscription
-func (sub *Subscription) Stop() {
-	// set handler to inactive
-	sub.Handler = nil
-}
+//func (sub *Subscription) Stop() {
+//	// set handler to inactive
+//	sub.Handler = nil
+//}

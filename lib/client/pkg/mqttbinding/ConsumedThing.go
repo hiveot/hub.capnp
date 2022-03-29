@@ -42,7 +42,7 @@ func (cThing *MqttConsumedThing) GetThingDescription() *thing.ThingTD {
 // If the event name is a property name then update the property value store using the property data schema,
 // otherwise use the data schema in the events section of the TD.
 // Last invoke the subscriber to the event name, if any, or the default subscriber
-//  address is the MQTT topic that the event is published on as: things/{id}/event/{eventName}
+//  address is the MQTT topic that the event is published on as: things/{thingID}/event/{eventName}
 //  whereas message is the body of the event.
 func (cThing *MqttConsumedThing) handleEvent(address string, message []byte) {
 	var evData InteractionOutput
@@ -96,7 +96,14 @@ func (cThing *MqttConsumedThing) handleEvent(address string, message []byte) {
 // Takes as arguments actionName, optionally action data as defined in the TD.
 // Returns nil if the action request was submitted successfully or an error if failed
 func (cThing *MqttConsumedThing) InvokeAction(actionName string, data interface{}) error {
-	topic := strings.ReplaceAll(TopicAction, "{id}", cThing.td.ID) + "/" + actionName
+	aa := cThing.td.GetAction(actionName)
+	if aa == nil {
+		err := errors.New("can't invoke action '" + actionName +
+			"'. Action is not defined in TD '" + cThing.td.ID + "'")
+		logrus.Error(err)
+		return err
+	}
+	topic := strings.ReplaceAll(TopicThingAction, "{thingID}", cThing.td.ID) + "/" + actionName
 	return cThing.mqttClient.PublishObject(topic, data)
 }
 
@@ -192,7 +199,7 @@ func (cThing *MqttConsumedThing) SubscribeEvent(
 // It returns an error if the property update could not be sent and nil if it is successfully
 //  published. Final confirmation is obtained if an event is received with the updated property value.
 func (cThing *MqttConsumedThing) WriteProperty(propName string, value interface{}) error {
-	topic := strings.ReplaceAll(TopicThingProperty, "{id}", cThing.td.ID) + "/" + propName
+	topic := strings.ReplaceAll(TopicThingProperty, "{thingID}", cThing.td.ID) + "/" + propName
 	err := cThing.mqttClient.PublishObject(topic, value)
 	if err != nil {
 		logrus.Errorf("MqttConsumedThing:WriteProperty: Failed publishing update request on topic %s: %s", topic, err)
@@ -230,7 +237,7 @@ func Consume(tdDoc *thing.ThingTD, mqttClient *mqttclient.MqttClient) *MqttConsu
 		valueStore:         make(map[string]InteractionOutput),
 	}
 	// in order to keep props up to date, subscribe to all events
-	topic := strings.ReplaceAll(TopicThingEvent, "{id}", cThing.td.ID) + "/#"
+	topic := strings.ReplaceAll(TopicThingEvent, "{thingID}", cThing.td.ID) + "/#"
 	cThing.mqttClient.Subscribe(topic, cThing.handleEvent)
 
 	return &cThing

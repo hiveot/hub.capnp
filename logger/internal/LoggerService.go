@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/wostzone/hub/lib/client/pkg/certsclient"
+	"github.com/wostzone/hub/lib/client/pkg/mqttbinding"
 	"os"
 	"path"
 	"time"
@@ -12,7 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/lib/client/pkg/config"
 	"github.com/wostzone/hub/lib/client/pkg/mqttclient"
-	"github.com/wostzone/hub/lib/client/pkg/td"
+	"github.com/wostzone/hub/lib/client/pkg/thing"
 	"github.com/wostzone/hub/lib/client/pkg/vocab"
 )
 
@@ -31,18 +32,17 @@ type WostLoggerConfig struct {
 // LoggerService is a hub plugin for recording messages to the hub
 // By default it logs messages by ThingID, eg each Thing has a log file
 type LoggerService struct {
-	Config        WostLoggerConfig
-	hubConfig     *config.HubConfig
-	hubConnection *mqttclient.MqttHubClient
-	loggers       map[string]*os.File // map of thing ID to logfile
-	isRunning     bool                // not intended for concurrent use
+	Config     WostLoggerConfig
+	hubConfig  *config.HubConfig
+	mqttClient *mqttclient.MqttClient
+	loggers    map[string]*os.File // map of thing ID to logfile
+	isRunning  bool                // not intended for concurrent use
 }
 
 // handleMessage receives and records a topic message
-func (wlog *LoggerService) logToFile(thingID string, msgType string, payload []byte, sender string) {
+func (wlog *LoggerService) logToFile(thingID string, msgType string, payload []byte) {
 	logrus.Infof("Received message of type '%s' about Thing %s", msgType, thingID)
 	// var err error
-	_ = sender
 
 	if wlog.loggers == nil {
 		logrus.Errorf("logToFile called after logger has stopped")
@@ -65,14 +65,15 @@ func (wlog *LoggerService) logToFile(thingID string, msgType string, payload []b
 		wlog.loggers[thingID] = fileHandle
 		logger = fileHandle
 	}
-	parsedMsg := make(map[string]interface{})
+	//parsedMsg := make(map[string]interface{})
+	var parsedMsg interface{}
+	_ = json.Unmarshal(payload, &parsedMsg)
+
 	logMsg := make(map[string]interface{})
 	logMsg["receivedAt"] = time.Now().Format("2006-01-02T15:04:05.000-0700")
-	logMsg["sender"] = ""
 	logMsg["payload"] = parsedMsg
 	logMsg["thingID"] = thingID
 	logMsg["msgType"] = msgType
-	_ = json.Unmarshal(payload, &parsedMsg)
 	pretty, _ := json.MarshalIndent(logMsg, " ", "  ")
 	prettyStr := string(pretty) + ",\n"
 	_, _ = logger.WriteString(prettyStr)
@@ -87,13 +88,15 @@ func (wlog *LoggerService) PublishServiceTD() {
 	thingID := thing.CreatePublisherID(wlog.hubConfig.Zone, "hub", wlog.Config.ClientID, deviceType)
 	logrus.Infof("Publishing this service TD %s", thingID)
 	thingTD := thing.CreateTD(thingID, PluginID, deviceType)
-	// Include the logging folder as a property
-	prop := thing.CreateProperty("Logging Folder", "Directory where to store the log files", vocab.PropertyTypeAttr)
-	thing.SetPropertyDataTypeString(prop, 0, 0)
-	//
-	thing.AddTDProperty(thingTD, "logsFolder", prop)
-	wlog.hubConnection.PublishTD(thingID, thingTD)
-	thing.SetThingDescription(thingTD, "Simple Hub message logging", "This service logs hub messages to file")
+	thingTD.UpdateTitleDescription("Simple Hub message logging", "This service logs hub messages to file")
+	thingTD.UpdateProperty("logsFolder", &thing.PropertyAffordance{
+		DataSchema: thing.DataSchema{
+			Type:  vocab.WoTDataTypeString,
+			Title: "Directory where to store the log files",
+		},
+	})
+	eThing := mqttbinding.CreateExposedThing(thingTD, wlog.mqttClient)
+	eThing.Expose()
 }
 
 // Start connects, subscribe and start the recording
@@ -117,7 +120,7 @@ func (wlog *LoggerService) Start(hubConfig *config.HubConfig) error {
 		return err
 	}
 
-	// connect the the message bus to receive messages
+	// connect to the message bus to receive messages
 	caCertPath := path.Join(hubConfig.CertsFolder, config.DefaultCaCertFile)
 	caCert, err := certsclient.LoadX509CertFromPEM(caCertPath)
 	if err == nil {
@@ -131,22 +134,25 @@ func (wlog *LoggerService) Start(hubConfig *config.HubConfig) error {
 		return err
 	}
 	hostPort := fmt.Sprintf("%s:%d", hubConfig.Address, hubConfig.MqttPortCert)
-	wlog.hubConnection = mqttclient.NewMqttHubClient(wlog.Config.ClientID, caCert)
-	err = wlog.hubConnection.ConnectWithClientCert(hostPort, pluginCert)
+	wlog.mqttClient = mqttclient.NewMqttClient(wlog.Config.ClientID, caCert, 0)
+	err = wlog.mqttClient.ConnectWithClientCert(hostPort, pluginCert)
 	if err != nil {
 		return err
 	}
 
 	if wlog.Config.ThingIDs == nil || len(wlog.Config.ThingIDs) == 0 {
 		// log everything
-		wlog.hubConnection.Subscribe("", func(thingID string, msgType string, payload []byte, senderID string) {
-			wlog.logToFile(thingID, msgType, payload, senderID)
+		wlog.mqttClient.Subscribe("#", func(address string, payload []byte) {
+			thingID, msgType := mqttbinding.SplitTopic(address)
+			wlog.logToFile(thingID, msgType, payload)
 		})
 	} else {
 		for _, thingID := range wlog.Config.ThingIDs {
-			wlog.hubConnection.Subscribe(thingID,
-				func(evThingID string, msgType string, payload []byte, senderID string) {
-					wlog.logToFile(evThingID, msgType, payload, senderID)
+			topic := mqttbinding.CreateTopic(thingID, "#")
+			wlog.mqttClient.Subscribe(topic,
+				func(address string, payload []byte) {
+					cbThingID, msgType := mqttbinding.SplitTopic(address)
+					wlog.logToFile(cbThingID, msgType, payload)
 				})
 		}
 	}
@@ -165,19 +171,17 @@ func (wlog *LoggerService) Stop() {
 		return
 	}
 	logrus.Info("Stopping logging service")
-	if len(wlog.Config.ThingIDs) == 0 {
-		wlog.hubConnection.Unsubscribe("")
-	} else {
-		for _, thingID := range wlog.Config.ThingIDs {
-			wlog.hubConnection.Unsubscribe(thingID)
-		}
+	// remove subscriptions before closing loggers
+	for _, thingID := range wlog.Config.ThingIDs {
+		topic := mqttbinding.CreateTopic(thingID, "#")
+		wlog.mqttClient.Unsubscribe(topic)
 	}
 	for _, logger := range wlog.loggers {
 		// logger.Out.(*os.File).Close()
 		logger.Close()
 	}
 	wlog.loggers = nil
-	wlog.hubConnection.Close()
+	wlog.mqttClient.Close()
 	wlog.isRunning = false
 }
 

@@ -15,8 +15,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/lib/client/pkg/config"
 	"github.com/wostzone/hub/lib/client/pkg/mqttclient"
-	"github.com/wostzone/hub/lib/client/pkg/td"
 	"github.com/wostzone/hub/lib/client/pkg/testenv"
+	"github.com/wostzone/hub/lib/client/pkg/thing"
 	"github.com/wostzone/hub/lib/client/pkg/vocab"
 )
 
@@ -115,11 +115,11 @@ func TestUpdateTD(t *testing.T) {
 
 	// Publishing a TD should update the directory
 	mqttHostPort := fmt.Sprintf("%s:%d", hubConfig.Address, hubConfig.MqttPortCert)
-	mqttClient := mqttclient.NewMqttHubClient("testUpdateTD", hubConfig.CaCert)
+	mqttClient := mqttclient.NewMqttClient("testUpdateTD", hubConfig.CaCert, 0)
 	mqttClient.ConnectWithClientCert(mqttHostPort, hubConfig.PluginCert)
 	require.NotNil(t, mqttClient)
 	td1 := thing.CreateTD("thing1", "test thing", vocab.DeviceTypeButton)
-	err = mqttClient.PublishTD("thing1", td1)
+	err = mqttClient.PublishObject("thing1", td1.AsMap())
 	assert.NoError(t, err)
 
 	// update takes place in the background so wait a few msec

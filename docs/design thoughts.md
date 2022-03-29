@@ -100,7 +100,7 @@ Use a single message bus for all commonication within and to/from the Hub.
       2. publish to select things (role or other access control method)
          1. Use group role membership
 3. Things can connect to publish updates, events, and subscribe to actions
-   1. address is ... 'things/{id}/...
+   1. address is ... 'things/{thingID}/...
 4. Consumers can connect to real-time events
    1. address is things/#
 5. How do Things that are also consumers identify?

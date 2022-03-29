@@ -90,7 +90,7 @@ func TestMqttConnectWithUnpw(t *testing.T) {
 	// FIXME: this used to work using the MQTT protocol port. For some reason that stopped
 	// client := mqttclient.NewMqttClient(mqttUnpwAddress, certsclient.CaCert, 0)
 	client := mqttclient.NewMqttClient(testPluginID, certs.CaCert, 0)
-	err := client.ConnectWithPassword(mqttUnpwAddress, username, password)
+	err := client.ConnectWithAccessToken(mqttUnpwAddress, username, password)
 	assert.NoError(t, err)
 	client.Close()
 }

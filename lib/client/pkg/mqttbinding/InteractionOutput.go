@@ -69,11 +69,12 @@ func (io *InteractionOutput) ValueAsInt() int {
 }
 
 // ValueAsMap returns the value as a key-value map
+// Returns nil if no data was provided.
 func (io *InteractionOutput) ValueAsMap() map[string]interface{} {
 	o := make(map[string]interface{})
 	err := json.Unmarshal(io.jsonEncoded, &o)
 	if err != nil {
-		logrus.Errorf("ValueAsObject: Can't convert value '%s' to a int", io.value)
+		logrus.Errorf("ValueAsMap: Can't convert value '%s' to a map", io.value)
 	}
 	return o
 }
@@ -99,7 +100,7 @@ func NewInteractionOutputFromJson(jsonEncoded []byte, schema *thing.DataSchema) 
 		}
 	}
 	if err != nil {
-		logrus.Errorf("NewInteractionOutputFromJson. Unable to unmarshal data: '%s'", jsonEncoded)
+		logrus.Errorf("NewInteractionOutputFromJson. Error unmarshalling data: '%s'", err)
 	}
 	io := InteractionOutput{
 		jsonEncoded: jsonEncoded,

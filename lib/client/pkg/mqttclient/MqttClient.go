@@ -56,9 +56,9 @@ type TopicSubscription struct {
 // is increased until 120 seconds.
 // The clientID is generated as appID-hostname-username-timestamp.
 //  userName to authenticate with. Use plugin ID for certificate
-//  password to authenticate with. Use "" to ignore
-//  clientCert to authenticate with client certificate. Use nil to authenticate with username/password
-func (mqttClient *MqttClient) Connect(hostPort string, username string, password string, clientCert *tls.Certificate) error {
+//  accessToken to authenticate with. Use "" to ignore
+//  clientCert to authenticate with client certificate. Use nil to authenticate with username/access token
+func (mqttClient *MqttClient) Connect(hostPort string, username string, accessToken string, clientCert *tls.Certificate) error {
 	logrus.Infof("MqttClient.Connect. username='%s', has clientCert '%v'", username, clientCert != nil)
 
 	// ClientID defaults to hostname-millisecondsSinceEpoc
@@ -74,7 +74,7 @@ func (mqttClient *MqttClient) Connect(hostPort string, username string, password
 	}
 
 	// tls://host:8883, tls://host:8884, tcps://awshost:8883/mqtt, or wss://host:8885/
-	// TLS for MQTT protocol either certificate or Username/password auth
+	// TLS for MQTT protocol either certificate or Username/accessToken auth
 	brokerURL := fmt.Sprintf("tls://%s/", hostPort)
 	// websocket is not needed for this client
 	// if userwss {
@@ -124,14 +124,14 @@ func (mqttClient *MqttClient) Connect(hostPort string, username string, password
 		// https://opium.io/blog/mqtt-in-go/
 		ServerName: "", // hostname on the server certificate. How to get this?
 	}
-	// auth with client certificate and/or username/password
+	// auth with client certificate and/or username/accessToken
 	if clientCert != nil {
 		tlsConfig.Certificates = []tls.Certificate{*clientCert}
 	}
 	//
 	opts.Username = username
-	if password != "" {
-		opts.Password = password
+	if accessToken != "" {
+		opts.Password = accessToken
 	}
 	opts.SetTLSConfig(tlsConfig)
 
@@ -173,15 +173,15 @@ func (mqttClient *MqttClient) Connect(hostPort string, username string, password
 	return err
 }
 
-// ConnectWithPassword connects to the MQTT broker using password authentication
+// ConnectWithAccessToken connects to the MQTT broker using an access token for authentication
 // If a previous connection exists then it is disconnected first. If no connection is possible
 // this keeps retrying until the timeout is expired. With each retry a backoff period
 // is increased until 120 seconds.
 //  hostPort with address and port for MQTT password authentication
-//  userName to identify as
-//  password credentials to identify with
-func (mqttClient *MqttClient) ConnectWithPassword(hostPort string, userName string, password string) error {
-	err := mqttClient.Connect(hostPort, userName, password, nil)
+//  userName to identify as. Must match access token.
+//  password access token to identify with
+func (mqttClient *MqttClient) ConnectWithAccessToken(hostPort string, userName string, accessToken string) error {
+	err := mqttClient.Connect(hostPort, userName, accessToken, nil)
 	return err
 }
 
@@ -349,10 +349,9 @@ func (mqttClient *MqttClient) Subscribe(
 	mqttClient.subscriptions[topic] = subscription
 }
 
-// Unsubscribe a topic and handler
-// if handler is nil then all subscribers to the topic are removed
+// Unsubscribe a topic
 func (mqttClient *MqttClient) Unsubscribe(topic string) {
-	logrus.Infof("MqttClient.Unsubscribe: topic %s", topic)
+	logrus.Infof("MqttClient.Unsubscribe: topic='%s'", topic)
 
 	// messenger.publishMutex.Lock()
 
@@ -372,13 +371,13 @@ func (mqttClient *MqttClient) Unsubscribe(topic string) {
 // NewMqttClient creates a new MQTT messenger instance
 // The clientCertFile and clientKeyFile are optional. If provided then they must be signed
 // by the CA used by the broker, so that the broker can authenticate the client. Leave empty when
-// not using client certificates. See ConnectWithPassword or ConnectWithClientCert for
+// not using client certificates. See ConnectWithAccessToken or ConnectWithClientCert for
 // the two methods of authentication.
 // To avoid hanging, keep the timeout low, if 0 is provided the default of 3 seconds is used
 //
 //  appID application ID to include in the MQTT client ID
 //  caCert with the x509 CA certificate for validating the server connection
-//  timeoutSec to attempt connecting before it is considered failed
+//  timeoutSec to attempt connecting before it is considered failed. Use 0 for default (3)
 func NewMqttClient(appID string, caCert *x509.Certificate, timeoutSec int) *MqttClient {
 	if timeoutSec <= 0 {
 		timeoutSec = DefaultTimeoutSec

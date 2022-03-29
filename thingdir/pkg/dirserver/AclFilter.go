@@ -23,7 +23,7 @@ func (aclFilter *AclFilter) FilterThing(thingID string) bool {
 		return false
 	}
 	// authorize read access
-	hasAccess := aclFilter.authorizer(aclFilter.userID, aclFilter.certOU, thingID, false, "")
+	hasAccess := aclFilter.authorizer(aclFilter.userID, aclFilter.certOU, thingID, authorize.AuthRead)
 	return hasAccess
 }
 

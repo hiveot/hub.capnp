@@ -30,6 +30,7 @@ var mqttCertAddress = fmt.Sprintf("%s:%d", testenv.ServerAddress, testenv.MqttPo
 // For running mosquitto in test
 const testPluginID = "test-plugin"
 const testActionName = "action1"
+const testEventName = "event1"
 const testDeviceID = "device1"
 const testDeviceType = vocab.DeviceTypeButton
 const testProp1Name = "prop1"
@@ -51,6 +52,11 @@ func createTestTD() *thing.ThingTD {
 		},
 	}
 	tdDoc.UpdateProperty(testProp1Name, prop)
+
+	// add event to TD
+	tdDoc.UpdateEvent(testEventName, &thing.EventAffordance{
+		Data: thing.DataSchema{},
+	})
 
 	// add action to TD
 	tdDoc.UpdateAction(testActionName, &thing.ActionAffordance{
@@ -117,7 +123,7 @@ func TestReadProperty(t *testing.T) {
 	assert.NoError(t, err)
 
 	// step 3 publish the property value (impersonate an ExposedThing)
-	topic := strings.ReplaceAll(mqttbinding.TopicThingEvent, "{id}", testThingID) + "/" + testProp1Name
+	topic := strings.ReplaceAll(mqttbinding.TopicThingEvent, "{thingID}", testThingID) + "/" + testProp1Name
 	err = client.PublishObject(topic, testProp1Value)
 	assert.NoError(t, err)
 	time.Sleep(time.Second)
@@ -161,7 +167,7 @@ func TestReceiveEvent(t *testing.T) {
 	assert.NoError(t, err)
 
 	// step 3 publish the event (impersonate an ExposedThing)
-	topic := strings.ReplaceAll(mqttbinding.TopicThingEvent, "{id}", testThingID) + "/" + eventName
+	topic := strings.ReplaceAll(mqttbinding.TopicThingEvent, "{thingID}", testThingID) + "/" + eventName
 	err = client.PublishObject(topic, eventValue)
 	assert.NoError(t, err)
 	time.Sleep(time.Second)
@@ -186,7 +192,7 @@ func TestInvokeAction(t *testing.T) {
 
 	// step 2 create a ConsumedThing and listen for actions on the mqtt bus
 	cThing := mqttbinding.Consume(testTD, client)
-	actionTopic := strings.ReplaceAll(mqttbinding.TopicAction, "{id}", testThingID) + "/#"
+	actionTopic := strings.ReplaceAll(mqttbinding.TopicThingAction, "{thingID}", testThingID) + "/#"
 	client.Subscribe(actionTopic, func(address string, message []byte) {
 		receivedAction = true
 		var rxData string
@@ -205,6 +211,26 @@ func TestInvokeAction(t *testing.T) {
 	// step 5 cleanup
 	cThing.Stop()
 	client.Unsubscribe(actionTopic)
+	client.Close()
+}
+
+func TestInvokeActionBadName(t *testing.T) {
+	logrus.Infof("--- TestInvokeActionBadName ---")
+
+	// step 1 create the MQTT message bus client
+	client := mqttclient.NewMqttClient(testPluginID, certs.CaCert, 0)
+	err := client.ConnectWithClientCert(mqttCertAddress, certs.PluginCert)
+	assert.NoError(t, err)
+
+	// step 2 create a ConsumedThing and listen for actions on the mqtt bus
+	cThing := mqttbinding.Consume(testTD, client)
+
+	// step 3 publish the action with unknown name
+	err = cThing.InvokeAction("unknown-action", "")
+	assert.Error(t, err)
+
+	// step 4 cleanup
+	cThing.Stop()
 	client.Close()
 }
 

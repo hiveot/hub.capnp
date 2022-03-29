@@ -47,7 +47,7 @@ A WoST compatible device must be provisioned using one of the client API's. When
 
 Thing publish a Thing Description Document to subscribers
 
-> Topic: things/{id}/td
+> Topic: things/{thingID}/td
 > Content: 
 > ```json
 > {
@@ -69,7 +69,7 @@ Since option 1 keeps the API the smallest. The solution chosen is to use the 'ca
 Notify consumers that one or more Thing property values are updated. 
 
 > ### Values Message
-> Topic: things/{id}/values
+> Topic: things/{thingID}/values
 > 
 > Contains the values of changed TD properties:
 > ```json
@@ -86,7 +86,7 @@ Consumers can subscribe to a this topic or the 'things/+/values' wildcard topic 
 Notify consumers of one or more events that have happened on a Thing.
 
 > ### Events Message
-> Topic: things/{id}/events
+> Topic: things/{thingID}/events
 > 
 > Contains the values of the TD 'events' object properties:
 >```json
@@ -105,7 +105,7 @@ Consumer request that a Thing updates its configuration property value(s). Note 
 
 Things subscribe to this address to receive the update request. If successful this results in a publication of a configuration property values update message by the Thing.
 
-> Topic: things/{id}/config
+> Topic: things/{thingID}/config
 > Content: 
 > ```json
 > {
@@ -120,7 +120,7 @@ Consumer requests an action on a Thing.
 
 Things subscribe to this address to receive the action requests. If successful this results in a publication of an actuator property value update message by the Thing.
 
-> Topic: things/{id}/action
+> Topic: things/{thingID}/action
 > ```json
 > Content:
 > {

@@ -80,7 +80,7 @@ type MqttExposedThing struct {
 
 // Destroy the exposed thing. This stops serving external requests
 func (eThing *MqttExposedThing) Destroy() {
-	topic := strings.ReplaceAll(TopicThingEvent, "{id}", eThing.td.ID) + "/#"
+	topic := strings.ReplaceAll(TopicThingEvent, "{thingID}", eThing.td.ID) + "/#"
 	eThing.mqttClient.Unsubscribe(topic)
 
 	eThing.eventSubscriptions = nil
@@ -122,7 +122,7 @@ func (eThing *MqttExposedThing) EmitEvent(name string, data interface{}) error {
 		return err
 	}
 
-	topic := strings.ReplaceAll(TopicThingEvent, "{id}", eThing.td.ID) + "/" + name
+	topic := strings.ReplaceAll(TopicThingEvent, "{thingID}", eThing.td.ID) + "/" + name
 	err := eThing.mqttClient.PublishObject(topic, data)
 	return err
 }
@@ -132,13 +132,13 @@ func (eThing *MqttExposedThing) EmitEvent(name string, data interface{}) error {
 func (eThing *MqttExposedThing) Expose() error {
 	// Actions and Properties are handled the same.
 	// An action with a property name will update the property.
-	topic := strings.ReplaceAll(TopicThingProperty, "{id}", eThing.td.ID) + "/#"
+	topic := strings.ReplaceAll(TopicThingProperty, "{thingID}", eThing.td.ID) + "/#"
 	eThing.mqttClient.Subscribe(topic, eThing.handlePropertyWriteRequest)
-	topic = strings.ReplaceAll(TopicAction, "{id}", eThing.td.ID) + "/#"
+	topic = strings.ReplaceAll(TopicThingAction, "{thingID}", eThing.td.ID) + "/#"
 	eThing.mqttClient.Subscribe(topic, eThing.handleActionRequest)
 
 	// Also publish this Thing's TD document
-	topic = strings.ReplaceAll(TopicThingTD, "{id}", eThing.td.ID)
+	topic = strings.ReplaceAll(TopicThingTD, "{thingID}", eThing.td.ID)
 	err := eThing.mqttClient.PublishObject(topic, eThing.td)
 	return err
 }
@@ -182,7 +182,7 @@ func (eThing *MqttExposedThing) handleActionRequest(address string, message []by
 		}
 	}
 	if err != nil {
-		logrus.Warningf("MqttExposedThing.handleActionRequest: request failed for topic %s: %s", address, err)
+		logrus.Errorf("MqttExposedThing.handleActionRequest: request failed for topic %s: %s", address, err)
 	}
 }
 
@@ -294,13 +294,13 @@ func (eThing *MqttExposedThing) SetPropertyWriteHandler(
 	eThing.propertyHandlers[propName] = writeHandler
 }
 
-// Produce constructs an exposed thing from a TD.
-// An exposed Thing is a local instance of a thing for the purpose of interaction
-// with remote consumers.
+// CreateExposedThing constructs an exposed thing from a TD.
+// An exposed Thing is a local instance of a thing for the purpose of interaction with remote consumers.
+// Call 'Expose' to publish the TD of the thing and to start listening for actions and property write requests.
 //
 // tdDoc is a Thing Description document of the Thing to expose.
 // mqttClient client for binding to the MQTT protocol
-func Produce(tdDoc *thing.ThingTD, mqttClient *mqttclient.MqttClient) *MqttExposedThing {
+func CreateExposedThing(tdDoc *thing.ThingTD, mqttClient *mqttclient.MqttClient) *MqttExposedThing {
 	eThing := &MqttExposedThing{
 		// the consumed thing does not subscribe to property events, just initialize the fields
 		// TBD should an exposed thing support property change subscription?

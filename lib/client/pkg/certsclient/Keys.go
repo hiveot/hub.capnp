@@ -111,7 +111,7 @@ func PublicKeyToPEM(publicKey interface{}) (string, error) {
 	return string(pemEncodedPub), err
 }
 
-// SaveKeyToPEM saves the private/public key set to file in PEM format.
+// SaveKeysToPEM saves the private/public key set to file in PEM format.
 // Client that generate a private key on first start use this to persist the key.
 // Supports private *ecdsa.PrivateKey, *rsa.PrivateKey and *ed25519.PrivateKey
 // Returns error in case the private key is invalid

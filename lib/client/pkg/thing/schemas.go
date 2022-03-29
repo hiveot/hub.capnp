@@ -2,7 +2,15 @@
 // as described here: https://www.w3.org/TR/wot-thing-description/#sec-data-schema-vocabulary-definition
 package thing
 
+//func (ds *AnySchema) UnmarshalJSON(data []byte) error {
+//	return nil
+//}
+
 // DataSchema with metadata  that describes the data format used. It can be used for validation.
+//
+// Golang doesn't support dynamic types or subclasses, so DataSchema merges all possible schemas
+// including string, number, integer, object, array,...
+//
 // based on https://www.w3.org/TR/wot-thing-description/#dataschema
 type DataSchema struct {
 	// JSON-LD keyword to label the object with semantic tags (or types)
@@ -23,7 +31,7 @@ type DataSchema struct {
 	// See vocab UnitNameXyz for units in the WoST vocabulary
 	Unit string `json:"unit,omitempty"`
 	// OneOf provides constraint of data as one of the given data schemas
-	OneOf []DataSchema `json:"oneOf,omitempty"`
+	OneOf []interface{} `json:"oneOf,omitempty"`
 	// Restricted set of values provided as an array.
 	//  for example: ["option1", "option2"]
 	Enum []interface{} `json:"enum,omitempty"`
@@ -36,58 +44,57 @@ type DataSchema struct {
 	// Allows validation based on a format pattern such as "date-time", "email", "uri", etc.
 	// See vocab DataFormXyz "date-time", "email", "uri" (todo)
 	Format string `json:"format,omitempty"`
-	// Type provides JSON based data type,  one of object, array, string, number, integer, boolean or null
+	// Type provides JSON based data type,  one of WoTDataTypeNumber, ...object, array, string, integer, boolean or null
 	Type string `json:"type,omitempty"`
-}
 
-// ArraySchema with metadata describing data of type Array.
-// https://www.w3.org/TR/wot-thing-description/#arrayschema
-type ArraySchema struct {
-	// subclass of DataSchema
-	DataSchema
+	// ArraySchema with metadata describing data of type Array.
+	// https://www.w3.org/TR/wot-thing-description/#arrayschema
 	// Used to define the characteristics of an array.
 	// Note that in golang a field cannot both be a single or an array of items.
-	Items DataSchema `json:"items"`
+	ArrayItems interface{} `json:"items,omitempty"`
 	// Defines the minimum number of items that have to be in the array
-	MinItems uint `json:"minItems,omitempty"`
+	ArrayMinItems uint `json:"minItems,omitempty"`
 	// Defines the maximum number of items that have to be in the array.
-	MaxItems uint `json:"maxItems,omitempty"`
-}
+	ArrayMaxItems uint `json:"maxItems,omitempty"`
 
-// BooleanSchema with metadata describing data of type boolean.
-// This Subclass is indicated by the value boolean assigned to type in DataSchema instances.
-type BooleanSchema struct {
-	DataSchema
-}
+	// BooleanSchema with metadata describing data of type boolean.
+	// This Subclass is indicated by the value boolean assigned to type in DataSchema instances.
+	// nothing added
 
-// NumberSchema with metadata describing data of type number.
-// This Subclass is indicated by the value number assigned to type in DataSchema instances.
-type NumberSchema struct {
-	DataSchema
-}
+	// NumberSchema with metadata describing data of type number.
+	// This Subclass is indicated by the value number assigned to type in DataSchema instances.
+	// Maximum specifies a maximum numeric value representing an upper limit
+	NumberMaximum float64 `json:"maximum,omitempty"`
+	// Minimum specifies a minimum numeric value representing a lower limit
+	NumberMinimum float64 `json:"minimum,omitempty"`
 
-// IntegerSchema with metadata describing data of type integer.
-// This Subclass is indicated by the value integer assigned to type in DataSchema instances.
-type IntegerSchema struct {
-	DataSchema
-}
+	// IntegerSchema with metadata describing data of type integer.
+	// This Subclass is indicated by the value integer assigned to type in DataSchema instances.
+	// Maximum specifies a maximum integer value representing an upper limit
+	//IntegerMaximum int `json:"maximum,omitempty"`
+	// Minimum specifies a minimum integer value representing a lower limit
+	//IntegerMinimum int `json:"minimum,omitempty"`
 
-// ObjectSchema with metadata describing data of type object.
-// This Subclass is indicated by the value object assigned to type in DataSchema instances.
-type ObjectSchema struct {
-	DataSchema
-}
+	// ObjectSchema with metadata describing data of type Object.
+	// This Subclass is indicated by the value object assigned to type in DataSchema instances.
+	// Properties of Object.
+	Properties map[string]DataSchema `json:"properties,omitempty"`
+	// Defines which members of the object type are mandatory
+	PropertiesRequired []string `json:"required,omitempty"`
 
-// StringSchema with metadata describing data of type string.
-// This Subclass is indicated by the value string assigned to type in DataSchema instances.
-type StringSchema struct {
-	DataSchema
-}
-
-// NullSchema with metadata describing data of type null.
-// This Subclass is indicated by the value null assigned to type in DataSchema instances.
-// This Subclass describes only one acceptable value, namely null. It can be used as part of a oneOf declaration,
-// where it is used to indicate, that the data can also be null.
-type NullSchema struct {
-	DataSchema
+	// StringSchema with metadata describing data of type string.
+	// This Subclass is indicated by the value string assigned to type in DataSchema instances.
+	// MaxLength specifies the maximum length of a string
+	StringMaxLength uint `json:"maxLength,omitempty"`
+	// MinLength specifies the minimum length of a string
+	StringMinLength uint `json:"minLength,omitempty"`
+	// Pattern provides a regular expression to express constraints.
+	// The regular expression must follow the [ECMA-262] dialect.	optional
+	StringPattern string `json:"pattern,omitempty"`
+	// ContentEncoding specifies the encoding used to store the contents, as specified in RFC 2054.
+	// e.g., 7bit, 8bit, binary, quoted-printable, or base64
+	StringContentEncoding string `json:"contentEncoding,omitempty"`
+	// ContentMediaType specifies the MIME type of the contents of a string value, as described in RFC 2046.
+	// e.g., image/png, or audio/mpeg)
+	StringContentMediaType string `json:"contentMediaType,omitempty"`
 }

@@ -88,8 +88,8 @@ func TestNoAuth(t *testing.T) {
 // Test with invalid login authentication
 func TestUnauthorized(t *testing.T) {
 	path1 := "/test1"
-	loginID1 := "user1"
-	password1 := "user1pass"
+	//loginID1 := "user1"
+	//password1 := "user1pass"
 
 	// setup server and client environment
 	srv := tlsserver.NewTLSServer(serverAddress, serverPort,
@@ -107,8 +107,7 @@ func TestUnauthorized(t *testing.T) {
 	assert.NoError(t, err)
 
 	// AuthMethodNone creates a client without any authentication method
-	_, err = cl.ConnectWithLoginID(loginID1, password1, "", tlsclient.AuthMethodNone)
-	assert.NoError(t, err)
+	cl.ConnectNoAuth()
 
 	// ... which causes any request to fail
 	_, err = cl.Get(path1)
@@ -244,8 +243,7 @@ func TestBasicAuth(t *testing.T) {
 	//
 	cl := tlsclient.NewTLSClient(clientHostPort, testCerts.CaCert)
 	assert.NoError(t, err)
-	_, err = cl.ConnectWithLoginID(loginID1, password1, "", tlsclient.AuthMethodBasic)
-	assert.NoError(t, err)
+	cl.ConnectWithBasicAuth(loginID1, password1)
 
 	// test the auth with a GET request
 	_, err = cl.Get(path1)
@@ -254,8 +252,7 @@ func TestBasicAuth(t *testing.T) {
 
 	// test a failed login
 	cl.Close()
-	_, err = cl.ConnectWithLoginID(loginID1, "wrongpassword", "", tlsclient.AuthMethodBasic)
-	assert.NoError(t, err)
+	cl.ConnectWithBasicAuth(loginID1, "wrongpassword")
 	_, err = cl.Get(path1)
 	assert.Error(t, err)
 	assert.Equal(t, 3, path1Hit) // should not increase

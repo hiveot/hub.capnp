@@ -4,6 +4,7 @@ package dirserver
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"github.com/wostzone/hub/lib/client/pkg/certsclient"
 	"path"
 	"time"
 
@@ -30,13 +31,13 @@ const DefaultDirectoryStoreFile = "directory.json"
 // DirectoryServer for web of things
 type DirectoryServer struct {
 	// config
-	address    string            // listening address
-	caCert     *x509.Certificate // path to CA certificate PEM file
-	instanceID string            // ID of this service
-	port       uint              // listening port
-	serverCert *tls.Certificate  // path to server certificate PEM file
-	//authenticator authenticate.VerifyUsernamePassword
-	authorizer authorize.VerifyAuthorization
+	address       string            // listening address
+	caCert        *x509.Certificate // path to CA certificate PEM file
+	instanceID    string            // ID of this service
+	port          uint              // listening port
+	serverCert    *tls.Certificate  // path to server certificate PEM file
+	authenticator *tlsserver.JWTAuthenticator
+	authorizer    authorize.VerifyAuthorization
 
 	// the service name. Use dirclient.DirectoryServiceName for default or "" to disable DNS discovery
 	discoveryName string
@@ -46,6 +47,12 @@ type DirectoryServer struct {
 	tlsServer   *tlsserver.TLSServer
 	discoServer *zeroconf.Server
 	store       *dirfilestore.DirFileStore
+}
+
+// PatchTD changes a TD with the attributes of the given TD
+func (srv *DirectoryServer) PatchTD(thingID string, tdMap map[string]interface{}) error {
+	err := srv.store.Patch(thingID, tdMap)
+	return err
 }
 
 // Address returns the address that the server listens on
@@ -120,7 +127,15 @@ func (srv *DirectoryServer) Stop() {
 	}
 }
 
+// UpdateTD updates the TD in the store
+func (srv *DirectoryServer) UpdateTD(thingID string, tdMap map[string]interface{}) error {
+	err := srv.store.Replace(thingID, tdMap)
+	return err
+}
+
 // NewDirectoryServer creates a new instance of the IoT Device Provisioning Server.
+// This server requires a valid JWT access token in the authorization header field, obtained
+// from the authn service.
 //  - instanceID is the unique ID for this service used in discovery and communication
 //  - storeFolder is the location of the directory storage file. This must be writable.
 //  - address the server listening address. Typically the same address as the mqtt bus
@@ -143,6 +158,13 @@ func NewDirectoryServer(
 		logrus.Panic("NewDirectoryServer: Invalid arguments for instanceID or port")
 		panic("Exit due to invalid args")
 	}
+
+	x509Cert, err := x509.ParseCertificate(serverCert.Certificate[0])
+	if err != nil {
+		logrus.Errorf("NewDirectoryServer. Error getting server cert from TLS: %s", err)
+	}
+	serverKey := certsclient.PublicKeyFromCert(x509Cert)
+
 	storePath := path.Join(storeFolder, DefaultDirectoryStoreFile)
 	srv := DirectoryServer{
 		address:       address,
@@ -152,6 +174,7 @@ func NewDirectoryServer(
 		instanceID:    instanceID,
 		port:          port,
 		store:         dirfilestore.NewDirFileStore(storePath),
+		authenticator: tlsserver.NewJWTAuthenticator(serverKey),
 		authorizer:    authorizer,
 	}
 	return &srv

@@ -25,7 +25,7 @@ type PluginConfig struct {
 type MosquittoManager struct {
 	Config       PluginConfig
 	hubConfig    *config.HubConfig
-	hubClient    *mqttclient.MqttHubClient // for communication with the Hub
+	mqttClient   *mqttclient.MqttClient // for communication with the Hub
 	mosquittoCmd *exec.Cmd
 	isRunning    chan bool
 }
@@ -94,8 +94,8 @@ func (mm *MosquittoManager) Stop() {
 		// 	logrus.Infof("MosquittoManager.Stop. Wait mosquitto error: %s", err)
 		// }
 	}
-	if mm.hubClient != nil {
-		mm.hubClient.Close()
+	if mm.mqttClient != nil {
+		mm.mqttClient.Close()
 	}
 }
 

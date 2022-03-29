@@ -1,8 +1,10 @@
 package dirserver_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/wostzone/hub/authn/pkg/jwtissuer"
+	"github.com/wostzone/hub/lib/client/pkg/thing"
 	"os"
 	"path"
 	"strings"
@@ -49,28 +51,33 @@ var tdDefs = []struct {
 }
 
 // authentication result
-var authenticateResult = true
+//var authenticateResult = true
 
 // authorization result
 var authorizeResult = true
 
 // Add a bunch of TDs
-func AddTds(client *dirclient.DirClient) {
-	for _, tdDef := range tdDefs {
-		td1 := thing.CreateTD(tdDef.id, "test thing", tdDef.deviceType)
-		thing.AddTDProperty(td1, "name", thing.CreateProperty(tdDef.name, "", vocab.PropertyTypeAttr))
-		client.UpdateTD(tdDef.id, td1)
+func AddTds(srv *dirserver.DirectoryServer) {
+	for _, tdoc := range tdDefs {
+		var tdMap map[string]interface{}
+		td1 := thing.CreateTD(tdoc.id, "test thing", tdoc.deviceType)
+		tdJson, _ := json.Marshal(td1)
+		_ = json.Unmarshal(tdJson, &tdMap)
+		_ = srv.UpdateTD(tdoc.id, tdMap)
 	}
 }
 
 // Authenticator for testing of authentication of type 'authenticate.VerifyUsernamePassword'
-func authenticator(username string, password string) bool {
-	return authenticateResult
-}
+//func authenticator(username string, password string) bool {
+//	return authenticateResult
+//}
 
 // Authorizer for testing of authorization of type 'authorize.ValidateAuthorization'
-func authorizer(userID string, certOU string,
-	thingID string, writing bool, writeType string) bool {
+func authorizer(userID string, certOU string, thingID string, authType string) bool {
+	_ = userID
+	_ = certOU
+	_ = thingID
+	_ = authType
 	return authorizeResult
 }
 
@@ -91,9 +98,8 @@ func TestMain(m *testing.M) {
 		serverAddress, testDirectoryPort,
 		testServiceDiscoveryName,
 		testCerts.ServerCert, testCerts.CaCert,
-		//authenticator,
 		authorizer)
-	directoryServer.Start()
+	_ = directoryServer.Start()
 
 	res := m.Run()
 
@@ -140,13 +146,14 @@ func TestUpdate(t *testing.T) {
 
 	// Create
 	td1 := thing.CreateTD(thingID1, "test thing", deviceType1)
-	err = dirClient.UpdateTD(thingID1, td1)
+	tdMap := td1.AsMap()
+	err = directoryServer.UpdateTD(thingID1, tdMap)
 	assert.NoError(t, err)
 
 	// get result
 	td2, err := dirClient.GetTD(thingID1)
 	assert.NoError(t, err)
-	assert.Equal(t, td1["id"], td2["id"])
+	assert.Equal(t, td1.ID, td2.ID)
 
 	dirClient.Close()
 }
@@ -162,7 +169,7 @@ func TestBadUpdate(t *testing.T) {
 	// Create
 	// td1 := td.CreateTD(thingID1, deviceType1)
 
-	err = dirClient.UpdateTD(thingID1, nil)
+	err = directoryServer.UpdateTD(thingID1, nil)
 	assert.Error(t, err)
 	dirClient.Close()
 
@@ -192,29 +199,35 @@ func TestPatch(t *testing.T) {
 	err := dirClient.ConnectWithClientCert(testCerts.PluginCert)
 	require.NoError(t, err)
 
-	AddTds(dirClient)
+	AddTds(directoryServer)
 
 	// Change the device type to sensor using patch
 	thingID1 := tdDefs[0].id
 	td1 := thing.CreateTD(thingID1, "test thing", vocab.DeviceTypeSensor)
-	thing.AddTDProperty(td1, "name", thing.CreateProperty("name1", "just a name", vocab.PropertyTypeAttr))
-
-	err = dirClient.PatchTD(thingID1, td1)
+	td1.UpdateProperty("name1", &thing.PropertyAffordance{
+		DataSchema: thing.DataSchema{
+			Title:    "Just a name",
+			ReadOnly: true, // this is an attribute
+		},
+	})
+	err = directoryServer.PatchTD(thingID1, td1.AsMap())
 	assert.NoError(t, err)
-	props1 := td1["properties"].(map[string]interface{})
-	nameProp1 := props1["name"].(map[string]interface{})
-	nameProp1val := nameProp1["title"]
+
+	//props1 := td1["properties"].(map[string]interface{})
+	//nameProp1 := props1["name"].(map[string]interface{})
+	//nameProp1val := nameProp1["title"]
 
 	// check result
 	td2, err := dirClient.GetTD(thingID1)
 	assert.NoError(t, err)
-	assert.Equal(t, td1["id"], td2["id"])
-	assert.Equal(t, string(vocab.DeviceTypeSensor), td2["@type"])
-	props2 := td2["properties"].(map[string]interface{})
-	nameProp2 := props2["name"].(map[string]interface{})
-	nameProp2val := nameProp2["title"]
-	assert.NotEmpty(t, nameProp2val)
-	assert.Equal(t, nameProp1val, nameProp2val)
+	assert.Equal(t, td1.ID, td2.ID)
+	assert.Equal(t, string(vocab.DeviceTypeSensor), td2.AtType)
+
+	props1 := td1.GetProperty("name1")
+	props2 := td2.GetProperty("name1")
+	assert.Equal(t, props1.Title, props2.Title)
+
+	// cleanup
 	dirClient.Close()
 }
 
@@ -226,12 +239,14 @@ func TestBadPatch(t *testing.T) {
 	err := dirClient.ConnectWithClientCert(testCerts.PluginCert)
 	require.NoError(t, err)
 
-	AddTds(dirClient)
+	AddTds(directoryServer)
 	thingID1 := tdDefs[0].id
 	td1 := thing.CreateTD(thingID1, "test thing", vocab.DeviceTypeSensor)
-	thing.AddTDProperty(td1, "name", thing.CreateProperty("name1", "just a name", vocab.PropertyTypeAttr))
+	td1.UpdateProperty("name", &thing.PropertyAffordance{
+		DataSchema: thing.DataSchema{Title: "title1", ReadOnly: true},
+	})
 
-	err = dirClient.PatchTD(thingID1, nil)
+	err = directoryServer.PatchTD(thingID1, nil)
 	assert.Error(t, err)
 	dirClient.Close()
 
@@ -252,7 +267,7 @@ func TestQueryAndList(t *testing.T) {
 
 	dirClient := dirclient.NewDirClient(serverHostPort, testCerts.CaCert)
 	err := dirClient.ConnectWithClientCert(testCerts.PluginCert)
-	AddTds(dirClient)
+	AddTds(directoryServer)
 
 	// Client start only succeeds if server is running
 	// err = dirClient.ConnectWithClientCert(testCerts.PluginCert)
@@ -283,7 +298,7 @@ func TestQueryAndList(t *testing.T) {
 func TestDelete(t *testing.T) {
 	dirClient := dirclient.NewDirClient(serverHostPort, testCerts.CaCert)
 	err := dirClient.ConnectWithClientCert(testCerts.PluginCert)
-	AddTds(dirClient)
+	AddTds(directoryServer)
 
 	// Client start only succeeds if server is running
 	// err := dirClient.ConnectWithClientCert(testCerts.PluginCert)
@@ -329,15 +344,14 @@ func TestBadRequest(t *testing.T) {
 
 func TestNotAuthenticated(t *testing.T) {
 	loginID := "user1"
-	password := "pass1"
+	accessToken := "badtoken123"
 	dirClient := dirclient.NewDirClient(serverHostPort, testCerts.CaCert)
 
-	authenticateResult = false
+	// this doesn't return an error until the client is used
+	dirClient.ConnectWithJwtToken(loginID, accessToken)
+	//assert.Error(t, err)
 
-	err := dirClient.ConnectWithLoginID(loginID, password)
-	assert.Error(t, err)
-
-	_, err = dirClient.ListTDs(0, 0)
+	_, err := dirClient.ListTDs(0, 0)
 	assert.Error(t, err)
 
 	dirClient.Close()
@@ -348,20 +362,17 @@ func TestNotAuthorized(t *testing.T) {
 	loginID := "user1"
 	dirClient := dirclient.NewDirClient(serverHostPort, testCerts.CaCert)
 	td1 := thing.CreateTD(thingID1, "test thing", vocab.DeviceTypeSensor)
-	thing.AddTDProperty(td1, "name", thing.CreateProperty("name1", "just a name", vocab.PropertyTypeAttr))
+	td1.UpdateProperty("name", &thing.PropertyAffordance{
+		DataSchema: thing.DataSchema{Title: "name1", ReadOnly: true},
+	})
 
-	authenticateResult = true
 	authorizeResult = false
 	// the Directory Server uses the server cert public key to verify the token
-	issuer := jwtissuer.NewJWTIssuer("test", testCerts.ServerKey, nil)
+	issuer := jwtissuer.NewJWTIssuer("test",
+		testCerts.ServerKey, 10, 10, nil)
 	accessToken, _, _ := issuer.CreateJWTTokens(loginID)
 
-	// authenticationResult is true so login should succeed
-	// FIXME: fix authentication so this will work
-	// - authenticate via dirClient or must an authserver be used?
-	//err := dirClient.ConnectWithLoginID(loginID, password)
-	err := dirClient.ConnectWithJwtToken(loginID, accessToken)
-	assert.NoError(t, err)
+	dirClient.ConnectWithJwtToken(loginID, accessToken)
 
 	// expect empty list as the user is authenticated but not authorized
 	tds, err := dirClient.ListTDs(0, 0)
@@ -374,11 +385,11 @@ func TestNotAuthorized(t *testing.T) {
 	err = dirClient.Delete(thingID1)
 	assert.Error(t, err)
 
-	err = dirClient.UpdateTD(thingID1, td1)
-	assert.Error(t, err)
-
-	err = dirClient.PatchTD(thingID1, td1)
-	assert.Error(t, err)
+	//err = dirClient.UpdateTD(thingID1, td1)
+	//assert.Error(t, err)
+	//
+	//err = dirClient.PatchTD(thingID1, td1)
+	//assert.Error(t, err)
 
 	dirClient.Close()
 }

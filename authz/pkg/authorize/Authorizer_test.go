@@ -12,7 +12,6 @@ import (
 	"github.com/wostzone/hub/authz/pkg/aclstore"
 	"github.com/wostzone/hub/authz/pkg/authorize"
 	"github.com/wostzone/hub/lib/client/pkg/config"
-	"github.com/wostzone/hub/lib/client/pkg/td"
 )
 
 const testDevice1 = "device1"
@@ -113,21 +112,21 @@ func TestHasPermission(t *testing.T) {
 	ah := createEmptyTestAuthHandler()
 	_ = ah.Start()
 	// read permission
-	hasPerm := ah.VerifyRolePermission(authorize.GroupRoleThing, false, thing.MessageTypeTD)
+	hasPerm := ah.VerifyRolePermission(authorize.GroupRoleThing, authorize.AuthRead)
 	assert.True(t, hasPerm)
-	hasPerm = ah.VerifyRolePermission(authorize.GroupRoleOperator, false, thing.MessageTypeTD)
+	hasPerm = ah.VerifyRolePermission(authorize.GroupRoleOperator, authorize.AuthRead)
 	assert.True(t, hasPerm)
-	hasPerm = ah.VerifyRolePermission(authorize.GroupRoleViewer, false, thing.MessageTypeTD)
+	hasPerm = ah.VerifyRolePermission(authorize.GroupRoleViewer, authorize.AuthRead)
 	assert.True(t, hasPerm)
-	hasPerm = ah.VerifyRolePermission(authorize.GroupRoleManager, false, thing.MessageTypeTD)
+	hasPerm = ah.VerifyRolePermission(authorize.GroupRoleManager, authorize.AuthRead)
 	assert.True(t, hasPerm)
 
-	hasPerm = ah.VerifyRolePermission(authorize.GroupRoleNone, false, thing.MessageTypeTD)
+	hasPerm = ah.VerifyRolePermission(authorize.GroupRoleNone, authorize.AuthPubTD)
 	assert.False(t, hasPerm)
 	// write permission
-	hasPerm = ah.VerifyRolePermission(authorize.GroupRoleThing, true, thing.MessageTypeTD)
+	hasPerm = ah.VerifyRolePermission(authorize.GroupRoleThing, authorize.AuthPubTD)
 	assert.True(t, hasPerm)
-	hasPerm = ah.VerifyRolePermission(authorize.GroupRoleViewer, true, thing.MessageTypeTD)
+	hasPerm = ah.VerifyRolePermission(authorize.GroupRoleViewer, authorize.AuthPubTD)
 	assert.False(t, hasPerm)
 
 	ah.Stop()
@@ -146,25 +145,25 @@ func TestCheckDeviceAuthorization(t *testing.T) {
 	thingID1 := "urn:zone1:pub1:device1:sensor1"
 	thingID2 := "urn:zone1:pub2:device1:sensor1"
 	const writing = true
-	msgType := thing.MessageTypeTD
+	authType := authorize.AuthPubTD
 
 	// publishers can publish to things with thingID that contains the publisher
-	authorized := ah.VerifyAuthorization(userName, certsclient.OUIoTDevice, thingID1, writing, msgType)
+	authorized := ah.VerifyAuthorization(userName, certsclient.OUIoTDevice, thingID1, authType)
 	assert.True(t, authorized)
 	// publishers can not publish to things from another publisher
-	authorized = ah.VerifyAuthorization(userName, certsclient.OUIoTDevice, thingID2, writing, msgType)
+	authorized = ah.VerifyAuthorization(userName, certsclient.OUIoTDevice, thingID2, authType)
 	assert.False(t, authorized)
 
 	// plugins can do whatever
-	authorized = ah.VerifyAuthorization("", certsclient.OUPlugin, thingID1, writing, msgType)
+	authorized = ah.VerifyAuthorization("", certsclient.OUPlugin, thingID1, authType)
 	assert.True(t, authorized)
 
 	// users without role cannot publish
-	authorized = ah.VerifyAuthorization(userName, "", thingID1, writing, msgType)
+	authorized = ah.VerifyAuthorization(userName, "", thingID1, authType)
 	assert.False(t, authorized)
 
 	// users cannot publish ... unless their role allows it
-	authorized = ah.VerifyAuthorization("user1", "", thingID1, writing, msgType)
+	authorized = ah.VerifyAuthorization("user1", "", thingID1, authType)
 	assert.False(t, authorized)
 	grps := aclStore.GetGroups(thingID1)
 	assert.Zero(t, len(grps))
@@ -173,12 +172,12 @@ func TestCheckDeviceAuthorization(t *testing.T) {
 	_ = aclStore.SetRole("user1", group1, authorize.GroupRoleViewer)
 	time.Sleep(time.Millisecond * 200) // reload
 
-	authorized = ah.VerifyAuthorization("user1", "", thingID1, writing, msgType)
+	authorized = ah.VerifyAuthorization("user1", "", thingID1, authType)
 	assert.False(t, authorized)
 	// editor role can control thing with actions
 	_ = aclStore.SetRole("user1", group1, authorize.GroupRoleOperator)
-	time.Sleep(time.Millisecond * 200) // reload
-	authorized = ah.VerifyAuthorization("user1", "", thingID1, writing, thing.MessageTypeAction)
+	time.Sleep(time.Millisecond * 500) // reload
+	authorized = ah.VerifyAuthorization("user1", "", thingID1, authorize.AuthEmitAction)
 	assert.True(t, authorized)
 	ah.Stop()
 

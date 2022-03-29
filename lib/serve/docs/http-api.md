@@ -59,7 +59,7 @@ Thing sends an update of the a Thing Description Document.
 
 > ### Request 
 > ```http
-> HTTP PUT https://{hub}/things/{id}
+> HTTP PUT https://{hub}/things/{thingID}
 > Accept: application/json
 > {
 >    Full TD
@@ -72,7 +72,7 @@ Thing sends an update of the a Thing Description Document.
 
 Where
 * {hub} is the DNS name or IP address of the Hub
-* {id} is the ID of the thing
+* {thingID} is the ID of the thing
 
 
 ### Get Thing Property Values
@@ -90,7 +90,7 @@ Proposal 3: Have only a single opvalue for writeproperty. Simply write the prope
 
 > #### request
 > ```http
-> HTTP GET https://{hub}/things/{id}/values
+> HTTP GET https://{hub}/things/{thingID}/values
 > Accept: application/json
 > ```
 > ### Response
@@ -109,7 +109,7 @@ This returns the property value of a Thing from the shadow registry.
 
 > #### request
 > ```http
-> HTTP GET https://{hub}/things/{id}/properties/{name}
+> HTTP GET https://{hub}/things/{thingID}/properties/{name}
 > Accept: application/json
 > ```
 > ### Response
@@ -125,7 +125,7 @@ This updates Thing property values in the shadow registry. Only the properties t
 
 > ### Request
 > ```http
-> HTTP PUT https://{hub}/things/{id}/properties
+> HTTP PUT https://{hub}/things/{thingID}/properties
 > Accept: application/json
 > {
 >    "{property1}": {value1},
@@ -147,7 +147,7 @@ This requests that a Thing updates its property value
 
 > ### Request
 > ```http
-> HTTP PUT https://{hub}/things/{id}/set
+> HTTP PUT https://{hub}/things/{thingID}/set
 > Accept: application/json
 > {
 >    "{property1}": {value1},
@@ -168,7 +168,7 @@ This notifies subscribers of an event that happened on a Thing.
 
 > ### Request
 > ```http
-> PUT /things/{id}/events
+> PUT /things/{thingID}/events
 > Accept: application/json
 > Content:
 > {
@@ -197,7 +197,7 @@ This call is not idempotent.
 
 > ### Request
 > ```http
-> Get /things/{id}/actions
+> Get /things/{thingID}/actions
 > Accept: application/json
 > 
 > ### Response

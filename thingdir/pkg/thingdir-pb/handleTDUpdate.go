@@ -1,6 +1,17 @@
 package thingdirpb
 
-// handleTDUpdate updates the directory with the updated TD
-func (pb *ThingDirPB) handleTDUpdate(thingID string, thingTD map[string]interface{}, publisherID string) {
-	pb.dirClient.UpdateTD(thingID, thingTD)
+import (
+	"encoding/json"
+	"github.com/wostzone/hub/lib/client/pkg/mqttbinding"
+)
+
+// handleTDUpdate updates the directory with the received TD
+func (pb *ThingDirPB) handleTDUpdate(topic string, message []byte) {
+	thingID, _ := mqttbinding.SplitTopic(topic)
+
+	tdoc := make(map[string]interface{})
+	err := json.Unmarshal(message, &tdoc)
+	if err == nil {
+		pb.dirServer.UpdateTD(thingID, tdoc)
+	}
 }

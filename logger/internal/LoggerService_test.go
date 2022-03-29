@@ -2,9 +2,11 @@ package internal_test
 
 import (
 	"fmt"
+	"github.com/wostzone/hub/lib/client/pkg/mqttbinding"
 	"os"
 	"os/exec"
 	"path"
+	"strings"
 	"testing"
 	"time"
 
@@ -14,8 +16,8 @@ import (
 
 	"github.com/wostzone/hub/lib/client/pkg/config"
 	"github.com/wostzone/hub/lib/client/pkg/mqttclient"
-	"github.com/wostzone/hub/lib/client/pkg/td"
 	"github.com/wostzone/hub/lib/client/pkg/testenv"
+	"github.com/wostzone/hub/lib/client/pkg/thing"
 	"github.com/wostzone/hub/lib/client/pkg/vocab"
 	"github.com/wostzone/hub/logger/internal"
 )
@@ -80,28 +82,39 @@ func TestLogTD(t *testing.T) {
 	deviceID := "device1"
 	thingID1 := thing.CreatePublisherID(zone, publisherID, deviceID, vocab.DeviceTypeSensor)
 	clientID := "TestLogTD"
+	eventName1 := "event1"
 
 	svc := internal.NewLoggerService()
 	hubConfig, err := config.LoadAllConfig(nil, homeFolder, testPluginID, &svc.Config)
 	assert.NoError(t, err)
 	err = svc.Start(hubConfig)
 	assert.NoError(t, err)
+	// clean start
+	logFile := path.Join(svc.Config.LogsFolder, thingID1+".log")
+	os.Remove(logFile)
 
-	client := mqttclient.NewMqttHubClient(clientID, testCerts.CaCert)
+	client := mqttclient.NewMqttClient(clientID, testCerts.CaCert, 0)
 	hostPort := fmt.Sprintf("%s:%d", hubConfig.Address, testenv.MqttPortCert)
 	err = client.ConnectWithClientCert(hostPort, hubConfig.PluginCert)
 	require.Nil(t, err)
 	time.Sleep(100 * time.Millisecond)
 
 	// create a thing to publish with
-	tdObj := thing.CreateTD(thingID1, "", vocab.DeviceTypeSensor)
-	client.PublishTD(thingID1, tdObj)
+	tdoc := thing.CreateTD(thingID1, "test thing", vocab.DeviceTypeSensor)
+	tdoc.UpdateEvent(eventName1, &thing.EventAffordance{})
+	eThing := mqttbinding.CreateExposedThing(tdoc, client)
+	err = eThing.Expose()
+	assert.NoError(t, err)
 
-	event := thing.CreateEventInstance("event1", nil)
-	client.PublishEvent(thingID1, event)
+	err = eThing.EmitEvent(eventName1, "test event")
+	assert.NoError(t, err)
 
 	time.Sleep(1 * time.Second)
+	eThing.Stop()
 	client.Close()
+
+	// verify resulting logfile
+	assert.FileExists(t, logFile)
 
 	assert.NoError(t, err)
 	svc.Stop()
@@ -110,32 +123,43 @@ func TestLogTD(t *testing.T) {
 // Test logging of a specific ID
 func TestLogSpecificIDs(t *testing.T) {
 	logrus.Infof("--- TestLogSpecificIDs ---")
-	thingID1 := "urn:zone1:thing1"
 	thingID2 := "urn:zone1:thing2"
 	clientID := "TestLogSpecificIDs"
+	eventName1 := "event1"
+	eventName2 := "event2"
 
+	// load config and start logger
 	svc := internal.NewLoggerService()
 	hubConfig, err := config.LoadAllConfig(nil, homeFolder, testPluginID, &svc.Config)
 	assert.NoError(t, err)
 	svc.Config.ThingIDs = []string{thingID2}
 	err = svc.Start(hubConfig)
 	assert.NoError(t, err)
+	logFile := path.Join(svc.Config.LogsFolder, thingID2+".log")
+	os.Remove(logFile)
 
-	// create a client to publish with
-	client := mqttclient.NewMqttHubClient(clientID, testCerts.CaCert)
+	// create a client to publish events with
+	client := mqttclient.NewMqttClient(clientID, testCerts.CaCert, 0)
 	hostPort := fmt.Sprintf("%s:%d", hubConfig.Address, testenv.MqttPortCert)
 	err = client.ConnectWithClientCert(hostPort, hubConfig.PluginCert)
 	require.NoError(t, err)
 	time.Sleep(100 * time.Millisecond)
 
-	event := thing.CreateEventInstance("event1", nil)
-	client.PublishEvent(thingID1, event)
+	// publish the events
+	topic1 := strings.ReplaceAll(mqttbinding.TopicThingEvent, "{thingID}", thingID2) + "/" + eventName1
+	err = client.PublishObject(topic1, "event1")
+	assert.NoError(t, err)
 
-	event = thing.CreateEventInstance("event2", nil)
-	client.PublishEvent(thingID2, event)
+	topic2 := strings.ReplaceAll(mqttbinding.TopicThingEvent, "{thingID}", thingID2) + "/" + eventName2
+	err = client.PublishObject(topic2, "event2")
+	assert.NoError(t, err)
 
 	time.Sleep(1 * time.Second)
 	client.Close()
+
+	// TODO: verify results
+	// verify resulting logfile
+	assert.FileExists(t, logFile)
 
 	assert.NoError(t, err)
 	svc.Stop()

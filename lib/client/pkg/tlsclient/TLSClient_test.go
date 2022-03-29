@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"path"
 	"testing"
 	"time"
 
@@ -22,9 +21,6 @@ import (
 
 // test hostname and port
 var testAddress string
-
-// These are set in TestMain
-var homeFolder string
 
 // CA, server and plugin test certificate
 var certs testenv.TestCerts
@@ -56,8 +52,6 @@ func TestMain(m *testing.M) {
 	testAddress = "127.0.0.1:9888"
 	// hostnames := []string{testAddress}
 
-	cwd, _ := os.Getwd()
-	homeFolder = path.Join(cwd, "../../test")
 	certs = testenv.CreateCertBundle()
 
 	caCertPool := x509.NewCertPool()
@@ -90,7 +84,8 @@ func TestNoCA(t *testing.T) {
 		path1Hit++
 	})
 	assert.NoError(t, err)
-	//
+
+	// certificate authentication but no CA
 	cl := tlsclient.NewTLSClient(testAddress, nil)
 	err = cl.ConnectWithClientCert(certs.PluginCert)
 	assert.NoError(t, err)
@@ -100,15 +95,16 @@ func TestNoCA(t *testing.T) {
 	assert.Equal(t, 1, path1Hit)
 	cl.Close()
 
-	_, err = cl.ConnectWithLoginID("", "", "", tlsclient.AuthMethodNone)
-	assert.NoError(t, err)
+	// No authentication
+	cl = tlsclient.NewTLSClient(testAddress, nil)
+	cl.ConnectNoAuth()
 
 	_, err = cl.Get(path1)
 	assert.NoError(t, err)
 	assert.Equal(t, 2, path1Hit)
 
 	cl.Close()
-	srv.Close()
+	_ = srv.Close()
 }
 
 // Test certificate based authentication
@@ -147,7 +143,7 @@ func TestAuthClientCert(t *testing.T) {
 	assert.Equal(t, 5, path1Hit)
 
 	cl.Close()
-	srv.Close()
+	_ = srv.Close()
 }
 
 func TestNotStarted(t *testing.T) {
@@ -200,7 +196,7 @@ func TestCert404(t *testing.T) {
 	assert.Error(t, err)
 
 	cl.Close()
-	srv.Close()
+	_ = srv.Close()
 }
 
 func TestAuthBasic(t *testing.T) {
@@ -224,7 +220,7 @@ func TestAuthBasic(t *testing.T) {
 	})
 	//
 	cl := tlsclient.NewTLSClient(testAddress, certs.CaCert)
-	_, err = cl.ConnectWithLoginID(user1, password1, "", tlsclient.AuthMethodBasic)
+	cl.ConnectWithBasicAuth(user1, password1)
 	assert.NoError(t, err)
 
 	//
@@ -233,7 +229,7 @@ func TestAuthBasic(t *testing.T) {
 	assert.Equal(t, 1, path2Hit)
 
 	cl.Close()
-	srv.Close()
+	_ = srv.Close()
 }
 
 func TestAuthJWT(t *testing.T) {
@@ -248,7 +244,7 @@ func TestAuthJWT(t *testing.T) {
 
 	// setup server and client environment
 	mux := http.NewServeMux()
-	// Handle a login
+	// Handle a jwt login
 	mux.HandleFunc(pathLogin1, func(resp http.ResponseWriter, req *http.Request) {
 		var authMsg tlsclient.JwtAuthLogin
 		logrus.Infof("TestAuthJWT: login")
@@ -296,7 +292,7 @@ func TestAuthJWT(t *testing.T) {
 	//
 	//
 	cl := tlsclient.NewTLSClient(testAddress, certs.CaCert)
-	_, err = cl.ConnectWithLoginID(user1, password1)
+	_, err = cl.ConnectWithJWTLogin(user1, password1, "")
 	assert.NoError(t, err)
 
 	_, err = cl.Get(path3)
@@ -336,7 +332,7 @@ func TestAuthRefreshJWT(t *testing.T) {
 	//
 	//
 	cl := tlsclient.NewTLSClient(testAddress, certs.CaCert)
-	_, err = cl.ConnectWithLoginID("user1", "pw")
+	_, err = cl.ConnectWithJWTLogin("user1", "pw", "")
 	assert.NoError(t, err)
 
 	refreshTokens, err := cl.RefreshJWTTokens("")
@@ -369,11 +365,11 @@ func TestAuthJWTFail(t *testing.T) {
 	})
 	//
 	cl := tlsclient.NewTLSClient(testAddress, certs.CaCert)
-	_, err = cl.ConnectWithLoginID(user1, password1, "", tlsclient.AuthMethodJwt)
+	_, err = cl.ConnectWithJWTLogin(user1, password1, "")
 	assert.Error(t, err)
 
 	// cl.SetJWTAuthPaths(pathLogin2, "/wrongrefreshpath")
-	_, err = cl.ConnectWithLoginID(user1, password1, testAddress+"/wrongaddress")
+	_, err = cl.ConnectWithJWTLogin(user1, password1, testAddress+"/wrongaddress")
 	assert.Error(t, err)
 	// refresh fails cause path not found
 	_, err = cl.RefreshJWTTokens("/wrongrefreshpath")

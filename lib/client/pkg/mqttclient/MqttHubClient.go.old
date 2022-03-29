@@ -85,7 +85,7 @@ func (client *MqttHubClient) publish(topic string, object interface{}) error {
 // The device that hosts the thing will subscribe to message and execute the action.
 // The message bus performs authorization of this client before the message is accepted.
 //func (client *MqttHubClient) PublishAction(thingID string, actionName string, data map[string]interface{}) error {
-//	topic := strings.ReplaceAll(TopicAction, "{id}", thingID)
+//	topic := strings.ReplaceAll(TopicAction, "{thingID}", thingID)
 //	actions := map[string]interface{}{actionName: data}
 //	err := client.publish(topic, actions)
 //	return err
@@ -108,7 +108,7 @@ func (client *MqttHubClient) publish(topic string, object interface{}) error {
 // eventName containst the name of the event to publish. See vocab for EventNameXyz standardized names
 // data is a map with event data as defined in the TD.
 func (client *MqttHubClient) PublishEvent(thingID string, eventName string, data map[string]interface{}) error {
-	topic := strings.ReplaceAll(TopicThingEvent, "{id}", thingID)
+	topic := strings.ReplaceAll(TopicThingEvent, "{thingID}", thingID)
 	event := thing.CreateEventInstance(eventName, data)
 	err := client.publish(topic, event)
 	return err
@@ -125,7 +125,7 @@ func (client *MqttHubClient) PublishPropertyEvent(thingID string, propValues map
 // PublishTD publish a Thing description to the WoST hub
 // Intended to by used by a Thing to publish an update to its TD
 func (client *MqttHubClient) PublishTD(thingID string, td map[string]interface{}) error {
-	topic := strings.ReplaceAll(TopicThingTD, "{id}", thingID)
+	topic := strings.ReplaceAll(TopicThingTD, "{thingID}", thingID)
 	err := client.publish(topic, td)
 	return err
 }
@@ -165,7 +165,7 @@ func (client *MqttHubClient) SubscribeToActions(
 	thingID string,
 	handler func(thingID string, name string, params map[string]interface{}, senderID string)) {
 
-	topic := strings.ReplaceAll(TopicAction, "{id}", thingID)
+	topic := strings.ReplaceAll(TopicAction, "{thingID}", thingID)
 	// local copy of arguments
 	subscribedThingID := thingID
 	subscribedHandler := handler
@@ -190,7 +190,7 @@ func (client *MqttHubClient) SubscribeToActions(
 //func (client *MqttHubClient) SubscribeToConfig(
 //	thingID string, handler func(thingID string, config map[string]interface{}, senderID string)) {
 //
-//	topic := strings.ReplaceAll(TopicSetConfig, "{id}", thingID)
+//	topic := strings.ReplaceAll(TopicSetConfig, "{thingID}", thingID)
 //	// local copy of arguments
 //	subscribedThingID := thingID
 //	subscribedHandler := handler
@@ -215,7 +215,7 @@ func (client *MqttHubClient) SetActionHandler(
 	name string,
 	handler func(thingID string, action map[string]interface{})) {
 
-	topic := strings.ReplaceAll(mqttbinding.TopicAction, "{id}", thingID)
+	topic := strings.ReplaceAll(mqttbinding.TopicAction, "{thingID}", thingID)
 	// local copy of arguments
 	subscribedThingID := thingID
 	subscribedHandler := handler
@@ -234,7 +234,7 @@ func (client *MqttHubClient) SetActionHandler(
 // SubscribeToEvents receives Thing events from the WoST hub.
 //func (client *MqttHubClient) SubscribeToEvents(
 //	thingID string, handler func(thingID string, event map[string]interface{})) {
-//	topic := strings.ReplaceAll(mqttbinding.TopicThingEvent, "{id}", thingID)
+//	topic := strings.ReplaceAll(mqttbinding.TopicThingEvent, "{thingID}", thingID)
 //
 //	// local copy of arguments
 //	subscribedThingID := thingID
@@ -252,7 +252,7 @@ func (client *MqttHubClient) SetActionHandler(
 //func (client *MqttHubClient) SubscribeToPropertyValues(
 //	thingID string, handler func(thingID string, values map[string]interface{}, senderID string)) {
 //
-//	topic := strings.ReplaceAll(TopicThingPropertyValues, "{id}", thingID)
+//	topic := strings.ReplaceAll(TopicThingPropertyValues, "{thingID}", thingID)
 //
 //	// local copy of arguments
 //	subscribedThingID := thingID
@@ -273,7 +273,7 @@ func (client *MqttHubClient) SubscribeToPropertyAction(
 	thingID string, handler func(thingID string, values map[string]interface{})) {
 
 	client.SetActionHandler(thingID, vocab.ActionNameProperty, handler)
-	//topic := strings.ReplaceAll(TopicThingPropertyValues, "{id}", thingID)
+	//topic := strings.ReplaceAll(TopicThingPropertyValues, "{thingID}", thingID)
 	//
 	//// local copy of arguments
 	//subscribedThingID := thingID
@@ -297,7 +297,7 @@ func (client *MqttHubClient) SubscribeToTD(
 	if thingID == "" {
 		thingID = "+"
 	}
-	topic := strings.ReplaceAll(mqttbinding.TopicThingTD, "{id}", thingID)
+	topic := strings.ReplaceAll(mqttbinding.TopicThingTD, "{thingID}", thingID)
 	// local copy of arguments
 	subscribedThingID := thingID
 	subscribedHandler := handler

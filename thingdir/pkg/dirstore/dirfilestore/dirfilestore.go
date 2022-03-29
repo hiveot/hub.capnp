@@ -23,7 +23,6 @@ import (
 	"github.com/imdario/mergo"
 	"github.com/ohler55/ojg/jp"
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/lib/client/pkg/td"
 )
 
 // DefaultListLimit is the default max nr of items to return in list
@@ -271,13 +270,14 @@ func (store *DirFileStore) Query(jsonPath string, offset int, limit int,
 		// the aclFilter must be efficient
 		filterResults := make(map[string]interface{})
 		for _, tdDoc := range store.docs {
-			// this is suppoed to be a valid TD document but need to make sure
+			// this is supposed to be a valid TD document but need to make sure
 			// thingTD, ok := tdDoc.(td.ThingTD)
-			thingTD, ok := tdDoc.(map[string]interface{})
+			tdMap, ok := tdDoc.(map[string]interface{})
 			if ok {
-				thingID := thing.GetID(thingTD)
-				if aclFilter(thingID) {
-					filterResults[thingID] = thingTD
+				// MUST MATCH json value of ThingTD.ID, eg: "id"
+				thingID, found := tdMap["id"].(string)
+				if found && aclFilter(thingID) {
+					filterResults[thingID] = tdMap
 				}
 			}
 		}

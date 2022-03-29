@@ -1,6 +1,7 @@
 package thing
 
 import (
+	"encoding/json"
 	"github.com/wostzone/hub/lib/client/pkg/vocab"
 	"time"
 )
@@ -13,9 +14,9 @@ import (
 //      id: <thingID>,
 //      title: <human description>,  (why is this not a property?)
 //      modified: <iso8601>,
-//      actions: {id: ActionAffordance, ...},
-//      events:  {id: EventAffordance, ...},
-//      properties: {id: PropertyAffordance, ...}
+//      actions: {name: ActionAffordance, ...},
+//      events:  {name: EventAffordance, ...},
+//      properties: {name: PropertyAffordance, ...}
 // }
 //
 type ThingTD struct {
@@ -23,7 +24,8 @@ type ThingTD struct {
 	AtContext []string `json:"@context"`
 
 	// JSON-LD keyword to label the object with semantic tags (or types).
-	AtType []string `json:"@type,omitempty"`
+	AtType  string `json:"@type,omitempty"`
+	AtTypes string `json:"@types,omitempty"`
 
 	// Identifier of the Thing in form of a URI (RFC3986)
 	// Optional in WoT but required in WoST in order to reach the device or service
@@ -78,11 +80,39 @@ type ThingTD struct {
 	// uriVariables: todo
 }
 
+// AddProperty provides a simple way to add a property to the TD
+// This returns the property affordance that can be augmented/modified directly
+// By default the property is a read-only attribute.
+//
+// name is the name under which it is stored in the property affordance map. Any existing name will be replaced.
+// title is the title used in the property. It is okay to use name if not sure.
+// dataType is the type of data the property holds, WoTDataTypeNumber, ..Object, ..Array, ..String, ..Integer, ..Boolean or null
+func (tdoc *ThingTD) AddProperty(name string, title string, dataType string) *PropertyAffordance {
+	prop := &PropertyAffordance{
+		DataSchema: DataSchema{
+			Title:    title,
+			Type:     dataType,
+			ReadOnly: true,
+		},
+	}
+	tdoc.UpdateProperty(name, prop)
+	return prop
+}
+
+// AsMap returns the TD document as a map
+func (tdoc *ThingTD) AsMap() map[string]interface{} {
+	var asMap map[string]interface{}
+	asJSON, _ := json.Marshal(tdoc)
+	json.Unmarshal(asJSON, &asMap)
+	return asMap
+}
+
 // tbd json-ld parsers:
 // Most popular; https://github.com/xeipuuv/gojsonschema
 // Other:  https://github.com/piprate/json-gold
 
-// GetAction returns the schema and value for the action or nil if name is not an action
+// GetAction returns the action affordance with schema for the action.
+// Returns nil if name is not an action or no affordance is defined.
 func (tdoc *ThingTD) GetAction(name string) *ActionAffordance {
 	actionAffordance, found := tdoc.Actions[name]
 	if !found {
@@ -116,13 +146,17 @@ func (tdoc *ThingTD) GetID() string {
 
 // UpdateAction adds a new or replaces an existing action affordance (schema) of name. Intended for creating TDs
 // Use UpdateProperty if name is a property name.
-func (tdoc *ThingTD) UpdateAction(name string, affordance *ActionAffordance) {
+// Returns the added affordance to support chaining
+func (tdoc *ThingTD) UpdateAction(name string, affordance *ActionAffordance) *ActionAffordance {
 	tdoc.Actions[name] = affordance
+	return affordance
 }
 
 // UpdateEvent adds a new or replaces an existing event affordance (schema) of name. Intended for creating TDs
-func (tdoc *ThingTD) UpdateEvent(name string, affordance *EventAffordance) {
+// Returns the added affordance to support chaining
+func (tdoc *ThingTD) UpdateEvent(name string, affordance *EventAffordance) *EventAffordance {
 	tdoc.Events[name] = affordance
+	return affordance
 }
 
 // UpdateForms sets the top level forms section of the TD
@@ -133,8 +167,10 @@ func (tdoc *ThingTD) UpdateForms(formList []Form) {
 }
 
 // UpdateProperty adds or replaces a property affordance in the TD. Intended for creating TDs
-func (tdoc *ThingTD) UpdateProperty(name string, affordance *PropertyAffordance) {
+// Returns the added affordance to support chaining
+func (tdoc *ThingTD) UpdateProperty(name string, affordance *PropertyAffordance) *PropertyAffordance {
 	tdoc.Properties[name] = affordance
+	return affordance
 }
 
 // UpdateTitleDescription sets the title and description of the Thing in the default language
@@ -172,9 +208,9 @@ func (tdoc *ThingTD) UpdateTitleDescription(title string, description string) {
 //      title: string,              // required. Human description of the thing
 //      @type: <deviceType>,        // required in WoST. See WoST DeviceType vocabulary
 //      created: <iso8601>,         // will be the current timestamp. See vocabulary TimeFormat
-//      actions: {id:TDAction, ...},
-//      events:  {id: TDEvent, ...},
-//      properties: {id: TDProperty, ...}
+//      actions: {name:TDAction, ...},
+//      events:  {name: TDEvent, ...},
+//      properties: {name: TDProperty, ...}
 // }
 func CreateTD(thingID string, title string, deviceType vocab.DeviceType) *ThingTD {
 	td := ThingTD{
@@ -194,7 +230,7 @@ func CreateTD(thingID string, title string, deviceType vocab.DeviceType) *ThingT
 	// TODO @type is a JSON-LD keyword to label using semantic tags, eg it needs a schema
 	if deviceType != "" {
 		// deviceType must be a string for serialization and querying
-		td.AtType = []string{string(deviceType)}
+		td.AtType = string(deviceType)
 	}
 	return &td
 }

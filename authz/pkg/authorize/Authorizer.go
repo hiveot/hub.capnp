@@ -3,9 +3,9 @@ package authorize
 import (
 	"fmt"
 	"github.com/wostzone/hub/lib/client/pkg/certsclient"
+	"github.com/wostzone/hub/lib/client/pkg/thing"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/lib/client/pkg/td"
 )
 
 // VerifyAuthorization defines the function to authorize access to a Thing.
@@ -13,10 +13,9 @@ import (
 //  userID is the ID of the authenticated user as used in the group/rule list
 //  certOU is the user's organization when using client certificates.
 //  thingID is the ID of the Thing the user is trying to access
-//  writing is true when the user needs write access to the thing
-//  writeType is message when writing, eg td.MessagetypeTD,... use MessagetypeNone for reading
+//  authType is message when writing, eg td.MessagetypeTD,... use MessagetypeNone for reading
 type VerifyAuthorization func(userID string, certOU string,
-	thingID string, writing bool, writeType string) bool
+	thingID string, authType string) bool
 
 // AllGroupName is the name of the group that includes all things (no need to add things separately)
 // Users that are a member of the all group will have access to all things based on their role.
@@ -38,13 +37,13 @@ type Authorizer struct {
 //  username is the login name or device ID of the client seeking permission
 //  certOU is the OU of the client seeking permission only if user is authenticate with a client certificate. "" to ignore. certsetup.OUPlugin for plugins
 //  thingID is the ID of the Thing to access
-//  writing: true for writing to Thing, false for reading
-//  writeType is one of: td.MessageTypeTD|Configure|Event|Action
+//  authType is one of: AuthEmitAction|AuthPubEvent|AuthWriteProperty|AuthPubPropValue|AuthRead
 //
 // This returns false if access is denied or true if authorized
 func (ah *Authorizer) VerifyAuthorization(
-	userID string, certOU string, thingID string, writing bool, writeType string) bool {
-	logrus.Debugf("CheckAuthorization: userID='%s' certOU='%s' thingID='%s', writing='%v'", userID, certOU, thingID, writing)
+	userID string, certOU string, thingID string, authType string) bool {
+	logrus.Debugf("CheckAuthorization: userID='%s' certOU='%s' thingID='%s', authType='%s'",
+		userID, certOU, thingID, authType)
 
 	// plugins and admins have full permission
 	if certOU == certsclient.OUPlugin {
@@ -69,34 +68,37 @@ func (ah *Authorizer) VerifyAuthorization(
 	// }
 	// Consumer must have the correct read/write role for the message type (td, action, ..)
 	role := ah.aclStore.GetRole(userID, groups)
-	allowed := ah.VerifyRolePermission(role, writing, writeType)
-	logrus.Debugf("CheckAuthorization - role ('%s') in groups('%s') permission check for (r/w=%t): %t", role, groups, writing, allowed)
+	allowed := ah.VerifyRolePermission(role, authType)
+	logrus.Debugf("CheckAuthorization - role ('%s') in groups('%s') permission check for (authType=%s): %t", role, groups, authType, allowed)
 	return allowed
 }
 
 // VerifyRolePermission determine if the consumer role allows the read/write operation
-//  The viewer role only has read access
-//  The editor role has read/write access to thing values
-//  The manager role has read/write access to thing configuration and values
-//  The thing role has read/write access (by its own device only - separate check)
+//  The viewer role has read access to properties
+//  The operator role has access to invoke actions
+//  The manager role has access to actions and read/write access to properties
+//  The thing role has full read/write access to its own thing
+//
+// authType describes authorization to perform: EmitAction, PublishEvent, WriteProperty, "" to read
+//
 // Returns true if permission is denied, nil if granted
-func (ah *Authorizer) VerifyRolePermission(role string, writing bool, writeType string) bool {
+func (ah *Authorizer) VerifyRolePermission(role string, authType string) bool {
 
-	// TODO: use writeType to differentiate what is written
-	if writing {
-		// Things can write its own messages. Check if the user is the thing separate
+	if authType != AuthRead {
+		// Things can write all their messages.
+		// Check if the user is the thing itself first
 		if role == GroupRoleThing {
 			return true
 		}
-		// editors can control the thing
-		if role == GroupRoleOperator && writeType == thing.MessageTypeAction {
+		// operators can control the thing
+		if role == GroupRoleOperator && authType == AuthEmitAction {
 			return true
 		}
 		// managers can configure and control the thing
-		if role == GroupRoleManager && (writeType == thing.MessageTypeConfig || writeType == thing.MessageTypeAction) {
+		if role == GroupRoleManager && (authType == AuthWriteProperty || authType == AuthEmitAction) {
 			return true
 		}
-		logrus.Debugf("VerifyRolePermission: Role %s has no write access to write type %s", role, writeType)
+		logrus.Debugf("VerifyRolePermission: Role %s has no write access to write type %s", role, authType)
 	} else {
 		// read access to all roles
 		if role == GroupRoleThing || role == GroupRoleOperator || role == GroupRoleManager || role == GroupRoleViewer {
@@ -108,7 +110,7 @@ func (ah *Authorizer) VerifyRolePermission(role string, writing bool, writeType 
 }
 
 // IsPublisher checks if the deviceID is the publisher of the thingID.
-// This requires that the thingID is formatted as "urn:publisherID:sensorID...""
+// This requires that the thingID is formatted as "urn:zone:publisherID:sensorID...""
 // Returns true if the deviceID is the publisher of the thingID, false if not.
 func (ah *Authorizer) IsPublisher(deviceID string, thingID string) bool {
 	zone, publisherID, thingDeviceID, deviceType := thing.SplitThingID(thingID)

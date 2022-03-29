@@ -6,6 +6,7 @@ package main
 
 import "C"
 import (
+	"github.com/wostzone/hub/lib/client/pkg/mqttbinding"
 	"strings"
 
 	"github.com/wostzone/hub/lib/client/pkg/certsclient"
@@ -208,7 +209,7 @@ func AuthAclCheck(clientID string, userID string, certSubjName string, topic str
 		}
 	}
 
-	// topic format: things/{thingID}/td|configure|event|action|
+	// topic format: things/{thingID}/td|property|event|action
 	parts = strings.Split(topic, "/")
 	if len(parts) < 3 {
 		logrus.Infof("mosqauth: AuthAclCheck Invalid topic format '%s'. Expected min 3 parts.", topic)
@@ -217,7 +218,23 @@ func AuthAclCheck(clientID string, userID string, certSubjName string, topic str
 	thingID := parts[1]
 	messageType := parts[2]
 	writing := access == MOSQ_ACL_WRITE
-	authorized := authorizer.VerifyAuthorization(userID, certOU, thingID, writing, messageType)
+	authType := authorize.AuthRead
+	if writing {
+		switch messageType {
+		case mqttbinding.TopicMessageTD:
+			authType = authorize.AuthPubTD
+		case mqttbinding.TopicMessageAction:
+			authType = authorize.AuthEmitAction
+		case mqttbinding.TopicMessageEvent:
+			authType = authorize.AuthPubEvent // including property value
+		case mqttbinding.TopicMessageProperty:
+			authType = authorize.AuthWriteProperty
+		default:
+			logrus.Warningf("mosqauth. Unknown message type in topic: %s from client %s / user %s", topic, clientID, userID)
+			authType = messageType
+		}
+	}
+	authorized := authorizer.VerifyAuthorization(userID, certOU, thingID, authType)
 	if !authorized {
 		logrus.Warningf("mosqauth: AuthAclCheck Access DENIED: clientID=%s, username=%s, certOU=%s, topic=%s, access=%d",
 			clientID, userID, certOU, topic, access)
