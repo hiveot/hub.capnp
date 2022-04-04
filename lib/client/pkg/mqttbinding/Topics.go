@@ -1,23 +1,39 @@
 // Package mqttbinding with messaging topics for the MQTT protocol binding
 package mqttbinding
 
-import "strings"
+import (
+	"strings"
+)
 
-// TopicMessageTD topic for thing publishing its TD
-const TopicMessageTD = "td"
-const TopicThingTD = "things/{thingID}/" + TopicMessageTD
+// TopicTypeTD topic for thing publishing its TD
+const TopicTypeTD = "td"
+const TopicThingTD = "things/{thingID}/" + TopicTypeTD
 
-// TopicMessageEvent root topic for thing publishing its Thing events
-const TopicMessageEvent = "event"
-const TopicThingEvent = "things/{thingID}/" + TopicMessageEvent
+// TopicTypeEvent base topic for thing publishing its Thing events
+const TopicTypeEvent = "event"
+const TopicEmitEvent = "things/{thingID}/" + TopicTypeEvent
 
-// TopicMessageAction root topic request to start action
-const TopicMessageAction = "action"
-const TopicThingAction = "things/{thingID}/" + TopicMessageAction
+// TopicTypeAction base topic request to start action
+const TopicTypeAction = "action"
+const TopicInvokeAction = "things/{thingID}/" + TopicTypeAction
 
-// TopicMessageProperty root topic for publishing property value updates
-const TopicMessageProperty = "property"
-const TopicThingProperty = "things/{thingID}/TopicMessageProperty"
+// TopicSubjectProperties base topic for publishing a map of property values updates
+const TopicSubjectProperties = "properties"
+
+// TopicEmitPropertiesChange base topic for publishing property value updates
+const TopicEmitPropertiesChange = "things/{thingID}/" + TopicTypeEvent + "/" + TopicSubjectProperties
+
+// TopicReadProperties topic to submit request to receive a property event with property values
+const (
+	TopicTypeRead       = "read"
+	TopicReadProperties = "things/{thingID}/" + TopicTypeRead + "/" + TopicSubjectProperties
+)
+
+// TopicWriteProperties topic to submit request to change the provided property values
+const (
+	TopicTypeWrite       = "write"
+	TopicWriteProperties = "things/{thingID}/" + TopicTypeWrite + "/" + TopicSubjectProperties
+)
 
 // TopicProvisionRequest topic requesting to provision of a thing device
 // const TopicProvisionRequest = "provisioning" + "/{thingID}/request"
@@ -27,19 +43,23 @@ const TopicThingProperty = "things/{thingID}/TopicMessageProperty"
 
 // CreateTopic creates a new topic for publishing or subscribing to a message of type
 // td, action, event, property
-func CreateTopic(thingID string, topicMessage string) string {
-	return "things/" + thingID + "/" + topicMessage
+func CreateTopic(thingID string, topicMessageType string) string {
+	return "things/" + thingID + "/" + topicMessageType
 }
 
 // SplitTopic breaks a MQTT topic into thingID and message type (td, event, action, property value)
-func SplitTopic(topic string) (thingID string, topicMessage string) {
+func SplitTopic(topic string) (thingID string, topicType string, subject string) {
 	parts := strings.Split(topic, "/")
 	if len(parts) < 2 {
+		//err = errors.New("Topic too short")
 		return
 	}
 	thingID = parts[1]
 	if len(parts) > 2 {
-		topicMessage = parts[2]
+		topicType = parts[2]
+	}
+	if len(parts) > 3 {
+		subject = parts[3]
 	}
 	return
 }

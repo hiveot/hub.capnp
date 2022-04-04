@@ -15,7 +15,7 @@ func TestNilSchema(t *testing.T) {
 
 	io := NewInteractionOutput(data1, nil)
 
-	asValue := io.Value()
+	asValue := io.Value
 	assert.Equal(t, data1, asValue)
 
 }

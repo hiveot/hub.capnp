@@ -35,6 +35,7 @@ func TestExpose(t *testing.T) {
 func TestEmitPropertyChange(t *testing.T) {
 	logrus.Infof("--- TestEmitPropertyChange ---")
 	const newValue = "value 2"
+	var propChangeEmitted = false
 
 	// step 1 create the MQTT message bus client
 	client := mqttclient.NewMqttClient(testPluginID, certs.CaCert, 0)
@@ -47,14 +48,19 @@ func TestEmitPropertyChange(t *testing.T) {
 	eThing.SetPropertyWriteHandler("",
 		func(propName string, val mqttbinding.InteractionOutput) error {
 			// accept the new value and publish the result
-			eThing.EmitPropertyChange(propName, val)
+			eThing.EmitPropertyChange(propName, val.Value)
+
+			// and as map
+			propMap := map[string]interface{}{propName: val.Value}
+			eThing.EmitPropertyChanges(propMap, false)
+			propChangeEmitted = true
 			return nil
 		})
 	err = eThing.Expose()
 	assert.NoError(t, err)
 	assert.NotNil(t, eThing)
 
-	// step 3 emit a property change
+	// step 3 request a property change
 	err = cThing.WriteProperty(testProp1Name, newValue)
 	assert.NoError(t, err)
 	time.Sleep(time.Second)
@@ -67,6 +73,8 @@ func TestEmitPropertyChange(t *testing.T) {
 	eVal, err := eThing.ReadProperty(testProp1Name)
 	assert.NoError(t, err)
 	assert.Equal(t, newValue, eVal.ValueAsString())
+
+	assert.True(t, propChangeEmitted)
 
 	// step 5 cleanup
 	eThing.Destroy()
@@ -143,13 +151,13 @@ func TestHandleActionRequestInvalidParams(t *testing.T) {
 	assert.NotNil(t, eThing)
 
 	// step 3  an action with no name
-	topic := strings.ReplaceAll(mqttbinding.TopicThingAction, "{thingID}", testThingID)
+	topic := strings.ReplaceAll(mqttbinding.TopicInvokeAction, "{thingID}", testThingID)
 	err = client.Publish(topic, []byte(testProp1Value))
 	assert.NoError(t, err)
 	time.Sleep(time.Second)
 
 	// step 4  an unregistered action
-	topic = strings.ReplaceAll(mqttbinding.TopicThingAction, "{thingID}", testThingID) + "/badaction"
+	topic = strings.ReplaceAll(mqttbinding.TopicInvokeAction, "{thingID}", testThingID) + "/badaction"
 	err = client.Publish(topic, []byte(testProp1Value))
 	assert.NoError(t, err)
 	time.Sleep(time.Second)

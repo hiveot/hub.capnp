@@ -6,7 +6,7 @@ Bindings are based on the [W3C WoT bindings specification](https://w3c.github.io
 
 Documentation of a binding should contain:
 * URI schema
-* Mapping to WoT operations, eg readproperty, writeproperty, invokeaction, ...
+* Mapping to WoT operations, e.g. "readproperty", "writeproperty", "invokeaction", ...
 * Document that specifies the protocol.
 
 
@@ -20,18 +20,18 @@ The MQTT protocol is identified with the 'mqtt://' URI schema.
 
 Based on the draft from https://w3c.github.io/wot-binding-templates/bindings/protocols/mqtt/index.html.
 
-| property operations     | binding                                 | topic                              |
-|-------------------------|-----------------------------------------|------------------------------------|
-| readproperty            | mqv:controlPacketValue": "PUBLISH"      | things/{thingID}/read/properties   |
-| readmultipleproperties  | mqv:controlPacketValue": "PUBLISH"      | things/{thingID}/read/properties   |   
-| readallproperties       | mqv:controlPacketValue": "PUBLISH"      | things/{thingID}/read/properties   |
-| writeproperty           | "mqv:controlPacketValue": "PUBLISH"     |
-| writemultipleproperties | "mqv:controlPacketValue": "PUBLISH"     |
-| writeallproperties      | not supported                           |
-| observeproperty         | "mqv:controlPacketValue": "SUBSCRIBE"   |
-| observeallproperties    | "mqv:controlPacketValue": "SUBSCRIBE"   |
-| unobserveproperty       | "mqv:controlPacketValue": "UNSUBSCRIBE" |
-| unobserveallproperties  | "mqv:controlPacketValue": "UNSUBSCRIBE" |
+| property operations     | binding                                 | topic                             |
+|-------------------------|-----------------------------------------|-----------------------------------|
+| readproperty            | mqv:controlPacketValue": "PUBLISH"      | things/{thingID}/read/properties  |
+| readmultipleproperties  | mqv:controlPacketValue": "PUBLISH"      | things/{thingID}/read/properties  |   
+| readallproperties       | mqv:controlPacketValue": "PUBLISH"      | things/{thingID}/read/properties  |
+| writeproperty           | "mqv:controlPacketValue": "PUBLISH"     | things/{thingID}/write/properties |
+| writemultipleproperties | "mqv:controlPacketValue": "PUBLISH"     | things/{thingID}/write/properties  |
+| writeallproperties      | not supported                           | things/{thingID}/write/properties  |
+| observeproperty         | "mqv:controlPacketValue": "SUBSCRIBE"   | things/{thingID}/event/properties|
+| observeallproperties    | "mqv:controlPacketValue": "SUBSCRIBE"   |things/{thingID}/event/properties|
+| unobserveproperty       | "mqv:controlPacketValue": "UNSUBSCRIBE" |things/{thingID}/event/properties|
+| unobserveallproperties  | "mqv:controlPacketValue": "UNSUBSCRIBE" |things/{thingID}/event/properties|
 
 
 ## Property Operations
@@ -44,14 +44,14 @@ The operation readproperty is used by a consumer to request to read a property o
 > This section is for consideration and not currently implemented
 
 Form:
-```json
-{
-  "op": "readproperty",
-  "contentType": "application/json",
-  "topic": "things/{thingID}/read/properties",
-  "mqv:controlPacketValue": "PUBLISH"
-}
-```
+>```json
+>{
+>  "op": "readproperty",
+>  "href": "mqtts://{broker}/things/{thingID}/read/properties",
+>  "mqv:controlPacketValue": "PUBLISH",
+>  "contentType": "application/json"
+>}
+>```
 >Payload: JSON encoded array with 1 property name
 > {
 >    ["propertyName"]
@@ -77,9 +77,9 @@ The operation readmultipleproperties is used by a consumer to request to read se
 >```json
 >{
 >  "op": "readmultipleproperties",
->  "contentType": "application/json",
->  "topic": "things/{thingID}/read/properties",
->  "mqv:controlPacketValue": "PUBLISH"
+>  "href": "mqtts://{broker}/things/{thingID}/read/properties",
+>  "mqv:controlPacketValue": "PUBLISH",
+>  "contentType": "application/json"
 >}
 >```
 >Payload:
@@ -106,9 +106,9 @@ The operation readallproperties is used by a consumer to request to read all pro
 >```json
 >{
 >  "op": "readallproperties",
->  "contentType": "application/json",
->  "topic": "things/{thingID}/read/properties",
->  "mqv:controlPacketValue": "PUBLISH"
+>  "href": "mqtts://{broker}/things/{thingID}/read/properties",
+>  "mqv:controlPacketValue": "PUBLISH",
+>  "contentType": "application/json"
 >}
 >```
 >Payload: none. The lack of payload instructs to respond with all properties. 
@@ -125,7 +125,7 @@ The Exposed Thing responds with a 'properties change event' as defined in the TD
 >}
 >```
 
-### writeproperty, writemultipleproperties, writeallproperties
+### writeproperty, writemultipleproperties
 
 > This section is for consideration and not currently implemented
 
@@ -134,10 +134,10 @@ The operations writeproperty(...ies) are used by a consumer to publish a request
 >Form:
 >```json
 >{
->  "op": ["writeproperty","writemultipleproperties","writeallproperties"],
->  "contentType": "application/json",
->  "topic": "things/{thingID}/write/properties",
->  "mqv:controlPacketValue": "PUBLISH"
+>  "op": ["writeproperty","writemultipleproperties"],
+>  "href": "mqtts://{broker}/things/{thingID}/write/properties",
+>  "mqv:controlPacketValue": "PUBLISH",
+>  "contentType": "application/json"
 >}
 >```
 >
@@ -146,8 +146,7 @@ The operations writeproperty(...ies) are used by a consumer to publish a request
 >```json
 >{
 >  "property1Name": "value",
->  "property2Name": "value",
->  ...
+>  "property2Name": "value"
 >}
 >```
 
@@ -162,15 +161,15 @@ To be notified of a property value changes, subscribe to property events.
 > Note: This protocol binding makes no distinction between subscribing to a single or all properties. A ConsumedThing implementation can map a specific property to a corresponding callback handler.
 
 Form: 
-```json
-{
-  "op": ["observeproperty","observeallproperties"],
-  "contentType": "application/json",
-  "topic": "things/{thingID}/event/properties",
-  "mqv:controlPacketValue": "SUBSCRIBE"
-}
-```
-* Where {thingID} is the thing ID or '+' to subscribe to properties changes from all Things.
+>```json
+>{
+>  "op": ["observeproperty","observeallproperties"],
+>  "href": "mqtts://{broker}/things/{thingID}/event/properties",
+>  "mqv:controlPacketValue": "SUBSCRIBE",
+>  "contentType": "application/json"
+>}
+>```
+>* Where {thingID} is the thing ID or '+' to subscribe to properties changes from all Things.
 
 Response: Observers will receive property change events from the thing with the given ID.
 
@@ -178,17 +177,17 @@ Response: Observers will receive property change events from the thing with the 
 >```json
 >{
 >  "op": "emitpropertychange",
->  "contentType": "application/json",
->  "topic": "things/{thingID}/event/properties,
->  "mqv:controlPacketValue": "PUBLISH"
+>  "href": "mqtts://{broker}/things/{thingID}/event/properties",
+>  "mqv:controlPacketValue": "PUBLISH",
+>  "contentType": "application/json"
 >}
 >```
 >Payload: Property change events contain the JSON encoded map of property name-value pairs for each of the properties that have changed. The values are of type described by the property affordance in the TD and can be a string, number, integer, boolean, or an object with an additional map of name-value pairs.
 > For example
 >```json
 >{
->  "property1Name" : value1,
->  "property2Name" : value2,
+>  "property1Name" : "value1",
+>  "property2Name" : "value2"
 >}
 >```
 
@@ -197,14 +196,14 @@ Response: Observers will receive property change events from the thing with the 
 
 To end observing property changes, unsubscribe from the properties event. The protocol binding makes no distinction between subscribing to a single or all properties. A ConsumedThing implementation should only unsubscribe when there are no other property subscriptions in effect on the ConsumedThing.
 
-```json
-{
-  "op": ["unobserveproperty","unobserveallproperties"],
-  "contentType": "application/json",
-  "topic": "things/{thingID}/event/properties",
-  "mqv:controlPacketValue": "UNSUBSCRIBE"
-}
-```
+>```json
+>{
+>  "op": ["unobserveproperty","unobserveallproperties"],
+>  "href": "mqtts://{broker}/things/{thingID}/event/properties",
+>  "mqv:controlPacketValue": "UNSUBSCRIBE",
+>  "contentType": "application/json"
+>}
+>```
 * Where {thingID} is the thing ID used when subscribing (observing).
 
 
@@ -221,14 +220,14 @@ To end observing property changes, unsubscribe from the properties event. The pr
 
 Subscribe to be notified of an event from an exposed thing. 
 
-```json
-{
-  "op": "subscribeevent",
-  "contentType": "application/json",
-  "topic": "things/{thingID}/event/{eventName}",
-  "mqv:controlPacketValue": "SUBSCRIBE"
-}
-```
+>```json
+>{
+>  "op": "subscribeevent",
+>  "href": "mqtts://{broker}/things/{thingID}/event/{eventName}",
+>  "mqv:controlPacketValue": "SUBSCRIBE",
+>  "contentType": "application/json"
+>}
+>```
 * Where {thingID} is the thing ID or '+' to subscribe to events from all Things.
 * Where {eventName} is the event to subscribe to or '+' to subscribe to all events.
 
@@ -238,9 +237,9 @@ Response: Events of the Thing with the given ID and matching event name:
 >```json
 >{
 >  "op": "emitevent",
->  "contentType": "application/json",
->  "topic": "things/{thingID}/event/{eventName}",
->  "mqv:controlPacketValue": "PUBLISH"
+>  "href": "mqtts://{broker}/things/{thingID}/event/{eventName}",
+>  "mqv:controlPacketValue": "PUBLISH",
+>  "contentType": "application/json"
 >}
 >```
 >Payload: Events contain the JSON encoded value described by the EventAffordance in the TD.
@@ -248,8 +247,8 @@ Response: Events of the Thing with the given ID and matching event name:
 > For example a map with values:
 >```json
 >{
->  "eventProperty1" : value1,
->  "eventProperty2" : value2,
+>  "eventProperty1" : "value1",
+>  "eventProperty2" : "value2"
 >}
 >```
 
@@ -257,14 +256,14 @@ Response: Events of the Thing with the given ID and matching event name:
 ### unsubscribeevent
 
 Form:
-```json
-{
-  "op": "unsubscribeevent",
-  "contentType": "application/json",
-  "topic": "things/{thingID}/event/{eventName}",
-  "mqv:controlPacketValue": "UNSUBSCRIBE"
-}
-```
+>```json
+>{
+>  "op": "unsubscribeevent",
+>  "href": "mqtts://{broker}/things/{thingID}/event/{eventName}",
+>  "mqv:controlPacketValue": "UNSUBSCRIBE",
+>  "contentType": "application/json"
+>}
+>```
 * Where {thingID} is the thing ID used when subscribing
 * Where {eventName} is the event used when subscribing.
 
@@ -287,9 +286,9 @@ Form:
 >```json
 >{
 >  "op": "invokeaction",
->  "contentType": "application/json",
->  "topic": "things/{thingID}/action/{actionName}",
->  "mqv:controlPacketValue": "PUBLISH"
+>  "href": "mqtts://{broker}/things/{thingID}/action/{actionName}",
+>  "mqv:controlPacketValue": "PUBLISH",
+>  "contentType": "application/json"
 >}
 >```
 
@@ -306,9 +305,9 @@ Form:
 >```json
 >{
 >  "op": "emitevent",
->  "contentType": "application/json",
->  "topic": "things/{thingID}/event/{actionName}",
->  "mqv:controlPacketValue": "PUBLISH"
+>  "href": "mqtts://{broker}/things/{thingID}/event/{actionName}",
+>  "mqv:controlPacketValue": "PUBLISH",
+>  "contentType": "application/json"
 >}
 >```
 >
@@ -317,13 +316,17 @@ The 'output' data schema of the action in the ActionAffordance describes the con
 * Event for action status: started, completed, cancelled, failed
 * Topic: things/{thingID}/event/{actionName}
 * Payload: JSON encoded action status object with the following properties:
+  * id: action id provided when emitting the action
+  * name: the name of the action 
+  * status: status of the action: started, completed, cancelled, failed
+  * description: additional human description of the action status, such as error messages or other.
 
 For example:
 ```json
 {
   "id": "{actionID}",
   "name": "{actionName}",
-  "status": "started" | "completed" | "cancelled" | "failed",
+  "status": "started",
   "description": "optional details of the status"
 }
 ```

@@ -3,6 +3,7 @@
 package mqttbinding
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/lib/client/pkg/mqttclient"
@@ -33,6 +34,8 @@ import (
 //     Use of the 'retain' flag is not recommended for actions on devices that also have a manual input.
 //  5. If an action is not allowed then no error is returned. In most cases the MQTT bus won't accept
 //     the request in the first place.
+//  6. Additional functions UpdatePropertyValue(s) to support sending property change events only
+//     when property values change.
 //
 // Example of properties in a TD with forms for mqtt protocol binding.
 // The forms will likely be provided through a @context link to a standardized WoST model, once the semantics are figured out.
@@ -42,23 +45,21 @@ import (
 //            "@type": "iot:SwitchOnOff",
 //            "title": "Switch on or off status"
 //            "description": "More elaborate description of the onoff property"
-//            "observable": true,    // form must provide a observeproperty binding
+//            "observable": true,    // form must provide an observeproperty binding
 //            "type": "boolean",
 //            "unit": "binary",
-//            "readOnly": true,
-//            "writeOnly": true,     // property is writable. form must provide a writeproperty binding
-//            // protocol binding for the property
+//            "readOnly": false,  // property is writable. form must provide a writeproperty binding
 //        }
 //        // These forms apply to all writable properties
 //        "forms": [{
-//          	"href": "mqtt://${broker}/things/${thingID}/property/${propertyName}",
-//          	"op": ["writeproperty"],
+//          	"op": ["writeproperty", "writeproperties"],
+//          	"href": "mqtts://{broker}/things/{thingID}/write/properties",
 //				"mqv:controlPacketValue": "PUBLISH",
 //              "contentType": "application/json"
 //          }, {
 //              // TBD. MQTT topic. How to parameterize in a generic schema?
-//          	"href": "mqtt://${broker}/things/${thingID}/property/${propertyName}",
 //              "op": ["observeproperty"],
+//          	"href": "mqtts://{broker}/things/{thingID}/event/properties",
 //				"mqv:controlPacketValue": "SUBSCRIBE",
 //              "contentType": "application/json"
 //         }],
@@ -73,40 +74,24 @@ type MqttExposedThing struct {
 	// handler for action requests
 	// to set the default handler use name ""
 	actionHandlers map[string]func(name string, value InteractionOutput) error
+
 	// handler for writing property requests
 	// to set the default handler use name ""
-	propertyHandlers map[string]func(name string, value InteractionOutput) error
+	propertyWriteHandlers map[string]func(name string, value InteractionOutput) error
 }
 
 // Destroy the exposed thing. This stops serving external requests
 func (eThing *MqttExposedThing) Destroy() {
-	topic := strings.ReplaceAll(TopicThingEvent, "{thingID}", eThing.td.ID) + "/#"
+	topic := strings.ReplaceAll(TopicEmitEvent, "{thingID}", eThing.td.ID) + "/#"
 	eThing.mqttClient.Unsubscribe(topic)
 
 	eThing.eventSubscriptions = nil
 	eThing.actionHandlers = nil
 }
 
-// EmitPropertyChange publishes a property change event, which in turn will notify all
-// observers (subscribers) of the property.
-//
-// The topic will be things/{thingID}/event/{propName} and payload will be the new property value
-// propName is the name of the property in the TD.
-// newValue is the new value of the property, used as the event payload
-// Returns an error if the property value cannot be published
-func (eThing *MqttExposedThing) EmitPropertyChange(propName string, newValue InteractionOutput) error {
-	// update the cached value in ConsumedThing base class
-	eThing.valueStore[propName] = newValue
-
-	// submit the property change as an event with the property name
-	err := eThing.EmitEvent(propName, newValue.value)
-	return err
-}
-
-// EmitEvent publishes an event to subscribers.
+// EmitEvent publishes a single event to subscribers.
 // The topic will be things/{thingID}/event/{name} and payload will be the event data.
-// If the event cannot be published, for example when disconnected, an error is returned.
-// For important events this can be used to retry them when connection is restored.
+// If the event cannot be published, for example it is not defined, an error is returned.
 //
 // name is the name of the event as described in the TD, or one of the general purpose events.
 // data is the event value as defined in the TD events schema and used as the payload
@@ -114,27 +99,94 @@ func (eThing *MqttExposedThing) EmitPropertyChange(propName string, newValue Int
 func (eThing *MqttExposedThing) EmitEvent(name string, data interface{}) error {
 	_, found := eThing.td.Events[name]
 	if !found {
-		_, found = eThing.td.Properties[name]
-	}
-	if !found {
-		err := errors.New("event name '" + name + "' is not defined in the TD document")
-		logrus.Errorf("EmitEvent: Error %s", err)
+		logrus.Errorf("EmitEvent. Event '%s' not defined for thing '%s'", name, eThing.td.ID)
+		err := errors.New("NotFoundError")
 		return err
 	}
 
-	topic := strings.ReplaceAll(TopicThingEvent, "{thingID}", eThing.td.ID) + "/" + name
+	topic := strings.ReplaceAll(TopicEmitEvent, "{thingID}", eThing.td.ID) + "/" + name
 	err := eThing.mqttClient.PublishObject(topic, data)
 	return err
 }
 
-// Expose starts serving external requests for the Thing, so that WoT Interactions using Properties and Actions
+// EmitPropertyChange publishes a property value change event, which in turn will notify all
+// observers (subscribers) of the change.
+//
+// The topic will be things/{thingID}/event/properties and payload will be
+// a map with the property name-value pair.
+// propName is the name of the property in the TD.
+// newRawValue is the new raw value of the property. This will be also be stored in the valueStore.
+// Returns an error if the property value cannot be published
+func (eThing *MqttExposedThing) EmitPropertyChange(propName string, newRawValue interface{}) error {
+	propAffordance, found := eThing.td.Properties[propName]
+	if !found {
+		logrus.Errorf("EmitPropertyChange. Property '%s' not found on thing '%s'", propName, eThing.td.ID)
+		err := errors.New("NotFoundError")
+		return err
+	}
+
+	// update the cached value in ConsumedThing base class
+	eThing.valueStore[propName] = NewInteractionOutput(newRawValue, &propAffordance.DataSchema)
+
+	// protocol binding -> things/{thingID}/event/{propName}
+	propMap := map[string]interface{}{propName: newRawValue}
+	topic := strings.ReplaceAll(TopicEmitPropertiesChange, "{thingID}", eThing.td.ID)
+	err := eThing.mqttClient.PublishObject(topic, propMap)
+	return err
+}
+
+// EmitPropertyChanges sends a properties change event for multiple properties.
+// This will remove properties that do not have an affordance.
+//
+// This uses the 'TopicEmitPropertiesChange' topic, eg 'things/{thingID}/event/properties'.
+// propMap is a map of property name to raw value. This will be converted to json as-is
+// onlyChanges includes only those properties whose value have changed.
+// Returns an error if submitting an event fails
+func (eThing *MqttExposedThing) EmitPropertyChanges(
+	propMap map[string]interface{}, onlyChanges bool) error {
+
+	var err error
+	changedProps := make(map[string]interface{})
+
+	// filter properties that have no affordance or haven't changed
+	for propName, newVal := range propMap {
+		lastVal, found := eThing.valueStore[propName]
+
+		// must have a propertyAffordance
+		if found {
+			if !onlyChanges || lastVal.Value != newVal {
+				propAffordance, found := eThing.td.Properties[propName]
+				// don't sumbit values that are not in the properties map
+				if found {
+					changedProps[propName] = newVal
+					eThing.valueStore[propName] = NewInteractionOutput(newVal, &propAffordance.DataSchema)
+				}
+			}
+		}
+	}
+	// only publish if there are properties left
+	if len(changedProps) > 0 {
+		topic := strings.ReplaceAll(TopicEmitPropertiesChange, "{thingID}", eThing.td.ID)
+		err := eThing.mqttClient.PublishObject(topic, changedProps)
+		if err != nil {
+			logrus.Warningf("MqqExposedThing.EmitPropertyValues: Failed %s", err)
+			return err
+		}
+	}
+
+	logrus.Infof("MqqExposedThing.EmitPropertyValues: submitted %d properties for thing %s", len(changedProps), eThing.td.ID)
+	return err
+}
+
+// Expose starts serving external requests for the Thing so that WoT Interactions using Properties and Actions
 // will be possible. This also publishes the TD document of this Thing.
 func (eThing *MqttExposedThing) Expose() error {
 	// Actions and Properties are handled the same.
 	// An action with a property name will update the property.
-	topic := strings.ReplaceAll(TopicThingProperty, "{thingID}", eThing.td.ID) + "/#"
+	topic := strings.ReplaceAll(TopicWriteProperties, "{thingID}", eThing.td.ID)
 	eThing.mqttClient.Subscribe(topic, eThing.handlePropertyWriteRequest)
-	topic = strings.ReplaceAll(TopicThingAction, "{thingID}", eThing.td.ID) + "/#"
+
+	topic = strings.ReplaceAll(TopicInvokeAction, "{thingID}", eThing.td.ID) + "/#"
 	eThing.mqttClient.Subscribe(topic, eThing.handleActionRequest)
 
 	// Also publish this Thing's TD document
@@ -151,16 +203,15 @@ func (eThing *MqttExposedThing) handleActionRequest(address string, message []by
 	var err error
 
 	// the topic is "things/id/action|property/name"
-	parts := strings.Split(address, "/")
-	if len(parts) < 4 {
-		logrus.Warningf("MqttExposedThing.handleActionRequest: name is missing in topic %s", address)
+	thingID, messageType, subject := SplitTopic(address)
+	if thingID == "" || messageType == "" {
+		logrus.Warningf("MqttExposedThing.handleActionRequest: subject is missing in topic %s", address)
 		return
 	}
-	actionName := parts[3]
 
 	// determine the action/property schema
 	logrus.Infof("MqttExposedThing.handleActionRequest: Received action request with topic %s", address)
-	actionAffordance := eThing.td.GetAction(actionName)
+	actionAffordance := eThing.td.GetAction(subject)
 	if actionAffordance == nil {
 		err = errors.New("not a registered action")
 	} else {
@@ -168,14 +219,14 @@ func (eThing *MqttExposedThing) handleActionRequest(address string, message []by
 		// TODO validate the data against the schema
 
 		// action specific handlers takes precedence
-		handler, _ := eThing.actionHandlers[actionName]
+		handler, _ := eThing.actionHandlers[subject]
 		if handler != nil {
-			err = handler(actionName, actionData)
+			err = handler(subject, actionData)
 		} else {
 			// default handler is a fallback
 			defaultHandler, _ := eThing.actionHandlers[""]
 			if defaultHandler != nil {
-				err = defaultHandler(actionName, actionData)
+				err = defaultHandler(subject, actionData)
 			} else {
 				err = errors.New("no handler for action request")
 			}
@@ -192,7 +243,7 @@ func (eThing *MqttExposedThing) handleActionRequest(address string, message []by
 // It is up to the handler to invoke emitPropertyChange and update the property in the valueStore
 // after the change takes effect.
 //
-// There is no error feedback in case the request cannot be handled. The requester will receive a
+// There is currently no error feedback in case the request cannot be handled. The requester will receive a
 // property change event when the request has completed successfully.
 // Failure to complete the request can be caused by an invalid value or if the IoT device is not
 // in a state to accept changes.
@@ -202,36 +253,50 @@ func (eThing *MqttExposedThing) handleActionRequest(address string, message []by
 // If no specific handler is set for the property then the default handler with name "" is invoked.
 func (eThing *MqttExposedThing) handlePropertyWriteRequest(address string, message []byte) {
 	var err error
-	// the topic is "things/id/action|property/name"
-	parts := strings.Split(address, "/")
-	if len(parts) <= 3 {
+	logrus.Infof("MqttExposedThing.handlePropertyWriteRequest: topic: %s", address)
+	// the topic is "things/id/write/properties"
+	thingID, messageType, subject := SplitTopic(address)
+	if thingID == "" || messageType != TopicTypeWrite || subject != TopicSubjectProperties {
 		logrus.Warningf("MqttExposedThing.handlePropertyWriteRequest: missing property name in topic %s", address)
 		return
 	}
-	// update a single property
-	propName := parts[3]
-	propAffordance := eThing.td.GetProperty(propName)
-	propValue := NewInteractionOutputFromJson(message, &propAffordance.DataSchema)
-	if propAffordance.ReadOnly {
-		err = errors.New("property is readonly")
-	} else {
-		// property specific handler takes precedence
-		handler, _ := eThing.propertyHandlers[propName]
-		if handler != nil {
-			err = handler(propName, propValue)
+
+	// payload must be a map of property name-value pairs
+	propMap := make(map[string]interface{})
+	err = json.Unmarshal(message, &propMap)
+	if err != nil {
+		logrus.Warningf("MqttExposedThing.handlePropertyWriteRequest: missing property map in request %s: %s", address, err)
+		// TBD: reply with a failed event
+		return
+	}
+	for propName, val := range propMap {
+		propAffordance := eThing.td.GetProperty(propName)
+		if propAffordance == nil {
+			err = errors.New("property '%s' is not a valid name")
+			logrus.Warningf("MqttExposedThing.handlePropertyWriteRequest: %s. Request ignored.", err)
+		} else if propAffordance.ReadOnly {
+			err = errors.New("property '" + propName + "' is readonly")
+			logrus.Warningf("MqttExposedThing.handlePropertyWriteRequest: %s", err)
 		} else {
-			// default handler is a fallback
-			defaultHandler, _ := eThing.propertyHandlers[""]
-			if defaultHandler != nil {
-				err = defaultHandler(propName, propValue)
+			propValue := NewInteractionOutput(val, &propAffordance.DataSchema)
+			// property specific handler takes precedence
+			handler, _ := eThing.propertyWriteHandlers[propName]
+			if handler != nil {
+				err = handler(propName, propValue)
 			} else {
-				err = errors.New("no handler for property write request")
+				// default handler is a fallback
+				defaultHandler, _ := eThing.propertyWriteHandlers[""]
+				if defaultHandler == nil {
+					err = errors.New("no handler for property write request")
+					logrus.Warningf("MqttExposedThing.handlePropertyWriteRequest: Request failed for topic %s: %s", address, err)
+				} else {
+					err = defaultHandler(propName, propValue)
+				}
 			}
 		}
+
 	}
-	if err != nil {
-		logrus.Warningf("MqttExposedThing.handlePropertyWriteRequest: Request failed for topic %s: %s", address, err)
-	}
+
 }
 
 //func (eThing *MqttExposedThing) SetPropertyReadHandler(func(name string) string) error {
@@ -291,7 +356,7 @@ func (eThing *MqttExposedThing) SetActionHandler(
 func (eThing *MqttExposedThing) SetPropertyWriteHandler(
 	propName string, writeHandler func(propName string, value InteractionOutput) error) {
 
-	eThing.propertyHandlers[propName] = writeHandler
+	eThing.propertyWriteHandlers[propName] = writeHandler
 }
 
 // CreateExposedThing constructs an exposed thing from a TD.
@@ -311,8 +376,8 @@ func CreateExposedThing(tdDoc *thing.ThingTD, mqttClient *mqttclient.MqttClient)
 			subscriptionMutex:  sync.Mutex{},
 			valueStore:         make(map[string]InteractionOutput),
 		},
-		actionHandlers:   make(map[string]func(actionName string, value InteractionOutput) error),
-		propertyHandlers: make(map[string]func(actionName string, value InteractionOutput) error),
+		actionHandlers:        make(map[string]func(actionName string, value InteractionOutput) error),
+		propertyWriteHandlers: make(map[string]func(actionName string, value InteractionOutput) error),
 	}
 	return eThing
 }

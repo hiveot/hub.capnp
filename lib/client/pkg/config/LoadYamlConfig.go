@@ -9,7 +9,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// LoadConfig loads a yaml configuration from file and substitutes keywords variables
+// LoadYamlConfig loads a yaml configuration from file and substitutes keywords variables
 // with values from the provided map.
 //
 // This function doesn't really care what a keyword looks like but as convention "${name}"
@@ -49,7 +49,7 @@ func LoadYamlConfig(configFile string, config interface{}, substituteMap map[str
 	return nil
 }
 
-// Substitute template strings in the text
+// SubstituteText substitutes template strings in the text
 // This substitutes configuration values in the format ${name} with the given
 // variable from the map. This format is compatible with JS templates.
 // This is kept simple by requiring the full template keyword in the replacement

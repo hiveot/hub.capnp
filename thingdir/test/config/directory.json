@@ -4,9 +4,9 @@
         "http://www.w3.org/ns/thing"
       ],
       "@type": "beacon",
-      "created": "2022-03-28T22:38:49.782-0700",
+      "created": "2022-04-04T09:06:01.068-0700",
       "id": "thing1",
-      "modified": "2022-03-28T22:38:49.782-0700",
+      "modified": "2022-04-04T09:06:01.068-0700",
       "security": "NoSecurityScheme",
       "title": "test thing"
     },
@@ -15,9 +15,9 @@
         "http://www.w3.org/ns/thing"
       ],
       "@type": "sensor",
-      "created": "2022-03-28T22:38:49.782-0700",
+      "created": "2022-04-04T09:06:01.068-0700",
       "id": "thing3",
-      "modified": "2022-03-28T22:38:49.782-0700",
+      "modified": "2022-04-04T09:06:01.068-0700",
       "security": "NoSecurityScheme",
       "title": "test thing"
     },
@@ -26,9 +26,9 @@
         "http://www.w3.org/ns/thing"
       ],
       "@type": "netSwitch",
-      "created": "2022-03-28T22:38:49.782-0700",
+      "created": "2022-04-04T09:06:01.068-0700",
       "id": "thing4",
-      "modified": "2022-03-28T22:38:49.782-0700",
+      "modified": "2022-04-04T09:06:01.068-0700",
       "security": "NoSecurityScheme",
       "title": "test thing"
     }

@@ -31,6 +31,17 @@ authn authz certs idprov launcher logger mosquittomgr thingdir:  .FORCE ## Build
 	cp $@/dist/config/* dist/config
 
 
+test: clean ## Test all plugins
+	make -C authn test
+	make -C authz test
+	make -C certs test
+	make -C idprov test
+	make -C launcher test
+	make -C logger test
+	make -C mosquittomgr test
+	make -C thingdir test
+
+
 help: ## Show this help
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 

@@ -146,11 +146,11 @@ func TestLogSpecificIDs(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	// publish the events
-	topic1 := strings.ReplaceAll(mqttbinding.TopicThingEvent, "{thingID}", thingID2) + "/" + eventName1
+	topic1 := strings.ReplaceAll(mqttbinding.TopicEmitEvent, "{thingID}", thingID2) + "/" + eventName1
 	err = client.PublishObject(topic1, "event1")
 	assert.NoError(t, err)
 
-	topic2 := strings.ReplaceAll(mqttbinding.TopicThingEvent, "{thingID}", thingID2) + "/" + eventName2
+	topic2 := strings.ReplaceAll(mqttbinding.TopicEmitEvent, "{thingID}", thingID2) + "/" + eventName2
 	err = client.PublishObject(topic2, "event2")
 	assert.NoError(t, err)
 

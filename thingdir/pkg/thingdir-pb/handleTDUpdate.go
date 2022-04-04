@@ -7,7 +7,7 @@ import (
 
 // handleTDUpdate updates the directory with the received TD
 func (pb *ThingDirPB) handleTDUpdate(topic string, message []byte) {
-	thingID, _ := mqttbinding.SplitTopic(topic)
+	thingID, _, _ := mqttbinding.SplitTopic(topic)
 
 	tdoc := make(map[string]interface{})
 	err := json.Unmarshal(message, &tdoc)

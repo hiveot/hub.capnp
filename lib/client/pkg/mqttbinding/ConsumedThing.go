@@ -3,6 +3,7 @@
 package mqttbinding
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/lib/client/pkg/mqttclient"
@@ -39,15 +40,16 @@ func (cThing *MqttConsumedThing) GetThingDescription() *thing.ThingTD {
 }
 
 // Handle incoming events.
-// If the event name is a property name then update the property value store using the property data schema,
-// otherwise use the data schema in the events section of the TD.
+// If the event name is 'properties' then the payload is a map of property name-value pairs.
+// If the event is a propertyName then the payload is the property value of that event.
+// Otherwise the event payload is described in the TD event affordance.
 // Last invoke the subscriber to the event name, if any, or the default subscriber
 //  address is the MQTT topic that the event is published on as: things/{thingID}/event/{eventName}
 //  whereas message is the body of the event.
 func (cThing *MqttConsumedThing) handleEvent(address string, message []byte) {
 	var evData InteractionOutput
 
-	logrus.Infof("MqttConsumedThing.handleEvent: received event on topic %s", address)
+	logrus.Infof("MqttConsumedThing.handleEvent: received event on address %s", address)
 
 	// the event topic is "things/id/event/name"
 	parts := strings.Split(address, "/")
@@ -64,8 +66,28 @@ func (cThing *MqttConsumedThing) handleEvent(address string, message []byte) {
 
 		logrus.Infof("MqttConsumedThing.handleEvent: Event with topic %s is a property event", address)
 		// TODO validate the data
+		// property or event, it is stored in the valueStore
+		cThing.valueStore[eventName] = evData
+	} else if eventName == TopicSubjectProperties {
+		// handle map of property name-value pairs
+		var propMap map[string]interface{}
+		err := json.Unmarshal(message, &propMap)
+		if err != nil {
+			logrus.Warningf("MqttConsumedThing.handleEvent: Event with topic %s does not contain name-value map", address)
+			return
+		}
+		for propName, propValue := range propMap {
+			propAffordance := cThing.td.GetProperty(propName)
+			if propAffordance != nil {
+				evData = NewInteractionOutput(propValue, &propAffordance.DataSchema)
+				// property or event, it is stored in the valueStore
+				cThing.valueStore[propName] = evData
+			} else {
+				logrus.Infof("MqttConsumedThing.handleEvent. Ignoring unknown property '%s'", propName)
+			}
+		}
 	} else {
-		// not a property event
+		// handle actual events
 		eventAffordance := cThing.td.GetEvent(eventName)
 		if eventAffordance != nil {
 			evData = NewInteractionOutputFromJson(message, &eventAffordance.Data)
@@ -74,9 +96,9 @@ func (cThing *MqttConsumedThing) handleEvent(address string, message []byte) {
 			// unknown schema
 			evData = NewInteractionOutputFromJson(message, nil)
 		}
+		// property or event, it is stored in the valueStore
+		cThing.valueStore[eventName] = evData
 	}
-	// property or event, it is stored in the valueStore
-	cThing.valueStore[eventName] = evData
 
 	// notify subscribers if any
 	subscription, found := cThing.eventSubscriptions[eventName]
@@ -103,7 +125,7 @@ func (cThing *MqttConsumedThing) InvokeAction(actionName string, data interface{
 		logrus.Error(err)
 		return err
 	}
-	topic := strings.ReplaceAll(TopicThingAction, "{thingID}", cThing.td.ID) + "/" + actionName
+	topic := strings.ReplaceAll(TopicInvokeAction, "{thingID}", cThing.td.ID) + "/" + actionName
 	return cThing.mqttClient.PublishObject(topic, data)
 }
 
@@ -161,7 +183,7 @@ func (cThing *MqttConsumedThing) ReadAllProperties() map[string]InteractionOutpu
 
 // Stop delivering notifications for event subscriptions
 func (cThing *MqttConsumedThing) Stop() {
-	topic := strings.ReplaceAll(TopicThingEvent, "{thingID}", cThing.td.ID)
+	topic := strings.ReplaceAll(TopicEmitEvent, "{thingID}", cThing.td.ID)
 	cThing.mqttClient.Unsubscribe(topic)
 }
 
@@ -194,13 +216,15 @@ func (cThing *MqttConsumedThing) SubscribeEvent(
 //
 // TBD: if there is a need to be notified of failure then a future update can add a write-property failed event.
 //
-// This will be published on topic "things/{thingID}/property/{name}"
+// This will be published on topic "things/{thingID}/write/properties"
 //
 // It returns an error if the property update could not be sent and nil if it is successfully
 //  published. Final confirmation is obtained if an event is received with the updated property value.
 func (cThing *MqttConsumedThing) WriteProperty(propName string, value interface{}) error {
-	topic := strings.ReplaceAll(TopicThingProperty, "{thingID}", cThing.td.ID) + "/" + propName
-	err := cThing.mqttClient.PublishObject(topic, value)
+
+	topic := strings.ReplaceAll(TopicWriteProperties, "{thingID}", cThing.td.ID)
+	payload := map[string]interface{}{propName: value}
+	err := cThing.mqttClient.PublishObject(topic, payload)
 	if err != nil {
 		logrus.Errorf("MqttConsumedThing:WriteProperty: Failed publishing update request on topic %s: %s", topic, err)
 	}
@@ -216,8 +240,12 @@ func (cThing *MqttConsumedThing) WriteProperty(propName string, value interface{
 //  published. Final success is achieved if the property value will be updated through an event.
 func (cThing *MqttConsumedThing) WriteMultipleProperties(properties map[string]interface{}) error {
 	var err error
-	for propName, value := range properties {
-		err = cThing.WriteProperty(propName, value)
+	topic := strings.ReplaceAll(TopicWriteProperties, "{thingID}", cThing.td.ID)
+	payload := properties
+
+	err = cThing.mqttClient.PublishObject(topic, payload)
+	if err != nil {
+		logrus.Errorf("MqttConsumedThing:WriteMultipleProperties: Failed publishing update request on topic %s: %s", topic, err)
 	}
 	return err
 }
@@ -237,7 +265,7 @@ func Consume(tdDoc *thing.ThingTD, mqttClient *mqttclient.MqttClient) *MqttConsu
 		valueStore:         make(map[string]InteractionOutput),
 	}
 	// in order to keep props up to date, subscribe to all events
-	topic := strings.ReplaceAll(TopicThingEvent, "{thingID}", cThing.td.ID) + "/#"
+	topic := strings.ReplaceAll(TopicEmitEvent, "{thingID}", cThing.td.ID) + "/#"
 	cThing.mqttClient.Subscribe(topic, cThing.handleEvent)
 
 	return &cThing

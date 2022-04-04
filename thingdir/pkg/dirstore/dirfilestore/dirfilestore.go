@@ -150,6 +150,14 @@ func (store *DirFileStore) Close() {
 	}
 }
 
+// DeleteAll empties the store. Intended for etsting.
+func (store *DirFileStore) DeleteAll() {
+	store.mutex.Lock()
+	defer store.mutex.Unlock()
+	store.docs = make(map[string]interface{})
+	store.updateCount++
+}
+
 // Get a document by its ID
 //  id of the thing to look up
 // Returns an error if it doesn't exist

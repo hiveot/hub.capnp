@@ -80,6 +80,27 @@ type ThingTD struct {
 	// uriVariables: todo
 }
 
+// AddAction provides a simple way to add an action affordance schema to the TD
+// This returns the action affordance that can be augmented/modified directly
+//
+// name is the name under which it is stored in the action affordance map. Any existing name will be replaced.
+// title is the title used in the action. It is okay to use name if not sure.
+// dataType is the type of data the action holds, WoTDataTypeNumber, ..Object, ..Array, ..String, ..Integer, ..Boolean or null
+func (tdoc *ThingTD) AddAction(name string, title string, dataType string) *ActionAffordance {
+	actionAff := &ActionAffordance{
+		InteractionAffordance: InteractionAffordance{
+			Title: title,
+		},
+		Input: DataSchema{
+			Title:    title,
+			Type:     dataType,
+			ReadOnly: true,
+		},
+	}
+	tdoc.UpdateAction(name, actionAff)
+	return actionAff
+}
+
 // AddProperty provides a simple way to add a property to the TD
 // This returns the property affordance that can be augmented/modified directly
 // By default the property is a read-only attribute.
@@ -97,6 +118,27 @@ func (tdoc *ThingTD) AddProperty(name string, title string, dataType string) *Pr
 	}
 	tdoc.UpdateProperty(name, prop)
 	return prop
+}
+
+// AddEvent provides a simple way to add an event to the TD
+// This returns the event affordance that can be augmented/modified directly
+//
+// name is the name under which it is stored in the property affordance map. Any existing name will be replaced.
+// title is the title used in the event. It is okay to use name if not sure.
+// dataType is the type of data the event holds, WoTDataTypeNumber, ..Object, ..Array, ..String, ..Integer, ..Boolean or null
+func (tdoc *ThingTD) AddEvent(name string, title string, dataType string) *EventAffordance {
+	evAff := &EventAffordance{
+		InteractionAffordance: InteractionAffordance{
+			Title: title,
+		},
+		Data: DataSchema{
+			Title:    title,
+			Type:     dataType,
+			ReadOnly: true,
+		},
+	}
+	tdoc.UpdateEvent(name, evAff)
+	return evAff
 }
 
 // AsMap returns the TD document as a map

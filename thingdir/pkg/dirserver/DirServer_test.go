@@ -9,6 +9,7 @@ import (
 	"path"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -136,7 +137,8 @@ func TestStartStop(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	thingID1 := "thing1"
+	thingID1 := "thing1-update1"
+	thingID2 := "thing1-update2"
 	deviceType1 := vocab.DeviceTypeSensor
 
 	dirClient := dirclient.NewDirClient(serverHostPort, testCerts.CaCert)
@@ -144,16 +146,30 @@ func TestUpdate(t *testing.T) {
 	err := dirClient.ConnectWithClientCert(testCerts.PluginCert)
 	require.NoError(t, err)
 
-	// Create
+	// Add a TD directly on the server
 	td1 := thing.CreateTD(thingID1, "test thing", deviceType1)
 	tdMap := td1.AsMap()
 	err = directoryServer.UpdateTD(thingID1, tdMap)
 	assert.NoError(t, err)
 
 	// get result
-	td2, err := dirClient.GetTD(thingID1)
+	td1b, err := dirClient.GetTD(thingID1)
+	require.NoError(t, err)
+	assert.Equal(t, td1.ID, td1b.ID)
+
+	// Add a TD via network post
+	td2 := thing.CreateTD(thingID2, "test thing 2", deviceType1)
+	tlsClient := tlsclient.NewTLSClient(serverHostPort, testCerts.CaCert)
+	err = tlsClient.ConnectWithClientCert(testCerts.PluginCert)
 	assert.NoError(t, err)
-	assert.Equal(t, td1.ID, td2.ID)
+	postPath := strings.Replace(dirclient.RouteThingID, "{thingID}", thingID2, 1)
+	_, err = tlsClient.Post(postPath, td2.AsMap())
+	time.Sleep(time.Second)
+
+	// get results
+	td2b, err := dirClient.GetTD(thingID2)
+	require.NoError(t, err)
+	assert.Equal(t, td2.ID, td2b.ID)
 
 	dirClient.Close()
 }
@@ -265,6 +281,7 @@ func TestBadPatch(t *testing.T) {
 func TestQueryAndList(t *testing.T) {
 	const query = `$[?(@['@type']=='sensor')]`
 
+	directoryServer.DeleteAll()
 	dirClient := dirclient.NewDirClient(serverHostPort, testCerts.CaCert)
 	err := dirClient.ConnectWithClientCert(testCerts.PluginCert)
 	AddTds(directoryServer)

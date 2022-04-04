@@ -16,13 +16,13 @@ type InteractionOutput struct {
 	// raw data from the interaction as described by the Schema
 	jsonEncoded []byte
 	// decoded data in their native format, eg string, int, array, object
-	value interface{}
+	Value interface{} `json:"value"`
 }
 
-// Value returns the parsed value of the interaction
-func (io *InteractionOutput) Value() interface{} {
-	return io.value
-}
+//// Value returns the parsed value of the interaction
+//func (io *InteractionOutput) Value() interface{} {
+//	return io.value
+//}
 
 // ValueAsArray returns the value as an array
 // The result depends on the schema type
@@ -43,7 +43,7 @@ func (io *InteractionOutput) ValueAsString() string {
 	s := ""
 	err := json.Unmarshal(io.jsonEncoded, &s)
 	if err != nil {
-		logrus.Errorf("ValueAsString: Can't convert value '%s' to a string", io.value)
+		logrus.Errorf("ValueAsString: Can't convert value '%s' to a string", io.Value)
 	}
 	return s
 }
@@ -53,7 +53,7 @@ func (io *InteractionOutput) ValueAsBoolean() bool {
 	b := false
 	err := json.Unmarshal(io.jsonEncoded, &b)
 	if err != nil {
-		logrus.Errorf("ValueAsBoolean: Can't convert value '%s' to a boolean", io.value)
+		logrus.Errorf("ValueAsBoolean: Can't convert value '%s' to a boolean", io.Value)
 	}
 	return b
 }
@@ -63,7 +63,7 @@ func (io *InteractionOutput) ValueAsInt() int {
 	i := 0
 	err := json.Unmarshal(io.jsonEncoded, &i)
 	if err != nil {
-		logrus.Errorf("ValueAsInt: Can't convert value '%s' to a int", io.value)
+		logrus.Errorf("ValueAsInt: Can't convert value '%s' to a int", io.Value)
 	}
 	return i
 }
@@ -74,7 +74,7 @@ func (io *InteractionOutput) ValueAsMap() map[string]interface{} {
 	o := make(map[string]interface{})
 	err := json.Unmarshal(io.jsonEncoded, &o)
 	if err != nil {
-		logrus.Errorf("ValueAsMap: Can't convert value '%s' to a map", io.value)
+		logrus.Errorf("ValueAsMap: Can't convert value '%s' to a map", io.Value)
 	}
 	return o
 }
@@ -105,7 +105,7 @@ func NewInteractionOutputFromJson(jsonEncoded []byte, schema *thing.DataSchema) 
 	io := InteractionOutput{
 		jsonEncoded: jsonEncoded,
 		schema:      schema,
-		value:       val,
+		Value:       val,
 	}
 	return io
 }
@@ -121,7 +121,7 @@ func NewInteractionOutput(data interface{}, schema *thing.DataSchema) Interactio
 	io := InteractionOutput{
 		jsonEncoded: jsonEncoded,
 		schema:      schema,
-		value:       data,
+		Value:       data,
 	}
 	return io
 }

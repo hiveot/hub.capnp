@@ -212,14 +212,15 @@ func TestQueryBracketNotationB(t *testing.T) {
 	_ = fileStore.Replace(id1, td1.AsMap())
 	_ = fileStore.Replace(id2, td2.AsMap())
 
-	// query returns 2 sensors. not sure about the sort order
+	// query returns 2 sensors. The order is random
 	res, err := fileStore.Query(queryString, 0, 2, nil)
 	assert.NoError(t, err)
 	require.Equal(t, 2, len(res))
 
+	// both results are of device type sensor
 	readTD1 := res[0].(map[string]interface{})
-	read1ID := readTD1["id"]
-	assert.Equal(t, id1, read1ID)
+	read1type := readTD1["@type"]
+	assert.Equal(t, string(vocab.DeviceTypeSensor), read1type)
 
 	fileStore.Close()
 

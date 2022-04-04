@@ -17,6 +17,9 @@ import (
 //  publisher is the deviceID of the publisher of the thing.
 //  deviceID is the ID of the device to use as part of the Thing ID
 func CreatePublisherID(zone string, publisher string, deviceID string, deviceType vocab.DeviceType) string {
+	if zone == "" {
+		zone = "local"
+	}
 	thingID := fmt.Sprintf("urn:%s:%s:%s:%s", zone, publisher, deviceID, deviceType)
 	return thingID
 }

@@ -123,7 +123,8 @@ func TestReadProperty(t *testing.T) {
 	assert.NoError(t, err)
 
 	// step 3 publish the property value (impersonate an ExposedThing)
-	topic := strings.ReplaceAll(mqttbinding.TopicThingEvent, "{thingID}", testThingID) + "/" + testProp1Name
+	//topic := strings.ReplaceAll(mqttbinding.TopicEmitEvent, "{thingID}", testThingID) + "/" + testProp1Name
+	topic := mqttbinding.CreateTopic(testThingID, mqttbinding.TopicTypeEvent) + "/" + testProp1Name
 	err = client.PublishObject(topic, testProp1Value)
 	assert.NoError(t, err)
 	time.Sleep(time.Second)
@@ -167,7 +168,7 @@ func TestReceiveEvent(t *testing.T) {
 	assert.NoError(t, err)
 
 	// step 3 publish the event (impersonate an ExposedThing)
-	topic := strings.ReplaceAll(mqttbinding.TopicThingEvent, "{thingID}", testThingID) + "/" + eventName
+	topic := strings.ReplaceAll(mqttbinding.TopicEmitEvent, "{thingID}", testThingID) + "/" + eventName
 	err = client.PublishObject(topic, eventValue)
 	assert.NoError(t, err)
 	time.Sleep(time.Second)
@@ -192,7 +193,7 @@ func TestInvokeAction(t *testing.T) {
 
 	// step 2 create a ConsumedThing and listen for actions on the mqtt bus
 	cThing := mqttbinding.Consume(testTD, client)
-	actionTopic := strings.ReplaceAll(mqttbinding.TopicThingAction, "{thingID}", testThingID) + "/#"
+	actionTopic := strings.ReplaceAll(mqttbinding.TopicInvokeAction, "{thingID}", testThingID) + "/#"
 	client.Subscribe(actionTopic, func(address string, message []byte) {
 		receivedAction = true
 		var rxData string

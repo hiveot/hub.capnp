@@ -61,6 +61,11 @@ func (srv *DirectoryServer) Address() string {
 	return srv.address
 }
 
+// DeleteAll empties the store. Intended for testing.
+func (srv *DirectoryServer) DeleteAll() {
+	srv.store.DeleteAll()
+}
+
 // Start the server.
 func (srv *DirectoryServer) Start() error {
 	var err error
