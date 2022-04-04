@@ -21,7 +21,7 @@ import (
 //  clientConfig is an instance of the client's configuration object
 // This returns the hub global configuration with an error if something went wrong
 func LoadAllConfig(args []string, appFolder string, clientID string, clientConfig interface{}) (*HubConfig, error) {
-	hubConfigFile := "hub.yaml"
+	hubConfigFile := DefaultHubConfigName
 
 	// Determine the default application installation folder
 	if appFolder == "" {

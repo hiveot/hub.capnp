@@ -307,11 +307,14 @@ func (mqttClient *MqttClient) resubscribe() {
 	logrus.Debugf("MqttClient.resubscribe complete")
 }
 
-// // Set the connection timeout for the client.
-// // Must be invoked before the connect() call
-// func (MqttClient *MqttClient) SetTimeout(sec int) {
-// 	MqttClient.timeout = sec
-// }
+// SetPrettyJson enables/disables pretty-print in marshalling json
+func (mqttClient *MqttClient) SetPrettyPrint(enable bool) {
+	if enable {
+		mqttClient.jsonIndent = " "
+	} else {
+		mqttClient.jsonIndent = ""
+	}
+}
 
 // Subscribe to a address
 // If a subscription already exists, it is replaced.

@@ -253,7 +253,8 @@ func LoadHubConfig(configFile string, clientID string, hubConfig *HubConfig) err
 	}
 	// optional client certificate, if available
 	hubConfig.ClientCert, err = certsclient.LoadTLSCertFromPEM(hubConfig.ClientCertPath, hubConfig.ClientKeyPath)
-	if err != nil {
+	if err != nil && clientID != "" {
+		// only warn if a client ID was given
 		logrus.Warningf("LoadHubConfig: Unable to load the Client Certificate: %s. This is only needed when not a plugin so continuing for now.", err)
 	}
 	// optional plugin certificate, if available

@@ -40,8 +40,11 @@ type LoggerService struct {
 }
 
 // handleMessage receives and records a topic message
-func (wlog *LoggerService) logToFile(thingID string, msgType string, payload []byte) {
-	logrus.Infof("Received message of type '%s' about Thing %s", msgType, thingID)
+// thingID is the ID of the thing from its TD
+// msgType the operation, e.g. read, write, event, action
+// subject of the operation, event name, properties, action name
+func (wlog *LoggerService) logToFile(thingID string, msgType string, subject string, payload []byte) {
+	logrus.Infof("Received message of type '%s/%s' about Thing %s", msgType, subject, thingID)
 	// var err error
 
 	if wlog.loggers == nil {
@@ -74,6 +77,7 @@ func (wlog *LoggerService) logToFile(thingID string, msgType string, payload []b
 	logMsg["payload"] = parsedMsg
 	logMsg["thingID"] = thingID
 	logMsg["msgType"] = msgType
+	logMsg["subject"] = subject
 	pretty, _ := json.MarshalIndent(logMsg, " ", "  ")
 	prettyStr := string(pretty) + ",\n"
 	_, _ = logger.WriteString(prettyStr)
@@ -143,16 +147,16 @@ func (wlog *LoggerService) Start(hubConfig *config.HubConfig) error {
 	if wlog.Config.ThingIDs == nil || len(wlog.Config.ThingIDs) == 0 {
 		// log everything
 		wlog.mqttClient.Subscribe("#", func(address string, payload []byte) {
-			thingID, msgType := mqttbinding.SplitTopic(address)
-			wlog.logToFile(thingID, msgType, payload)
+			thingID, msgType, subject := mqttbinding.SplitTopic(address)
+			wlog.logToFile(thingID, msgType, subject, payload)
 		})
 	} else {
 		for _, thingID := range wlog.Config.ThingIDs {
 			topic := mqttbinding.CreateTopic(thingID, "#")
 			wlog.mqttClient.Subscribe(topic,
 				func(address string, payload []byte) {
-					cbThingID, msgType := mqttbinding.SplitTopic(address)
-					wlog.logToFile(cbThingID, msgType, payload)
+					cbThingID, msgType, subject := mqttbinding.SplitTopic(address)
+					wlog.logToFile(cbThingID, msgType, subject, payload)
 				})
 		}
 	}
