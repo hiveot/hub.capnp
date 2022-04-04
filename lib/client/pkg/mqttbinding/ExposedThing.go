@@ -153,14 +153,12 @@ func (eThing *MqttExposedThing) EmitPropertyChanges(
 		lastVal, found := eThing.valueStore[propName]
 
 		// must have a propertyAffordance
-		if found {
-			if !onlyChanges || lastVal.Value != newVal {
-				propAffordance, found := eThing.td.Properties[propName]
-				// don't sumbit values that are not in the properties map
-				if found {
-					changedProps[propName] = newVal
-					eThing.valueStore[propName] = NewInteractionOutput(newVal, &propAffordance.DataSchema)
-				}
+		if !found || !onlyChanges || lastVal.Value != newVal {
+			propAffordance, found := eThing.td.Properties[propName]
+			// only include values that are in the properties map
+			if found {
+				changedProps[propName] = newVal
+				eThing.valueStore[propName] = NewInteractionOutput(newVal, &propAffordance.DataSchema)
 			}
 		}
 	}
