@@ -14,6 +14,7 @@ package thing
 // based on https://www.w3.org/TR/wot-thing-description/#dataschema
 type DataSchema struct {
 	// JSON-LD keyword to label the object with semantic tags (or types)
+	// Used to indicate input, output, attribute. See vocab.WoSTAtType
 	AtType string `json:"@type,omitempty"`
 	// Provides a human-readable title in the default language
 	Title string `json:"title,omitempty"`

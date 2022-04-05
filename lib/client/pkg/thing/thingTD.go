@@ -27,14 +27,13 @@ type ThingTD struct {
 	AtType  string `json:"@type,omitempty"`
 	AtTypes string `json:"@types,omitempty"`
 
-	// Identifier of the Thing in form of a URI (RFC3986)
-	// Optional in WoT but required in WoST in order to reach the device or service
-	ID string `json:"id"`
+	// base: Define the base URI that is used for all relative URI references throughout a TD document.
+	Base string `json:"base,omitempty"`
 
-	// Human-readable title in the default language. Required.
-	Title string `json:"title"`
-	// Human-readable titles in the different languages
-	Titles map[string]string `json:"titles,omitempty"`
+	// ISO8601 timestamp this document was first created
+	Created string `json:"created,omitempty"`
+	// ISO8601 timestamp this document was last modified
+	Modified string `json:"modified,omitempty"`
 
 	// Provides additional (human-readable) information based on a default language
 	Description string `json:"description,omitempty"`
@@ -44,16 +43,17 @@ type ThingTD struct {
 	// Version information of the TD document (?not the device??)
 	//Version VersionInfo `json:"version,omitempty"` // todo
 
-	// ISO8601 timestamp this document was first created
-	Created string `json:"created,omitempty"`
-	// ISO8601 timestamp this document was last modified
-	Modified string `json:"modified,omitempty"`
+	// Identifier of the Thing in form of a URI (RFC3986)
+	// Optional in WoT but required in WoST in order to reach the device or service
+	ID string `json:"id"`
 
 	// Information about the TD maintainer as URI scheme (e.g., mailto [RFC6068], tel [RFC3966], https).
 	Support string `json:"support,omitempty"`
 
-	// base: Define the base URI that is used for all relative URI references throughout a TD document.
-	Base string `json:"base,omitempty"`
+	// Human-readable title in the default language. Required.
+	Title string `json:"title"`
+	// Human-readable titles in the different languages
+	Titles map[string]string `json:"titles,omitempty"`
 
 	// All properties-based interaction affordances of the thing
 	Properties map[string]*PropertyAffordance `json:"properties,omitempty"`

@@ -3,14 +3,14 @@
 package vocab
 
 // Action names
-const (
-	ActionNameProperty = "property"
-)
+//const (
+//	ActionNameProperty = "property"
+//)
 
 // Event names
-const (
-	EventNameProperty = "property"
-)
+//const (
+//	EventNameProperty = "property"
+//)
 
 // DataType of configuration, input and ouput values.
 // type DataType string
@@ -43,9 +43,9 @@ const (
 )
 
 // WoST attributes used in properties
-const (
-	AttrNameValue = "value"
-)
+//const (
+//	AttrNameValue = "value"
+//)
 
 // IoT Device types
 
@@ -93,18 +93,18 @@ type ThingPropType string
 
 // Since property types is not part of the WoT vocabulary they are defined
 // as part of the WoST vocabulary. Used in "@type" for TD Properties.
-//const (
-//	// PropertyTypeAttr is a readonly attribute describing the Thing
-//	PropertyTypeAttr ThingPropType = "wost:attr"
-//	// PropertyTypeConfig is a writable configuration
-//	PropertyTypeConfig ThingPropType = "wost:configuration"
-//	// PropertyTypeState is a readonly internal state
-//	PropertyTypeState ThingPropType = "wost:state"
-//	// PropertyTypeInput is an input (use in Actions)
-//	PropertyTypeInput ThingPropType = "wost:input"
-//	// PropertyTypeOutput is an output
-//	PropertyTypeOutput ThingPropType = "wost:output"
-//)
+const (
+	// PropertyTypeAttr is a readonly attribute describing the Thing
+	PropertyTypeAttr ThingPropType = "wost:attr"
+	// PropertyTypeConfig is a writable configuration
+	PropertyTypeConfig ThingPropType = "wost:configuration"
+	// PropertyTypeState is a readonly internal state
+	PropertyTypeState ThingPropType = "wost:state"
+	// PropertyTypeInput is an input (use in Actions)
+	PropertyTypeInput ThingPropType = "wost:input"
+	// PropertyTypeOutput is an output
+	PropertyTypeOutput ThingPropType = "wost:output"
+)
 
 // Vocabulary attribute and configuration property names to be used by Things and plugins.
 const (
