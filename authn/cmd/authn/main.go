@@ -17,9 +17,12 @@ import (
 
 const Version = `0.3-alpha`
 
+var binFolder string
+var homeFolder string
+
 func main() {
-	binFolder := path.Dir(os.Args[0])
-	homeFolder := path.Dir(binFolder)
+	binFolder = path.Dir(os.Args[0])
+	homeFolder = path.Dir(binFolder)
 	ParseArgs(homeFolder, os.Args[1:])
 }
 
@@ -69,7 +72,7 @@ Options:
 		fmt.Printf("Parse Error: %s\n", err)
 		os.Exit(1)
 	}
-
+	// populate fields with parsed arguments
 	err = opts.Bind(&optConf)
 
 	if optConf.Verbose {
@@ -88,8 +91,9 @@ Options:
 		err = HandleSetPasswd(optConf.Config, optConf.Loginid, optConf.Passwd, optConf.Iter)
 	} else if optConf.Gentoken {
 		fmt.Printf("Generate user access token\n")
-		err = HandleGenToken(optConf.Config, optConf.Loginid, optConf.Days)
+		err = HandleGenToken(path.Join(optConf.Config, "..", "certs"), optConf.Loginid, optConf.Days)
 	} else {
+		fmt.Printf("?\n")
 		err = fmt.Errorf("invalid command")
 	}
 	if err != nil {
@@ -133,15 +137,15 @@ func HandleSetPasswd(configFolder string, username string, passwd string, iterat
 }
 
 // HandleGenToken generates an access token for the user
-func HandleGenToken(configFolder string, username string, days int) error {
+func HandleGenToken(certsFolder string, username string, days int) error {
 
-	appFolder := path.Join(configFolder, "..")
-	hubConfig := config.CreateDefaultHubConfig(appFolder)
-	configFile := path.Join(configFolder, config.DefaultHubConfigName)
-	config.LoadHubConfig(configFile, "", hubConfig)
+	//appFolder := path.Join(configFolder, "..")
+	//hubConfig := config.CreateDefaultHubConfig(appFolder)
+	//configFile := path.Join(configFolder, config.DefaultHubConfigName)
+	//config.LoadHubConfig(configFile, "", hubConfig)
 
 	// pub/private key for signing tokens
-	keyFile := path.Join(hubConfig.CertsFolder, config.DefaultServerKeyFile)
+	keyFile := path.Join(certsFolder, config.DefaultServerKeyFile)
 	privKey, err := certsclient.LoadKeysFromPEM(keyFile)
 	if err != nil {
 		err2 := fmt.Errorf("Failed loading server keys: %s", err)

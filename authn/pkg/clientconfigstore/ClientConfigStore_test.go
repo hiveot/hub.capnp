@@ -1,8 +1,8 @@
-package configstore_test
+package clientconfigstore_test
 
 import (
 	"github.com/stretchr/testify/assert"
-	"github.com/wostzone/hub/authn/pkg/configstore"
+	"github.com/wostzone/hub/authn/pkg/clientconfigstore"
 	"os"
 	"path"
 	"testing"
@@ -22,7 +22,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestOpenClose(t *testing.T) {
-	cfgStore := configstore.NewConfigStore(storeFolder)
+	cfgStore := clientconfigstore.NewClientConfigStore(storeFolder)
 	err := cfgStore.Open()
 	assert.NoError(t, err)
 	cfgStore.Close()
@@ -32,7 +32,7 @@ func TestWriteConfig(t *testing.T) {
 	const user1ID = "user1"
 	const app1ID = "app1"
 	const configData = "Hello world"
-	cfgStore := configstore.NewConfigStore(storeFolder)
+	cfgStore := clientconfigstore.NewClientConfigStore(storeFolder)
 	err := cfgStore.Open()
 	assert.NoError(t, err)
 
@@ -47,7 +47,7 @@ func TestWriteConfig(t *testing.T) {
 func TestReadMissingConfig(t *testing.T) {
 	const user1ID = "user1"
 	const app2ID = "app2"
-	cfgStore := configstore.NewConfigStore(storeFolder)
+	cfgStore := clientconfigstore.NewClientConfigStore(storeFolder)
 	err := cfgStore.Open()
 	assert.NoError(t, err)
 

@@ -10,10 +10,10 @@
 # ClientID to identify this service as. Default is the pluginID
 #clientID: authservice
 
-# Enable the configuration store for authenticated users. Default is true
+# Enable the client configuration store for authenticated users. Default is true
 #configStoreEnabled: true
 
-# Set the config store folder. Default is 'clientconfig' in the config folder
+# Set the client config store folder. Default is 'clientconfig' in the config folder
 #configStoreFolder: clientconfig
 
 # PasswordFile, in the config folder, to read from.

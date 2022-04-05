@@ -14,3 +14,10 @@ logLevel: "info" # debug, info, warning, error. Default is warning
 #Folders are relative to the app home directory. Use absolute path if they reside elsewhere
 #configFolder: "./config"
 #certsFolder: "./certs"
+
+
+# keep the existing server and hub client certificates and keys (signed by CA) on startup
+# instead of generating a new certificate. Default is false
+# The server certificate is used to validate access tokens so generating a new certificate invalidates
+# existing access tokens.
+#keepServerCertOnStartup: false

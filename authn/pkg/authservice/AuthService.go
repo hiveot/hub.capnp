@@ -12,7 +12,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/authn/pkg/configstore"
+	"github.com/wostzone/hub/authn/pkg/clientconfigstore"
 	"github.com/wostzone/hub/authn/pkg/unpwauth"
 	"github.com/wostzone/hub/authn/pkg/unpwstore"
 	"github.com/wostzone/hub/lib/client/pkg/tlsclient"
@@ -48,7 +48,7 @@ type AuthServiceConfig struct {
 	// Enable the configuration store for authenticated users. Default is true
 	ConfigStoreEnabled bool `yaml:"configStoreEnabled"`
 
-	// Set the config store folder. Default is 'clientconfig' in the config folder
+	// Set the client config store folder. Default is 'clientconfig' in the config folder
 	ConfigStoreFolder string `yaml:"configStoreFolder"`
 
 	// PasswordFile to read from. Use "" for default defined in 'unpwstore.DefaultPasswordFile'
@@ -68,7 +68,7 @@ type AuthServiceConfig struct {
 //
 type AuthService struct {
 	config        AuthServiceConfig
-	configStore   *configstore.ConfigStore
+	configStore   *clientconfigstore.ClientConfigStore
 	running       bool
 	tlsServer     *tlsserver.TLSServer
 	signingKey    *ecdsa.PrivateKey
@@ -80,7 +80,7 @@ type AuthService struct {
 // URL is PUT/GET {server}/authn/config/{appID}
 //  storeFolder Folder to store user configuration files
 func (srv *AuthService) EnableConfigStore(storeFolder string) {
-	srv.configStore = configstore.NewConfigStore(storeFolder)
+	srv.configStore = clientconfigstore.NewClientConfigStore(storeFolder)
 	err := srv.configStore.Open()
 	if err != nil {
 		logrus.Errorf("Failed opening user configuration store: %s", err)

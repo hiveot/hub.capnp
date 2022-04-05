@@ -44,7 +44,7 @@ func StartHub(homeFolder string, startPlugins bool) error {
 
 	// Create a CA if needed and update launcher and plugin certsclient
 	sanNames := []string{hc.Address, "localhost", "127.0.0.1"}
-	err = certsetup.CreateCertificateBundle(sanNames, hc.CertsFolder)
+	err = certsetup.CreateCertificateBundle(sanNames, hc.CertsFolder, !hc.KeepServerCertOnStartup)
 	if err != nil {
 		logrus.Error(err)
 		return err

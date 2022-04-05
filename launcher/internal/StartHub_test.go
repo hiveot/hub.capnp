@@ -26,7 +26,7 @@ func TestMain(m *testing.M) {
 	cwd, _ := os.Getwd()
 	homeFolder = path.Join(cwd, "../test")
 	certsFolder = path.Join(homeFolder, "certsclient")
-	certsetup.CreateCertificateBundle(hostnames, certsFolder)
+	certsetup.CreateCertificateBundle(hostnames, certsFolder, true)
 
 	result := m.Run()
 

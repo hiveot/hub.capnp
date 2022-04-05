@@ -76,15 +76,14 @@ const TempCertDurationDays = 1
 // CreateCertificateBundle is a convenience function to create the Hub CA, server and (plugin) client
 // certificates into the given folder.
 //  * The CA certificate will only be created if missing
-//  * The plugin keys and certificate will always be recreated
-//  * The service keys and certificate will always be recreated
+//  * The plugin keys and certificate will be recreated if forceNewCerts is true
+//  * The service keys and certificate will be recreated if forceNewCerts is true
 //
 //  names contain the list of hostname and ip addresses the hub can be reached at. Used in hub cert.
 //  certFolder where to create the certificates
-func CreateCertificateBundle(names []string, certFolder string) error {
+//  forceNewCerts generate new client and server certificate, signed by the CA
+func CreateCertificateBundle(names []string, certFolder string, forceNewCerts bool) error {
 	var err error
-	forcePluginCert := true // best to always created these certs
-	forceHubCert := true
 	var caCert *x509.Certificate
 	var caKeys *ecdsa.PrivateKey
 
@@ -111,8 +110,8 @@ func CreateCertificateBundle(names []string, certFolder string) error {
 	serverCertPath := path.Join(certFolder, config.DefaultServerCertFile)
 	serverKeyPath := path.Join(certFolder, config.DefaultServerKeyFile)
 	serverCert, _ := certsclient.LoadTLSCertFromPEM(serverCertPath, serverKeyPath)
-	if serverCert == nil || forceHubCert {
-		logrus.Infof("CreateCertificateBundle Refreshing Hub server certificate in %s", certFolder)
+	if serverCert == nil || forceNewCerts {
+		logrus.Infof("CreateCertificateBundle Refreshing Hub server keys and certificate in %s", certFolder)
 		serverCert, err = CreateHubServerCert(names, caCert, caKeys)
 		if err != nil {
 			logrus.Errorf("CreateCertificateBundle server failed: %s", err)
@@ -125,15 +124,15 @@ func CreateCertificateBundle(names []string, certFolder string) error {
 	pluginCertPath := path.Join(certFolder, config.DefaultPluginCertFile)
 	pluginKeyPath := path.Join(certFolder, config.DefaultPluginKeyFile)
 	pluginTlsCert, _ := certsclient.LoadTLSCertFromPEM(pluginCertPath, pluginKeyPath)
-	if pluginTlsCert == nil || forcePluginCert {
-		logrus.Infof("CreateCertificateBundle Refreshing plugin server certificate in %s", certFolder)
+	if pluginTlsCert == nil || forceNewCerts {
+		logrus.Infof("CreateCertificateBundle Refreshing plugin keys and client certificate in %s", certFolder)
 
 		// The plugin client cert uses the fixed common name 'plugin'
 		privKey := certsclient.CreateECDSAKeys()
 		pluginCert, err := CreateHubClientCert(DefaultPluginClientID, certsclient.OUPlugin,
 			&privKey.PublicKey, caCert, caKeys, time.Now(), DefaultCertDurationDays)
 		if err != nil {
-			logrus.Fatalf("CreateCertificateBundle client failed: %s", err)
+			logrus.Fatalf("CreateCertificateBundle plugin client cert generation failed: %s", err)
 		}
 		err = certsclient.SaveX509CertToPEM(pluginCert, pluginCertPath)
 		err = certsclient.SaveKeysToPEM(privKey, pluginKeyPath)

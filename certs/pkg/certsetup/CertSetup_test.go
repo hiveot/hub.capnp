@@ -128,7 +128,7 @@ func TestCreateBundle(t *testing.T) {
 	hostnames := []string{"127.0.0.1"}
 
 	// test creating hub CA certificate
-	err := certsetup.CreateCertificateBundle(hostnames, certFolder)
+	err := certsetup.CreateCertificateBundle(hostnames, certFolder, true)
 	require.NoError(t, err)
 }
 
@@ -136,12 +136,12 @@ func TestCreateBundleBadFolder(t *testing.T) {
 	hostnames := []string{"127.0.0.1"}
 
 	// test creating hub CA certificate
-	err := certsetup.CreateCertificateBundle(hostnames, "/not/a/valid/folder")
+	err := certsetup.CreateCertificateBundle(hostnames, "/not/a/valid/folder", true)
 	require.Error(t, err)
 }
 
 func TestCreateBundleBadNames(t *testing.T) {
 	// test creating hub CA certificate
-	err := certsetup.CreateCertificateBundle(nil, certFolder)
+	err := certsetup.CreateCertificateBundle(nil, certFolder, true)
 	require.Error(t, err)
 }

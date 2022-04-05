@@ -143,7 +143,7 @@ func CreateKeyPair(clientID string, certFolder string) (privKey *ecdsa.PrivateKe
 //  If the CA certificate already exist it is NOT updated
 //  If the Hub and Plugin certificates already exist, they are renewed
 func HandleCreateCertbundle(certsFolder string, sanName string) error {
-	err := certsetup.CreateCertificateBundle([]string{sanName}, certsFolder)
+	err := certsetup.CreateCertificateBundle([]string{sanName}, certsFolder, true)
 	if err != nil {
 		return err
 	}

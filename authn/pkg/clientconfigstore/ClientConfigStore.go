@@ -1,4 +1,4 @@
-package configstore
+package clientconfigstore
 
 import (
 	"fmt"
@@ -8,27 +8,27 @@ import (
 	"path"
 )
 
-// ConfigStore storage for storing user configuration snippets
+// ClientConfigStore storage for storing user configuration snippets
 // This provides authenticated users a place to store their app configuration.
-type ConfigStore struct {
+type ClientConfigStore struct {
 	// folder containing the configuration files per user
 	storeFolder string
 }
 
 // Close the store
-func (cfgStore *ConfigStore) Close() {
-	logrus.Infof("ConfigStore.Close")
+func (cfgStore *ClientConfigStore) Close() {
+	logrus.Infof("ClientConfigStore.Close")
 }
 
 // Get user application config from the store
 // Returns a string with configuration text or an empty string if the store doesn't exist
-func (cfgStore *ConfigStore) Get(userID, appID string) string {
-	logrus.Infof("ConfigStore.Get userID='%s', appID='%s'", userID, appID)
+func (cfgStore *ClientConfigStore) Get(userID, appID string) string {
+	logrus.Infof("ClientConfigStore.Get userID='%s', appID='%s'", userID, appID)
 	cfgFileName := fmt.Sprintf("%s.%s.cfg", userID, appID)
 	cfgFilePath := path.Join(cfgStore.storeFolder, cfgFileName)
 	configText, err := ioutil.ReadFile(cfgFilePath)
 	if err != nil {
-		logrus.Infof("ConfigStore.Get: %s", err)
+		logrus.Infof("ClientConfigStore.Get: %s", err)
 		return ""
 	}
 	return string(configText)
@@ -40,8 +40,8 @@ func (cfgStore *ConfigStore) Get(userID, appID string) string {
 //  userID is the ID of the user whose store to update
 //  appID is the configuration application ID
 //  configText is the configuration in text format
-func (cfgStore *ConfigStore) Put(userID, appID string, configText string) error {
-	logrus.Infof("ConfigStore.Put")
+func (cfgStore *ClientConfigStore) Put(userID, appID string, configText string) error {
+	logrus.Infof("ClientConfigStore.Put")
 	cfgFileName := fmt.Sprintf("%s.%s.cfg", userID, appID)
 	cfgFilePath := path.Join(cfgStore.storeFolder, cfgFileName)
 	err := ioutil.WriteFile(cfgFilePath, []byte(configText), 0600)
@@ -50,11 +50,11 @@ func (cfgStore *ConfigStore) Put(userID, appID string, configText string) error 
 
 // Open the store
 // Create the folder if it doesn't exist
-func (cfgStore *ConfigStore) Open() error {
+func (cfgStore *ClientConfigStore) Open() error {
 	var err error
 	// Right now open doesn't do much, except creating the folder if needed.
 	// Future improvements might use a sqlite or other database type solution
-	logrus.Infof("ConfigStore.Open. location='%s'", cfgStore.storeFolder)
+	logrus.Infof("ClientConfigStore.Open. location='%s'", cfgStore.storeFolder)
 	if _, err := os.Stat(cfgStore.storeFolder); err != nil {
 		err = os.MkdirAll(cfgStore.storeFolder, 0755)
 	}
@@ -64,7 +64,7 @@ func (cfgStore *ConfigStore) Open() error {
 	return err
 }
 
-func NewConfigStore(storeFolder string) *ConfigStore {
-	cfgFolder := &ConfigStore{storeFolder: storeFolder}
+func NewClientConfigStore(storeFolder string) *ClientConfigStore {
+	cfgFolder := &ClientConfigStore{storeFolder: storeFolder}
 	return cfgFolder
 }

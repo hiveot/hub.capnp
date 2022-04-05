@@ -98,15 +98,19 @@ type HubConfig struct {
 	// ConfigFolder the location of additional configuration files. Default is {appFolder}/config
 	ConfigFolder string `yaml:"configFolder"`
 
+	// Keep server certificate on startup. Default is false
+	// enable to keep using access tokens between restarts
+	KeepServerCertOnStartup bool `yaml:"keepServerCertOnStartup"`
+
 	// path to CA certificate in PEM format. Default is certsclient/caCert.pem
 	CaCertPath string `yaml:"caCertPath"`
 	// path to client x509 certificate in PEM format. Default is certsclient/{clientID}Cert.pem
 	ClientCertPath string `yaml:"clientCertPath"`
 	// path to client private key in PEM format. Default is certsclient/{clientID}Key.pem
 	ClientKeyPath string `yaml:"clientKeyPath"`
-	// path to plugin x509 certificate in PEM format. Default is certsclient/PluginCert.pem
+	// path to plugin client x509 certificate in PEM format. Default is certsclient/PluginCert.pem
 	PluginCertPath string `yaml:"pluginCertPath"`
-	// path to plugin private key in PEM format. Default is certsclient/PluginKey.pem
+	// path to plugin client private key in PEM format. Default is certsclient/PluginKey.pem
 	PluginKeyPath string `yaml:"pluginKeyPath"`
 
 	// CaCert contains the loaded CA certificate needed for establishing trusted connections to the

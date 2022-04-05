@@ -3,7 +3,6 @@ module github.com/wostzone/hub/mosquittomgr
 go 1.16
 
 require (
-	github.com/alexedwards/argon2id v0.0.0-20210511081203-7d35d68092b8
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0
 	github.com/wostzone/hub/authn v0.0.0-00010101000000-000000000000
