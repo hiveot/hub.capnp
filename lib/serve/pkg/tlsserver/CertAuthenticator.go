@@ -1,6 +1,7 @@
 package tlsserver
 
 import (
+	"github.com/wostzone/hub/lib/client/pkg/certsclient"
 	"net/http"
 )
 
@@ -25,6 +26,20 @@ func (hauth *CertAuthenticator) AuthenticateRequest(resp http.ResponseWriter, re
 	}
 
 	return userID, true
+}
+
+// GetClientOU returns the authorization OU of the client certificate, if any.
+// Returns OUNone if the request has no client certificate or the certificate has no OU
+// client certificate.
+func (hauth *CertAuthenticator) GetClientOU(request *http.Request) (certOU string) {
+	certOU = certsclient.OUNone
+	if len(request.TLS.PeerCertificates) > 0 {
+		cert := request.TLS.PeerCertificates[0]
+		if len(cert.Subject.OrganizationalUnit) > 0 {
+			certOU = cert.Subject.OrganizationalUnit[0]
+		}
+	}
+	return certOU
 }
 
 // NewCertAuthenticator creates a new HTTP authenticator

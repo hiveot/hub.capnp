@@ -37,7 +37,7 @@ type TLSServer struct {
 //
 // apply .Method(http.MethodXyz) to restrict the accepted HTTP methods
 //
-//  path to listen on. This supports wildcards
+//  path to listen on. See https://github.com/gorilla/mux
 //  handler to invoke with the request. The userID is only provided when an authenticator is used
 // Returns the route. Apply '.Method(http.MethodPut|Post|Get)' to restrict the accepted HTTP methods
 func (srv *TLSServer) AddHandler(path string,
@@ -65,6 +65,11 @@ func (srv *TLSServer) AddHandler(path string,
 		}
 	})
 	return route
+}
+
+// Authenticator returns the authenticator used for this server
+func (srv *TLSServer) Authenticator() *HttpAuthenticator {
+	return srv.httpAuthenticator
 }
 
 // AddHandlerNoAuth adds a new handler for a path that does not require authentication

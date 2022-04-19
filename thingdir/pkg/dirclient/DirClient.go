@@ -19,17 +19,26 @@ const (
 	DefaultPort        = 8886       // default directory server listening port
 )
 
-// paths with REST commands
+// paths REST routes for use in Gorilla Mux (https://github.com/gorilla/mux)
 const (
-	RouteThings  = "/things"           // list or query path
-	RouteThingID = "/things/{thingID}" // for methods get, post, patch, delete
+	RouteThings       = "/things"           // list or query path
+	RouteThingID      = "/things/{thingID}" // for methods get, post, patch, delete
+	RouteThingsValues = "/values"           // things in query part
+	RouteThingValues  = "/values/{thingID}" // values of thingID
 )
 
 // query parameters
+//const (
+//	ParamOffset       = "offset"
+//	ParamLimit        = "limit"
+//	ParamQuery        = "queryparams"
+//	ParamUpdatedSince = "updatedSince"
+//	ParamThings       = "things"
+//)
+
+// directory service query parameters
 const (
-	ParamOffset = "offset"
-	ParamLimit  = "limit"
-	ParamQuery  = "queryparams"
+	ParamPropNames = "propNames"
 )
 
 const DefaultLimit = 100
@@ -72,6 +81,32 @@ func (dc *DirClient) Delete(id string) error {
 	return err
 }
 
+// GetEventValue returns the latest value of a thing event
+// This returns a map of eventName-value pair
+//  id is the ThingID whose event to get
+//  eventName is the event whose value to get
+func (dc *DirClient) GetEventValue(thingID string, eventName string) (
+	values map[string]interface{}, err error) {
+
+	return dc.GetPropertyValue(thingID, eventName)
+}
+
+// GetPropertyValue returns a single property value of a thing
+//  id is the ThingID whose property to get
+//  propName is the property to get
+func (dc *DirClient) GetPropertyValue(thingID string, propName string) (
+	values map[string]interface{}, err error) {
+
+	path := strings.Replace(RouteThingValues, "{thingID}", thingID, 1)
+	queryParams := fmt.Sprintf("?%s=%s", ParamPropNames, propName)
+	resp, err := dc.tlsClient.Get(path + queryParams)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(resp, &values)
+	return values, err
+}
+
 // GetTD the TD with the given ID
 //  id is the ThingID whose TD to get
 func (dc *DirClient) GetTD(id string) (td *thing.ThingTD, err error) {
@@ -83,6 +118,24 @@ func (dc *DirClient) GetTD(id string) (td *thing.ThingTD, err error) {
 	}
 	err = json.Unmarshal(resp, &td)
 	return td, err
+}
+
+// GetThingsPropertyValues returns the property value of multiple things
+//  thingIDs is a list of IDs whose properties to get
+//  propNames is a list of the properties to get
+// This returns a map of thingID's containing a map of property name-value pairs
+func (dc *DirClient) GetThingsPropertyValues(thingIDs []string, propNames []string) (
+	values map[string]map[string]interface{}, err error) {
+
+	// specify things in query
+	qThingIDs := fmt.Sprintf("?%s=%s", tlsclient.ParamThings, strings.Join(thingIDs, ","))
+	qPropNames := fmt.Sprintf("&%s=%s", ParamPropNames, strings.Join(propNames, ","))
+	resp, err := dc.tlsClient.Get(RouteThingsValues + qThingIDs + qPropNames)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal(resp, &values)
+	return values, err
 }
 
 // ListTDs

@@ -15,7 +15,7 @@ import (
 // MqttExposedThing is the implementation of an ExposedThing interface using the MQTT protocol binding.
 // Thing implementers can use this API to subscribe to actions and publish TDs and events.
 //
-// This closely follows the WoT scripting API for ExposedThing as described at
+// This loosely follows the WoT scripting API for ExposedThing as described at
 // https://www.w3.org/TR/wot-scripting-api/#the-exposedthing-interface
 //
 // Differences with the WoT scripting API:

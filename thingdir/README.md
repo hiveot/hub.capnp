@@ -4,37 +4,41 @@ Golang implementation of a Thing Directory Service client and server library.
 
 ## Objective
 
-Provide a service for registering and querying of (WoT) Thing Descriptions.
+Provide a shadow registry of a Thing containing Thing Description documents and Thing values.
 
 ## Summary
 
-This directory service provides the means to store and query Thing Description documents.
+This directory service provides a 'shadow registry' containing Thing Descriptions and Thing values. The service collects TD and event publications on the message bus and stores the information in a TD and a value store. 
 
 The [WoT Directory Specification](https://w3c.github.io/wot-discovery/#exploration-directory-api) describes the requirements for a directory service and is used to guide this implementation. The intent is to be compliant where possible. Note that at the time of implementation this specification is still a draft and subject to change. While the specification covers both service discovery and a directory service, this service focuses exclusively on the directory aspect. For discovery see the '[idprov-go](https://github.com/wostzone/idprov-go)' provisioning plugin.
 
 In WoST, the registration of Thing Descriptions is the responsibility of the Directory Service. Things themselves only have to publish their updates on the message bus without consideration for who uses the information. This separation of concerns has the following benefits:
-- allows for centralized access control via a simple auth service
-- simplifies access control for Thing devices as they don't have to implement it
-- simplifies Thing devices as it only needs to publish updates to the message bus
+- allows for centralized access control that is uniform for all Things regardless of their make, model and protocol.
+- remove the need for Things to implement authentication and authorization
+- further simplifies Thing devices as they only need to publish updates to the message bus
 - support bridging between multiple directories without participation by Thing devices 
 
 
-This package consists of 4 parts:
+This package consists of the following parts:
 
-1. Directory store for storing and querying Thing Description documents. The current implementation uses a file based store with an in-memory cache. Additional storage backends can be added in the future.
+1. Thing Description store for storing and querying Thing Description documents. The current implementation uses a file based store with an in-memory cache. Additional storage backends can be added in the future.
 
-2. Directory server to serve directory requests. This implements the server side of the directory protocol as described below. Authentication and authorization is handled using the hubauth service. See hubauth for details on the groups and roles that govern access.
+2. Thing event store for storing and querying events. This includes property change events as well as non-property events.
 
-3. Directory protocol binding to the WoST message bus. This service subscribes to the Thing message bus and updates the Thing directory with changes. Things do NOT update the directory themselves, they only need to publish their updates on the message bus.
+3. MQTT Protocol binding to the WoST message bus. This service subscribes to the message bus and stores published Thing TD documents and events. Things do NOT update the directory themselves, they only need to publish their updates on the message bus.
 
-4. Directory client for golang clients. Intended for clients to query the directory. Clients for other languages will be made available as well, or users can implement their own using the protocol described below.
+4. Directory server to serve directory requests. This implements the server side of the directory protocol as described by the WoT Directory API as well as API's to query Thing property values and Thing Events. Authentication is handled using the hub authn service while group and role based authorization is handled through the authz service. The directory server also announces its presence using DNS-SD. 
+
+6. Directory client for golang clients. Intended for clients to query the directory. Clients for other languages will be made available as well, or users can implement their own using the protocol described below.
 
 
-## API
+## Directory API
 
 The directory service supports the API as outlined in the WoT directory specification. 
 
 ### Register a Thing TD
+
+Note that Things do not need to use this API if they publish their TD on the message bus.
 
 ```http
 HTTP PUT https://server:port/things/thingID
@@ -70,6 +74,8 @@ Other responses:
  * 404 (Not Found) - no such thing ID
 
 ### Update a Thing TD
+
+Note that Things do not need to use this API if they publish their TD on the message bus.
 
 To replace an existing TD:
 
@@ -159,6 +165,51 @@ Other responses:
 
 Where queryparams identify property fields in the TD.
 
+## Property Value API
+
+The property value API provides the last known value of a Thing's properties.
+For property value history see the history plugin. 
+
+### Get Property Values Of A Thing
+
+This returns a map of property name-value pairs.
+
+Optional query parameters:
+* updatedSince=isodatetime : only return property values that have been updated since the given ISO8601 timestamp.
+* propNames=prop1: only return property values for the given names 
+
+
+```http
+HTTP GET https://server:port/values/thingID?[&updatedSince=isodatetime][&propNames=propName1]
+200 (OK)
+{
+  propName1: propValue, 
+}
+```
+
+### Get Property Values Of Multiple Things
+
+This returns a map of thing ID's with a map of property name-value pairs.
+
+Query parameters must contain a list of ThingIDs:
+* things=thingID1,thingID2: List of Things whose properties to get 
+* updatedSince=isodatetime : only return property values that have been updated since the given timestamp.
+* propNames=propName1,...: only return property values for the given names
+
+
+```http
+HTTP GET https://server:port/values?things=thingID1,thingID2[&updatedSince=isodatetime][&propNames=propname1,...]
+200 (OK)
+{
+  thingID1: {
+    propName1: propValue,
+    propName2: propValue,
+    ... 
+  },
+}
+```
+
+
 ## Security
 
 This service is a WoST Hub plugin and uses the Hub authentication and authorization facilities.
@@ -201,4 +252,3 @@ Configure the service through the config/thingdir-pb.yaml protocol binding confi
 To launch the service simply run dist/bin/thingdir, which subscribes to TDs on the message bus and updates the store. It also launches the service for use by clients to query the directory. 
 
 Currently a file based backend is included. Additional backends can be added in the future.
-

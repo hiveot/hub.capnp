@@ -1,4 +1,4 @@
-// Package dirserver for serving access to the directory store
+// Package dirserver for serving access to the directory dirStore
 package dirserver
 
 import (
@@ -18,7 +18,7 @@ import (
 
 // const DirectoryPluginID = "directory"
 
-// DefaultDirectoryStoreFile is the default filename under which to store the directory
+// DefaultDirectoryStoreFile is the default filename under which to dirStore the directory
 const DefaultDirectoryStoreFile = "directory.json"
 
 // const RouteUpdateTD = "/things/{thingID}"
@@ -46,13 +46,9 @@ type DirectoryServer struct {
 	running     bool
 	tlsServer   *tlsserver.TLSServer
 	discoServer *zeroconf.Server
-	store       *dirfilestore.DirFileStore
-}
-
-// PatchTD changes a TD with the attributes of the given TD
-func (srv *DirectoryServer) PatchTD(thingID string, tdMap map[string]interface{}) error {
-	err := srv.store.Patch(thingID, tdMap)
-	return err
+	dirStore    *dirfilestore.DirFileStore
+	// map of thingID's to property name-value pairs
+	valueStore map[string]map[string]interface{}
 }
 
 // Address returns the address that the server listens on
@@ -61,9 +57,15 @@ func (srv *DirectoryServer) Address() string {
 	return srv.address
 }
 
-// DeleteAll empties the store. Intended for testing.
+// DeleteAll empties the dirStore. Intended for testing.
 func (srv *DirectoryServer) DeleteAll() {
-	srv.store.DeleteAll()
+	srv.dirStore.DeleteAll()
+}
+
+// PatchTD changes a TD with the attributes of the given TD
+func (srv *DirectoryServer) PatchTD(thingID string, tdMap map[string]interface{}) error {
+	err := srv.dirStore.Patch(thingID, tdMap)
+	return err
 }
 
 // Start the server.
@@ -76,7 +78,7 @@ func (srv *DirectoryServer) Start() error {
 		logrus.Warningf("Starting directory server on %s:%d", srv.address, srv.port)
 
 		// load the saved directory content from file
-		err = srv.store.Open()
+		err = srv.dirStore.Open()
 		if err != nil {
 			return err
 		}
@@ -100,8 +102,10 @@ func (srv *DirectoryServer) Start() error {
 		}
 
 		// setup the handlers for the paths. The GET/PUT/... operations are resolved by the handler
-		srv.tlsServer.AddHandler(dirclient.RouteThings, srv.ServeThings)
-		srv.tlsServer.AddHandler(dirclient.RouteThingID, srv.ServeThingByID)
+		srv.tlsServer.AddHandler(dirclient.RouteThings, srv.ServeQueryTD)
+		srv.tlsServer.AddHandler(dirclient.RouteThingID, srv.ServeTD)
+		srv.tlsServer.AddHandler(dirclient.RouteThingValues, srv.ServeThingValues)
+		srv.tlsServer.AddHandler(dirclient.RouteThingsValues, srv.ServeMultipleThingsValues)
 
 		// DNS-SD service discovery is optional
 		if srv.discoveryName != "" {
@@ -127,15 +131,32 @@ func (srv *DirectoryServer) Stop() {
 			srv.tlsServer.Stop()
 			srv.tlsServer = nil
 		}
-		srv.store.Close()
+		srv.dirStore.Close()
 
 	}
 }
 
-// UpdateTD updates the TD in the store
+// UpdateTD updates the TD in the dirStore
 func (srv *DirectoryServer) UpdateTD(thingID string, tdMap map[string]interface{}) error {
-	err := srv.store.Replace(thingID, tdMap)
+	err := srv.dirStore.Replace(thingID, tdMap)
 	return err
+}
+
+// UpdateEventValue updates a Thing's event value in the value store
+func (srv *DirectoryServer) UpdateEventValue(thingID string, eventName string, eventValue interface{}) {
+	srv.valueStore[thingID][eventName] = eventValue
+}
+
+// UpdatePropertyValues updates a Thing's property values in the value store
+func (srv *DirectoryServer) UpdatePropertyValues(thingID string, props map[string]interface{}) {
+	thingProps, found := srv.valueStore[thingID]
+	if !found {
+		srv.valueStore[thingID] = props
+	} else {
+		for propName, value := range props {
+			thingProps[propName] = value
+		}
+	}
 }
 
 // NewDirectoryServer creates a new instance of the IoT Device Provisioning Server.
@@ -170,7 +191,8 @@ func NewDirectoryServer(
 	}
 	serverKey := certsclient.PublicKeyFromCert(x509Cert)
 
-	storePath := path.Join(storeFolder, DefaultDirectoryStoreFile)
+	dirStorePath := path.Join(storeFolder, DefaultDirectoryStoreFile)
+
 	srv := DirectoryServer{
 		address:       address,
 		serverCert:    serverCert,
@@ -178,9 +200,11 @@ func NewDirectoryServer(
 		discoveryName: discoveryName,
 		instanceID:    instanceID,
 		port:          port,
-		store:         dirfilestore.NewDirFileStore(storePath),
+		dirStore:      dirfilestore.NewDirFileStore(dirStorePath),
 		authenticator: tlsserver.NewJWTAuthenticator(serverKey),
 		authorizer:    authorizer,
+		// map of thingID's to property name-value pairs
+		valueStore: make(map[string]map[string]interface{}),
 	}
 	return &srv
 }

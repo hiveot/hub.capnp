@@ -8,7 +8,7 @@ import (
 
 const ThingDirServiceDiscoveryType = "thingdir"
 
-// ServeDirDiscovery publishes a discovery record of the IDProv server
+// ServeDirDiscovery publishes a discovery record of the directory server
 // Returns the discovery service instance. Use Shutdown() when done.
 func ServeDirDiscovery(instanceID string, serviceName string, address string, port uint) (*zeroconf.Server, error) {
 

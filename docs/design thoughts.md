@@ -20,7 +20,8 @@ Just some random notes and thoughts
 4. Phase 3: Core services [in progress]
     1. Thing provisioning protocol (idprov) [done]
     2. In-memory directory service [done]
-    3. Web client (thingview) service [in progress] 
+    3. Value store (in-memory) [done] 
+    4. Web client (thingview) service [in progress] 
    
 5. Phase 4: protocol adapters [in progress]
     1.  EDS OWServer 1-wire protocol adapter POC [done]
@@ -32,13 +33,14 @@ Just some random notes and thoughts
 
 6. Phase 5: Potential Enhancements
     1. Schema validation [is it worth the hassle?]
-    2. Discovery of directory and other services?
-    3. Redis persistence backup
-    4. Scripting engine plugin
-    5. WebSocket protocol adapter
-    6. JS Hub Client API's
-    7. View discovered things
-    8. Dashboard
+    2. Time Series Database for values
+    3. Discovery of directory and other services?
+    4. Redis persistence backup
+    5. Scripting engine plugin
+    6. WebSocket protocol adapter
+    7. JS Hub Client API's
+    8. View discovered things
+    9. Dashboard
 
 
 
@@ -60,9 +62,9 @@ The HTTP protocol adapters listens for incoming connection requests and passes t
 
 ### Exploring A Single Message Bus Approach 
 
-Use a single message bus for all commonication within and to/from the Hub.
+Use a single message bus for all communication within and to/from the Hub.
 
-1. Needs an message broker  
+1. Needs an message broker. Options:
    1. [Mosquitto](https://github.com/eclipse/mosquitto)
       1. Well known, well tested
       2. light weight that runs out of the box
@@ -91,12 +93,12 @@ Use a single message bus for all commonication within and to/from the Hub.
       5. License: MIT 
       6. Integrations with Redis
 2. Authentication rules
-   1. Are Plugins unrestricted?
-      1. Plugin manager creates Mosquitto credentials for plugins
+   1. Are Plugins restricted?
+      1. Why? no reason yet 
    2. Things can pub/sub on their own addresses
-      1. Provisioning process (manager?) creates credentials and ACL
+      1. Message bus authorizes based on certificate credentials
    3. Consumers
-      1. Use roles and group memberships?
+      1. Use roles and group memberships
       2. publish to select things (role or other access control method)
          1. Use group role membership
 3. Things can connect to publish updates, events, and subscribe to actions
@@ -114,48 +116,66 @@ Use a single message bus for all commonication within and to/from the Hub.
       1. Option: Use 'set' suffix in topic to indicate request
          1. Consumers are not allowed to publish set
 
-8. Directory service listens for TD and property updates and servces it through the Directory API
+8. Directory service listens for TD messages and services it through the Directory API
+   1. API Specification from W3C WoT
+   2. MQTT protocol binding not defined so publish TD on things/{thingID}/td
 
-9.  HTTP API routes request onto the message bus. 
-   1. PUT request can go directly onto the bus
-   2. GET requests read from service cache
+9. How to get property values?
+   1. Propery changes are published using events
+   2. Event store could be used to collect events
+   3. API to query latest and history values
+   4. Consumers can subscribe to hub for real-time value updates
+   5. Support for readProperties message?
 
-10. Is there a shadow registry?
+10. Should HTTP API for message bus be supported?
+    1. Use-case? 
+       1. HTTPS-only clients
+          1. N/A. MQTT clients using websocket are widely available
+       2. Query TD's and their values without directory service
+          1. Makes no sense, might as well use directory service
+          2. Sleeping Things might not respond. Directory service doesn't sleep.
+       3. Query Thing property/status values -> No
+          1. either history service or direct query
+          2. sleeping things might not respond
+          3. query results would spam everyone on the message bus with value update
+          4. potential for DOS attack through message multiplication by one bad actor
+          5. increases attack surface by requiring query support on Things 
+    2. So NO.  
+
+11. Is there a shadow registry?
     1. What for?
-       1.  To respond to requests of TDs and Thing values?
-            1.  Is that the Directory Service?
-                1. Maybe both? What is the difference?
-    2.  When not...
-        1. How to get TDs by their ID without Directory Service?
-           1. WoT specifies to query the Thing which we cannot do. What is Hub's equivalent?
-                1. A: publish request, wait for response by ... some service
-                2. B: Implement cache in the HTTP and WebSocket APIs 
-           2. You don't. If you know the ID you almost always already know the TD...
-        2. How does an intermediary service share TD's?
-           1. Its own cache
-    3. So ... answer is No. 
-       1. The directory service acts as a shadow registry
-       2. The DS can also respond to message bus requests 
+       1. To respond to requests of TDs?
+            1. This is the role of the directory service
+       2. To service the latest value/event
+          1. Option 1: Use the DS
+          2. Option 2: Add a separate value store
+             1. Would a value store need value schemas from the TD
+       3. To service the value/event history 
+          1. Option 1: Use the DS
+          2. Option 2: Add a separate value store
 
-11. Is there schema validation? -> 
+    2. So ... answer is to use the DS as the shadow registry 
+       1. The DS already handles TD queries and authorizes requests. It can do this for values too.
+          -> Add API for value query. Follow the HTTP binding for querying Things
+       2. Value schema validation can use the already stored TDs
+       3. History queries requires an additional time-series store however
+          -> Add API to query a value history.
+
+12. Is there schema validation? -> 
     1.  Yes, there should be
     2.  How to validate schema from TD publishers in a performant manner?
-        1.  ...during Thing provisioning...provisioning doesn't use the message bus
+        1. ...during Thing provisioning...provisioning doesn't use the message bus
             1.  No. This is not the purpose of provisioning
-        2.  ...In parallel. Allow the publication but log schema validations
-            1.  Pro: allow direct access to the message bus
-            2.  Pro: Invalid but usable schemas can still be used
-            3.  Con: consumers might see invalid schemas and have to be resilient 
+        2. ...Directory Service validates schema. 
+           1. Consumers should use the DS for obtaining TDs, or validate schema themselves
 
-12. Discovery service 
-  1. listens for plugins on MQTT plugin channel
-  2. publishes their addresses on DNS-SD
+13. Discovery service 
+14. listens for plugins on MQTT plugin channel
+15. publishes their addresses on DNS-SD
 
-13. Logger service
+16. Logger service
     1.  Listens on thing publications and writes to files
     2.  Based on configuration
 
-14. Legacy protocol binding connects to Hub API and acts as one or multiple Things
+17. Legacy protocol binding connects to Hub API and acts as one or multiple Things
     1.  No provisioning needed 
-
-

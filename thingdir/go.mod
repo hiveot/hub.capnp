@@ -3,8 +3,10 @@ module github.com/wostzone/hub/thingdir
 go 1.14
 
 require (
+	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/grandcat/zeroconf v1.0.0
 	github.com/imdario/mergo v0.3.12
+	github.com/nakabonne/tstorage v0.3.5
 	github.com/ohler55/ojg v1.12.9
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.7.0

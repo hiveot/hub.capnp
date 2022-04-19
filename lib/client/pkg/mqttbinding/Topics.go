@@ -43,11 +43,16 @@ const (
 
 // CreateTopic creates a new topic for publishing or subscribing to a message of type
 // td, action, event, property
+// thingID to listen on. "" or "+" for any thingID
 func CreateTopic(thingID string, topicMessageType string) string {
+	if thingID == "" {
+		thingID = "+"
+	}
 	return "things/" + thingID + "/" + topicMessageType
 }
 
-// SplitTopic breaks a MQTT topic into thingID and message type (td, event, action, property value)
+// SplitTopic breaks a MQTT topic into thingID, topic type (td, event, action, property value)
+// and optionally a subject like for example 'properties' in 'things/event/properties'
 func SplitTopic(topic string) (thingID string, topicType string, subject string) {
 	parts := strings.Split(topic, "/")
 	if len(parts) < 2 {

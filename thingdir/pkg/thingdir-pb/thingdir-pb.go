@@ -2,18 +2,16 @@ package thingdirpb
 
 import (
 	"fmt"
-	"github.com/wostzone/hub/lib/client/pkg/certsclient"
-	"github.com/wostzone/hub/lib/client/pkg/mqttbinding"
-	"path"
-	"strings"
-
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/authz/pkg/aclstore"
 	"github.com/wostzone/hub/authz/pkg/authorize"
+	"github.com/wostzone/hub/lib/client/pkg/certsclient"
 	"github.com/wostzone/hub/lib/client/pkg/config"
+	"github.com/wostzone/hub/lib/client/pkg/mqttbinding"
 	"github.com/wostzone/hub/lib/client/pkg/mqttclient"
 	"github.com/wostzone/hub/thingdir/pkg/dirclient"
 	"github.com/wostzone/hub/thingdir/pkg/dirserver"
+	"path"
 )
 
 const PluginID = "thingdir-pb"
@@ -114,14 +112,18 @@ func (pb *ThingDirPB) Start() error {
 		return err
 	}
 
-	// last, start listening to TD updates on the message bus; use the same client certificate
+	// Listen for TD updates on the message bus
 	mqttHostPort := fmt.Sprintf("%s:%d", pb.hubConfig.Address, pb.hubConfig.MqttPortCert)
 	err = pb.mqttClient.ConnectWithClientCert(mqttHostPort, pb.hubConfig.PluginCert)
 	if err != nil {
 		return err
 	}
-	topic := strings.ReplaceAll(mqttbinding.TopicThingTD, "{thingID}", "+")
+	topic := mqttbinding.CreateTopic("", mqttbinding.TopicTypeTD)
 	pb.mqttClient.Subscribe(topic, pb.handleTDUpdate)
+
+	// Listen for events
+	topic = mqttbinding.CreateTopic("", mqttbinding.TopicTypeEvent) + "/+"
+	pb.mqttClient.Subscribe(topic, pb.handleEvent)
 
 	return err
 }

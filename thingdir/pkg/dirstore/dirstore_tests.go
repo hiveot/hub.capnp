@@ -9,6 +9,7 @@ import (
 )
 
 // Generic directory store testcases, invoked by specific implementation (eg dirfilestore)
+
 func DirStoreStartStop(t *testing.T, store IDirStore) {
 	err := store.Open()
 	assert.NoError(t, err)

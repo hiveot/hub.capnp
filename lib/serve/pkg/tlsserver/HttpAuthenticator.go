@@ -39,6 +39,12 @@ func (hauth *HttpAuthenticator) AuthenticateRequest(resp http.ResponseWriter, re
 	return userID, false
 }
 
+// GetClientOU returns the authorization OU of the requester's client certificate, if any.
+// Returns OUNone if the request has no client certificate or the certificate has no OU
+func (hauth *HttpAuthenticator) GetClientOU(request *http.Request) string {
+	return hauth.CertAuth.GetClientOU(request)
+}
+
 // EnableBasicAuth enables BASIC authentication
 // Basic auth is a legacy authentication scheme and not recommended as it requires each service to
 // have access to the credentials store. Use of JwtAuth is preferred.

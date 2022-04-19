@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/wostzone/hub/authz/pkg/authorize"
-	"github.com/wostzone/hub/lib/client/pkg/certsclient"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -18,21 +17,22 @@ import (
 // 	return true
 // }
 
-// ServeThingByID serves a request for a particular Thing by its ID
-// This splits the request by its REST method: GET, POST, PUT, PATCH, DELETE
-func (srv *DirectoryServer) ServeThingByID(userID string, response http.ResponseWriter, request *http.Request) {
+// ServeTD serves a request for a TD document.
+// This splits the request by its REST method: GET, POST, PUT, PATCH, DELETE, and authorizes
+// before returning a result.
+//
+// * GET {thingID} returns the TD of a Thing
+// * POST {thingID} replaces the TD of a Thing with the given TD
+// * PUT {thingID} replaces the TD of a Thing with the given TD
+// * PATCH {thingID} merges the TD of a Thing with the given TD
+// * DELETE {thingID} removes the TD of a Thing
+func (srv *DirectoryServer) ServeTD(userID string, response http.ResponseWriter, request *http.Request) {
 	// determine the ID
 	parts := strings.Split(request.URL.Path, "/")
 	thingID := parts[len(parts)-1] // expect the thing ID
-	certOU := certsclient.OUNone
-	if len(request.TLS.PeerCertificates) > 0 {
-		cert := request.TLS.PeerCertificates[0]
-		if len(cert.Subject.OrganizationalUnit) > 0 {
-			certOU = cert.Subject.OrganizationalUnit[0]
-		}
-	}
+	certOU := srv.tlsServer.Authenticator().GetClientOU(request)
 
-	logrus.Infof("ServeThingByID: %s for TD with ID %s", request.Method, thingID)
+	logrus.Infof("ServeTD: %s for TD with ID %s", request.Method, thingID)
 	switch request.Method {
 	case "GET":
 		srv.ServeGetTD(userID, certOU, thingID, response)
@@ -58,7 +58,7 @@ func (srv *DirectoryServer) ServeGetTD(userID, certOU, thingID string, response 
 		return
 	}
 
-	tdMap, err := srv.store.Get(thingID)
+	tdMap, err := srv.dirStore.Get(thingID)
 	if err != nil {
 		msg := fmt.Sprintf("ServeGetTD: Unknown Thing with ID '%s'", thingID)
 		srv.tlsServer.WriteNotFound(response, msg)
@@ -80,7 +80,7 @@ func (srv *DirectoryServer) ServeDeleteTD(userID, certOU, thingID string, respon
 		return
 	}
 
-	srv.store.Remove(thingID)
+	srv.dirStore.Remove(thingID)
 	// should we return the original? no, return 204
 }
 
@@ -99,7 +99,7 @@ func (srv *DirectoryServer) ServePatchTD(userID, certOU, thingID string, respons
 		err = json.Unmarshal(body, &tdMap)
 	}
 	if err == nil {
-		err = srv.store.Patch(thingID, tdMap)
+		err = srv.dirStore.Patch(thingID, tdMap)
 	}
 	if err != nil {
 		srv.tlsServer.WriteBadRequest(response, fmt.Sprintf("ServePatchTD: %s", err))
@@ -123,9 +123,9 @@ func (srv *DirectoryServer) ServeReplaceTD(userID, certOU, thingID string, respo
 		srv.tlsServer.WriteBadRequest(response, fmt.Sprintf("ServeReplaceTD: %s", err))
 		return
 	}
-	existingTD, _ := srv.store.Get(thingID)
+	existingTD, _ := srv.dirStore.Get(thingID)
 
-	err = srv.store.Replace(thingID, tdMap)
+	err = srv.dirStore.Replace(thingID, tdMap)
 	if err != nil {
 		srv.tlsServer.WriteBadRequest(response, fmt.Sprintf("ServeReplaceTD: %s", err))
 		return

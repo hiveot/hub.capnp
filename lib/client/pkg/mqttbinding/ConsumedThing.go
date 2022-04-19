@@ -18,7 +18,7 @@ import (
 // The protocol binding schema is work in progress, as is the WoT MQTT protocol binding. For now this takes
 // a best guess approach based on "https://w3c.github.io/wot-binding-templates"
 //
-// This closely follows the WoT scripting API for ConsumedThing as described at
+// This loosely follows the WoT scripting API for ConsumedThing as described at
 // https://www.w3.org/TR/wot-scripting-api/#the-consumedthing-interface
 type MqttConsumedThing struct {
 	// Client for MQTT message bus access

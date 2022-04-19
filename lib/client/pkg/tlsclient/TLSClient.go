@@ -28,6 +28,20 @@ const (
 	AuthMethodJwtToken = "access" // JWT access token provided by 3rd party
 )
 
+// standardized query parameter names for quering servers
+const (
+	// ParamOffset offset in case of multiple requests
+	ParamOffset = "offset"
+	// ParamLimit contains maximum number of results
+	ParamLimit = "limit"
+	// ParamQuery contains a query
+	ParamQuery = "queryparams"
+	// ParamUpdatedSince contains a ISO8601 datetime
+	ParamUpdatedSince = "updatedSince"
+	// ParamThings contains a list of Thing IDs to query for
+	ParamThings = "things"
+)
+
 // The default paths for user authentication and configuration
 const (
 	// DefaultJWTLoginPath for obtaining access & refresh tokens
