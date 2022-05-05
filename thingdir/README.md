@@ -167,7 +167,7 @@ Where queryparams identify property fields in the TD.
 
 ## Property Value API
 
-The property value API provides the last known value of a Thing's properties.
+The property value API provides the last known value of a Thing's properties with their update time.
 For property value history see the history plugin. 
 
 ### Get Property Values Of A Thing
@@ -180,10 +180,14 @@ Optional query parameters:
 
 
 ```http
-HTTP GET https://server:port/values/thingID?[&updatedSince=isodatetime][&propNames=propName1]
+HTTP GET https://server:port/values/thingID?[&updatedSince=isodatetime][&propNames=propname1,...]
+
 200 (OK)
 {
-  propName1: propValue, 
+  propName1: {
+    lastUpdated: isoTime,
+    value: propValue,
+  } 
 }
 ```
 
@@ -192,7 +196,7 @@ HTTP GET https://server:port/values/thingID?[&updatedSince=isodatetime][&propNam
 This returns a map of thing ID's with a map of property name-value pairs.
 
 Query parameters must contain a list of ThingIDs:
-* things=thingID1,thingID2: List of Things whose properties to get 
+* things=thingID1,thingID2: List of Things whose properties to get, empty to get all things. 
 * updatedSince=isodatetime : only return property values that have been updated since the given timestamp.
 * propNames=propName1,...: only return property values for the given names
 
@@ -202,8 +206,14 @@ HTTP GET https://server:port/values?things=thingID1,thingID2[&updatedSince=isoda
 200 (OK)
 {
   thingID1: {
-    propName1: propValue,
-    propName2: propValue,
+    propName1: {
+        updated: iso8601,
+        value: propValue,
+    }
+    propName2: {
+        updated: iso8601,
+        value: propValue,
+     }
     ... 
   },
 }

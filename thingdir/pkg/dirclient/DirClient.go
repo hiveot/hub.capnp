@@ -44,6 +44,14 @@ const (
 const DefaultLimit = 100
 const MaxLimit = 1000
 
+// PropValue hold property or event value including when it was last updated
+type PropValue struct {
+	// ISO8601 timestamp of when the value was last updated
+	Updated string `json:"updated"`
+	// The value
+	Value interface{} `json:"value"`
+}
+
 // DirClient is a client for the WoST Directory service
 // Intended for updating and reading TDs
 type DirClient struct {
@@ -81,25 +89,16 @@ func (dc *DirClient) Delete(id string) error {
 	return err
 }
 
-// GetEventValue returns the latest value of a thing event
-// This returns a map of eventName-value pair
-//  id is the ThingID whose event to get
-//  eventName is the event whose value to get
-func (dc *DirClient) GetEventValue(thingID string, eventName string) (
-	values map[string]interface{}, err error) {
-
-	return dc.GetPropertyValue(thingID, eventName)
-}
-
-// GetPropertyValue returns a single property value of a thing
+// GetThingValues returns the most recent values of properties and events of a thing
+// Intended to get a recent snapshot of values before subscribing to value messages
+// on the message bus.
 //  id is the ThingID whose property to get
 //  propName is the property to get
-func (dc *DirClient) GetPropertyValue(thingID string, propName string) (
-	values map[string]interface{}, err error) {
+func (dc *DirClient) GetThingValues(thingID string) (
+	values map[string]PropValue, err error) {
 
 	path := strings.Replace(RouteThingValues, "{thingID}", thingID, 1)
-	queryParams := fmt.Sprintf("?%s=%s", ParamPropNames, propName)
-	resp, err := dc.tlsClient.Get(path + queryParams)
+	resp, err := dc.tlsClient.Get(path)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +124,7 @@ func (dc *DirClient) GetTD(id string) (td *thing.ThingTD, err error) {
 //  propNames is a list of the properties to get
 // This returns a map of thingID's containing a map of property name-value pairs
 func (dc *DirClient) GetThingsPropertyValues(thingIDs []string, propNames []string) (
-	values map[string]map[string]interface{}, err error) {
+	values map[string]map[string]PropValue, err error) {
 
 	// specify things in query
 	qThingIDs := fmt.Sprintf("?%s=%s", tlsclient.ParamThings, strings.Join(thingIDs, ","))

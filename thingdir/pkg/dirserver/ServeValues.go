@@ -6,6 +6,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/lib/client/pkg/tlsclient"
 	"github.com/wostzone/hub/lib/client/pkg/vocab"
+	"github.com/wostzone/hub/thingdir/pkg/dirclient"
 	"net/http"
 	"strings"
 	"time"
@@ -16,7 +17,7 @@ import (
 // Returns map with key-value pair of thing's property,
 // Returns NotFound if thingID is not known or user is not authorized
 func (srv *DirectoryServer) ServeThingValues(userID string, response http.ResponseWriter, request *http.Request) {
-	resp := make(map[string]interface{})
+	resp := make(map[string]dirclient.PropValue)
 
 	logrus.Infof("DirectoryServer.ServeThingValues: user=%s, URL=%s", userID, request.URL)
 	certOU := srv.tlsServer.Authenticator().GetClientOU(request)
@@ -84,10 +85,14 @@ func (srv *DirectoryServer) ServeMultipleThingsValues(userID string, response ht
 	response.Write(valueResponse)
 }
 
-// GetPropValues returns a map of property name-value pairs for the given Thing
+// GetPropValues returns a map of property name-value pairs for the given Thing:
+// {
+//    propName: {updated:timestamp, value:lastValue}
+// }
 // the aclFilter is used to authorize access to things properties
 // returns nil if the thingID is not known or access is not authorized
-func (srv *DirectoryServer) GetPropValues(thingID string, aclFilter AclFilter, updatedSince time.Time) map[string]interface{} {
+func (srv *DirectoryServer) GetPropValues(thingID string, aclFilter AclFilter, updatedSince time.Time) map[string]dirclient.PropValue {
+	// TODO: filter on updatedSince
 	if !aclFilter.FilterThing(thingID) {
 		return nil
 	}
@@ -99,7 +104,7 @@ func (srv *DirectoryServer) GetPropValues(thingID string, aclFilter AclFilter, u
 			return nil
 		}
 		// return result without properties
-		return make(map[string]interface{})
+		return make(map[string]dirclient.PropValue)
 	}
 	return values
 }

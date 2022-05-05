@@ -31,9 +31,9 @@ func TestGetThingPropertyValues(t *testing.T) {
 	directoryServer.UpdatePropertyValues(Thing1ID, propMap)
 
 	// Query the property values
-	props, err := dirClient.GetPropertyValue(Thing1ID, Prop1Name)
-	assert.Equal(t, Prop1Value, props[Prop1Name])
-	assert.Equal(t, Prop2Value, props[Prop2Name])
+	values, err := dirClient.GetThingValues(Thing1ID)
+	assert.Equal(t, Prop1Value, values[Prop1Name].Value)
+	assert.Equal(t, Prop2Value, values[Prop2Name].Value)
 
 	// Query the events
 	dirClient.Close()
@@ -68,8 +68,8 @@ func TestGetMultipleThingPropertyValues(t *testing.T) {
 	thingIDs := []string{Thing1ID, Thing2ID, "notathing"}
 	propNames := []string{Prop1Name, Prop2Name}
 	props, err := dirClient.GetThingsPropertyValues(thingIDs, propNames)
-	assert.Equal(t, Prop1Value, props[Thing1ID][Prop1Name])
-	assert.Equal(t, Prop2Value, props[Thing2ID][Prop2Name])
+	assert.Equal(t, Prop1Value, props[Thing1ID][Prop1Name].Value)
+	assert.Equal(t, Prop2Value, props[Thing2ID][Prop2Name].Value)
 
 	// Query the events
 	dirClient.Close()

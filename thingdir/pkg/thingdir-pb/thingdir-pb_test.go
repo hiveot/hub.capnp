@@ -182,16 +182,11 @@ func TestUpdatePropValues(t *testing.T) {
 	time.Sleep(time.Second)
 
 	// match results
-	propVals, err := tdirClient.GetPropertyValue(thing1ID, "")
+	thingValues, err := tdirClient.GetThingValues(thing1ID)
 	assert.NoError(t, err)
-	assert.NotNil(t, propVals)
-	assert.Equal(t, prop1Value, propVals[prop1Name])
-
-	// match results
-	eventVals, err := tdirClient.GetEventValue(thing1ID, event1Name)
-	assert.NoError(t, err)
-	assert.NotNil(t, eventVals)
-	assert.Equal(t, event1Value, event1Value)
+	require.NotNil(t, thingValues)
+	assert.Equal(t, prop1Value, thingValues[prop1Name].Value)
+	assert.Equal(t, event1Value, thingValues[event1Name].Value)
 
 	// cleanup
 	tdirClient.Close()

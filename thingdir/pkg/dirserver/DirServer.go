@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"github.com/wostzone/hub/lib/client/pkg/certsclient"
+	"github.com/wostzone/hub/lib/client/pkg/vocab"
 	"path"
 	"time"
 
@@ -48,7 +49,7 @@ type DirectoryServer struct {
 	discoServer *zeroconf.Server
 	dirStore    *dirfilestore.DirFileStore
 	// map of thingID's to property name-value pairs
-	valueStore map[string]map[string]interface{}
+	valueStore map[string]map[string]dirclient.PropValue
 }
 
 // Address returns the address that the server listens on
@@ -142,20 +143,28 @@ func (srv *DirectoryServer) UpdateTD(thingID string, tdMap map[string]interface{
 	return err
 }
 
-// UpdateEventValue updates a Thing's event value in the value store
+// UpdateEventValue updates a Thing's event value in the value store with the current timestamp.
 func (srv *DirectoryServer) UpdateEventValue(thingID string, eventName string, eventValue interface{}) {
-	srv.valueStore[thingID][eventName] = eventValue
+	propValue := dirclient.PropValue{
+		Updated: time.Now().Format(vocab.TimeFormat),
+		Value:   eventValue,
+	}
+	srv.valueStore[thingID][eventName] = propValue
 }
 
-// UpdatePropertyValues updates a Thing's property values in the value store
+// UpdatePropertyValues updates a Thing's property values in the value store with the current timestamp.
 func (srv *DirectoryServer) UpdatePropertyValues(thingID string, props map[string]interface{}) {
 	thingProps, found := srv.valueStore[thingID]
 	if !found {
-		srv.valueStore[thingID] = props
-	} else {
-		for propName, value := range props {
-			thingProps[propName] = value
+		thingProps = make(map[string]dirclient.PropValue)
+		srv.valueStore[thingID] = thingProps
+	}
+	for propName, value := range props {
+		propValue := dirclient.PropValue{
+			Updated: time.Now().Format(vocab.TimeFormat),
+			Value:   value,
 		}
+		thingProps[propName] = propValue
 	}
 }
 
@@ -204,7 +213,7 @@ func NewDirectoryServer(
 		authenticator: tlsserver.NewJWTAuthenticator(serverKey),
 		authorizer:    authorizer,
 		// map of thingID's to property name-value pairs
-		valueStore: make(map[string]map[string]interface{}),
+		valueStore: make(map[string]map[string]dirclient.PropValue),
 	}
 	return &srv
 }
