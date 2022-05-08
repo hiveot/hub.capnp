@@ -23,5 +23,5 @@
 # access token validity in seconds. Default is 1 hour
 accessTokenValiditySec: 60
 
-# refresh token validity in days. Default is 14 days
-refreshTokenValidityDays: 1
+# refresh token validity in seconds. Default is 1209600 (14 days)
+refreshTokenValiditySec: 120

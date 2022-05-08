@@ -30,13 +30,13 @@ const pass1 = "secret1"
 // containing a password for user1
 func startAuthService() (*authservice.AuthService, error) {
 	config := authservice.AuthServiceConfig{
-		Address:                  serverAddress,
-		Port:                     serverPort,
-		PasswordFile:             passwordFile,
-		ConfigStoreFolder:        storeFolder,
-		ConfigStoreEnabled:       true,
-		AccessTokenValiditySec:   10,
-		RefreshTokenValidityDays: 1,
+		Address:                 serverAddress,
+		Port:                    serverPort,
+		PasswordFile:            passwordFile,
+		ConfigStoreFolder:       storeFolder,
+		ConfigStoreEnabled:      true,
+		AccessTokenValiditySec:  10,
+		RefreshTokenValiditySec: 120,
 	}
 	srv := authservice.NewJwtAuthService(config, nil, testCerts.ServerCert, testCerts.CaCert)
 	err := srv.Start()

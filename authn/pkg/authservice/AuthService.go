@@ -28,8 +28,8 @@ const DefaultAuthServicePort = 8881
 // DefaultAccessTokenValiditySec with access token validity in seconds
 const DefaultAccessTokenValiditySec = 3600
 
-// DefaultRefreshTokenValidityDays with Refresh token validity before refresh
-const DefaultRefreshTokenValidityDays = 14
+// DefaultRefreshTokenValiditySec with Refresh token validity before refresh
+const DefaultRefreshTokenValiditySec = 1209600
 
 // internal constant for appID route parameter
 const appIDParam = "appid"
@@ -57,8 +57,8 @@ type AuthServiceConfig struct {
 	// Access token validity. Default is 1 hour
 	AccessTokenValiditySec int `yaml:"accessTokenValiditySec"`
 
-	// Refresh token validity. Default is 14 days
-	RefreshTokenValidityDays int `yaml:"refreshTokenValidityDays"`
+	// Refresh token validity. Default is 1209600 (14 days)
+	RefreshTokenValiditySec int `yaml:"refreshTokenValiditySec"`
 }
 
 // AuthService for handling authentication and token refresh requests
@@ -176,7 +176,7 @@ func (srv *AuthService) Start() error {
 	srv.EnableJwtIssuer(
 		srv.signingKey,
 		srv.config.AccessTokenValiditySec,
-		srv.config.RefreshTokenValidityDays*24*3600,
+		srv.config.RefreshTokenValiditySec,
 		srv.authenticator.VerifyUsernamePassword,
 	)
 
@@ -224,8 +224,9 @@ func NewJwtAuthService(
 	if config.AccessTokenValiditySec <= 0 {
 		config.AccessTokenValiditySec = DefaultAccessTokenValiditySec
 	}
-	if config.RefreshTokenValidityDays <= 0 {
-		config.RefreshTokenValidityDays = DefaultRefreshTokenValidityDays
+	//logrus.Warningf("NewJwtAuthService: refreshtoken validity from config=%d", config.RefreshTokenValiditySec)
+	if config.RefreshTokenValiditySec <= 0 {
+		config.RefreshTokenValiditySec = DefaultRefreshTokenValiditySec
 	}
 
 	// The TLS server authenticates a request.

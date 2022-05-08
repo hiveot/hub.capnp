@@ -53,12 +53,16 @@ func (srv *TLSServer) AddHandler(path string,
 			// don't return a payload with the cors options request
 			return
 		}
+		msg := fmt.Sprintf("TLSServer.HandleFunc %s: Method=%s from %s. Vars=%s",
+			path, req.Method, req.RemoteAddr, mux.Vars(req))
+		logrus.Infof("%s", msg)
 
 		// valid authentication without userID means a plugin certificate was used which is always authorized
 		userID, match := srv.httpAuthenticator.AuthenticateRequest(resp, req)
 		if !match {
-			msg := fmt.Sprintf("TLSServer.HandleFunc %s: User '%s' from %s is unauthorized", path, userID, req.RemoteAddr)
-			logrus.Infof("%s", msg)
+			msg := fmt.Sprintf("TLSServer.HandleFunc %s: User '%s' from %s is unauthorized",
+				path, userID, req.RemoteAddr)
+			logrus.Warningf("%s", msg)
 			srv.WriteForbidden(resp, msg)
 		} else {
 			local_handler(userID, resp, req)
