@@ -7,7 +7,7 @@ FORCE: help
 all: thingdir ## Build package with binary distribution and config
 
 test: FORCE ## Run tests (stop on first error, don't run parallel)
-	go test -failfast -p 1 -v ./pkg/...
+	go test -race -failfast -p 1 -v ./pkg/...
 
 install: all  ## Install the plugin into ~/bin/wost/bin and config
 	cp dist/bin/* $(INSTALL_HOME)/bin/

@@ -14,7 +14,7 @@ clean: ## Clean distribution files
 	rm -f test/logs/*
 
 test: FORCE ## Run tests (stop on first error, don't run parallel)
-		go test -failfast -p 1 -v ./pkg/...
+	go test -race -failfast -p 1 -v ./pkg/...
 
 oob: ## Build the oob utility
 	mkdir -p $(DIST_FOLDER)/bin

@@ -17,10 +17,10 @@ install:  all ## Install the launcher into ~/bin/wosthub/bin and config
 	cp -n $(DIST_FOLDER)/config/* $(INSTALL_HOME)/config/  
 
 dist: clean   ## Build binary distribution tarball 
-		tar -czf $(PKG_NAME) -C $(DIST_FOLDER) .
+	tar -czf $(PKG_NAME) -C $(DIST_FOLDER) .
 
 test: launcher .FORCE ## Run launcher test
-	go test -failfast -p 1 -v ./...
+	go test -race -failfast -p 1 -v ./...
 
 clean: ## Clean distribution files
 	go mod tidy
@@ -38,4 +38,3 @@ launcher: ## Build Hub services launcher
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
-

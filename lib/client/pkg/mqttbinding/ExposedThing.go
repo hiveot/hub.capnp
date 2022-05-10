@@ -126,7 +126,8 @@ func (eThing *MqttExposedThing) EmitPropertyChange(propName string, newRawValue 
 	}
 
 	// update the cached value in ConsumedThing base class
-	eThing.valueStore[propName] = NewInteractionOutput(newRawValue, &propAffordance.DataSchema)
+	io := NewInteractionOutput(newRawValue, &propAffordance.DataSchema)
+	eThing._writeValue(propName, io)
 
 	// protocol binding -> things/{thingID}/event/{propName}
 	propMap := map[string]interface{}{propName: newRawValue}
@@ -135,12 +136,16 @@ func (eThing *MqttExposedThing) EmitPropertyChange(propName string, newRawValue 
 	return err
 }
 
-// EmitPropertyChanges sends a properties change event for multiple properties.
+// EmitPropertyChanges sends a properties change event for multiple properties
+// and if the property name matches an event name, an event with the property name
+// is sent, if the value changed.
 // This will remove properties that do not have an affordance.
-//
 // This uses the 'TopicEmitPropertiesChange' topic, eg 'things/{thingID}/event/properties'.
-// propMap is a map of property name to raw value. This will be converted to json as-is
-// onlyChanges includes only those properties whose value have changed.
+// propMap is a map of property name to raw value. This will be converted to json as-is.
+//
+// For property names that are defined as events, an event is sent for each property in the event list.
+//
+// @param onlyChanges: include only those properties whose value have changed (recommended)
 // Returns an error if submitting an event fails
 func (eThing *MqttExposedThing) EmitPropertyChanges(
 	propMap map[string]interface{}, onlyChanges bool) error {
@@ -150,15 +155,29 @@ func (eThing *MqttExposedThing) EmitPropertyChanges(
 
 	// filter properties that have no affordance or haven't changed
 	for propName, newVal := range propMap {
-		lastVal, found := eThing.valueStore[propName]
+		lastVal, found := eThing._readValue(propName)
 
-		// must have a propertyAffordance
+		// In order to be included as a property it must have a propertyAffordance
 		if !found || !onlyChanges || lastVal.Value != newVal {
 			propAffordance, found := eThing.td.Properties[propName]
 			// only include values that are in the properties map
 			if found {
 				changedProps[propName] = newVal
-				eThing.valueStore[propName] = NewInteractionOutput(newVal, &propAffordance.DataSchema)
+				newIO := NewInteractionOutput(newVal, &propAffordance.DataSchema)
+				eThing._writeValue(propName, newIO)
+			}
+
+			// to be sent as an event it must have an event affordance
+			eventAffordance, found := eThing.td.Events[propName]
+			if found {
+				_ = eventAffordance
+				topic := strings.ReplaceAll(TopicEmitEvent, "{thingID}", eThing.td.ID)
+				topic += "/" + propName
+				err = eThing.mqttClient.PublishObject(topic, newVal)
+				if err != nil {
+					logrus.Warningf("MqqExposedThing.EmitPropertyChanges: Failed %s", err)
+					return err
+				}
 			}
 		}
 	}
@@ -167,12 +186,12 @@ func (eThing *MqttExposedThing) EmitPropertyChanges(
 		topic := strings.ReplaceAll(TopicEmitPropertiesChange, "{thingID}", eThing.td.ID)
 		err := eThing.mqttClient.PublishObject(topic, changedProps)
 		if err != nil {
-			logrus.Warningf("MqqExposedThing.EmitPropertyValues: Failed %s", err)
+			logrus.Warningf("MqqExposedThing.EmitPropertyChanges: Failed %s", err)
 			return err
 		}
 	}
 
-	logrus.Infof("MqqExposedThing.EmitPropertyValues: submitted %d properties for thing %s", len(changedProps), eThing.td.ID)
+	logrus.Infof("MqqExposedThing.EmitPropertyChanges: submitted %d properties for thing %s", len(changedProps), eThing.td.ID)
 	return err
 }
 
@@ -373,6 +392,7 @@ func CreateExposedThing(tdDoc *thing.ThingTD, mqttClient *mqttclient.MqttClient)
 			eventSubscriptions: make(map[string]Subscription),
 			subscriptionMutex:  sync.Mutex{},
 			valueStore:         make(map[string]InteractionOutput),
+			storeMutex:         sync.RWMutex{},
 		},
 		actionHandlers:        make(map[string]func(actionName string, value InteractionOutput) error),
 		propertyWriteHandlers: make(map[string]func(actionName string, value InteractionOutput) error),

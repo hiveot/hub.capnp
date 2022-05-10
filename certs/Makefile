@@ -21,7 +21,7 @@ dist: clean   ## Build binary distribution tarball
 		tar -czf $(PKG_NAME) -C $(DIST_FOLDER) .
 
 test: all .PHONY ## Run tests sequentially
-	go test -failfast -p 1 -v ./...
+	go test -failfast -race -p 1 -v ./...
 
 clean: ## Clean distribution files
 	go mod tidy
@@ -44,4 +44,3 @@ upgrade:
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
-

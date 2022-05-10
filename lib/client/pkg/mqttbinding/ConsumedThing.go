@@ -31,12 +31,29 @@ type MqttConsumedThing struct {
 	subscriptionMutex sync.Mutex
 	// valueStore holds property values as received by events
 	valueStore map[string]InteractionOutput
+	// mutex for concurrent access to stored values
+	storeMutex sync.RWMutex
 }
 
 // GetThingDescription returns the TD document of this exposed Thing
 // This returns the cached version of the TD
 func (cThing *MqttConsumedThing) GetThingDescription() *thing.ThingTD {
 	return cThing.td
+}
+
+// Concurrently safe reading of value from the value store
+func (cThing *MqttConsumedThing) _readValue(key string) (val InteractionOutput, found bool) {
+	cThing.storeMutex.RLock()
+	defer cThing.storeMutex.RUnlock()
+	val, found = cThing.valueStore[key]
+	return
+}
+
+// Concurrently safe writing of value into the value store
+func (cThing *MqttConsumedThing) _writeValue(key string, io InteractionOutput) {
+	cThing.storeMutex.Lock()
+	defer cThing.storeMutex.Unlock()
+	cThing.valueStore[key] = io
 }
 
 // Handle incoming events.
@@ -67,7 +84,8 @@ func (cThing *MqttConsumedThing) handleEvent(address string, message []byte) {
 		logrus.Infof("MqttConsumedThing.handleEvent: Event with topic %s is a property event", address)
 		// TODO validate the data
 		// property or event, it is stored in the valueStore
-		cThing.valueStore[eventName] = evData
+		cThing._writeValue(eventName, evData)
+
 	} else if eventName == TopicSubjectProperties {
 		// handle map of property name-value pairs
 		var propMap map[string]interface{}
@@ -81,7 +99,7 @@ func (cThing *MqttConsumedThing) handleEvent(address string, message []byte) {
 			if propAffordance != nil {
 				evData = NewInteractionOutput(propValue, &propAffordance.DataSchema)
 				// property or event, it is stored in the valueStore
-				cThing.valueStore[propName] = evData
+				cThing._writeValue(propName, evData)
 			} else {
 				logrus.Infof("MqttConsumedThing.handleEvent. Ignoring unknown property '%s'", propName)
 			}
@@ -97,7 +115,8 @@ func (cThing *MqttConsumedThing) handleEvent(address string, message []byte) {
 			evData = NewInteractionOutputFromJson(message, nil)
 		}
 		// property or event, it is stored in the valueStore
-		cThing.valueStore[eventName] = evData
+		cThing._writeValue(eventName, evData)
+
 	}
 
 	// notify subscribers if any
@@ -149,7 +168,7 @@ func (cThing *MqttConsumedThing) ObserveProperty(
 // the name is not a known property.
 func (cThing *MqttConsumedThing) ReadProperty(name string) (InteractionOutput, error) {
 	//return res, errors.New("'"+name + "' is not a known property" )
-	value, found := cThing.valueStore[name]
+	value, found := cThing._readValue(name)
 	if !found {
 		return value, errors.New("Property " + name + " does not exist on thing " + cThing.td.ID)
 	}
@@ -263,6 +282,7 @@ func Consume(tdDoc *thing.ThingTD, mqttClient *mqttclient.MqttClient) *MqttConsu
 		eventSubscriptions: make(map[string]Subscription),
 		subscriptionMutex:  sync.Mutex{},
 		valueStore:         make(map[string]InteractionOutput),
+		storeMutex:         sync.RWMutex{},
 	}
 	// in order to keep props up to date, subscribe to all events
 	topic := strings.ReplaceAll(TopicEmitEvent, "{thingID}", cThing.td.ID) + "/#"

@@ -15,7 +15,7 @@ logger:
 	@echo "> SUCCESS. Plugin '$@' can be found at $(DIST_FOLDER)/bin/$@"
 
 test: .PHONY
-	go test -failfast -p 1 -v ./...
+	go test -race -failfast -p 1 -v ./...
 
 clean: ## Clean distribution files
 	go mod tidy

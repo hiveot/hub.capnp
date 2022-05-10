@@ -3,6 +3,7 @@ package thing
 import (
 	"encoding/json"
 	"github.com/wostzone/hub/lib/client/pkg/vocab"
+	"sync"
 	"time"
 )
 
@@ -78,6 +79,7 @@ type ThingTD struct {
 	// profile: todo
 	// schemaDefinitions: todo
 	// uriVariables: todo
+	updateMutex sync.RWMutex
 }
 
 // AddAction provides a simple way to add an action affordance schema to the TD
@@ -143,6 +145,9 @@ func (tdoc *ThingTD) AddEvent(name string, title string, dataType string) *Event
 
 // AsMap returns the TD document as a map
 func (tdoc *ThingTD) AsMap() map[string]interface{} {
+	tdoc.updateMutex.RLock()
+	defer tdoc.updateMutex.RUnlock()
+
 	var asMap map[string]interface{}
 	asJSON, _ := json.Marshal(tdoc)
 	json.Unmarshal(asJSON, &asMap)
@@ -156,6 +161,9 @@ func (tdoc *ThingTD) AsMap() map[string]interface{} {
 // GetAction returns the action affordance with schema for the action.
 // Returns nil if name is not an action or no affordance is defined.
 func (tdoc *ThingTD) GetAction(name string) *ActionAffordance {
+	tdoc.updateMutex.RLock()
+	defer tdoc.updateMutex.RUnlock()
+
 	actionAffordance, found := tdoc.Actions[name]
 	if !found {
 		return nil
@@ -165,6 +173,9 @@ func (tdoc *ThingTD) GetAction(name string) *ActionAffordance {
 
 // GetEvent returns the schema for the event or nil if the event doesn't exist
 func (tdoc *ThingTD) GetEvent(name string) *EventAffordance {
+	tdoc.updateMutex.RLock()
+	defer tdoc.updateMutex.RUnlock()
+
 	eventAffordance, found := tdoc.Events[name]
 	if !found {
 		return nil
@@ -174,6 +185,8 @@ func (tdoc *ThingTD) GetEvent(name string) *EventAffordance {
 
 // GetProperty returns the schema and value for the property or nil if name is not a property
 func (tdoc *ThingTD) GetProperty(name string) *PropertyAffordance {
+	tdoc.updateMutex.RLock()
+	defer tdoc.updateMutex.RUnlock()
 	propAffordance, found := tdoc.Properties[name]
 	if !found {
 		return nil
@@ -190,6 +203,8 @@ func (tdoc *ThingTD) GetID() string {
 // Use UpdateProperty if name is a property name.
 // Returns the added affordance to support chaining
 func (tdoc *ThingTD) UpdateAction(name string, affordance *ActionAffordance) *ActionAffordance {
+	tdoc.updateMutex.Lock()
+	defer tdoc.updateMutex.Unlock()
 	tdoc.Actions[name] = affordance
 	return affordance
 }
@@ -197,6 +212,8 @@ func (tdoc *ThingTD) UpdateAction(name string, affordance *ActionAffordance) *Ac
 // UpdateEvent adds a new or replaces an existing event affordance (schema) of name. Intended for creating TDs
 // Returns the added affordance to support chaining
 func (tdoc *ThingTD) UpdateEvent(name string, affordance *EventAffordance) *EventAffordance {
+	tdoc.updateMutex.Lock()
+	defer tdoc.updateMutex.Unlock()
 	tdoc.Events[name] = affordance
 	return affordance
 }
@@ -205,18 +222,24 @@ func (tdoc *ThingTD) UpdateEvent(name string, affordance *EventAffordance) *Even
 // NOTE: In WoST actions are always routed via the Hub using the Hub's protocol binding.
 // Under normal circumstances forms are therefore not needed.
 func (tdoc *ThingTD) UpdateForms(formList []Form) {
+	tdoc.updateMutex.Lock()
+	defer tdoc.updateMutex.Unlock()
 	tdoc.Forms = formList
 }
 
 // UpdateProperty adds or replaces a property affordance in the TD. Intended for creating TDs
 // Returns the added affordance to support chaining
 func (tdoc *ThingTD) UpdateProperty(name string, affordance *PropertyAffordance) *PropertyAffordance {
+	tdoc.updateMutex.Lock()
+	defer tdoc.updateMutex.Unlock()
 	tdoc.Properties[name] = affordance
 	return affordance
 }
 
 // UpdateTitleDescription sets the title and description of the Thing in the default language
 func (tdoc *ThingTD) UpdateTitleDescription(title string, description string) {
+	tdoc.updateMutex.Lock()
+	defer tdoc.updateMutex.Unlock()
 	tdoc.Title = title
 	tdoc.Description = description
 }
@@ -265,8 +288,9 @@ func CreateTD(thingID string, title string, deviceType vocab.DeviceType) *ThingT
 		Modified:   time.Now().Format(vocab.TimeFormat),
 		Properties: map[string]*PropertyAffordance{},
 		// security schemas don't apply to WoST devices, except services exposed by the hub itself
-		Security: vocab.WoTNoSecurityScheme,
-		Title:    title,
+		Security:    vocab.WoTNoSecurityScheme,
+		Title:       title,
+		updateMutex: sync.RWMutex{},
 	}
 
 	// TODO @type is a JSON-LD keyword to label using semantic tags, eg it needs a schema

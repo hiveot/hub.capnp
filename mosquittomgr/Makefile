@@ -32,7 +32,7 @@ clean: ## Clean distribution files
 
 
 test: mosqauth FORCE ## Run tests (stop on first error, don't run parallel)
-	go test -failfast -p 1 -v ./internal/...
+	go test -race -failfast -p 1 -v ./internal/...
 
 mosquittomgr: mosqauth ## Build mosquitto configuration manager
 	mkdir -p $(DIST_FOLDER)/bin

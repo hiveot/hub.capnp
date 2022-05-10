@@ -2,6 +2,7 @@ package thing_test
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/wostzone/hub/lib/client/pkg/thing"
@@ -51,6 +52,9 @@ func TestCreateTD(t *testing.T) {
 
 	tid2 := tdoc.GetID()
 	assert.Equal(t, thingID, tid2)
+
+	asMap := tdoc.AsMap()
+	assert.NotNil(t, asMap)
 }
 
 func TestCreateThingID(t *testing.T) {
@@ -102,4 +106,52 @@ func TestMissingAffordance(t *testing.T) {
 
 	ev := tdoc.GetEvent("event1")
 	assert.Nil(t, ev)
+}
+
+func TestAddProp(t *testing.T) {
+	thingID := thing.CreateThingID("", "thing1", vocab.DeviceTypeUnknown)
+	tdoc := thing.CreateTD(thingID, "test TD", vocab.DeviceTypeSensor)
+	tdoc.AddProperty("prop1", "test property", vocab.WoTDataTypeBool)
+
+	go func() {
+		tdoc.AddProperty("prop2", "test property2", vocab.WoTDataTypeString)
+	}()
+
+	prop := tdoc.GetProperty("prop1")
+	assert.NotNil(t, prop)
+	time.Sleep(time.Millisecond)
+	prop = tdoc.GetProperty("prop2")
+	assert.NotNil(t, prop)
+}
+
+func TestAddEvent(t *testing.T) {
+	thingID := thing.CreateThingID("", "thing1", vocab.DeviceTypeUnknown)
+	tdoc := thing.CreateTD(thingID, "test TD", vocab.DeviceTypeSensor)
+	tdoc.AddEvent("event1", "test event", vocab.WoTDataTypeBool)
+
+	go func() {
+		tdoc.AddEvent("event2", "test event 2", vocab.WoTDataTypeBool)
+	}()
+
+	ev := tdoc.GetEvent("event1")
+	assert.NotNil(t, ev)
+	time.Sleep(time.Millisecond)
+	ev = tdoc.GetEvent("event2")
+	assert.NotNil(t, ev)
+}
+
+func TestAddAction(t *testing.T) {
+	thingID := thing.CreateThingID("", "thing1", vocab.DeviceTypeUnknown)
+	tdoc := thing.CreateTD(thingID, "test TD", vocab.DeviceTypeSensor)
+	tdoc.AddAction("action1", "test action", vocab.WoTDataTypeBool)
+
+	go func() {
+		tdoc.AddAction("action2", "test action", vocab.WoTDataTypeBool)
+	}()
+
+	action := tdoc.GetAction("action1")
+	assert.NotNil(t, action)
+	time.Sleep(time.Millisecond)
+	action = tdoc.GetAction("action2")
+	assert.NotNil(t, action)
 }

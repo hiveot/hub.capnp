@@ -14,6 +14,8 @@ import (
 	"os"
 	"path"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -45,13 +47,20 @@ func createTestTD() *thing.ThingTD {
 	thingID := thing.CreateThingID("", testDeviceID, testDeviceType)
 	tdDoc := thing.CreateTD(thingID, title, testDeviceType)
 	//
-	prop := &thing.PropertyAffordance{
+	prop1 := &thing.PropertyAffordance{
 		DataSchema: thing.DataSchema{
 			Type:  vocab.WoTDataTypeBool,
 			Title: "Property 1",
 		},
 	}
-	tdDoc.UpdateProperty(testProp1Name, prop)
+	prop2 := &thing.PropertyAffordance{
+		DataSchema: thing.DataSchema{
+			Type:  vocab.WoTDataTypeBool,
+			Title: "Event property",
+		},
+	}
+	tdDoc.UpdateProperty(testProp1Name, prop1)
+	tdDoc.UpdateProperty(testEventName, prop2)
 
 	// add event to TD
 	tdDoc.UpdateEvent(testEventName, &thing.EventAffordance{
@@ -107,7 +116,7 @@ func TestStartStop(t *testing.T) {
 
 func TestReadProperty(t *testing.T) {
 	logrus.Infof("--- TestReadProperty ---")
-	var observedProperty = false
+	var observedProperty int32 = 0
 
 	// step 1 create the MQTT message bus client
 	client := mqttclient.NewMqttClient(testPluginID, certs.CaCert, 0)
@@ -118,7 +127,7 @@ func TestReadProperty(t *testing.T) {
 	cThing := mqttbinding.Consume(testTD, client)
 	err = cThing.ObserveProperty(testProp1Name, func(name string, data mqttbinding.InteractionOutput) {
 		assert.Equal(t, testProp1Name, name)
-		observedProperty = true
+		atomic.AddInt32(&observedProperty, 1)
 	})
 	assert.NoError(t, err)
 
@@ -133,14 +142,14 @@ func TestReadProperty(t *testing.T) {
 	val1, err := cThing.ReadProperty(testProp1Name)
 	assert.NoError(t, err)
 	assert.NotNil(t, val1)
-	assert.True(t, observedProperty)
+	assert.Equal(t, int32(1), atomic.LoadInt32(&observedProperty))
 
 	propNames := []string{testProp1Name}
 	propInfo := cThing.ReadMultipleProperties(propNames)
-	assert.Len(t, propInfo, 1)
+	assert.Equal(t, len(propInfo), 1)
 
 	propInfo = cThing.ReadAllProperties()
-	assert.Len(t, propInfo, 1)
+	assert.GreaterOrEqual(t, len(propInfo), 1)
 
 	// step 5 cleanup
 	cThing.Stop()
@@ -151,7 +160,7 @@ func TestReceiveEvent(t *testing.T) {
 	logrus.Infof("--- TestReceiveEvent ---")
 	const eventName = "event1"
 	const eventValue = "hello world"
-	var receivedEvent = false
+	var receivedEvent int32 = 0
 
 	// step 1 create the MQTT message bus client
 	client := mqttclient.NewMqttClient(testPluginID, certs.CaCert, 0)
@@ -161,7 +170,9 @@ func TestReceiveEvent(t *testing.T) {
 	// step 2 create a ConsumedThing and subscribe to event
 	cThing := mqttbinding.Consume(testTD, client)
 	err = cThing.SubscribeEvent(eventName, func(ev string, data mqttbinding.InteractionOutput) {
-		receivedEvent = eventName == ev
+		if eventName == ev {
+			atomic.AddInt32(&receivedEvent, 1)
+		}
 		receivedText := data.ValueAsString()
 		assert.Equal(t, eventValue, receivedText)
 	})
@@ -174,7 +185,7 @@ func TestReceiveEvent(t *testing.T) {
 	time.Sleep(time.Second)
 
 	// step 4 check result
-	assert.True(t, receivedEvent)
+	assert.Equal(t, int32(1), atomic.LoadInt32(&receivedEvent))
 
 	// step 5 cleanup
 	cThing.Stop()
@@ -184,7 +195,8 @@ func TestReceiveEvent(t *testing.T) {
 func TestInvokeAction(t *testing.T) {
 	logrus.Infof("--- TestInvokeAction ---")
 	const actionValue = "1 2 3 action!"
-	var receivedAction = false
+	var receivedAction int = 0
+	var rxMutex = sync.Mutex{}
 
 	// step 1 create the MQTT message bus client
 	client := mqttclient.NewMqttClient(testPluginID, certs.CaCert, 0)
@@ -195,10 +207,13 @@ func TestInvokeAction(t *testing.T) {
 	cThing := mqttbinding.Consume(testTD, client)
 	actionTopic := strings.ReplaceAll(mqttbinding.TopicInvokeAction, "{thingID}", testThingID) + "/#"
 	client.Subscribe(actionTopic, func(address string, message []byte) {
-		receivedAction = true
-		var rxData string
-		err = json.Unmarshal(message, &rxData)
-		assert.Equal(t, actionValue, rxData)
+		rxMutex.Lock()
+		defer rxMutex.Unlock()
+		receivedAction++
+		var rxData2 string
+		err := json.Unmarshal(message, &rxData2)
+		assert.NoError(t, err)
+		assert.Equal(t, actionValue, rxData2)
 	})
 
 	// step 3 publish the action
@@ -207,7 +222,9 @@ func TestInvokeAction(t *testing.T) {
 	time.Sleep(time.Second)
 
 	// step 4 check result
-	assert.True(t, receivedAction)
+	rxMutex.Lock()
+	assert.Equal(t, 1, receivedAction)
+	defer rxMutex.Unlock()
 
 	// step 5 cleanup
 	cThing.Stop()

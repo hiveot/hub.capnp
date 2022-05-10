@@ -10,6 +10,7 @@ import (
 	"github.com/rs/cors"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -123,6 +124,7 @@ func (srv *TLSServer) EnableJwtAuth(verificationKey *ecdsa.PublicKey) {
 //  - headers "Origin", "Accept", "Content-Type", "X-Requested-With"
 func (srv *TLSServer) Start() error {
 	var err error
+	var mutex = sync.Mutex{}
 
 	logrus.Infof("TLSServer.Start Starting TLS server on address: %s:%d.", srv.address, srv.port)
 	if srv.caCert == nil || srv.serverCert == nil {
@@ -182,12 +184,16 @@ func (srv *TLSServer) Start() error {
 		// serverTLSConf contains certificate and key
 		err2 := srv.httpServer.ListenAndServeTLS("", "")
 		if err2 != nil && err2 != http.ErrServerClosed {
+			mutex.Lock()
 			err = fmt.Errorf("TLSServer.Start: ListenAndServeTLS: %s", err2)
 			logrus.Error(err)
+			mutex.Unlock()
 		}
 	}()
 	// Make sure the server is listening before continuing
 	time.Sleep(time.Second)
+	mutex.Lock()
+	defer mutex.Unlock()
 	return err
 }
 

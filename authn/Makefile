@@ -21,7 +21,7 @@ dist: clean   ## Build binary distribution tarball
 		tar -czf $(PKG_NAME) -C $(DIST_FOLDER) .
 
 test: all .PHONY ## Run tests sequentially
-	go test -failfast -p 1 -v ./...
+	go test -race -failfast -p 1 -v ./...
 
 clean: ## Clean distribution files
 	go mod tidy

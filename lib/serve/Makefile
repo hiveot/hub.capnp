@@ -4,7 +4,7 @@ FORCE: help
 all: FORCE ## This is a library, nothing to build
 
 test: FORCE ## Run tests 
-	go test -failfast -v ./pkg/...
+	go test -failfast -race -v ./pkg/...
 
 clean: ## Clean distribution files
 	go mod tidy

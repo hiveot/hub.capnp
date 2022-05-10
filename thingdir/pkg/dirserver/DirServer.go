@@ -144,12 +144,18 @@ func (srv *DirectoryServer) UpdateTD(thingID string, tdMap map[string]interface{
 }
 
 // UpdateEventValue updates a Thing's event value in the value store with the current timestamp.
+// The value store serves both event and property values
 func (srv *DirectoryServer) UpdateEventValue(thingID string, eventName string, eventValue interface{}) {
 	propValue := dirclient.PropValue{
 		Updated: time.Now().Format(vocab.TimeFormat),
 		Value:   eventValue,
 	}
-	srv.valueStore[thingID][eventName] = propValue
+	thingProps, found := srv.valueStore[thingID]
+	if !found {
+		thingProps = make(map[string]dirclient.PropValue)
+		srv.valueStore[thingID] = thingProps
+	}
+	thingProps[eventName] = propValue
 }
 
 // UpdatePropertyValues updates a Thing's property values in the value store with the current timestamp.
