@@ -23,7 +23,7 @@ func TestExpose(t *testing.T) {
 	assert.NoError(t, err)
 
 	// step 2 create a ExposedThing (why does ConsumedThing uses Consume and ExposedThing CreateExposedThing?)
-	eThing := mqttbinding.CreateExposedThing(testTD, client)
+	eThing := mqttbinding.CreateExposedThing(testDeviceID, testTD, client)
 	err = eThing.Expose()
 	assert.NoError(t, err)
 	assert.NotNil(t, eThing)
@@ -56,9 +56,9 @@ func TestEmitPropertyChange(t *testing.T) {
 			rxEventValue = io.ValueAsString()
 			rxMutex.Unlock()
 		})
-	eThing := mqttbinding.CreateExposedThing(testTD, client)
+	eThing := mqttbinding.CreateExposedThing(testDeviceID, testTD, client)
 	eThing.SetPropertyWriteHandler("",
-		func(propName string, io mqttbinding.InteractionOutput) error {
+		func(eThing *mqttbinding.MqttExposedThing, propName string, io mqttbinding.InteractionOutput) error {
 			// accept the new value and publish the result
 			eThing.EmitPropertyChange(propName, io.Value)
 
@@ -110,7 +110,7 @@ func TestEmitUnknownPropertyChange(t *testing.T) {
 	assert.NoError(t, err)
 
 	// step 2 create an ExposedThing
-	eThing := mqttbinding.CreateExposedThing(testTD, client)
+	eThing := mqttbinding.CreateExposedThing(testDeviceID, testTD, client)
 
 	err = eThing.EmitPropertyChange(testProp1Name, "value")
 	assert.NoError(t, err)
@@ -126,7 +126,7 @@ func TestEmitPropertyChangeNotConnected(t *testing.T) {
 	//assert.NoError(t, err)
 
 	// step 2 create an ExposedThing
-	eThing := mqttbinding.CreateExposedThing(testTD, client)
+	eThing := mqttbinding.CreateExposedThing(testDeviceID, testTD, client)
 	assert.NotNil(t, eThing)
 
 	// step 3 emitting property change should fail
@@ -158,16 +158,16 @@ func TestHandleActionRequest(t *testing.T) {
 	// step 2 create a ConsumedThing and ExposedThing with handlers
 	testTD.UpdateAction("action2", &thing.ActionAffordance{})
 	cThing := mqttbinding.Consume(testTD, client)
-	eThing := mqttbinding.CreateExposedThing(testTD, client)
+	eThing := mqttbinding.CreateExposedThing(testDeviceID, testTD, client)
 	eThing.SetActionHandler("",
-		func(name string, val mqttbinding.InteractionOutput) error {
+		func(eThing *mqttbinding.MqttExposedThing, name string, val mqttbinding.InteractionOutput) error {
 			rxMutex.Lock()
 			defer rxMutex.Unlock()
 			receivedActionDefaultHandler = true
 			return nil
 		})
 	eThing.SetActionHandler(testActionName,
-		func(name string, val mqttbinding.InteractionOutput) error {
+		func(eThing *mqttbinding.MqttExposedThing, name string, val mqttbinding.InteractionOutput) error {
 			receivedActionHandler = testActionName == name
 			rxMutex.Lock()
 			defer rxMutex.Unlock()
@@ -212,9 +212,9 @@ func TestHandleActionRequestInvalidParams(t *testing.T) {
 	assert.NoError(t, err)
 
 	// step 2 create a ConsumedThing and ExposedThing with default handler
-	eThing := mqttbinding.CreateExposedThing(testTD, client)
+	eThing := mqttbinding.CreateExposedThing(testDeviceID, testTD, client)
 	eThing.SetActionHandler("",
-		func(name string, val mqttbinding.InteractionOutput) error {
+		func(eThing *mqttbinding.MqttExposedThing, name string, val mqttbinding.InteractionOutput) error {
 			receivedAction = true
 			return nil
 		})
@@ -252,7 +252,7 @@ func TestHandleActionRequestNoHandler(t *testing.T) {
 
 	// step 2 create a ConsumedThing and ExposedThing with default handler
 	cThing := mqttbinding.Consume(testTD, client)
-	eThing := mqttbinding.CreateExposedThing(testTD, client)
+	eThing := mqttbinding.CreateExposedThing(testDeviceID, testTD, client)
 	// no action handler
 	err = eThing.Expose()
 	assert.NoError(t, err)
@@ -280,7 +280,7 @@ func TestEmitEventNotConnected(t *testing.T) {
 	//assert.NoError(t, err)
 
 	// step 2 create an ExposedThing
-	eThing := mqttbinding.CreateExposedThing(testTD, client)
+	eThing := mqttbinding.CreateExposedThing(testDeviceID, testTD, client)
 	err := eThing.Expose()
 	assert.Error(t, err, "Expect no connection error")
 
@@ -302,7 +302,7 @@ func TestEmitEventNotFound(t *testing.T) {
 	assert.NoError(t, err)
 
 	// step 2 create an ExposedThing
-	eThing := mqttbinding.CreateExposedThing(testTD, client)
+	eThing := mqttbinding.CreateExposedThing(testDeviceID, testTD, client)
 	err = eThing.Expose()
 	assert.NoError(t, err)
 

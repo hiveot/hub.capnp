@@ -71,13 +71,16 @@ type MqttExposedThing struct {
 	// ExposedThing extends a ConsumedThing
 	MqttConsumedThing
 
+	// deviceID for reverse looking of device by their internal ID
+	DeviceID string
+
 	// handler for action requests
 	// to set the default handler use name ""
-	actionHandlers map[string]func(name string, value InteractionOutput) error
+	actionHandlers map[string]func(eThing *MqttExposedThing, actionName string, value InteractionOutput) error
 
 	// handler for writing property requests
 	// to set the default handler use name ""
-	propertyWriteHandlers map[string]func(name string, value InteractionOutput) error
+	propertyWriteHandlers map[string]func(eThing *MqttExposedThing, propName string, value InteractionOutput) error
 }
 
 // Destroy the exposed thing. This stops serving external requests
@@ -149,7 +152,7 @@ func (eThing *MqttExposedThing) EmitPropertyChange(propName string, newRawValue 
 // Returns an error if submitting an event fails
 func (eThing *MqttExposedThing) EmitPropertyChanges(
 	propMap map[string]interface{}, onlyChanges bool) error {
-
+	//logrus.Infof("EmitPropertyChanges: %s", propMap)
 	var err error
 	changedProps := make(map[string]interface{})
 
@@ -189,9 +192,10 @@ func (eThing *MqttExposedThing) EmitPropertyChanges(
 			logrus.Warningf("MqqExposedThing.EmitPropertyChanges: Failed %s", err)
 			return err
 		}
+		cpAsText, _ := json.Marshal(changedProps)
+		logrus.Infof("MqqExposedThing.EmitPropertyChanges: submitted %d properties for thing %s: %s",
+			len(changedProps), eThing.td.ID, cpAsText)
 	}
-
-	logrus.Infof("MqqExposedThing.EmitPropertyChanges: submitted %d properties for thing %s", len(changedProps), eThing.td.ID)
 	return err
 }
 
@@ -219,6 +223,8 @@ func (eThing *MqttExposedThing) handleActionRequest(address string, message []by
 	var actionData InteractionOutput
 	var err error
 
+	logrus.Infof("MqttExposedThing.handleActionRequest: address '%s', message: '%s'", address, message)
+
 	// the topic is "things/id/action|property/name"
 	thingID, messageType, subject := SplitTopic(address)
 	if thingID == "" || messageType == "" {
@@ -238,12 +244,12 @@ func (eThing *MqttExposedThing) handleActionRequest(address string, message []by
 		// action specific handlers takes precedence
 		handler, _ := eThing.actionHandlers[subject]
 		if handler != nil {
-			err = handler(subject, actionData)
+			err = handler(eThing, subject, actionData)
 		} else {
 			// default handler is a fallback
 			defaultHandler, _ := eThing.actionHandlers[""]
 			if defaultHandler != nil {
-				err = defaultHandler(subject, actionData)
+				err = defaultHandler(eThing, subject, actionData)
 			} else {
 				err = errors.New("no handler for action request")
 			}
@@ -299,7 +305,7 @@ func (eThing *MqttExposedThing) handlePropertyWriteRequest(address string, messa
 			// property specific handler takes precedence
 			handler, _ := eThing.propertyWriteHandlers[propName]
 			if handler != nil {
-				err = handler(propName, propValue)
+				err = handler(eThing, propName, propValue)
 			} else {
 				// default handler is a fallback
 				defaultHandler, _ := eThing.propertyWriteHandlers[""]
@@ -307,7 +313,7 @@ func (eThing *MqttExposedThing) handlePropertyWriteRequest(address string, messa
 					err = errors.New("no handler for property write request")
 					logrus.Warningf("MqttExposedThing.handlePropertyWriteRequest: Request failed for topic %s: %s", address, err)
 				} else {
-					err = defaultHandler(propName, propValue)
+					err = defaultHandler(eThing, propName, propValue)
 				}
 			}
 		}
@@ -332,7 +338,7 @@ func (eThing *MqttExposedThing) handlePropertyWriteRequest(address string, messa
 // The handler should return nil if the write is accepted or an error if not accepted. The property value
 // in the TD will be updated after the property has changed through the change notification handler.
 func (eThing *MqttExposedThing) SetActionHandler(
-	actionName string, actionHandler func(actionName string, value InteractionOutput) error) {
+	actionName string, actionHandler func(eThing *MqttExposedThing, actionName string, value InteractionOutput) error) {
 
 	eThing.actionHandlers[actionName] = actionHandler
 }
@@ -360,8 +366,8 @@ func (eThing *MqttExposedThing) SetActionHandler(
 //}
 
 // SetPropertyWriteHandler sets the handler for writing a property of the IoT device.
-// This is intended to update device configuration. If the property is read-only the handler
-//  must return an error. Only a single handler is active. If a handler is set when a previous handler was already
+// This is intended to update device configuration. If the property is read-only the handler must return an error.
+// Only a single handler is active. If a handler is set when a previous handler was already
 //  set then the latest handler will be used.
 //
 // The device code should implement this handler to updated configuration of the device.
@@ -371,7 +377,8 @@ func (eThing *MqttExposedThing) SetActionHandler(
 // The handler should return nil if the request is accepted or an error if not accepted. The property value
 // in the TD will be updated after the property has changed through the change notification handler.
 func (eThing *MqttExposedThing) SetPropertyWriteHandler(
-	propName string, writeHandler func(propName string, value InteractionOutput) error) {
+	propName string,
+	writeHandler func(eThing *MqttExposedThing, propName string, value InteractionOutput) error) {
 
 	eThing.propertyWriteHandlers[propName] = writeHandler
 }
@@ -382,8 +389,9 @@ func (eThing *MqttExposedThing) SetPropertyWriteHandler(
 //
 // tdDoc is a Thing Description document of the Thing to expose.
 // mqttClient client for binding to the MQTT protocol
-func CreateExposedThing(tdDoc *thing.ThingTD, mqttClient *mqttclient.MqttClient) *MqttExposedThing {
+func CreateExposedThing(deviceID string, tdDoc *thing.ThingTD, mqttClient *mqttclient.MqttClient) *MqttExposedThing {
 	eThing := &MqttExposedThing{
+		DeviceID: deviceID,
 		// the consumed thing does not subscribe to property events, just initialize the fields
 		// TBD should an exposed thing support property change subscription?
 		MqttConsumedThing: MqttConsumedThing{
@@ -394,8 +402,8 @@ func CreateExposedThing(tdDoc *thing.ThingTD, mqttClient *mqttclient.MqttClient)
 			valueStore:         make(map[string]InteractionOutput),
 			storeMutex:         sync.RWMutex{},
 		},
-		actionHandlers:        make(map[string]func(actionName string, value InteractionOutput) error),
-		propertyWriteHandlers: make(map[string]func(actionName string, value InteractionOutput) error),
+		actionHandlers:        make(map[string]func(eThing *MqttExposedThing, actionName string, value InteractionOutput) error),
+		propertyWriteHandlers: make(map[string]func(eThing *MqttExposedThing, actionName string, value InteractionOutput) error),
 	}
 	return eThing
 }
