@@ -4,7 +4,9 @@ The WoST Hub is the reference implementation of the Hub for the *Web of Secure T
 
 ## Project Status
 
-Status: The status of this plugin is Alpha. It is functional but breaking changes can be expected.
+Status: The status of the Hub is Alpha. It is functional but breaking changes can be expected. 
+
+The WoST Hub is based on the WoT TD 1.1 specification. See [docs/README-TD] for more information.
 
 
 ## Audience
@@ -13,9 +15,9 @@ This project is aimed at software developers and system implementors that share 
 
 ## Objective
 
-The primary objective of WoST is to support the internet of things in a highly secure manner. The WoST Hub supports this objective by not allowing servers to run on the device and by isolating IoT devices from the wider network via a secure Hub. 
+The primary objective of WoST is to support the internet of things in a highly secure manner. The WoST Hub supports this objective by not allowing servers to run on IoT devices and by isolating IoT devices from the wider network via a secure Hub. 
 
-The WoST mandate is that 'Things Do Not Run Servers'.
+> The WoST mandate is: 'Things Do Not Run Servers'.
 
 The secondary objective is to simplify development of IoT devices for the web of things. WoST supports this by requiring only minimal features to operate on an IoT device. No server is used and the WoST Hub handles authentication and authorization on behalf of the device. This simplifies the IoT device development and allows allocating most of the resources to the actual device operation.
 
@@ -25,11 +27,13 @@ The third objective is to follow the WoT and other open standard where possible.
 ## Summary
 This document describes a technical overview of the WoST Hub. A [user manual](user-manual.md) is under development.
 
-Security is big concern with today's IoT devices. The Internet of Things contains billions of devices that when not properly secured can be hacked. Unfortunately the reality is that the security of many of these devices leaves a lot to be desired. Many devices are vulnerable to attacks and are never upgraded with security patches. This problem is only going to get worse as more IoT devices are coming to market. Imagine a botnet of a billion devices on the Internet ready for use by in-scrupulous actors. 
+Security is big concern with today's IoT devices. The Internet of Things contains billions of devices that when not properly secured can be hacked. Unfortunately the reality is that the security of many of these devices leaves a lot to be desired. Many devices are vulnerable to attacks and are never upgraded with security patches. This problem is only going to get worse as more IoT devices are coming to market. Imagine a botnet of a billion devices on the Internet ready for use by unscrupulous actors. 
 
 This 'WoST Hub' repository provides core services to securely interact with IoT devices and consumers. This includes certificate management, authentication, authorization, provisioning, message bus service and directory service.
 
-WoST compatible IoT devices therefore do not need to implement these features. This improves security as IoT devices do not run servers and are not directly accessible. They can remain isolated from the wider network and only require an outgoing connection to the Hub. This in turn reduces required device resources such as memory and CPU (and cost). An additional benefit is that consumers receive a consistent user experience independent of the IoT device provider as all interaction takes place via the Hub interface. 
+WoST compatible IoT devices (Things) therefore do not need to implement these features. This improves security as IoT devices do not run servers and are not directly accessible. They can remain isolated from the wider network and only require an outgoing connection to the Hub message bus. This in turn reduces required device resources such as memory and CPU (and cost). An additional benefit is that consumers receive a consistent user experience independent of the IoT device provider as all interaction takes place via the Hub interface. 
+
+Not that since WoST Things interact via the Hub message bus, they are still vulnerable to insecurities as a result of bugs in handling those messages. The Hub message bus can somewhat mitigate this by validating the messages against their schema. (this is not currently implemented)   
 
 WoST is based on the 'WoT' (Web of Things) open standard developed by the W3C organization. It aims to be compatible with this standard.
 
@@ -40,7 +44,7 @@ All Hub functionality is provided through plugins and can be extended with addit
 
 Plugins can be written in any programming language but must follow some simple guidelines. The [writing-plugins.md] document describes how to write new plugins. Existing services/plugins can also serve as an example.  
 
-Plugin development is simplified when using the Hub's library for working with Thing Description (TD) documents and messaging.
+Plugin development is simplified when using the WoST library for working with Thing Description (TD) documents, exposed things, consumed things, and message bus protocol bindings. See the wost-go, wost-js, wost-py repositories for more details. (in development)
 
 ## Core Services
 

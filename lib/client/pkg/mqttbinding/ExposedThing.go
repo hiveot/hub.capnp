@@ -204,10 +204,7 @@ func (eThing *MqttExposedThing) EmitPropertyChanges(
 func (eThing *MqttExposedThing) Expose() error {
 	// Actions and Properties are handled the same.
 	// An action with a property name will update the property.
-	topic := strings.ReplaceAll(TopicWriteProperties, "{thingID}", eThing.td.ID)
-	eThing.mqttClient.Subscribe(topic, eThing.handlePropertyWriteRequest)
-
-	topic = strings.ReplaceAll(TopicInvokeAction, "{thingID}", eThing.td.ID) + "/#"
+	topic := strings.ReplaceAll(TopicInvokeAction, "{thingID}", eThing.td.ID) + "/#"
 	eThing.mqttClient.Subscribe(topic, eThing.handleActionRequest)
 
 	// Also publish this Thing's TD document
@@ -235,9 +232,8 @@ func (eThing *MqttExposedThing) handleActionRequest(address string, message []by
 	// determine the action/property schema
 	logrus.Infof("MqttExposedThing.handleActionRequest: Received action request with topic %s", address)
 	actionAffordance := eThing.td.GetAction(subject)
-	if actionAffordance == nil {
-		err = errors.New("not a registered action")
-	} else {
+	if actionAffordance != nil {
+		// this is a registered action
 		actionData = NewInteractionOutputFromJson(message, &actionAffordance.Input)
 		// TODO validate the data against the schema
 
@@ -253,6 +249,15 @@ func (eThing *MqttExposedThing) handleActionRequest(address string, message []by
 			} else {
 				err = errors.New("no handler for action request")
 			}
+		}
+	} else {
+		// properties are written using actions
+		propAffordance := eThing.td.GetProperty(subject)
+		if propAffordance == nil {
+			// this is a registered property
+			err = errors.New("not a registered action or property")
+		} else {
+			eThing.handlePropertyWriteRequest(subject, propAffordance, message)
 		}
 	}
 	if err != nil {
@@ -274,50 +279,40 @@ func (eThing *MqttExposedThing) handleActionRequest(address string, message []by
 // TBD: if there is a need to be notified of failure then a future update can add a write-property failed event.
 //
 // If no specific handler is set for the property then the default handler with name "" is invoked.
-func (eThing *MqttExposedThing) handlePropertyWriteRequest(address string, message []byte) {
+func (eThing *MqttExposedThing) handlePropertyWriteRequest(propName string, propAffordance *thing.PropertyAffordance, message []byte) {
 	var err error
-	logrus.Infof("MqttExposedThing.handlePropertyWriteRequest: topic: %s", address)
-	// the topic is "things/id/write/properties"
-	thingID, messageType, subject := SplitTopic(address)
-	if thingID == "" || messageType != TopicTypeWrite || subject != TopicSubjectProperties {
-		logrus.Warningf("MqttExposedThing.handlePropertyWriteRequest: missing property name in topic %s", address)
-		return
-	}
+	logrus.Infof("MqttExposedThing.handlePropertyWriteRequest for '%s'. property '%s'", eThing.td.ID, propName)
+	var propValue interface{}
 
-	// payload must be a map of property name-value pairs
-	propMap := make(map[string]interface{})
-	err = json.Unmarshal(message, &propMap)
+	err = json.Unmarshal(message, &propValue)
 	if err != nil {
-		logrus.Warningf("MqttExposedThing.handlePropertyWriteRequest: missing property map in request %s: %s", address, err)
+		logrus.Warningf("MqttExposedThing.handlePropertyWriteRequest: missing property value for %s: %s", propName, err)
 		// TBD: reply with a failed event
 		return
 	}
-	for propName, val := range propMap {
-		propAffordance := eThing.td.GetProperty(propName)
-		if propAffordance == nil {
-			err = errors.New("property '%s' is not a valid name")
-			logrus.Warningf("MqttExposedThing.handlePropertyWriteRequest: %s. Request ignored.", err)
-		} else if propAffordance.ReadOnly {
-			err = errors.New("property '" + propName + "' is readonly")
-			logrus.Warningf("MqttExposedThing.handlePropertyWriteRequest: %s", err)
+
+	if propAffordance == nil {
+		err = errors.New("property '%s' is not a valid name")
+		logrus.Warningf("MqttExposedThing.handlePropertyWriteRequest: %s. Request ignored.", err)
+	} else if propAffordance.ReadOnly {
+		err = errors.New("property '" + propName + "' is readonly")
+		logrus.Warningf("MqttExposedThing.handlePropertyWriteRequest: %s", err)
+	} else {
+		propValue := NewInteractionOutput(propValue, &propAffordance.DataSchema)
+		// property specific handler takes precedence
+		handler, _ := eThing.propertyWriteHandlers[propName]
+		if handler != nil {
+			err = handler(eThing, propName, propValue)
 		} else {
-			propValue := NewInteractionOutput(val, &propAffordance.DataSchema)
-			// property specific handler takes precedence
-			handler, _ := eThing.propertyWriteHandlers[propName]
-			if handler != nil {
-				err = handler(eThing, propName, propValue)
+			// default handler is a fallback
+			defaultHandler, _ := eThing.propertyWriteHandlers[""]
+			if defaultHandler == nil {
+				err = errors.New("no handler for property write request")
+				logrus.Warningf("MqttExposedThing.handlePropertyWriteRequest: No handler for property '%s' on thing '%s'", propName, eThing.td.ID)
 			} else {
-				// default handler is a fallback
-				defaultHandler, _ := eThing.propertyWriteHandlers[""]
-				if defaultHandler == nil {
-					err = errors.New("no handler for property write request")
-					logrus.Warningf("MqttExposedThing.handlePropertyWriteRequest: Request failed for topic %s: %s", address, err)
-				} else {
-					err = defaultHandler(eThing, propName, propValue)
-				}
+				err = defaultHandler(eThing, propName, propValue)
 			}
 		}
-
 	}
 
 }

@@ -99,7 +99,7 @@ func (wlog *LoggerService) PublishServiceTD() {
 			Title: "Directory where to store the log files",
 		},
 	})
-	eThing := mqttbinding.CreateExposedThing(thingTD, wlog.mqttClient)
+	eThing := mqttbinding.CreateExposedThing(wlog.Config.ClientID, thingTD, wlog.mqttClient)
 	eThing.Expose()
 }
 

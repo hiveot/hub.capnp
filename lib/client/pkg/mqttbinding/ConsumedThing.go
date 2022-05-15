@@ -235,17 +235,16 @@ func (cThing *MqttConsumedThing) SubscribeEvent(
 //
 // TBD: if there is a need to be notified of failure then a future update can add a write-property failed event.
 //
-// This will be published on topic "things/{thingID}/write/properties"
+// This will be published on topic "things/{thingID}/action/{name}"
 //
 // It returns an error if the property update could not be sent and nil if it is successfully
 //  published. Final confirmation is obtained if an event is received with the updated property value.
 func (cThing *MqttConsumedThing) WriteProperty(propName string, value interface{}) error {
 
-	topic := strings.ReplaceAll(TopicWriteProperties, "{thingID}", cThing.td.ID)
-	payload := map[string]interface{}{propName: value}
-	err := cThing.mqttClient.PublishObject(topic, payload)
+	topic := strings.ReplaceAll(TopicInvokeAction, "{thingID}", cThing.td.ID) + "/" + propName
+	err := cThing.mqttClient.PublishObject(topic, value)
 	if err != nil {
-		logrus.Errorf("MqttConsumedThing:WriteProperty: Failed publishing update request on topic %s: %s", topic, err)
+		logrus.Errorf("MqttConsumedThing:WriteProperty: Failed publishing property write request on topic %s: %s", topic, err)
 	}
 	return err
 }
@@ -253,20 +252,20 @@ func (cThing *MqttConsumedThing) WriteProperty(propName string, value interface{
 // WriteMultipleProperties writes multiple property values.
 // Takes as arguments properties - as a map keys being Property names and values as Property values.
 //
-// This will be posted as individual update requests:
+// This will be posted as individual update requests
 //
 // It returns an error if the action could not be sent and nil if the action is successfully
 //  published. Final success is achieved if the property value will be updated through an event.
 func (cThing *MqttConsumedThing) WriteMultipleProperties(properties map[string]interface{}) error {
 	var err error
-	topic := strings.ReplaceAll(TopicWriteProperties, "{thingID}", cThing.td.ID)
-	payload := properties
 
-	err = cThing.mqttClient.PublishObject(topic, payload)
-	if err != nil {
-		logrus.Errorf("MqttConsumedThing:WriteMultipleProperties: Failed publishing update request on topic %s: %s", topic, err)
+	for propName, value := range properties {
+		err = cThing.WriteProperty(propName, value)
+		if err != nil {
+			return err
+		}
 	}
-	return err
+	return nil
 }
 
 // Consume constructs a consumed thing instance from a TD.

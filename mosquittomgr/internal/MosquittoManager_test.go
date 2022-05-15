@@ -93,7 +93,7 @@ func TestPluginConnect(t *testing.T) {
 	if assert.NoError(t, err) {
 
 		tdoc := thing.CreateTD(thing1ID, "test thing", vocab.DeviceTypeService)
-		eThing := mqttbinding.CreateExposedThing(tdoc, client)
+		eThing := mqttbinding.CreateExposedThing(thing1ID, tdoc, client)
 		// publish should succeed
 		err = eThing.Expose()
 		assert.NoError(t, err)

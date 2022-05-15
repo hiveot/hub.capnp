@@ -168,7 +168,7 @@ func TestUpdatePropValues(t *testing.T) {
 	td1.UpdateEvent(event1Name, &thing.EventAffordance{
 		Data: thing.DataSchema{Type: vocab.WoTDataTypeString},
 	})
-	eThing := mqttbinding.CreateExposedThing(td1, mqttClient)
+	eThing := mqttbinding.CreateExposedThing(thing1ID, td1, mqttClient)
 	err = eThing.Expose()
 	assert.NoError(t, err)
 

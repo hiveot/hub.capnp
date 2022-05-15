@@ -29,12 +29,6 @@ const (
 	TopicReadProperties = "things/{thingID}/" + TopicTypeRead + "/" + TopicSubjectProperties
 )
 
-// TopicWriteProperties topic to submit request to change the provided property values
-const (
-	TopicTypeWrite       = "write"
-	TopicWriteProperties = "things/{thingID}/" + TopicTypeWrite + "/" + TopicSubjectProperties
-)
-
 // TopicProvisionRequest topic requesting to provision of a thing device
 // const TopicProvisionRequest = "provisioning" + "/{thingID}/request"
 

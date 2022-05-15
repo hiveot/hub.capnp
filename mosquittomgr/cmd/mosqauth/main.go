@@ -227,8 +227,10 @@ func AuthAclCheck(clientID string, userID string, certSubjName string, topic str
 			authType = authorize.AuthEmitAction
 		case mqttbinding.TopicTypeEvent:
 			authType = authorize.AuthPubEvent // including property value
-		case mqttbinding.TopicTypeWrite:
-			authType = authorize.AuthWriteProperty
+		// how to determine if an action is a write property?
+		// invoking an action currently allows for writing configuration properties
+		//case mqttbinding.TopicTypeWrite:
+		//	authType = authorize.AuthWriteProperty
 		default:
 			logrus.Warningf("mosqauth. Unknown message type in topic: %s from client %s / user %s", topic, clientID, userID)
 			authType = messageType

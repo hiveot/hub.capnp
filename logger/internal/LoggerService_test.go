@@ -102,7 +102,7 @@ func TestLogTD(t *testing.T) {
 	// create a thing to publish with
 	tdoc := thing.CreateTD(thingID1, "test thing", vocab.DeviceTypeSensor)
 	tdoc.UpdateEvent(eventName1, &thing.EventAffordance{})
-	eThing := mqttbinding.CreateExposedThing(tdoc, client)
+	eThing := mqttbinding.CreateExposedThing(deviceID, tdoc, client)
 	err = eThing.Expose()
 	assert.NoError(t, err)
 
