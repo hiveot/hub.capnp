@@ -1,6 +1,7 @@
 package aclstore_test
 
 import (
+	"github.com/wostzone/wost-go/pkg/logging"
 	"os"
 	"path"
 	"testing"
@@ -9,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/wostzone/hub/authz/pkg/aclstore"
 	"github.com/wostzone/hub/authz/pkg/authorize"
-	"github.com/wostzone/hub/lib/client/pkg/config"
 )
 
 // NOTE: this name must match the auth_opt_* filenames in mosquitto.conf.template
@@ -20,7 +20,7 @@ var configFolder string
 
 // TestMain for all authn tests, setup of default folders and filenames
 func TestMain(m *testing.M) {
-	_ = config.SetLogging("info", "")
+	logging.SetLogging("info", "")
 	cwd, _ := os.Getwd()
 	homeFolder := path.Join(cwd, "../../test")
 	configFolder = path.Join(homeFolder, "config")

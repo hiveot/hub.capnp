@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
+	"github.com/wostzone/wost-go/pkg/logging"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -17,8 +18,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/wostzone/hub/idprov/pkg/idprovclient"
-	"github.com/wostzone/hub/lib/client/pkg/certsclient"
-	"github.com/wostzone/hub/lib/client/pkg/testenv"
+	"github.com/wostzone/wost-go/pkg/certsclient"
+	"github.com/wostzone/wost-go/pkg/testenv"
 )
 
 // no hostname in certs
@@ -93,6 +94,7 @@ func removeDeviceCerts() {
 // TestMain creates the environment for running the client tests
 func TestMain(m *testing.M) {
 	logrus.Infof("------ TestMain of idprov client ------")
+	logging.SetLogging("info", "")
 	// hostnames := []string{idProvServerAddr}
 	cwd, _ := os.Getwd()
 	homeFolder := path.Join(cwd, "../../test")

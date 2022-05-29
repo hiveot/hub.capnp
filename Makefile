@@ -1,5 +1,4 @@
-# Makefile to build and test the WoST Hub
-# To build including generating certificates: make all
+# Makefile to build and test the WoST Hub core services
 DIST_FOLDER=./dist
 PKG_NAME=wosthub.tgz
 INSTALL_HOME=~/bin/wosthub
@@ -7,7 +6,7 @@ INSTALL_HOME=~/bin/wosthub
 
 .FORCE: 
 
-all: launcher certs authn authz idprov logger mosquittomgr thingdir  ## Build the launcher and core plugins
+all: authn authz certs idprov launcher logger mosquittomgr thingdir  ## Build the launcher and core plugins
 
 install:  all ## Install the launcher into ~/bin/wost/bin and config
 	mkdir -p $(INSTALL_HOME)/bin
@@ -47,4 +46,3 @@ help: ## Show this help
 
 
 addons: logger owserver-pb   ## Build addon plugins
-

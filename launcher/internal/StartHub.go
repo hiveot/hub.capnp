@@ -3,12 +3,13 @@ package internal
 import (
 	"flag"
 	"fmt"
+	"github.com/wostzone/wost-go/pkg/config"
+	"github.com/wostzone/wost-go/pkg/logging"
 	"os"
 	"path"
 
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/certs/pkg/certsetup"
-	"github.com/wostzone/hub/lib/client/pkg/config"
 )
 
 // This is the Hub launcher
@@ -21,10 +22,13 @@ type PluginConfig struct {
 
 // StartHub reads the launcher configuration and launches the plugins. If the configuration is invalid
 // then start is aborted. The plugins receive the same commandline arguments as the launcher.
+//
 // Before starting the Hub, the certificates must have been generated as part of setup.
 // Use 'gencerts' to generate them in the {homeFolder}/certsclient folder.
+//
 //  homeFolder is the parent folder of the application binary and contains the config subfolder
 //  startPlugins set to false to only start the launcher with message bus server if configured
+//
 // Return nil or error if the launcher configuration file or certificate are not found
 func StartHub(homeFolder string, startPlugins bool) error {
 
@@ -39,8 +43,10 @@ func StartHub(homeFolder string, startPlugins bool) error {
 	if err != nil {
 		return err
 	}
-	pluginFolder := path.Join(hc.AppFolder, "bin")
-	fmt.Printf("Home=%s\nPluginFolder=%s\n", hc.AppFolder, pluginFolder)
+
+	logging.SetLogging(hc.Loglevel, hc.LogFile)
+	pluginFolder := path.Join(hc.HomeFolder, "bin")
+	fmt.Printf("Home=%s\nPluginFolder=%s\n", hc.HomeFolder, pluginFolder)
 
 	// Create a CA if needed and update launcher and plugin certsclient
 	sanNames := []string{hc.Address, "localhost", "127.0.0.1"}

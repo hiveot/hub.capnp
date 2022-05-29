@@ -2,11 +2,11 @@
 package main
 
 import (
+	"github.com/wostzone/wost-go/pkg/config"
+	"github.com/wostzone/wost-go/pkg/proc"
 	"os"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/lib/client/pkg/config"
-	"github.com/wostzone/hub/lib/client/pkg/proc"
 	"github.com/wostzone/hub/mosquittomgr/internal"
 )
 

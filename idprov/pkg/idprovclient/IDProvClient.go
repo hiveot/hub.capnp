@@ -6,13 +6,12 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"github.com/wostzone/wost-go/pkg/certsclient"
+	"github.com/wostzone/wost-go/pkg/hubnet"
+	"github.com/wostzone/wost-go/pkg/tlsclient"
 	"io/ioutil"
 	"os"
 	"strings"
-
-	"github.com/wostzone/hub/lib/client/pkg/certsclient"
-	"github.com/wostzone/hub/lib/client/pkg/config"
-	"github.com/wostzone/hub/lib/client/pkg/tlsclient"
 
 	"github.com/sirupsen/logrus"
 )
@@ -130,7 +129,7 @@ func (cl *IDProvClient) PostProvisioningRequest(deviceID string, secret string) 
 	}
 	provReqMessage := PostProvisionRequestMessage{
 		DeviceID: deviceID,
-		IP:       config.GetOutboundIP("").String(),
+		IP:       hubnet.GetOutboundIP("").String(),
 		// MAC:          myMAC,
 		PublicKeyPEM: cl.publicKeyPEM,
 		Signature:    "",

@@ -4,15 +4,15 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
-	"github.com/wostzone/hub/certs/pkg/certsetup"
-	"github.com/wostzone/hub/lib/client/pkg/certsclient"
 	"io/ioutil"
 	"net/http"
 	"path"
 	"time"
 
 	"github.com/sirupsen/logrus"
+	"github.com/wostzone/hub/certs/pkg/certsetup"
 	"github.com/wostzone/hub/idprov/pkg/idprovclient"
+	"github.com/wostzone/wost-go/pkg/certsclient"
 )
 
 // ServeProvisionRequest handles request to provide a client certificate

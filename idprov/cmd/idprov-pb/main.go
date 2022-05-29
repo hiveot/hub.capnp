@@ -3,15 +3,16 @@ package main
 import (
 	"crypto/ecdsa"
 	"flag"
-	"github.com/wostzone/hub/lib/client/pkg/certsclient"
+	"github.com/wostzone/wost-go/pkg/certsclient"
+	"github.com/wostzone/wost-go/pkg/logging"
+	"github.com/wostzone/wost-go/pkg/proc"
 	"os"
 	"path"
 
 	"github.com/sirupsen/logrus"
 	idprovpb "github.com/wostzone/hub/idprov/pkg/idprov-pb"
 	"github.com/wostzone/hub/idprov/pkg/idprovclient"
-	"github.com/wostzone/hub/lib/client/pkg/config"
-	"github.com/wostzone/hub/lib/client/pkg/proc"
+	"github.com/wostzone/wost-go/pkg/config"
 )
 
 // main Parse commandline options and launch IDProvisioning protocol binding service
@@ -42,6 +43,7 @@ func main() {
 		logrus.Printf("bye bye")
 		os.Exit(1)
 	}
+	logging.SetLogging(hubConfig.Loglevel, hubConfig.LogFile)
 	// commandline overrides configfile
 	// flag.Parse()
 	serverCertPath := path.Join(hubConfig.CertsFolder, config.DefaultServerCertFile)

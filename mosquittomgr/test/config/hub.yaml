@@ -11,9 +11,12 @@ mqttTimeout: 3
 # Logging
 logLevel: "info" # debug, info, warning, error. Default is warning
 
-#configFolder: "./config" # plugin config, relative to the working directory
-#certsFolder: "./certs" # set to activate TLS. Relative to app home folder
 
-# Plugins to start
-plugins: # list of plugins to start
-  - /bin/ls # for testing
+# app config, logs and certs go into the temp folder (see test_main)
+configFolder: "."
+logFolder: "."
+certsFolder: "."
+
+# don't set these as they are set in the test code
+#binFolder
+#certsFolder

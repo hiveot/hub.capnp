@@ -9,5 +9,7 @@ mqttPortWS: 9995 # username password auth over WebSocket/TLS
 # Logging
 logLevel: "info" # debug, info, warning, error. Default is warning
 
-#configFolder: "./config" # plugin config, relative to the app home folder
-#certsFolder: "./certs" # Use TLS
+# don't go looking for subfolders when using /tmp
+configFolder: "."
+certsFolder: "."
+logFolder: ""

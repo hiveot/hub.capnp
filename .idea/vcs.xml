@@ -3,5 +3,6 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/../owserver-pb" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../wost-go" vcs="Git" />
   </component>
 </project>

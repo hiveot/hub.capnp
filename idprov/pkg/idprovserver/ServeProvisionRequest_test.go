@@ -4,15 +4,15 @@ import (
 	"crypto/ecdsa"
 	"crypto/x509"
 	"encoding/json"
-	"github.com/wostzone/hub/certs/pkg/certsetup"
-	"github.com/wostzone/hub/lib/client/pkg/certsclient"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/wostzone/hub/certs/pkg/certsetup"
 	"github.com/wostzone/hub/idprov/pkg/idprovclient"
 	"github.com/wostzone/hub/idprov/pkg/oobclient"
+	"github.com/wostzone/wost-go/pkg/certsclient"
 )
 
 //--- This uses TestMain in IDProvServer_test to start the server

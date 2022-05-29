@@ -5,12 +5,13 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/authz/pkg/aclstore"
 	"github.com/wostzone/hub/authz/pkg/authorize"
-	"github.com/wostzone/hub/lib/client/pkg/certsclient"
-	"github.com/wostzone/hub/lib/client/pkg/config"
 	"github.com/wostzone/hub/lib/client/pkg/mqttbinding"
-	"github.com/wostzone/hub/lib/client/pkg/mqttclient"
 	"github.com/wostzone/hub/thingdir/pkg/dirclient"
 	"github.com/wostzone/hub/thingdir/pkg/dirserver"
+	"github.com/wostzone/wost-go/pkg/certsclient"
+	"github.com/wostzone/wost-go/pkg/config"
+	"github.com/wostzone/wost-go/pkg/consumedthing"
+	"github.com/wostzone/wost-go/pkg/mqttclient"
 	"path"
 )
 
@@ -118,11 +119,11 @@ func (pb *ThingDirPB) Start() error {
 	if err != nil {
 		return err
 	}
-	topic := mqttbinding.CreateTopic("", mqttbinding.TopicTypeTD)
+	topic := consumedthing.CreateTopic("", mqttbinding.TopicTypeTD)
 	pb.mqttClient.Subscribe(topic, pb.handleTDUpdate)
 
 	// Listen for events
-	topic = mqttbinding.CreateTopic("", mqttbinding.TopicTypeEvent) + "/+"
+	topic = consumedthing.CreateTopic("", mqttbinding.TopicTypeEvent) + "/+"
 	pb.mqttClient.Subscribe(topic, pb.handleEvent)
 
 	return err
@@ -132,7 +133,7 @@ func (pb *ThingDirPB) Start() error {
 func (pb *ThingDirPB) Stop() {
 	logrus.Infof("ThingDirPB.Stop")
 	if pb.mqttClient != nil {
-		pb.mqttClient.Close()
+		pb.mqttClient.Disconnect()
 	}
 	if pb.dirClient != nil {
 		pb.dirClient.Close()

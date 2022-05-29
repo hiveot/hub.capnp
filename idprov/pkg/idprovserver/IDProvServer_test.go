@@ -2,6 +2,7 @@ package idprovserver_test
 
 import (
 	"fmt"
+	"github.com/wostzone/wost-go/pkg/logging"
 	"os"
 	"os/exec"
 	"path"
@@ -12,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/wostzone/hub/idprov/pkg/idprovclient"
 	"github.com/wostzone/hub/idprov/pkg/idprovserver"
-	"github.com/wostzone/hub/lib/client/pkg/testenv"
+	"github.com/wostzone/wost-go/pkg/testenv"
 )
 
 const idProvTestAddr = "127.0.0.1"
@@ -56,6 +57,7 @@ func removeDeviceCerts() {
 func TestMain(m *testing.M) {
 	logrus.Infof("------ TestMain of idprovserver ------")
 	// hostnames := []string{idProvTestAddr}
+	logging.SetLogging("info", "")
 
 	const testDiscoveryType = "_test._idprov._tcp"
 	cwd, _ := os.Getwd()

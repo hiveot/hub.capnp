@@ -3,14 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/wostzone/hub/lib/client/pkg/certsclient"
+	"github.com/wostzone/wost-go/pkg/certsclient"
 	"os"
 	"path"
 
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/idprov/pkg/oobclient"
-	"github.com/wostzone/hub/lib/client/pkg/config"
-	"github.com/wostzone/hub/lib/serve/pkg/hubnet"
+	"github.com/wostzone/wost-go/pkg/config"
+	"github.com/wostzone/wost-go/pkg/hubnet"
 )
 
 // Commandline utility to set the out of band secret for provisioning

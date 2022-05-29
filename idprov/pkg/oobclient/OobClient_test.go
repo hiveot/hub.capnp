@@ -5,6 +5,8 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"github.com/wostzone/wost-go/pkg/logging"
+	"github.com/wostzone/wost-go/pkg/testenv"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -17,8 +19,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/wostzone/hub/idprov/pkg/idprovclient"
 	"github.com/wostzone/hub/idprov/pkg/oobclient"
-	"github.com/wostzone/hub/lib/client/pkg/config"
-	"github.com/wostzone/hub/lib/client/pkg/testenv"
 )
 
 const testPort = 9999
@@ -87,7 +87,8 @@ func removeDeviceCerts() {
 // TestMain prepares certificates
 // NOTE: Don't run tests in parallel as each test can create and delete certificates
 func TestMain(m *testing.M) {
-	config.SetLogging("info", "")
+	logging.SetLogging("info", "")
+	logging.SetLogging("info", "")
 
 	testCerts = testenv.CreateCertBundle()
 	// no need to save the certificates to test the client

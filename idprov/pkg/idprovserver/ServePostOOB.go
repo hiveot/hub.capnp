@@ -3,12 +3,12 @@ package idprovserver
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/wostzone/hub/lib/client/pkg/certsclient"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/idprov/pkg/idprovclient"
+	"github.com/wostzone/wost-go/pkg/certsclient"
 )
 
 // ServePostOOB receives out of band secret from the administrator

@@ -2,8 +2,7 @@ package idprovclient
 
 import (
 	"fmt"
-
-	"github.com/wostzone/hub/lib/client/pkg/discovery"
+	"github.com/wostzone/wost-go/pkg/discovery"
 )
 
 const IdprovServiceName = "idprov"
@@ -16,7 +15,7 @@ const IdprovServiceName = "idprov"
 // Returns the URL of the IDProv directory endpoint on the local network
 func DiscoverProvisioningServer(serviceName string, waitSec int) (string, error) {
 	var url string
-	addr, port, params, records, err := discovery.DiscoverServices(serviceName, waitSec)
+	addr, port, params, records, err := discovery.DiscoClient(serviceName, waitSec)
 	_ = records
 	if err != nil {
 		err = fmt.Errorf("no provisioning server found after %d seconds", waitSec)

@@ -2,7 +2,6 @@ package thingdirpb_test
 
 import (
 	"fmt"
-	"github.com/wostzone/hub/lib/client/pkg/mqttbinding"
 	"os"
 	"path"
 	"testing"
@@ -12,13 +11,15 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/wostzone/hub/thingdir/pkg/dirclient"
 	thingdirpb "github.com/wostzone/hub/thingdir/pkg/thingdir-pb"
+	"github.com/wostzone/wost-go/pkg/config"
+	"github.com/wostzone/wost-go/pkg/exposedthing"
+	"github.com/wostzone/wost-go/pkg/logging"
+	"github.com/wostzone/wost-go/pkg/mqttclient"
+	"github.com/wostzone/wost-go/pkg/testenv"
+	"github.com/wostzone/wost-go/pkg/thing"
+	"github.com/wostzone/wost-go/pkg/vocab"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/lib/client/pkg/config"
-	"github.com/wostzone/hub/lib/client/pkg/mqttclient"
-	"github.com/wostzone/hub/lib/client/pkg/testenv"
-	"github.com/wostzone/hub/lib/client/pkg/thing"
-	"github.com/wostzone/hub/lib/client/pkg/vocab"
 )
 
 // var certFolder string
@@ -26,7 +27,7 @@ var testCerts testenv.TestCerts
 
 // var serverAddress string
 
-var appFolder string
+var tempFolder string
 var hubConfig config.HubConfig
 
 // TestMain runs a directory server for use by the test cases in this package
@@ -36,25 +37,32 @@ func TestMain(m *testing.M) {
 	// serverAddress = hubnet.GetOutboundIP("").String()
 
 	cwd, _ := os.Getwd()
-	appFolder = path.Join(cwd, "../../test")
-	configFolder := path.Join(appFolder, "config")
-	certFolder := path.Join(appFolder, "certs")
-	_ = os.Chdir(appFolder)
+	configFolder := path.Join(cwd, "../../test", "config")
+	//_ = os.Chdir(appFolder)
 
-	testenv.SetLogging("info", "")
+	logging.SetLogging("info", "")
 	testCerts = testenv.CreateCertBundle()
-	mosquittoCmd, err := testenv.StartMosquitto(configFolder, certFolder, &testCerts)
+	tempFolder = path.Join(os.TempDir(), "wost-thingdir-test")
+	mosquittoCmd, err := testenv.StartMosquitto(&testCerts, tempFolder)
 	if err != nil {
 		logrus.Fatalf("Unable to start mosquitto: %s", err)
 	}
+	time.Sleep(time.Millisecond * 100)
 
-	hubConfig = *config.CreateDefaultHubConfig(appFolder)
 	configFile := path.Join(configFolder, "hub.yaml")
-	_ = config.LoadHubConfig(configFile, thingdirpb.PluginID, &hubConfig)
+	hubConfig = *config.CreateHubConfig(tempFolder)
+	// override config folder to use the test config
+	hubConfig.ConfigFolder = configFolder
+	// FIXME: should not need to use the clientID "plugin" in order to use the plugin client certificate
+	err = hubConfig.Load(configFile, "plugin")
+	if err != nil {
+		logrus.Fatalf("Unable to load hub config: %s", err)
+	}
 
 	res := m.Run()
 
-	_ = mosquittoCmd.Process.Kill()
+	//_ = mosquittoCmd.Process.Kill()
+	testenv.StopMosquitto(mosquittoCmd, tempFolder)
 
 	os.Exit(res)
 }
@@ -64,7 +72,7 @@ func TestStartStopThingDirectoryService(t *testing.T) {
 	configFile := path.Join(hubConfig.ConfigFolder, thingdirpb.PluginID+".yaml")
 	err := config.LoadYamlConfig(configFile, &tdirConfig, nil)
 
-	// hubConfig, err := config.LoadCommandlineConfig(homeFolder, thingdirpb.PluginID, &tdirConfig)
+	//hubConfig, err := config.LoadCommandlineConfig(homeFolder, thingdirpb.PluginID, &tdirConfig)
 	assert.NoError(t, err)
 	tdirPB := thingdirpb.NewThingDirPB(tdirConfig, &hubConfig)
 	err = tdirPB.Start()
@@ -168,9 +176,10 @@ func TestUpdatePropValues(t *testing.T) {
 	td1.UpdateEvent(event1Name, &thing.EventAffordance{
 		Data: thing.DataSchema{Type: vocab.WoTDataTypeString},
 	})
-	eThing := mqttbinding.CreateExposedThing(thing1ID, td1, mqttClient)
-	err = eThing.Expose()
-	assert.NoError(t, err)
+	factory := exposedthing.CreateExposedThingFactory("thingdir-test", testCerts.DeviceCert, testCerts.CaCert)
+	factory.Connect(hubConfig.Address, hubConfig.MqttPortCert)
+	eThing := factory.Expose("device1", td1)
+	assert.NotNil(t, eThing)
 
 	// finally update a property and lets include an event
 	err = eThing.EmitPropertyChange(prop1Name, prop1Value)
@@ -189,6 +198,7 @@ func TestUpdatePropValues(t *testing.T) {
 	assert.Equal(t, event1Value, thingValues[event1Name].Value)
 
 	// cleanup
+	factory.Disconnect()
 	tdirClient.Close()
 	tdirPB.Stop()
 }

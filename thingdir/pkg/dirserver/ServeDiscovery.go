@@ -3,7 +3,7 @@ package dirserver
 import (
 	"github.com/grandcat/zeroconf"
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/lib/serve/pkg/discovery"
+	"github.com/wostzone/wost-go/pkg/discovery"
 )
 
 const ThingDirServiceDiscoveryType = "thingdir"
@@ -14,6 +14,6 @@ func ServeDirDiscovery(instanceID string, serviceName string, address string, po
 
 	logrus.Infof("ServeDirDiscovery serviceID='%s;, address='%s:%d'", serviceName, address, port)
 
-	return discovery.ServeDiscovery(instanceID, serviceName, address, port, nil)
+	return discovery.DiscoServe(instanceID, serviceName, address, port, nil)
 
 }

@@ -2,8 +2,8 @@ package authorize
 
 import (
 	"fmt"
-	"github.com/wostzone/hub/lib/client/pkg/certsclient"
-	"github.com/wostzone/hub/lib/client/pkg/thing"
+	"github.com/wostzone/wost-go/pkg/certsclient"
+	"github.com/wostzone/wost-go/pkg/thing"
 
 	"github.com/sirupsen/logrus"
 )

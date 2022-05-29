@@ -2,6 +2,8 @@ package internal_test
 
 import (
 	"flag"
+	"github.com/sirupsen/logrus"
+	"github.com/wostzone/wost-go/pkg/logging"
 	"os"
 	"path"
 	"strings"
@@ -23,9 +25,10 @@ var hostnames = []string{"localhost"}
 // TestMain sets the project test folder as the home folder and makes sure the neccesary
 // certificates exist.
 func TestMain(m *testing.M) {
+	logging.SetLogging("info", "")
 	cwd, _ := os.Getwd()
 	homeFolder = path.Join(cwd, "../test")
-	certsFolder = path.Join(homeFolder, "certsclient")
+	certsFolder = path.Join(homeFolder, "certs")
 	certsetup.CreateCertificateBundle(hostnames, certsFolder, true)
 
 	result := m.Run()
@@ -41,6 +44,7 @@ func setup() {
 }
 
 func TestStartHubNoPlugins(t *testing.T) {
+	logrus.Infof("")
 	setup()
 	err := internal.StartHub(homeFolder, false)
 	require.NoError(t, err)
@@ -50,6 +54,7 @@ func TestStartHubNoPlugins(t *testing.T) {
 }
 
 func TestStartHubWithPlugins(t *testing.T) {
+	logrus.Infof("")
 	setup()
 	err := internal.StartHub(homeFolder, true)
 	assert.NoError(t, err)
@@ -59,6 +64,7 @@ func TestStartHubWithPlugins(t *testing.T) {
 }
 
 func TestStartHubBadHome(t *testing.T) {
+	logrus.Infof("")
 	setup()
 	err := internal.StartHub("/notahomefolder", true)
 	assert.Error(t, err)

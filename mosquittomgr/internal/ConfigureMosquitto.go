@@ -1,17 +1,21 @@
 package internal
 
 import (
-	"fmt"
 	"io/ioutil"
 	"path"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/lib/client/pkg/config"
+	"github.com/wostzone/wost-go/pkg/config"
 )
 
-// ConfigureMosquitto generates a mosquitto.conf configuration file from template containing the
-// ports and template from the plugin config.
-// If a file exists it is replaced
+// ConfigureMosquitto generates a mosquitto.conf configuration file.
+//
+// It supports the use of file, folder and certificate variables in the config template that are replaced
+// with yaml encoded values from the provided HubConfig.
+//
+// For example ${configFolder} is replaced by the value of HubConfig's "ConfigFolder".
+//
+// If a file exists it is replaced.
 //  hubConfig with the network host/port configuration
 //  templateFilename filename of configuration template
 //  configName  filename of the mosquitto configuration file to generate
@@ -27,18 +31,14 @@ func ConfigureMosquitto(hubConfig *config.HubConfig, templateFilename string, co
 		logrus.Errorf("Unable to generate mosquitto configuration. Template file %s read error: %s", templateFilename, err)
 		return "", err
 	}
-	// TODO: template keywords. These names MUST match hub.yaml :/
-	templateParams := map[string]string{
-		"${appFolder}":    hubConfig.AppFolder,
-		"${binFolder}":    path.Join(hubConfig.AppFolder, "bin"),
-		"${logsFolder}":   hubConfig.LogsFolder,
-		"${configFolder}": hubConfig.ConfigFolder,
-		"${caCertFile}":   path.Join(hubConfig.CertsFolder, config.DefaultCaCertFile),
-		"${hubCertFile}":  path.Join(hubConfig.CertsFolder, config.DefaultServerCertFile),
-		"${hubKeyFile}":   path.Join(hubConfig.CertsFolder, config.DefaultServerKeyFile),
-		"${mqttPortCert}": fmt.Sprint(hubConfig.MqttPortCert),
-		"${mqttPortUnpw}": fmt.Sprint(hubConfig.MqttPortUnpw),
-		"${mqttPortWS}":   fmt.Sprint(hubConfig.MqttPortWS),
+	// TODO: iterate HubConfig values
+	templateParams := map[string]string{}
+	// FIXME: server cert info is not included in hubconfig
+	templateParams["${serverCertFile}"] = path.Join(hubConfig.CertsFolder, config.DefaultServerCertFile)
+	templateParams["${serverKeyFile}"] = path.Join(hubConfig.CertsFolder, config.DefaultServerKeyFile)
+	for k, v := range hubConfig.AsMap() {
+		name := "${" + k + "}"
+		templateParams[name] = v
 	}
 	configTxt := config.SubstituteText(string(configTemplate), templateParams)
 

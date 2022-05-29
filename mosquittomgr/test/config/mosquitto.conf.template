@@ -18,7 +18,7 @@ persistence false
 #max_queued_bytes 100000000  
 #max_queued_messages 1000
 
-log_dest file ${logsFolder}/mosquitto.log
+log_dest file ${logFolder}/mosquitto.log
 log_dest stdout
 
 log_timestamp_format [%Y-%m-%dT%H:%M:%S] Mosquitto
@@ -32,8 +32,8 @@ log_type information
 listener ${mqttPortCert}
 max_connections 100
 cafile ${caCertFile}
-keyfile ${hubKeyFile}
-certfile ${hubCertFile}
+keyfile ${serverKeyFile}
+certfile ${serverCertFile}
 
 # Certificate CN field is used as the username
 require_certificate true
@@ -41,8 +41,8 @@ use_identity_as_username true     # CN
 tls_version tlsv1.2
 
 # mosqauth plugin handles authorization
-auth_plugin ${appFolder}/../dist/bin/mosqauth.so
-auth_opt_logFile ${logsFolder}/mosqauth-cert.log
+auth_plugin ${binFolder}/mosqauth.so
+auth_opt_logFile ${logFolder}/mosqauth-cert.log
 auth_opt_logLevel info
 auth_opt_aclFile ${configFolder}/test.acl
 
@@ -57,19 +57,19 @@ listener ${mqttPortUnpw}
 max_connections 100
 #protocol websockets
 cafile ${caCertFile}
-keyfile ${hubKeyFile}
-certfile ${hubCertFile}
+keyfile ${serverKeyFile}
+certfile ${serverCertFile}
 require_certificate false
 tls_version tlsv1.2
 
 # mosqauth plugin handles authentication & authorization
-auth_plugin ${appFolder}/../dist/bin/mosqauth.so
-auth_opt_logFile ${logsFolder}/mosqauth-unpw.log
+auth_plugin ${binFolder}/mosqauth.so
+auth_opt_logFile ${logFolder}/mosqauth-unpw.log
 auth_opt_logLevel info
 auth_opt_aclFile ${configFolder}/test.acl
 auth_opt_unpwFile ${configFolder}/test.passwd
 # For JWT token verification
-auth_opt_serverCertFile ${hubCertFile}
+auth_opt_serverCertFile ${serverCertFile}
 
 
 #--- WebSockets over TLS/SSL for use with username/token login
@@ -82,18 +82,16 @@ listener ${mqttPortWS}
 max_connections 100
 protocol websockets
 cafile ${caCertFile}
-keyfile ${hubKeyFile}
-certfile ${hubCertFile}
+keyfile ${serverKeyFile}
+certfile ${serverCertFile}
 require_certificate false
 tls_version tlsv1.2
 
 # mosqauth plugin handles authentication & authorization
-auth_plugin ${appFolder}/../dist/bin/mosqauth.so
-auth_opt_logFile ${logsFolder}/mosqauth-unpw.log
+auth_plugin ${binFolder}/mosqauth.so
+auth_opt_logFile ${logFolder}/mosqauth-unpw.log
 auth_opt_logLevel info
 auth_opt_aclFile ${configFolder}/test.acl
 #auth_opt_unpwFile ${configFolder}/test.passwd
 # For JWT token verification
-auth_opt_serverCertFile ${hubCertFile}
-
-
+auth_opt_serverCertFile ${serverCertFile}

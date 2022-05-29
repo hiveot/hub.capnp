@@ -2,7 +2,7 @@ package dirserver
 
 import (
 	"github.com/wostzone/hub/authz/pkg/authorize"
-	"github.com/wostzone/hub/lib/client/pkg/certsclient"
+	"github.com/wostzone/wost-go/pkg/certsclient"
 )
 
 // AclFilter function for authorization of thing access

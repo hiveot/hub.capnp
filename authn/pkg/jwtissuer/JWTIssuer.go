@@ -4,14 +4,14 @@ import (
 	"crypto/ecdsa"
 	"encoding/json"
 	"fmt"
-	"github.com/wostzone/hub/lib/serve/pkg/tlsserver"
+	"github.com/wostzone/wost-go/pkg/tlsclient"
+	"github.com/wostzone/wost-go/pkg/tlsserver"
 	"net/http"
 	"time"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/lib/client/pkg/tlsclient"
-	"github.com/wostzone/hub/lib/serve/pkg/hubnet"
+	"github.com/wostzone/wost-go/pkg/hubnet"
 )
 
 const JwtRefreshCookieName = "refreshtoken"

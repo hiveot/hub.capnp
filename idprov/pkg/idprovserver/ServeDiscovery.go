@@ -3,7 +3,7 @@ package idprovserver
 import (
 	"github.com/grandcat/zeroconf"
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/lib/serve/pkg/discovery"
+	"github.com/wostzone/wost-go/pkg/discovery"
 )
 
 const IdProvServiceName = "idprov"
@@ -18,6 +18,6 @@ func (srv *IDProvServer) ServeIdProvDiscovery(serviceName string) (*zeroconf.Ser
 	logrus.Infof("ServeIdProvDiscovery serviceID=%s, service: %s:%d%s",
 		srv.instanceID, srv.address, srv.port, directoryPath)
 
-	return discovery.ServeDiscovery(srv.instanceID, serviceName, srv.address, srv.port, params)
+	return discovery.DiscoServe(srv.instanceID, serviceName, srv.address, srv.port, params)
 
 }

@@ -4,15 +4,15 @@ package dirserver
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"github.com/wostzone/hub/lib/client/pkg/certsclient"
-	"github.com/wostzone/hub/lib/client/pkg/vocab"
+	"github.com/wostzone/wost-go/pkg/certsclient"
+	"github.com/wostzone/wost-go/pkg/tlsserver"
+	"github.com/wostzone/wost-go/pkg/vocab"
 	"path"
 	"time"
 
 	"github.com/grandcat/zeroconf"
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/authz/pkg/authorize"
-	"github.com/wostzone/hub/lib/serve/pkg/tlsserver"
 	"github.com/wostzone/hub/thingdir/pkg/dirclient"
 	"github.com/wostzone/hub/thingdir/pkg/dirstore/dirfilestore"
 )

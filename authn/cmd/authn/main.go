@@ -4,12 +4,12 @@ import (
 	"bufio"
 	"fmt"
 	"github.com/docopt/docopt-go"
-	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/authn/pkg/jwtissuer"
 	"github.com/wostzone/hub/authn/pkg/unpwauth"
 	"github.com/wostzone/hub/authn/pkg/unpwstore"
-	"github.com/wostzone/hub/lib/client/pkg/certsclient"
-	"github.com/wostzone/hub/lib/client/pkg/config"
+	"github.com/wostzone/wost-go/pkg/certsclient"
+	"github.com/wostzone/wost-go/pkg/config"
+	"github.com/wostzone/wost-go/pkg/logging"
 	"os"
 	"path"
 	"strings"
@@ -76,9 +76,9 @@ Options:
 	err = opts.Bind(&optConf)
 
 	if optConf.Verbose {
-		logrus.SetLevel(logrus.InfoLevel)
+		logging.SetLogging("info", "")
 	} else {
-		logrus.SetLevel(logrus.WarnLevel)
+		logging.SetLogging("warning", "")
 	}
 
 	if err != nil {

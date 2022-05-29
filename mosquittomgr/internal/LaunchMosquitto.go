@@ -47,7 +47,7 @@ func LaunchMosquitto(configFile string, done chan bool) (*exec.Cmd, error) {
 	time.Sleep(100 * time.Millisecond)
 	mu.Lock()
 	if !isRunning && err == nil {
-		err = fmt.Errorf("LaunchMosquitto. mosquitto terminated immediately. Check the template or the plugin")
+		err = fmt.Errorf("Mosquitto terminated immediately; check the template and the logs for info")
 	}
 	mu.Unlock()
 

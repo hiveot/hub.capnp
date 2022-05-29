@@ -4,9 +4,9 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
+	"github.com/wostzone/wost-go/pkg/tlsclient"
 
 	"github.com/wostzone/hub/idprov/pkg/idprovclient"
-	"github.com/wostzone/hub/lib/client/pkg/tlsclient"
 
 	"github.com/sirupsen/logrus"
 )

@@ -6,16 +6,15 @@ package main
 
 import "C"
 import (
-	"github.com/wostzone/hub/lib/client/pkg/mqttbinding"
+	"github.com/sirupsen/logrus"
 	"strings"
 
-	"github.com/wostzone/hub/lib/client/pkg/certsclient"
-	"github.com/wostzone/hub/lib/client/pkg/config"
-	"github.com/wostzone/hub/lib/serve/pkg/tlsserver"
-
-	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/authz/pkg/aclstore"
 	"github.com/wostzone/hub/authz/pkg/authorize"
+	"github.com/wostzone/wost-go/pkg/certsclient"
+	"github.com/wostzone/wost-go/pkg/consumedthing"
+	"github.com/wostzone/wost-go/pkg/logging"
+	"github.com/wostzone/wost-go/pkg/tlsserver"
 )
 
 // Constants from mosquitto.h
@@ -110,7 +109,7 @@ func AuthPluginInit(keys []string, values []string, authOptsNum int) {
 			serverCertFile = values[index]
 		}
 	}
-	config.SetLogging(logLevel, logFile)
+	logging.SetLogging(logLevel, logFile)
 	logrus.Warningf("mosqauth: AuthPluginInit invoked. Keys=%s", keys)
 
 	// The file based store is the only option for now
@@ -221,11 +220,11 @@ func AuthAclCheck(clientID string, userID string, certSubjName string, topic str
 	authType := authorize.AuthRead
 	if writing {
 		switch messageType {
-		case mqttbinding.TopicTypeTD:
+		case consumedthing.TopicTypeTD:
 			authType = authorize.AuthPubTD
-		case mqttbinding.TopicTypeAction:
+		case consumedthing.TopicTypeAction:
 			authType = authorize.AuthEmitAction
-		case mqttbinding.TopicTypeEvent:
+		case consumedthing.TopicTypeEvent:
 			authType = authorize.AuthPubEvent // including property value
 		// how to determine if an action is a write property?
 		// invoking an action currently allows for writing configuration properties

@@ -2,15 +2,16 @@ package main
 
 import (
 	"crypto/ecdsa"
+	"github.com/wostzone/wost-go/pkg/config"
+	"github.com/wostzone/wost-go/pkg/logging"
+	"github.com/wostzone/wost-go/pkg/proc"
 	"os"
 	"path"
 
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/authn/pkg/authservice"
 	"github.com/wostzone/hub/authn/pkg/unpwstore"
-	"github.com/wostzone/hub/lib/client/pkg/certsclient"
-	"github.com/wostzone/hub/lib/client/pkg/config"
-	"github.com/wostzone/hub/lib/client/pkg/proc"
+	"github.com/wostzone/wost-go/pkg/certsclient"
 )
 
 const DefaultUserConfigFolderName = "configStore"
@@ -29,6 +30,8 @@ func main() {
 		logrus.Printf("bye bye")
 		os.Exit(1)
 	}
+	logging.SetLogging(hubConfig.Loglevel, hubConfig.LogFile)
+
 	// sensible defaults
 	if authServiceConfig.ConfigStoreFolder == "" {
 		// this service offers a configuration store for clients

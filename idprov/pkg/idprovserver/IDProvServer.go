@@ -12,7 +12,7 @@ import (
 	"github.com/grandcat/zeroconf"
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/idprov/pkg/idprovclient"
-	"github.com/wostzone/hub/lib/serve/pkg/tlsserver"
+	"github.com/wostzone/wost-go/pkg/tlsserver"
 )
 
 const RouteGetDirectory = idprovclient.IDProvDirectoryPath

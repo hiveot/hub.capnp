@@ -9,14 +9,14 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"fmt"
-	"github.com/wostzone/hub/lib/client/pkg/certsclient"
+	"github.com/wostzone/wost-go/pkg/certsclient"
+	"github.com/wostzone/wost-go/pkg/config"
 	"math/big"
 	"net"
 	"path"
 	"time"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/lib/client/pkg/config"
 )
 
 // // Standard WoST client and server key/certificate filenames. All stored in PEM format.

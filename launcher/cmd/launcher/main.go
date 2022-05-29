@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/launcher/internal"
-	"github.com/wostzone/hub/lib/client/pkg/proc"
+	"github.com/wostzone/wost-go/pkg/proc"
 )
 
 // Binary to launch the hub services

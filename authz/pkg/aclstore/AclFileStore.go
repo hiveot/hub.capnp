@@ -10,7 +10,7 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/authz/pkg/authorize"
-	"github.com/wostzone/hub/lib/serve/pkg/watcher"
+	"github.com/wostzone/wost-go/pkg/watcher"
 	"gopkg.in/yaml.v3"
 )
 

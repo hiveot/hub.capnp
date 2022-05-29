@@ -3,7 +3,8 @@ package certsetup_test
 import (
 	"crypto/x509"
 	"github.com/wostzone/hub/certs/pkg/certsetup"
-	"github.com/wostzone/hub/lib/client/pkg/certsclient"
+	"github.com/wostzone/wost-go/pkg/certsclient"
+	"github.com/wostzone/wost-go/pkg/logging"
 	"os"
 	"os/exec"
 	"path"
@@ -12,7 +13,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/wostzone/hub/lib/client/pkg/config"
 )
 
 var homeFolder string
@@ -28,7 +28,7 @@ func TestMain(m *testing.M) {
 	cwd, _ := os.Getwd()
 	homeFolder = path.Join(cwd, "../../test")
 	certFolder = path.Join(homeFolder, "certs")
-	_ = config.SetLogging("info", "")
+	logging.SetLogging("info", "")
 	removeServerCerts()
 
 	res := m.Run()

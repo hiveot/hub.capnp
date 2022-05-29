@@ -3,6 +3,10 @@ package dirclient_test
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/wostzone/wost-go/pkg/testenv"
+	"github.com/wostzone/wost-go/pkg/thing"
+	"github.com/wostzone/wost-go/pkg/tlsserver"
+	"github.com/wostzone/wost-go/pkg/vocab"
 	"net/http"
 	"os"
 	"strings"
@@ -11,10 +15,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/wostzone/hub/lib/client/pkg/testenv"
-	"github.com/wostzone/hub/lib/client/pkg/thing"
-	"github.com/wostzone/hub/lib/client/pkg/vocab"
-	"github.com/wostzone/hub/lib/serve/pkg/tlsserver"
 	"github.com/wostzone/hub/thingdir/pkg/dirclient"
 )
 

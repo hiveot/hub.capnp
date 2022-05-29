@@ -9,5 +9,8 @@
 # The folder to log into, relative to home
 #logsFolder: "logs/"
 
+# Expose the service as a Thing
+#exposeService: false
+
 # The Thing IDs to log, or empty for all things
 #thingIDs: []

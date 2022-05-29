@@ -6,17 +6,17 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"github.com/wostzone/hub/authn/pkg/jwtissuer"
+	"github.com/wostzone/wost-go/pkg/tlsserver"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/wostzone/hub/authn/pkg/clientconfigstore"
+	"github.com/wostzone/hub/authn/pkg/jwtissuer"
 	"github.com/wostzone/hub/authn/pkg/unpwauth"
 	"github.com/wostzone/hub/authn/pkg/unpwstore"
-	"github.com/wostzone/hub/lib/client/pkg/tlsclient"
-	"github.com/wostzone/hub/lib/serve/pkg/tlsserver"
+	"github.com/wostzone/wost-go/pkg/tlsclient"
 )
 
 // PluginID of the service

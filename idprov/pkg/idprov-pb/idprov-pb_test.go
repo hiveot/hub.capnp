@@ -2,6 +2,7 @@ package idprovpb_test
 
 import (
 	"fmt"
+	"github.com/wostzone/wost-go/pkg/logging"
 	"os"
 	"path"
 	"testing"
@@ -10,8 +11,8 @@ import (
 	"github.com/stretchr/testify/require"
 	idprovpb "github.com/wostzone/hub/idprov/pkg/idprov-pb"
 	"github.com/wostzone/hub/idprov/pkg/idprovclient"
-	"github.com/wostzone/hub/lib/client/pkg/config"
-	"github.com/wostzone/hub/lib/client/pkg/testenv"
+	"github.com/wostzone/wost-go/pkg/config"
+	"github.com/wostzone/wost-go/pkg/testenv"
 )
 
 // testing takes place using the test folder on localhost
@@ -27,7 +28,7 @@ func TestMain(m *testing.M) {
 	cwd, _ := os.Getwd()
 	homeFolder = path.Join(cwd, "../../test")
 	certsFolder = path.Join(homeFolder, "certs")
-	// config.SetLogging("info", "")
+	logging.SetLogging("info", "")
 	// certsetup.CreateCertificateBundle(hostnames, certsFolder)
 	testCerts = testenv.CreateCertBundle()
 	testenv.SaveCerts(&testCerts, certsFolder)

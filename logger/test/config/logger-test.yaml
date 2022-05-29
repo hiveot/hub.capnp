@@ -2,8 +2,12 @@
 
 # ClientID to use. Default is logger
 clientID: logger-test
+
 # The folder to log into, relative to home
 #logsFolder: "logs/"
+
+# Expose the service as a Thing
+#exposeService false
+
 # Things to log, or empty for all things
 #thingIDs: ["1"]
-

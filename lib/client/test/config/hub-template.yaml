@@ -1,4 +1,0 @@
-# Example hub configuration with template to substitude logFile
-
-# testcase substitutes pluginID
-logFile: "/var/log/{clientID}.log"

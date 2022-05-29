@@ -5,8 +5,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/wostzone/hub/authn/pkg/authservice"
-	"github.com/wostzone/hub/lib/client/pkg/testenv"
-	"github.com/wostzone/hub/lib/client/pkg/tlsclient"
+	"github.com/wostzone/wost-go/pkg/logging"
+	"github.com/wostzone/wost-go/pkg/testenv"
+	"github.com/wostzone/wost-go/pkg/tlsclient"
 	"os"
 	"path"
 	"testing"
@@ -49,6 +50,7 @@ func startAuthService() (*authservice.AuthService, error) {
 // TestMain runs a http server
 // Used for all test cases in this package
 func TestMain(m *testing.M) {
+	logging.SetLogging("info", "")
 	logrus.Infof("------ TestMain of AuthService_test ------")
 	//clientHostPort = fmt.Sprintf("%s:%d", serverAddress, serverPort)
 

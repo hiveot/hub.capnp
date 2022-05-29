@@ -6,11 +6,11 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"github.com/wostzone/wost-go/pkg/thing"
+	"github.com/wostzone/wost-go/pkg/tlsclient"
 	"strings"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/lib/client/pkg/thing"
-	"github.com/wostzone/hub/lib/client/pkg/tlsclient"
 )
 
 // Constants for use by server and applications

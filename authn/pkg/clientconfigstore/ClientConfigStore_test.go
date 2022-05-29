@@ -3,6 +3,7 @@ package clientconfigstore_test
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/wostzone/hub/authn/pkg/clientconfigstore"
+	"github.com/wostzone/wost-go/pkg/logging"
 	"os"
 	"path"
 	"testing"
@@ -13,6 +14,7 @@ var storeFolder = ""
 // TestMain determines the store location
 // Used for all test cases in this package
 func TestMain(m *testing.M) {
+	logging.SetLogging("info", "")
 	cwd, _ := os.Getwd()
 	homeFolder := path.Join(cwd, "../../test")
 	storeFolder = path.Join(homeFolder, "configStore")

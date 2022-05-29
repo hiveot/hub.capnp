@@ -15,6 +15,6 @@ logLevel: "info" # debug, info, warning, error. Default is warning
 #configFolder: "./config" # plugin config, relative to the working directory
 #certsFolder: "./certs" # set to activate TLS. Relative to app home folder
 
-# Plugins to start
-plugins: # list of plugins to start
-  - /bin/ls # for testing
+# certs and log are in the same temp (home) folder, not in subfolders
+certsFolder: "."
+logFolder: "."
