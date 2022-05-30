@@ -5,230 +5,36 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0c1e6961-9e54-4948-b084-6d0502132342" name="Changes" comment="dev iteration, refactor packages">
-      <change afterPath="$PROJECT_DIR$/../wost-go/pkg/config/HubConfig.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../wost-go/pkg/config/LoadAllConfig.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../wost-go/pkg/config/LoadYamlConfig.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../wost-go/pkg/config/badFile.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../wost-go/pkg/config/config_test.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../wost-go/pkg/discovery/DiscoServe.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../wost-go/pkg/discovery/DiscoServe_test.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../wost-go/pkg/hubnet/GetBearerToken.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../wost-go/pkg/hubnet/GetInterface.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../wost-go/pkg/hubnet/GetOutboundIP.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../wost-go/pkg/hubnet/hubnet_test.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../wost-go/pkg/tlsserver/BasicAuthenticator.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../wost-go/pkg/tlsserver/CertAuthenticator.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../wost-go/pkg/tlsserver/HttpAuthenticator.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../wost-go/pkg/tlsserver/JWTAuthenticator.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../wost-go/pkg/tlsserver/README.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../wost-go/pkg/tlsserver/TLSServer.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../wost-go/pkg/tlsserver/TLSServer_test.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../wost-go/pkg/tlsserver/queryparam.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../wost-go/pkg/tlsserver/response.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../wost-go/pkg/watcher/WatchFile.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/hub.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/hub.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authn/cmd/authn/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/authn/cmd/authn/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authn/cmd/authservice/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/authn/cmd/authservice/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authn/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/authn/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authn/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/authn/go.sum" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authn/pkg/authservice/AuthService.go" beforeDir="false" afterPath="$PROJECT_DIR$/authn/pkg/authservice/AuthService.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authn/pkg/authservice/AuthService_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/authn/pkg/authservice/AuthService_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authn/pkg/clientconfigstore/ClientConfigStore_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/authn/pkg/clientconfigstore/ClientConfigStore_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authn/pkg/jwtissuer/JWTIssuer.go" beforeDir="false" afterPath="$PROJECT_DIR$/authn/pkg/jwtissuer/JWTIssuer.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authn/pkg/jwtissuer/JWTIssuer_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/authn/pkg/jwtissuer/JWTIssuer_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authn/pkg/unpwauth/UnpwAuthenticator_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/authn/pkg/unpwauth/UnpwAuthenticator_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authn/pkg/unpwstore/PasswordFileStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/authn/pkg/unpwstore/PasswordFileStore.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authn/pkg/unpwstore/PasswordFileStore_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/authn/pkg/unpwstore/PasswordFileStore_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authz/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/authz/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authz/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/authz/go.sum" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authz/pkg/aclstore/AclFileStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/authz/pkg/aclstore/AclFileStore.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authz/pkg/aclstore/AclFileStore_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/authz/pkg/aclstore/AclFileStore_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authz/pkg/authorize/Authorizer.go" beforeDir="false" afterPath="$PROJECT_DIR$/authz/pkg/authorize/Authorizer.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authz/pkg/authorize/Authorizer_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/authz/pkg/authorize/Authorizer_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/certs/cmd/certs/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/certs/cmd/certs/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/certs/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/certs/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/certs/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/certs/go.sum" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/certs/pkg/certsetup/CertSetup.go" beforeDir="false" afterPath="$PROJECT_DIR$/certs/pkg/certsetup/CertSetup.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/certs/pkg/certsetup/CertSetup_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/certs/pkg/certsetup/CertSetup_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/README-TD.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/README-TD.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hub.code-workspace" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/idprov/cmd/idprov-pb/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/cmd/idprov-pb/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/idprov/cmd/oob/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/cmd/oob/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/idprov/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/idprov/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/go.sum" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/idprov/pkg/idprov-pb/idprov-pb_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/pkg/idprov-pb/idprov-pb_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/idprov/pkg/idprovclient/Client_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/pkg/idprovclient/Client_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/idprov/pkg/idprovclient/Discover.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/pkg/idprovclient/Discover.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/idprov/pkg/idprovclient/IDProvClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/pkg/idprovclient/IDProvClient.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/authn/dist/config/authservice.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/authn/dist/config/authservice.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/history/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/history/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/idprov/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/Makefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/idprov/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/idprov/cmd/idprov-pb/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/cmd/idprov/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/idprov/dist/config/idprov-pb.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/dist/config/idprov-pb.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/idprov/pkg/idprov-pb/README.md" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/idprov/pkg/idprov-pb/idprov-pb.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/idprov/pkg/idprov-pb/idprov-pb_test.go" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/idprov/pkg/idprovserver/IDProvServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/pkg/idprovserver/IDProvServer.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/idprov/pkg/idprovserver/IDProvServer_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/pkg/idprovserver/IDProvServer_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/idprov/pkg/idprovserver/ServeDiscovery.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/pkg/idprovserver/ServeDiscovery.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/idprov/pkg/idprovserver/ServePostOOB.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/pkg/idprovserver/ServePostOOB.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/idprov/pkg/idprovserver/ServePostOOB_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/pkg/idprovserver/ServePostOOB_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/idprov/pkg/idprovserver/ServeProvisionRequest.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/pkg/idprovserver/ServeProvisionRequest.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/idprov/pkg/idprovserver/ServeProvisionRequest_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/pkg/idprovserver/ServeProvisionRequest_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/idprov/pkg/idprovserver/ServeStatus.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/pkg/idprovserver/ServeStatus.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/idprov/pkg/oobclient/OobClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/pkg/oobclient/OobClient.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/idprov/pkg/oobclient/OobClient_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/pkg/oobclient/OobClient_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/idprov/test/logs/.keep" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/test/log/.keep" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/launcher/cmd/launcher/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/launcher/cmd/launcher/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/launcher/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/launcher/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/launcher/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/launcher/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/idprov/test/config/idprov-pb.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/test/config/idprov-pb.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/launcher/dist/config/hub.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/launcher/dist/config/hub.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/launcher/dist/config/launcher.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/launcher/dist/config/launcher.yaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/launcher/internal/StartHub.go" beforeDir="false" afterPath="$PROJECT_DIR$/launcher/internal/StartHub.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/launcher/internal/StartHub_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/launcher/internal/StartHub_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/launcher/test/logs/.keep" beforeDir="false" afterPath="$PROJECT_DIR$/launcher/test/log/.keep" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/.idea/lib.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/.idea/vcs.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/.idea/workspace.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/.idea/.gitignore" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/.idea/hubclient-go.iml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/.idea/vcs.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/LICENSE" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/Makefile" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/README.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/go.mod" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/go.sum" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/certsclient/Certs.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/certsclient/Certs_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/certsclient/Keys.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/certsclient/Keys_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/config/GetOutboundIP.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/config/LoadAllConfig.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/config/LoadHubConfig.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/config/LoadYamlConfig.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/config/SetLogging.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/config/SetLogging_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/config/config_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/discovery/DiscoverServices.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/discovery/DnsSDScan.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/mqttbinding/ConsumedThing.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/mqttbinding/ConsumedThing_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/mqttbinding/ExposedThing.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/mqttbinding/ExposedThing_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/mqttbinding/InteractionOutput.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/mqttbinding/InteractionOutput_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/mqttbinding/README.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/mqttbinding/Subscription.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/mqttbinding/Topics.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/mqttclient/MqttClient.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/mqttclient/MqttClient_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/mqttclient/MqttHubClient.go.old" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/mqttclient/MqttHubClient_test.go.old" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/proc/WaitForSignal.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/proc/WaitForSignal_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/signing/MessageEncrypt.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/signing/MessageEncrypt_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/signing/MessageSigner.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/signing/MessageSigner_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/testenv/CreateCerts.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/testenv/SetLogging.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/testenv/StartMosquitto.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/thing/ActionAffordance.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/thing/EventAffordance.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/thing/InteractionAffordance.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/thing/PropertyAffordance.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/thing/schemas.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/thing/schemas_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/thing/thingTD.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/thing/thingTD_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/thing/thingid.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/tlsclient/TLSClient.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/tlsclient/TLSClient_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/vocab/IoTVocabulary.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/pkg/vocab/WoTVocabulary.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/test/certs/.keep" beforeDir="false" afterPath="$PROJECT_DIR$/logger/test/log/.keep" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/test/config/.keep" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/test/config/hub-bad.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/test/config/hub-invalid.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/test/config/hub-template.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/test/config/hub.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/test/config/plugin1.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/client/test/logs/.keep" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/serve/LICENSE" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/serve/Makefile" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/serve/README.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/serve/docs/http-api.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/http-protocol-binding.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/serve/docs/mqtt-api.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/mqtt-protocol-binding.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/serve/go.mod" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/serve/go.sum" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/serve/pkg/discovery/ServeDiscover_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/serve/pkg/discovery/ServeDiscovery.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/serve/pkg/hubnet/GetBearerToken.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/serve/pkg/hubnet/GetOutboundIP.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/serve/pkg/hubnet/GetOutboundInterface.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/serve/pkg/hubnet/hubnet_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/serve/pkg/tlsserver/BasicAuthenticator.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/serve/pkg/tlsserver/CertAuthenticator.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/serve/pkg/tlsserver/HttpAuthenticator.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/serve/pkg/tlsserver/JWTAuthenticator.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/serve/pkg/tlsserver/README.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/serve/pkg/tlsserver/TLSServer.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/serve/pkg/tlsserver/TLSServer_test.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/serve/pkg/tlsserver/queryparam.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/serve/pkg/tlsserver/response.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/serve/pkg/watcher/WatchFile.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/serve/test/certs/.keep" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/serve/test/config/.keep" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/serve/test/config/mosquitto-test.conf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/serve/test/logs/.keep" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/logger/cmd/logger/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/logger/cmd/logger/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/logger/dist/config/logger.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/logger/dist/config/logger.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/logger/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/logger/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/logger/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/logger/go.sum" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/logger/internal/LoggerService.go" beforeDir="false" afterPath="$PROJECT_DIR$/logger/internal/LoggerService.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/logger/internal/LoggerService_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/logger/internal/LoggerService_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/logger/test/config/hub.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/logger/test/config/hub.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/logger/test/config/logger-test.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/logger/test/config/logger-test.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/logger/test/logs/.keep" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/mosquittomgr/cmd/mosqauth/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/mosquittomgr/cmd/mosqauth/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mosquittomgr/cmd/mosquittomgr/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/mosquittomgr/cmd/mosquittomgr/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mosquittomgr/dist/config/mosquitto.conf.template" beforeDir="false" afterPath="$PROJECT_DIR$/mosquittomgr/dist/config/mosquitto.conf.template" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mosquittomgr/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/mosquittomgr/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mosquittomgr/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/mosquittomgr/go.sum" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mosquittomgr/internal/ConfigureMosquitto.go" beforeDir="false" afterPath="$PROJECT_DIR$/mosquittomgr/internal/ConfigureMosquitto.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mosquittomgr/internal/LaunchMosquitto.go" beforeDir="false" afterPath="$PROJECT_DIR$/mosquittomgr/internal/LaunchMosquitto.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mosquittomgr/internal/MosquittoManager.go" beforeDir="false" afterPath="$PROJECT_DIR$/mosquittomgr/internal/MosquittoManager.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mosquittomgr/internal/MosquittoManager_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/mosquittomgr/internal/MosquittoManager_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mosquittomgr/test/certs/.keep" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/mosquittomgr/test/config/hub.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/mosquittomgr/test/config/hub.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mosquittomgr/test/config/mosquitto.conf.template" beforeDir="false" afterPath="$PROJECT_DIR$/mosquittomgr/test/config/mosquitto.conf.template" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mosquittomgr/test/logs/.keep" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/launcher/internal/StartPlugin.go" beforeDir="false" afterPath="$PROJECT_DIR$/launcher/internal/StartPlugin.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingdir/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/Makefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingdir/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/thingdir/cmd/thingdir/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/cmd/thingdir/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/go.sum" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/pkg/dirclient/DirClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/dirclient/DirClient.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/pkg/dirclient/DirClient_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/dirclient/DirClient_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/pkg/dirserver/AclFilter.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/dirserver/AclFilter.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/pkg/dirserver/DirServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/dirserver/DirServer.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/pkg/dirserver/ServeDiscovery.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/dirserver/ServeDiscovery.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/pkg/dirserver/ServeQueryTD.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/dirserver/ServeQueryTD.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/pkg/dirserver/ServeValues.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/dirserver/ServeValues.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/pkg/dirstore/dirfilestore/dirfilestore_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/dirstore/dirfilestore/dirfilestore_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/pkg/thingdir-pb/thingdir-pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/thingdir-pb/thingdir-pb.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/pkg/thingdir-pb/thingdir-pb_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/thingdir-pb/thingdir-pb_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/test/certs/.keep" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/test/config/hub.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/test/config/hub.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/test/config/tstorage/wal/0" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/test/logs/.keep" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/../owserver-pb/internal/OWServerPB.go" beforeDir="false" afterPath="$PROJECT_DIR$/../owserver-pb/internal/OWServerPB.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../wost-go/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/../wost-go/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../wost-go/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/../wost-go/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../wost-go/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/../wost-go/go.sum" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../wost-go/pkg/consumedthing/ConsumedThingFactory_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost-go/pkg/consumedthing/ConsumedThingFactory_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../wost-go/pkg/discoclient/DiscoverServices.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost-go/pkg/discovery/DiscoClient.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../wost-go/pkg/discoclient/DnsSDScan.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost-go/pkg/discovery/DnsSDScan.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../wost-go/pkg/exposedthing/ExposedThingFactory_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost-go/pkg/exposedthing/ExposedThingFactory_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../wost-go/pkg/logging/SetLogging.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost-go/pkg/logging/SetLogging.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../wost-go/pkg/logging/SetLogging_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost-go/pkg/logging/SetLogging_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../wost-go/pkg/mqttclient/MqttClient_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost-go/pkg/mqttclient/MqttClient_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../wost-go/pkg/testenv/CreateCerts.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost-go/pkg/testenv/CreateCerts.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../wost-go/pkg/testenv/StartMosquitto.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost-go/pkg/testenv/StartMosquitto.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingdir/dist/config/thingdir-pb.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/dist/config/thingdir.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingdir/pkg/thingdir-pb/handleEvent.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/thingdir/handleEvent.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingdir/pkg/thingdir-pb/handleTDUpdate.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/thingdir/handleTDUpdate.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingdir/pkg/thingdir-pb/thingdir-pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/thingdir/thingdir.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingdir/pkg/thingdir-pb/thingdir-pb_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/thingdir/thingdir_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingdir/test/config/thingdir-pb.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/test/config/thingdir-pb.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -318,7 +124,7 @@
       <recent name="$PROJECT_DIR$/lib/test/config" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Test.go test github.com/wostzone/hub/mosquittomgr/internal">
+  <component name="RunManager" selected="Go Test.go test github.com/wostzone/hub/thingdir/pkg/dirserver">
     <configuration default="true" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <module name="hub" />
       <working_directory value="$PROJECT_DIR$" />
@@ -327,40 +133,16 @@
       <filePath value="$PROJECT_DIR$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestBadConfigTemplate in github.com/wostzone/hub/mosquittomgr/internal" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestStartStopIDProvClient in github.com/wostzone/hub/idprov/pkg/idprovserver" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="hub" />
-      <working_directory value="$PROJECT_DIR$/mosquittomgr/internal" />
-      <root_directory value="$PROJECT_DIR$/mosquittomgr" />
+      <working_directory value="$PROJECT_DIR$/idprov/pkg/idprovserver" />
+      <root_directory value="$PROJECT_DIR$/idprov" />
       <kind value="PACKAGE" />
-      <package value="github.com/wostzone/hub/mosquittomgr/internal" />
+      <package value="github.com/wostzone/hub/idprov/pkg/idprovserver" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestBadConfigTemplate\E$" />
-      <method v="2" />
-    </configuration>
-    <configuration name="TestStartStopMosqManager in github.com/wostzone/hub/mosquittomgr/internal" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="hub" />
-      <working_directory value="$PROJECT_DIR$/mosquittomgr/internal" />
-      <root_directory value="$PROJECT_DIR$/mosquittomgr" />
-      <kind value="PACKAGE" />
-      <package value="github.com/wostzone/hub/mosquittomgr/internal" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <pattern value="^\QTestStartStopMosqManager\E$" />
-      <method v="2" />
-    </configuration>
-    <configuration name="TestStartStopThingDirectoryService in github.com/wostzone/hub/thingdir/pkg/thingdir-pb" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="thingdir" />
-      <working_directory value="$PROJECT_DIR$/thingdir/pkg/thingdir-pb" />
-      <root_directory value="$PROJECT_DIR$/thingdir" />
-      <kind value="PACKAGE" />
-      <package value="github.com/wostzone/hub/thingdir/pkg/thingdir-pb" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <pattern value="^\QTestStartStopThingDirectoryService\E$" />
+      <pattern value="^\QTestStartStopIDProvClient\E$" />
       <method v="2" />
     </configuration>
     <configuration default="true" type="GoTestRunConfiguration" factoryName="Go Test">
@@ -372,42 +154,64 @@
       <framework value="gotest" />
       <method v="2" />
     </configuration>
-    <configuration name="go test github.com/wostzone/hub/mosquittomgr/internal" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="go test github.com/wostzone/hub/idprov/pkg/idprovclient" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="hub" />
-      <working_directory value="$PROJECT_DIR$/mosquittomgr/internal" />
-      <root_directory value="$PROJECT_DIR$/mosquittomgr" />
+      <working_directory value="$PROJECT_DIR$/idprov/pkg/idprovclient" />
+      <root_directory value="$PROJECT_DIR$/idprov" />
       <kind value="PACKAGE" />
-      <package value="github.com/wostzone/hub/mosquittomgr/internal" />
+      <package value="github.com/wostzone/hub/idprov/pkg/idprovclient" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
       <method v="2" />
     </configuration>
-    <configuration name="go test github.com/wostzone/hub/thingdir/pkg/thingdir-pb" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="go test github.com/wostzone/hub/idprov/pkg/idprovserver" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="hub" />
+      <working_directory value="$PROJECT_DIR$/idprov/pkg/idprovserver" />
+      <root_directory value="$PROJECT_DIR$/idprov" />
+      <kind value="PACKAGE" />
+      <package value="github.com/wostzone/hub/idprov/pkg/idprovserver" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <method v="2" />
+    </configuration>
+    <configuration name="go test github.com/wostzone/hub/idprov/pkg/oobclient" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="hub" />
+      <working_directory value="$PROJECT_DIR$/idprov/pkg/oobclient" />
+      <root_directory value="$PROJECT_DIR$/idprov" />
+      <kind value="PACKAGE" />
+      <package value="github.com/wostzone/hub/idprov/pkg/oobclient" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <method v="2" />
+    </configuration>
+    <configuration name="go test github.com/wostzone/hub/thingdir/pkg/dirserver" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="thingdir" />
-      <working_directory value="$PROJECT_DIR$/thingdir/pkg/thingdir-pb" />
+      <working_directory value="$PROJECT_DIR$/thingdir/pkg/dirserver" />
       <root_directory value="$PROJECT_DIR$/thingdir" />
       <kind value="PACKAGE" />
-      <package value="github.com/wostzone/hub/thingdir/pkg/thingdir-pb" />
+      <package value="github.com/wostzone/hub/thingdir/pkg/dirserver" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Go Test.TestBadConfigTemplate in github.com/wostzone/hub/mosquittomgr/internal" />
-      <item itemvalue="Go Test.TestStartStopMosqManager in github.com/wostzone/hub/mosquittomgr/internal" />
-      <item itemvalue="Go Test.TestStartStopThingDirectoryService in github.com/wostzone/hub/thingdir/pkg/thingdir-pb" />
-      <item itemvalue="Go Test.go test github.com/wostzone/hub/mosquittomgr/internal" />
-      <item itemvalue="Go Test.go test github.com/wostzone/hub/thingdir/pkg/thingdir-pb" />
+      <item itemvalue="Go Test.TestStartStopIDProvClient in github.com/wostzone/hub/idprov/pkg/idprovserver" />
+      <item itemvalue="Go Test.go test github.com/wostzone/hub/idprov/pkg/idprovclient" />
+      <item itemvalue="Go Test.go test github.com/wostzone/hub/idprov/pkg/idprovserver" />
+      <item itemvalue="Go Test.go test github.com/wostzone/hub/idprov/pkg/oobclient" />
+      <item itemvalue="Go Test.go test github.com/wostzone/hub/thingdir/pkg/dirserver" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Go Test.go test github.com/wostzone/hub/mosquittomgr/internal" />
-        <item itemvalue="Go Test.TestBadConfigTemplate in github.com/wostzone/hub/mosquittomgr/internal" />
-        <item itemvalue="Go Test.TestStartStopMosqManager in github.com/wostzone/hub/mosquittomgr/internal" />
-        <item itemvalue="Go Test.go test github.com/wostzone/hub/thingdir/pkg/thingdir-pb" />
-        <item itemvalue="Go Test.TestStartStopThingDirectoryService in github.com/wostzone/hub/thingdir/pkg/thingdir-pb" />
+        <item itemvalue="Go Test.go test github.com/wostzone/hub/thingdir/pkg/dirserver" />
+        <item itemvalue="Go Test.go test github.com/wostzone/hub/idprov/pkg/oobclient" />
+        <item itemvalue="Go Test.go test github.com/wostzone/hub/idprov/pkg/idprovclient" />
+        <item itemvalue="Go Test.go test github.com/wostzone/hub/idprov/pkg/idprovserver" />
+        <item itemvalue="Go Test.TestStartStopIDProvClient in github.com/wostzone/hub/idprov/pkg/idprovserver" />
       </list>
     </recent_temporary>
   </component>
@@ -436,7 +240,10 @@
     <MESSAGE value="dev iteration, bug fixes" />
     <MESSAGE value="Migration of client helper packages to wost-go.&#10;This is a first draft." />
     <MESSAGE value="dev iteration; fix bugs; improve tests" />
-    <option name="LAST_COMMIT_MESSAGE" value="dev iteration; fix bugs; improve tests" />
+    <MESSAGE value="dev iteration:&#10;- simplify config handling&#10;- move additional help packages into wost-go (discovery, config, hubnet, tlsserver, watcher)" />
+    <MESSAGE value="dev iteration:&#10;- migrate all helper packages into wost-go" />
+    <MESSAGE value="dev iteration, work with updated wost-go package." />
+    <option name="LAST_COMMIT_MESSAGE" value="dev iteration, work with updated wost-go package." />
   </component>
   <component name="VgoProject">
     <settings-migrated>true</settings-migrated>

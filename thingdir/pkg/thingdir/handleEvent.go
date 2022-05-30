@@ -1,4 +1,4 @@
-package thingdirpb
+package thingdir
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 )
 
 // handleEvent stores the last event or property values
-func (pb *ThingDirPB) handleEvent(topic string, message []byte) {
+func (pb *ThingDir) handleEvent(topic string, message []byte) {
 	thingID, topicType, eventName := mqttbinding.SplitTopic(topic)
 	_ = topicType
 	if eventName == mqttbinding.TopicSubjectProperties {

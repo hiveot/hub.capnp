@@ -32,7 +32,7 @@ func (cl *OOBClient) Directory() idprovclient.GetDirectoryMessage {
 // 	return response, err
 // }
 
-// getDirectory obtains the IDProv server directory
+// GetDirectory obtains the IDProv server directory
 // For use at startup
 //  client is the http client to use
 //  addr the server to connect to
@@ -53,7 +53,7 @@ func (cl *OOBClient) GetDirectory() (idprovclient.GetDirectoryMessage, error) {
 	return dir, err
 }
 
-// Invoke a POST to the server. Intended for testing
+// Post invokes a POST to the server. Intended for testing
 func (cl *OOBClient) Post(path string, payload interface{}) (result []byte, err error) {
 	response, err := cl.client.Post(path, payload)
 	return response, err

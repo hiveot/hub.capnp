@@ -6,18 +6,18 @@ import (
 	"os"
 
 	"github.com/sirupsen/logrus"
-	thingdirpb "github.com/wostzone/hub/thingdir/pkg/thingdir-pb"
+	"github.com/wostzone/hub/thingdir/pkg/thingdir"
 )
 
 func Main() {
 	main()
 }
 
-// main entry point for the thingdir protocol binding service
+// commandline entry point for the thingdir service
 func main() {
 	// with defaults
-	thingdirConfig := &thingdirpb.ThingDirPBConfig{}
-	hubConfig, err := config.LoadAllConfig(os.Args, "", thingdirpb.PluginID, &thingdirConfig)
+	thingdirConfig := &thingdir.ThingDirConfig{}
+	hubConfig, err := config.LoadAllConfig(os.Args, "", thingdir.PluginID, &thingdirConfig)
 	if err != nil {
 		logrus.Printf("bye bye")
 		os.Exit(1)
@@ -25,7 +25,7 @@ func main() {
 	// commandline overrides configfile
 	// flag.Parse()
 
-	pb := thingdirpb.NewThingDirPB(thingdirConfig, hubConfig)
+	pb := thingdir.NewThingDirPB(thingdirConfig, hubConfig)
 	err = pb.Start()
 
 	if err != nil {

@@ -30,7 +30,7 @@ var pluginsMutex = sync.Mutex{}
 //  pluginFolder is specific folder for plugins. Leave empty to search the OS PATH
 //  name is the executable name of the plugin.
 //  args is a list of commandline arguments
-//  returns *exec.Cmd
+// returns the plugin command
 func StartPlugin(pluginFolder string, name string, args []string) *exec.Cmd {
 	// logrus.Warningf("--: '%s'---", name)
 	logrus.Warningf("----------- Starting plugin '%s' ------------", name)
@@ -57,16 +57,16 @@ func StartPlugin(pluginFolder string, name string, args []string) *exec.Cmd {
 	startedPlugins[name] = cmd
 	err := cmd.Start()
 	if err != nil {
-		logrus.Errorf("StartPlugin: Plugin '%s' ended with error: %s", name, err)
+		logrus.Errorf("Plugin '%s' ended with error: %s", name, err)
 		return nil
 	}
 
 	go func() {
 		err = cmd.Wait()
 		if err != nil {
-			logrus.Errorf("StartPlugin: Plugin '%s' ended with error: %s", name, err)
+			logrus.Errorf("Plugin '%s' ended with error: %s", name, err)
 		} else {
-			logrus.Warningf("StartPlugin: Plugin '%s' has ended", name)
+			logrus.Warningf("Plugin '%s' has ended", name)
 		}
 		pluginsMutex.Lock()
 		startedPlugins[name] = nil

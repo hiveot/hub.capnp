@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"github.com/wostzone/wost-go/pkg/hubnet"
 	"net/http"
 	"time"
 
@@ -15,6 +16,8 @@ import (
 	"github.com/wostzone/wost-go/pkg/tlsserver"
 )
 
+const IdProvServiceName = "idprov"
+const DefaultCertStore = "clientcerts"
 const RouteGetDirectory = idprovclient.IDProvDirectoryPath
 const RouteGetDeviceStatus = "/idprov/status/{deviceID}"
 const RoutePostOOB = "/idprov/oobsecret"
@@ -33,21 +36,54 @@ var myDirectory = idprovclient.GetDirectoryMessage{
 	Version:   "1",
 }
 
+// IDProvConfig server configuration
+type IDProvConfig struct {
+	// Plugin ID of this instance. Default is 'IdProvServiceName'
+	InstanceID string `yaml:"instanceID"`
+
+	// Nr days issued certificates are valid for.
+	// Defaults to 7 days.
+	CertValidityDays uint `yaml:"certValidityDays"`
+
+	// CertStoreFolder is the location where the server stores issued client certificates
+	// Default is "" which means issued certificates are not stored
+	CertStoreFolder string `yaml:"certStoreFolder"`
+
+	// DisableDiscovery disables publishing of DNS-SD discovery records
+	// Default is false (enabled)
+	DisableDiscovery bool `yaml:"disableDiscovery"`
+
+	// listening address.
+	// Default is the outbound interface address.
+	IdpAddress string `yaml:"idpAddress"`
+
+	// idprov listening port
+	// Default is idprovclient.DefaultPort
+	IdpPort uint `yaml:"idpPort"`
+
+	// serviceName to publish in discovery if enabled.
+	// Default is 'idprovclient.IdprovServiceName'
+	ServiceName string `yaml:"serviceName"`
+}
+
+// IDProvServer runs the server for the IoT provisioning protocol.
+//
+// This verifies the device secret with the out-of-bound provided secret and issues an IoT device
+// client certificate, signed by the CA.
+//
+// If enabled, a discovery record is published using DNS-SD to allow potential clients to find the
+// address and ports of the provisioning server, and optionally additional services.
 type IDProvServer struct {
-	// config
-	address    string // listening address
+	// service configuration
+	config *IDProvConfig
+
+	//address    string // listening address
 	directory  idprovclient.GetDirectoryMessage
 	serverCert *tls.Certificate
 	caCert     *x509.Certificate
 	caKey      *ecdsa.PrivateKey
 	// caKeyPEM   []byte // loaded CA key PEM
-	//
-	certStore              string // folder where generated client certificates are stored
-	deviceCertValidityDays uint   // nr of days a new certificate is valid for
-	port                   uint   // listening port
-	// the discovery service name. Use "" to disable discovery or idprovclient.IdprovServiceName for default
-	serviceName string
-	instanceID  string // unique service ID for discovery and connections
+	//instanceID string // unique service ID for discovery and connections
 
 	// runtime status
 	running   bool
@@ -84,7 +120,7 @@ func (srv *IDProvServer) ServeDirectory(resp http.ResponseWriter, req *http.Requ
 func (srv *IDProvServer) Start() error {
 	var err error
 
-	if srv.instanceID == "" || srv.port == 0 || srv.caKey == nil || srv.caCert == nil {
+	if srv.caKey == nil || srv.caCert == nil {
 		err := fmt.Errorf("IDProvServer.Start: Missing parameters")
 		logrus.Error(err)
 		return err
@@ -93,7 +129,7 @@ func (srv *IDProvServer) Start() error {
 		// srv.listenAddress = listenAddress
 		srv.running = true
 
-		logrus.Warningf("Starting IdProv server on %s:%d", srv.address, srv.port)
+		logrus.Warningf("Starting IdProv server on %s:%d", srv.config.IdpAddress, srv.config.IdpPort)
 		// srv.directory.CaCertPEM, err = ioutil.ReadFile(srv.caCertPath)
 		// if err != nil {
 		// 	logrus.Errorf("IDProvServer.Start: Loading CA Certificate failed: %s", err)
@@ -106,7 +142,7 @@ func (srv *IDProvServer) Start() error {
 		// }
 
 		// do not use the authenticator as the trust is still to be established
-		srv.tlsServer = tlsserver.NewTLSServer(srv.address, srv.port,
+		srv.tlsServer = tlsserver.NewTLSServer(srv.config.IdpAddress, srv.config.IdpPort,
 			srv.serverCert, srv.caCert)
 		err := srv.tlsServer.Start()
 		if err != nil {
@@ -119,8 +155,8 @@ func (srv *IDProvServer) Start() error {
 		srv.tlsServer.AddHandler(RoutePostOOB, srv.ServePostOOB)
 		srv.tlsServer.AddHandlerNoAuth(RoutePostProvisionRequest, srv.ServeProvisionRequest)
 
-		if srv.serviceName != "" {
-			srv.discoServer, err = srv.ServeIdProvDiscovery(srv.serviceName)
+		if !srv.config.DisableDiscovery {
+			srv.discoServer, err = srv.ServeIdProvDiscovery(srv.config.ServiceName)
 			if err != nil {
 				logrus.Errorf("IdProvServer.Start: failed starting discovery: %s (continuing without)", err)
 				err = nil
@@ -147,38 +183,41 @@ func (srv *IDProvServer) Stop() {
 
 // NewIDProvServer creates a new instance of the IoT Device Provisioning Server
 //  instanceID is the unique ID for this service used in discovery and communication
-//  address the server listening address. Must use the same address as the services
-//  port server listening port
+//  config with server configuration settings.
 //  serverCert, server own TLS certificate
 //  caCert CA x509 Certificate
 //  caKey CA private/public Key PEM file needed to issue signed certificates
-//  certStore location of client certificate storage
-//  certValidityDays nr of days device certificate are valid for
-//  clientFolder location of generated client certificates
 //  serviceName with the discovery services name. Use "" to disable discover, or idprovclient.IdprovServiceName for default
 func NewIDProvServer(
-	instanceID string,
-	address string,
-	port uint,
+	config *IDProvConfig,
 	serverCert *tls.Certificate,
 	caCert *x509.Certificate,
 	caKey *ecdsa.PrivateKey,
-	certStore string,
-	certValidityDays uint,
-	serviceName string) *IDProvServer {
+) *IDProvServer {
+
+	if config.InstanceID == "" {
+		config.InstanceID = IdProvServiceName
+	}
+	if config.IdpPort == 0 {
+		config.IdpPort = idprovclient.DefaultPort
+	}
+	if config.IdpAddress == "" {
+		config.IdpAddress = hubnet.GetOutboundIP("").String()
+	}
+	if config.CertValidityDays <= 0 {
+		config.CertValidityDays = 7
+	}
+	if config.ServiceName == "" {
+		config.ServiceName = idprovclient.IdprovServiceName
+	}
 
 	srv := IDProvServer{
-		address:                address,
-		serverCert:             serverCert,
-		caCert:                 caCert,
-		caKey:                  caKey,
-		certStore:              certStore,
-		deviceCertValidityDays: certValidityDays,
-		directory:              myDirectory,
-		serviceName:            serviceName,
-		instanceID:             instanceID,
-		oobSecrets:             make(map[string]string),
-		port:                   port,
+		config:     config,
+		serverCert: serverCert,
+		caCert:     caCert,
+		caKey:      caKey,
+		directory:  myDirectory,
+		oobSecrets: make(map[string]string),
 	}
 	return &srv
 }

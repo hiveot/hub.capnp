@@ -21,7 +21,7 @@ clean: ## Clean distribution files
 	rm -f $(DIST_FOLDER)/bin/*
 	rm -f $(DIST_FOLDER)/arm/*
 
-thingdir: ## Build thingdir-pb plugin
+thingdir: ## Build thingdir plugin
 	mkdir -p $(DIST_FOLDER)/bin
 	go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go
 	@echo "> SUCCESS. Plugin '$@' can be found at $(DIST_FOLDER)/bin/$@ and $(DIST_FOLDER)/arm/$@"

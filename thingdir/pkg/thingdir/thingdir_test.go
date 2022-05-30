@@ -1,4 +1,4 @@
-package thingdirpb_test
+package thingdir_test
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/wostzone/hub/thingdir/pkg/dirclient"
-	thingdirpb "github.com/wostzone/hub/thingdir/pkg/thingdir-pb"
+	"github.com/wostzone/hub/thingdir/pkg/thingdir"
 	"github.com/wostzone/wost-go/pkg/config"
 	"github.com/wostzone/wost-go/pkg/exposedthing"
 	"github.com/wostzone/wost-go/pkg/logging"
@@ -68,13 +68,13 @@ func TestMain(m *testing.M) {
 }
 
 func TestStartStopThingDirectoryService(t *testing.T) {
-	tdirConfig := &thingdirpb.ThingDirPBConfig{}
-	configFile := path.Join(hubConfig.ConfigFolder, thingdirpb.PluginID+".yaml")
+	tdirConfig := &thingdir.ThingDirConfig{}
+	configFile := path.Join(hubConfig.ConfigFolder, thingdir.PluginID+".yaml")
 	err := config.LoadYamlConfig(configFile, &tdirConfig, nil)
 
-	//hubConfig, err := config.LoadCommandlineConfig(homeFolder, thingdirpb.PluginID, &tdirConfig)
+	//hubConfig, err := config.LoadCommandlineConfig(homeFolder, thingdir.PluginID, &tdirConfig)
 	assert.NoError(t, err)
-	tdirPB := thingdirpb.NewThingDirPB(tdirConfig, &hubConfig)
+	tdirPB := thingdir.NewThingDirPB(tdirConfig, &hubConfig)
 	err = tdirPB.Start()
 	assert.NoError(t, err)
 
@@ -92,28 +92,28 @@ func TestStartStopThingDirectoryService(t *testing.T) {
 }
 
 func TestStartThingDirBadAddress(t *testing.T) {
-	tdirConfig := &thingdirpb.ThingDirPBConfig{}
+	tdirConfig := &thingdir.ThingDirConfig{}
 	hc := hubConfig // copy
 	hc.Address = "wrongaddress"
 
-	tdirPB := thingdirpb.NewThingDirPB(tdirConfig, &hc)
+	tdirPB := thingdir.NewThingDirPB(tdirConfig, &hc)
 	err := tdirPB.Start()
 	assert.Error(t, err)
 }
 
 func TestUpdateTD(t *testing.T) {
-	tdirConfig := &thingdirpb.ThingDirPBConfig{DirAddress: hubConfig.Address}
-	configFile := path.Join(hubConfig.ConfigFolder, thingdirpb.PluginID+".yaml")
+	tdirConfig := &thingdir.ThingDirConfig{DirAddress: hubConfig.Address}
+	configFile := path.Join(hubConfig.ConfigFolder, thingdir.PluginID+".yaml")
 	err := config.LoadYamlConfig(configFile, &tdirConfig, nil)
 
-	// hubConfig, err := config.LoadHubConfig("", homeFolder, thingdirpb.PluginID)
+	// hubConfig, err := config.LoadHubConfig("", homeFolder, thingdir.PluginID)
 	assert.NoError(t, err)
-	// err = config.LoadPluginConfig(hubConfig.ConfigFolder, thingdirpb.PluginID, &tdirConfig, nil)
+	// err = config.LoadPluginConfig(hubConfig.ConfigFolder, thingdir.PluginID, &tdirConfig, nil)
 
-	// hubConfig, err := config.LoadCommandlineConfig(homeFolder, thingdirpb.PluginID, &tdirConfig)
+	// hubConfig, err := config.LoadCommandlineConfig(homeFolder, thingdir.PluginID, &tdirConfig)
 	assert.NoError(t, err)
 
-	tdirPB := thingdirpb.NewThingDirPB(tdirConfig, &hubConfig)
+	tdirPB := thingdir.NewThingDirPB(tdirConfig, &hubConfig)
 	err = tdirPB.Start()
 	assert.NoError(t, err)
 
@@ -149,11 +149,11 @@ func TestUpdatePropValues(t *testing.T) {
 	const event1Name = "event1"
 	const event1Value = "eventValue1"
 
-	tdirConfig := &thingdirpb.ThingDirPBConfig{DirAddress: hubConfig.Address}
-	configFile := path.Join(hubConfig.ConfigFolder, thingdirpb.PluginID+".yaml")
+	tdirConfig := &thingdir.ThingDirConfig{DirAddress: hubConfig.Address}
+	configFile := path.Join(hubConfig.ConfigFolder, thingdir.PluginID+".yaml")
 	err := config.LoadYamlConfig(configFile, &tdirConfig, nil)
 
-	tdirPB := thingdirpb.NewThingDirPB(tdirConfig, &hubConfig)
+	tdirPB := thingdir.NewThingDirPB(tdirConfig, &hubConfig)
 	err = tdirPB.Start()
 	assert.NoError(t, err)
 

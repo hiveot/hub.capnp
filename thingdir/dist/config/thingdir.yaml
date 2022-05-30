@@ -1,4 +1,4 @@
-# thingdir-pb.yaml is the configuration for the directory service
+# thingdir.yaml is the configuration for the directory service
 # For normal operation it is recommended to use the defaults.
 
 #--- Built-in directory server settings

@@ -1,23 +1,37 @@
-# Example launcher configuration
+# Shared configuration of Hub services including message bus, auth and directory services
 
-# Message bus configuration, paths are relative to application home which is the parent folder of the launcher binary
-address: "127.0.0.1" # IP or hostname of message bus. Defaults to outbound interface address
-#mqttPortUnpw: 8883 # username/password based authn over MQTT/TLS
-#mqttPortCert: 8884 # certificate based authn over MQTT/TLS
-#mqttPortWS: 8885 # username/password authn over WebSocket/TLS
+# Services listening address. Default is automatic based on the outbound interface.
+# Set this to only listen on a particular subnet.
+address: "127.0.0.1"
 
-#mqttTimeout: 3 # Mqtt connection timeout, default is 3
+# MQTT listening port for username/password authentication using binary MQTT protocol.
+# Clients that use the binary MQTT protocol should use this port.
+#mqttPortUnpw: 8883
 
-# Default logging level
-logLevel: "info" # debug, info, warning, error. Default is warning
+# MQTT listening port for client certificate authentication.
+# Clients with a Hub CA signed certificate should connect using this port.
+#mqttPortCert: 8884
 
-#Folders are relative to the app home directory. Use absolute path if they reside elsewhere
-#configFolder: "./config"
-#certsFolder: "./certs"
+# MQTT listening port for username/password authentication over websocket/TLS.
+# Web clients that use websockets (like paho) connect using this port.
+#mqttPortWS: 8885
+
+# Mqtt connection timeout, default is 3
+#mqttTimeout: 3
+
+# Logging level to use by services. "debug", "info", "warning" (default), "error"
+# Individual plugin services can override this in their own config, if supported.
+logLevel: "info"
+
+# Folders to look for configuration, certificates and logging.
+# These are relative to the app home directory. Use absolute path if they reside elsewhere.
+#configFolder: "./config"          # default ./config
+#certsFolder: "./certs"            # default ./certs
+#logFolder: "./log"                # default ./log
 
 
-# keep the existing server and hub client certificates and keys (signed by CA) on startup
-# instead of generating a new certificate. Default is false
-# The server certificate is used to validate access tokens so generating a new certificate invalidates
-# existing access tokens.
+# Keep the existing server key/certificate on startup.
+# By default a new server key and certificate is generated on startup of the launcher and
+# existing refresh/access tokens will be invalidated on restart. Disable for testing or
+# when clients should remain logged in between restarts.
 #keepServerCertOnStartup: false

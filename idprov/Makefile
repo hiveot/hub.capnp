@@ -4,7 +4,7 @@ INSTALL_HOME=~/bin/wosthub
 
 FORCE: help
 
-all: oob idprov-pb ## make the protocol binding and oob utility
+all: oob idprov ## make IDProv server and oob utility
 
 clean: ## Clean distribution files
 	go mod tidy
@@ -20,12 +20,12 @@ oob: ## Build the oob utility
 	mkdir -p $(DIST_FOLDER)/bin
 	go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go
 
-idprov-pb: ## Build idprov-pb protocol binding plugin
+idprov: ## Build idprov server plugin
 	mkdir -p $(DIST_FOLDER)/bin
 	go build -o $(DIST_FOLDER)/bin/$@ ./cmd/$@/main.go
 
 
-install: all ## Install idprov-pb and oob into ~/bin/wost/bin 
+install: all ## Install idprov server and oob into ~/bin/wost/bin
 	mkdir -p $(INSTALL_HOME)/bin
 	mkdir -p $(INSTALL_HOME)/config
 	mkdir -p $(INSTALL_HOME)/logs

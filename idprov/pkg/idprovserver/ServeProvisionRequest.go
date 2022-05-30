@@ -94,7 +94,7 @@ func (srv *IDProvServer) ServeProvisionRequest(resp http.ResponseWriter, req *ht
 	newClientCert, err := certsetup.CreateHubClientCert(
 		provReq.DeviceID, certsclient.OUIoTDevice,
 		ownerPubKey, srv.caCert, srv.caKey,
-		time.Now().Add(-10*time.Second), int(srv.deviceCertValidityDays))
+		time.Now().Add(-10*time.Second), int(srv.config.CertValidityDays))
 	if err != nil {
 		srv.tlsServer.WriteBadRequest(resp, fmt.Sprintf("ServeProvisionRequest: Failed creating client cert for %s: %s", provReq.DeviceID, err))
 		return
@@ -102,8 +102,8 @@ func (srv *IDProvServer) ServeProvisionRequest(resp http.ResponseWriter, req *ht
 	// save the certificate using the device ID as the name
 	// If the deviceID contains invalid characters this could fail
 	newCertFile := provReq.DeviceID + "Cert.pem"
-	if srv.certStore != "" {
-		pemPath := path.Join(srv.certStore, newCertFile)
+	if srv.config.CertStoreFolder != "" {
+		pemPath := path.Join(srv.config.CertStoreFolder, newCertFile)
 		err = certsclient.SaveX509CertToPEM(newClientCert, pemPath)
 		if err != nil {
 			srv.tlsServer.WriteInternalError(resp, fmt.Sprintf("ServeProvisionRequest: Failed creating client cert for %s: %s", provReq.DeviceID, err))
@@ -124,10 +124,10 @@ func (srv *IDProvServer) ServeProvisionRequest(resp http.ResponseWriter, req *ht
 	if validCert {
 		mySecret = ""
 		logrus.Infof("ServeProvisionRequest: Authorized client '%s' (%s) for certificate generation/renewal of IoT device '%s'. Validity=%d days",
-			peerCert.Subject.CommonName, peerCert.Subject.OrganizationalUnit, provReq.DeviceID, srv.deviceCertValidityDays)
+			peerCert.Subject.CommonName, peerCert.Subject.OrganizationalUnit, provReq.DeviceID, srv.config.CertValidityDays)
 	} else {
 		logrus.Infof("ServeProvisionRequest: Authorized certificate generation for device '%s' using OOB verification. Validity is %d days",
-			provReq.DeviceID, srv.deviceCertValidityDays)
+			provReq.DeviceID, srv.config.CertValidityDays)
 	}
 	signature, _ := idprovclient.Sign(string(serialized), mySecret)
 	respStatus.Signature = signature

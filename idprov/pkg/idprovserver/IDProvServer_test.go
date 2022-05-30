@@ -22,18 +22,24 @@ const idProvTestPort = 9880
 var idProvTestAddrPort = fmt.Sprintf("%s:%d", idProvTestAddr, idProvTestPort)
 
 const clientOobSecret = "secret1"
-const certValidityDays = 3
+const certValidityDays = 1
 const idprovServiceID = "idprov"
 
 // These are set in TestMain
+// cert folder where the iot device stores its received cert
 var clientCertFolder string
+
+// cert folder for CA, server and plugin certificates
 var serverCertFolder string
 
+// folder where IDP stores its issued certs
 var certStoreFolder string
+
 var device1CaCertPath string
 var device1CertPath string
 var device1KeyPath string
 
+var idpConfig idprovserver.IDProvConfig
 var testCerts testenv.TestCerts
 
 // var idProvServerIP = idprovserver.GetIPAddr("")
@@ -77,11 +83,20 @@ func TestMain(m *testing.M) {
 	device1KeyPath = path.Join(clientCertFolder, "device1Key.pem")
 	device1CaCertPath = path.Join(clientCertFolder, "caCert.pem")
 
-	idpServer = idprovserver.NewIDProvServer(idprovServiceID,
-		idProvTestAddr, idProvTestPort,
-		testCerts.ServerCert, testCerts.CaCert, testCerts.CaKey,
-		certStoreFolder, certValidityDays,
-		testDiscoveryType)
+	//idpServer = idprovserver.NewIDProvServer(idprovServiceID,
+	//	idProvTestAddr, idProvTestPort,
+	//	testCerts.ServerCert, testCerts.CaCert, testCerts.CaKey,
+	//	certStoreFolder, certValidityDays,
+	//	testDiscoveryType)
+	idpConfig = idprovserver.IDProvConfig{
+		InstanceID:       idprovServiceID,
+		IdpAddress:       idProvTestAddr,
+		IdpPort:          idProvTestPort,
+		CertStoreFolder:  certStoreFolder,
+		CertValidityDays: certValidityDays,
+	}
+	idpServer = idprovserver.NewIDProvServer(&idpConfig,
+		testCerts.ServerCert, testCerts.CaCert, testCerts.CaKey)
 
 	idpServer.Start()
 	res := m.Run()
@@ -109,12 +124,15 @@ func TestStartStopIDProvClient(t *testing.T) {
 func TestStartStopAlreadyRunning(t *testing.T) {
 	const testDiscoveryType = "_test._idprov._tcp"
 
-	idpServer2 := idprovserver.NewIDProvServer(idprovServiceID,
-		idProvTestAddr, idProvTestPort,
+	//idpServer2 := idprovserver.NewIDProvServer(idprovServiceID,
+	//	idProvTestAddr, idProvTestPort,
+	//	testCerts.ServerCert,
+	//	testCerts.CaCert, testCerts.CaKey,
+	//	certStoreFolder, certValidityDays,
+	//	testDiscoveryType)
+	idpServer2 := idprovserver.NewIDProvServer(&idpConfig,
 		testCerts.ServerCert,
-		testCerts.CaCert, testCerts.CaKey,
-		certStoreFolder, certValidityDays,
-		testDiscoveryType)
+		testCerts.CaCert, testCerts.CaKey)
 
 	// can't listen on the same port twice
 	err := idpServer2.Start()
@@ -125,27 +143,39 @@ func TestStartStopAlreadyRunning(t *testing.T) {
 func TestStartStopMissingPort(t *testing.T) {
 	const testDiscoveryType = "_test._idprov._tcp"
 
-	idpServer2 := idprovserver.NewIDProvServer(idprovServiceID,
-		idProvTestAddr, 0,
+	//idpServer2 := idprovserver.NewIDProvServer(idprovServiceID,
+	//	idProvTestAddr, 0,
+	//	testCerts.ServerCert,
+	//	testCerts.CaCert, testCerts.CaKey,
+	//	certStoreFolder, certValidityDays,
+	//	testDiscoveryType)
+	config2 := idpConfig
+	config2.IdpPort = 0
+	idpServer2 := idprovserver.NewIDProvServer(&config2,
 		testCerts.ServerCert,
-		testCerts.CaCert, testCerts.CaKey,
-		certStoreFolder, certValidityDays,
-		testDiscoveryType)
-
+		testCerts.CaCert, testCerts.CaKey)
 	err := idpServer2.Start()
-	assert.Error(t, err)
+	// should have used default port
+	assert.NoError(t, err)
+	idpServer2.Stop()
 }
 
 func TestStartStopJustPort(t *testing.T) {
 	const testDiscoveryType = "_test._idprov._tcp"
 
 	// listen on the port on all addresses. Discovery will fail though
-	idpServer2 := idprovserver.NewIDProvServer(idprovServiceID,
-		"", idProvTestPort+1,
+	//idpServer2 := idprovserver.NewIDProvServer(idprovServiceID,
+	//	"", idProvTestPort+1,
+	//	testCerts.ServerCert,
+	//	testCerts.CaCert, testCerts.CaKey,
+	//	certStoreFolder, certValidityDays,
+	//	testDiscoveryType)
+	config2 := idpConfig
+	config2.IdpAddress = ""
+	config2.IdpPort = idProvTestPort + 1
+	idpServer2 := idprovserver.NewIDProvServer(&config2,
 		testCerts.ServerCert,
-		testCerts.CaCert, testCerts.CaKey,
-		certStoreFolder, certValidityDays,
-		testDiscoveryType)
+		testCerts.CaCert, testCerts.CaKey)
 
 	err := idpServer2.Start()
 	assert.NoError(t, err)
@@ -166,23 +196,32 @@ func TestStartStopBadCertFolder(t *testing.T) {
 func TestStartStopMissingCA(t *testing.T) {
 	const testDiscoveryType = "_test._idprov._tcp"
 	const idProvTestPort2 = 9998
-
-	idpServer2 := idprovserver.NewIDProvServer(idprovServiceID,
-		idProvTestAddr, idProvTestPort2,
+	//
+	//idpServer2 := idprovserver.NewIDProvServer(idprovServiceID,
+	//	idProvTestAddr, idProvTestPort2,
+	//	testCerts.ServerCert,
+	//	nil, testCerts.CaKey,
+	//	certStoreFolder, certValidityDays,
+	//	testDiscoveryType)
+	config2 := idpConfig
+	config2.IdpAddress = idProvTestAddr
+	config2.IdpPort = idProvTestPort2
+	idpServer2 := idprovserver.NewIDProvServer(&config2,
 		testCerts.ServerCert,
-		nil, testCerts.CaKey,
-		certStoreFolder, certValidityDays,
-		testDiscoveryType)
+		nil, testCerts.CaKey)
 
 	err := idpServer2.Start()
 	assert.Error(t, err)
 
-	idpServer2 = idprovserver.NewIDProvServer(idprovServiceID,
-		idProvTestAddr, idProvTestPort2,
+	//idpServer2 = idprovserver.NewIDProvServer(idprovServiceID,
+	//	idProvTestAddr, idProvTestPort2,
+	//	testCerts.ServerCert,
+	//	testCerts.CaCert, nil,
+	//	certStoreFolder, certValidityDays,
+	//	testDiscoveryType)
+	idpServer2 = idprovserver.NewIDProvServer(&config2,
 		testCerts.ServerCert,
-		testCerts.CaCert, nil,
-		certStoreFolder, certValidityDays,
-		testDiscoveryType)
+		testCerts.CaCert, nil)
 
 	err = idpServer2.Start()
 	assert.Error(t, err)
@@ -207,7 +246,8 @@ func TestGetDirectory(t *testing.T) {
 	removeDeviceCerts()
 	idpClient := idprovclient.NewIDProvClient(deviceID1,
 		idProvTestAddrPort, device1CertPath, device1KeyPath, device1CaCertPath)
-	idpClient.Start()
+	err := idpClient.Start()
+	assert.NoError(t, err)
 	//
 	directory, err := idpClient.GetDirectory()
 	assert.NoError(t, err)
@@ -228,7 +268,8 @@ func TestGetDeviceStatusFailAuth(t *testing.T) {
 
 	idpClient := idprovclient.NewIDProvClient(deviceID1, idProvTestAddrPort,
 		device1CertPath, device1KeyPath, device1CaCertPath)
-	idpClient.Start()
+	err = idpClient.Start()
+	assert.NoError(t, err)
 
 	// authentication is required
 	_, err = idpClient.GetDeviceStatus(deviceID1)

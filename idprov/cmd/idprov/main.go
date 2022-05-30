@@ -3,16 +3,15 @@ package main
 import (
 	"crypto/ecdsa"
 	"flag"
-	"github.com/wostzone/wost-go/pkg/certsclient"
-	"github.com/wostzone/wost-go/pkg/logging"
-	"github.com/wostzone/wost-go/pkg/proc"
 	"os"
 	"path"
 
 	"github.com/sirupsen/logrus"
-	idprovpb "github.com/wostzone/hub/idprov/pkg/idprov-pb"
-	"github.com/wostzone/hub/idprov/pkg/idprovclient"
+	"github.com/wostzone/hub/idprov/pkg/idprovserver"
+	"github.com/wostzone/wost-go/pkg/certsclient"
 	"github.com/wostzone/wost-go/pkg/config"
+	"github.com/wostzone/wost-go/pkg/logging"
+	"github.com/wostzone/wost-go/pkg/proc"
 )
 
 // main Parse commandline options and launch IDProvisioning protocol binding service
@@ -20,32 +19,31 @@ func main() {
 	var caKey *ecdsa.PrivateKey
 
 	// Service configuration with defaults
-	idpConfig := &idprovpb.IDProvPBConfig{
-		IdpCerts:        idprovpb.DefaultCertStore,
-		ClientID:        idprovpb.PluginID,
-		EnableDiscovery: true,
-		IdpPort:         idprovclient.DefaultPort,
-		IdpAddress:      "",
-		ValidForDays:    30,
+	idpConfig := &idprovserver.IDProvConfig{
+		CertStoreFolder: idprovserver.DefaultCertStore,
+		//InstanceID:      idprovpb.PluginID,
+		DisableDiscovery: false,
+		//IdpPort:         idprovclient.DefaultPort,
+		//IdpAddress:      "",
+		//ValidForDays:    30,
 	}
 
 	// Commandline can override configuration
 	// flag.StringVar(&idpConfig.Address, "address", "localhost", "Listening address of the provisioning server.")
 	flag.StringVar(&idpConfig.IdpAddress, "idpAddress", idpConfig.IdpAddress, "IDP Server address. Default is Hub address")
-	flag.StringVar(&idpConfig.IdpCerts, "idpCerts", idpConfig.IdpCerts, "Folder with provisioned certificates")
+	flag.StringVar(&idpConfig.CertStoreFolder, "idpCerts", idpConfig.CertStoreFolder, "Folder with provisioned certificates")
 	flag.UintVar(&idpConfig.IdpPort, "idpPort", idpConfig.IdpPort, "Listening port of the provisioning server.")
-	flag.StringVar(&idpConfig.ClientID, "clientID", idprovpb.PluginID, "Plugin Client ID")
+	flag.StringVar(&idpConfig.InstanceID, "clientID", idprovserver.IdProvServiceName, "Plugin Client ID")
 
 	appPath, _ := os.Executable()
 	appFolder := path.Dir(path.Dir(appPath))
-	hubConfig, err := config.LoadAllConfig(nil, appFolder, idprovpb.PluginID, &idpConfig)
+	hubConfig, err := config.LoadAllConfig(nil, appFolder, idprovserver.IdProvServiceName, &idpConfig)
 	if err != nil {
 		logrus.Printf("bye bye")
 		os.Exit(1)
 	}
 	logging.SetLogging(hubConfig.Loglevel, hubConfig.LogFile)
-	// commandline overrides configfile
-	// flag.Parse()
+
 	serverCertPath := path.Join(hubConfig.CertsFolder, config.DefaultServerCertFile)
 	serverKeyPath := path.Join(hubConfig.CertsFolder, config.DefaultServerKeyFile)
 	serverCert, err := certsclient.LoadTLSCertFromPEM(serverCertPath, serverKeyPath)
@@ -54,13 +52,16 @@ func main() {
 		caKey, err = certsclient.LoadKeysFromPEM(caKeyPath)
 	}
 	if err != nil {
-		logrus.Fatalf("idprov-pb.main: Missing CA and/or server certificate. Unable to continue: %s", err)
+		logrus.Fatalf("idprov.main: Missing CA and/or server certificate. Unable to continue: %s", err)
 		os.Exit(1)
 	}
-	pb := idprovpb.NewIDProvPB(idpConfig,
-		hubConfig.Address,
-		uint(hubConfig.MqttPortCert),
-		uint(hubConfig.MqttPortWS),
+	if idpConfig.IdpAddress == "" {
+		idpConfig.IdpAddress = hubConfig.Address
+	}
+	pb := idprovserver.NewIDProvServer(
+		idpConfig,
+		//uint(hubConfig.MqttPortCert),
+		//uint(hubConfig.MqttPortWS),
 		serverCert,
 		hubConfig.CaCert,
 		caKey)

@@ -1,4 +1,4 @@
-package thingdirpb
+package thingdir
 
 import (
 	"fmt"
@@ -15,10 +15,10 @@ import (
 	"path"
 )
 
-const PluginID = "thingdir-pb"
+const PluginID = "thingdir"
 
-// ThingDirPBConfig protocol binding configuration
-type ThingDirPBConfig struct {
+// ThingDirConfig plugin configuration
+type ThingDirConfig struct {
 	// Directory server settings for the built-in directory server
 	DisableDirServer bool   `yaml:"disableDirServer"` // Disable the built-in directory server and use an external server
 	DirAddress       string `yaml:"dirAddress"`       // Directory server address, default is that of the mqtt server
@@ -49,9 +49,9 @@ type ThingDirPBConfig struct {
 	DirectoryStoreFolder string `yaml:"storeFolder"` // location of directory files
 }
 
-// ThingDirPB Directory Protocol Binding for the WoST Hub
-type ThingDirPB struct {
-	config     ThingDirPBConfig
+// ThingDir Directory Protocol Binding for the WoST Hub
+type ThingDir struct {
+	config     ThingDirConfig
 	hubConfig  config.HubConfig
 	dirServer  *dirserver.DirectoryServer
 	dirClient  *dirclient.DirClient
@@ -65,7 +65,7 @@ type ThingDirPB struct {
 //  2. Creates a client to update the directory server
 //  3. Creates a client to subscribe to TD updates on the message bus
 // This automatically captures updates to TD documents published on the message bus
-func (pb *ThingDirPB) Start() error {
+func (pb *ThingDir) Start() error {
 	logrus.Infof("ThingDirPB.Start")
 	var err error
 
@@ -93,9 +93,11 @@ func (pb *ThingDirPB) Start() error {
 		pb.dirServer = dirserver.NewDirectoryServer(
 			pb.config.PbClientID,
 			pb.config.DirectoryStoreFolder,
-			pb.config.DirAddress, pb.config.DirPort,
+			pb.config.DirAddress,
+			pb.config.DirPort,
 			pb.config.ServiceName,
-			serverCert, pb.hubConfig.CaCert,
+			serverCert,
+			pb.hubConfig.CaCert,
 			//loginAuth,
 			pb.authorizer)
 
@@ -130,7 +132,7 @@ func (pb *ThingDirPB) Start() error {
 }
 
 // Stop the ThingDir service
-func (pb *ThingDirPB) Stop() {
+func (pb *ThingDir) Stop() {
 	logrus.Infof("ThingDirPB.Stop")
 	if pb.mqttClient != nil {
 		pb.mqttClient.Disconnect()
@@ -151,7 +153,7 @@ func (pb *ThingDirPB) Stop() {
 // therefore match that of the certificate. Default is the hub's mqtt address.
 //  config with the plugin configuration and overrides from the defaults
 //  hubConfig with default server address and certificate folder
-func NewThingDirPB(thingdirconf *ThingDirPBConfig, hubConfig *config.HubConfig) *ThingDirPB {
+func NewThingDirPB(thingdirconf *ThingDirConfig, hubConfig *config.HubConfig) *ThingDir {
 
 	// Directory server defaults when using the built-in server
 	if thingdirconf.DirAddress == "" {
@@ -209,7 +211,7 @@ func NewThingDirPB(thingdirconf *ThingDirPBConfig, hubConfig *config.HubConfig) 
 	aclFile := path.Join(hubConfig.ConfigFolder, aclstore.DefaultAclFile)
 	aclStore := aclstore.NewAclFileStore(aclFile, "ThingDirPB")
 
-	tdir := ThingDirPB{
+	tdir := ThingDir{
 		config:     *thingdirconf,
 		hubConfig:  *hubConfig,
 		mqttClient: mqttclient.NewMqttClient(PluginID, hubConfig.CaCert, 0),

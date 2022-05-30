@@ -27,7 +27,7 @@ func (srv *IDProvServer) ServeStatus(userID string, resp http.ResponseWriter, re
 	}
 
 	// Check if a certificate already exists
-	clientCertFile := path.Join(srv.certStore, deviceID+"Cert.pem")
+	clientCertFile := path.Join(srv.config.CertStoreFolder, deviceID+"Cert.pem")
 	clientCertPEM, err := ioutil.ReadFile(clientCertFile)
 	if err == nil {
 		logrus.Infof("IdProvServer.ServeStatus. Certificate for device '%s' exists. Status is approved.", deviceID)
