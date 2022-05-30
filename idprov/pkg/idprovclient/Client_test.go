@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
-	"github.com/wostzone/wost-go/pkg/logging"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -25,31 +24,7 @@ import (
 // no hostname in certs
 const idProvServerAddr = "127.0.0.1:4444"
 
-var clientCertFolder = ""
-
-// var serverCertFolder = ""
-var caCertPath = ""
-
-// var caKeyPath = ""
-var clientCertPath = ""
-var clientKeyPath = ""
-
 // var mock1 *tlsserver.TLSServer
-
-// This must match the use of deviceID of the protocol definition
-var mockDirectory = idprovclient.GetDirectoryMessage{
-	Endpoints: idprovclient.DirectoryEndpoints{
-		GetDirectory:            idprovclient.IDProvDirectoryPath,
-		PostProvisioningRequest: "/idprov/provreq",
-		GetDeviceStatus:         "/idprov/status/{deviceID}",
-		PostOobSecret:           "/idprov/oobSecret",
-		// PostOOB:    "/idprov/oob",
-	},
-	CaCertPEM: nil, // create in testmain
-	Version:   "1",
-}
-
-var testCerts testenv.TestCerts
 
 func startTestServer(mux *http.ServeMux) (*http.Server, error) {
 	var err error
@@ -90,26 +65,6 @@ func removeDeviceCerts() {
 // func removeServerCerts() {
 // 	exec.Command("sh", "-c", "rm -f "+path.Join(serverCertFolder, "*.pem")).Output()
 // }
-
-// TestMain creates the environment for running the client tests
-func TestMain(m *testing.M) {
-	logrus.Infof("------ TestMain of idprov client ------")
-	logging.SetLogging("info", "")
-	// hostnames := []string{idProvServerAddr}
-	cwd, _ := os.Getwd()
-	homeFolder := path.Join(cwd, "../../test")
-	clientCertFolder = path.Join(homeFolder, "clientcerts") // where the client saves its issued certificate
-	clientCertPath = path.Join(clientCertFolder, "clientCert.pem")
-	clientKeyPath = path.Join(clientCertFolder, "clientKey.pem")
-	caCertPath = path.Join(clientCertFolder, "caCert.pem")
-
-	testCerts = testenv.CreateCertBundle()
-	mockDirectory.CaCertPEM = []byte(certsclient.X509CertToPEM(testCerts.CaCert))
-
-	res := m.Run()
-
-	os.Exit(res)
-}
 
 func TestStartStop(t *testing.T) {
 	const deviceID = "device1"

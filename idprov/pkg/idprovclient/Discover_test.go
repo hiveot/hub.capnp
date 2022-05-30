@@ -36,7 +36,7 @@ func ServeDiscovery(params map[string]string) (*zeroconf.Server, error) {
 	return server, err
 }
 
-// Test discovery of a idprov server by publishing a discovery record
+// Test discovery of an idprov server by publishing a discovery record
 func TestDiscover(t *testing.T) {
 	const path = "/path/to/service"
 

@@ -16,12 +16,15 @@ import (
 	"github.com/wostzone/wost-go/pkg/tlsserver"
 )
 
-const IdProvServiceName = "idprov"
-const DefaultCertStore = "clientcerts"
-const RouteGetDirectory = idprovclient.IDProvDirectoryPath
-const RouteGetDeviceStatus = "/idprov/status/{deviceID}"
-const RoutePostOOB = "/idprov/oobsecret"
-const RoutePostProvisionRequest = "/idprov/provreq"
+const PluginID = "idprov"
+
+// routes for API access
+const (
+	RouteGetDirectory         = idprovclient.IDProvDirectoryPath
+	RouteGetDeviceStatus      = "/idprov/status/{deviceID}"
+	RoutePostOOB              = "/idprov/oobsecret"
+	RoutePostProvisionRequest = "/idprov/provreq"
+)
 
 // myDirectory is used to initialize the server with
 var myDirectory = idprovclient.GetDirectoryMessage{
@@ -38,8 +41,6 @@ var myDirectory = idprovclient.GetDirectoryMessage{
 
 // IDProvConfig server configuration
 type IDProvConfig struct {
-	// Plugin ID of this instance. Default is 'IdProvServiceName'
-	InstanceID string `yaml:"instanceID"`
 
 	// Nr days issued certificates are valid for.
 	// Defaults to 7 days.
@@ -49,19 +50,24 @@ type IDProvConfig struct {
 	// Default is "" which means issued certificates are not stored
 	CertStoreFolder string `yaml:"certStoreFolder"`
 
+	// Unique Client ID of this instance.
+	// Used in service identification on the message bus and in discovery.
+	// Default is the plugin ID 'idprov'
+	ClientID string `yaml:"clientID"`
+
 	// DisableDiscovery disables publishing of DNS-SD discovery records
 	// Default is false (enabled)
 	DisableDiscovery bool `yaml:"disableDiscovery"`
 
-	// listening address.
-	// Default is the outbound interface address.
+	// IdpAddress contains the listening address.
+	// Default is the outbound interface address on the local subnet.
 	IdpAddress string `yaml:"idpAddress"`
 
 	// idprov listening port
 	// Default is idprovclient.DefaultPort
 	IdpPort uint `yaml:"idpPort"`
 
-	// serviceName to publish in discovery if enabled.
+	// ServiceName to publish in discovery.
 	// Default is 'idprovclient.IdprovServiceName'
 	ServiceName string `yaml:"serviceName"`
 }
@@ -195,8 +201,8 @@ func NewIDProvServer(
 	caKey *ecdsa.PrivateKey,
 ) *IDProvServer {
 
-	if config.InstanceID == "" {
-		config.InstanceID = IdProvServiceName
+	if config.ClientID == "" {
+		config.ClientID = PluginID
 	}
 	if config.IdpPort == 0 {
 		config.IdpPort = idprovclient.DefaultPort
@@ -205,7 +211,7 @@ func NewIDProvServer(
 		config.IdpAddress = hubnet.GetOutboundIP("").String()
 	}
 	if config.CertValidityDays <= 0 {
-		config.CertValidityDays = 7
+		config.CertValidityDays = 30
 	}
 	if config.ServiceName == "" {
 		config.ServiceName = idprovclient.IdprovServiceName

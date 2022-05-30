@@ -1,115 +1,31 @@
 package idprovserver_test
 
 import (
-	"fmt"
-	"github.com/wostzone/wost-go/pkg/logging"
-	"os"
-	"os/exec"
-	"path"
-	"testing"
-	"time"
-
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/wostzone/hub/idprov/pkg/idprovclient"
 	"github.com/wostzone/hub/idprov/pkg/idprovserver"
-	"github.com/wostzone/wost-go/pkg/testenv"
+	"os/exec"
+	"path"
+	"testing"
 )
-
-const idProvTestAddr = "127.0.0.1"
-const idProvTestPort = 9880
-
-var idProvTestAddrPort = fmt.Sprintf("%s:%d", idProvTestAddr, idProvTestPort)
-
-const clientOobSecret = "secret1"
-const certValidityDays = 1
-const idprovServiceID = "idprov"
-
-// These are set in TestMain
-// cert folder where the iot device stores its received cert
-var clientCertFolder string
-
-// cert folder for CA, server and plugin certificates
-var serverCertFolder string
-
-// folder where IDP stores its issued certs
-var certStoreFolder string
-
-var device1CaCertPath string
-var device1CertPath string
-var device1KeyPath string
-
-var idpConfig idprovserver.IDProvConfig
-var testCerts testenv.TestCerts
-
-// var idProvServerIP = idprovserver.GetIPAddr("")
-// var idProvServerAddr = idProvServerIP.String()
-var homeFolder string
-var idpServer *idprovserver.IDProvServer
 
 // easy cleanup for existing device certificate
 func removeDeviceCerts() {
 	_, _ = exec.Command("sh", "-c", "rm -f "+path.Join(clientCertFolder, "*.pem")).Output()
-	_, _ = exec.Command("sh", "-c", "rm -f "+path.Join(certStoreFolder, "*.pem")).Output()
+	_, _ = exec.Command("sh", "-c", "rm -f "+path.Join(idpConfig.CertStoreFolder, "*.pem")).Output()
 }
 
 // func removeServerCerts() {
 // 	_, _ = exec.Command("sh", "-c", "rm -f "+path.Join(serverCertFolder, "*.pem")).Output()
 // }
 
-// TestMain runs a idProv server, gets the directory for futher calls
-// Used for all test cases in this package
-// NOTE: Don't run tests in parallel as each test creates and deletes certificates
-func TestMain(m *testing.M) {
-	logrus.Infof("------ TestMain of idprovserver ------")
-	// hostnames := []string{idProvTestAddr}
-	logging.SetLogging("info", "")
-
-	const testDiscoveryType = "_test._idprov._tcp"
-	cwd, _ := os.Getwd()
-	homeFolder = path.Join(cwd, "../../test")
-	serverCertFolder = path.Join(homeFolder, "certs")
-	certStoreFolder = path.Join(homeFolder, "certstore")
-	clientCertFolder = path.Join(homeFolder, "client")
-
-	// Start test with new certificates
-	// logrus.Infof("Creating certificate bundle for names: %s", hostnames)
-	removeDeviceCerts()
-	// removeServerCerts()
-	testCerts = testenv.CreateCertBundle()
-
-	// location where the client saves the provisioned certificates
-	device1CertPath = path.Join(clientCertFolder, "device1Cert.pem")
-	device1KeyPath = path.Join(clientCertFolder, "device1Key.pem")
-	device1CaCertPath = path.Join(clientCertFolder, "caCert.pem")
-
-	//idpServer = idprovserver.NewIDProvServer(idprovServiceID,
-	//	idProvTestAddr, idProvTestPort,
-	//	testCerts.ServerCert, testCerts.CaCert, testCerts.CaKey,
-	//	certStoreFolder, certValidityDays,
-	//	testDiscoveryType)
-	idpConfig = idprovserver.IDProvConfig{
-		InstanceID:       idprovServiceID,
-		IdpAddress:       idProvTestAddr,
-		IdpPort:          idProvTestPort,
-		CertStoreFolder:  certStoreFolder,
-		CertValidityDays: certValidityDays,
-	}
-	idpServer = idprovserver.NewIDProvServer(&idpConfig,
-		testCerts.ServerCert, testCerts.CaCert, testCerts.CaKey)
-
-	idpServer.Start()
-	res := m.Run()
-	idpServer.Stop()
-	time.Sleep(time.Second)
-	os.Exit(res)
-}
-
+// test using the idprov client
 func TestStartStopIDProvClient(t *testing.T) {
 	// start without existing client cert
 	deviceID1 := "device1"
 	removeDeviceCerts()
-	idprovClient := idprovclient.NewIDProvClient(deviceID1, idProvTestAddrPort,
+	idprovClient := idprovclient.NewIDProvClient(deviceID1,
+		idProvTestAddrPort,
 		device1CertPath, device1KeyPath, device1CaCertPath)
 
 	// Client start only succeeds if server is running
@@ -117,19 +33,11 @@ func TestStartStopIDProvClient(t *testing.T) {
 	assert.NoError(t, err)
 
 	idprovClient.Stop()
-	//// stop the server within the testcase (to count for coverage)
-	//idpServer.Stop()
 }
 
 func TestStartStopAlreadyRunning(t *testing.T) {
 	const testDiscoveryType = "_test._idprov._tcp"
 
-	//idpServer2 := idprovserver.NewIDProvServer(idprovServiceID,
-	//	idProvTestAddr, idProvTestPort,
-	//	testCerts.ServerCert,
-	//	testCerts.CaCert, testCerts.CaKey,
-	//	certStoreFolder, certValidityDays,
-	//	testDiscoveryType)
 	idpServer2 := idprovserver.NewIDProvServer(&idpConfig,
 		testCerts.ServerCert,
 		testCerts.CaCert, testCerts.CaKey)
@@ -141,14 +49,7 @@ func TestStartStopAlreadyRunning(t *testing.T) {
 }
 
 func TestStartStopMissingPort(t *testing.T) {
-	const testDiscoveryType = "_test._idprov._tcp"
 
-	//idpServer2 := idprovserver.NewIDProvServer(idprovServiceID,
-	//	idProvTestAddr, 0,
-	//	testCerts.ServerCert,
-	//	testCerts.CaCert, testCerts.CaKey,
-	//	certStoreFolder, certValidityDays,
-	//	testDiscoveryType)
 	config2 := idpConfig
 	config2.IdpPort = 0
 	idpServer2 := idprovserver.NewIDProvServer(&config2,
@@ -161,15 +62,8 @@ func TestStartStopMissingPort(t *testing.T) {
 }
 
 func TestStartStopJustPort(t *testing.T) {
-	const testDiscoveryType = "_test._idprov._tcp"
 
 	// listen on the port on all addresses. Discovery will fail though
-	//idpServer2 := idprovserver.NewIDProvServer(idprovServiceID,
-	//	"", idProvTestPort+1,
-	//	testCerts.ServerCert,
-	//	testCerts.CaCert, testCerts.CaKey,
-	//	certStoreFolder, certValidityDays,
-	//	testDiscoveryType)
 	config2 := idpConfig
 	config2.IdpAddress = ""
 	config2.IdpPort = idProvTestPort + 1
@@ -197,12 +91,6 @@ func TestStartStopMissingCA(t *testing.T) {
 	const testDiscoveryType = "_test._idprov._tcp"
 	const idProvTestPort2 = 9998
 	//
-	//idpServer2 := idprovserver.NewIDProvServer(idprovServiceID,
-	//	idProvTestAddr, idProvTestPort2,
-	//	testCerts.ServerCert,
-	//	nil, testCerts.CaKey,
-	//	certStoreFolder, certValidityDays,
-	//	testDiscoveryType)
 	config2 := idpConfig
 	config2.IdpAddress = idProvTestAddr
 	config2.IdpPort = idProvTestPort2
@@ -213,12 +101,6 @@ func TestStartStopMissingCA(t *testing.T) {
 	err := idpServer2.Start()
 	assert.Error(t, err)
 
-	//idpServer2 = idprovserver.NewIDProvServer(idprovServiceID,
-	//	idProvTestAddr, idProvTestPort2,
-	//	testCerts.ServerCert,
-	//	testCerts.CaCert, nil,
-	//	certStoreFolder, certValidityDays,
-	//	testDiscoveryType)
 	idpServer2 = idprovserver.NewIDProvServer(&config2,
 		testCerts.ServerCert,
 		testCerts.CaCert, nil)

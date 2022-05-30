@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/wostzone/hub/idprov/pkg/idprovclient"
 	"github.com/wostzone/wost-go/pkg/certsclient"
 	"os"
 	"path"
@@ -22,7 +23,7 @@ func main() {
 	appDir := path.Dir(os.Args[0])
 	var hostname string = hubnet.GetOutboundIP("").String()
 	var certFolder string = path.Join(appDir, "../certs")
-	var port uint = 9678
+	var port uint = idprovclient.DefaultPort
 
 	flag.StringVar(&hostname, "server", hostname, "Address of the provisioning server")
 	flag.UintVar(&port, "port", port, "Port of the provisioning server")

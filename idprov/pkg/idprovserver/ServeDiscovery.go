@@ -6,8 +6,6 @@ import (
 	"github.com/wostzone/wost-go/pkg/discovery"
 )
 
-//const IdProvServiceName = "idprov"
-
 // ServeIdProvDiscovery publishes a discovery record of the IDProv server
 // Returns the discovery service instance. Use Shutdown() when done.
 func (srv *IDProvServer) ServeIdProvDiscovery(serviceName string) (*zeroconf.Server, error) {
@@ -15,9 +13,9 @@ func (srv *IDProvServer) ServeIdProvDiscovery(serviceName string) (*zeroconf.Ser
 
 	directoryPath := srv.directory.Endpoints.GetDirectory
 
-	logrus.Infof("ServeIdProvDiscovery serviceID=%s, service: %s:%d%s",
-		srv.config.InstanceID, srv.config.IdpAddress, srv.config.IdpPort, directoryPath)
+	logrus.Infof("ServeIdProvDiscovery serviceName=%s, service: %s:%d%s",
+		serviceName, srv.config.IdpAddress, srv.config.IdpPort, directoryPath)
 
-	return discovery.DiscoServe(srv.config.InstanceID, serviceName, srv.config.IdpAddress, srv.config.IdpPort, params)
+	return discovery.DiscoServe(srv.config.ClientID, serviceName, srv.config.IdpAddress, srv.config.IdpPort, params)
 
 }

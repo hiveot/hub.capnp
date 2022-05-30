@@ -31,9 +31,9 @@ func main() {
 	// Commandline can override configuration
 	// flag.StringVar(&idpConfig.Address, "address", "localhost", "Listening address of the provisioning server.")
 	flag.StringVar(&idpConfig.IdpAddress, "idpAddress", idpConfig.IdpAddress, "IDP Server address. Default is Hub address")
-	flag.StringVar(&idpConfig.CertStoreFolder, "idpCerts", idpConfig.CertStoreFolder, "Folder with provisioned certificates")
+	flag.StringVar(&idpConfig.CertStoreFolder, "certStoreFolder", idpConfig.CertStoreFolder, "Folder with provisioned certificates")
 	flag.UintVar(&idpConfig.IdpPort, "idpPort", idpConfig.IdpPort, "Listening port of the provisioning server.")
-	flag.StringVar(&idpConfig.InstanceID, "clientID", idprovserver.IdProvServiceName, "Plugin Client ID")
+	flag.StringVar(&idpConfig.ClientID, "clientID", idprovserver.PluginID, "Unique Plugin Identifier")
 
 	appPath, _ := os.Executable()
 	appFolder := path.Dir(path.Dir(appPath))
