@@ -4,37 +4,36 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="0c1e6961-9e54-4948-b084-6d0502132342" name="Changes" comment="dev iteration, refactor packages">
+    <list default="true" id="0c1e6961-9e54-4948-b084-6d0502132342" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/idprov/pkg/idprovclient/main_test.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/idprov/pkg/idprovserver/main_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/authn/dist/config/authservice.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/authn/dist/config/authservice.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/history/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/history/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/idprov/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/Makefile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/idprov/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/idprov/cmd/idprov-pb/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/cmd/idprov/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/idprov/dist/config/idprov-pb.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/dist/config/idprov-pb.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/idprov/pkg/idprov-pb/README.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/idprov/pkg/idprov-pb/idprov-pb.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/idprov/pkg/idprov-pb/idprov-pb_test.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/authn/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/authn/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/authz/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/authz/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/authz/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/authz/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/certs/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/certs/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/certs/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/certs/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/idprov/cmd/idprov/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/cmd/idprov/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/idprov/cmd/oob/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/cmd/oob/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/idprov/dist/config/idprov.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/dist/config/idprov.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/idprov/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/idprov/pkg/idprovclient/Client_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/pkg/idprovclient/Client_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/idprov/pkg/idprovclient/Discover_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/pkg/idprovclient/Discover_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/idprov/pkg/idprovserver/IDProvServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/pkg/idprovserver/IDProvServer.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/idprov/pkg/idprovserver/IDProvServer_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/pkg/idprovserver/IDProvServer_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/idprov/pkg/idprovserver/ServeDiscovery.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/pkg/idprovserver/ServeDiscovery.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/idprov/pkg/idprovserver/ServeProvisionRequest.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/pkg/idprovserver/ServeProvisionRequest.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/idprov/pkg/idprovserver/ServeStatus.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/pkg/idprovserver/ServeStatus.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/idprov/pkg/oobclient/OobClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/pkg/oobclient/OobClient.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/idprov/test/config/idprov-pb.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/test/config/idprov-pb.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/launcher/dist/config/hub.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/launcher/dist/config/hub.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/launcher/dist/config/launcher.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/launcher/dist/config/launcher.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/launcher/internal/StartHub.go" beforeDir="false" afterPath="$PROJECT_DIR$/launcher/internal/StartHub.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/launcher/internal/StartPlugin.go" beforeDir="false" afterPath="$PROJECT_DIR$/launcher/internal/StartPlugin.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/Makefile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/cmd/thingdir/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/cmd/thingdir/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/dist/config/thingdir-pb.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/dist/config/thingdir.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/pkg/thingdir-pb/handleEvent.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/thingdir/handleEvent.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/pkg/thingdir-pb/handleTDUpdate.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/thingdir/handleTDUpdate.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/pkg/thingdir-pb/thingdir-pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/thingdir/thingdir.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/pkg/thingdir-pb/thingdir-pb_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/pkg/thingdir/thingdir_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/thingdir/test/config/thingdir-pb.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/test/config/thingdir-pb.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/idprov/pkg/oobclient/OobClient_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/idprov/pkg/oobclient/OobClient_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/idprov/test/certs/.keep" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/idprov/test/certstore/.keep" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/idprov/test/client/.keep" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/idprov/test/clientcerts/.keep" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/idprov/test/config/.keep" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/idprov/test/config/hub.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/idprov/test/config/idprov.yaml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/launcher/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/launcher/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/logger/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/logger/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mosquittomgr/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/mosquittomgr/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/thingdir/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/thingdir/go.sum" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -85,29 +84,29 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;DefaultGoTemplateProperty&quot;: &quot;Go File&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.go.format.on.save.advertiser.fired&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.go.modules.go.list.on.any.changes.was.set&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.go.watchers.conflict.with.on.save.actions.check.performed&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
-    &quot;go.sdk.automatically.set&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/henk/projects/wostzone/wost-go&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.sourceCode.Markdown&quot;,
-    &quot;ts.external.directory.path&quot;: &quot;/snap/goland/181/plugins/JavaScriptLanguage/jsLanguageServicesImpl/external&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "DefaultGoTemplateProperty": "Go File",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.go.format.on.save.advertiser.fired": "true",
+    "RunOnceActivity.go.formatter.settings.were.checked": "true",
+    "RunOnceActivity.go.migrated.go.modules.settings": "true",
+    "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
+    "RunOnceActivity.go.watchers.conflict.with.on.save.actions.check.performed": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "go.import.settings.migrated": "true",
+    "go.sdk.automatically.set": "true",
+    "last_opened_file_path": "/home/henk/projects/wostzone/wost-go",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "preferences.sourceCode.Go",
+    "ts.external.directory.path": "/snap/goland/181/plugins/JavaScriptLanguage/jsLanguageServicesImpl/external"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/../wost-go" />
@@ -124,7 +123,7 @@
       <recent name="$PROJECT_DIR$/lib/test/config" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Test.go test github.com/wostzone/hub/thingdir/pkg/dirserver">
+  <component name="RunManager" selected="Go Test.go test github.com/wostzone/hub/idprov/pkg/idprovserver">
     <configuration default="true" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <module name="hub" />
       <working_directory value="$PROJECT_DIR$" />
@@ -133,7 +132,7 @@
       <filePath value="$PROJECT_DIR$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestStartStopIDProvClient in github.com/wostzone/hub/idprov/pkg/idprovserver" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestProvisionByDeviceWithOOB in github.com/wostzone/hub/idprov/pkg/idprovserver" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="hub" />
       <working_directory value="$PROJECT_DIR$/idprov/pkg/idprovserver" />
       <root_directory value="$PROJECT_DIR$/idprov" />
@@ -142,24 +141,37 @@
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestStartStopIDProvClient\E$" />
+      <pattern value="^\QTestProvisionByDeviceWithOOB\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestStartStopAlreadyRunning in github.com/wostzone/hub/idprov/pkg/idprovserver" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="hub" />
+      <working_directory value="$PROJECT_DIR$/idprov/pkg/idprovserver" />
+      <root_directory value="$PROJECT_DIR$/idprov" />
+      <kind value="PACKAGE" />
+      <package value="github.com/wostzone/hub/idprov/pkg/idprovserver" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestStartStopAlreadyRunning\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestStartStopBadCertFolder in github.com/wostzone/hub/idprov/pkg/idprovserver" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="hub" />
+      <working_directory value="$PROJECT_DIR$/idprov/pkg/idprovserver" />
+      <root_directory value="$PROJECT_DIR$/idprov" />
+      <kind value="PACKAGE" />
+      <package value="github.com/wostzone/hub/idprov/pkg/idprovserver" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestStartStopBadCertFolder\E$" />
       <method v="2" />
     </configuration>
     <configuration default="true" type="GoTestRunConfiguration" factoryName="Go Test">
       <module name="hub" />
       <working_directory value="$PROJECT_DIR$" />
       <kind value="DIRECTORY" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <method v="2" />
-    </configuration>
-    <configuration name="go test github.com/wostzone/hub/idprov/pkg/idprovclient" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="hub" />
-      <working_directory value="$PROJECT_DIR$/idprov/pkg/idprovclient" />
-      <root_directory value="$PROJECT_DIR$/idprov" />
-      <kind value="PACKAGE" />
-      <package value="github.com/wostzone/hub/idprov/pkg/idprovclient" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
@@ -187,31 +199,20 @@
       <framework value="gotest" />
       <method v="2" />
     </configuration>
-    <configuration name="go test github.com/wostzone/hub/thingdir/pkg/dirserver" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="thingdir" />
-      <working_directory value="$PROJECT_DIR$/thingdir/pkg/dirserver" />
-      <root_directory value="$PROJECT_DIR$/thingdir" />
-      <kind value="PACKAGE" />
-      <package value="github.com/wostzone/hub/thingdir/pkg/dirserver" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <method v="2" />
-    </configuration>
     <list>
-      <item itemvalue="Go Test.TestStartStopIDProvClient in github.com/wostzone/hub/idprov/pkg/idprovserver" />
-      <item itemvalue="Go Test.go test github.com/wostzone/hub/idprov/pkg/idprovclient" />
+      <item itemvalue="Go Test.TestStartStopAlreadyRunning in github.com/wostzone/hub/idprov/pkg/idprovserver" />
+      <item itemvalue="Go Test.TestStartStopBadCertFolder in github.com/wostzone/hub/idprov/pkg/idprovserver" />
+      <item itemvalue="Go Test.TestProvisionByDeviceWithOOB in github.com/wostzone/hub/idprov/pkg/idprovserver" />
       <item itemvalue="Go Test.go test github.com/wostzone/hub/idprov/pkg/idprovserver" />
       <item itemvalue="Go Test.go test github.com/wostzone/hub/idprov/pkg/oobclient" />
-      <item itemvalue="Go Test.go test github.com/wostzone/hub/thingdir/pkg/dirserver" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Go Test.go test github.com/wostzone/hub/thingdir/pkg/dirserver" />
-        <item itemvalue="Go Test.go test github.com/wostzone/hub/idprov/pkg/oobclient" />
-        <item itemvalue="Go Test.go test github.com/wostzone/hub/idprov/pkg/idprovclient" />
         <item itemvalue="Go Test.go test github.com/wostzone/hub/idprov/pkg/idprovserver" />
-        <item itemvalue="Go Test.TestStartStopIDProvClient in github.com/wostzone/hub/idprov/pkg/idprovserver" />
+        <item itemvalue="Go Test.go test github.com/wostzone/hub/idprov/pkg/oobclient" />
+        <item itemvalue="Go Test.TestProvisionByDeviceWithOOB in github.com/wostzone/hub/idprov/pkg/idprovserver" />
+        <item itemvalue="Go Test.TestStartStopBadCertFolder in github.com/wostzone/hub/idprov/pkg/idprovserver" />
+        <item itemvalue="Go Test.TestStartStopAlreadyRunning in github.com/wostzone/hub/idprov/pkg/idprovserver" />
       </list>
     </recent_temporary>
   </component>
@@ -243,7 +244,9 @@
     <MESSAGE value="dev iteration:&#10;- simplify config handling&#10;- move additional help packages into wost-go (discovery, config, hubnet, tlsserver, watcher)" />
     <MESSAGE value="dev iteration:&#10;- migrate all helper packages into wost-go" />
     <MESSAGE value="dev iteration, work with updated wost-go package." />
-    <option name="LAST_COMMIT_MESSAGE" value="dev iteration, work with updated wost-go package." />
+    <MESSAGE value="dev iteration &#10;- cleanup simplify idprov provisioning service&#10;- cleanup simplify directory service&#10;- update comments" />
+    <MESSAGE value="Upgrade yaml to v3.0.1 to fix unhandled exception vulnerability" />
+    <option name="LAST_COMMIT_MESSAGE" value="Upgrade yaml to v3.0.1 to fix unhandled exception vulnerability" />
   </component>
   <component name="VgoProject">
     <settings-migrated>true</settings-migrated>
