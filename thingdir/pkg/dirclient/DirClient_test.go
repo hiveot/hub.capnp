@@ -3,18 +3,20 @@ package dirclient_test
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/wostzone/wost-go/pkg/testenv"
-	"github.com/wostzone/wost-go/pkg/thing"
-	"github.com/wostzone/wost-go/pkg/tlsserver"
-	"github.com/wostzone/wost-go/pkg/vocab"
 	"net/http"
 	"os"
 	"strings"
 	"testing"
 
+	"github.com/wostzone/wost-go/pkg/testenv"
+	"github.com/wostzone/wost-go/pkg/thing"
+	"github.com/wostzone/wost-go/pkg/tlsserver"
+	"github.com/wostzone/wost-go/pkg/vocab"
+
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"github.com/wostzone/hub/thingdir/pkg/dirclient"
 )
 
@@ -43,7 +45,7 @@ func startTestServer() *tlsserver.TLSServer {
 // test setup. Run tests with -p 1 as this test environment doesn't handle concurrent tests
 func TestMain(m *testing.M) {
 	logrus.Infof("------ TestMain of DirectoryClient ------")
-	testDirectoryAddr = "127.0.0.1"
+	testDirectoryAddr = testenv.ServerAddress
 	testCerts = testenv.CreateCertBundle()
 
 	res := m.Run()

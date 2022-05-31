@@ -2,14 +2,16 @@
 package idprovclient_test
 
 import (
+	"os"
+	"path"
+	"testing"
+
 	"github.com/sirupsen/logrus"
+
 	"github.com/wostzone/hub/idprov/pkg/idprovclient"
 	"github.com/wostzone/wost-go/pkg/certsclient"
 	"github.com/wostzone/wost-go/pkg/logging"
 	"github.com/wostzone/wost-go/pkg/testenv"
-	"os"
-	"path"
-	"testing"
 )
 
 // IoT device test environment certificate files and folders
@@ -41,16 +43,12 @@ func TestMain(m *testing.M) {
 	logging.SetLogging("info", "")
 	logrus.Infof("------ TestMain of idprov client ------")
 
-	// hostnames := []string{idProvServerAddr}
-	//cwd, _ := os.Getwd()
-	//homeFolder := path.Join(cwd, "../../test")
-	//clientCertFolder = path.Join(homeFolder, "clientcerts")
 	tempFolder := os.TempDir()
-	clientCertFolder := path.Join(tempFolder, "wost-idprovclient-test")
-	_ = os.MkdirAll(clientCertFolder, 0700)
+	clientCertFolder = path.Join(tempFolder, "wost-idprovclient-test")
 	clientCertPath = path.Join(clientCertFolder, "clientCert.pem")
 	clientKeyPath = path.Join(clientCertFolder, "clientKey.pem")
 	caCertPath = path.Join(clientCertFolder, "caCert.pem")
+	_ = os.MkdirAll(clientCertFolder, 0700)
 
 	//testCerts = testenv.CreateCertBundle()
 	//mockDirectory.CaCertPEM = []byte(certsclient.X509CertToPEM(testCerts.CaCert))

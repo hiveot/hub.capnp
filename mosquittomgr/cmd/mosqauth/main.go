@@ -6,8 +6,9 @@ package main
 
 import "C"
 import (
-	"github.com/sirupsen/logrus"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/wostzone/hub/authz/pkg/aclstore"
 	"github.com/wostzone/hub/authz/pkg/authorize"
@@ -71,7 +72,6 @@ const (
 	MosqOptLogFile        = "logFile"
 	MosqOptLogLevel       = "logLevel"
 	MosqOptAclFile        = "aclFile"
-	MosqOptUnpwFile       = "unpwFile"
 	MosqOptServerCertFile = "serverCertFile"
 )
 
@@ -93,7 +93,6 @@ func AuthPluginInit(keys []string, values []string, authOptsNum int) {
 	logFile := DefaultLogFile
 	logLevel := DefaultLogLevel
 	aclFile := aclstore.DefaultAclFile
-	pemPath := ""
 	serverCertFile := ""
 	for index, key := range keys {
 		if key == MosqOptLogFile {
@@ -102,9 +101,6 @@ func AuthPluginInit(keys []string, values []string, authOptsNum int) {
 			logLevel = values[index]
 		} else if key == MosqOptAclFile {
 			aclFile = values[index]
-		} else if key == "certfile" {
-			// the certificate has a public key
-			pemPath = values[index]
 		} else if key == MosqOptServerCertFile {
 			serverCertFile = values[index]
 		}
@@ -118,14 +114,17 @@ func AuthPluginInit(keys []string, values []string, authOptsNum int) {
 	}
 	aclStore := aclstore.NewAclFileStore(aclFile, "mosqauth.AuthPluginInit")
 	authorizer = authorize.NewAuthorizer(aclStore)
-	authorizer.Start()
+	err := authorizer.Start()
+	if err != nil {
+		logrus.Errorf("Authorizer failed to start: %s", err)
+	}
 
 	// Tokens are signed by the server private key.
 	// The server certificate holds the public key for verifying JWT access tokens.
 	if serverCertFile != "" {
 		serverCert, err := certsclient.LoadX509CertFromPEM(serverCertFile)
 		if err != nil {
-			logrus.Warningf("AuthPluginInit: Failed loading the public key for JWT verification from '%s': %s", pemPath, err)
+			logrus.Warningf("Failed loading the server certificate for JWT verification from '%s': %s", serverCertFile, err)
 		} else {
 			serverKey := certsclient.PublicKeyFromCert(serverCert)
 			jwtAuthenticator = tlsserver.NewJWTAuthenticator(serverKey)

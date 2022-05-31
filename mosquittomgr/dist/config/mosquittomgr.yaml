@@ -3,6 +3,7 @@
 #clientID: "mosquittomgr"
 
 # Mosquitto template file
-#mosquittoTemplate: "mosquitto.conf.template"
+#mosquittoTemplateFile: "mosquitto.conf.template"
+
 # Mosquitto generated config file
-#mosquittoConfig: "mosquitto.conf"
+#mosquittoConfFile: "mosquitto.conf"

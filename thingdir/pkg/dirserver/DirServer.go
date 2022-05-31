@@ -4,14 +4,16 @@ package dirserver
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"github.com/wostzone/wost-go/pkg/certsclient"
-	"github.com/wostzone/wost-go/pkg/tlsserver"
-	"github.com/wostzone/wost-go/pkg/vocab"
 	"path"
 	"time"
 
+	"github.com/wostzone/wost-go/pkg/certsclient"
+	"github.com/wostzone/wost-go/pkg/tlsserver"
+	"github.com/wostzone/wost-go/pkg/vocab"
+
 	"github.com/grandcat/zeroconf"
 	"github.com/sirupsen/logrus"
+
 	"github.com/wostzone/hub/authz/pkg/authorize"
 	"github.com/wostzone/hub/thingdir/pkg/dirclient"
 	"github.com/wostzone/hub/thingdir/pkg/dirstore/dirfilestore"
@@ -31,19 +33,28 @@ const DefaultDirectoryStoreFile = "directory.json"
 
 // DirectoryServer for web of things
 type DirectoryServer struct {
-	// config
-	address       string            // listening address
-	caCert        *x509.Certificate // path to CA certificate PEM file
-	instanceID    string            // ID of this service
-	port          uint              // listening port
-	serverCert    *tls.Certificate  // path to server certificate PEM file
-	authenticator *tlsserver.JWTAuthenticator
-	authorizer    authorize.VerifyAuthorization
+	// server listening address
+	address string
+	//
+	caCert *x509.Certificate
 
-	// the service name. Use dirclient.DirectoryServiceName for default or "" to disable DNS discovery
+	// ID of this service
+	instanceID string
+
+	// server listening port
+	port uint
+	// server certificate, signed by the Hub CA
+	serverCert *tls.Certificate
+	// optional authenticator for username/password login
+	authenticator *tlsserver.JWTAuthenticator
+	// authorization for TDs and property values
+	authorizer authorize.VerifyAuthorization
+
+	// Service name in DNS-SD discover
+	//Use dirclient.DirectoryServiceName for default or "" to disable DNS discovery
 	discoveryName string
 
-	// runtime status
+	//--- Runtime status ---
 	running     bool
 	tlsServer   *tlsserver.TLSServer
 	discoServer *zeroconf.Server
@@ -114,7 +125,7 @@ func (srv *DirectoryServer) Start() error {
 		}
 		// Make sure the server is listening before continuing
 		// Not pretty but it handles it
-		time.Sleep(time.Second)
+		time.Sleep(time.Millisecond * 100)
 	}
 	return nil
 }
@@ -210,15 +221,15 @@ func NewDirectoryServer(
 
 	srv := DirectoryServer{
 		address:       address,
-		serverCert:    serverCert,
+		authenticator: tlsserver.NewJWTAuthenticator(serverKey),
+		authorizer:    authorizer,
 		caCert:        caCert,
 		discoveryName: discoveryName,
 		instanceID:    instanceID,
 		port:          port,
 		dirStore:      dirfilestore.NewDirFileStore(dirStorePath),
-		authenticator: tlsserver.NewJWTAuthenticator(serverKey),
-		authorizer:    authorizer,
 		// map of thingID's to property name-value pairs
+		serverCert: serverCert,
 		valueStore: make(map[string]map[string]dirclient.PropValue),
 	}
 	return &srv

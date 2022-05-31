@@ -3,13 +3,15 @@ package dirserver_test
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/wostzone/hub/authn/pkg/jwtissuer"
-	"github.com/wostzone/hub/lib/client/pkg/thing"
 	"os"
 	"path"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/wostzone/hub/lib/client/pkg/thing"
+
+	"github.com/wostzone/hub/authn/pkg/jwtissuer"
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -17,6 +19,7 @@ import (
 	"github.com/wostzone/hub/lib/client/pkg/testenv"
 	"github.com/wostzone/hub/lib/client/pkg/tlsclient"
 	"github.com/wostzone/hub/lib/client/pkg/vocab"
+
 	"github.com/wostzone/hub/thingdir/pkg/dirclient"
 	"github.com/wostzone/hub/thingdir/pkg/dirserver"
 )
@@ -24,20 +27,20 @@ import (
 const testDirectoryPort = 9990
 const testDirectoryServiceInstanceID = "directory"
 const testServiceDiscoveryName = "thingdir"
-const serverAddress = "127.0.0.1"
 
-var serverHostPort = fmt.Sprintf("%s:%d", serverAddress, testDirectoryPort)
+var serverHostPort = fmt.Sprintf("%s:%d", testenv.ServerAddress, testDirectoryPort)
 
 var testCerts testenv.TestCerts
 
-var homeFolder string
+//var homeFolder string
 
 // var caCertPath string
 var directoryServer *dirserver.DirectoryServer
 
 // var pluginCertPath string
 // var pluginKeyPath string
-var storeFolder string
+//var storeFolder string
+var tempFolder string
 
 // TD's for testing. Expect 2 sensors in this list
 var tdDefs = []struct {
@@ -87,16 +90,19 @@ func authorizer(userID string, certOU string, thingID string, authType string) b
 func TestMain(m *testing.M) {
 	logrus.Infof("------ TestMain of DirectoryServer ------")
 
-	cwd, _ := os.Getwd()
-	homeFolder = path.Join(cwd, "../../test")
-	storeFolder = path.Join(homeFolder, "config")
+	tempFolder = path.Join(os.TempDir(), "wost-thingdir-test")
+	os.Mkdir(tempFolder, 0700)
+
+	//cwd, _ := os.Getwd()
+	//homeFolder = path.Join(cwd, "../../test")
+	//storeFolder = path.Join(homeFolder, "config")
 
 	testCerts = testenv.CreateCertBundle()
 
 	directoryServer = dirserver.NewDirectoryServer(
 		testDirectoryServiceInstanceID,
-		storeFolder,
-		serverAddress, testDirectoryPort,
+		tempFolder,
+		testenv.ServerAddress, testDirectoryPort,
 		testServiceDiscoveryName,
 		testCerts.ServerCert, testCerts.CaCert,
 		authorizer)
@@ -113,8 +119,8 @@ func TestStartStop(t *testing.T) {
 	// test start/stop separate from TestMain
 	mydirserver := dirserver.NewDirectoryServer(
 		testDirectoryServiceInstanceID,
-		storeFolder,
-		serverAddress, testDirectoryPort+1,
+		tempFolder,
+		testenv.ServerAddress, testDirectoryPort+1,
 		testServiceDiscoveryName,
 		testCerts.ServerCert, testCerts.CaCert,
 		//authenticator,
@@ -125,7 +131,7 @@ func TestStartStop(t *testing.T) {
 	dirClient := dirclient.NewDirClient(serverHostPort, testCerts.CaCert)
 
 	a := directoryServer.Address()
-	assert.Equal(t, serverAddress, a)
+	assert.Equal(t, testenv.ServerAddress, a)
 
 	// Client start only succeeds if server is running
 	err = dirClient.ConnectWithClientCert(testCerts.PluginCert)

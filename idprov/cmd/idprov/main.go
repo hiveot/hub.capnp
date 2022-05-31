@@ -7,6 +7,8 @@ import (
 	"path"
 
 	"github.com/sirupsen/logrus"
+
+	"github.com/wostzone/hub/idprov/pkg/idprovclient"
 	"github.com/wostzone/hub/idprov/pkg/idprovserver"
 	"github.com/wostzone/wost-go/pkg/certsclient"
 	"github.com/wostzone/wost-go/pkg/config"
@@ -20,7 +22,7 @@ func main() {
 
 	// Service configuration with defaults
 	idpConfig := &idprovserver.IDProvConfig{
-		CertStoreFolder: idprovserver.DefaultCertStore,
+		//CertStoreFolder: idprovserver.DefaultCertStore,
 		//InstanceID:      idprovpb.PluginID,
 		DisableDiscovery: false,
 		//IdpPort:         idprovclient.DefaultPort,
@@ -37,7 +39,7 @@ func main() {
 
 	appPath, _ := os.Executable()
 	appFolder := path.Dir(path.Dir(appPath))
-	hubConfig, err := config.LoadAllConfig(nil, appFolder, idprovserver.IdProvServiceName, &idpConfig)
+	hubConfig, err := config.LoadAllConfig(nil, appFolder, idprovclient.IdprovServiceName, &idpConfig)
 	if err != nil {
 		logrus.Printf("bye bye")
 		os.Exit(1)

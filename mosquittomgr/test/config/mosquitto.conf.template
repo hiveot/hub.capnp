@@ -4,8 +4,8 @@
 # - MQTT SSL and WebSockets SLL 
 # - Authentication methods:
 #   1. Client certificate based authentication (aimed at plugins)
-#   2. Password based authentication using TLS
-#   3. Password based authentication using websockets
+#   2. Access token authentication using TLS
+#   3. Access token authentication using websockets
 
 per_listener_settings true
 
@@ -26,8 +26,9 @@ log_type error
 log_type warning
 log_type notice
 log_type information
+log_type debug
 
-#--- MQTT protocol over TLS with certificate auth
+#--- 1: MQTT protocol over TLS with certificate auth
 # This is the preferred connection method and used by devices, plugins, administrator and consumers with a certificate.
 listener ${mqttPortCert}
 max_connections 100
@@ -37,21 +38,19 @@ certfile ${serverCertFile}
 
 # Certificate CN field is used as the username
 require_certificate true
-use_identity_as_username true     # CN 
+use_identity_as_username true     # CN
 tls_version tlsv1.2
 
 # mosqauth plugin handles authorization
-auth_plugin ${binFolder}/mosqauth.so
+auth_plugin ${mosqAuthPlugin}
 auth_opt_logFile ${logFolder}/mosqauth-cert.log
 auth_opt_logLevel info
-auth_opt_aclFile ${configFolder}/test.acl
+auth_opt_aclFile ${aclFile}
 
 
-#--- MQTT over TLS/SSL for use with username/password login
-# Intended for web browser and client applications that are consumers without certificate
-# Client certificates are not used but a server CA is needed on the client or the 
-#  client must ignore certificate verification.
-# Use a password file for user names
+#--- 2: MQTT over TLS/SSL with loginName/accessToken authentication
+# Intended for web browser and client applications that are consumers
+# Auth service issued JWT access tokens are used for authentication
 listener ${mqttPortUnpw}
 
 max_connections 100
@@ -63,20 +62,17 @@ require_certificate false
 tls_version tlsv1.2
 
 # mosqauth plugin handles authentication & authorization
-auth_plugin ${binFolder}/mosqauth.so
+auth_plugin ${mosqAuthPlugin}
 auth_opt_logFile ${logFolder}/mosqauth-unpw.log
 auth_opt_logLevel info
-auth_opt_aclFile ${configFolder}/test.acl
-auth_opt_unpwFile ${configFolder}/test.passwd
-# For JWT token verification
+auth_opt_aclFile ${aclFile}
+# Server public key is used for JWT token verification
 auth_opt_serverCertFile ${serverCertFile}
 
 
-#--- WebSockets over TLS/SSL for use with username/token login
-# Intended for web browser and client applications that are consumers without certificate
-# Client certificates are not used but a server CA is needed on the client or the 
-#  client must ignore certificate verification.
-# JWT Authentication tokens are used for authentication
+#--- WebSockets over TLS/SSL for use with username/accessToken login
+# Intended for web browser and client applications that are consumers
+# Auth service issued JWT access tokens are used for authentication
 listener ${mqttPortWS}
 
 max_connections 100
@@ -88,10 +84,9 @@ require_certificate false
 tls_version tlsv1.2
 
 # mosqauth plugin handles authentication & authorization
-auth_plugin ${binFolder}/mosqauth.so
-auth_opt_logFile ${logFolder}/mosqauth-unpw.log
+auth_plugin ${mosqAuthPlugin}
+auth_opt_logFile ${logFolder}/mosqauth-ws.log
 auth_opt_logLevel info
-auth_opt_aclFile ${configFolder}/test.acl
-#auth_opt_unpwFile ${configFolder}/test.passwd
+auth_opt_aclFile ${aclFile}
 # For JWT token verification
 auth_opt_serverCertFile ${serverCertFile}

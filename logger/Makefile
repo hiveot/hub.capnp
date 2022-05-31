@@ -2,8 +2,6 @@ DIST_FOLDER=./dist
 INSTALL_HOME=~/bin/wosthub
 .DEFAULT_GOAL := help
 
-.PHONY: 
-
 all: logger ## Build package with binary distribution and config
 
 install: all ## Install the plugin into ~/bin/wost/bin and config
@@ -14,12 +12,12 @@ logger:
 	go build -o $(DIST_FOLDER)/bin/$@ ./cmd/logger/main.go
 	@echo "> SUCCESS. Plugin '$@' can be found at $(DIST_FOLDER)/bin/$@"
 
-test: .PHONY
-	go test -race -failfast -p 1 -v ./...
+test: logger
+	go test -race -failfast -p 1 -cover ./...
 
 clean: ## Clean distribution files
 	go mod tidy
-	go clean
+	go clean -cache -testcache
 	rm -f $(DIST_FOLDER)/certs/*
 	rm -f $(DIST_FOLDER)/logs/*
 	rm -f $(DIST_FOLDER)/bin/*

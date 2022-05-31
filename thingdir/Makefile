@@ -2,12 +2,12 @@ DIST_FOLDER=./dist
 INSTALL_HOME=~/bin/wosthub
 .DEFAULT_GOAL := help
 
-FORCE: help
+.FORCE:
 
 all: thingdir ## Build package with binary distribution and config
 
-test: FORCE ## Run tests (stop on first error, don't run parallel)
-	go test -race -failfast -p 1 -v ./pkg/...
+test:  .FORCE ## Run tests (stop on first error, don't run parallel)
+	go test -race -failfast -p 1 -cover ./pkg/...
 
 install: all  ## Install the plugin into ~/bin/wost/bin and config
 	cp dist/bin/* $(INSTALL_HOME)/bin/
@@ -15,7 +15,7 @@ install: all  ## Install the plugin into ~/bin/wost/bin and config
 
 clean: ## Clean distribution files
 	go mod tidy
-	go clean
+	go clean -cache -testcache
 	rm -f $(DIST_FOLDER)/certs/*
 	rm -f $(DIST_FOLDER)/logs/*
 	rm -f $(DIST_FOLDER)/bin/*

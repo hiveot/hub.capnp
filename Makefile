@@ -4,8 +4,6 @@ PKG_NAME=wosthub.tgz
 INSTALL_HOME=~/bin/wosthub
 .DEFAULT_GOAL := help
 
-.FORCE: 
-
 all: authn authz certs idprov launcher logger mosquittomgr thingdir  ## Build the launcher and core plugins
 
 install:  all ## Install the launcher into ~/bin/wost/bin and config
@@ -24,7 +22,7 @@ clean: ## Clean distribution files
 	mkdir -p $(DIST_FOLDER)/bin
 	mkdir -p $(DIST_FOLDER)/config
 
-authn authz certs idprov launcher logger mosquittomgr thingdir:  .FORCE ## Build Hub services 
+authn authz certs idprov launcher logger mosquittomgr thingdir:  ## Build Hub services
 	make -C $@ all
 	cp $@/dist/bin/* dist/bin
 	cp $@/dist/config/* dist/config

@@ -1,6 +1,6 @@
 # Configuration file for IDProv provisioning service
 
-# Folder for certificate storage relative to home. Default is "" means not stored
+# Folder for certificate storage relative to home. Default is "" means client certs are not stored
 #certStoreFolder: "certstore"
 
 # Certificate validity period in days. Default is 30

@@ -35,7 +35,7 @@ func LaunchMosquitto(configFile string, done chan bool) (*exec.Cmd, error) {
 		isRunning = true
 		mu.Unlock()
 		// logrus.Infof("Mosquitto cmd.Wait started")
-		_, err = cmd.Process.Wait()
+		err = cmd.Wait()
 		done <- true
 		duration := time.Since(t1)
 		logrus.Infof("Mosquitto has ended after %.3f seconds. err=%v", duration.Seconds(), err)

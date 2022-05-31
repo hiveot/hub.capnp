@@ -20,11 +20,11 @@ dist: clean   ## Build binary distribution tarball
 	tar -czf $(PKG_NAME) -C $(DIST_FOLDER) .
 
 test: launcher .FORCE ## Run launcher test
-	go test -race -failfast -p 1 -v ./...
+	go test -race -failfast -p 1 -cover ./...
 
 clean: ## Clean distribution files
 	go mod tidy
-	go clean
+	go clean -cache -testcache
 	rm -f test/certs/*
 	rm -f test/logs/*
 	rm -f $(DIST_FOLDER)/bin/*

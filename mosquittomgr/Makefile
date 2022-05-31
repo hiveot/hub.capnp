@@ -3,8 +3,6 @@ DIST_FOLDER=./dist
 INSTALL_HOME=~/bin/wosthub
 .DEFAULT_GOAL := help
 
-FORCE: help
-
 all: mosquittomgr mosqauth ## make the manager app and mosquitto authenticator
 
 install:  all ## Install the mosquitto manager app and plugin into INSTALL_HOME folder
@@ -17,10 +15,7 @@ install:  all ## Install the mosquitto manager app and plugin into INSTALL_HOME 
 
 clean: ## Clean distribution files
 	go mod tidy
-	go clean
-	rm -f test/certs/*
-	rm -f test/client/*
-	rm -f test/logs/*
+	go clean -cache -testcache
 	rm -f $(DIST_FOLDER)/certs/*
 	rm -f $(DIST_FOLDER)/logs/*
 	rm -f $(DIST_FOLDER)/bin/*
@@ -31,8 +26,8 @@ clean: ## Clean distribution files
 	mkdir -p $(DIST_FOLDER)/logs
 
 
-test: mosqauth FORCE ## Run tests (stop on first error, don't run parallel)
-	go test -race -failfast -p 1 -v ./internal/...
+test: mosqauth  ## Run tests (stop on first error, don't run parallel)
+	go test -race -failfast -p 1 -cover ./internal
 
 mosquittomgr: mosqauth ## Build mosquitto configuration manager
 	mkdir -p $(DIST_FOLDER)/bin
@@ -49,4 +44,4 @@ upgrade:
 
 
 help: ## Show this help
-		@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'

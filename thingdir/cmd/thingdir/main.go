@@ -1,11 +1,16 @@
 package main
 
 import (
+	"os"
+	"path"
+
+	"github.com/wostzone/hub/authz/pkg/aclstore"
+	"github.com/wostzone/wost-go/pkg/certsclient"
 	"github.com/wostzone/wost-go/pkg/config"
 	"github.com/wostzone/wost-go/pkg/proc"
-	"os"
 
 	"github.com/sirupsen/logrus"
+
 	"github.com/wostzone/hub/thingdir/pkg/thingdir"
 )
 
@@ -13,19 +18,41 @@ func Main() {
 	main()
 }
 
-// commandline entry point for the thingdir service
+// Commandline entry point for the Thing Directory service
 func main() {
-	// with defaults
-	thingdirConfig := &thingdir.ThingDirConfig{}
-	hubConfig, err := config.LoadAllConfig(os.Args, "", thingdir.PluginID, &thingdirConfig)
+	// Load the service configuration and use defaults from hubConfig
+	thingDirConfig := &thingdir.ThingDirConfig{}
+	hubConfig, err := config.LoadAllConfig(os.Args, "", thingdir.PluginID, &thingDirConfig)
 	if err != nil {
-		logrus.Printf("bye bye")
+		logrus.Fatal("thingdir configuration error: %s", err)
 		os.Exit(1)
 	}
-	// commandline overrides configfile
-	// flag.Parse()
+	if thingDirConfig.DirAddress == "" {
+		thingDirConfig.DirAddress = hubConfig.Address
+	}
+	if thingDirConfig.DirAclFile == "" {
+		thingDirConfig.DirAclFile = path.Join(hubConfig.ConfigFolder, aclstore.DefaultAclFile)
+	}
+	if thingDirConfig.DirStoreFolder == "" {
+		thingDirConfig.DirStoreFolder = hubConfig.ConfigFolder
+	}
+	if thingDirConfig.MsgbusAddress == "" {
+		thingDirConfig.MsgbusAddress = hubConfig.Address
+	}
+	if thingDirConfig.MsgbusPortCert == 0 {
+		thingDirConfig.MsgbusPortCert = hubConfig.MqttPortCert
+	}
 
-	pb := thingdir.NewThingDirPB(thingdirConfig, hubConfig)
+	// TODO: include server cert in hubConfig?
+	serverCertPath := path.Join(hubConfig.CertsFolder, config.DefaultServerCertFile)
+	serverKeyPath := path.Join(hubConfig.CertsFolder, config.DefaultServerKeyFile)
+	serverCert, err := certsclient.LoadTLSCertFromPEM(serverCertPath, serverKeyPath)
+	if err != nil {
+		logrus.Errorf("Unable to load server certificate: %s", err)
+		os.Exit(1)
+	}
+
+	pb := thingdir.NewThingDir(thingDirConfig, hubConfig.CaCert, serverCert, hubConfig.PluginCert)
 	err = pb.Start()
 
 	if err != nil {

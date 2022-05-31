@@ -2,19 +2,15 @@
 DIST_FOLDER=./dist
 INSTALL_HOME=~/bin/wosthub
 
-FORCE: help
-
 all: oob idprov ## make IDProv server and oob utility
 
 clean: ## Clean distribution files
 	go mod tidy
-	go clean
-	rm -f test/certs/*
-	rm -f test/client/*
-	rm -f test/logs/*
+	go clean -cache -testcache
+	rm ${DIST_FOLDER}/bin/*
 
-test: FORCE ## Run tests (stop on first error, don't run parallel)
-	go test -race -failfast -p 1 -v ./pkg/...
+test: idprov oob ## Run tests (stop on first error, don't run parallel)
+	go test -race -failfast -p 1 -cover ./...
 
 oob: ## Build the oob utility
 	mkdir -p $(DIST_FOLDER)/bin

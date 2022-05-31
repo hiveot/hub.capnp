@@ -1,39 +1,64 @@
 package internal
 
 import (
-	"github.com/wostzone/wost-go/pkg/mqttclient"
 	"os"
 	"os/exec"
 
-	"github.com/sirupsen/logrus"
 	"github.com/wostzone/wost-go/pkg/config"
+	"github.com/wostzone/wost-go/pkg/mqttclient"
+
+	"github.com/sirupsen/logrus"
 )
 
 const PluginID = "mosquittomgr"
 
 const DefaultConfFile = "mosquitto.conf"
 const DefaultTemplateFile = "mosquitto.conf.template"
+const DefaultAuthPlugin = "mosqauth.so"
 
-// PluginConfig with mosquitto manager plugin configuration
-type PluginConfig struct {
+// MMConfig with mosquitto manager plugin configuration
+type MMConfig struct {
+	// ACL file for authorization. Required.
+	AclFile string `yaml:"aclFile"`
+
+	// Server listening address. Required.
+	Address string `yaml:"address"`
+
+	// Path to CA certificate file. Required.
+	CaCertFile string `yaml:"caCertFile"`
+
 	// Unique client ID of service instance. Usually PluginID.
+	// Defaults to 'PluginID'
 	ClientID string `yaml:"clientID"`
 
-	// filename of the generated mosquitto config file (DefaultConfFile)
-	// default folder is the Hub config folder, unless an absolute path is used
-	MosquittoConf string `yaml:"mosquittoConf"`
+	// Path to logging output folder. Required.
+	LogFolder string `yaml:"logFolder"`
 
-	// filename of mosquitto template (DefaultTemplateFile)
-	// default folder is the Hub config folder, unless an absolute path is used
-	MosquittoTemplate string `yaml:"mosquittoTemplate"`
+	// mqtt connect ports. Defaults from mqttclient
+	MqttPortWS   int `yaml:"mqttPortWS"`
+	MqttPortCert int `yaml:"mqttPortCert"`
+	MqttPortUnpw int `yaml:"mqttPortUnpw"`
+
+	// Path to the mosquitto authentication plugin. Required.
+	MosqAuthPlugin string `yaml:"mosqAuthPlugin"`
+
+	// filename of the generated mosquitto config file. Required.
+	MosquittoConfFile string `yaml:"mosquittoConfFile"`
+
+	// filename of mosquitto template. Required.
+	MosquittoTemplateFile string `yaml:"mosquittoTemplateFile"`
+
+	// Path to server certificate file. Required.
+	ServerCertFile string `yaml:"serverCertFile"`
+
+	// Path to server key file. Required.
+	ServerKeyFile string `yaml:"serverKeyFile"`
 }
 
 // MosquittoManager manages configuration and launching of the mosquitto broker
 type MosquittoManager struct {
 	// Service configuration
-	Config PluginConfig
-	// Hub configuration with address and ports
-	hubConfig *config.HubConfig
+	Config MMConfig
 	// MQTT client to communicate with the Hub
 	mqttClient *mqttclient.MqttClient // for communication with the Hub
 	// Command that runs the Mosquitto broker
@@ -53,18 +78,29 @@ type MosquittoManager struct {
 //  2. Listen for CLI commands to manage users and roles
 //  3. Publish this service TD (if enabled) to make the mqtt broker discoverable
 //
-//  hubConfig contains the WoST hub configuration with connection address and various folders
 // Returns error if no mosquitto configuration is found
-func (mm *MosquittoManager) Start(hubConfig *config.HubConfig) error {
-	mm.hubConfig = hubConfig
+func (mm *MosquittoManager) Start() error {
 	logrus.Warningf("Start")
 
-	templateFilename := mm.Config.MosquittoTemplate
-	configFile, err := ConfigureMosquitto(mm.hubConfig, templateFilename, mm.Config.MosquittoConf)
+	// make sure config is set
+	if mm.Config.AclFile == "" ||
+		mm.Config.Address == "" ||
+		mm.Config.CaCertFile == "" ||
+		mm.Config.LogFolder == "" ||
+		mm.Config.MosqAuthPlugin == "" ||
+		mm.Config.MosquittoConfFile == "" ||
+		mm.Config.MosquittoTemplateFile == "" ||
+		mm.Config.ServerCertFile == "" ||
+		mm.Config.ServerKeyFile == "" {
+		logrus.Fatalf("Mosquitto Manager config is missing fields.")
+	}
+
+	templateFilename := mm.Config.MosquittoTemplateFile
+	err := ConfigureMosquitto(&mm.Config, templateFilename, mm.Config.MosquittoConfFile)
 	if err != nil {
 		return err
 	}
-	mm.mosquittoCmd, err = LaunchMosquitto(configFile, mm.isRunning)
+	mm.mosquittoCmd, err = LaunchMosquitto(mm.Config.MosquittoConfFile, mm.isRunning)
 	if err != nil {
 		logrus.Errorf("Mosquitto failed to start: %s", err)
 		return err
@@ -112,13 +148,23 @@ func (mm *MosquittoManager) Stop() {
 }
 
 // NewMosquittoManager creates the mosquitto manager plugin
-func NewMosquittoManager() *MosquittoManager {
+//  svcConfig contains the mosquitto manager configuration settings
+func NewMosquittoManager(svcConfig MMConfig) *MosquittoManager {
+	// set defaults
+	if svcConfig.ClientID == "" {
+		svcConfig.ClientID = PluginID
+	}
+	if svcConfig.MqttPortCert == 0 {
+		svcConfig.MqttPortCert = config.DefaultMqttPortCert
+	}
+	if svcConfig.MqttPortUnpw == 0 {
+		svcConfig.MqttPortUnpw = config.DefaultMqttPortUnpw
+	}
+	if svcConfig.MqttPortWS == 0 {
+		svcConfig.MqttPortWS = config.DefaultMqttPortWS
+	}
 	mm := &MosquittoManager{
-		Config: PluginConfig{
-			ClientID:          PluginID,
-			MosquittoConf:     DefaultConfFile,
-			MosquittoTemplate: DefaultTemplateFile,
-		},
+		Config:    svcConfig,
 		isRunning: make(chan bool, 1),
 	}
 	return mm

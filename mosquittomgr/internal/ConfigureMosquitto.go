@@ -1,10 +1,11 @@
 package internal
 
 import (
+	"fmt"
 	"io/ioutil"
-	"path"
 
 	"github.com/sirupsen/logrus"
+
 	"github.com/wostzone/wost-go/pkg/config"
 )
 
@@ -16,36 +17,35 @@ import (
 // For example ${configFolder} is replaced by the value of HubConfig's "ConfigFolder".
 //
 // If a file exists it is replaced.
-//  hubConfig with the network host/port configuration
-//  templateFilename filename of configuration template
-//  configName  filename of the mosquitto configuration file to generate
-//  Returns the final configuration path or an error
-func ConfigureMosquitto(hubConfig *config.HubConfig, templateFilename string, configFilename string) (string, error) {
+//  configFolder with the network host/port configuration
+//  templateFilename full filename of configuration template input file
+//  configFileName  full filename of the mosquitto configuration output file
+//  Returns nil or an error
+func ConfigureMosquitto(mmConfig *MMConfig, templateFilename string, configFilename string) error {
 
-	// load the template
-	if !path.IsAbs(templateFilename) {
-		templateFilename = path.Join(hubConfig.ConfigFolder, templateFilename)
-	}
 	configTemplate, err := ioutil.ReadFile(templateFilename)
 	if err != nil {
 		logrus.Errorf("Unable to generate mosquitto configuration. Template file %s read error: %s", templateFilename, err)
-		return "", err
+		return err
 	}
-	// TODO: iterate HubConfig values
 	templateParams := map[string]string{}
-	// FIXME: server cert info is not included in hubconfig
-	templateParams["${serverCertFile}"] = path.Join(hubConfig.CertsFolder, config.DefaultServerCertFile)
-	templateParams["${serverKeyFile}"] = path.Join(hubConfig.CertsFolder, config.DefaultServerKeyFile)
-	for k, v := range hubConfig.AsMap() {
-		name := "${" + k + "}"
-		templateParams[name] = v
-	}
+	templateParams["${mqttPortWS}"] = fmt.Sprint(mmConfig.MqttPortWS)
+	templateParams["${mqttPortUnpw}"] = fmt.Sprint(mmConfig.MqttPortUnpw)
+	templateParams["${mqttPortCert}"] = fmt.Sprint(mmConfig.MqttPortCert)
+	templateParams["${caCertFile}"] = mmConfig.CaCertFile
+	templateParams["${serverCertFile}"] = mmConfig.ServerCertFile
+	templateParams["${serverKeyFile}"] = mmConfig.ServerKeyFile
+	templateParams["${mosqAuthPlugin}"] = mmConfig.MosqAuthPlugin
+	templateParams["${aclFile}"] = mmConfig.AclFile
+	templateParams["${logFolder}"] = mmConfig.LogFolder
+
+	//for k, v := range mmConfig.AsMap() {
+	//	name := "${" + k + "}"
+	//	templateParams[name] = v
+	//}
 	configTxt := config.SubstituteText(string(configTemplate), templateParams)
 
 	// write the configuration file
-	if !path.IsAbs(configFilename) {
-		configFilename = path.Join(hubConfig.ConfigFolder, configFilename)
-	}
 	ioutil.WriteFile(configFilename, []byte(configTxt), 0644)
-	return configFilename, nil
+	return nil
 }

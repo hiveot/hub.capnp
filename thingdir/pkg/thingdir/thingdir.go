@@ -1,222 +1,208 @@
 package thingdir
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+
 	"github.com/sirupsen/logrus"
+	"github.com/wostzone/hub/lib/client/pkg/mqttbinding"
+
 	"github.com/wostzone/hub/authz/pkg/aclstore"
 	"github.com/wostzone/hub/authz/pkg/authorize"
-	"github.com/wostzone/hub/lib/client/pkg/mqttbinding"
 	"github.com/wostzone/hub/thingdir/pkg/dirclient"
 	"github.com/wostzone/hub/thingdir/pkg/dirserver"
-	"github.com/wostzone/wost-go/pkg/certsclient"
 	"github.com/wostzone/wost-go/pkg/config"
 	"github.com/wostzone/wost-go/pkg/consumedthing"
+	"github.com/wostzone/wost-go/pkg/hubnet"
 	"github.com/wostzone/wost-go/pkg/mqttclient"
-	"path"
 )
 
 const PluginID = "thingdir"
 
 // ThingDirConfig plugin configuration
 type ThingDirConfig struct {
-	// Directory server settings for the built-in directory server
-	DisableDirServer bool   `yaml:"disableDirServer"` // Disable the built-in directory server and use an external server
-	DirAddress       string `yaml:"dirAddress"`       // Directory server address, default is that of the mqtt server
-	DirPort          uint   `yaml:"dirPort"`          // Directory server listening port, default is dirclient.DefaultPort
-	ServerCertPath   string `yaml:"serverCertPath"`   // server cert location. Default is hub's server
-	ServerKeyPath    string `yaml:"serverKeyPath"`    // server key location. Default is hub's key
-	ServerCaPath     string `yaml:"serverCaPath"`     // server CA cert location for client auth. Default is hub's CA
-	EnableLogin      bool   `yaml:"enableLogin"`      // Enable login on the server instead of using a separate auth server [false]
+	//--- Directory server settings  ---
 
-	// DNS-SD discovery settings
-	EnableDiscovery bool   `yaml:"enableDiscovery"` // Enable server DNS-SD discovery
-	ServiceName     string `yaml:"serviceName"`     // DNS-SD service name: as used in "_{serviceName}._tcp" when using discovery
+	// Service instance client ID used in publishing its own TD, discovery, and connecting to the message bus.
+	// Must be unique on the local network. Default is the pluginID.
+	InstanceID string `yaml:"clientID"`
 
-	// protocl binding client settings used to connect the protocol binding to the directory server
-	// If an external directory is used these fields must be set. Defaults to the internal server
-	PbClientID       string `yaml:"pbClientID"`       // Unique server instance ID, default is plugin ID
-	PbClientCertPath string `yaml:"pbClientCertPath"` // Client certificate for connecting to the directory server.
-	PbClientKeyPath  string `yaml:"pbClientKeyPath"`  // Client key location for connecting to the directory server
-	PbClientCaPath   string `yaml:"pbClientCaPath"`   // Directory server CA cert location. Default is hub's CA
+	// Directory server listening address
+	// Default is the outbound IP
+	DirAddress string `yaml:"dirAddress"`
 
-	// mqtt client settings
-	MsgbusCertPath string `yaml:"msgbusCertPath"`   // Client certificate for connecting to the message bus.
-	MsgbusKeyPath  string `yaml:"msgbusKeyPath"`    // Client key location for connecting to the message bus
-	MsgbusCaPath   string `yaml:"msgbusCaCertPath"` // message bus CA cert location. Default is hub's CA
+	// Directory server listening port,
+	// Default is dirclient.DefaultPort
+	DirPort uint `yaml:"dirPort"`
 
-	//	VerifyPublisherInThingID bool   `yaml:"verifyPublisherInThingID"` // publisher must be the ThingID publisher
-	// directory store settings
-	DirectoryStoreFolder string `yaml:"storeFolder"` // location of directory files
+	// Directory authorization ACL file location.
+	// Required. Panics if not provided.
+	DirAclFile string `yaml:"aclFile"`
+
+	// DirStoreFolder holds the location of directory database
+	// Required. Panics if not provided.
+	DirStoreFolder string `yaml:"storeFolder"`
+
+	// Enable auth login on the server instead of using a separate auth server [false]
+	//EnableLogin bool `yaml:"enableLogin"`
+
+	//--- DNS-SD discovery settings ---
+
+	// DNS-SD service name: as used in "_{serviceName}._tcp" when using discovery
+	// Default is {dirclient.DefaultServiceName} (thingdir)
+	DiscoveryServiceName string `yaml:"serviceName"`
+	// Enable server DNS-SD discovery. Default is disabled.
+	EnableDiscovery bool `yaml:"enableDiscovery"`
+
+	//--- mqtt client settings ---
+	// Mqtt server address, when different from the directory server address
+	// Default is the Outbound IP
+	MsgbusAddress string `yaml:"msgbusAddress"`
+	// Certificate authentication auth port. Default is {config.DefaultMqttPortCert}
+	MsgbusPortCert int `yaml:"msgbusPortCert"`
 }
 
-// ThingDir Directory Protocol Binding for the WoST Hub
+// ThingDir binds the mqtt message bus to the Directory Server on the WoST Hub.
+// It stores published TD documents into the directory server and tracks the latest
+// property values.
 type ThingDir struct {
-	config     ThingDirConfig
-	hubConfig  config.HubConfig
-	dirServer  *dirserver.DirectoryServer
-	dirClient  *dirclient.DirClient
+	// Plugin configuration
+	config ThingDirConfig
+	// The directory server implementing the directory HTTP API
+	dirServer *dirserver.DirectoryServer
+	// MQTT client to capture TD documents and property values
 	mqttClient *mqttclient.MqttClient
-	authorizer authorize.VerifyAuthorization
-	aclStore   *aclstore.AclFileStore
+	// Authorizer for the directory server
+	//authorizer authorize.VerifyAuthorization
+	// ACL for the directory server
+	aclStore *aclstore.AclFileStore
+	// CA certificates to validate client certs
+	caCert *x509.Certificate
+	// certificates for the directory server
+	serverCert *tls.Certificate
+	// certificates for the mqtt client (using cert auth)
+	clientCert *tls.Certificate
 }
 
 // Start the ThingDir service.
-//  1. Launches the directory server, if enabled. disable to use an external directory
-//  2. Creates a client to update the directory server
-//  3. Creates a client to subscribe to TD updates on the message bus
-// This automatically captures updates to TD documents published on the message bus
-func (pb *ThingDir) Start() error {
+// This service will capture TD documents from the message bus and updated the Directory
+// Server store with received TD's and with received property values. If enabled, enabled
+// DNS-SD discovery of the service.
+//
+//  1. Launches the directory server, if enabled.
+//  2. Creates a client to update the directory server with received TDs.
+//  3. Creates a client to subscribe to TD updates on the message bus.
+func (tDir *ThingDir) Start() error {
 	logrus.Infof("ThingDirPB.Start")
 	var err error
 
-	serverCert, err := certsclient.LoadTLSCertFromPEM(pb.config.ServerCertPath, pb.config.ServerKeyPath)
+	err = tDir.aclStore.Open()
 	if err != nil {
 		return err
 	}
 
-	// First get the directory server up and running, if not disabled
-	if !pb.config.DisableDirServer {
-		// Using external or internal login authenticator?
-		//var loginAuth func(string, string) bool
-		//if pb.config.EnableLogin {
-		//	loginAuth = pb.authenticator
-		//}
-		//err = pb.unpwStore.Open()
-		//if err != nil {
-		//	return err
-		//}
-		err = pb.aclStore.Open()
-		if err != nil {
-			return err
-		}
-
-		pb.dirServer = dirserver.NewDirectoryServer(
-			pb.config.PbClientID,
-			pb.config.DirectoryStoreFolder,
-			pb.config.DirAddress,
-			pb.config.DirPort,
-			pb.config.ServiceName,
-			serverCert,
-			pb.hubConfig.CaCert,
-			//loginAuth,
-			pb.authorizer)
-
-		err = pb.dirServer.Start()
-		if err != nil {
-			return err
-		}
-	}
-	// connect a client to the directory server for use by the protocol binding
-	// the protocol binding uses the server API to update the directory store with discovered Things.
-	dirHostPort := fmt.Sprintf("%s:%d", pb.config.DirAddress, pb.config.DirPort)
-	pb.dirClient = dirclient.NewDirClient(dirHostPort, pb.hubConfig.CaCert)
-	err = pb.dirClient.ConnectWithClientCert(pb.hubConfig.PluginCert)
+	err = tDir.dirServer.Start()
 	if err != nil {
 		return err
 	}
-
 	// Listen for TD updates on the message bus
-	mqttHostPort := fmt.Sprintf("%s:%d", pb.hubConfig.Address, pb.hubConfig.MqttPortCert)
-	err = pb.mqttClient.ConnectWithClientCert(mqttHostPort, pb.hubConfig.PluginCert)
+	mqttHostPort := fmt.Sprintf("%s:%d", tDir.config.MsgbusAddress, tDir.config.MsgbusPortCert)
+	err = tDir.mqttClient.ConnectWithClientCert(mqttHostPort, tDir.clientCert)
 	if err != nil {
 		return err
 	}
 	topic := consumedthing.CreateTopic("", mqttbinding.TopicTypeTD)
-	pb.mqttClient.Subscribe(topic, pb.handleTDUpdate)
+	tDir.mqttClient.Subscribe(topic, tDir.handleTDUpdate)
 
 	// Listen for events
 	topic = consumedthing.CreateTopic("", mqttbinding.TopicTypeEvent) + "/+"
-	pb.mqttClient.Subscribe(topic, pb.handleEvent)
+	tDir.mqttClient.Subscribe(topic, tDir.handleEvent)
 
 	return err
 }
 
 // Stop the ThingDir service
-func (pb *ThingDir) Stop() {
+func (tDir *ThingDir) Stop() {
 	logrus.Infof("ThingDirPB.Stop")
-	if pb.mqttClient != nil {
-		pb.mqttClient.Disconnect()
+	if tDir.mqttClient != nil {
+		tDir.mqttClient.Disconnect()
 	}
-	if pb.dirClient != nil {
-		pb.dirClient.Close()
+	//if tDir.dirClient != nil {
+	//	tDir.dirClient.Close()
+	//}
+	if tDir.dirServer != nil {
+		tDir.dirServer.Stop()
 	}
-	if pb.dirServer != nil {
-		pb.dirServer.Stop()
-	}
-	//pb.unpwStore.Close()
-	pb.aclStore.Close()
-
+	//tDir.unpwStore.Close()
+	tDir.aclStore.Close()
 }
 
-// NewThingDirPB creates a new Thing Directory service instance
+// NewThingDir creates a new Thing Directory service instance
 // This uses the hub server certificate for the Thing Directory server. The server address must
 // therefore match that of the certificate. Default is the hub's mqtt address.
-//  config with the plugin configuration and overrides from the defaults
-//  hubConfig with default server address and certificate folder
-func NewThingDirPB(thingdirconf *ThingDirConfig, hubConfig *config.HubConfig) *ThingDir {
+// This will modify the provided config with values actually used.
+//
+//  tDirConfig with the plugin configuration and overrides from the defaults
+//  caCert with CA to use for server verification
+//  serverCert with directory server TLS certificate
+//  clientCert to authenticate with the message bus
+func NewThingDir(
+	tDirConfig *ThingDirConfig,
+	caCert *x509.Certificate,
+	serverCert *tls.Certificate,
+	clientCert *tls.Certificate,
+) *ThingDir {
 
-	// Directory server defaults when using the built-in server
-	if thingdirconf.DirAddress == "" {
-		thingdirconf.DirAddress = hubConfig.Address
+	// Directory server defaults when using the outbound IP
+	if tDirConfig.DirAddress == "" {
+		tDirConfig.DirAddress = hubnet.GetOutboundIP("").String()
 	}
-	if thingdirconf.DirPort == 0 {
-		thingdirconf.DirPort = dirclient.DefaultPort
+	if tDirConfig.DirPort == 0 {
+		tDirConfig.DirPort = dirclient.DefaultPort
 	}
-	if thingdirconf.DirectoryStoreFolder == "" {
-		thingdirconf.DirectoryStoreFolder = hubConfig.ConfigFolder
+	if tDirConfig.DirAclFile == "" {
+		logrus.Panic("Missing directory authorization ACL file location")
 	}
-	if thingdirconf.ServiceName == "" {
-		thingdirconf.ServiceName = dirclient.DefaultServiceName
+	if tDirConfig.DirStoreFolder == "" {
+		logrus.Panic("Missing directory store location")
 	}
-	if !thingdirconf.EnableDiscovery {
-		thingdirconf.ServiceName = ""
+	if tDirConfig.DiscoveryServiceName == "" {
+		tDirConfig.DiscoveryServiceName = dirclient.DefaultServiceName
 	}
-	if thingdirconf.ServerCertPath == "" {
-		thingdirconf.ServerCertPath = path.Join(hubConfig.CertsFolder, config.DefaultServerCertFile)
-	}
-	if thingdirconf.ServerKeyPath == "" {
-		thingdirconf.ServerKeyPath = path.Join(hubConfig.CertsFolder, config.DefaultServerKeyFile)
-	}
-	if thingdirconf.ServerCaPath == "" {
-		thingdirconf.ServerCaPath = path.Join(hubConfig.CertsFolder, config.DefaultCaCertFile)
-	}
-
-	// Directory client defaults
-	if thingdirconf.PbClientID == "" {
-		thingdirconf.PbClientID = PluginID
-	}
-	if thingdirconf.PbClientCaPath == "" {
-		thingdirconf.PbClientCaPath = path.Join(hubConfig.CertsFolder, config.DefaultCaCertFile)
-	}
-	if thingdirconf.PbClientCertPath == "" {
-		thingdirconf.PbClientCertPath = path.Join(hubConfig.CertsFolder, config.DefaultPluginCertFile)
-	}
-	if thingdirconf.PbClientKeyPath == "" {
-		thingdirconf.PbClientKeyPath = path.Join(hubConfig.CertsFolder, config.DefaultPluginKeyFile)
+	if !tDirConfig.EnableDiscovery {
+		tDirConfig.DiscoveryServiceName = ""
 	}
 
 	// Message bus client defaults
-	if thingdirconf.MsgbusCertPath == "" {
-		thingdirconf.MsgbusCertPath = path.Join(hubConfig.CertsFolder, config.DefaultPluginCertFile)
+	if tDirConfig.MsgbusAddress == "" {
+		tDirConfig.MsgbusAddress = hubnet.GetOutboundIP("").String()
 	}
-	if thingdirconf.MsgbusKeyPath == "" {
-		thingdirconf.MsgbusKeyPath = path.Join(hubConfig.CertsFolder, config.DefaultPluginKeyFile)
-	}
-	if thingdirconf.MsgbusCaPath == "" {
-		thingdirconf.MsgbusCaPath = path.Join(hubConfig.CertsFolder, config.DefaultCaCertFile)
+	if tDirConfig.MsgbusPortCert == 0 {
+		tDirConfig.MsgbusPortCert = config.DefaultMqttPortCert
 	}
 
-	// The file based stores are the only option for now
+	aclStore := aclstore.NewAclFileStore(tDirConfig.DirAclFile, tDirConfig.InstanceID)
+	authorizer := authorize.NewAuthorizer(aclStore).VerifyAuthorization
 
-	aclFile := path.Join(hubConfig.ConfigFolder, aclstore.DefaultAclFile)
-	aclStore := aclstore.NewAclFileStore(aclFile, "ThingDirPB")
+	dirServer := dirserver.NewDirectoryServer(
+		tDirConfig.InstanceID,
+		tDirConfig.DirStoreFolder,
+		tDirConfig.DirAddress,
+		tDirConfig.DirPort,
+		tDirConfig.DiscoveryServiceName,
+		serverCert,
+		caCert,
+		authorizer)
 
 	tdir := ThingDir{
-		config:     *thingdirconf,
-		hubConfig:  *hubConfig,
-		mqttClient: mqttclient.NewMqttClient(PluginID, hubConfig.CaCert, 0),
+		config:     *tDirConfig,
+		dirServer:  dirServer,
+		mqttClient: mqttclient.NewMqttClient(PluginID, caCert, 0),
 		aclStore:   aclStore,
-		authorizer: authorize.NewAuthorizer(aclStore).VerifyAuthorization,
+		caCert:     caCert,
+		serverCert: serverCert,
+		clientCert: clientCert,
 	}
 	return &tdir
 }
