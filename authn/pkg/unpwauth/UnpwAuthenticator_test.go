@@ -1,14 +1,16 @@
 package unpwauth_test
 
 import (
-	"github.com/wostzone/wost-go/pkg/logging"
 	"os"
 	"path"
 	"testing"
 	"time"
 
+	"github.com/wostzone/wost-go/pkg/logging"
+
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+
 	"github.com/wostzone/hub/authn/pkg/unpwauth"
 	"github.com/wostzone/hub/authn/pkg/unpwstore"
 )
@@ -16,22 +18,25 @@ import (
 const unpwFileName = "test.passwd"
 
 var unpwFilePath string
+var tempFolder string
 
 // TestMain for all authn tests, setup of default folders and filenames
 func TestMain(m *testing.M) {
 	logging.SetLogging("info", "")
-	cwd, _ := os.Getwd()
-	homeFolder := path.Join(cwd, "../../test")
-	configFolder := path.Join(homeFolder, "config")
+	tempFolder = path.Join(os.TempDir(), "wost-authn-test")
+	os.MkdirAll(tempFolder, 0700)
 
 	// Make sure password file exist
-	unpwFilePath = path.Join(configFolder, unpwFileName)
+	unpwFilePath = path.Join(tempFolder, unpwFileName)
 	fp, _ := os.Create(unpwFilePath)
 	fp.Close()
 	// creating these files takes a bit of time,
 	time.Sleep(time.Second)
 
 	res := m.Run()
+	if res == 0 {
+		os.RemoveAll(tempFolder)
+	}
 	os.Exit(res)
 }
 

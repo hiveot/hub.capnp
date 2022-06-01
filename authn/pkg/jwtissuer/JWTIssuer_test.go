@@ -3,15 +3,17 @@ package jwtissuer_test
 import (
 	"bytes"
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"github.com/wostzone/hub/authn/pkg/jwtissuer"
 	"github.com/wostzone/wost-go/pkg/certsclient"
 	"github.com/wostzone/wost-go/pkg/tlsclient"
 	"github.com/wostzone/wost-go/pkg/tlsserver"
-	"net/http"
-	"net/http/httptest"
-	"testing"
 )
 
 // JWT token creation and verification test cases

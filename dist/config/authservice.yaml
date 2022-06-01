@@ -1,7 +1,7 @@
 # Authentication service configuration
+# The service will work out of the box with the default values
 
-
-# override the server address from hub.yaml
+# listening address. Override from hub.yaml
 #address: localhost
 
 # Service listening port or 0 to use the default port 8881
@@ -10,10 +10,10 @@
 # ClientID to identify this service as. Default is the pluginID
 #clientID: authservice
 
-# Enable the client configuration store for authenticated users. Default is true
+# Enable the configuration store for authenticated users. Default is true
 #configStoreEnabled: true
 
-# Set the client config store folder. Default is 'clientconfig' in the config folder
+# Set the config store folder. Default is 'clientconfig' in the config folder
 #configStoreFolder: clientconfig
 
 # PasswordFile, in the config folder, to read from.
@@ -21,7 +21,7 @@
 #passwordFile: "hub.passwd"
 
 # access token validity in seconds. Default is 1 hour
-accessTokenValiditySec: 60
+#accessTokenValiditySec: 3600
 
 # refresh token validity in seconds. Default is 1209600 (14 days)
-refreshTokenValiditySec: 120
+#refreshTokenValiditySec: 1209600

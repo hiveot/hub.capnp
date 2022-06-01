@@ -1,13 +1,15 @@
 package aclstore_test
 
 import (
-	"github.com/wostzone/wost-go/pkg/logging"
 	"os"
 	"path"
 	"testing"
 	"time"
 
+	"github.com/wostzone/wost-go/pkg/logging"
+
 	"github.com/stretchr/testify/assert"
+
 	"github.com/wostzone/hub/authz/pkg/aclstore"
 	"github.com/wostzone/hub/authz/pkg/authorize"
 )
@@ -16,17 +18,16 @@ import (
 // also used in mosquittomgr testing
 const aclFileName = "testaclstore.acl" // auth_opt_aclFile
 var aclFilePath string
-var configFolder string
+var tempFolder string
 
 // TestMain for all authn tests, setup of default folders and filenames
 func TestMain(m *testing.M) {
 	logging.SetLogging("info", "")
-	cwd, _ := os.Getwd()
-	homeFolder := path.Join(cwd, "../../test")
-	configFolder = path.Join(homeFolder, "config")
+	tempFolder = path.Join(os.TempDir(), "wost-authz-test")
+	os.MkdirAll(tempFolder, 0700)
 
 	// Make sure ACL and password files exist
-	aclFilePath = path.Join(configFolder, aclFileName)
+	aclFilePath = path.Join(tempFolder, aclFileName)
 	fp, _ := os.Create(aclFilePath)
 	// fp.WriteString("group1:\n  user1: manager\n")
 	_ = fp.Close()
@@ -148,7 +149,7 @@ func TestMissingAclFile(t *testing.T) {
 
 func TestBadAclFile(t *testing.T) {
 	// loading the hub-bad.yaml should fail as it isn't a valid yaml file
-	badAclFile := path.Join(configFolder, "badaclfile.acl")
+	badAclFile := path.Join(tempFolder, "badaclfile.acl")
 	fp, _ := os.Create(badAclFile)
 	fp.WriteString("This is not a valid acl file\nParsing should fail.")
 	as := aclstore.NewAclFileStore(badAclFile, "TestBadAclFile")

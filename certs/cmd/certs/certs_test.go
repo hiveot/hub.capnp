@@ -8,13 +8,14 @@ import (
 )
 
 func TestArgs(t *testing.T) {
-	wd, _ := os.Getwd()
-	homeFolder := path.Join(wd, "../../test")
-	os.Chdir(homeFolder)
+	tempFolder := path.Join(os.TempDir(), "wost-certs-test")
+	certsFolder := path.Join(tempFolder, "certs")
+	_ = os.MkdirAll(certsFolder, 0700)
+	_ = os.Chdir(tempFolder)
 
 	cmdline := "certbundle"
 	args := strings.Split(cmdline, " ")
-	ParseArgs(homeFolder, args)
+	ParseArgs(tempFolder, args)
 }
 
 func TestNoArgs(t *testing.T) {

@@ -62,8 +62,6 @@ func main() {
 	}
 	pb := idprovserver.NewIDProvServer(
 		idpConfig,
-		//uint(hubConfig.MqttPortCert),
-		//uint(hubConfig.MqttPortWS),
 		serverCert,
 		hubConfig.CaCert,
 		caKey)

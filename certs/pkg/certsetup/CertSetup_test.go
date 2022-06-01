@@ -2,36 +2,42 @@ package certsetup_test
 
 import (
 	"crypto/x509"
-	"github.com/wostzone/hub/certs/pkg/certsetup"
-	"github.com/wostzone/wost-go/pkg/certsclient"
-	"github.com/wostzone/wost-go/pkg/logging"
 	"os"
-	"os/exec"
 	"path"
 	"testing"
 	"time"
+
+	"github.com/wostzone/hub/certs/pkg/certsetup"
+	"github.com/wostzone/wost-go/pkg/certsclient"
+	"github.com/wostzone/wost-go/pkg/logging"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-var homeFolder string
+var tempFolder string
 var certFolder string
 
 // removeCerts easy cleanup for existing device certificate
-func removeServerCerts() {
-	_, _ = exec.Command("sh", "-c", "rm -f "+path.Join(certFolder, "*.pem")).Output()
-}
+//func removeServerCerts() {
+//	_, _ = exec.Command("sh", "-c", "rm -f "+path.Join(certFolder, "*.pem")).Output()
+//}
 
 // TestMain clears the certs folder for clean testing
 func TestMain(m *testing.M) {
-	cwd, _ := os.Getwd()
-	homeFolder = path.Join(cwd, "../../test")
-	certFolder = path.Join(homeFolder, "certs")
 	logging.SetLogging("info", "")
-	removeServerCerts()
+	tempFolder := path.Join(os.TempDir(), "wost-certs-test")
+	// clean start
+	os.RemoveAll(tempFolder)
+	certFolder = path.Join(tempFolder, "certs")
+	_ = os.MkdirAll(certFolder, 0700)
+	logging.SetLogging("info", "")
+	//removeServerCerts()
 
 	res := m.Run()
+	if res == 0 {
+		os.RemoveAll(tempFolder)
+	}
 	os.Exit(res)
 }
 

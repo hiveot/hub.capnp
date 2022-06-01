@@ -2,18 +2,20 @@ package internal
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/wostzone/wost-go/pkg/certsclient"
+	"os"
+	"path"
+	"time"
+
 	"github.com/wostzone/wost-go/pkg/config"
 	"github.com/wostzone/wost-go/pkg/consumedthing"
 	"github.com/wostzone/wost-go/pkg/exposedthing"
 	"github.com/wostzone/wost-go/pkg/mqttclient"
 	"github.com/wostzone/wost-go/pkg/thing"
 	"github.com/wostzone/wost-go/pkg/vocab"
-	"os"
-	"path"
-	"time"
 
 	"github.com/sirupsen/logrus"
 )
@@ -21,23 +23,34 @@ import (
 // PluginID is the default ID of the WoST Logger plugin
 const PluginID = "logger"
 
-// WostLoggerConfig with logger plugin configuration
+// LoggerServiceConfig with logger plugin configuration
 // map of topic -> file
-type WostLoggerConfig struct {
-	ClientID      string   `yaml:"clientID"`      // custom unique client ID of logger instance
-	ExposeService bool     `yaml:"exposeService"` // Expose this service with a Thing
-	LogsFolder    string   `yaml:"logsFolder"`    // folder to use for logging
-	ThingIDs      []string `yaml:"thingIDs"`      // thing IDs to log
+type LoggerServiceConfig struct {
+	// unique service ID of logger instance. Default is plugin ID.
+	ClientID string `yaml:"clientID"`
+	// Expose this service with a Thing. Default is false
+	ExposeService bool `yaml:"exposeService"`
+	// folder to use for logging. Required.
+	LogFolder string `yaml:"logFolder"`
+	// Mqtt broker address. Required
+	MqttAddress string `yaml:"mqttAddress"`
+	// Mqtt broker port for certificate auth. Default is config.DefaultMqttPortCert
+	MqttPortCert int `yaml:"mqttPortCert"`
+	// thing IDs to log. Default is all of them.
+	ThingIDs []string `yaml:"thingIDs"`
 }
 
 // LoggerService is a hub plugin for recording messages to the hub
 // By default it logs messages by ThingID, eg each Thing has a log file
 type LoggerService struct {
-	// The logger configuration
-	Config WostLoggerConfig
+	// CA certificate to verify the mqtt broker connection
+	caCert *x509.Certificate
 
-	// Shared configuration of the hub
-	hubConfig *config.HubConfig
+	// Client certificate to authenticate with the mqtt broker
+	clientCert *tls.Certificate
+
+	// The logger configuration
+	config LoggerServiceConfig
 
 	// Map of thing ID to logfile
 	loggers map[string]*os.File
@@ -68,8 +81,7 @@ func (ls *LoggerService) logToFile(thingID string, msgType string, subject strin
 
 	logger := ls.loggers[thingID]
 	if logger == nil {
-		logsFolder := ls.Config.LogsFolder
-		filePath := path.Join(logsFolder, thingID+".log")
+		filePath := path.Join(ls.config.LogFolder, thingID+".log")
 
 		// 	TimestampFormat: "2006-01-02T15:04:05.000-0700",
 		fileHandle, err := os.OpenFile(filePath, os.O_RDWR|os.O_APPEND|os.O_CREATE, 0640)
@@ -108,7 +120,7 @@ func (ls *LoggerService) ExposeService() {
 	}
 	// create the TD of this service
 	deviceType := vocab.DeviceTypeService
-	thingID := thing.CreatePublisherID(ls.hubConfig.Zone, "hub", ls.Config.ClientID, deviceType)
+	thingID := thing.CreatePublisherID("", "", ls.config.ClientID, deviceType)
 
 	logrus.Infof("Publishing this service TD %s", thingID)
 	serviceTD := thing.CreateTD(thingID, PluginID, deviceType)
@@ -119,62 +131,48 @@ func (ls *LoggerService) ExposeService() {
 			Title: "Directory where to store the log files",
 		},
 	})
-	ls.etFactory.Expose(ls.Config.ClientID, serviceTD)
-	//eThing := mqttbinding.CreateExposedThing(ls.Config.ClientID, thingTD, ls.mqttClient)
+	ls.etFactory.Expose(ls.config.ClientID, serviceTD)
+	//eThing := mqttbinding.CreateExposedThing(ls.config.ClientID, thingTD, ls.mqttClient)
 	//eThing.Expose()
 }
 
 // Start connects, subscribe and start the recording
-func (ls *LoggerService) Start(hubConfig *config.HubConfig) error {
+func (ls *LoggerService) Start() error {
 	var err error
-	var pluginCert *tls.Certificate
-	// ls.loggers = make(map[string]*logrus.Logger)
-	ls.loggers = make(map[string]*os.File)
-	ls.hubConfig = hubConfig
 
-	// verify the logging folder exists
-	if ls.Config.LogsFolder == "" {
-		// default location is hubConfig log folder
-		ls.Config.LogsFolder = ls.hubConfig.LogFolder
-	} else if !path.IsAbs(ls.Config.LogsFolder) {
-		ls.Config.LogsFolder = path.Join(hubConfig.HomeFolder, ls.Config.LogsFolder)
-	}
-	_, err = os.Stat(ls.Config.LogsFolder)
-	if err != nil {
-		logrus.Errorf("Logging folder '%s' does not exist. Setup error: %s",
-			ls.Config.LogsFolder, err)
+	// check for required configuration
+	if ls.config.LogFolder == "" || ls.config.MqttAddress == "" {
+		err := errors.New("missing required configuration. Unable to continue")
+		logrus.Error(err)
 		return err
+	}
+
+	// create the log folder if needed
+	err = os.MkdirAll(ls.config.LogFolder, 0700)
+	if err != nil {
+		err2 := errors.New("Failed creating the log destination folder: " + err.Error())
+		logrus.Error(err2)
+		return err2
 	}
 
 	// connect to the message bus to receive messages to be logged
-	caCertPath := path.Join(hubConfig.CertsFolder, config.DefaultCaCertFile)
-	caCert, err := certsclient.LoadX509CertFromPEM(caCertPath)
-	if err == nil {
-		pluginCert, err = certsclient.LoadTLSCertFromPEM(
-			path.Join(hubConfig.CertsFolder, config.DefaultPluginCertFile),
-			path.Join(hubConfig.CertsFolder, config.DefaultPluginKeyFile),
-		)
-	}
-	if err != nil {
-		logrus.Errorf("Start: Error loading certificate: %s", err)
-		return err
-	}
-	hostPort := fmt.Sprintf("%s:%d", hubConfig.Address, hubConfig.MqttPortCert)
+	hostPort := fmt.Sprintf("%s:%d", ls.config.MqttAddress, ls.config.MqttPortCert)
 	// the mqtt client is used for subscribing to messages to log
-	ls.mqttClient = mqttclient.NewMqttClient(ls.Config.ClientID, caCert, 0)
-	err = ls.mqttClient.ConnectWithClientCert(hostPort, pluginCert)
+	ls.mqttClient = mqttclient.NewMqttClient(ls.config.ClientID, ls.caCert, 0)
+	err = ls.mqttClient.ConnectWithClientCert(hostPort, ls.clientCert)
 	if err != nil {
 		return err
 	}
 
-	if ls.Config.ThingIDs == nil || len(ls.Config.ThingIDs) == 0 {
-		// log everything
-		ls.mqttClient.Subscribe("#", func(address string, payload []byte) {
+	if ls.config.ThingIDs == nil || len(ls.config.ThingIDs) == 0 {
+		// log all things
+		topic := consumedthing.CreateTopic("+", "#")
+		ls.mqttClient.Subscribe(topic, func(address string, payload []byte) {
 			thingID, msgType, subject := consumedthing.SplitTopic(address)
 			ls.logToFile(thingID, msgType, subject, payload)
 		})
 	} else {
-		for _, thingID := range ls.Config.ThingIDs {
+		for _, thingID := range ls.config.ThingIDs {
 			topic := consumedthing.CreateTopic(thingID, "#")
 			ls.mqttClient.Subscribe(topic,
 				func(address string, payload []byte) {
@@ -185,25 +183,25 @@ func (ls *LoggerService) Start(hubConfig *config.HubConfig) error {
 	}
 
 	// Expose the service if configured
-	if ls.Config.ExposeService {
-		ls.etFactory = exposedthing.CreateExposedThingFactory(ls.Config.ClientID, pluginCert, caCert)
-		ls.etFactory.Connect(hubConfig.Address, hubConfig.MqttPortCert)
+	if ls.config.ExposeService {
+		ls.etFactory = exposedthing.CreateExposedThingFactory(ls.config.ClientID, ls.clientCert, ls.caCert)
+		err = ls.etFactory.Connect(ls.config.MqttAddress, ls.config.MqttPortCert)
 		ls.ExposeService()
 	}
 
-	logrus.Infof("Started logger of %d topics", len(ls.Config.ThingIDs))
+	logrus.Infof("Started logger of %d topics", len(ls.config.ThingIDs))
 	ls.isRunning = true
 	return err
 }
 
-// Stop the logging
+// Stop the service
 func (ls *LoggerService) Stop() {
 	if !ls.isRunning {
 		return
 	}
 	logrus.Info("Stopping logging service")
 	// remove subscriptions before closing loggers
-	for _, thingID := range ls.Config.ThingIDs {
+	for _, thingID := range ls.config.ThingIDs {
 		topic := consumedthing.CreateTopic(thingID, "#")
 		ls.mqttClient.Unsubscribe(topic)
 	}
@@ -217,13 +215,24 @@ func (ls *LoggerService) Stop() {
 }
 
 // NewLoggerService returns a new instance of the logger service
-func NewLoggerService() *LoggerService {
+func NewLoggerService(
+	loggerConfig LoggerServiceConfig,
+	clientCert *tls.Certificate,
+	caCert *x509.Certificate) *LoggerService {
+
+	// set defaults
+	if loggerConfig.ClientID == "" {
+		loggerConfig.ClientID = PluginID
+	}
+	if loggerConfig.MqttPortCert == 0 {
+		loggerConfig.MqttPortCert = config.DefaultMqttPortCert
+	}
+
 	svc := &LoggerService{
-		Config: WostLoggerConfig{
-			ClientID:      PluginID,
-			ExposeService: false,
-			LogsFolder:    "",
-		},
+		config:     loggerConfig,
+		caCert:     caCert,
+		clientCert: clientCert,
+		loggers:    make(map[string]*os.File),
 	}
 	return svc
 }

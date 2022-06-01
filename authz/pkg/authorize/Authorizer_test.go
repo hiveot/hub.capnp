@@ -1,15 +1,17 @@
 package authorize_test
 
 import (
-	"github.com/wostzone/wost-go/pkg/certsclient"
-	"github.com/wostzone/wost-go/pkg/logging"
 	"os"
 	"path"
 	"testing"
 	"time"
 
+	"github.com/wostzone/wost-go/pkg/certsclient"
+	"github.com/wostzone/wost-go/pkg/logging"
+
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+
 	"github.com/wostzone/hub/authz/pkg/aclstore"
 	"github.com/wostzone/hub/authz/pkg/authorize"
 )
@@ -20,26 +22,29 @@ var aclFilePath string
 
 const unpwFileName = "test.passwd"
 
+var tempFolder string
 var unpwFilePath string
 
 // TestMain for all authn tests, setup of default folders and filenames
 func TestMain(m *testing.M) {
 	logging.SetLogging("info", "")
-	cwd, _ := os.Getwd()
-	homeFolder := path.Join(cwd, "../../test")
-	configFolder := path.Join(homeFolder, "config")
+	tempFolder = path.Join(os.TempDir(), "wost-authz-test")
+	_ = os.MkdirAll(tempFolder, 0700)
 
 	// Make sure ACL and password files exist
-	aclFilePath = path.Join(configFolder, aclFileName)
+	aclFilePath = path.Join(tempFolder, aclFileName)
 	fp, _ := os.Create(aclFilePath)
 	_ = fp.Close()
-	unpwFilePath = path.Join(configFolder, unpwFileName)
+	unpwFilePath = path.Join(tempFolder, unpwFileName)
 	fp, _ = os.Create(unpwFilePath)
 	_ = fp.Close()
 	// creating these files takes a bit of time,
 	time.Sleep(time.Second)
 
 	res := m.Run()
+	if res == 0 {
+		_ = os.RemoveAll(tempFolder)
+	}
 	os.Exit(res)
 }
 
@@ -144,7 +149,6 @@ func TestCheckDeviceAuthorization(t *testing.T) {
 	userName := "pub1"
 	thingID1 := "urn:zone1:pub1:device1:sensor1"
 	thingID2 := "urn:zone1:pub2:device1:sensor1"
-	const writing = true
 	authType := authorize.AuthPubTD
 
 	// publishers can publish to things with thingID that contains the publisher

@@ -1,0 +1,19 @@
+# Configuration file for IDProv provisioning service
+
+# Folder for certificate storage relative to home. Default is "" means client certs are not stored
+#certStoreFolder: "certstore"
+
+# Certificate validity period in days. Default is 30
+#certValidityDays: 30
+
+# Instance ID of the client. Default is the plugin ID 'idprov'
+#clientID: "idprov"
+
+# Disable DNS-SD discovery publications. Default is enabled.
+#disableDiscovery: false
+
+# Listening address of the server when different from the hub mqtt server
+#idpAddress: ""
+
+# Listening port of the server. Default is 8880
+#idpPort: 8880

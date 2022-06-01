@@ -1,0 +1,10 @@
+# Plugin to start
+plugins:
+  # Core plugins
+  - authservice  # launcher authentication & authorization service
+  - mosquittomgr # Launch the mosquitto server and manage mosquitto authn
+  - idprov       # Automated provisioning of devices
+  - thingdir     # Thing directory service
+  # Other plugins
+  - logger # Log discovered Things
+  - owserver-pb # Publish 1-wire Things connected to a OWServer-V2 gateway

@@ -2,19 +2,20 @@ package authservice_test
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
-	"github.com/wostzone/hub/authn/pkg/authservice"
-	"github.com/wostzone/wost-go/pkg/logging"
-	"github.com/wostzone/wost-go/pkg/testenv"
-	"github.com/wostzone/wost-go/pkg/tlsclient"
 	"os"
 	"path"
 	"testing"
 	"time"
+
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/wostzone/hub/authn/pkg/authservice"
+	"github.com/wostzone/wost-go/pkg/logging"
+	"github.com/wostzone/wost-go/pkg/testenv"
+	"github.com/wostzone/wost-go/pkg/tlsclient"
 )
 
-var serverAddress = "127.0.0.1"
 var serverPort uint = 9881
 var testCerts testenv.TestCerts
 var passwordFile string
@@ -22,7 +23,7 @@ var passwordFile string
 //var serverCertFolder string
 //var clientHostPort string
 
-var storeFolder = ""
+var tempFolder string
 
 const user1 = "user1"
 const pass1 = "secret1"
@@ -31,10 +32,10 @@ const pass1 = "secret1"
 // containing a password for user1
 func startAuthService() (*authservice.AuthService, error) {
 	config := authservice.AuthServiceConfig{
-		Address:                 serverAddress,
+		Address:                 testenv.ServerAddress,
 		Port:                    serverPort,
 		PasswordFile:            passwordFile,
-		ConfigStoreFolder:       storeFolder,
+		ConfigStoreFolder:       tempFolder,
 		ConfigStoreEnabled:      true,
 		AccessTokenValiditySec:  10,
 		RefreshTokenValiditySec: 120,
@@ -52,14 +53,11 @@ func startAuthService() (*authservice.AuthService, error) {
 func TestMain(m *testing.M) {
 	logging.SetLogging("info", "")
 	logrus.Infof("------ TestMain of AuthService_test ------")
-	//clientHostPort = fmt.Sprintf("%s:%d", serverAddress, serverPort)
 
-	cwd, _ := os.Getwd()
-	homeFolder := path.Join(cwd, "..", "..", "test")
-	//serverCertFolder = path.Join(homeFolder, "certs")
-	storeFolder = path.Join(homeFolder, "configStore")
-	passwordFile = path.Join(homeFolder, "config", "test.passwd")
-	// empty file
+	tempFolder = path.Join(os.TempDir(), "wost-authn-test")
+	os.MkdirAll(tempFolder, 0700)
+	passwordFile = path.Join(tempFolder, "test.passwd")
+	// empty password file
 	fp, _ := os.Create(passwordFile)
 	_ = fp.Close()
 
@@ -67,6 +65,9 @@ func TestMain(m *testing.M) {
 	res := m.Run()
 
 	time.Sleep(time.Second)
+	if res == 0 {
+		os.RemoveAll(tempFolder)
+	}
 	os.Exit(res)
 }
 
@@ -104,7 +105,7 @@ func TestLogin(t *testing.T) {
 	srv, err := startAuthService()
 	assert.NoError(t, err)
 	//
-	hostPort := fmt.Sprintf("%s:%d", serverAddress, serverPort)
+	hostPort := fmt.Sprintf("%s:%d", testenv.ServerAddress, serverPort)
 	authClient := tlsclient.NewTLSClient(hostPort, testCerts.CaCert)
 
 	accessToken, err := authClient.ConnectWithJWTLogin(user1, pass1, "")
@@ -130,7 +131,7 @@ func TestGetConfig(t *testing.T) {
 	srv, err := startAuthService()
 	assert.NoError(t, err)
 	//
-	hostPort := fmt.Sprintf("%s:%d", serverAddress, serverPort)
+	hostPort := fmt.Sprintf("%s:%d", testenv.ServerAddress, serverPort)
 	authClient := tlsclient.NewTLSClient(hostPort, testCerts.CaCert)
 
 	accessToken, err := authClient.ConnectWithJWTLogin(user1, pass1, "")
@@ -157,7 +158,7 @@ func TestUpdateConfigBadMethod(t *testing.T) {
 	assert.NoError(t, err)
 
 	myConfig := "my configuration object"
-	hostPort := fmt.Sprintf("%s:%d", serverAddress, serverPort)
+	hostPort := fmt.Sprintf("%s:%d", testenv.ServerAddress, serverPort)
 	authClient := tlsclient.NewTLSClient(hostPort, testCerts.CaCert)
 	accessToken, err := authClient.ConnectWithJWTLogin(user1, pass1, "")
 	_ = accessToken

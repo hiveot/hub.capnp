@@ -2,15 +2,17 @@ package unpwstore_test
 
 import (
 	"fmt"
-	"github.com/wostzone/wost-go/pkg/logging"
 	"os"
 	"path"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/wostzone/wost-go/pkg/logging"
+
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+
 	"github.com/wostzone/hub/authn/pkg/unpwstore"
 )
 
@@ -18,27 +20,29 @@ const unpwFileName = "testunpwstore.passwd"
 
 var unpwFilePath string
 
-var configFolder string
+var tempFolder string
 
 // TestMain for all authn tests, setup of default folders and filenames
 func TestMain(m *testing.M) {
 	logging.SetLogging("info", "")
-	cwd, _ := os.Getwd()
-	homeFolder := path.Join(cwd, "../../test")
-	configFolder = path.Join(homeFolder, "config")
+	tempFolder = path.Join(os.TempDir(), "wost-authn-test")
+	_ = os.MkdirAll(tempFolder, 0700)
 
 	// Make sure ACL and password files exist
-	unpwFilePath = path.Join(configFolder, unpwFileName)
+	unpwFilePath = path.Join(tempFolder, unpwFileName)
 	fp, _ := os.Create(unpwFilePath)
-	fp.Close()
+	_ = fp.Close()
 
 	res := m.Run()
+	if res == 0 {
+		_ = os.RemoveAll(tempFolder)
+	}
 	os.Exit(res)
 }
 
 func TestOpenClosePWFile(t *testing.T) {
 	fp, _ := os.Create(unpwFilePath)
-	fp.Close()
+	_ = fp.Close()
 	unpwStore := unpwstore.NewPasswordFileStore(unpwFilePath, "TestOpenClosePWFile")
 	err := unpwStore.Open()
 	assert.NoError(t, err)
@@ -53,7 +57,8 @@ func TestSetPasswordTwoStores(t *testing.T) {
 	const hash1 = "hash1"
 	const hash2 = "hash2"
 	fp, _ := os.Create(unpwFilePath)
-	fp.Close()
+	_ = fp.Close()
+
 	// create 2 separate stores
 	pwStore1 := unpwstore.NewPasswordFileStore(unpwFilePath, "TestSetPasswordTwoStores-store1")
 	err := pwStore1.Open()
@@ -75,7 +80,8 @@ func TestSetPasswordTwoStores(t *testing.T) {
 
 	// read back
 	// force reload. Don't want to wait
-	pwStore2.Reload()
+	err = pwStore2.Reload()
+	assert.NoError(t, err)
 	hash := pwStore2.GetPasswordHash(user1)
 	assert.Equal(t, hash1, hash)
 
@@ -95,7 +101,7 @@ func TestSetPasswordTwoStores(t *testing.T) {
 }
 
 func TestNoPasswordFile(t *testing.T) {
-	pwFile := path.Join(configFolder, "missingpasswordfile")
+	pwFile := path.Join(tempFolder, "missingpasswordfile")
 	pwStore := unpwstore.NewPasswordFileStore(pwFile, "TestNoPasswordFile")
 	err := pwStore.Open()
 	assert.Error(t, err)
@@ -110,7 +116,7 @@ func TestConcurrentReadWrite(t *testing.T) {
 
 	// start with empty file
 	fp, _ := os.Create(unpwFilePath)
-	fp.Close()
+	_ = fp.Close()
 
 	// two stores in parallel
 	pwStore1 := unpwstore.NewPasswordFileStore(unpwFilePath, "TestConcurrentReadWrite-store1 (writer)")

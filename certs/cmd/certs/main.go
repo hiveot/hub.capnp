@@ -3,17 +3,19 @@ package main
 import (
 	"crypto/ecdsa"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path"
+	"time"
+
 	"github.com/docopt/docopt-go"
 	"github.com/sirupsen/logrus"
+
 	"github.com/wostzone/hub/certs/pkg/certsetup"
 	"github.com/wostzone/wost-go/pkg/certsclient"
 	"github.com/wostzone/wost-go/pkg/config"
 	"github.com/wostzone/wost-go/pkg/hubnet"
 	"github.com/wostzone/wost-go/pkg/signing"
-	"io/ioutil"
-	"os"
-	"path"
-	"time"
 )
 
 const Version = `0.3-alpha`

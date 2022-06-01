@@ -2,10 +2,11 @@ package clientconfigstore
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
 	"path"
+
+	"github.com/sirupsen/logrus"
 )
 
 // ClientConfigStore storage for storing user configuration snippets

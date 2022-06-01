@@ -14,9 +14,7 @@ mosqauth:
 	env CGO_LDFLAGS="$(LDFLAGS)" go build -buildmode=c-shared -o mosqauth.so
 	rm *.a
 	mv mosqauth.so $(DIST)/bin
-	#rm mosqauth.h
 
 clean:
 	rm *.a *.so
 	rm mosqauth.h
-	

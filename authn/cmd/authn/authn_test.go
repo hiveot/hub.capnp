@@ -1,23 +1,30 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/wostzone/hub/authn/pkg/unpwstore"
 )
 
 func TestArgs(t *testing.T) {
-	wd, _ := os.Getwd()
-	homeFolder := path.Join(wd, "../../test")
-	os.Chdir(homeFolder)
-	fp, _ := os.Create("config/hub.passwd")
+	tempFolder := path.Join(os.TempDir(), "wost-authn-test")
+	os.MkdirAll(tempFolder, 0700)
+
+	passwdFile := path.Join(tempFolder, unpwstore.DefaultPasswordFile)
+	fp, _ := os.Create(passwdFile)
 	fp.Close()
 
-	cmdline := "setpassword -c ./config user1 user1"
+	cmdline := fmt.Sprintf("setpassword -c %s user1 user1", tempFolder)
 	//cmdline := "--version"
 	args := strings.Split(cmdline, " ")
-	ParseArgs(homeFolder, args)
+	err := ParseArgs(homeFolder, args)
+	assert.NoError(t, err)
 }
 
 func TestNoArgs(t *testing.T) {

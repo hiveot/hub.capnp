@@ -3,17 +3,18 @@ package internal
 import (
 	"flag"
 	"fmt"
-	"github.com/wostzone/wost-go/pkg/config"
-	"github.com/wostzone/wost-go/pkg/logging"
 	"os"
 	"path"
 
+	"github.com/wostzone/wost-go/pkg/config"
+	"github.com/wostzone/wost-go/pkg/logging"
+
 	"github.com/sirupsen/logrus"
+
 	"github.com/wostzone/hub/certs/pkg/certsetup"
 )
 
-// This is the Hub launcher
-const pluginID = "launcher"
+const PluginID = "launcher"
 
 // PluginConfig with list of plugins to launch
 type PluginConfig struct {
@@ -42,7 +43,7 @@ func StartHub(homeFolder string, startPlugins bool) error {
 
 	// the noplugins commandline argument only applies to the launcher
 	flag.BoolVar(&noPlugins, "noplugins", !startPlugins, "Start the launcher without plugins")
-	hc, err := config.LoadAllConfig(os.Args, homeFolder, pluginID, &pluginConfig)
+	hc, err := config.LoadAllConfig(os.Args, homeFolder, PluginID, &pluginConfig)
 
 	if err != nil {
 		return err

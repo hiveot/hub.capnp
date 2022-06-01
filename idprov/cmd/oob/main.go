@@ -3,12 +3,14 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/wostzone/hub/idprov/pkg/idprovclient"
-	"github.com/wostzone/wost-go/pkg/certsclient"
 	"os"
 	"path"
 
+	"github.com/wostzone/hub/idprov/pkg/idprovclient"
+	"github.com/wostzone/wost-go/pkg/certsclient"
+
 	"github.com/sirupsen/logrus"
+
 	"github.com/wostzone/hub/idprov/pkg/oobclient"
 	"github.com/wostzone/wost-go/pkg/config"
 	"github.com/wostzone/wost-go/pkg/hubnet"
@@ -21,8 +23,8 @@ func main() {
 
 	// Some additional commandline arguments for this plugin
 	appDir := path.Dir(os.Args[0])
-	var hostname string = hubnet.GetOutboundIP("").String()
-	var certFolder string = path.Join(appDir, "../certs")
+	var hostname = hubnet.GetOutboundIP("").String()
+	var certFolder = path.Join(appDir, "..", config.DefaultCertsFolder)
 	var port uint = idprovclient.DefaultPort
 
 	flag.StringVar(&hostname, "server", hostname, "Address of the provisioning server")

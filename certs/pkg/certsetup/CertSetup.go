@@ -9,12 +9,13 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"fmt"
-	"github.com/wostzone/wost-go/pkg/certsclient"
-	"github.com/wostzone/wost-go/pkg/config"
 	"math/big"
 	"net"
 	"path"
 	"time"
+
+	"github.com/wostzone/wost-go/pkg/certsclient"
+	"github.com/wostzone/wost-go/pkg/config"
 
 	"github.com/sirupsen/logrus"
 )

@@ -1,0 +1,61 @@
+# thingdir.yaml is the configuration for the directory service
+# For normal operation it is recommended to use the defaults.
+
+#--- Built-in directory server settings
+
+# Disable the built-in directory server and use an external server
+# This requires that dirAddress and dirPort are set to that of the external directory server
+#disableDirServer: false
+
+# Directory service listening address. The default is that of the hub server.
+# This address must match the address in the server certificate otherwise clients won't be able to connect.
+#dirAddress: "localhost"
+
+# Directory service HTTPS listening port. Use the plugin default port by default.
+# The default port is 8886 as defined in thingdir-go/pkg/dirclient/DirClient.go:DefaultPort
+#dirPort: 8886
+
+# Folder with the directory files. Default is the config folder
+# If a relative path is used it is relative to the home folder, eg parent of bin
+#directoryStoreFolder: "/path/to/alternate/folder"
+
+# Enable server DNS-SD discovery of the built-in directory server. Only used if the built-in server is not disabled.
+# This is not needed if the provisioning server and plugins are used
+# for finding the directoregistering Things but can be enabled
+#enableDiscovery: true
+
+# Discovery service name. The name uniquely identifies the type of service in discovery
+# The default is the plugin id (thingdir). DNS-SD publishes as "_{serviceName}._tcp"
+#serviceName: "thingdir"
+
+# Alternative server CA PEM certificate file for validating client certificates.
+# The default is the hub's CA certificate
+#serverCaPath: "/path/to/caCert.pem"
+
+# Alternative Directory server certificate and key files.
+# The default is the hub's server certificate
+#serverCertPath: "/path/to/hubCert.pem"
+#serverKeyPath: "/path/to/hubKey.pem"
+
+#--- Directory client settings
+
+# Unique plugin instance ID, default is plugin ID
+# If multiple directory servers exist on the same network they must have a unique ID
+#instanceID: "thingdir"
+
+# Alternative Directory client certificate and key files for connecting to the directory server.
+# If an external directory is used these fields must be set. The default is the plugin certificate
+#dirCertPath: "/path/to/alternate/directoryClientCert.pem"
+#dirKeyPath: "/path/to/alternate/directoryClientKey.pem"
+# The CA certificate used by the server. Used to validate we're connecting to the right directory server
+#dirCaPath: "/path/to/alternate/caCert.pem"
+
+#--- Message bus client settings
+
+# Alternative message bus client certificate and key files for authenticating with the message bus.
+# The default is the plugin certificate
+#msgbusCertPath: "/path/to/alternate/pluginCert.pem"
+#msgbusKeyPath: "/path/to/alternate/pluginKey.pem"
+# The CA certificate used by the message bus, as provided by the provisioning server.
+# Used to validate we're connecting to the right message bus
+#msgbusCaPath: "/path/to/alternate/caCert.pem"

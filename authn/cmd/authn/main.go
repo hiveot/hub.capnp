@@ -3,16 +3,18 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"os"
+	"path"
+	"strings"
+
 	"github.com/docopt/docopt-go"
+
 	"github.com/wostzone/hub/authn/pkg/jwtissuer"
 	"github.com/wostzone/hub/authn/pkg/unpwauth"
 	"github.com/wostzone/hub/authn/pkg/unpwstore"
 	"github.com/wostzone/wost-go/pkg/certsclient"
 	"github.com/wostzone/wost-go/pkg/config"
 	"github.com/wostzone/wost-go/pkg/logging"
-	"os"
-	"path"
-	"strings"
 )
 
 const Version = `0.3-alpha`
@@ -27,7 +29,7 @@ func main() {
 }
 
 // ParseArgs to handle commandline arguments
-func ParseArgs(homeFolder string, args []string) {
+func ParseArgs(homeFolder string, args []string) error {
 	// var err error
 	configFolder := path.Join(homeFolder, "config")
 	// configFolder := path.Join(homeFolder, "config")
@@ -100,6 +102,7 @@ Options:
 		fmt.Printf("Error: %s\n", err)
 		os.Exit(1)
 	}
+	return err
 }
 
 // HandleSetPasswd sets the login name and password for a consumer
