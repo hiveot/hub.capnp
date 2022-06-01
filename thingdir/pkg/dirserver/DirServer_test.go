@@ -9,16 +9,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/wostzone/hub/lib/client/pkg/thing"
+	"github.com/sirupsen/logrus"
 
 	"github.com/wostzone/hub/authn/pkg/jwtissuer"
+	"github.com/wostzone/wost-go/pkg/testenv"
+	"github.com/wostzone/wost-go/pkg/thing"
+	"github.com/wostzone/wost-go/pkg/tlsclient"
+	"github.com/wostzone/wost-go/pkg/vocab"
 
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/wostzone/hub/lib/client/pkg/testenv"
-	"github.com/wostzone/hub/lib/client/pkg/tlsclient"
-	"github.com/wostzone/hub/lib/client/pkg/vocab"
 
 	"github.com/wostzone/hub/thingdir/pkg/dirclient"
 	"github.com/wostzone/hub/thingdir/pkg/dirserver"

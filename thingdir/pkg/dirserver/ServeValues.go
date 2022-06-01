@@ -2,14 +2,16 @@ package dirserver
 
 import (
 	"encoding/json"
-	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/thingdir/pkg/dirclient"
-	"github.com/wostzone/wost-go/pkg/tlsclient"
-	"github.com/wostzone/wost-go/pkg/vocab"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
+
+	"github.com/wostzone/hub/thingdir/pkg/dirclient"
+	"github.com/wostzone/wost-go/pkg/tlsclient"
+	"github.com/wostzone/wost-go/pkg/vocab"
 )
 
 // ServeThingValues provides most recent property values of a Thing
@@ -40,7 +42,7 @@ func (srv *DirectoryServer) ServeThingValues(userID string, response http.Respon
 		srv.tlsServer.WriteNotFound(response, "ServeThingValues: Unknown thingID or not authorized")
 	} else {
 		valueResponse, _ := json.Marshal(resp)
-		response.Write(valueResponse)
+		_, err = response.Write(valueResponse)
 	}
 }
 
@@ -82,7 +84,7 @@ func (srv *DirectoryServer) ServeMultipleThingsValues(userID string, response ht
 		}
 	}
 	valueResponse, _ := json.Marshal(resp)
-	response.Write(valueResponse)
+	_, _ = response.Write(valueResponse)
 }
 
 // GetPropValues returns a map of property name-value pairs for the given Thing:

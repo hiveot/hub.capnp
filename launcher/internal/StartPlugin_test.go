@@ -7,9 +7,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/wostzone/hub/lib/client/pkg/config"
 
 	"github.com/wostzone/hub/launcher/internal"
+	"github.com/wostzone/wost-go/pkg/config"
 )
 
 //--- THIS USES TestMain from StartHub_test.go ---
@@ -40,7 +40,7 @@ func TestStartPluginTwice(t *testing.T) {
 
 func TestStartPluginsFromConfig(t *testing.T) {
 	// the binary 'ls' exists on Linux and Windows
-	hc := config.CreateDefaultHubConfig(tempFolder)
+	hc := config.CreateHubConfig(tempFolder)
 	pluginConfig := internal.PluginConfig{}
 	err := config.LoadYamlConfig(path.Join(hc.ConfigFolder, "launcher.yaml"), &pluginConfig, nil)
 	assert.NoError(t, err)

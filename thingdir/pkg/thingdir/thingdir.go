@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/lib/client/pkg/mqttbinding"
 
 	"github.com/wostzone/hub/authz/pkg/aclstore"
 	"github.com/wostzone/hub/authz/pkg/authorize"
@@ -112,11 +111,11 @@ func (tDir *ThingDir) Start() error {
 	if err != nil {
 		return err
 	}
-	topic := consumedthing.CreateTopic("", mqttbinding.TopicTypeTD)
+	topic := consumedthing.CreateTopic("", consumedthing.TopicTypeTD)
 	tDir.mqttClient.Subscribe(topic, tDir.handleTDUpdate)
 
 	// Listen for events
-	topic = consumedthing.CreateTopic("", mqttbinding.TopicTypeEvent) + "/+"
+	topic = consumedthing.CreateTopic("", consumedthing.TopicTypeEvent) + "/+"
 	tDir.mqttClient.Subscribe(topic, tDir.handleEvent)
 
 	return err

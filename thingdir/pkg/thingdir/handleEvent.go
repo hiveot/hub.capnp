@@ -4,14 +4,15 @@ import (
 	"encoding/json"
 
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/hub/lib/client/pkg/mqttbinding"
+
+	"github.com/wostzone/wost-go/pkg/consumedthing"
 )
 
 // handleEvent stores the last event or property values
 func (tDir *ThingDir) handleEvent(topic string, message []byte) {
-	thingID, topicType, eventName := mqttbinding.SplitTopic(topic)
+	thingID, topicType, eventName := consumedthing.SplitTopic(topic)
 	_ = topicType
-	if eventName == mqttbinding.TopicSubjectProperties {
+	if eventName == consumedthing.TopicSubjectProperties {
 		props := make(map[string]interface{})
 		err := json.Unmarshal(message, &props)
 		if err != nil {

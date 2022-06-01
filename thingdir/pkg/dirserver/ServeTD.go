@@ -3,10 +3,11 @@ package dirserver
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/wostzone/hub/authz/pkg/authorize"
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/wostzone/hub/authz/pkg/authorize"
 
 	"github.com/sirupsen/logrus"
 )

@@ -3,10 +3,9 @@ package dirserver
 import (
 	"github.com/grandcat/zeroconf"
 	"github.com/sirupsen/logrus"
+
 	"github.com/wostzone/wost-go/pkg/discovery"
 )
-
-const ThingDirServiceDiscoveryType = "thingdir"
 
 // ServeDirDiscovery publishes a discovery record of the directory server
 // Returns the discovery service instance. Use Shutdown() when done.

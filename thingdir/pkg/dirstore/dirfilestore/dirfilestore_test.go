@@ -3,16 +3,18 @@ package dirfilestore_test
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/wostzone/wost-go/pkg/thing"
-	"github.com/wostzone/wost-go/pkg/vocab"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/wostzone/wost-go/pkg/thing"
+	"github.com/wostzone/wost-go/pkg/vocab"
 
 	"github.com/ohler55/ojg/jp"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
 	"github.com/wostzone/hub/thingdir/pkg/dirstore"
 	"github.com/wostzone/hub/thingdir/pkg/dirstore/dirfilestore"
 )

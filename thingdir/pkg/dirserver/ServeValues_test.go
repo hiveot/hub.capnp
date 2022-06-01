@@ -1,9 +1,11 @@
 package dirserver_test
 
 import (
-	"github.com/stretchr/testify/assert"
-	"github.com/wostzone/hub/thingdir/pkg/dirclient"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+
+	"github.com/wostzone/hub/thingdir/pkg/dirclient"
 )
 
 // This uses TestMain from DirServer_test

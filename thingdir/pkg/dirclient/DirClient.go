@@ -6,9 +6,10 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"fmt"
+	"strings"
+
 	"github.com/wostzone/wost-go/pkg/thing"
 	"github.com/wostzone/wost-go/pkg/tlsclient"
-	"strings"
 
 	"github.com/sirupsen/logrus"
 )
@@ -147,6 +148,9 @@ func (dc *DirClient) ListTDs(offset int, limit int) ([]thing.ThingTD, error) {
 	var tdList []thing.ThingTD
 	if limit == 0 {
 		limit = DefaultLimit
+	}
+	if limit > MaxLimit {
+		limit = MaxLimit
 	}
 	path := fmt.Sprintf("%s?offset=%d&limit=%d", RouteThings, offset, limit)
 	response, err := dc.tlsClient.Get(path)

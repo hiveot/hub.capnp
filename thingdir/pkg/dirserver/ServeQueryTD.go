@@ -3,10 +3,12 @@ package dirserver
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/wostzone/wost-go/pkg/tlsclient"
 	"net/http"
 
+	"github.com/wostzone/wost-go/pkg/tlsclient"
+
 	"github.com/sirupsen/logrus"
+
 	"github.com/wostzone/hub/thingdir/pkg/dirclient"
 )
 
