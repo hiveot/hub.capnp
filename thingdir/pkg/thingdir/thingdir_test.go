@@ -29,6 +29,8 @@ var tempFolder string
 var aclFilePath string
 var thingDirConfig thingdir.ThingDirConfig
 
+const testDirectoryPort = 9990
+
 // TestMain setup of a test environment for running the directory server
 // This uses the directory client in testing
 func TestMain(m *testing.M) {
@@ -48,6 +50,7 @@ func TestMain(m *testing.M) {
 	thingDirConfig = thingdir.ThingDirConfig{
 		InstanceID:      "thingdir-test",
 		DirAddress:      testenv.ServerAddress,
+		DirPort:         testDirectoryPort,
 		DirAclFile:      aclFilePath,
 		DirStoreFolder:  tempFolder,
 		EnableDiscovery: false,
@@ -118,7 +121,7 @@ func TestUpdateTD(t *testing.T) {
 	eFactory := exposedthing.CreateExposedThingFactory("thingdir-test", testCerts.DeviceCert, testCerts.CaCert)
 	eFactory.Connect(config2.MsgbusAddress, config2.MsgbusPortCert)
 	td1 := thing.CreateTD(thing1ID, "test thing", vocab.DeviceTypeButton)
-	eThing := eFactory.Expose(device1ID, td1)
+	eThing, _ := eFactory.Expose(device1ID, td1)
 	assert.NotNil(t, eThing)
 
 	// update takes place in the background so wait a few msec
@@ -167,11 +170,11 @@ func TestUpdatePropValues(t *testing.T) {
 	factory := exposedthing.CreateExposedThingFactory("thingdir-test", testCerts.DeviceCert, testCerts.CaCert)
 	err = factory.Connect(config2.MsgbusAddress, config2.MsgbusPortCert)
 	assert.NoError(t, err)
-	eThing := factory.Expose("device1", td1)
+	eThing, _ := factory.Expose("device1", td1)
 	assert.NotNil(t, eThing)
 
 	// finally update a property and lets include an event
-	err = eThing.EmitPropertyChange(prop1Name, prop1Value)
+	err = eThing.EmitPropertyChange(prop1Name, prop1Value, false)
 	assert.NoError(t, err)
 	err = eThing.EmitEvent(event1Name, event1Value)
 	assert.NoError(t, err)

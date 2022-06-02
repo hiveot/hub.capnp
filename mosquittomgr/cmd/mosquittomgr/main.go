@@ -7,6 +7,7 @@ import (
 
 	"github.com/wostzone/hub/authz/pkg/aclstore"
 	"github.com/wostzone/wost-go/pkg/config"
+	"github.com/wostzone/wost-go/pkg/logging"
 	"github.com/wostzone/wost-go/pkg/proc"
 
 	"github.com/sirupsen/logrus"
@@ -17,8 +18,10 @@ import (
 // Main entry to WoST plugin for managing Mosquitto
 // This setup the configuration from file and commandline parameters and launches the service
 func main() {
+	logging.SetLogging("info", "")
 	svcConfig := internal.MMConfig{}
 	hubConfig, err := config.LoadAllConfig(os.Args, "", internal.PluginID, &svcConfig)
+	logging.SetLogging(hubConfig.Loglevel, hubConfig.LogFile)
 
 	// currently most are overridden with the hub config.
 	svcConfig.Address = hubConfig.Address

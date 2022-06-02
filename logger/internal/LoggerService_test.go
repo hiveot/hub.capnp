@@ -100,7 +100,7 @@ func TestLogTD(t *testing.T) {
 
 	tdoc := thing.CreateTD(thingID1, "test thing", vocab.DeviceTypeSensor)
 	tdoc.UpdateEvent(eventName1, &thing.EventAffordance{})
-	eThing := etFactory.Expose(deviceID, tdoc)
+	eThing, _ := etFactory.Expose(deviceID, tdoc)
 	assert.NoError(t, err)
 
 	err = eThing.EmitEvent(eventName1, "test event")

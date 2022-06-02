@@ -7,6 +7,7 @@ import (
 	"github.com/wostzone/hub/authz/pkg/aclstore"
 	"github.com/wostzone/wost-go/pkg/certsclient"
 	"github.com/wostzone/wost-go/pkg/config"
+	"github.com/wostzone/wost-go/pkg/logging"
 	"github.com/wostzone/wost-go/pkg/proc"
 
 	"github.com/sirupsen/logrus"
@@ -23,8 +24,9 @@ func main() {
 	// Load the service configuration and use defaults from hubConfig
 	thingDirConfig := &thingdir.ThingDirConfig{}
 	hubConfig, err := config.LoadAllConfig(os.Args, "", thingdir.PluginID, &thingDirConfig)
+	logging.SetLogging(hubConfig.Loglevel, hubConfig.LogFile)
 	if err != nil {
-		logrus.Fatal("thingdir configuration error: %s", err)
+		logrus.Fatalf("thingdir configuration error: %s", err)
 		os.Exit(1)
 	}
 	if thingDirConfig.DirAddress == "" {

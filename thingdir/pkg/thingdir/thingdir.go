@@ -152,7 +152,9 @@ func NewThingDir(
 	serverCert *tls.Certificate,
 	clientCert *tls.Certificate,
 ) *ThingDir {
-
+	if tDirConfig.InstanceID == "" {
+		tDirConfig.InstanceID = PluginID
+	}
 	// Directory server defaults when using the outbound IP
 	if tDirConfig.DirAddress == "" {
 		tDirConfig.DirAddress = hubnet.GetOutboundIP("").String()
