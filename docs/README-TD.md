@@ -74,7 +74,7 @@ used to access the WoST service, not the IoT device.
 * WoST compatible IoT devices can simply use the 'nosec' security type when creating their TD and
   use a NoSecurityScheme as securityDefinition.
 * Consumers, which access devices via 'Consumed Things', only need to know how connect to the Hub
-  services and MQTT message bus. No knowledge of the IoT device protocol is needed.
+  services. No knowledge of the IoT device protocol is needed.
 
 ## WOST Thing ID Format
 
@@ -133,7 +133,7 @@ WoST uses the following attributes to describe properties.
 | type        | optional  | data type: string, number, integer, boolean, object, array, or null       |
 | title       | optional  | Human description of the attribute.                                       |
 | description | optional  | In case a more elaborate description is needed for humans                 |
-| forms       | mandatory | Tbd. WoST uses a standard MQTT address format for all operations          | 
+| forms       | mandatory | Tbd.                                                                      |  
 | value       | optional  | Value of the attribute.                                                   |
 | minimum     | optional  | Minimum range value for numbers                                           |
 | maximum     | optional  | Maximum range value for numbers                                           |
@@ -190,7 +190,7 @@ Where:
 
 The [TD EventAffordance](https://www.w3.org/TR/wot-thing-description11/#eventaffordance) also
 describes optional subscription and cancellation attributes. These are not used in WoST as
-subscription is not handled by a Thing but by the MQTT message bus.
+subscription is not handled by a Thing but by the Hub API/MQTT message bus.
 
 ### The "properties" Event
 
@@ -237,7 +237,7 @@ through [action affordances](https://www.w3.org/TR/wot-thing-description/#action
 
 Note: The specification 'requires' a 'forms' element in each action affordance. WoST deviates from
 the standard in that the 'forms' element is not used for individual actions, events and properties.
-Instead, a single generic mqtt address format is used of "things/{id}/action/{name}". Ideally this
+Instead, a single generic address format is used of "things/{id}/action/{name}". Ideally this
 can be defined generically at the top level of the TD but no such specification exists at the time
 of writing. This section might be revised in the future.
 
@@ -326,8 +326,8 @@ required request.
 
 The provided example shows an HTTP POST to write a property.
 
-In WoST an important constraint is that operations that interact with the Thing use the MQTT
-protocol and topic of the Hub message bus as Things can only interact via the message bus.
+In WoST an important constraint is that operations that interact with the Thing use the Hub APIS to do so.
+Things can only interact via the message bus.
 
 Forms can use other protocols to describe interaction with external services. For example, to read
 Thing property values, a form can define the https protocol to access a directory service that

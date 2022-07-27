@@ -6,8 +6,8 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/hub.iml" filepath="$PROJECT_DIR$/.idea/hub.iml" />
       <module fileurl="file://$PROJECT_DIR$/libserve-go/.idea/libserve-go.iml" filepath="$PROJECT_DIR$/libserve-go/.idea/libserve-go.iml" />
       <module fileurl="file://$PROJECT_DIR$/../owserver-pb/.idea/owserver-pb.iml" filepath="$PROJECT_DIR$/../owserver-pb/.idea/owserver-pb.iml" />
-      <module fileurl="file://$PROJECT_DIR$/thingdir/.idea/thingdir.iml" filepath="$PROJECT_DIR$/thingdir/.idea/thingdir.iml" />
       <module fileurl="file://$PROJECT_DIR$/../wost-go/.idea/wost-go.iml" filepath="$PROJECT_DIR$/../wost-go/.idea/wost-go.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../wost.grpc/.idea/wost.grpc.iml" filepath="$PROJECT_DIR$/../wost.grpc/.idea/wost.grpc.iml" />
     </modules>
   </component>
 </project>

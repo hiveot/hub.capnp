@@ -1,0 +1,28 @@
+# WoST Hub systemd service
+# Save this as /etc/systemd/system/wosthub.service
+
+[Unit]
+Description=Wost service to launch the hub and plugins
+Wants=network-online.target
+After=network.target network-online.target
+PartOf=myzone.target
+
+[Service]
+#PIDFile=/run/hub.%i.pid
+PIDFile=/run/wosthub.pid
+Nice=10
+
+# When the service runs globally, make it run as a particular user for added security
+User=wost
+Group=wost
+
+# Auto restart the service after 1 minute when it aborts
+# NOTE: change the home folder to the appropriate folder when running locally
+WorkingDirectory=/opt/wost
+#ExecStart=/home/wost/bin/wosthub/bin/hub
+ExecStart=/opt/wosthub/bin/hub
+Restart=on-failure
+RestartSec=60
+
+#[Install]
+#WantedBy=wosthub.target
