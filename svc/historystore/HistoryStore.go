@@ -2,6 +2,7 @@ package historystore
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -22,7 +23,7 @@ const TimeStampField = "timestamp"
 const DefaultStoreName = "thinghistory"
 const DefaultEventCollectionName = "events"
 const DefaultActionCollectionName = "actions"
-const DefaultPropertyCollectionName = "properties"
+const DefaultLatestCollectionName = "latest"
 
 // HistoryStoreServer implements the svc.HistoryStoreServer interface
 // This store uses MongoDB to store events, actions, and properties in time-series collections.
@@ -40,17 +41,12 @@ type HistoryStoreServer struct {
 
 	// eventCollection is the time series collection of events
 	eventCollection *mongo.Collection
-	// eventCollectionName is the time series collection of events
-	eventCollectionName string
 
 	// actionCollection is the time series collection of actions
 	actionCollection *mongo.Collection
-	// actionCollectionName is the time series collection of actions
-	actionCollectionName string
 
-	// Thing's latest property values are kept in memory and updated with events
-	// map of values by thing ID
-	thingsPropertyValues map[string]svc.ThingValueMap
+	// latestCollection is the collection of Thing documents with latest properties
+	latestCollection *mongo.Collection
 }
 
 // AddAction adds a new action to the history store
@@ -86,38 +82,71 @@ func (srv *HistoryStoreServer) AddAction(ctx context.Context, args *thing.ThingV
 
 // AddEvent adds a new event to the history store
 // The event 'created' field will be used as timestamp after parsing it using time.RFC3339
-func (srv *HistoryStoreServer) AddEvent(ctx context.Context, args *thing.ThingValue) (*emptypb.Empty, error) {
+func (srv *HistoryStoreServer) AddEvent(ctx context.Context, event *thing.ThingValue) (*emptypb.Empty, error) {
 	// Name and ThingID are required fields
-	if args.Name == "" || args.ThingID == "" {
+	if event.Name == "" || event.ThingID == "" {
 		err := fmt.Errorf("missing name or thingID")
 		logrus.Warning(err)
 		return nil, err
 	}
-	if args.Created == "" {
-		args.Created = time.Now().UTC().Format(time.RFC3339)
+	if event.Created == "" {
+		event.Created = time.Now().UTC().Format(time.RFC3339)
 	}
-	if args.ValueID == "" {
-		args.ValueID = uuid.New().String()
+	if event.ValueID == "" {
+		event.ValueID = uuid.New().String()
 	}
 
 	// It would be nice to simply use bson marshal, but that isn't possible as the
 	// required timestamp needs to be added in BSON format.
-	//createdTime, err := time.Parse("2006-01-02T15:04:05-07:00", args.Created)
-	createdTime, err := time.Parse(time.RFC3339, args.Created)
+	//createdTime, err := time.Parse("2006-01-02T15:04:05-07:00", event.Created)
+	createdTime, err := time.Parse(time.RFC3339, event.Created)
 	timestamp := primitive.NewDateTimeFromTime(createdTime)
 	evBson := bson.M{
 		TimeStampField: timestamp,
-		"metadata":     bson.M{"thingID": args.ThingID},
-		//"metadata":     bson.M{"thingID": args.ThingID, "name": args.Name},
-		"name":     args.Name,
-		"thingID":  args.ThingID,
-		"valueID":  args.ValueID,
-		"value":    args.Value,
-		"created":  args.Created,
-		"actionID": args.ActionID,
+		"metadata":     bson.M{"thingID": event.ThingID},
+		//"metadata":     bson.M{"thingID": event.ThingID, "name": event.Name},
+		"name":     event.Name,
+		"thingID":  event.ThingID,
+		"valueID":  event.ValueID,
+		"value":    event.Value,
+		"created":  event.Created,
+		"actionID": event.ActionID,
 	}
 	res, err := srv.eventCollection.InsertOne(ctx, evBson)
 	_ = res
+	if err != nil {
+		logrus.Error(err)
+		return nil, err
+	}
+
+	// Last, track the event value in the 'latest' collection of the Thing properties.
+	// It is possible that events arrive out of order so the created date must be newer
+	// than the existing date
+	filter := bson.D{
+		{"thingID", event.ThingID},
+	}
+
+	// translation:
+	// if event.Created > {document}[event.Name].created {
+	//    {document}[event.Name] = event
+	// }
+	pipeline := bson.A{
+		bson.M{"$set": bson.M{event.Name: bson.M{"$cond": bson.A{
+			bson.M{"$gt": bson.A{
+				event.Created, "$" + event.Name + ".created",
+			}},
+			event,            // replace with new value
+			"$" + event.Name, // or keep existing
+		}}}},
+	}
+	opts := options.UpdateOptions{}
+	opts.SetUpsert(true)
+	res2, err := srv.latestCollection.UpdateOne(ctx, filter, pipeline, &opts)
+	_ = res2
+	//--- end test 2
+	if err != nil {
+		logrus.Error(err)
+	}
 	return nil, err
 }
 
@@ -206,8 +235,8 @@ func (srv *HistoryStoreServer) GetEventHistory(ctx context.Context, args *svc.Hi
 	return res, err
 }
 
-// _getLatestValues1 using aggregate pipeline
-func (srv *HistoryStoreServer) getLatestValues1(
+// getLatestValuesFromTimeSeries using aggregate pipeline
+func (srv *HistoryStoreServer) getLatestValuesFromTimeSeries(
 	ctx context.Context, thingID string) (map[string]*thing.ThingValue, error) {
 
 	values := make(map[string]*thing.ThingValue)
@@ -273,15 +302,30 @@ func (srv *HistoryStoreServer) getLatestValues1(
 func (srv *HistoryStoreServer) GetLatestValues(ctx context.Context,
 	args *svc.GetLatest_Args) (*svc.ThingValueMap, error) {
 
-	values, err := srv.getLatestValues1(ctx, args.ThingID)
+	// the hard way
+	//values, err := srv.getLatestValuesFromTimeSeries(ctx, args.ThingID)
+
+	// the easy and faster way
+	propValues := map[string]*thing.ThingValue{}
+
+	filter := bson.M{"thingID": args.ThingID}
+	res := srv.latestCollection.FindOne(ctx, filter)
+	var thingValues map[string]interface{}
+
+	err := res.Decode(&thingValues)
+	delete(thingValues, "_id")
+	delete(thingValues, "thingID")
+
+	asJson, err := json.Marshal(thingValues)
+	err = json.Unmarshal(asJson, &propValues)
 
 	result := &svc.ThingValueMap{
-		PropValues: values,
+		PropValues: propValues,
 	}
 	return result, err
 }
 
-// setup creates missing time series collections in the database
+// setup creates missing collections in the database
 func (srv *HistoryStoreServer) setup(ctx context.Context) error {
 
 	// create the database and add time series collections
@@ -303,20 +347,34 @@ func (srv *HistoryStoreServer) setup(ctx context.Context) error {
 	co.SetExpireAfterSeconds(3600)
 	co.SetTimeSeriesOptions(tso)
 
-	// events
-	filter := bson.M{"name": srv.eventCollectionName, "type": "timeseries"}
+	// events time series collection
+	filter := bson.M{"name": DefaultEventCollectionName, "type": "timeseries"}
 	names, err := srv.storeDB.ListCollectionNames(ctx, filter)
 	if len(names) == 0 && err == nil {
 		logrus.Warning("Creating the events time series")
-		err = srv.storeDB.CreateCollection(ctx, srv.eventCollectionName, co)
+		err = srv.storeDB.CreateCollection(ctx, DefaultEventCollectionName, co)
 	}
-	// actions
-	filter = bson.M{"name": srv.actionCollectionName, "type": "timeseries"}
+	// actions time series collection
+	filter = bson.M{"name": DefaultActionCollectionName, "type": "timeseries"}
 	names, _ = srv.storeDB.ListCollectionNames(ctx, filter)
 	if len(names) == 0 && err == nil {
 		logrus.Warning("Creating the actions time series")
-		err = srv.storeDB.CreateCollection(ctx, srv.actionCollectionName, co)
+		err = srv.storeDB.CreateCollection(ctx, DefaultActionCollectionName, co)
 	}
+	// collection of latest thing values indexed by thingID
+	filter = bson.M{"name": DefaultLatestCollectionName}
+	names, _ = srv.storeDB.ListCollectionNames(ctx, filter)
+	if len(names) == 0 && err == nil {
+		logrus.Warning("Creating the thing properties collection")
+		latestOpts := &options.CreateCollectionOptions{}
+		err = srv.storeDB.CreateCollection(ctx, DefaultLatestCollectionName, latestOpts)
+		lc := srv.storeDB.Collection(DefaultLatestCollectionName)
+		thingIDIndex := mongo.IndexModel{Keys: bson.M{"thingID": 1}, Options: nil}
+		indexName, err2 := lc.Indexes().CreateOne(ctx, thingIDIndex)
+		err = err2
+		logrus.Infof("creating index '%s' on thing latest value collection", indexName)
+	}
+
 	if err != nil {
 		logrus.Errorf("failed creating MongoDB time series collections: %s", err)
 		return err
@@ -351,11 +409,15 @@ func (srv *HistoryStoreServer) Start() error {
 		return err
 	}
 
-	srv.eventCollection = srv.storeDB.Collection(srv.eventCollectionName,
+	srv.eventCollection = srv.storeDB.Collection(DefaultEventCollectionName,
 		&options.CollectionOptions{
 			ReadConcern: &readconcern.ReadConcern{},
 		})
-	srv.actionCollection = srv.storeDB.Collection(srv.actionCollectionName,
+	srv.actionCollection = srv.storeDB.Collection(DefaultActionCollectionName,
+		&options.CollectionOptions{
+			ReadConcern: &readconcern.ReadConcern{},
+		})
+	srv.latestCollection = srv.storeDB.Collection(DefaultLatestCollectionName,
 		&options.CollectionOptions{
 			ReadConcern: &readconcern.ReadConcern{},
 		})
@@ -390,11 +452,8 @@ func NewHistoryStoreServer(storeURL string, storeName string) *HistoryStoreServe
 	}
 
 	srv := &HistoryStoreServer{
-		storeURL:             storeURL,
-		storeName:            storeName,
-		eventCollectionName:  DefaultEventCollectionName,
-		actionCollectionName: DefaultActionCollectionName,
-		thingsPropertyValues: make(map[string]svc.ThingValueMap),
+		storeURL:  storeURL,
+		storeName: storeName,
 	}
 	return srv
 }

@@ -66,7 +66,7 @@ Database candidates that match these requirements are InfluxDB, MongoDB, QuestDB
 
 The use of MongoDB has the added benefit that dapr can be configured to use it as the state store, and ThingStore as well.
 
-The concern with MongoDB is a hefty memory load. Min 256MB and 1GB for 100K assets, although the time series usage is more efficient.
+The concern with MongoDB is a hefty memory load. Min 256MB and 1GB for 100K assets, although the time series usage is more efficient. Another concern is the horrific golang API.
 
 The Hub's local usage is fairly basic. Aimed at up to 100 samples per minute (nr sensors * sample rate), adds up to 6K samples per hour, 140K per day and 56Million samples per year.
 

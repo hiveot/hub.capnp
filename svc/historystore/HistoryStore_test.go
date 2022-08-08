@@ -119,6 +119,9 @@ func TestAddGetEvent(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(res.Values))
 
+	latest, err := store.GetLatestValues(ctx, &svc.GetLatest_Args{ThingID: id1})
+	assert.NoError(t, err)
+	assert.True(t, len(latest.PropValues) > 0)
 	_ = store.Delete()
 }
 
@@ -197,7 +200,7 @@ func TestGetLatest(t *testing.T) {
 	const name = "action1"
 	store := historystore.NewHistoryStoreServer(storeURL, storeName)
 	_ = store.Start()
-	addHistory(store, 10000)
+	addHistory(store, 1000)
 
 	ctx := context.Background()
 	args := &svc.GetLatest_Args{
@@ -219,8 +222,10 @@ func TestGetLatest(t *testing.T) {
 	for _, val := range res.PropValues {
 		logrus.Infof("Result %s: %v", val.ValueID, val)
 		highest := highestName[val.Name]
-		logrus.Infof("Expect %s: %v", highest.ValueID, highest)
-		assert.Equal(t, highest.ValueID, val.ValueID)
+		if assert.NotNil(t, highest) {
+			logrus.Infof("Expect %s: %v", highest.ValueID, highest)
+			assert.Equal(t, highest.ValueID, val.ValueID)
+		}
 	}
 
 	_ = store.Delete()
