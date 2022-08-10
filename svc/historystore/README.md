@@ -43,8 +43,8 @@ The history backend is best served with a time-series database that can handle:
 * easy to setup and maintain
 * minimal memory requirement of < 100MB, 1 CPU
 * low maintenance, schemaless
-* ingress of approx 100 samples/min (100 sensors @ 1 minute interval or 1000 at 10 minutes)
-* small document size, up to 500 characters/sample
+* ingress of up to 100 samples/sec (1000 sensors @ 10 second interval, 10M/day, 3B/year)
+* small document size, approx 300 characters/sample
 * long storage period, 5 years and up, given enough disk space
 * data import and export
 * time-to-live for short term high resolution data storage.
@@ -66,18 +66,22 @@ Database candidates that match these requirements are InfluxDB, MongoDB, QuestDB
 
 The use of MongoDB has the added benefit that dapr can be configured to use it as the state store, and ThingStore as well.
 
-The concern with MongoDB is a hefty memory load. Min 256MB and 1GB for 100K assets, although the time series usage is more efficient. Another concern is the horrific golang API.
+The concern with MongoDB is a hefty memory load. Min 256MB and 1GB RAM for 100K assets, although the time series usage significantly more efficient. Another concern is the horrific golang API that can stand in the way to optimize the usage. Write performance is okay with 50K samples/sec.
 
-The Hub's local usage is fairly basic. Aimed at up to 100 samples per minute (nr sensors * sample rate), adds up to 6K samples per hour, 140K per day and 56Million samples per year.
+The Hub's local usage is fairly basic. A small setup with 10 sensors that update every minute would add up to 14K samples a day and 5.3Million samples a year, approx 1GB/year. A large setup with 10K sensors 1TB a year. All reasonable numbers for a small to mid-sized system.
 
 ## Data Structure
 
-* Events, Properties and Actions all use the same data structure
-    * ID
-    * Thing ID
-    * Name
-    * Timestamp
-    * Value
-    * ActionID - when related to action
+The history store works with a single data structure of type 'ThingValue'. This type is used to store Events, Properties and Actions:
 
-Since the ThingID, PEA, and day are always given, index with those:
+```
+type ThingValue struct {
+   ThingID  string `json:"thingID"`
+   Name     string `json:"name"`
+   Created  string `json:"created"`
+   Value    string `json:"value"`
+   ValueID  string `json:"valueID"` 
+   ActionID string `json:"actionID"`
+}
+```
+ActionID is used to link events to the actions that caused them.  
