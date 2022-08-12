@@ -1,8 +1,7 @@
-// Package jsonstore
-package jsonstore
+// Package kvstore
+package kvstore
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -13,19 +12,22 @@ import (
 	"time"
 
 	"github.com/ohler55/ojg/jp"
+	"github.com/ohler55/ojg/oj"
 	"github.com/sirupsen/logrus"
-	"google.golang.org/protobuf/types/known/emptypb"
-
-	"github.com/wostzone/wost.grpc/go/svc"
 )
 
 // MaxLimit is the default max nr of items to return in list or query
 const MaxLimit = 1000
 
-// JsonStore is a simple lightweight storage service intended for basic read, write, list and jsonpath query
-// operations. This is not recommended for large documents or large amount of data.
+// KVStore is a simple lightweight key-value storage library that distinguishes itself by:
+//  1. being able to list available documents using offset and limit.
+//  2. jsonpath query the values of the documents, if those are valid serialized json
+//  3. no dependencies other than the jsonpath query
+//  4. periodically persists the data to file
 //
-// The current implementation is a simple in-memory store whose changes are regularly written to disk.
+// It is intended for storing and querying small simple datasets with few writes and mostly read operations.
+//
+// The current implementation is a simple in-memory store using maps, whose changes are regularly written to disk.
 // Its operations are atomic, data will be consistent, has isolation between transactions, and is eventually durable.
 // Durability is guaranteed after a flush operation that writes changes to disk.
 //
@@ -33,7 +35,7 @@ const MaxLimit = 1000
 // using a i5-4570S @2.90GHz cpu.
 // Read: Approx 0.019 msec (avg of 100K reads)
 // Write: Approx 0.016 msec (avg of 100K writes)
-// List: limit of 1000 (1MB data)
+// List: First  1000 records (1MB data)
 //    Approx 18 msec with a dataset of 1K records
 //    Approx 20 msec with a dataset of 10K records
 //    Approx 66 msec with a dataset of 100K records
@@ -43,11 +45,6 @@ const MaxLimit = 1000
 //    Approx 260 msec with a dataset of 100K records (1 result)
 //
 //
-// It is recommended to use redis, unless:
-//  - a list operation is needed
-//  - jsonpath query is needed
-//  - a low memory footprint is needed
-//
 // A good overview of jsonpath implementations can be found here:
 // > https://cburgmer.github.io/json-path-comparison/
 // Two good options for jsonpath queries:
@@ -56,10 +53,8 @@ const MaxLimit = 1000
 //
 // Note that future implementations of this service can change the storage media used while
 // maintaining API compatibility.
-type JsonStore struct {
-	svc.UnimplementedJsonStoreServer // implement the gRPC API
-
-	docs                 map[string]interface{} // json documents
+type KVStore struct {
+	docs                 map[string]string // json documents
 	storePath            string
 	mutex                sync.RWMutex
 	limit                int // default limit value in list and queries
@@ -67,10 +62,12 @@ type JsonStore struct {
 	backgroundLoopEnded  chan bool
 	backgroundLoopEnding chan bool
 	writeDelay           time.Duration // delay before writing changes
+	// cache for parsed json strings for faster query
+	jsonCache map[string]interface{}
 }
 
 // return the list of keys of a given map.
-func getKeys(m map[string]interface{}) []string {
+func getKeys(m map[string]string) []string {
 	keyList := make([]string, len(m))
 	i := 0
 	for key := range m {
@@ -82,18 +79,18 @@ func getKeys(m map[string]interface{}) []string {
 
 // openStoreFile loads the store JSON content into a map.
 // If the store file doesn't exist or is corrupt it will be re-created.
-func openStoreFile(storePath string) (docs map[string]interface{}, err error) {
+func openStoreFile(storePath string) (docs map[string]string, err error) {
 	docs, err = readStoreFile(storePath)
 	if err != nil {
-		docs = make(map[string]interface{})
+		docs = make(map[string]string)
 		err = writeStoreFile(storePath, docs)
 	}
 	return docs, err
 }
 
 // readStoreFile loads the store JSON content into a map
-func readStoreFile(storePath string) (docs map[string]interface{}, err error) {
-	docs = make(map[string]interface{})
+func readStoreFile(storePath string) (docs map[string]string, err error) {
+	docs = make(map[string]string)
 	var rawData []byte
 	rawData, err = os.ReadFile(storePath)
 	if err == nil {
@@ -110,7 +107,7 @@ func readStoreFile(storePath string) (docs map[string]interface{}, err error) {
 // This creates the folder if it doesn't exist. (the parent must exist)
 //   storePath is the full path to the file
 //   docs contains an object map of the store objects
-func writeStoreFile(storePath string, docs map[string]interface{}) error {
+func writeStoreFile(storePath string, docs map[string]string) error {
 	logrus.Infof("writeStoreFile: Writing data to json store to '%s'", storePath)
 
 	// create the folder if needed
@@ -124,6 +121,7 @@ func writeStoreFile(storePath string, docs map[string]interface{}) error {
 	}
 
 	// serialize the data to json for writing. Use indent for testing and debugging
+	//rawData, err := oj.Marshal(docs)
 	rawData, err := json.MarshalIndent(docs, "  ", "  ")
 	if err != nil {
 		err := fmt.Errorf("writeStoreFile: Error while saving store to %s: %s", storePath, err)
@@ -152,7 +150,7 @@ func writeStoreFile(storePath string, docs map[string]interface{}) error {
 }
 
 // autoSaveLoop periodically saves changes to the store
-func (store *JsonStore) autoSaveLoop() {
+func (store *KVStore) autoSaveLoop() {
 	logrus.Infof("auto-save loop started")
 
 	defer close(store.backgroundLoopEnded)
@@ -166,7 +164,7 @@ func (store *JsonStore) autoSaveLoop() {
 			store.mutex.Lock()
 			if store.updateCount > 0 {
 				// make a shallow copy for writing to avoid a lock during write to disk
-				var indexCopy = make(map[string]interface{})
+				var indexCopy = make(map[string]string)
 				for index, element := range store.docs {
 					indexCopy[index] = element
 				}
@@ -183,11 +181,13 @@ func (store *JsonStore) autoSaveLoop() {
 }
 
 // List returns a list of documents
+//
+// the keys can parameter can be used to limit the result to the given document keys.
 // This returns an empty list if offset is equal or larger than the available nr of documents
-// Note that paging slows performance with larger datasets (10K+) due to sorting of keys
-func (store *JsonStore) List(_ context.Context, args *svc.List_Args) (*svc.ResultValues, error) {
-	if args.Limit <= 0 {
-		args.Limit = int32(store.limit)
+// Note that paging slows performance with larger datasets (100K+) due to sorting of keys
+func (store *KVStore) List(keys []string, limit int32, offset int32) (docs map[string]string, err error) {
+	if limit <= 0 {
+		limit = int32(store.limit)
 	}
 
 	store.mutex.RLock()
@@ -195,144 +195,153 @@ func (store *JsonStore) List(_ context.Context, args *svc.List_Args) (*svc.Resul
 
 	// Use the given keys or get them all
 	// return results in given key order
-	keyList := args.Keys
+	keyList := keys
 	if keyList == nil {
 		keyList = getKeys(store.docs)
 		// sort the keys when using paging, eg offset or limit < size
-		if args.Offset > 0 || int(args.Limit) < len(store.docs) {
+		if offset > 0 || int(limit) < len(store.docs) {
 			sort.Strings(keyList)
 		}
 	}
 	// apply paging
-	nrResults := len(keyList) - int(args.Offset)
+	nrResults := len(keyList) - int(offset)
 	if nrResults < 0 {
 		nrResults = 0
 	}
-	if nrResults > int(args.Limit) {
-		nrResults = int(args.Limit)
+	if nrResults > int(limit) {
+		nrResults = int(limit)
 	}
 	// collect the result
-	items := make([]interface{}, nrResults)
+	docs = make(map[string]string, nrResults)
 	for index := 0; index < nrResults; index++ {
-		key := keyList[int(args.Offset)+index]
-		items[index] = store.docs[key]
+		key := keyList[int(offset)+index]
+		docs[key] = store.docs[key]
 	}
-	jsonDocs, _ := json.Marshal(items)
-	res := &svc.ResultValues{
-		JsonDocs:  string(jsonDocs),
-		Available: int32(nrResults),
-	}
-	return res, nil
+	return docs, err
 }
 
 // Query for documents using JSONPATH
-//
-// This implementation iterates the documents and matches each in turn.
+// This returns a set of parsed documents that match.
+// This parses the value into a json document. The parsed document is cached so successive queries
+// will be faster.
 //
 // Eg `$[? @.properties.deviceType=="sensor"]`
+//
+//  keys can be used to limit the result to documents with the given keys. Use nil to ignore
 //  jsonPath contains the query for each document.
 //  offset contains the offset in the list of results, sorted by ID
 //  limit contains the maximum or of responses, 0 for the default 100
-func (store *JsonStore) Query(_ context.Context, args *svc.Query_Args) (*svc.ResultValues, error) {
-
+func (store *KVStore) Query(jsonPath string, offset int, limit int, keys []string) ([]string, error) {
 	//  "github.com/PaesslerAG/jsonpath" - just works, amazing!
 	// Unfortunately no filter with bracket notation $[? @.["title"]=="my title"]
 	// res, err := jsonpath.Get(jsonPath, store.docs)
 	// github.com/ohler55/ojg/jp - seems to work with in-mem maps, no @token in bracket notation
 	//logrus.Infof("jsonPath='%s', limit=%d", args.JsonPathQuery, args.Limit)
-	jpExpr, err := jp.ParseString(args.JsonPathQuery)
+	jpExpr, err := jp.ParseString(jsonPath)
 	if err != nil {
 		return nil, err
 	}
-	if args.Limit == 0 {
-		args.Limit = int32(store.limit)
+	if limit == 0 {
+		limit = store.limit
 	}
 	store.mutex.RLock()
 
-	// build an object tree of potential documents to query.
-	// If a list is given then use the list, otherwise include all documents.
-	var potentialDocs = make(map[string]interface{})
-	if args.Keys != nil {
-		for _, key := range args.Keys {
-			doc, hasDoc := store.docs[key]
-			if hasDoc {
+	// build an object tree of potential documents to query
+	var potentialDocs = make(map[string]string)
+
+	// when the list of keys is given, reduce to those that actually exist
+	if keys != nil {
+		for _, key := range keys {
+			doc, exists := store.docs[key]
+			if exists {
 				potentialDocs[key] = doc
 			}
+		}
+	} else if len(store.docs) > limit || offset > 0 {
+		// when paging, use sorted keys
+		// to apply paging the keys need to be sorted
+		keys := getKeys(store.docs)
+		sort.Strings(keys)
+		for _, key := range keys {
+			potentialDocs[key] = store.docs[key]
 		}
 	} else {
-		// when paging, use sorted keys
-		if len(store.docs) > int(args.Limit) || args.Offset > 0 {
-			// to apply paging the keys need to be sorted
-			keys := getKeys(store.docs)
-			sort.Strings(keys)
-			for index := 0; index < len(keys); index++ {
-				key := keys[index]
-				potentialDocs[key] = store.docs[key]
-			}
+		// get all docs
+		for key, docString := range store.docs {
+			potentialDocs[key] = docString
+		}
+	}
+
+	// unlock now we have a copy of the document list
+	store.mutex.RUnlock()
+
+	// the query requires a parsed version of json docs
+	var docsToQuery = make(map[string]interface{})
+	for key, jsonText := range potentialDocs {
+		doc, found := store.jsonCache[key]
+		if found {
+			// use cached doc
+			docsToQuery[key] = doc
 		} else {
-			// get all docs
-			for key, doc := range store.docs {
-				potentialDocs[key] = doc
+			// parse and store
+			doc, err = oj.ParseString(jsonText)
+			if err == nil {
+				docsToQuery[key] = doc
+				store.jsonCache[key] = doc
 			}
 		}
 	}
-	defer store.mutex.RUnlock()
+	// the problem with jp.Get is that it returns an interface and we lose the keys.
+	// Pretty useless in golang.
+	validDocs := jpExpr.Get(docsToQuery)
 
-	// the query
-	validDocs := jpExpr.Get(potentialDocs)
-	// Apply paging
-	if args.Offset > 0 || len(validDocs) > int(args.Limit) {
-		nrResults := len(validDocs) - int(args.Offset)
-		if nrResults > int(args.Limit) {
-			nrResults = int(args.Limit)
+	// Apply paging to the result
+	if offset > 0 || len(validDocs) > int(limit) {
+		nrResults := len(validDocs) - int(offset)
+		if nrResults > int(limit) {
+			nrResults = int(limit)
 		}
-		if int(args.Offset) >= len(validDocs) {
+		if int(offset) >= len(validDocs) {
 			validDocs = make([]interface{}, 0)
 		} else {
-			validDocs = validDocs[args.Offset : int(args.Offset)+nrResults]
+			validDocs = validDocs[offset : int(offset)+nrResults]
 		}
 	}
-
-	jsonDocs, _ := json.Marshal(validDocs)
-
-	// finally, collect the documents themselves
-	qResults := &svc.ResultValues{
-		JsonDocs:  string(jsonDocs),
-		Available: int32(len(validDocs)),
+	// return the json docs instead of the interface.
+	// Unfortunately that means marshalling again as we lost the keys... :(
+	jsonDocs := make([]string, 0)
+	for _, validDoc := range validDocs {
+		jsonDoc, _ := oj.Marshal(validDoc)
+		jsonDocs = append(jsonDocs, string(jsonDoc))
 	}
-	//for _, key := range resultKeys {
-	//	qResults.Items[key] = store.jsonDocs[key]
-	//}
-	return qResults, err
+
+	// just use the keys and return the docs
+	return jsonDocs, err
 }
 
 // Read an object by its ID
-func (store *JsonStore) Read(args *svc.Read_Args) (*svc.ResultValue, error) {
+func (store *KVStore) Read(key string) (string, error) {
 	store.mutex.RLock()
 	defer store.mutex.RUnlock()
-	res := &svc.ResultValue{}
 
-	doc, ok := store.docs[args.Key]
+	doc, ok := store.docs[key]
 	if !ok {
-		return nil, fmt.Errorf("not found")
+		return doc, fmt.Errorf("key '%s' not found", key)
 	}
-	jsonDoc, _ := json.Marshal(doc)
-	res.JsonDoc = string(jsonDoc)
-	return res, nil
+	return doc, nil
 }
 
 // Remove a document from the store
 // Also succeeds if the document doesn't exist
-func (store *JsonStore) Remove(_ context.Context, args *svc.Remove_Args) (*emptypb.Empty, error) {
+func (store *KVStore) Remove(key string) {
 	store.mutex.Lock()
 	defer store.mutex.Unlock()
-	delete(store.docs, args.Key)
+	delete(store.docs, key)
 	store.updateCount++
-	return nil, nil
 }
 
 // RemoveAll empties the store. Intended for testing.
-//func (store *JsonStore) RemoveAll(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
+//func (store *KVStore) RemoveAll(context.Context, *emptypb.Empty) (*emptypb.Empty, error) {
 //	store.mutex.Lock()
 //	defer store.mutex.Unlock()
 //	store.docs = make(map[string]interface{})
@@ -341,7 +350,7 @@ func (store *JsonStore) Remove(_ context.Context, args *svc.Remove_Args) (*empty
 //}
 //
 //// Size returns the number of items in the store
-//func (store *JsonStore) Size(context.Context, *emptypb.Empty) (*svc.SizeResult, error) {
+//func (store *KVStore) Size(context.Context, *emptypb.Empty) (*svc.SizeResult, error) {
 //	store.mutex.RLock()
 //	defer store.mutex.RUnlock()
 //	res := &svc.SizeResult{
@@ -351,13 +360,13 @@ func (store *JsonStore) Remove(_ context.Context, args *svc.Remove_Args) (*empty
 //}
 
 // SetWriteDelay sets the delay for writing after a change
-func (store *JsonStore) SetWriteDelay(delay time.Duration) {
+func (store *KVStore) SetWriteDelay(delay time.Duration) {
 	store.writeDelay = delay
 }
 
 // Start the store background loop for saving changes
-func (store *JsonStore) Start() error {
-	logrus.Infof("JsonStore.Open: Opening store from '%s'", store.storePath)
+func (store *KVStore) Start() error {
+	logrus.Infof("KVStore.Open: Opening store from '%s'", store.storePath)
 	var err error
 	store.mutex.Lock()
 	defer store.mutex.Unlock()
@@ -368,7 +377,7 @@ func (store *JsonStore) Start() error {
 
 // Stop the background update.
 // If any changes are remaining then write to disk now.
-func (store *JsonStore) Stop() error {
+func (store *KVStore) Stop() error {
 	var err error
 	logrus.Infof("Ending background loop")
 	store.backgroundLoopEnding <- true
@@ -388,52 +397,41 @@ func (store *JsonStore) Stop() error {
 
 // Write a document to the store. If the document exists it is replaced.
 //
-// Write operations are non-blocking and handled as follows:
-//  1. Unmarshal to validate the json
-//  2. Lock the store while storing both the json text and object in the index and increase the change count.
-//
 //  A background process periodically checks the change count. When increased:
 //  1. Lock the store while copying the index. Unlock when done.
 //  2. Stream the in-memory json documents to a temp file.
 //  3. If success, move the temp file to the store file using the OS atomic move operation.
 //
-func (store *JsonStore) Write(_ context.Context, args *svc.Write_Args) (*emptypb.Empty, error) {
-	if args.JsonDoc == "" || args.Key == "" {
-		err := fmt.Errorf("JsonStore.Write: key='%s' parameter error", args.Key)
-		return nil, err
+func (store *KVStore) Write(key string, doc string) error {
+	if key == "" {
+		return fmt.Errorf("KVStore.Write: missing key")
 	}
-	// validate the json
-	var jsonObj interface{}
-	err := json.Unmarshal([]byte(args.JsonDoc), &jsonObj)
-	if err != nil {
-		err := fmt.Errorf("JsonStore.Write: key='%s' Invalid json: ", err)
-		return nil, err
-	}
+
 	// store the document and object
 	store.mutex.Lock()
 	defer store.mutex.Unlock()
-	//store.jsonDocs[args.Key] = args.JsonDoc
-	store.docs[args.Key] = jsonObj
+	store.docs[key] = doc
 	store.updateCount++
-	return nil, nil
+	return nil
 }
 
-// NewJsonStore creates a JSON store instance and load it with saved documents.
+// NewKVStore creates a store instance and load it with saved documents.
 // Run Start to start the background loop and Stop to end it.
 //
 //  storeFile path to storage file
 //  writeDelayMsec max delay before flushing changes to disk. Default 3000
-func NewJsonStore(storePath string) (store *JsonStore, err error) {
+func NewKVStore(storePath string) (store *KVStore, err error) {
 	writeDelay := time.Duration(3000) * time.Millisecond
-	store = &JsonStore{
+	store = &KVStore{
 		//jsonDocs:             make(map[string]string),
-		docs:                 make(map[string]interface{}),
+		docs:                 make(map[string]string),
 		storePath:            storePath,
 		limit:                MaxLimit,
 		backgroundLoopEnding: make(chan bool),
 		backgroundLoopEnded:  make(chan bool),
 		mutex:                sync.RWMutex{},
 		writeDelay:           writeDelay,
+		jsonCache:            make(map[string]interface{}),
 	}
 	store.docs, err = openStoreFile(store.storePath)
 	return store, err

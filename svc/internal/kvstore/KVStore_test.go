@@ -1,4 +1,4 @@
-package jsonstore_test
+package kvstore_test
 
 import (
 	"encoding/json"
@@ -15,19 +15,15 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/wostzone/wost.grpc/go/thing"
+	"svc/internal/kvstore"
 
-	//"github.com/wostzone/wost-go/pkg/thing"
 	"github.com/wostzone/wost-go/pkg/vocab"
-	"github.com/wostzone/wost.grpc/go/svc"
-	"svc/jsonstore"
 )
 
 const (
 	doc1ID        = "doc1"
 	doc2ID        = "doc2"
-	doc1Title     = "Title of doc 1"
-	doc2Title     = "Title of doc 2"
-	jsonStoreFile = "/tmp/jsonstore_test.json"
+	jsonStoreFile = "/tmp/wost-kvstore_test.json"
 )
 
 const doc1 = `{
@@ -91,36 +87,34 @@ func createTD(id string) *thing.ThingDescription {
 }
 
 // AddDocs adds documents doc1, doc2 and given nr additional docs
-func addDocs(store *jsonstore.JsonStore, count int) error {
+func addDocs(store *kvstore.KVStore, count int) error {
 	// these docs have values used for testing
-	_, err := store.Write(nil, &svc.Write_Args{Key: doc1ID, JsonDoc: doc1})
-	_, err = store.Write(nil, &svc.Write_Args{Key: doc2ID, JsonDoc: doc2})
+	err := store.Write(doc1ID, doc1)
+	err = store.Write(doc2ID, doc2)
 	if err != nil {
 		return err
 	}
 	// fill remainder with generated docs
-	// dont sort order of id
+	// don't sort order of id
 	for i := count; i > 2; i-- {
 		id := fmt.Sprintf("doc-%d", i)
 		td := createTD(id)
-		//jsonDoc, _ := json.MarshalIndent(td, "  ", "  ")
+		// td is a protobuf document with protbuf json annotations
 		jsonDoc, _ := protojson.Marshal(td)
-		args := &svc.Write_Args{Key: id, JsonDoc: string(jsonDoc)}
-		_, _ = store.Write(nil, args)
+		_ = store.Write(id, string(jsonDoc))
 	}
 	return nil
 }
 
-// func readStoredFile() ([]byte, error) {
-// 	filename := "/tmp/test-dirfilestore.json"
-// 	data, err := ioutil.ReadFile(filename)
-// 	return data, err
-// }
+func createNewStore() (*kvstore.KVStore, error) {
+	_ = os.Remove(jsonStoreFile)
+	store, err := kvstore.NewKVStore(jsonStoreFile)
+	return store, err
+}
 
 // Generic directory store testcases
 func TestStartStop(t *testing.T) {
-	_ = os.Remove(jsonStoreFile)
-	store, err := jsonstore.NewJsonStore(jsonStoreFile)
+	store, err := createNewStore()
 	require.NoError(t, err)
 	store.SetWriteDelay(10 * time.Millisecond)
 
@@ -132,7 +126,7 @@ func TestStartStop(t *testing.T) {
 
 	// store should now exist and restart succeed
 	assert.FileExists(t, jsonStoreFile)
-	store, err = jsonstore.NewJsonStore(jsonStoreFile)
+	store, err = kvstore.NewKVStore(jsonStoreFile)
 	err = store.Start()
 	time.Sleep(time.Millisecond * 20)
 	assert.NoError(t, err)
@@ -140,26 +134,26 @@ func TestStartStop(t *testing.T) {
 	assert.NoError(t, err)
 
 	// corrupted file should not stop the service (or should it?)
-	ioutil.WriteFile(jsonStoreFile, []byte("-invalid json"), 0600)
-	store, err = jsonstore.NewJsonStore(jsonStoreFile)
+	_ = ioutil.WriteFile(jsonStoreFile, []byte("-invalid json"), 0600)
+	store, err = kvstore.NewKVStore(jsonStoreFile)
 	assert.NoError(t, err)
 }
 
 func TestCreateStoreBadFolder(t *testing.T) {
-	filename := "/folder/does/notexist/dirfilestore.json"
-	_, err := jsonstore.NewJsonStore(filename)
+	filename := "/folder/does/not/exist/store.json"
+	_, err := kvstore.NewKVStore(filename)
 	assert.Error(t, err)
 }
 
 func TestCreateStoreReadOnlyFolder(t *testing.T) {
-	filename := "/var/dirfilestore.json"
-	_, err := jsonstore.NewJsonStore(filename)
+	filename := "/var/jsonstore.json"
+	_, err := kvstore.NewKVStore(filename)
 	assert.Error(t, err)
 }
 
 func TestCreateStoreCantReadFile(t *testing.T) {
 	filename := "/var"
-	_, err := jsonstore.NewJsonStore(filename)
+	_, err := kvstore.NewKVStore(filename)
 	assert.Error(t, err)
 	assert.Error(t, err)
 }
@@ -167,171 +161,141 @@ func TestCreateStoreCantReadFile(t *testing.T) {
 func TestWriteRead(t *testing.T) {
 	newTitle := "new title"
 
-	_ = os.Remove(jsonStoreFile)
-	store, err := jsonstore.NewJsonStore(jsonStoreFile)
+	store, err := createNewStore()
+	assert.NoError(t, err)
 	store.SetWriteDelay(time.Millisecond * 10)
 	require.NoError(t, err)
-	store.Start()
+	_ = store.Start()
 	err = addDocs(store, 0)
 	require.NoError(t, err)
 
 	// Replace
 	doc3 := fmt.Sprintf(`{"id":"%s","title":"%s"}`, doc1ID, newTitle)
-	_, err = store.Write(nil, &svc.Write_Args{Key: doc1ID, JsonDoc: doc3})
+	err = store.Write(doc1ID, doc3)
 	assert.NoError(t, err)
-
-	// wait for write
-	time.Sleep(time.Millisecond * 100)
 
 	// Read
-	resp, err := store.Read(&svc.Read_Args{Key: doc1ID})
+	resp, err := store.Read(doc1ID)
 	assert.NoError(t, err)
-	assert.Equal(t, doc3, resp.JsonDoc)
+	assert.Equal(t, doc3, resp)
 
 	// Delete
-	_, err = store.Remove(nil, &svc.Remove_Args{Key: doc1ID})
+	store.Remove(doc1ID)
 	assert.NoError(t, err)
 	err = store.Stop()
 	assert.NoError(t, err)
 
 	// Read again should fail
-	_, err = store.Read(&svc.Read_Args{Key: doc1ID})
+	_, err = store.Read(doc1ID)
 	assert.Error(t, err)
 }
 
 func TestWriteBadData(t *testing.T) {
-	_ = os.Remove(jsonStoreFile)
-	store, err := jsonstore.NewJsonStore(jsonStoreFile)
+	store, err := createNewStore()
 	require.NoError(t, err)
-	// missing doc
-	_, err = store.Write(nil, &svc.Write_Args{Key: doc1ID})
-	assert.Error(t, err)
 	// not json
-	_, err = store.Write(nil, &svc.Write_Args{Key: doc1ID, JsonDoc: "notjson"})
-	assert.Error(t, err)
+	err = store.Write(doc1ID, "not-json")
+	assert.NoError(t, err)
 	// missing key
-	_, err = store.Write(nil, &svc.Write_Args{JsonDoc: "{}"})
+	err = store.Write("", "{}")
 	assert.Error(t, err)
 }
 
 func TestList(t *testing.T) {
-	var docs []interface{}
 	var total = 100
-	_ = os.Remove(jsonStoreFile)
-	store, err := jsonstore.NewJsonStore(jsonStoreFile)
+	store, err := createNewStore()
 	require.NoError(t, err)
 	err = addDocs(store, total)
 	require.NoError(t, err)
 
-	resp, err := store.List(nil, &svc.List_Args{})
+	resp, err := store.List(nil, 0, 0)
 	require.NoError(t, err)
-	err = json.Unmarshal([]byte(resp.JsonDocs), &docs)
-	assert.NoError(t, err)
-	assert.Equal(t, total, len(docs))
+	assert.Equal(t, total, len(resp))
 }
 
 func TestListWithLimit(t *testing.T) {
 	var docs []interface{}
 	const total = 100
 
-	_ = os.Remove(jsonStoreFile)
-	store, err := jsonstore.NewJsonStore(jsonStoreFile)
+	store, err := createNewStore()
 	require.NoError(t, err)
 	err = addDocs(store, total)
 	require.NoError(t, err)
 
-	resp, err := store.List(nil, &svc.List_Args{Offset: 10, Limit: 20})
+	resp, err := store.List(nil, 10, 20)
 	require.NoError(t, err)
-	err = json.Unmarshal([]byte(resp.JsonDocs), &docs)
-	assert.NoError(t, err)
-	assert.Equal(t, 20, len(docs))
+	assert.Equal(t, 10, len(resp))
 
 	// based on count of 100
-	resp, err = store.List(nil, &svc.List_Args{Offset: total - 10, Limit: 20})
+	resp, err = store.List(nil, 20, total-10)
 	require.NoError(t, err)
-	err = json.Unmarshal([]byte(resp.JsonDocs), &docs)
-	assert.NoError(t, err)
-	assert.Equal(t, 10, len(docs))
+	assert.Equal(t, 10, len(resp))
 
 	// based on count of 100
-	resp, err = store.List(nil, &svc.List_Args{Offset: 105})
+	resp, err = store.List(nil, 0, 105)
 	require.NoError(t, err)
-	err = json.Unmarshal([]byte(resp.JsonDocs), &docs)
-	assert.NoError(t, err)
 	assert.Equal(t, 0, len(docs))
 }
 
 func TestQuery(t *testing.T) {
-	_ = os.Remove(jsonStoreFile)
-	store, err := jsonstore.NewJsonStore(jsonStoreFile)
+	store, err := createNewStore()
 	require.NoError(t, err)
 	err = addDocs(store, 20)
 	require.NoError(t, err)
 
-	var docs []interface{}
-
 	// filter on key 'id' == doc1
 	//args := &svc.Query_Args{JsonPathQuery: `$[?(@.id=="doc1")]`}
-	args := &svc.Query_Args{JsonPathQuery: `$[?(@.id=="doc1")]`, Limit: 10, Offset: 0}
-	resp, err := store.Query(nil, args)
+	jsonPath := `$[?(@.id=="doc1")]`
+	resp, err := store.Query(jsonPath, 0, 0, nil)
 	require.NoError(t, err)
-	err = json.Unmarshal([]byte(resp.JsonDocs), &docs)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, docs)
+	assert.NotEmpty(t, resp)
 
 	// regular nested filter comparison. note that a TD does not hold values
-	args.JsonPathQuery = `$[?(@.properties.title.name=="title1")]`
-	resp, err = store.Query(nil, args)
+	jsonPath = `$[?(@.properties.title.name=="title1")]`
+	resp, err = store.Query(jsonPath, 0, 0, nil)
 	require.NoError(t, err)
-	err = json.Unmarshal([]byte(resp.JsonDocs), &docs)
-	assert.NotEmpty(t, docs)
+	assert.NotEmpty(t, resp)
 
 	// filter with nested notation. some examples that return a list of TDs matching the filter
 	//res, err = fileStore.Query(`$[?(@.properties.title.value=="title1")]`, 0, 0)
 	// res, err = fileStore.Query(`$[?(@.*.title.value=="title1")]`, 0, 0)
 	// res, err = fileStore.Query(`$[?(@['properties']['title']['value']=="title1")]`, 0, 0)
-	args.JsonPathQuery = `$[?(@..title.name=="title1")]`
-	resp, err = store.Query(nil, args)
+	jsonPath = `$[?(@..title.name=="title1")]`
+	resp, err = store.Query(jsonPath, 0, 0, nil)
 	assert.NoError(t, err)
-	err = json.Unmarshal([]byte(resp.JsonDocs), &docs)
 
 	// these only return the properties - not good
 	// res, err = fileStore.Query(`$.*.properties[?(@.value=="title1")]`, 0, 0) // returns list of props, not tds
 	//res, err = fileStore.Query(`$.*.*[?(@.value=="title1")]`, 0, 0) // returns list of props, not tds
 	// res, err = fileStore.Query(`$[?(@...value=="title1")]`, 0, 0)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, docs)
+	assert.NotEmpty(t, resp)
 
 	// filter with bracket notation
-	args.JsonPathQuery = `$[?(@["id"]=="doc1")]`
-	resp, err = store.Query(nil, args)
+	jsonPath = `$[?(@["id"]=="doc1")]`
+	resp, err = store.Query(jsonPath, 0, 0, nil)
 	require.NoError(t, err)
-	err = json.Unmarshal([]byte(resp.JsonDocs), &docs)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, docs)
+	assert.NotEmpty(t, resp)
 
 	// filter with bracket notation and current object literal (for search @type)
-	// only supported by ohler55/ojg
-	args.JsonPathQuery = `$[?(@['@type']=="sensor")]`
-	resp, err = store.Query(nil, args)
+	// only supported by: ohler55/ojg
+	jsonPath = `$[?(@['@type']=="sensor")]`
+	resp, err = store.Query(jsonPath, 0, 0, nil)
 	assert.NoError(t, err)
-	err = json.Unmarshal([]byte(resp.JsonDocs), &docs)
-	assert.NoError(t, err)
-	assert.Greater(t, len(docs), 1)
+	assert.Greater(t, len(resp), 1)
 
 	// bad query expression
-	args.JsonPathQuery = `$[?(.id=="doc1")]`
-	resp, err = store.Query(nil, args)
+	jsonPath = `$[?(.id=="doc1")]`
+	resp, err = store.Query(jsonPath, 0, 0, nil)
 	assert.Error(t, err)
 }
 
-// tests to figure out how to use jpquery with bracket notation
+// tests to figure out how to use jp parse with bracket notation
 func TestQueryBracketNotationA(t *testing.T) {
 	store := make(map[string]interface{})
 	query1 := `$[?(@['type']=="type1")]`
 	query2 := `$[?(@['@type']=="sensor")]`
 
-	jsondoc := `{
+	jsonDoc := `{
 		"thing1": {
 			"id": "thing1",
 			"type": "type1",
@@ -350,7 +314,7 @@ func TestQueryBracketNotationA(t *testing.T) {
 		}
 	}`
 
-	err := json.Unmarshal([]byte(jsondoc), &store)
+	err := json.Unmarshal([]byte(jsonDoc), &store)
 	assert.NoError(t, err)
 
 	jpExpr, err := jp.ParseString(query1)
@@ -364,10 +328,8 @@ func TestQueryBracketNotationA(t *testing.T) {
 	assert.NotEmpty(t, result)
 }
 
-// tests to figure out how to use jpquery with bracket notation
+// tests to figure out how to use jp parse with bracket notation
 func TestQueryBracketNotationB(t *testing.T) {
-	var docs []interface{}
-
 	//store := make(map[string]interface{})
 	queryString := "$[?(@['@type']==\"sensor\")]"
 	id1 := "thing1"
@@ -399,63 +361,48 @@ func TestQueryBracketNotationB(t *testing.T) {
 		Type:  vocab.WoTDataTypeBool,
 	}
 
-	_ = os.Remove(jsonStoreFile)
-	store, err := jsonstore.NewJsonStore(jsonStoreFile)
+	store, err := createNewStore()
 	require.NoError(t, err)
 
 	//td1json, err := json.MarshalIndent(td1, "", "")
 	td1json, err := protojson.Marshal(&td1)
 	td2json, err := protojson.Marshal(&td2)
-	_, _ = store.Write(nil, &svc.Write_Args{Key: id1, JsonDoc: string(td1json)})
-	_, err = store.Write(nil, &svc.Write_Args{Key: id2, JsonDoc: string(td2json)})
+	_ = store.Write(id1, string(td1json))
+	err = store.Write(id2, string(td2json))
 	assert.NoError(t, err)
 
-	// query returns 2 sensors. The order is random
-	resp, err := store.Query(nil, &svc.Query_Args{JsonPathQuery: queryString})
+	// query returns 2 sensors.
+	resp, err := store.Query(queryString, 0, 0, nil)
 	require.NoError(t, err)
-	err = json.Unmarshal([]byte(resp.JsonDocs), &docs)
-	assert.NoError(t, err)
-	require.Equal(t, 2, len(docs))
+	require.Equal(t, 2, len(resp))
 
-	// both results are of device type sensor
-	readTD1 := docs[0].(map[string]interface{})
-	require.NotNil(t, readTD1)
-	read1type := readTD1["@type"]
+	var readTD1 thing.ThingDescription
+	err = protojson.Unmarshal([]byte(resp[0]), &readTD1)
+	require.NoError(t, err)
+	read1type := readTD1.AtType
 	assert.Equal(t, string(vocab.DeviceTypeSensor), read1type)
 }
 
 // test query with reduced list of IDs
 func TestQueryFiltered(t *testing.T) {
-	var docs []interface{}
 	queryString := "$..id"
 
-	_ = os.Remove(jsonStoreFile)
-	store, err := jsonstore.NewJsonStore(jsonStoreFile)
+	store, err := createNewStore()
 	require.NoError(t, err)
-	addDocs(store, 10)
+	_ = addDocs(store, 10)
 
 	// result of a normal query
-	resp, err := store.Query(nil, &svc.Query_Args{JsonPathQuery: queryString})
+	resp, err := store.Query(queryString, 0, 0, nil)
 	require.NoError(t, err)
-	err = json.Unmarshal([]byte(resp.JsonDocs), &docs)
-	assert.NoError(t, err)
-	assert.Equal(t, 10, len(docs))
-
-	// authorize access to Thing1 only
-	validKeys := []string{doc1ID}
-	resp, err = store.Query(nil, &svc.Query_Args{JsonPathQuery: queryString, Keys: validKeys})
-	assert.NoError(t, err)
-	err = json.Unmarshal([]byte(resp.JsonDocs), &docs)
-	assert.Equal(t, 1, len(docs))
+	assert.Equal(t, 10, len(resp))
 }
 
 // crude read/write performance test
 func TestReadWritePerf(t *testing.T) {
-	const iterations = 10000
-	_ = os.Remove(jsonStoreFile)
-	store, err := jsonstore.NewJsonStore(jsonStoreFile)
+	const iterations = 100000
+	store, err := createNewStore()
 	require.NoError(t, err)
-	store.Start()
+	_ = store.Start()
 	err = addDocs(store, 0)
 	require.NoError(t, err)
 	tdDoc := createTD("id")
@@ -469,7 +416,7 @@ func TestReadWritePerf(t *testing.T) {
 		tdDoc.Id = docID
 		//doc3, _ := json.Marshal(tdDoc)
 		//doc3 := fmt.Sprintf(`{"id":"%s","title":"%s-%d"}`, docID, "Hello ", i)
-		_, err = store.Write(nil, &svc.Write_Args{Key: docID, JsonDoc: string(doc3)})
+		err = store.Write(docID, string(doc3))
 		assert.NoError(t, err)
 	}
 	d1 := time.Since(t1)
@@ -477,40 +424,46 @@ func TestReadWritePerf(t *testing.T) {
 	for i = 0; i < iterations; i++ {
 		// Read
 		docID := fmt.Sprintf("doc-%d", i)
-		resp, err := store.Read(&svc.Read_Args{Key: docID})
+		resp, err := store.Read(docID)
 		assert.NoError(t, err)
-		require.NotEmpty(t, resp.JsonDoc)
+		require.NotEmpty(t, resp)
 	}
 	d2 := time.Since(t2)
-	store.Stop()
-	logrus.Infof("TestQuery, %d runs. Write: %d msec; Reads: %d msec",
-		i, d1.Milliseconds(), d2.Milliseconds())
+	t3 := time.Now()
+	resp, err := store.List(nil, 1000, 0)
+	assert.NoError(t, err)
+	require.NotEmpty(t, resp)
+	d3 := time.Since(t3)
+	_ = store.Stop()
+	// 100K writes: 93 msec, 100K reads 77msec, List first 1K: 31msec
+	// 1M writes 1.1 sec, 1M reads 0.8 sec. list first 1K: 0.5 sec
+	// 2M writes 2.2 sec, 1M reads 2.8 sec. list first 1K: 1.1 sec
+	logrus.Infof("TestQuery, %d write: %d msec; %d reads: %d msec. List first 1K: %d msec",
+		iterations, d1.Milliseconds(), iterations, d2.Milliseconds(), d3.Milliseconds())
 }
 
 // crude list performance test
 func TestPerfList(t *testing.T) {
-	const iterations = 100
-	const datasize = 1000
+	const iterations = 1000
+	const dataSize = 1000
 	const listLimit = 1000
 
-	_ = os.Remove(jsonStoreFile)
-	store, err := jsonstore.NewJsonStore(jsonStoreFile)
+	store, err := createNewStore()
 	require.NoError(t, err)
-	store.Start()
-	err = addDocs(store, datasize)
+	_ = store.Start()
+	err = addDocs(store, dataSize)
 	require.NoError(t, err)
 
 	t1 := time.Now()
 	var i int
 	for i = 0; i < iterations; i++ {
 		// List
-		listArgs := &svc.List_Args{Limit: listLimit}
-		resp2, err := store.List(nil, listArgs)
+		resp2, err := store.List(nil, listLimit, 0)
 		assert.NoError(t, err)
-		require.NotEmpty(t, resp2.JsonDocs)
+		require.NotEmpty(t, resp2)
 	}
 	d1 := time.Since(t1)
-	store.Stop()
+	_ = store.Stop()
 	logrus.Infof("TestList, %d runs: %d msec.", i, d1.Milliseconds())
 }
 
@@ -518,34 +471,31 @@ func TestPerfList(t *testing.T) {
 func TestPerfQuery(t *testing.T) {
 	const iterations = 1000
 	const dataSize = 1000
+	jsonPath := `$[?(@.properties.title.name=="title1")]`
 
-	_ = os.Remove(jsonStoreFile)
-	store, err := jsonstore.NewJsonStore(jsonStoreFile)
+	store, err := createNewStore()
 	require.NoError(t, err)
-	store.Start()
+	_ = store.Start()
 	err = addDocs(store, dataSize)
 	require.NoError(t, err)
 
+	// skip first run as it caches docs
+	_, _ = store.Query(jsonPath, 0, 0, nil)
 	t1 := time.Now()
 	var i int
 	for i = 0; i < iterations; i++ {
-
 		// filter on key 'id' == doc1
-		var docs []interface{}
-		args := &svc.Query_Args{
-			JsonPathQuery: `$[?(@.properties.title.name=="title1")]`,
-			//JsonPathQuery: `$[?(@.id=="doc1")]`,
-			//JsonPathQuery: `$..id`,
-			Offset: 0,
-			//Keys:          []string{doc1ID},
-		}
-		resp, err := store.Query(nil, args)
+		//jsonPath := `$[?(@.id=="doc1")]`,
+		//JsonPathQuery: `$..id`,
+		resp, err := store.Query(jsonPath, 0, 0, nil)
 		require.NoError(t, err)
-		err = json.Unmarshal([]byte(resp.JsonDocs), &docs)
-		assert.NoError(t, err)
-		assert.NotEmpty(t, docs)
+		assert.NotEmpty(t, resp)
 	}
 	d1 := time.Since(t1)
-	store.Stop()
+	_ = store.Stop()
+	// 1000 runs on 1K records: 1.4 sec
+	// 100 runs on 10K records: 2.0 sec
+	// 10 runs on 100K records: 2.5 sec
+	// 1 run on 1M records: 3.6 sec
 	logrus.Infof("TestQuery, %d runs: %d msec.", i, d1.Milliseconds())
 }

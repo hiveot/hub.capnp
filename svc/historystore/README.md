@@ -49,8 +49,8 @@ The history backend is best served with a time-series database that can handle:
 * data import and export
 * time-to-live for short term high resolution data storage.
 * query support
-    * downsampling. Viewing time series over a year with a few hundred points at the most.
-    * filter on json data fields
+   * downsampling. Viewing time series over a year with a few hundred points at the most.
+   * filter on json data fields
 
 Nice to have:
 
@@ -80,8 +80,5 @@ type ThingValue struct {
    Name     string `json:"name"`
    Created  string `json:"created"`
    Value    string `json:"value"`
-   ValueID  string `json:"valueID"` 
-   ActionID string `json:"actionID"`
 }
 ```
-ActionID is used to link events to the actions that caused them.  

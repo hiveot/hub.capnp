@@ -1,6 +1,6 @@
-// Package mongodb for history store
+// Package mongohs with MongoDB based history store
 // This implements the HistoryStore.proto API
-package mongodb
+package mongohs
 
 import (
 	"context"
@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -77,10 +76,8 @@ func (srv *MongoHistoryStoreServer) AddAction(ctx context.Context, args *thing.T
 		"metadata":     bson.M{"thingID": args.ThingID, "name": args.Name},
 		"name":         args.Name,
 		"thingID":      args.ThingID,
-		"valueID":      args.ValueID,
 		"value":        args.Value,
 		"created":      args.Created,
-		"actionID":     args.ActionID,
 	}
 	res, err := srv.actionCollection.InsertOne(ctx, evBson)
 	_ = res
@@ -100,9 +97,6 @@ func (srv *MongoHistoryStoreServer) AddEvent(ctx context.Context, event *thing.T
 	if event.Created == "" {
 		event.Created = time.Now().UTC().Format(time.RFC3339)
 	}
-	if event.ValueID == "" {
-		event.ValueID = uuid.New().String()
-	}
 
 	// It would be nice to simply use bson marshal, but that isn't possible as the
 	// required timestamp needs to be added in BSON format.
@@ -116,10 +110,8 @@ func (srv *MongoHistoryStoreServer) AddEvent(ctx context.Context, event *thing.T
 		"metadata": bson.M{"name": event.Name},
 		"name":     event.Name,
 		"thingID":  event.ThingID,
-		"valueID":  event.ValueID,
 		"value":    event.Value,
 		"created":  event.Created,
-		"actionID": event.ActionID,
 	}
 
 	// TODO: support different granularity by using expireAfterSeconds
@@ -190,9 +182,6 @@ func (srv *MongoHistoryStoreServer) AddEvents(ctx context.Context, events *thing
 		if event.Created == "" {
 			event.Created = time.Now().UTC().Format(time.RFC3339)
 		}
-		//if event.ValueID == "" {
-		//	event.ValueID = uuid.New().String()
-		//}
 
 		// It would be nice to simply use bson marshal, but that isn't possible as the
 		// required timestamp needs to be added in BSON format.
@@ -206,10 +195,8 @@ func (srv *MongoHistoryStoreServer) AddEvents(ctx context.Context, events *thing
 			"metadata": bson.M{"name": event.Name},
 			"name":     event.Name,
 			"thingID":  event.ThingID,
-			"valueID":  event.ValueID,
 			"value":    event.Value,
 			"created":  event.Created,
-			"actionID": event.ActionID,
 		}
 		evList = append(evList, evBson)
 	}
@@ -432,8 +419,6 @@ func (srv *MongoHistoryStoreServer) getLatestValuesFromTimeSeries(
 				{"name", bson.M{"$first": "$name"}},
 				{"created", bson.M{"$first": "$created"}},
 				{"value", bson.M{"$first": "$value"}},
-				//{"valueID", bson.M{"$first": "$valueID"}},
-				//{"thingID", bson.M{"$first": "$thingID"}},
 			},
 		},
 	}

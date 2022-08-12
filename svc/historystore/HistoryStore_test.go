@@ -16,7 +16,7 @@ import (
 	"github.com/wostzone/wost-go/pkg/logging"
 	"github.com/wostzone/wost.grpc/go/svc"
 	"github.com/wostzone/wost.grpc/go/thing"
-	"svc/historystore/mongodb"
+	"svc/historystore/mongohs"
 )
 
 const storeName = "test"
@@ -61,19 +61,19 @@ func addHistory(store svc.HistoryStoreServer,
 }
 
 func startStore() svc.HistoryStoreServer {
-	store := mongodb.NewHistoryStoreServer(storeURL, storeName)
-	mbst := store.(*mongodb.MongoHistoryStoreServer)
+	store := mongohs.NewHistoryStoreServer(storeURL, storeName)
+	mbst := store.(*mongohs.MongoHistoryStoreServer)
 	mbst.Start()
 	return store
 }
 
 func stopStore(store svc.HistoryStoreServer) error {
-	mbst := store.(*mongodb.MongoHistoryStoreServer)
+	mbst := store.(*mongohs.MongoHistoryStoreServer)
 	return mbst.Stop()
 }
 
 func deleteStore(store svc.HistoryStoreServer) error {
-	mbst := store.(*mongodb.MongoHistoryStoreServer)
+	mbst := store.(*mongohs.MongoHistoryStoreServer)
 	return mbst.Delete()
 }
 
@@ -217,10 +217,10 @@ func TestGetLatest(t *testing.T) {
 	assert.Greater(t, len(res.PropValues), 0)
 	// compare the results with the highest value tracked during creation of the test data
 	for _, val := range res.PropValues {
-		logrus.Infof("Result %s: %v", val.ValueID, val)
+		logrus.Infof("Result %s: %v", val.Created, val)
 		highest := highestName[val.Name]
 		if assert.NotNil(t, highest) {
-			logrus.Infof("Expect %s: %v", highest.ValueID, highest)
+			logrus.Infof("Expect %s: %v", highest.Created, highest)
 			assert.Equal(t, highest.Created, val.Created)
 		}
 	}
@@ -235,8 +235,7 @@ func TestAddGetAction(t *testing.T) {
 	ctx := context.Background()
 	actionData := `{"switch":"on"}`
 	action := &thing.ThingValue{
-		ThingID:  id1,
-		ActionID: "action1",
+		ThingID: id1,
 		//Created:   time.Now().Format(time.RFC3339),
 		Name:  name,
 		Value: actionData}
