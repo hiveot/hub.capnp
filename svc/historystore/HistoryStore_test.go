@@ -1,4 +1,4 @@
-package historystore_test
+package main_test
 
 import (
 	"context"

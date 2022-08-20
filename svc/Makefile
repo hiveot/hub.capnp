@@ -1,15 +1,23 @@
 # Makefile to build and test the WoST Hub launcher
-DIST_FOLDER=./dist
+DIST_FOLDER=../dist
 INSTALL_HOME=~/bin/wosthub
 .DEFAULT_GOAL := help
 
 .FORCE: 
 
-all: thingstore   ## Build all services
-	@echo "> Build successful. The executable(s) '$?' can be found in $(DIST_FOLDER)/bin"
+all: certsvc  historystore thingstore   ## Build all services
 
-thingstore: ## Build Hub thingstore service
-	go build -o $(DIST_FOLDER)/bin/$@ ./thingstore/ThingStore.go
+certsvc: .FORCE ## Build Hub certificate management service
+	go build -o $(DIST_FOLDER)/bin/$@ ./certsvc/main.go
+	@echo "> Build successful. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@"
+
+historystore: .FORCE ## Build Hub history-store service
+	go build -o $(DIST_FOLDER)/bin/$@ ./historystore/main.go
+	@echo "> Build successful. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@"
+
+
+thingstore: .FORCE ## Build Hub thingstore service
+	go build -o $(DIST_FOLDER)/bin/$@ ./thingstore/main.go
 	@echo "> Build successful. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@"
 
 clean: ## Clean distribution files

@@ -1,4 +1,4 @@
-package certsetup_test
+package selfsigned_test
 
 import (
 	"crypto/x509"
@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/wostzone/hub/cmd/certs/certsetup"
+	"svc/certsvc/certsetup"
 
 	"github.com/wostzone/wost-go/pkg/certsclient"
 	"github.com/wostzone/wost-go/pkg/logging"

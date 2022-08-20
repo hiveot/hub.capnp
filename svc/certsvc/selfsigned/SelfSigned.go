@@ -1,6 +1,6 @@
-// Package certsetup with server side creation of self signed certificate chain using ECDSA
+// Package selfsigned with server side creation of self signed certificate chain using ECDSA
 // Credits: https://gist.github.com/shaneutt/5e1995295cff6721c89a71d13a71c251 keys
-package certsetup
+package selfsigned
 
 import (
 	"crypto/ecdsa"
