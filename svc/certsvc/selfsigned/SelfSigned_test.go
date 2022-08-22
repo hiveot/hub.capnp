@@ -5,12 +5,10 @@ import (
 	"os"
 	"path"
 	"testing"
-	"time"
-
-	"svc/certsvc/certsetup"
 
 	"github.com/wostzone/wost-go/pkg/certsclient"
 	"github.com/wostzone/wost-go/pkg/logging"
+	"svc/certsvc/selfsigned"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -18,6 +16,8 @@ import (
 
 var tempFolder string
 var certFolder string
+
+const TempCertDurationDays = 1
 
 // removeCerts easy cleanup for existing device certificate
 //func removeServerCerts() {
@@ -42,20 +42,9 @@ func TestMain(m *testing.M) {
 	os.Exit(res)
 }
 
-// func TestLoadCreateCertKeyBadFile(t *testing.T) {
-// 	removeServerCerts()
-// 	_, err := certsetup.LoadOrCreateCertKey("/root/nopermission.pem")
-// 	assert.Error(t, err)
-// }
-// func TestTLSCertificateGeneration(t *testing.T) {
-// 	hostnames := []string{"127.0.0.1"}
-// 	clientID := "3rdparty-client"
-
-// 	// test creating ca a
-
 func TestCreateCA(t *testing.T) {
 	// test creating hub CA certificate
-	caCert, caKeys := certsetup.CreateHubCA()
+	caCert, caKeys := selfsigned.CreateHubCA()
 	require.NotNil(t, caCert)
 	require.NotNil(t, caKeys)
 }
@@ -63,92 +52,146 @@ func TestCreateCA(t *testing.T) {
 func TestClientCertBadCA(t *testing.T) {
 	clientID := "client1"
 	ou := certsclient.OUClient
-	caCert, caKey := certsetup.CreateHubCA()
+	caCert, caKey := selfsigned.CreateHubCA()
 	keys := certsclient.CreateECDSAKeys()
 
-	clientCert, err := certsetup.CreateHubClientCert(clientID, ou,
-		&keys.PublicKey, nil, caKey, time.Now(), certsetup.TempCertDurationDays)
+	clientCert, err := selfsigned.CreateClientCert(clientID, ou,
+		&keys.PublicKey, nil, caKey, TempCertDurationDays)
 	assert.Error(t, err)
 	assert.Empty(t, clientCert)
 
-	clientCert, err = certsetup.CreateHubClientCert(clientID, ou,
-		&keys.PublicKey, caCert, nil, time.Now(), certsetup.TempCertDurationDays)
+	clientCert, err = selfsigned.CreateClientCert(clientID, ou,
+		&keys.PublicKey, caCert, nil, TempCertDurationDays)
 	assert.Error(t, err)
 	assert.Empty(t, clientCert)
 }
 
-func TestCreateServerCert(t *testing.T) {
+func TestCreateServiceCert(t *testing.T) {
 	// test creating hub certificate
+	const serviceID = "testService"
 	names := []string{"127.0.0.1", "localhost"}
-	caCert, caKey := certsetup.CreateHubCA()
-	cert, err := certsetup.CreateHubServerCert(names, caCert, caKey)
-	require.NoError(t, err)
-	require.NotNil(t, cert)
-	require.NotNil(t, cert.PrivateKey)
+	caCert, caKey := selfsigned.CreateHubCA()
+	keys := certsclient.CreateECDSAKeys()
 
-	// todo, verify names in certificate
+	serviceCert, err := selfsigned.CreateServiceCert(
+		serviceID, names, &keys.PublicKey, caCert, caKey, 1)
+	require.NoError(t, err)
+	require.NotNil(t, serviceCert)
+	require.NotNil(t, serviceCert.PublicKey)
+
+	// verify service certificate against CA
+	caCertPool := x509.NewCertPool()
+	caCertPool.AddCert(caCert)
+	opts := x509.VerifyOptions{
+		Roots:     caCertPool,
+		KeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth},
+	}
+	_, err = serviceCert.Verify(opts)
+	assert.NoError(t, err)
 }
 
-func TestServerCertBadCA(t *testing.T) {
+// test with bad parameters
+func TestServiceCertBadParms(t *testing.T) {
+	const serviceID = "testService"
 	hostnames := []string{"127.0.0.1"}
-	caCert, caKey := certsetup.CreateHubCA()
-	//
-	hubCert, err := certsetup.CreateHubServerCert(hostnames, caCert, nil)
+	caCert, caKey := selfsigned.CreateHubCA()
+	keys := certsclient.CreateECDSAKeys()
+	// missing CA private key
+	hubCert, err := selfsigned.CreateServiceCert(
+		serviceID, hostnames, &keys.PublicKey, caCert, nil, 1)
 	require.Error(t, err)
 	require.Empty(t, hubCert)
 
-	hubCert, err = certsetup.CreateHubServerCert(hostnames, nil, caKey)
+	// missing service ID
+	hubCert, err = selfsigned.CreateServiceCert(
+		"", hostnames, nil, nil, caKey, 1)
 	require.Error(t, err)
 	require.Empty(t, hubCert)
 
+	// missing public key
+	hubCert, err = selfsigned.CreateServiceCert(
+		serviceID, hostnames, nil, nil, caKey, 1)
+	require.Error(t, err)
+	require.Empty(t, hubCert)
+
+	// missing CA certificate
+	hubCert, err = selfsigned.CreateServiceCert(
+		serviceID, hostnames, &keys.PublicKey, nil, caKey, 1)
+	require.Error(t, err)
+	require.Empty(t, hubCert)
+
+	// Bad CA certificate
 	badCa := x509.Certificate{}
-	hubCert, err = certsetup.CreateHubServerCert(hostnames, &badCa, caKey)
+	hubCert, err = selfsigned.CreateServiceCert(
+		serviceID, hostnames, &keys.PublicKey, &badCa, caKey, 1)
 	require.Error(t, err)
 	require.Empty(t, hubCert)
 }
 func TestCreateClientCert(t *testing.T) {
 	clientID := "plugin1"
-	ou := certsclient.OUPlugin
+	ou := certsclient.OUClient
 	// test creating hub certificate
-	caCert, caKeys := certsetup.CreateHubCA()
+	caCert, caKeys := selfsigned.CreateHubCA()
 	keys := certsclient.CreateECDSAKeys()
 
-	hubCert, err := certsetup.CreateHubClientCert(clientID, ou,
-		&keys.PublicKey, caCert, caKeys, time.Now(), 1)
+	clientCert, err := selfsigned.CreateClientCert(
+		clientID, ou, &keys.PublicKey, caCert, caKeys, 1)
 	require.NoErrorf(t, err, "TestServiceCert: Failed creating server certificate")
-	require.NotNil(t, hubCert)
+	require.NotNil(t, clientCert)
+
+	// verify client certificate against CA
+	caCertPool := x509.NewCertPool()
+	caCertPool.AddCert(caCert)
+	opts := x509.VerifyOptions{
+		Roots:     caCertPool,
+		KeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
+	}
+	_, err = clientCert.Verify(opts)
+	assert.NoError(t, err)
 }
+
 func TestCreateDeviceCert(t *testing.T) {
 	deviceID := "device1"
 	ou := certsclient.OUIoTDevice
 	// test creating hub certificate
-	caCert, caKeys := certsetup.CreateHubCA()
+	caCert, caKeys := selfsigned.CreateHubCA()
 	keys := certsclient.CreateECDSAKeys()
 
-	hubCert, err := certsetup.CreateHubClientCert(deviceID, ou,
-		&keys.PublicKey, caCert, caKeys, time.Now(), 1)
-	require.NoErrorf(t, err, "TestServiceCert: Failed creating server certificate")
-	require.NotNil(t, hubCert)
+	deviceCert, err := selfsigned.CreateClientCert(
+		deviceID, ou, &keys.PublicKey, caCert, caKeys, 1)
+	require.NoErrorf(t, err, "TestServiceCert: Failed creating device certificate")
+	require.NotNil(t, deviceCert)
+
+	// verify certificate against CA
+	caCertPool := x509.NewCertPool()
+	caCertPool.AddCert(caCert)
+	opts := x509.VerifyOptions{
+		Roots:     caCertPool,
+		KeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
+	}
+	_, err = deviceCert.Verify(opts)
+	assert.NoError(t, err)
 }
 
-func TestCreateBundle(t *testing.T) {
-	hostnames := []string{"127.0.0.1"}
-
-	// test creating hub CA certificate
-	err := certsetup.CreateCertificateBundle(hostnames, certFolder, true)
-	require.NoError(t, err)
-}
-
-func TestCreateBundleBadFolder(t *testing.T) {
-	hostnames := []string{"127.0.0.1"}
-
-	// test creating hub CA certificate
-	err := certsetup.CreateCertificateBundle(hostnames, "/not/a/valid/folder", true)
-	require.Error(t, err)
-}
-
-func TestCreateBundleBadNames(t *testing.T) {
-	// test creating hub CA certificate
-	err := certsetup.CreateCertificateBundle(nil, certFolder, true)
-	require.Error(t, err)
-}
+//
+//func TestCreateBundle(t *testing.T) {
+//	hostnames := []string{"127.0.0.1"}
+//
+//	// test creating hub CA certificate
+//	err := selfsigned.CreateCertificateBundle(hostnames, certFolder, true)
+//	require.NoError(t, err)
+//}
+//
+//func TestCreateBundleBadFolder(t *testing.T) {
+//	hostnames := []string{"127.0.0.1"}
+//
+//	// test creating hub CA certificate
+//	err := selfsigned.CreateCertificateBundle(hostnames, "/not/a/valid/folder", true)
+//	require.Error(t, err)
+//}
+//
+//func TestCreateBundleBadNames(t *testing.T) {
+//	// test creating hub CA certificate
+//	err := selfsigned.CreateCertificateBundle(nil, certFolder, true)
+//	require.Error(t, err)
+//}

@@ -16,12 +16,20 @@ import (
 	"github.com/wostzone/wost-go/pkg/logging"
 	"github.com/wostzone/wost.grpc/go/svc"
 	"github.com/wostzone/wost.grpc/go/thing"
+	"svc/historystore/config"
 	"svc/historystore/mongohs"
 )
 
-const storeName = "test"
-const storeURL = "mongodb://localhost:27017"
 const thingIDPrefix = "thing-"
+
+var svcConfig = config.HistoryStoreConfig{
+	DatabaseType:    "mongodb",
+	DatabaseName:    "test",
+	DatabaseURL:     config.DefaultDBURL,
+	LoginID:         "",
+	Password:        "",
+	CertificateFile: "",
+}
 
 var names = []string{"temperature", "humidity", "pressure", "wind", "speed", "switch", "location", "sensor-A", "sensor-B", "sensor-C"}
 var testItems = make(map[string]*thing.ThingValue)
@@ -61,7 +69,7 @@ func addHistory(store svc.HistoryStoreServer,
 }
 
 func startStore() svc.HistoryStoreServer {
-	store := mongohs.NewHistoryStoreServer(storeURL, storeName)
+	store := mongohs.NewMongoHistoryStoreServer(svcConfig)
 	mbst := store.(*mongohs.MongoHistoryStoreServer)
 	mbst.Start()
 	return store

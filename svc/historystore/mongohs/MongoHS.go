@@ -17,6 +17,7 @@ import (
 
 	"github.com/wostzone/wost.grpc/go/svc"
 	"github.com/wostzone/wost.grpc/go/thing"
+	"svc/historystore/config"
 )
 
 const TimeStampField = "timestamp"
@@ -30,14 +31,13 @@ const DefaultLatestCollectionName = "latest"
 //
 type MongoHistoryStoreServer struct {
 	svc.UnimplementedHistoryStoreServer
+	config config.HistoryStoreConfig
+
 	// Client connection to the data store
 	store *mongo.Client
 	// database instance
 	storeDB *mongo.Database
-	// storeURL is the MongoDB connection URL
-	storeURL string
-	// storeName is the MongoDB database name of the history store
-	storeName string
+
 	// use a separate table for 'latest' events instead of a query on the time series
 	// MongoDB query aggregate with sort and group is not performant and has memory bugs:
 	// 1. https://jira.mongodb.org/browse/SERVER-4507
@@ -296,7 +296,7 @@ func (srv *MongoHistoryStoreServer) Delete() error {
 	//	return err
 	//}
 	time.Sleep(time.Second)
-	db := srv.store.Database(srv.storeName)
+	db := srv.store.Database(srv.config.DatabaseName)
 	err := db.Drop(ctx)
 	if err != nil {
 		logrus.Error(err)
@@ -498,7 +498,7 @@ func (srv *MongoHistoryStoreServer) setup(ctx context.Context) error {
 
 	// create the database and add time series collections
 	if srv.storeDB == nil {
-		srv.storeDB = srv.store.Database(srv.storeName)
+		srv.storeDB = srv.store.Database(srv.config.DatabaseName)
 	}
 	// prepare options
 	tso := &options.TimeSeriesOptions{
@@ -584,19 +584,19 @@ func (srv *MongoHistoryStoreServer) setup(ctx context.Context) error {
 // Start must be called before any other method, including Setup or Delete
 func (srv *MongoHistoryStoreServer) Start() error {
 	logrus.Infof("Connecting to the database")
-	store, err := mongo.NewClient(options.Client().ApplyURI(srv.storeURL))
+	store, err := mongo.NewClient(options.Client().ApplyURI(srv.config.DatabaseURL))
 	if err != nil {
-		logrus.Errorf("Failed to create DB client on %s: %s", srv.storeURL, err)
+		logrus.Errorf("Failed to create DB connection to %s: %s", srv.config.DatabaseURL, err)
 		return err
 	}
 	srv.store = store
 
 	err = srv.store.Connect(nil)
 	if err != nil {
-		logrus.Errorf("failed to connect to history DB on %s: %s", srv.storeURL, err)
+		logrus.Errorf("failed to connect to history DB on %s: %s", srv.config.DatabaseURL, err)
 		return err
 	}
-	srv.storeDB = srv.store.Database(srv.storeName)
+	srv.storeDB = srv.store.Database(srv.config.DatabaseName)
 
 	// create the collections if they don't exist
 	ctx, cf := context.WithTimeout(context.Background(), time.Second*300)
@@ -629,19 +629,17 @@ func (srv *MongoHistoryStoreServer) Stop() error {
 	return err
 }
 
-// NewHistoryStoreServer creates a service to access events, actions and properties in the store
+// NewMongoHistoryStoreServer creates a service to access events, actions and properties in the store
 // Call Start() when ready to use the store.
-//  storeURL is the full URL to the database
-//  storeName is the database name, use "" for DefaultStoreName or "test" for testing
-func NewHistoryStoreServer(storeURL string, storeName string) svc.HistoryStoreServer {
+//  dbConfig contains the database connection settings
+func NewMongoHistoryStoreServer(svcConfig config.HistoryStoreConfig) svc.HistoryStoreServer {
 
-	if storeName == "" {
-		storeName = DefaultStoreName
+	if svcConfig.DatabaseName == "" {
+		svcConfig.DatabaseName = DefaultStoreName
 	}
 
 	srv := &MongoHistoryStoreServer{
-		storeURL:               storeURL,
-		storeName:              storeName,
+		config:                 svcConfig,
 		useSeparateLatestTable: true,
 	}
 	return srv
