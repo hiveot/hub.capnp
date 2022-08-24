@@ -6,13 +6,14 @@ import (
 	"log"
 	"net"
 	"os"
+	"strconv"
 	"syscall"
 )
 
 // CreateServiceListener creates a TCP or Unix domain socket listener with the given service name
 // for use by http or grpc server.
 //
-// This parses the commandline for options '-a address' or '-u unixsocket' to listen on
+// This parses the commandline for options '-p port' or '-u unixsocket' to listen on
 // The default socket is /tmp/{serviceName}.sock
 // In case of error this exits with Fatal.
 //
@@ -20,21 +21,23 @@ import (
 // Any additional commandline option flags must be set before invoking this method.
 // Returns the listening socket.
 func CreateServiceListener(serviceName string) net.Listener {
-	var address string = ""
+	var port int = 0
+	var address string = "localhost"
 	var unixSocket string = "/tmp/" + serviceName + ".sock"
 	flag.Usage = func() {
-		fmt.Printf("Usage: %s [-a address | -u /path/to/unixdomainsocket]\n", os.Args[0])
+		fmt.Printf("Usage: %s [-p port | -u /path/to/unixdomainsocket]\n", os.Args[0])
 		flag.PrintDefaults()
 		//"thingstore [-p port|domainsocket]"
 	}
 	flag.StringVar(&unixSocket, "u", unixSocket, "GRPC listening unix domain socket")
-	flag.StringVar(&address, "a", address, "GRPC listening [address]:port")
+	flag.IntVar(&port, "p", port, "GRPC listening port")
 	flag.Parse()
 
 	// listen on tcp port or unix domain socket
 	network := "unix"
-	if address != "" {
+	if port != 0 {
 		network = "tcp"
+		address = "localhost:" + strconv.Itoa(port)
 	} else {
 		address = unixSocket
 		// remove stale handle

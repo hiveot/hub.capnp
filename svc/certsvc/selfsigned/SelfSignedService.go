@@ -4,9 +4,9 @@ import (
 	"context"
 	"crypto/x509"
 
+	"github.com/wostzone/hub/svc/certsvc/certconfig"
 	"github.com/wostzone/wost-go/pkg/certsclient"
 	"github.com/wostzone/wost.grpc/go/svc"
-	"svc/certsvc/config"
 )
 
 // SelfSignedServer implements the svc.CertServiceServer interface
@@ -16,7 +16,7 @@ import (
 // Instead the issued certificates are short lived and must be renewed before they expire.
 type SelfSignedServer struct {
 	svc.UnimplementedCertServiceServer
-	config config.CertSvcConfig
+	config certconfig.CertSvcConfig
 }
 
 // CreateClientCert creates a CA signed certificate for mutual authentication by consumers
@@ -32,7 +32,7 @@ func (srv *SelfSignedServer) CreateClientCert(_ context.Context, args *svc.Creat
 		pubKey,
 		srv.config.CaCert,
 		srv.config.CaKey,
-		config.DefaultClientCertDurationDays)
+		certconfig.DefaultClientCertDurationDays)
 
 	caCertPem := certsclient.X509CertToPEM(srv.config.CaCert)
 	certPem := certsclient.X509CertToPEM(cert)
@@ -56,7 +56,7 @@ func (srv *SelfSignedServer) CreateDeviceCert(_ context.Context, args *svc.Creat
 			pubKey,
 			srv.config.CaCert,
 			srv.config.CaKey,
-			config.DefaultDeviceCertDurationDays)
+			certconfig.DefaultDeviceCertDurationDays)
 
 		caCertPem := certsclient.X509CertToPEM(srv.config.CaCert)
 		certPem := certsclient.X509CertToPEM(cert)
@@ -79,7 +79,7 @@ func (srv *SelfSignedServer) CreateServiceCert(_ context.Context, args *svc.Crea
 		pubKey,
 		srv.config.CaCert,
 		srv.config.CaKey,
-		config.DefaultServiceCertDurationDays,
+		certconfig.DefaultServiceCertDurationDays,
 	)
 
 	caCertPem := certsclient.X509CertToPEM(srv.config.CaCert)
@@ -91,7 +91,7 @@ func (srv *SelfSignedServer) CreateServiceCert(_ context.Context, args *svc.Crea
 	return res, nil
 }
 
-func NewSelfSignedServer(config config.CertSvcConfig) *SelfSignedServer {
+func NewSelfSignedServer(config certconfig.CertSvcConfig) *SelfSignedServer {
 	service := &SelfSignedServer{
 		config: config,
 	}

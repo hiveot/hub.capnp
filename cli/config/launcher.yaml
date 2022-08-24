@@ -1,0 +1,59 @@
+# WoST launcher configuration with plugins to start
+
+# Internal services to start with dapr sidecar
+services:
+  # IoT certificate management
+  certs:
+    enabled: false
+    app-bin: certs
+    app-id: certs
+    app-protocol: grpc
+    app-socket: /tmp/wost/certs
+    loglevel: info
+
+  # Thing directory store
+  thingstore:
+    enabled: false
+
+  # Thing history store
+  historystore:
+    enabled: false
+
+  # internal pubsub for storing thing info
+  thingpubsub:
+    enabled: false
+
+  # provisioning of IoT devices
+  provisioning:
+    enabled: false
+
+# api gateway services
+gateway:
+  mqttgw: # mqtt message bus gateway for consumers and devices
+    enabled: false
+
+  thinggw: # thing api gateway for directory/history/provisioning
+    enabled: false
+
+  dashboard: # WoST dashboard for viewing IoT device info
+    enabled: false
+
+  hubbridge: # bridge to share IoT info with another Hub
+    enabled: false
+
+# IOT bindings: dapr bindings that push data onto internal message bus
+bindings:
+  owserver-pb: # Publish Things connected to a local OWServer V2 1-wire gateway
+    enabled: false
+  ipcam: # Publish IP camera images
+    enabled: false
+  openzwave: # Publish Devices connected to a local openzwave controller
+    enabled: false
+  lorawan: # Publish devices connected to a LoraWan gateway
+    enabled: false
+  snmp: # Publish local network devices discovered using SNMP
+    enabled: false
+  canweather: # Publish weather forecast from canada weather API
+    enabled: false
+  darksky: # Publish weather forecast from dark-sky
+    enabled: false

@@ -9,11 +9,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
+	"github.com/wostzone/hub/svc/certsvc/certconfig"
+	"github.com/wostzone/hub/svc/certsvc/selfsigned"
+	"github.com/wostzone/hub/svc/internal/listener"
 	"github.com/wostzone/wost-go/pkg/certsclient"
 	"github.com/wostzone/wost.grpc/go/svc"
-	"svc/certsvc/config"
-	"svc/certsvc/selfsigned"
-	"svc/internal/listener"
 )
 
 const ServiceName = "certsvc"
@@ -36,7 +36,7 @@ func main() {
 	// Add commandline option '--cacert  with CA certificate path
 	flag.StringVar(&caCertPath, "cacert", caCertPath, "Path to CA certificate")
 	// Add commandline option '--cakey with CA private key for issuing new certificates
-	flag.StringVar(&caKeyPath, "c", caKeyPath, "Path to CA private key")
+	flag.StringVar(&caKeyPath, "cakey", caKeyPath, "Path to CA private key")
 
 	// handle commandline to create a listener
 	lis := listener.CreateServiceListener(ServiceName)
@@ -52,7 +52,7 @@ func main() {
 	}
 
 	//
-	svcConfig := config.CertSvcConfig{
+	svcConfig := certconfig.CertSvcConfig{
 		CaCert: caCert,
 		CaKey:  caKey,
 	}

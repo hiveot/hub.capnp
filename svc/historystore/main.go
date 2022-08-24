@@ -10,10 +10,10 @@ import (
 	"google.golang.org/grpc"
 	"gopkg.in/yaml.v3"
 
+	"github.com/wostzone/hub/svc/historystore/config"
+	"github.com/wostzone/hub/svc/historystore/mongohs"
+	"github.com/wostzone/hub/svc/internal/listener"
 	"github.com/wostzone/wost.grpc/go/svc"
-	"svc/historystore/config"
-	"svc/historystore/mongohs"
-	"svc/internal/listener"
 )
 
 // DefaultConfigFile is the default configuration file with database settings

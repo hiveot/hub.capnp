@@ -7,7 +7,7 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	"svc/internal/kvstore"
+	"github.com/wostzone/hub/svc/internal/kvstore"
 
 	"github.com/wostzone/wost.grpc/go/svc"
 	"github.com/wostzone/wost.grpc/go/thing"

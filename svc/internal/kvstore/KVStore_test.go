@@ -14,8 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/encoding/protojson"
 
+	"github.com/wostzone/hub/svc/internal/kvstore"
 	"github.com/wostzone/wost.grpc/go/thing"
-	"svc/internal/kvstore"
 
 	"github.com/wostzone/wost-go/pkg/vocab"
 )

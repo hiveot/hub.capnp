@@ -1,20 +1,15 @@
 # Makefile to build and test the Hub CLI
-BIN_FOLDER=./bin
+BIN_FOLDER=../dist/bin
 INSTALL_HOME=~/bin/wosthub
 
 .DEFAULT_GOAL := help
 
 .FORCE:
 
-all: certs launcher  ## Build cert management CLI
-	@echo "> Build successful. The executable(s) '$?' can be found in $(DIST_FOLDER)/bin"
+all: hubcli  ## Build Hub CLI
 
-certs: .FORCE  ## Build certs CLI to generate certificates
-	go build -o $(BIN_FOLDER)/$@ ./$@/main.go
-	@echo "> SUCCESS. The executable '$@' can be found in $(BIN_FOLDER)/$@"
-
-launcher: .FORCE ## Build Hub services launcher
-	go build -o $(BIN_FOLDER)/$@ ./$@/main.go
+hubcli: .FORCE ## Build Hub CLI
+	go build -o $(BIN_FOLDER)/$@ ./cmd/main.go
 	@echo "> SUCCESS. The executable '$@' can be found in $(BIN_FOLDER)/$@"
 
 

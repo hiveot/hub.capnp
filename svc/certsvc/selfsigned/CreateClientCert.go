@@ -19,7 +19,7 @@ import (
 //
 // This generates a TLS client certificate with keys
 //  clientID used as the CommonName, eg pluginID or deviceID
-//  ou of the client role, eg OUNone, OUAdmin, OUClient
+//  ou with type of client: OUNone, OUAdmin, OUClient, OUIoTDevice
 //  ownerPubKey the public key of the certificate holder
 //  caCert CA's certificate for signing
 //  caPrivKey CA's ECDSA key for signing

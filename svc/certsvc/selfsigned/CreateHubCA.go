@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
+	"fmt"
 	"math/big"
 	"time"
 
@@ -23,7 +24,7 @@ const CertOrgLocality = "WoST zone"
 // CA is valid for 'caDurationYears'
 //
 //  temporary set to generate a temporary CA for one-off signing
-func CreateHubCA() (cert *x509.Certificate, key *ecdsa.PrivateKey) {
+func CreateHubCA() (cert *x509.Certificate, key *ecdsa.PrivateKey, err error) {
 	validity := caDefaultValidityDuration
 
 	// set up our CA certificate
@@ -65,9 +66,10 @@ func CreateHubCA() (cert *x509.Certificate, key *ecdsa.PrivateKey) {
 	caCertDer, err := x509.CreateCertificate(rand.Reader, rootTemplate, rootTemplate, &privKey.PublicKey, privKey)
 	if err != nil {
 		// normally this never happens
-		logrus.Errorf("CertSetup.CreateHubCA: Unable to create WoST Hub CA cert: %s", err)
-		return nil, nil
+		err := fmt.Errorf("unable to create WoST Hub CA cert: %s", err)
+		logrus.Error(err)
+		return nil, nil, err
 	}
 	caCert, _ := x509.ParseCertificate(caCertDer)
-	return caCert, privKey
+	return caCert, privKey, nil
 }

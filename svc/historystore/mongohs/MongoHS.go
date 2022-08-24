@@ -15,9 +15,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"google.golang.org/protobuf/types/known/emptypb"
 
+	"github.com/wostzone/hub/svc/historystore/config"
 	"github.com/wostzone/wost.grpc/go/svc"
 	"github.com/wostzone/wost.grpc/go/thing"
-	"svc/historystore/config"
 )
 
 const TimeStampField = "timestamp"

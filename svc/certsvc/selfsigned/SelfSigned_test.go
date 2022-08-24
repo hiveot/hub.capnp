@@ -6,9 +6,9 @@ import (
 	"path"
 	"testing"
 
+	"github.com/wostzone/hub/svc/certsvc/selfsigned"
 	"github.com/wostzone/wost-go/pkg/certsclient"
 	"github.com/wostzone/wost-go/pkg/logging"
-	"svc/certsvc/selfsigned"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -44,7 +44,8 @@ func TestMain(m *testing.M) {
 
 func TestCreateCA(t *testing.T) {
 	// test creating hub CA certificate
-	caCert, caKeys := selfsigned.CreateHubCA()
+	caCert, caKeys, err := selfsigned.CreateHubCA()
+	assert.NoError(t, err)
 	require.NotNil(t, caCert)
 	require.NotNil(t, caKeys)
 }
@@ -52,7 +53,7 @@ func TestCreateCA(t *testing.T) {
 func TestClientCertBadCA(t *testing.T) {
 	clientID := "client1"
 	ou := certsclient.OUClient
-	caCert, caKey := selfsigned.CreateHubCA()
+	caCert, caKey, err := selfsigned.CreateHubCA()
 	keys := certsclient.CreateECDSAKeys()
 
 	clientCert, err := selfsigned.CreateClientCert(clientID, ou,
@@ -70,7 +71,7 @@ func TestCreateServiceCert(t *testing.T) {
 	// test creating hub certificate
 	const serviceID = "testService"
 	names := []string{"127.0.0.1", "localhost"}
-	caCert, caKey := selfsigned.CreateHubCA()
+	caCert, caKey, err := selfsigned.CreateHubCA()
 	keys := certsclient.CreateECDSAKeys()
 
 	serviceCert, err := selfsigned.CreateServiceCert(
@@ -94,7 +95,7 @@ func TestCreateServiceCert(t *testing.T) {
 func TestServiceCertBadParms(t *testing.T) {
 	const serviceID = "testService"
 	hostnames := []string{"127.0.0.1"}
-	caCert, caKey := selfsigned.CreateHubCA()
+	caCert, caKey, err := selfsigned.CreateHubCA()
 	keys := certsclient.CreateECDSAKeys()
 	// missing CA private key
 	hubCert, err := selfsigned.CreateServiceCert(
@@ -131,7 +132,7 @@ func TestCreateClientCert(t *testing.T) {
 	clientID := "plugin1"
 	ou := certsclient.OUClient
 	// test creating hub certificate
-	caCert, caKeys := selfsigned.CreateHubCA()
+	caCert, caKeys, err := selfsigned.CreateHubCA()
 	keys := certsclient.CreateECDSAKeys()
 
 	clientCert, err := selfsigned.CreateClientCert(
@@ -154,7 +155,7 @@ func TestCreateDeviceCert(t *testing.T) {
 	deviceID := "device1"
 	ou := certsclient.OUIoTDevice
 	// test creating hub certificate
-	caCert, caKeys := selfsigned.CreateHubCA()
+	caCert, caKeys, err := selfsigned.CreateHubCA()
 	keys := certsclient.CreateECDSAKeys()
 
 	deviceCert, err := selfsigned.CreateClientCert(
