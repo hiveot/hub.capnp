@@ -7,71 +7,39 @@ import (
 	"os"
 	"path"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/wostzone/hub/svc/certsvc/certconfig"
 	"github.com/wostzone/hub/svc/certsvc/selfsigned"
 	"github.com/wostzone/wost-go/pkg/certsclient"
 )
 
-//// CreateKeyPair generate a key pair in PEM format and save it to the cert folder
-//// as <clientID>-pub.pem and <clientID>-key.pem
-//// Returns the public key PEM content
-//func CreateKeyPair(clientID string, certFolder string) (privKey *ecdsa.PrivateKey, err error) {
-//	privKey = signing.CreateECDSAKeys()
-//	privKeyFile := path.Join(certFolder, clientID+"-priv.pem")
-//	pubKeyFile := path.Join(certFolder, clientID+"-pub.pem")
-//	err = certsclient.SaveKeysToPEM(privKey, privKeyFile)
-//	if err == nil {
-//		pubKeyPem, _ := certsclient.PublicKeyToPEM(&privKey.PublicKey)
-//		err = ioutil.WriteFile(pubKeyFile, []byte(pubKeyPem), 0644)
-//	}
-//	if err != nil {
-//		fmt.Printf("Failed saving keys: %s\n", err)
-//	}
-//	if err == nil {
-//		fmt.Printf("Generated public and private key pair as: %s and %s\n", pubKeyFile, privKeyFile)
-//	}
-//	return privKey, err
-//}
-
-// HandleCreateCertbundle generates the hub certificate bundle CA, Hub and Plugin keys
-// and certificates.
-//  If the CA certificate already exist it is NOT updated
-//  If the Hub and Plugin certificates already exist, they are renewed
-//func HandleCreateCertbundle(certsFolder string, sanName string) error {
-//	err := selfsigned.CreateCertificateBundle([]string{sanName}, certsFolder, true)
-//	if err != nil {
-//		return err
-//	}
-//	fmt.Printf("Server and Plugin certificates generated in %s\n", certsFolder)
-//	return nil
-//}
-
-func loadCA(certFolder string) (*x509.Certificate, *ecdsa.PrivateKey, error) {
+func loadCA(certFolder string) (caCert *x509.Certificate, caKey *ecdsa.PrivateKey, err error) {
 	pemPath := path.Join(certFolder, certconfig.DefaultCaCertFile)
-	caCert, err := certsclient.LoadX509CertFromPEM(pemPath)
-	if err != nil {
-		return nil, nil, err
+	caCert, err = certsclient.LoadX509CertFromPEM(pemPath)
+	if err == nil {
+		pemPath = path.Join(certFolder, certconfig.DefaultCaKeyFile)
+		caKey, err = certsclient.LoadKeysFromPEM(pemPath)
 	}
-	pemPath = path.Join(certFolder, certconfig.DefaultCaKeyFile)
-	caKey, err := certsclient.LoadKeysFromPEM(pemPath)
 	if err != nil {
 		return nil, nil, err
 	}
 	return caCert, caKey, nil
 }
 
-// Load public key or create a public/private key pair if not given
+// Load public key or create a public/private key pair if not given.
 // If the path is a private key, then extract the public key from it
 func loadOrCreateKey(keyFile string) (pubKey *ecdsa.PublicKey, generatedPrivKey *ecdsa.PrivateKey, err error) {
 	// If a key file is given, use it, otherwise generate a pair
 	if keyFile != "" {
-		fmt.Printf("Using key file: %s\n", keyFile)
+		logrus.Infof("Using key file: %s\n", keyFile)
 		pubKey, err = certsclient.LoadPublicKeyFromPEM(keyFile)
 		// maybe this is a private key
 		if err != nil {
-			fmt.Println("not a public key, try loading as private key...")
+			//fmt.Println("not a public key, try loading as private key...")
 			privKey, err2 := certsclient.LoadKeysFromPEM(keyFile)
 			if err2 == nil {
+				logrus.Infof("Keyfile '%s' is a private key", keyFile)
 				pubKey = &privKey.PublicKey
 				err = nil
 			}
@@ -81,7 +49,7 @@ func loadOrCreateKey(keyFile string) (pubKey *ecdsa.PublicKey, generatedPrivKey 
 			return nil, nil, err
 		}
 	} else {
-		fmt.Printf("No public key file was provided. Creating a key pair ") // no newline
+		logrus.Info("No public key file was provided. Creating a new key pair.")
 		generatedPrivKey = certsclient.CreateECDSAKeys()
 		pubKey = &generatedPrivKey.PublicKey
 	}
@@ -91,7 +59,7 @@ func loadOrCreateKey(keyFile string) (pubKey *ecdsa.PublicKey, generatedPrivKey 
 // HandleCreateCACert generates the hub self-signed CA private key and certificate
 // in the given folder.
 // Use force to create the folder and overwrite existing certificate if it exists
-func HandleCreateCACert(certsFolder string, sanName string, force bool) error {
+func HandleCreateCACert(certsFolder string, sanName string, validityDays int, force bool) error {
 	caCertPath := path.Join(certsFolder, certconfig.DefaultCaCertFile)
 	caKeyPath := path.Join(certsFolder, certconfig.DefaultCaKeyFile)
 
@@ -105,15 +73,15 @@ func HandleCreateCACert(certsFolder string, sanName string, force bool) error {
 	}
 	// do not overwrite existing certificate unless force is used
 	if !force {
-		if _, err := os.Stat(caCertPath); err != nil {
+		if _, err := os.Stat(caCertPath); err == nil {
 			return fmt.Errorf("CA certificate already exists in '%s'", caCertPath)
 		}
-		if _, err := os.Stat(caKeyPath); err != nil {
+		if _, err := os.Stat(caKeyPath); err == nil {
 			return fmt.Errorf("CA key alread exists in '%s'", caKeyPath)
 		}
 	}
 
-	caCert, privKey, err := selfsigned.CreateHubCA()
+	caCert, privKey, err := selfsigned.CreateHubCA(validityDays)
 	if err != nil {
 		return err
 	}
@@ -123,7 +91,7 @@ func HandleCreateCACert(certsFolder string, sanName string, force bool) error {
 		err = certsclient.SaveKeysToPEM(privKey, caKeyPath)
 	}
 
-	fmt.Printf("Generated CA certificate '%s' and key '%s'\n", caCertPath, caKeyPath)
+	logrus.Infof("Generated CA certificate '%s' and key '%s'\n", caCertPath, caKeyPath)
 	return err
 }
 

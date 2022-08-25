@@ -25,9 +25,8 @@ help: ## Show this help
 install:  all ## Install the binaries in the $(INSTALL_HOME)/bin installation folder
 	mkdir -p $(INSTALL_HOME)/bin
 	mkdir -p $(INSTALL_HOME)/config
-	cp $(BIN_FOLDER)/* $(INSTALL_HOME)/bin
-	cp $(BIN_FOLDER)/* $(INSTALL_HOME)/bin
-	cp -n launcher/launcher.yaml $(INSTALL_HOME)/config/
+	cp $(BIN_FOLDER)/hubcli $(INSTALL_HOME)/bin
+	#cp -n launcher/launcher.yaml $(INSTALL_HOME)/config/
 
 test: all  ## Run tests (stop on first error, don't run parallel)
 	go test -race -failfast -p 1 -cover ./...

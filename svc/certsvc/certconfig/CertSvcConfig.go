@@ -16,6 +16,7 @@ const (
 	DefaultAdminCertFile  = "adminCert.pem"
 	DefaultAdminKeyFile   = "adminKey.pem"
 )
+const DefaultCACertDurationDays = 365 * 30
 const DefaultServiceCertDurationDays = 7
 const DefaultClientCertDurationDays = 7
 const DefaultDeviceCertDurationDays = 7

@@ -11,21 +11,22 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/wostzone/hub/svc/certsvc/certconfig"
 	"github.com/wostzone/wost-go/pkg/certsclient"
 )
 
-const caDefaultValidityDuration = time.Hour * 24 * 364 * 20 // 20 years
 const CertOrgName = "WoST"
 const CertOrgLocality = "WoST zone"
 
 // CreateHubCA creates WoST Hub Root CA certificate and private key for signing server certificates
 // Source: https://shaneutt.com/blog/golang-ca-and-signed-cert-go/
 // This creates a CA certificate used for signing client and server certificates.
-// CA is valid for 'caDurationYears'
 //
 //  temporary set to generate a temporary CA for one-off signing
-func CreateHubCA() (cert *x509.Certificate, key *ecdsa.PrivateKey, err error) {
-	validity := caDefaultValidityDuration
+func CreateHubCA(validityDays int) (cert *x509.Certificate, key *ecdsa.PrivateKey, err error) {
+	if validityDays == 0 {
+		validityDays = certconfig.DefaultCACertDurationDays
+	}
 
 	// set up our CA certificate
 	// see also: https://superuser.com/questions/738612/openssl-ca-keyusage-extension
@@ -41,7 +42,7 @@ func CreateHubCA() (cert *x509.Certificate, key *ecdsa.PrivateKey, err error) {
 			CommonName:   "Hub CA",
 		},
 		NotBefore: time.Now().Add(-10 * time.Second),
-		NotAfter:  time.Now().Add(validity),
+		NotAfter:  time.Now().AddDate(0, 0, validityDays),
 		// CA cert can be used to sign certificate and revocation lists
 		KeyUsage: x509.KeyUsageCertSign | x509.KeyUsageDigitalSignature | x509.KeyUsageCRLSign | x509.KeyUsageDataEncipherment | x509.KeyUsageKeyEncipherment,
 

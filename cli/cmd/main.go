@@ -75,7 +75,8 @@ func main() {
 // hubcli certs ca [--certs=CertFolder]  [--hostname=hostname]
 func GetCertsCreateCACommand() *cli.Command {
 	var hostname = "localhost"
-	force := false
+	var force = false
+	var validityDays = certconfig.DefaultCACertDurationDays
 	return &cli.Command{
 		Name:      "ca",
 		Usage:     "Create Hub CA certificate and key",
@@ -93,9 +94,15 @@ func GetCertsCreateCACommand() *cli.Command {
 			},
 			&cli.StringFlag{
 				Name:        "hostname",
-				Value:       hostname,
 				Usage:       "host `name` or IP the certificate is valid for.",
+				Value:       hostname,
 				Destination: &hostname,
+			},
+			&cli.IntFlag{
+				Name:        "days",
+				Usage:       "Number of `days` the certificate is valid.",
+				Value:       validityDays,
+				Destination: &validityDays,
 			},
 			&cli.BoolFlag{
 				Name:        "force",
@@ -111,6 +118,7 @@ func GetCertsCreateCACommand() *cli.Command {
 			err := certcli.HandleCreateCACert(
 				cCtx.String("certs"),
 				cCtx.String("hostname"),
+				cCtx.Int("days"),
 				cCtx.Bool("force"),
 			)
 			//logrus.Infof("CreatingCA certificate in '%s' for host '%s'",
