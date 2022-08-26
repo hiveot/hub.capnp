@@ -38,17 +38,75 @@ Note that since WoST Things interact via the Hub message bus, they are still vul
 
 WoST is based on the 'WoT' (Web of Things) open standard developed by the W3C organization. It aims to be compatible with this standard.
 
-The communication infrastructure for the services is provided by 'dapr'. Dapr supports http and grpc communication methods for service invocation with middleware and components for authentication, logging, resiliency, pub/sub, and more. Dapr is distributed and includes support for security, scalability and extensibility out of the box.
+The communication infrastructure for the services is provided by 'dapr'. Dapr supports http and grpc communication methods for service invocation with middleware and components for authentication, logging, resiliency, pub/sub, and more. Dapr is distributed and includes support for security, scalability and extensibility out of the box. Using dapr also enables a wide selection of storage, messaging, and integration solutions.
 
-### Plugins
+### Services & Adapters
 
-All Hub functionality is provided through plugins and can be extended with additional plugins. Plugins can be protocol bindings to bridge different IoT technologies, or services to enrich the IoT data that has been collected. All core services are written as plugins and can be replaced if desired.
+All Hub functionality is provided through plugins that are services and protocol adapters.
 
-Plugins can be written in any programming language but must follow some simple guidelines to integrate with the dapr infrastructure. The [writing-plugins.md] document describes how to write new plugins. Existing services/plugins can also serve as an example.
+Services and Protocol adapters can be written in any programming language but must follow some simple guidelines to integrate with the dapr infrastructure. The [writing-plugins.md] document describes how to write new plugins. Existing services/plugins can also serve as an example.
 
-Plugin development is simplified when using the WoST library for working with Thing Description (TD) documents, exposed things, and consumed things. See the wost-go, wost-js, wost-py repositories for more details. (in development)
+To aid application development, all API's are defined with gRPC. 'protoc', The gRPC compiler, can generate client libraries in many different programming languages.
 
-## Core Services
+Plugin development is further simplified by the use of dapr extensions for state management, bindings, and messaging.
+
+# Launching
+
+The launcher is responsible for starting and stopping services and their dapr sidecars, and for configuration of dapr based on the included templates.
+
+The services to launch are defined in the launcher.yaml file along with their metadata such as port or unix domain socket for communication between service and sidecar.
+
+# Core Use-cases And Services
+
+## IoT Device Registers With Hub
+
+Device uses idprov protocol to obtain authentication certificate.
+
+* device => [idprov gateway] <-> [cert svc]
+
+## IoT Device Makes A TD Document Available
+
+Device publishes a Thing Description document. Since there are multiple consumers a pub/sub mechanism must be used.
+
+* device => [pubsub gateway] <-> [TD recorder svc] -> [thingstore svc]
+  alt:
+* device => [td gateway] -> [pubsub svc] -> [TD recorder svc] -> [thingstore svc]
+
+## IoT Device Publish Thing Properties and Events
+
+Device publishes events with thing value changes. Since there are multiple consumers a pub/sub mechanism must be used.
+
+* device => [pubsub gateway] <-> [Event recorder svc] -> [history svc]
+  alt:
+* device => [event gateway] -> [pubsub svc] -> [event recorder svc] -> [history svc]
+
+## IoT Device Receives Actions
+
+* device <= [sub gateway] <- pub action
+  alt:
+* device <= [websocket gateway] <- [sub svc] <- pub action
+  alt:
+* device => [action gateway]   (poll)
+
+## Consumer Publishes Thing Action
+
+Consumer publishes action for Things
+
+* consumer => [pubsub gateway] -> [action recorder svc] -> [history svc]
+  alt:
+* consumer => [action gateway] -> [pub action] -> [action recorder svc] -> [history svc]
+
+## Consumer Retrieves Things
+
+* consumer <=> [thing gateway] <-> [thingstore svc]
+
+## Consumer Retrieves Values
+
+* consumer <=> [value gateway] <-> [historystore svc]
+
+## Consumer Subscribes to Value Updates
+
+* consumer <=> [pubsub gateway]
 
 ### Launcher Service
 

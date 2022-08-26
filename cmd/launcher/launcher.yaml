@@ -1,7 +1,0 @@
-# Plugins to start
-plugins:
-  # Core plugins
-  - provisioning # Automated provisioning of devices
-  - thingstore   # Thing directory store
-  # Other plugins
-  - owserver-pb # Publish 1-wire Things connected to a OWServer-V2 gateway
