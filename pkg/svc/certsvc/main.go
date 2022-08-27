@@ -5,7 +5,6 @@ import (
 	"crypto/x509"
 	"flag"
 	"log"
-	"net"
 	"path"
 
 	"github.com/sirupsen/logrus"
@@ -16,7 +15,7 @@ import (
 	"github.com/wostzone/hub/pkg/svc/certsvc/selfsigned"
 	"github.com/wostzone/hub/pkg/svc/certsvc/service"
 	"github.com/wostzone/wost-go/pkg/certsclient"
-	"github.com/wostzone/wost.grpc/go/svc"
+	"github.com/wostzone/wost.rpc/go/grpc/svc"
 )
 
 const ServiceName = "certsvc"
@@ -70,9 +69,9 @@ func main() {
 		log.Fatalf("Service '%s; exited: %v", ServiceName, err)
 	}
 
-	// alt
-	serverSideConn, clientSideConn := net.Pipe()
-	_ = clientSideConn
-	ServeCertService(selfsigned.NewSelfSignedServer(caCert, caKey), serverSideConn)
+	// test capnproto - doesn't work
+	//serverSideConn, clientSideConn := net.Pipe()
+	//_ = clientSideConn
+	//ServeCertService(selfsigned.NewSelfSignedServer(caCert, caKey), serverSideConn)
 
 }

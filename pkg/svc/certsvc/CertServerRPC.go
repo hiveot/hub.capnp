@@ -5,7 +5,7 @@ import (
 
 	"github.com/wostzone/hub/pkg/svc/certsvc/selfsigned"
 	"github.com/wostzone/hub/pkg/svc/certsvc/service"
-	"github.com/wostzone/wost.grpc/go/svc"
+	"github.com/wostzone/wost.rpc/go/grpc/svc"
 )
 
 // CertServerRPC is the gRPC service interface for the self-signed certificate service

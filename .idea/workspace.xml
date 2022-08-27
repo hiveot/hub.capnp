@@ -5,25 +5,55 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0c1e6961-9e54-4948-b084-6d0502132342" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/pkg/svc/certsvc/CertServerRPC.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/svc/certsvc/service/ICertService.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../wost.grpc/capnp/svc/CertSvc.capnp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../wost.rpc/.idea/wost.rpc.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../wost.rpc/go/capnp/svc/CertSvc.capnp.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/hub.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/hub.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/hubcli/certcli/CertCommands.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/certcli/CertCommands.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/hubcli/certcli/certcli.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/certcli/certcli.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/hubcli/certcli/certcli_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/certcli/certcli_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/hubcli/provcli/ProvCommands.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/provcli/ProvCommands.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/svc/certsvc/certconfig/CertSvcConfig.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/certsvc/service/ServiceConfig.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/svc/certsvc/CertServerRPC.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/certsvc/CertServerRPC.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/svc/certsvc/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/certsvc/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/svc/certsvc/selfsigned/CreateHubCA.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/certsvc/selfsigned/CreateHubCA.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/svc/certsvc/selfsigned/SelfSignedService.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/certsvc/selfsigned/SelfSignedService.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/svc/certsvc/selfsigned/SelfSigned_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/certsvc/selfsigned/SelfSignedService_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/svc/oobprov/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/oobprov/main.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../owserver-pb/.idea/owserver-pb.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../owserver-pb/.idea/owserver-pb.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../wost.grpc/go/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.grpc/go/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../wost.grpc/go/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.grpc/go/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/.idea/modules.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/.idea/wost.grpc.iml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/Makefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/go/gateway/DirectoryAPI.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/go/grpc/gateway/DirectoryAPI.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/go/gateway/DirectoryAPI_grpc.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/go/grpc/gateway/DirectoryAPI_grpc.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/go/gateway/ProvisioningAPI.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/go/grpc/gateway/ProvisioningAPI.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/go/gateway/ProvisioningAPI_grpc.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/go/grpc/gateway/ProvisioningAPI_grpc.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/go/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/go/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/go/svc/CertSvc.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/go/grpc/svc/CertSvc.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/go/svc/CertSvc_grpc.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/go/grpc/svc/CertSvc_grpc.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/go/svc/HistoryStore.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/go/grpc/svc/HistoryStore.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/go/svc/HistoryStore_grpc.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/go/grpc/svc/HistoryStore_grpc.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/go/svc/Provisioning.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/go/grpc/svc/Provisioning.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/go/svc/Provisioning_grpc.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/go/grpc/svc/Provisioning_grpc.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/go/svc/ThingStore.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/go/grpc/svc/ThingStore.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/go/svc/ThingStore_grpc.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/go/grpc/svc/ThingStore_grpc.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/go/thing/ActionAffordance.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/go/grpc/thing/ActionAffordance.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/go/thing/DataSchema.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/go/grpc/thing/DataSchema.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/go/thing/EventAffordance.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/go/grpc/thing/EventAffordance.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/go/thing/Form.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/go/grpc/thing/Form.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/go/thing/PropertyAffordance.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/go/grpc/thing/PropertyAffordance.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/go/thing/ThingDescription.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/go/grpc/thing/ThingDescription.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/go/thing/ThingValue.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/go/grpc/thing/ThingValue.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/proto/gateway/DirectoryAPI.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/proto/gateway/DirectoryAPI.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/proto/gateway/ProvisioningAPI.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/proto/gateway/ProvisioningAPI.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/proto/svc/CertSvc.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/proto/svc/CertSvc.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/proto/svc/HistoryStore.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/proto/svc/HistoryStore.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/proto/svc/Provisioning.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/proto/svc/Provisioning.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/proto/svc/ThingStore.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/proto/svc/ThingStore.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/proto/thing/ActionAffordance.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/proto/thing/ActionAffordance.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/proto/thing/DataSchema.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/proto/thing/DataSchema.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/proto/thing/EventAffordance.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/proto/thing/EventAffordance.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/proto/thing/Form.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/proto/thing/Form.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/proto/thing/PropertyAffordance.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/proto/thing/PropertyAffordance.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/proto/thing/ThingDescription.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/proto/thing/ThingDescription.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.rpc/proto/thing/ThingValue.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.rpc/proto/thing/ThingValue.proto" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -56,7 +86,7 @@
         <entry key="$PROJECT_DIR$/../wost.grpc" value="main" />
       </map>
     </option>
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../wost.rpc" />
   </component>
   <component name="GoLibraries">
     <option name="indexEntireGoPath" value="true" />
@@ -94,7 +124,7 @@
     &quot;database.data.extractors.current.export.id&quot;: &quot;Comma-separated (CSV)_id&quot;,
     &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
     &quot;go.sdk.automatically.set&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/home/henk/dev/wostzone/wost.grpc/capnp/svc&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/henk/dev/wostzone/wost.rpc&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -118,11 +148,11 @@
       <recent name="$PROJECT_DIR$/cli/cmd/certs" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/../wost.rpc/go/grpc" />
+      <recent name="$PROJECT_DIR$/../wost.grpc/capnp/svc" />
       <recent name="$PROJECT_DIR$/cmd/cli" />
       <recent name="$PROJECT_DIR$/pkg" />
       <recent name="$PROJECT_DIR$/pkg/svc" />
-      <recent name="$PROJECT_DIR$/gw" />
-      <recent name="$PROJECT_DIR$" />
     </key>
   </component>
   <component name="RunManager" selected="Go Test.TestCreateCA in github.com/wostzone/hub/pkg/svc/certsvc/selfsigned">
@@ -282,7 +312,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/lib/client" />
     </ignored-roots>
-    <MESSAGE value="dev iteration; fix bugs; improve tests" />
     <MESSAGE value="dev iteration:&#10;- simplify config handling&#10;- move additional help packages into wost-go (discovery, config, hubnet, tlsserver, watcher)" />
     <MESSAGE value="dev iteration:&#10;- migrate all helper packages into wost-go" />
     <MESSAGE value="dev iteration, work with updated wost-go package." />
@@ -307,7 +336,8 @@
     <MESSAGE value="Dev iteration.&#10;- Add certificate CLI testcases&#10;- Commandline option for CA validity" />
     <MESSAGE value="Dev iteration - package cleanup" />
     <MESSAGE value="Dev iteration&#10;- Added provisioning proto file &#10;- package cleanup" />
-    <option name="LAST_COMMIT_MESSAGE" value="Dev iteration&#10;- Added provisioning proto file &#10;- package cleanup" />
+    <MESSAGE value="Dev iteration&#10;- Code cleanup&#10;- Add experiment with capnproto as rpc. Unable to get it to work though." />
+    <option name="LAST_COMMIT_MESSAGE" value="Dev iteration&#10;- Code cleanup&#10;- Add experiment with capnproto as rpc. Unable to get it to work though." />
   </component>
   <component name="VgoProject">
     <settings-migrated>true</settings-migrated>
@@ -352,7 +382,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/pkg/svc/certsvc/main.go</url>
-          <line>69</line>
+          <line>68</line>
           <option name="timeStamp" value="86" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">

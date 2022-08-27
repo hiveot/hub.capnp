@@ -1,16 +1,15 @@
 module github.com/wostzone/hub
 
-go 1.18
+go 1.17
 
 require (
-	capnproto.org/go/capnp/v3 v3.0.0-alpha.5
 	github.com/go-cmd/cmd v1.4.1
 	github.com/ohler55/ojg v1.14.4
 	github.com/sirupsen/logrus v1.9.0
 	github.com/stretchr/testify v1.8.0
 	github.com/urfave/cli/v2 v2.11.2
 	github.com/wostzone/wost-go v0.0.0-20220604012454-a45ed192e850
-	github.com/wostzone/wost.grpc/go v0.0.0-00010101000000-000000000000
+	github.com/wostzone/wost.rpc/go v0.0.0-00010101000000-000000000000
 	go.mongodb.org/mongo-driver v1.10.1
 	google.golang.org/grpc v1.49.0
 	google.golang.org/protobuf v1.28.1

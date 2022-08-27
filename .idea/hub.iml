@@ -11,6 +11,6 @@
     <orderEntry type="module" module-name="owserver-pb" />
     <orderEntry type="module" module-name="auth" />
     <orderEntry type="module" module-name="wost-go" />
-    <orderEntry type="module" module-name="wost.grpc" />
+    <orderEntry type="module" module-name="wost.rpc" />
   </component>
 </module>
