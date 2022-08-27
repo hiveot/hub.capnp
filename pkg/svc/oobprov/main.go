@@ -12,7 +12,6 @@ import (
 	"github.com/wostzone/hub/internal/folders"
 	"github.com/wostzone/hub/internal/listener"
 
-	"github.com/wostzone/hub/pkg/svc/certsvc/certconfig"
 	"github.com/wostzone/hub/pkg/svc/oobprov/oobprovserver"
 	"github.com/wostzone/wost.grpc/go/svc"
 )
@@ -26,8 +25,8 @@ func main() {
 	flag.StringVar(&certFolder, "certs", certFolder, "Certificate folder.")
 
 	lis := listener.CreateServiceListener(ServiceName)
-	caCertPath := path.Join(certFolder, certconfig.DefaultCaCertFile)
-	caKeyPath := path.Join(certFolder, certconfig.DefaultCaKeyFile)
+	caCertPath := path.Join(certFolder, service.DefaultCaCertFile)
+	caKeyPath := path.Join(certFolder, service.DefaultCaKeyFile)
 
 	service, err := oobprovserver.NewOobProvServer(caCertPath, caKeyPath)
 	if err != nil {

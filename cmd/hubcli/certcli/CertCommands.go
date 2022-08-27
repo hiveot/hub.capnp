@@ -7,8 +7,7 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/wostzone/hub/internal/folders"
-
-	"github.com/wostzone/hub/pkg/svc/certsvc/certconfig"
+	"github.com/wostzone/hub/pkg/svc/certsvc/service"
 )
 
 // GetCertCommands returns the certificate handling commands
@@ -36,7 +35,7 @@ func GetCertCommands(homeFolder string) *cli.Command {
 func GetCertCreateCACommand(certFolder string) *cli.Command {
 	var hostname = "localhost"
 	var force = false
-	var validityDays = certconfig.DefaultCACertDurationDays
+	var validityDays = service.DefaultCACertDurationDays
 	return &cli.Command{
 		Name:      "ca",
 		Usage:     "Create Hub CA certificate and key",
@@ -91,7 +90,7 @@ func GetCertCreateCACommand(certFolder string) *cli.Command {
 // GetCertCreateClientCommand
 // hubcli certs client [--certs=CertFolder --pubkey=pubkeyfile] <loginID>
 func GetCertCreateClientCommand(certFolder string) *cli.Command {
-	validityDays := certconfig.DefaultClientCertDurationDays
+	validityDays := service.DefaultClientCertDurationDays
 
 	return &cli.Command{
 		Name:      "client",
@@ -130,7 +129,7 @@ func GetCertCreateClientCommand(certFolder string) *cli.Command {
 // GetCertCreateDeviceCommand
 // hubcli certs device [--certs=CertFolder] --pubkey=pubkeyfile <deviceID>
 func GetCertCreateDeviceCommand(certFolder string) *cli.Command {
-	validityDays := certconfig.DefaultDeviceCertDurationDays
+	validityDays := service.DefaultDeviceCertDurationDays
 
 	return &cli.Command{
 		Name:      "device",
@@ -169,7 +168,7 @@ func GetCertCreateDeviceCommand(certFolder string) *cli.Command {
 // GetCertCreateServiceCommand
 // hubcli certs service [--certs=CertFolder --pubkey=pubkeyfile] <serviceID>
 func GetCertCreateServiceCommand(certFolder string) *cli.Command {
-	validityDays := certconfig.DefaultServiceCertDurationDays
+	validityDays := service.DefaultServiceCertDurationDays
 	ipAddr := ""
 
 	return &cli.Command{

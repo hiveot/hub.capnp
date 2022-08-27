@@ -11,9 +11,8 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/wostzone/hub/pkg/svc/certsvc/service"
 	"github.com/wostzone/wost-go/pkg/certsclient"
-
-	"github.com/wostzone/hub/pkg/svc/certsvc/certconfig"
 )
 
 const CertOrgName = "WoST"
@@ -26,7 +25,7 @@ const CertOrgLocality = "WoST zone"
 //  temporary set to generate a temporary CA for one-off signing
 func CreateHubCA(validityDays int) (cert *x509.Certificate, key *ecdsa.PrivateKey, err error) {
 	if validityDays == 0 {
-		validityDays = certconfig.DefaultCACertDurationDays
+		validityDays = service.DefaultCACertDurationDays
 	}
 
 	// set up our CA certificate

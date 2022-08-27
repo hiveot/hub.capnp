@@ -1,100 +1,91 @@
 package selfsigned
 
 import (
-	"context"
+	"crypto/ecdsa"
 	"crypto/x509"
 
+	"github.com/wostzone/hub/pkg/svc/certsvc/service"
 	"github.com/wostzone/wost-go/pkg/certsclient"
-	"github.com/wostzone/wost.grpc/go/svc"
-
-	"github.com/wostzone/hub/pkg/svc/certsvc/certconfig"
 )
 
-// SelfSignedServer implements the svc.CertServiceServer interface
-// This service creates certificates for use by services, devices (via idprov) and admin users.
+// SelfSignedCertService creates certificates for use by services, devices and admin users.
 // Note that this service does not support certificate revocation.
 //   See also: https://www.imperialviolet.org/2014/04/19/revchecking.html
 // Instead the issued certificates are short lived and must be renewed before they expire.
-type SelfSignedServer struct {
-	svc.UnimplementedCertServiceServer
-	config certconfig.CertSvcConfig
+type SelfSignedCertService struct {
+	caCert *x509.Certificate
+	caKey  *ecdsa.PrivateKey
 }
 
 // CreateClientCert creates a CA signed certificate for mutual authentication by consumers
-func (srv *SelfSignedServer) CreateClientCert(_ context.Context, args *svc.CreateClientCert_Args) (*svc.Cert_Res, error) {
-	pubKey, err := certsclient.PublicKeyFromPEM(args.PubKeyPEM)
+func (srv *SelfSignedCertService) CreateClientCert(clientID string, pubKeyPEM string) (
+	certPEM string, caCertPEM string, err error) {
+
+	pubKey, err := certsclient.PublicKeyFromPEM(pubKeyPEM)
 	if err != nil {
-		return nil, err
+		return "", "", err
 	}
 
 	cert, err := CreateClientCert(
-		args.ClientID,
+		clientID,
 		certsclient.OUClient,
 		pubKey,
-		srv.config.CaCert,
-		srv.config.CaKey,
-		certconfig.DefaultClientCertDurationDays)
+		srv.caCert,
+		srv.caKey,
+		service.DefaultClientCertDurationDays)
 
-	caCertPem := certsclient.X509CertToPEM(srv.config.CaCert)
-	certPem := certsclient.X509CertToPEM(cert)
-	res := &svc.Cert_Res{
-		CertPEM:   certPem,
-		CaCertPEM: caCertPem,
-	}
-	return res, nil
+	caCertPEM = certsclient.X509CertToPEM(srv.caCert)
+	certPEM = certsclient.X509CertToPEM(cert)
+	return certPEM, caCertPEM, err
 }
 
 // CreateDeviceCert creates a CA signed certificate for mutual authentication by IoT devices
-func (srv *SelfSignedServer) CreateDeviceCert(_ context.Context, args *svc.CreateClientCert_Args) (*svc.Cert_Res, error) {
-	var res = &svc.Cert_Res{}
+func (srv *SelfSignedCertService) CreateDeviceCert(clientID string, pubKeyPEM string) (
+	certPEM string, caCertPEM string, err error) {
+
 	var cert *x509.Certificate
-	var err error
-	pubKey, err := certsclient.PublicKeyFromPEM(args.PubKeyPEM)
+	pubKey, err := certsclient.PublicKeyFromPEM(pubKeyPEM)
 	if err == nil {
 		cert, err = CreateClientCert(
-			args.ClientID,
+			clientID,
 			certsclient.OUIoTDevice,
 			pubKey,
-			srv.config.CaCert,
-			srv.config.CaKey,
-			certconfig.DefaultDeviceCertDurationDays)
+			srv.caCert,
+			srv.caKey,
+			service.DefaultDeviceCertDurationDays)
 
-		caCertPem := certsclient.X509CertToPEM(srv.config.CaCert)
-		certPem := certsclient.X509CertToPEM(cert)
-		res.CertPEM = certPem
-		res.CaCertPEM = caCertPem
+		caCertPEM = certsclient.X509CertToPEM(srv.caCert)
+		certPEM = certsclient.X509CertToPEM(cert)
 	}
-	return res, err
+	return certPEM, caCertPEM, err
 }
 
 // CreateServiceCert creates a CA signed service certificate for mutual authentication between services
-func (srv *SelfSignedServer) CreateServiceCert(_ context.Context, args *svc.CreateServiceCert_Args) (*svc.Cert_Res, error) {
-	pubKey, err := certsclient.PublicKeyFromPEM(args.PubKeyPEM)
-	if err != nil {
+func (srv *SelfSignedCertService) CreateServiceCert(serviceID string, pubKeyPEM string, names []string) (
+	certPEM string, caCertPEM string, err error) {
+	var cert *x509.Certificate
 
+	pubKey, err := certsclient.PublicKeyFromPEM(pubKeyPEM)
+	if err == nil {
+		cert, err = CreateServiceCert(
+			serviceID,
+			names,
+			pubKey,
+			srv.caCert,
+			srv.caKey,
+			service.DefaultServiceCertDurationDays,
+		)
+
+		caCertPEM = certsclient.X509CertToPEM(srv.caCert)
+		certPEM = certsclient.X509CertToPEM(cert)
 	}
-
-	cert, err := CreateServiceCert(
-		args.ServiceID,
-		args.Names,
-		pubKey,
-		srv.config.CaCert,
-		srv.config.CaKey,
-		certconfig.DefaultServiceCertDurationDays,
-	)
-
-	caCertPem := certsclient.X509CertToPEM(srv.config.CaCert)
-	certPem := certsclient.X509CertToPEM(cert)
-	res := &svc.Cert_Res{
-		CertPEM:   certPem,
-		CaCertPEM: caCertPem,
-	}
-	return res, nil
+	return certPEM, caCertPEM, err
 }
 
-func NewSelfSignedServer(config certconfig.CertSvcConfig) *SelfSignedServer {
-	service := &SelfSignedServer{
-		config: config,
+func NewSelfSignedServer(caCert *x509.Certificate, caKey *ecdsa.PrivateKey) *SelfSignedCertService {
+	service := &SelfSignedCertService{
+		caCert: caCert,
+		caKey:  caKey,
 	}
 	return service
 }

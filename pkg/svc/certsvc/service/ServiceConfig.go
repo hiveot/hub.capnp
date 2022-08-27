@@ -1,9 +1,4 @@
-package certconfig
-
-import (
-	"crypto/ecdsa"
-	"crypto/x509"
-)
+package service
 
 // Default certificate and private key file names
 const (
@@ -25,16 +20,16 @@ const DefaultDeviceCertDurationDays = 7
 const ServiceName = "certsvc"
 
 // CertSvcConfig with configuration for the certificate service
-type CertSvcConfig struct {
-	CaCert *x509.Certificate
-	CaKey  *ecdsa.PrivateKey
-}
-
-// NewCertSvcConfig creates a new config with default values
-func NewCertSvcConfig(caCert *x509.Certificate, caKey *ecdsa.PrivateKey) CertSvcConfig {
-	cfg := CertSvcConfig{
-		CaCert: caCert,
-		CaKey:  caKey,
-	}
-	return cfg
-}
+//type CertSvcConfig struct {
+//	CaCert *x509.Certificate
+//	CaKey  *ecdsa.PrivateKey
+//}
+//
+//// NewCertSvcConfig creates a new config with default values
+//func NewCertSvcConfig(caCert *x509.Certificate, caKey *ecdsa.PrivateKey) CertSvcConfig {
+//	cfg := CertSvcConfig{
+//		CaCert: caCert,
+//		CaKey:  caKey,
+//	}
+//	return cfg
+//}

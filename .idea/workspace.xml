@@ -5,105 +5,25 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0c1e6961-9e54-4948-b084-6d0502132342" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/Makefile.old" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmd/hubcli/internal.old/LauncherConfig.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmd/hubcli/internal.old/StartService.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmd/hubcli/main.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmd/hubcli/provcli/ProvCommands.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cmd/hubcli/svccli/SvcCommands.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dist/config.old/.keep" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dist/config.old/authservice.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dist/config.old/authz.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dist/config.old/certs.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dist/config.old/hub.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dist/config.old/idprov.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dist/config.old/launcher.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dist/config.old/logger.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dist/config.old/mosquitto.conf.template" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dist/config.old/mosquittomgr.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/dist/config.old/thingdir.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/docs/.$hub-overview.drawio.bkp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/internal/folders/GetFolders.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/svc/historystore/config/historystore.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/svc/oobprov/main.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/svc/oobprov/oobprov_test.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/svc/oobprov/oobprovserver/OobProvServer.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../wost.grpc/go/svc/Provisioning.pb.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../wost.grpc/go/svc/Provisioning_grpc.pb.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../wost.grpc/proto/svc/Provisioning.proto" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/svc/certsvc/CertServerRPC.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/svc/certsvc/service/ICertService.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../wost.grpc/capnp/svc/CertSvc.capnp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cli/Makefile" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cli/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cli/TODO.md" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/TODO.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cli/cmd/certcli/certcli.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/certcli/certcli.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cli/cmd/certcli/certcli_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/certcli/certcli_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cli/cmd/launcher/launcher.sh" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/svccli/launcher.sh" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cli/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/certcli/CertCommands.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cli/config/dapr/components/statestore.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/config.old/dapr/components/statestore.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cli/config/dapr/config.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/config.old/dapr/config.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cli/config/launcher.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/config.old/launcher.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cli/go.mod" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cli/go.sum" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cli/init/wosthub.service" beforeDir="false" afterPath="$PROJECT_DIR$/init/wosthub.service" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/bin/certs" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/bin/launcher" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/go.sum" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/launcher/README.md" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/launcher/internal/StartHub.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/internal.old/StartHub.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/launcher/internal/StartHub_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/internal.old/StartHub_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/launcher/internal/StartPlugin.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/launcher/internal/StartPlugin_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/internal.old/StartService_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/launcher/launcher.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/launcher/main.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/config/.keep" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/config/authservice.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/config/authz.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/config/certs.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/config/hub.acl" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/config/hub.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/config/idprov.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/config/launcher.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/config/logger.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/config/mosquitto.conf.template" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/config/mosquittomgr.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/config/thingdir.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/hub-overview.drawio" beforeDir="false" afterPath="$PROJECT_DIR$/docs/hub-overview.drawio" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gateway/directory/DirectoryAPI.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/gw/directory-gw/DirectoryAPI.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/gateway/go.mod" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/gateway/provisioning/ProvisioningAPI.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/svc/Makefile" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/svc/certsvc/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/certsvc/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/svc/certsvc/certconfig/CertSvcConfig.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/certsvc/certconfig/CertSvcConfig.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/svc/certsvc/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/certsvc/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/svc/certsvc/selfsigned/CreateCertificateBundle.go.old" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/certsvc/selfsigned/CreateCertificateBundle.go.old" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/svc/certsvc/selfsigned/CreateClientCert.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/certsvc/selfsigned/CreateClientCert.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/svc/certsvc/selfsigned/CreateHubCA.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/certsvc/selfsigned/CreateHubCA.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/svc/certsvc/selfsigned/CreateServiceCert.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/certsvc/selfsigned/CreateServiceCert.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/svc/certsvc/selfsigned/SelfSignedService.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/certsvc/selfsigned/SelfSignedService.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/svc/certsvc/selfsigned/SelfSigned_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/certsvc/selfsigned/SelfSigned_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/svc/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/svc/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/svc/historystore/HistoryStore_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/historystore/HistoryStore_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/svc/historystore/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/historystore/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/svc/historystore/config/HistoryStoreConfig.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/historystore/config/HistoryStoreConfig.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/svc/historystore/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/historystore/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/svc/historystore/mongohs/MongoHS.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/historystore/mongohs/MongoHS.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/svc/internal/kvstore/KVStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/kvstore/KVStore.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/svc/internal/kvstore/KVStore_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/kvstore/KVStore_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/svc/internal/listener/CreateServiceListener.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/listener/CreateServiceListener.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/svc/internal/listener/ExitOnSignal.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/listener/ExitOnSignal.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/svc/thingstore/ThingStore_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/thingstore/ThingStore_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/svc/thingstore/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/thingstore/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/svc/thingstore/thingkvstore/ThingKVStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/thingstore/thingkvstore/ThingKVStore.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/hubcli/certcli/CertCommands.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/certcli/CertCommands.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/hubcli/certcli/certcli.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/certcli/certcli.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/hubcli/certcli/certcli_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/certcli/certcli_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/svc/certsvc/certconfig/CertSvcConfig.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/certsvc/service/ServiceConfig.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/svc/certsvc/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/certsvc/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/svc/certsvc/selfsigned/CreateHubCA.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/certsvc/selfsigned/CreateHubCA.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/svc/certsvc/selfsigned/SelfSignedService.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/certsvc/selfsigned/SelfSignedService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/svc/certsvc/selfsigned/SelfSigned_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/certsvc/selfsigned/SelfSignedService_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/svc/oobprov/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/svc/oobprov/main.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../owserver-pb/.idea/owserver-pb.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../owserver-pb/.idea/owserver-pb.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../wost-go/pkg/certsclient/Certs.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost-go/pkg/certsclient/Certs.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../wost-go/pkg/certsclient/Keys.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost-go/pkg/certsclient/Keys.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../wost-go/pkg/config/HubConfig.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost-go/pkg/config/HubConfig.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../wost-go/pkg/testenv/CreateCerts.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost-go/pkg/testenv/CreateCerts.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../wost-go/pkg/tlsclient/TLSClient_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/../wost-go/pkg/tlsclient/TLSClient_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../wost.grpc/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.grpc/Makefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.grpc/go/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.grpc/go/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../wost.grpc/go/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/../wost.grpc/go/go.sum" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -160,42 +80,42 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "DefaultGoTemplateProperty": "Go File",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.go.format.on.save.advertiser.fired": "true",
-    "RunOnceActivity.go.formatter.settings.were.checked": "true",
-    "RunOnceActivity.go.migrated.go.modules.settings": "true",
-    "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
-    "RunOnceActivity.go.watchers.conflict.with.on.save.actions.check.performed": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "database.data.extractors.current.export.id": "Comma-separated (CSV)_id",
-    "go.import.settings.migrated": "true",
-    "go.sdk.automatically.set": "true",
-    "last_opened_file_path": "/home/henk/dev/wostzone/hub/pkg/certsvc",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "advanced.settings",
-    "ts.external.directory.path": "/snap/goland/181/plugins/JavaScriptLanguage/jsLanguageServicesImpl/external"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;DefaultGoTemplateProperty&quot;: &quot;Go File&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.format.on.save.advertiser.fired&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.modules.go.list.on.any.changes.was.set&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.watchers.conflict.with.on.save.actions.check.performed&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;database.data.extractors.current.export.id&quot;: &quot;Comma-separated (CSV)_id&quot;,
+    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
+    &quot;go.sdk.automatically.set&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/henk/dev/wostzone/wost.grpc/capnp/svc&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;/snap/goland/181/plugins/JavaScriptLanguage/jsLanguageServicesImpl/external&quot;
   },
-  "keyToStringList": {
-    "DatabaseDriversLRU": [
-      "mongo"
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;mongo&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/../wost.grpc/capnp/svc" />
       <recent name="$PROJECT_DIR$/pkg/certsvc" />
       <recent name="$PROJECT_DIR$/cli/cmd" />
       <recent name="$PROJECT_DIR$/svc/certsvc/config" />
       <recent name="$PROJECT_DIR$/cli/cmd/certs" />
-      <recent name="$PROJECT_DIR$/svc/thingstore" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/cmd/cli" />
@@ -205,7 +125,7 @@
       <recent name="$PROJECT_DIR$" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Test.go test github.com/wostzone/hub/launcher/cmd/certcli">
+  <component name="RunManager" selected="Go Test.TestCreateCA in github.com/wostzone/hub/pkg/svc/certsvc/selfsigned">
     <configuration default="true" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <module name="hub" />
       <working_directory value="$PROJECT_DIR$" />
@@ -234,16 +154,16 @@
       <pattern value="^\QTestCreateCA\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestCreateClientCert in github.com/wostzone/hub/launcher/cmd/certcli" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestCreateCA in github.com/wostzone/hub/pkg/svc/certsvc/selfsigned" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="hub" />
-      <working_directory value="$PROJECT_DIR$/cli/cmd/certcli" />
-      <root_directory value="$PROJECT_DIR$/cli" />
+      <working_directory value="$PROJECT_DIR$/pkg/svc/certsvc/selfsigned" />
+      <root_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <package value="github.com/wostzone/hub/launcher/cmd/certcli" />
+      <package value="github.com/wostzone/hub/pkg/svc/certsvc/selfsigned" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestCreateClientCert\E$" />
+      <pattern value="^\QTestCreateCA\E$" />
       <method v="2" />
     </configuration>
     <configuration name="TestGetCommands in github.com/wostzone/hub/launcher/cmd/certcli" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -293,18 +213,18 @@
     <list>
       <item itemvalue="Go Build.go build main.go" />
       <item itemvalue="Go Test.TestCreateCA in github.com/wostzone/hub/launcher/cmd/certcli" />
-      <item itemvalue="Go Test.TestCreateClientCert in github.com/wostzone/hub/launcher/cmd/certcli" />
+      <item itemvalue="Go Test.TestCreateCA in github.com/wostzone/hub/pkg/svc/certsvc/selfsigned" />
       <item itemvalue="Go Test.TestGetCommands in github.com/wostzone/hub/launcher/cmd/certcli" />
       <item itemvalue="Go Test.TestShowCertInfo in github.com/wostzone/hub/launcher/cmd/certcli" />
       <item itemvalue="Go Test.go test github.com/wostzone/hub/launcher/cmd/certcli" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Go Test.TestCreateCA in github.com/wostzone/hub/pkg/svc/certsvc/selfsigned" />
         <item itemvalue="Go Test.go test github.com/wostzone/hub/launcher/cmd/certcli" />
         <item itemvalue="Go Test.TestGetCommands in github.com/wostzone/hub/launcher/cmd/certcli" />
         <item itemvalue="Go Test.TestShowCertInfo in github.com/wostzone/hub/launcher/cmd/certcli" />
         <item itemvalue="Go Test.TestCreateCA in github.com/wostzone/hub/launcher/cmd/certcli" />
-        <item itemvalue="Go Test.TestCreateClientCert in github.com/wostzone/hub/launcher/cmd/certcli" />
       </list>
     </recent_temporary>
   </component>
@@ -362,8 +282,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/lib/client" />
     </ignored-roots>
-    <MESSAGE value="dev iteration, bug fixes" />
-    <MESSAGE value="Migration of client helper packages to wost-go.&#10;This is a first draft." />
     <MESSAGE value="dev iteration; fix bugs; improve tests" />
     <MESSAGE value="dev iteration:&#10;- simplify config handling&#10;- move additional help packages into wost-go (discovery, config, hubnet, tlsserver, watcher)" />
     <MESSAGE value="dev iteration:&#10;- migrate all helper packages into wost-go" />
@@ -387,7 +305,9 @@
     <MESSAGE value="Dev iteration.&#10;Update cert service and added tests. Should be functional now.&#10;Commit recent protobuf changes." />
     <MESSAGE value="Dev iteration.&#10;- CLI for certificate management.&#10;- Replaced docopt commandline parsing by urfave/cli&#10;- Some cleanup" />
     <MESSAGE value="Dev iteration.&#10;- Add certificate CLI testcases&#10;- Commandline option for CA validity" />
-    <option name="LAST_COMMIT_MESSAGE" value="Dev iteration.&#10;- Add certificate CLI testcases&#10;- Commandline option for CA validity" />
+    <MESSAGE value="Dev iteration - package cleanup" />
+    <MESSAGE value="Dev iteration&#10;- Added provisioning proto file &#10;- package cleanup" />
+    <option name="LAST_COMMIT_MESSAGE" value="Dev iteration&#10;- Added provisioning proto file &#10;- package cleanup" />
   </component>
   <component name="VgoProject">
     <settings-migrated>true</settings-migrated>
@@ -432,7 +352,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/pkg/svc/certsvc/main.go</url>
-          <line>68</line>
+          <line>69</line>
           <option name="timeStamp" value="86" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">

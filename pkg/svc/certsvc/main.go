@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"flag"
 	"log"
+	"net"
 	"path"
 
 	"github.com/sirupsen/logrus"
@@ -12,8 +13,8 @@ import (
 
 	"github.com/wostzone/hub/internal/folders"
 	"github.com/wostzone/hub/internal/listener"
-	"github.com/wostzone/hub/pkg/svc/certsvc/certconfig"
 	"github.com/wostzone/hub/pkg/svc/certsvc/selfsigned"
+	"github.com/wostzone/hub/pkg/svc/certsvc/service"
 	"github.com/wostzone/wost-go/pkg/certsclient"
 	"github.com/wostzone/wost.grpc/go/svc"
 )
@@ -39,8 +40,8 @@ func main() {
 	// handle commandline to create a listener
 	lis := listener.CreateServiceListener(ServiceName)
 
-	caCertPath := path.Join(certFolder, certconfig.DefaultCaCertFile)
-	caKeyPath := path.Join(certFolder, certconfig.DefaultCaKeyFile)
+	caCertPath := path.Join(certFolder, service.DefaultCaCertFile)
+	caKeyPath := path.Join(certFolder, service.DefaultCaKeyFile)
 
 	// This service needs the CA certificate and key to operate
 	logrus.Infof("Loading CA certificate and key from %s", certFolder)
@@ -53,13 +54,10 @@ func main() {
 		logrus.Fatalf("Error loading CA key from '%s': %v", caKeyPath, err)
 	}
 
-	//
-	svcConfig := certconfig.CertSvcConfig{
-		CaCert: caCert,
-		CaKey:  caKey,
-	}
 	s := grpc.NewServer()
-	service := selfsigned.NewSelfSignedServer(svcConfig)
+	service := &CertServerRPC{
+		srv: selfsigned.NewSelfSignedServer(caCert, caKey),
+	}
 	svc.RegisterCertServiceServer(s, service)
 
 	// exit the service when signal is received and close the listener
@@ -67,7 +65,14 @@ func main() {
 		logrus.Infof("Shutting down '%s'", ServiceName)
 	})
 
+	logrus.Infof("listening on %s", lis.Addr())
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("Service '%s; exited: %v", ServiceName, err)
 	}
+
+	// alt
+	serverSideConn, clientSideConn := net.Pipe()
+	_ = clientSideConn
+	ServeCertService(selfsigned.NewSelfSignedServer(caCert, caKey), serverSideConn)
+
 }

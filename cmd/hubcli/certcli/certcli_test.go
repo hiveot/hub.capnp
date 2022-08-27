@@ -7,8 +7,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/wostzone/hub/cmd/cli/certcli"
-	"github.com/wostzone/hub/pkg/svc/certsvc/certconfig"
+	"github.com/wostzone/hub/cmd/hubcli/certcli"
+
+	"github.com/wostzone/hub/pkg/svc/certsvc/service"
 	"github.com/wostzone/wost-go/pkg/certsclient"
 )
 
@@ -27,7 +28,7 @@ func TestCreateCA(t *testing.T) {
 	err := certcli.HandleCreateCACert(tempFolder, sanName, 0, force)
 	assert.NoError(t, err)
 
-	certPath := path.Join(tempFolder, certconfig.DefaultCaCertFile)
+	certPath := path.Join(tempFolder, service.DefaultCaCertFile)
 	assert.FileExists(t, certPath)
 
 	_ = os.RemoveAll(tempFolder)
@@ -46,7 +47,7 @@ func TestCreateCA_ErrorExists(t *testing.T) {
 	assert.Error(t, err)
 
 	// error key exists
-	os.Remove(path.Join(tempFolder, certconfig.DefaultCaCertFile))
+	os.Remove(path.Join(tempFolder, service.DefaultCaCertFile))
 	force = false
 	err = certcli.HandleCreateCACert(tempFolder, "test", 0, force)
 	assert.Error(t, err)
@@ -151,7 +152,7 @@ func TestShowCertInfo(t *testing.T) {
 	tempFolder := path.Join(os.TempDir(), "certcli-test")
 	err := certcli.HandleCreateCACert(tempFolder, "test", 0, true)
 	assert.NoError(t, err)
-	certFile := path.Join(tempFolder, certconfig.DefaultCaCertFile)
+	certFile := path.Join(tempFolder, service.DefaultCaCertFile)
 
 	err = certcli.HandleShowCertInfo(certFile)
 	assert.NoError(t, err)

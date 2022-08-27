@@ -8,7 +8,7 @@ INSTALL_HOME=~/bin/wosthub
 all: certsvc historystore hubcli oobprov thingstore   ## Build all services
 
 certsvc: .FORCE ## Build Hub certificate management service
-	go build -o $(DIST_FOLDER)/bin/$@ ./pkg/svc/certsvc/main.go
+	go build -o $(DIST_FOLDER)/bin/$@ ./pkg/svc/certsvc/main.go ./pkg/svc/certsvc/CertServerRPC.go ./pkg/svc/certsvc/CertServerCapnpAdapter.go
 	@echo "> Build successful. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@"
 
 historystore: .FORCE ## Build Hub history-store service

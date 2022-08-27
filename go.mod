@@ -1,8 +1,9 @@
 module github.com/wostzone/hub
 
-go 1.17
+go 1.18
 
 require (
+	capnproto.org/go/capnp/v3 v3.0.0-alpha.5
 	github.com/go-cmd/cmd v1.4.1
 	github.com/ohler55/ojg v1.14.4
 	github.com/sirupsen/logrus v1.9.0

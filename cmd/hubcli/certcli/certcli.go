@@ -12,16 +12,16 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/wostzone/hub/pkg/svc/certsvc/certconfig"
 	"github.com/wostzone/hub/pkg/svc/certsvc/selfsigned"
+	"github.com/wostzone/hub/pkg/svc/certsvc/service"
 	"github.com/wostzone/wost-go/pkg/certsclient"
 )
 
 func loadCA(certFolder string) (caCert *x509.Certificate, caKey *ecdsa.PrivateKey, err error) {
-	pemPath := path.Join(certFolder, certconfig.DefaultCaCertFile)
+	pemPath := path.Join(certFolder, service.DefaultCaCertFile)
 	caCert, err = certsclient.LoadX509CertFromPEM(pemPath)
 	if err == nil {
-		pemPath = path.Join(certFolder, certconfig.DefaultCaKeyFile)
+		pemPath = path.Join(certFolder, service.DefaultCaKeyFile)
 		caKey, err = certsclient.LoadKeysFromPEM(pemPath)
 	}
 	if err != nil {
@@ -63,8 +63,8 @@ func loadOrCreateKey(keyFile string) (pubKey *ecdsa.PublicKey, generatedPrivKey 
 // in the given folder.
 // Use force to create the folder and overwrite existing certificate if it exists
 func HandleCreateCACert(certsFolder string, sanName string, validityDays int, force bool) error {
-	caCertPath := path.Join(certsFolder, certconfig.DefaultCaCertFile)
-	caKeyPath := path.Join(certsFolder, certconfig.DefaultCaKeyFile)
+	caCertPath := path.Join(certsFolder, service.DefaultCaCertFile)
+	caKeyPath := path.Join(certsFolder, service.DefaultCaKeyFile)
 
 	// folder doesn't exist
 	if _, err := os.Stat(certsFolder); err != nil {
@@ -111,7 +111,7 @@ func HandleCreateClientCert(certFolder string, clientID string, keyFile string, 
 	var cert *x509.Certificate
 
 	if validityDays == 0 {
-		validityDays = certconfig.DefaultClientCertDurationDays
+		validityDays = service.DefaultClientCertDurationDays
 	}
 	caCert, caKey, err := loadCA(certFolder)
 	if err == nil {
@@ -143,7 +143,7 @@ func HandleCreateDeviceCert(certFolder string, deviceID string, keyFile string, 
 	var cert *x509.Certificate
 
 	if validityDays == 0 {
-		validityDays = certconfig.DefaultDeviceCertDurationDays
+		validityDays = service.DefaultDeviceCertDurationDays
 	}
 	caCert, caKey, err := loadCA(certFolder)
 	if err == nil {
@@ -185,7 +185,7 @@ func HandleCreateServiceCert(certFolder string, serviceID string, ipAddr string,
 		names = append(names, ipAddr)
 	}
 	if validityDays == 0 {
-		validityDays = certconfig.DefaultServiceCertDurationDays
+		validityDays = service.DefaultServiceCertDurationDays
 	}
 	caCert, caKey, err := loadCA(certFolder)
 	if err == nil {
