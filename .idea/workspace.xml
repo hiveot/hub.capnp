@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="ALL" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="be3073c4-f4a5-49d6-9795-49ddcb140313" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/hub.capnp.iml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/capnp/svc/CertSvc.capnp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/go/capnp/svc/CertSvc.capnp.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../hub.grpc/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/.idea/wost.rpc.iml" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/.idea/hub.grpc.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/Makefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/capnp/svc/CertSvc.capnp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/go/capnp/svc/CertSvc.capnp.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/go/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/go/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/go/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/go/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/go/grpc/gateway/DirectoryAPI.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/go/gateway/DirectoryAPI.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/go/grpc/gateway/DirectoryAPI_grpc.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/go/gateway/DirectoryAPI_grpc.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/go/grpc/gateway/ProvisioningAPI.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/go/gateway/ProvisioningAPI.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/go/grpc/gateway/ProvisioningAPI_grpc.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/go/gateway/ProvisioningAPI_grpc.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/go/grpc/svc/CertSvc.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/go/svc/CertSvc.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/go/grpc/svc/CertSvc_grpc.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/go/svc/CertSvc_grpc.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/go/grpc/svc/HistoryStore.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/go/svc/HistoryStore.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/go/grpc/svc/HistoryStore_grpc.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/go/svc/HistoryStore_grpc.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/go/grpc/svc/Provisioning.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/go/svc/Provisioning.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/go/grpc/svc/Provisioning_grpc.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/go/svc/Provisioning_grpc.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/go/grpc/svc/ThingStore.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/go/svc/ThingStore.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/go/grpc/svc/ThingStore_grpc.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/go/svc/ThingStore_grpc.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/go/grpc/thing/ActionAffordance.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/go/thing/ActionAffordance.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/go/grpc/thing/DataSchema.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/go/thing/DataSchema.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/go/grpc/thing/EventAffordance.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/go/thing/EventAffordance.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/go/grpc/thing/Form.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/go/thing/Form.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/go/grpc/thing/PropertyAffordance.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/go/thing/PropertyAffordance.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/go/grpc/thing/ThingDescription.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/go/thing/ThingDescription.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/go/grpc/thing/ThingValue.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/go/thing/ThingValue.pb.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/proto/gateway/DirectoryAPI.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/proto/gateway/DirectoryAPI.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/proto/gateway/ProvisioningAPI.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/proto/gateway/ProvisioningAPI.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/proto/svc/CertSvc.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/proto/svc/CertSvc.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/proto/svc/HistoryStore.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/proto/svc/HistoryStore.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/proto/svc/Provisioning.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/proto/svc/Provisioning.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/proto/svc/ThingStore.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/proto/svc/ThingStore.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/proto/thing/ActionAffordance.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/proto/thing/ActionAffordance.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/proto/thing/DataSchema.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/proto/thing/DataSchema.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/proto/thing/EventAffordance.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/proto/thing/EventAffordance.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/proto/thing/Form.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/proto/thing/Form.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/proto/thing/PropertyAffordance.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/proto/thing/PropertyAffordance.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/proto/thing/ThingDescription.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/proto/thing/ThingDescription.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.grpc/proto/thing/ThingValue.proto" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.grpc/proto/thing/ThingValue.proto" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="GOROOT" url="file:///snap/go/9952" />
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GoLibraries">
+    <option name="indexEntireGoPath" value="true" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2DxseA7mvzXaNp29Avsvxi2NWYE" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="autoscrollFromSource" value="true" />
+    <option name="autoscrollToSource" value="true" />
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.go.format.on.save.advertiser.fired": "true",
+    "RunOnceActivity.go.formatter.settings.were.checked": "true",
+    "RunOnceActivity.go.migrated.go.modules.settings": "true",
+    "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
+    "RunOnceActivity.go.watchers.conflict.with.on.save.actions.check.performed": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "go.import.settings.migrated": "true",
+    "go.sdk.automatically.set": "true",
+    "last_opened_file_path": "/home/henk/dev/hiveot/hub.capnp",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)"
+  }
+}]]></component>
+  <component name="RunManager">
+    <configuration default="true" type="GoApplicationRunConfiguration" factoryName="Go Application">
+      <module name="hub.capnp" />
+      <working_directory value="$PROJECT_DIR$" />
+      <kind value="FILE" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="GoTestRunConfiguration" factoryName="Go Test">
+      <module name="hub.capnp" />
+      <working_directory value="$PROJECT_DIR$" />
+      <kind value="DIRECTORY" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VgoProject">
+    <integration-enabled>false</integration-enabled>
+    <settings-migrated>true</settings-migrated>
+  </component>
+</project>
