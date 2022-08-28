@@ -8,9 +8,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 
-	"github.com/wostzone/hub/cmd/hubcli/certcli"
-	"github.com/wostzone/hub/cmd/hubcli/provcli"
-	"github.com/wostzone/hub/cmd/hubcli/svccli"
+	"github.com/hiveot/hub/cmd/hubcli/certcli"
+	"github.com/hiveot/hub/cmd/hubcli/provcli"
+	"github.com/hiveot/hub/cmd/hubcli/svccli"
 )
 
 const Version = `0.4-alpha`

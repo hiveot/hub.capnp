@@ -12,9 +12,9 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/wostzone/hub/pkg/svc/certsvc/selfsigned"
-	"github.com/wostzone/hub/pkg/svc/certsvc/service"
-	"github.com/wostzone/wost-go/pkg/certsclient"
+	"github.com/hiveot/hub/pkg/svc/certsvc/selfsigned"
+	"github.com/hiveot/hub/pkg/svc/certsvc/service"
+	"github.com/hiveot/hub.go/pkg/certsclient"
 )
 
 func loadCA(certFolder string) (caCert *x509.Certificate, caKey *ecdsa.PrivateKey, err error) {

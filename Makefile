@@ -1,6 +1,6 @@
-# Makefile to build and test the WoST Hub launcher
+# Makefile to build and test the HiveOT Hub launcher
 DIST_FOLDER=./dist
-INSTALL_HOME=~/bin/wosthub
+INSTALL_HOME=~/bin/hivehub
 .DEFAULT_GOAL := help
 
 .FORCE: 

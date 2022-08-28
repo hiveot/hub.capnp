@@ -12,7 +12,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/wostzone/wost-go/pkg/certsclient"
+	"github.com/hiveot/hub.go/pkg/certsclient"
 )
 
 // CreateServiceCert creates a new Hub service certificate for mutual authentication between services.

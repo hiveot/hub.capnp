@@ -7,10 +7,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/wostzone/hub/cmd/hubcli/certcli"
+	"github.com/hiveot/hub/cmd/hubcli/certcli"
 
-	"github.com/wostzone/hub/pkg/svc/certsvc/service"
-	"github.com/wostzone/wost-go/pkg/certsclient"
+	"github.com/hiveot/hub/pkg/svc/certsvc/service"
+	"github.com/hiveot/hub.go/pkg/certsclient"
 )
 
 func TestGetCommands(t *testing.T) {

@@ -4,8 +4,8 @@ import (
 	"crypto/ecdsa"
 	"crypto/x509"
 
-	"github.com/wostzone/hub/pkg/svc/certsvc/service"
-	"github.com/wostzone/wost-go/pkg/certsclient"
+	"github.com/hiveot/hub.go/pkg/certsclient"
+	"github.com/hiveot/hub/pkg/svc/certsvc/service"
 )
 
 // SelfSignedCertService creates certificates for use by services, devices and admin users.

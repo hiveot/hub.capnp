@@ -6,8 +6,8 @@ import (
 
 	"github.com/urfave/cli/v2"
 
-	"github.com/wostzone/hub/internal/folders"
-	"github.com/wostzone/hub/pkg/svc/certsvc/service"
+	"github.com/hiveot/hub/internal/folders"
+	"github.com/hiveot/hub/pkg/svc/certsvc/service"
 )
 
 // GetCertCommands returns the certificate handling commands

@@ -1,7 +1,7 @@
-# Makefile to build and test the WoST Hub core services
+# Makefile to build and test the HiveOT Hub core services
 DIST_FOLDER=./dist
-PKG_NAME=wosthub.tgz
-INSTALL_HOME=~/bin/wosthub
+PKG_NAME=hivehub.tgz
+INSTALL_HOME=~/bin/hivehub
 .DEFAULT_GOAL := help
 
 .FORCE: 
@@ -27,7 +27,7 @@ dist: clean   ## Build binary distribution tarball
 help: ## Show this help
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-install:  all ## Install the launcher into ~/bin/wost/bin and config
+install:  all ## Install the launcher into ~/bin/hivehub/bin and config
 	mkdir -p $(INSTALL_HOME)/bin
 	mkdir -p $(INSTALL_HOME)/config
 	mkdir -p $(INSTALL_HOME)/log

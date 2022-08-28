@@ -11,8 +11,8 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/wostzone/wost-go/pkg/config"
-	"github.com/wostzone/wost-go/pkg/logging"
+	"github.com/hiveot/hub.go/pkg/config"
+	"github.com/hiveot/hub.go/pkg/logging"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -35,7 +35,7 @@ var hostnames = []string{"localhost"}
 // certificates exist.
 func TestMain(m *testing.M) {
 	logging.SetLogging("info", "")
-	tempFolder = path.Join(os.TempDir(), "wost-launcher-test")
+	tempFolder = path.Join(os.TempDir(), "hub-launcher-test")
 	configFolder := path.Join(tempFolder, config.DefaultConfigFolder)
 	certsFolder := path.Join(tempFolder, config.DefaultCertsFolder)
 	logFolder := path.Join(tempFolder, config.DefaultLogFolder)

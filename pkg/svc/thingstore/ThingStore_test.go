@@ -8,9 +8,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/wostzone/hub/pkg/svc/thingstore/thingkvstore"
-	"github.com/wostzone/wost.grpc/go/svc"
-	"github.com/wostzone/wost.grpc/go/thing"
+	"github.com/hiveot/hub/pkg/svc/thingstore/thingkvstore"
+	"github.com/hiveot/hub.grpc/go/svc"
+	"github.com/hiveot/hub.grpc/go/thing"
 )
 
 const thingStoreFile = "/tmp/thingstore_test.json"

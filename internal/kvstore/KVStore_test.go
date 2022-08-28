@@ -14,16 +14,16 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/protobuf/encoding/protojson"
 
-	"github.com/wostzone/hub/internal/kvstore"
-	"github.com/wostzone/wost.grpc/go/thing"
+	"github.com/hiveot/hub/internal/kvstore"
+	"github.com/hiveot/hub.grpc/go/thing"
 
-	"github.com/wostzone/wost-go/pkg/vocab"
+	"github.com/hiveot/hub.go/pkg/vocab"
 )
 
 const (
 	doc1ID        = "doc1"
 	doc2ID        = "doc2"
-	jsonStoreFile = "/tmp/wost-kvstore_test.json"
+	jsonStoreFile = "/tmp/hivehub-kvstore_test.json"
 )
 
 const doc1 = `{

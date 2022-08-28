@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/wostzone/wost-go/pkg/config"
+	"github.com/hiveot/hub.go/pkg/config"
 )
 
 //--- THIS USES TestMain from StartHub_test.go ---

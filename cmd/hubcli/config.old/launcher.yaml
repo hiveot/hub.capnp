@@ -1,4 +1,4 @@
-# WoST launcher configuration with plugins to start
+# launcher configuration with plugins to start
 
 # Internal services to start with dapr sidecar
 services:
@@ -8,7 +8,7 @@ services:
     app-bin: certs
     app-id: certs
     app-protocol: grpc
-    app-socket: /tmp/wost/certs
+    app-socket: /tmp/hivehub/certs
     loglevel: info
 
   # Thing directory store
@@ -35,7 +35,7 @@ gateway:
   thinggw: # thing api gateway for directory/history/provisioning
     enabled: false
 
-  dashboard: # WoST dashboard for viewing IoT device info
+  dashboard: # dashboard for viewing IoT device info
     enabled: false
 
   hubbridge: # bridge to share IoT info with another Hub

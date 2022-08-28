@@ -9,11 +9,12 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
-	"github.com/wostzone/hub/internal/folders"
-	"github.com/wostzone/hub/internal/listener"
+	"github.com/hiveot/hub/internal/folders"
+	"github.com/hiveot/hub/internal/listener"
 
-	"github.com/wostzone/hub/pkg/svc/oobprov/oobprovserver"
-	"github.com/wostzone/wost.grpc/go/svc"
+	"github.com/hiveot/hub.grpc/go/svc"
+	"github.com/hiveot/hub/pkg/svc/certsvc/service"
+	"github.com/hiveot/hub/pkg/svc/oobprov/oobprovserver"
 )
 
 // ServiceName is the name of the store for logging

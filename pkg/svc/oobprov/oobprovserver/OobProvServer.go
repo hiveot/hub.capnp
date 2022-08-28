@@ -1,4 +1,4 @@
-// Package oobprov with out-of-band provisioning service
+// Package oobprovserver with out-of-band provisioning service
 package oobprovserver
 
 import (
@@ -6,8 +6,8 @@ import (
 	"crypto/x509"
 	"fmt"
 
-	"github.com/wostzone/wost-go/pkg/certsclient"
-	"github.com/wostzone/wost.grpc/go/svc"
+	"github.com/hiveot/hub.go/pkg/certsclient"
+	"github.com/hiveot/hub.grpc/go/svc"
 )
 
 // OobProvServer implements the svc.Provisioning interface using out-of-band provisiong

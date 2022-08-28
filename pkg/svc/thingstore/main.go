@@ -8,10 +8,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
-	"github.com/wostzone/hub/internal/listener"
+	"github.com/hiveot/hub/internal/listener"
 
-	"github.com/wostzone/hub/pkg/svc/thingstore/thingkvstore"
-	"github.com/wostzone/wost.grpc/go/svc"
+	"github.com/hiveot/hub.grpc/go/svc"
+	"github.com/hiveot/hub/pkg/svc/thingstore/thingkvstore"
 )
 
 // ServiceName is the name of the store for logging

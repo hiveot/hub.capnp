@@ -8,7 +8,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/wostzone/wost-go/pkg/certsclient"
+	"github.com/hiveot/hub.go/pkg/certsclient"
 	"svc/certsvc/config"
 )
 

@@ -7,10 +7,10 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/emptypb"
 
-	"github.com/wostzone/hub/internal/kvstore"
+	"github.com/hiveot/hub/internal/kvstore"
 
-	"github.com/wostzone/wost.grpc/go/svc"
-	"github.com/wostzone/wost.grpc/go/thing"
+	"github.com/hiveot/hub.grpc/go/svc"
+	"github.com/hiveot/hub.grpc/go/thing"
 )
 
 // ThingKVStoreServer implements the svc.ThingStore interface using the internal KVStore

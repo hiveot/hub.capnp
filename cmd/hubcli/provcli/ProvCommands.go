@@ -11,7 +11,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/wostzone/wost.rpc/go/grpc/svc"
+	"github.com/hiveot/hub.grpc/go/svc"
 )
 
 // FIXME: centralize service name, until protobuf supports constants... (hint hint)

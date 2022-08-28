@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 
-	"github.com/wostzone/hub/pkg/svc/certsvc/selfsigned"
-	"github.com/wostzone/hub/pkg/svc/certsvc/service"
-	"github.com/wostzone/wost.rpc/go/grpc/svc"
+	"github.com/hiveot/hub/pkg/svc/certsvc/selfsigned"
+	"github.com/hiveot/hub/pkg/svc/certsvc/service"
+	"github.com/hiveot/hub.grpc/go/svc"
 )
 
 // CertServerRPC is the gRPC service interface for the self-signed certificate service

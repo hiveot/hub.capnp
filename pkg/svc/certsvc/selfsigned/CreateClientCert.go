@@ -61,7 +61,7 @@ func CreateClientCert(clientID string, ou string,
 	// clientKey := certs.CreateECDSAKeys()
 	certDer, err := x509.CreateCertificate(rand.Reader, template, caCert, ownerPubKey, caPrivKey)
 	if err != nil {
-		logrus.Errorf("CertSetup.CreateHubClientCert: Unable to create WoST Hub client cert: %s", err)
+		logrus.Errorf("CertSetup.CreateHubClientCert: Unable to create HiveOT Hub client cert: %s", err)
 		return nil, err
 	}
 	newCert, err := x509.ParseCertificate(certDer)

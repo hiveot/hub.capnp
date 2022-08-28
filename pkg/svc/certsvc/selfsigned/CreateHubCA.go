@@ -11,14 +11,14 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/wostzone/hub/pkg/svc/certsvc/service"
-	"github.com/wostzone/wost-go/pkg/certsclient"
+	"github.com/hiveot/hub.go/pkg/certsclient"
+	"github.com/hiveot/hub/pkg/svc/certsvc/service"
 )
 
-const CertOrgName = "WoST"
-const CertOrgLocality = "WoST zone"
+const CertOrgName = "HiveOT"
+const CertOrgLocality = "HiveOT zone"
 
-// CreateHubCA creates WoST Hub Root CA certificate and private key for signing server certificates
+// CreateHubCA creates HiveOT Hub Root CA certificate and private key for signing server certificates
 // Source: https://shaneutt.com/blog/golang-ca-and-signed-cert-go/
 // This creates a CA certificate used for signing client and server certificates.
 //
@@ -67,7 +67,7 @@ func CreateHubCA(validityDays int) (cert *x509.Certificate, key *ecdsa.PrivateKe
 	caCertDer, err := x509.CreateCertificate(rand.Reader, rootTemplate, rootTemplate, &privKey.PublicKey, privKey)
 	if err != nil {
 		// normally this never happens
-		err := fmt.Errorf("unable to create WoST Hub CA cert: %s", err)
+		err := fmt.Errorf("unable to create HiveHub CA cert: %s", err)
 		logrus.Error(err)
 		return nil, nil, err
 	}

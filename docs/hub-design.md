@@ -1,4 +1,4 @@
-# WoST Hub Design
+# HiveOTHub Design
 
 ![Design Overview](./hub-overview.jpg)
 
@@ -23,11 +23,11 @@ Dapr manages the service to service communication, state management, pub/sub, se
 
 ### Inter-Service Communication
 
-WoST services communicate using gRPC protobuffers. The only exception are gateway services that use the protocol for which they are the gateway such as HTTPs.
+Hub services communicate using gRPC protobuffers. The only exception are gateway services that use the protocol for which they are the gateway such as HTTPs.
 
-WoST services run with their own dapr sidecar that routes incoming and outgoing communication of the service. The sidecar runs in a separate process and communicates with the service through a socket. On linux systems this can be a linux domain socket or a regular TCP port.
+Services run with their own dapr sidecar that routes incoming and outgoing communication of the service. The sidecar runs in a separate process and communicates with the service through a socket. On linux systems this can be a linux domain socket or a regular TCP port.
 
-The WoST launcher starts a service with dapr sidecar, providing both with an app-id, connection port and the grpc or http protocol to use. For another service to invoke a method of the service, it makes a gRPC call including the app-id of the remote service. Dapr sidecar figures out where the service lives and passes it on, logs and traces the call.
+The Hub launcher starts a service with dapr sidecar, providing both with an app-id, connection port and the grpc or http protocol to use. For another service to invoke a method of the service, it makes a gRPC call including the app-id of the remote service. Dapr sidecar figures out where the service lives and passes it on, logs and traces the call.
 
 If the service call fails for any reason, the sidecar attempts to recover by retrying or, if available, switching to another provider of the service.
 
@@ -56,11 +56,11 @@ PB Services are provided through plugins that can be enabled by the administrato
 
 PB Services implement the gRPC PB pub/sub API which defines the TD, Events and Actions as defined by the W3C WoT working group. This API has 3 main methods: Publish TD, Publish Event and Subscribe to Actions.
 
-PB Services are provided as WoST plugins and are managed through the launcher service. Like any other service they are started with a dapr sidecar and have access to a state, secrets, and configuration store.
+PB Services are provided as plugins and are managed through the launcher service. Like any other service they are started with a dapr sidecar and have access to a state, secrets, and configuration store.
 
 ### IoT Device Communication
 
-IoT devices or services that are WoST compatible can directly communicate with the Hub without the need of for a protocol binding. The API gateway provides a set of services to work with these devices/services:
+IoT devices or services that are HiveOT compatible can directly communicate with the Hub without the need of for a protocol binding. The API gateway provides a set of services to work with these devices/services:
 
 1. Provisioning process
     1. The administrator provides a list of pre-approved devices and their secrets
@@ -76,7 +76,7 @@ The difference between IoT device communication and protocol bindings is that Io
 
 ### Hub Message Bus
 
-The hub utilizes dapr's pub/sub capability to publish messages to subscribers. Dapr supports various implementations including Redis, MQTT (Mosquitto), AMQP (RabbitMQ), Azure Service Bus, Google Cloud pub/sub and NATS streaming. By default WoST configures dapr to use Redis.
+The Hub utilizes dapr's pub/sub capability to publish messages to subscribers. Dapr supports various implementations including Redis, MQTT (Mosquitto), AMQP (RabbitMQ), Azure Service Bus, Google Cloud pub/sub and NATS streaming. By default Dapr is configured to use MongoDB.
 
 The pub/sub is intended for internal use but can be connected to via API gateway services. Some rules around the use of the internal pub/sub are needed for this integration to work:
 
@@ -88,7 +88,7 @@ The pub/sub is intended for internal use but can be connected to via API gateway
 
 A limitation of network devices is that they only communicate when awake and connected. Battery operated devices might spend most of their time asleep while remote devices might suffer from intermittent connectivity.
 
-WoST detects device connectivity and updates the status accordingly. On reconnect the device will receive queued any actions. WoST IoT devices will have to queue their outgoing messages when disconnected, and send them when connection is reestablished.
+HiveOT detects device connectivity and updates the status accordingly. On reconnect the device will receive queued any actions. IoT devices will have to queue their outgoing messages when disconnected, and send them when connection is reestablished.
 
 ## Plugins
 
@@ -108,7 +108,7 @@ An abstract of Hub services that provide the core functions of the Hub. See the 
     * set password
     * obtain auth token (tbd, dapr middleware?)
     * refresh auth token  (tbd, dapr middleware?)
-* provisioning services for WoST compatible IOT devices
+* provisioning services for compatible IOT devices
     * set pre-approved OOB provisioning secrets
     * get device provisioning status
     * get list of provisioned devices
@@ -151,11 +151,11 @@ It is also possible to make services available on multiple hosts. They can be in
 
 ## Client Library For Developing IoT Devices And Consumers
 
-WoST compatible IoT devices must support at least one of the message bus protocols. Currently only the MQTT protocol is used but more options can be added in the future.
+HiveOT compatible IoT devices must support at least one of the message bus protocols. Currently only the MQTT protocol is used but more options can be added in the future.
 
-The WoST project provides a [WoST client library for developing IoT devices](https://github.com/wostzone/hub/lib/client) and their consumers. This library provides an implementation of a subset of the [Exposed Thing](https://www.w3.org/TR/wot-scripting-api/#the-exposedthing-interface) and [Consumed Thing](https://www.w3.org/TR/wot-scripting-api/#the-consumedthing-interface) interface with a protocol binding for the message bus. In addition methods to construct WoT compliant Thing Description
+The project provides a [Hub client library for developing IoT devices](https://github.com/hiveot/hub/lib/client) and their consumers. This library provides an implementation of a subset of the [Exposed Thing](https://www.w3.org/TR/wot-scripting-api/#the-exposedthing-interface) and [Consumed Thing](https://www.w3.org/TR/wot-scripting-api/#the-consumedthing-interface) interface with a protocol binding for the message bus. In addition methods to construct WoT compliant Thing Description
 documents (TD) are included.
 
-IoT devices will likely also use the [provisioning protocol client](https://github.com/wostzone/hub/idprov/pkg/idprov) to automatically discovery the provisioning server and obtain a certificate used to connect to the message bus.
+IoT devices will likely also use the [provisioning protocol client](https://github.com/hiveot/hub/idprov/pkg/idprov) to automatically discovery the provisioning server and obtain a certificate used to connect to the message bus.
 
-The above library is written in Golang. Python and Javascript Hub API libraries are planned. They will be added to https://github.com/wostzone/lib/{python}|{js}|{...}
+The above library is written in Golang. Python and Javascript Hub API libraries are planned. They will be added to https://github.com/hiveot/lib/{python}|{js}|{...}

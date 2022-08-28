@@ -1,4 +1,4 @@
-# Simple bash shell to launch WoST services
+# Simple bash shell to launch Hub services
 
 # Common configuration with dapr
 # dapr configuration: config/dapr.config (option -c)
@@ -10,8 +10,8 @@ CONFIG="../config"
 if [ "HUB_TEST" != "" ]; then
 # test settings
 BIN_FOLDER="../dist/bin"
-DATA_FOLDER="/tmp/wost"
-SOCK_FOLDER="/tmp/wost"
+DATA_FOLDER="/tmp/hivehub"
+SOCK_FOLDER="/tmp/hivehub"
 LOG_LEVEL="info"
 DAPR_CONFIG="./config/dapr/config.yaml"
 DAPR_COMPONENTS="./config/dapr/components"
@@ -19,7 +19,7 @@ else
 # production settings using ~/.dapr settings folder
 DATA_FOLDER="./data"
 BIN_FOLDER="./bin"
-SOCK_FOLDER="/run/wost"
+SOCK_FOLDER="/run/hivehub"
 LOG_LEVEL="warn"
 DAPR_CONFIG="./config/dapr/config.yaml"
 DAPR_COMPONENTS="./config/dapr/components"

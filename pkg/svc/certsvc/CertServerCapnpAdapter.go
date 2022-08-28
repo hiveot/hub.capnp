@@ -7,9 +7,9 @@ import (
 
 	"capnproto.org/go/capnp/v3/rpc"
 
-	"github.com/wostzone/hub/pkg/svc/certsvc/selfsigned"
-	"github.com/wostzone/hub/pkg/svc/certsvc/service"
-	"github.com/wostzone/wost.rpc/go/capnp/svc"
+	"github.com/hiveot/hub.capnp/go/capnp/svc"
+	"github.com/hiveot/hub/pkg/svc/certsvc/selfsigned"
+	"github.com/hiveot/hub/pkg/svc/certsvc/service"
 )
 
 // CertServerCapnpAdapter implements the capnproto generated interface CertService_Server

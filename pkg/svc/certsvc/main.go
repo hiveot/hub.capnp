@@ -10,12 +10,12 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 
-	"github.com/wostzone/hub/internal/folders"
-	"github.com/wostzone/hub/internal/listener"
-	"github.com/wostzone/hub/pkg/svc/certsvc/selfsigned"
-	"github.com/wostzone/hub/pkg/svc/certsvc/service"
-	"github.com/wostzone/wost-go/pkg/certsclient"
-	"github.com/wostzone/wost.rpc/go/grpc/svc"
+	"github.com/hiveot/hub.go/pkg/certsclient"
+	"github.com/hiveot/hub.grpc/go/svc"
+	"github.com/hiveot/hub/internal/folders"
+	"github.com/hiveot/hub/internal/listener"
+	"github.com/hiveot/hub/pkg/svc/certsvc/selfsigned"
+	"github.com/hiveot/hub/pkg/svc/certsvc/service"
 )
 
 const ServiceName = "certsvc"

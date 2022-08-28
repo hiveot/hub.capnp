@@ -11,11 +11,11 @@ import (
 	"google.golang.org/grpc"
 	"gopkg.in/yaml.v3"
 
-	"github.com/wostzone/hub/internal/folders"
-	"github.com/wostzone/hub/internal/listener"
-	"github.com/wostzone/hub/pkg/svc/historystore/config"
-	"github.com/wostzone/hub/pkg/svc/historystore/mongohs"
-	"github.com/wostzone/wost.grpc/go/svc"
+	"github.com/hiveot/hub.grpc/go/svc"
+	"github.com/hiveot/hub/internal/folders"
+	"github.com/hiveot/hub/internal/listener"
+	"github.com/hiveot/hub/pkg/svc/historystore/config"
+	"github.com/hiveot/hub/pkg/svc/historystore/mongohs"
 )
 
 // DefaultConfigFile is the default configuration file with database settings

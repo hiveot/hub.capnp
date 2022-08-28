@@ -1,5 +1,5 @@
 # Mosquitto MQTT Broker configuration file
-# Template for WoST Mosquitto protocol binding
+# Template for HiveOT Mosquitto protocol binding
 # Features: 
 # - MQTT SSL and WebSockets SLL 
 # - Authentication methods:

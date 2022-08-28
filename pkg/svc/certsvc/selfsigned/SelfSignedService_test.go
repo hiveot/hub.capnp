@@ -6,10 +6,10 @@ import (
 	"path"
 	"testing"
 
-	"github.com/wostzone/wost-go/pkg/certsclient"
-	"github.com/wostzone/wost-go/pkg/logging"
+	"github.com/hiveot/hub.go/pkg/certsclient"
+	"github.com/hiveot/hub.go/pkg/logging"
 
-	"github.com/wostzone/hub/pkg/svc/certsvc/selfsigned"
+	"github.com/hiveot/hub/pkg/svc/certsvc/selfsigned"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -28,7 +28,7 @@ const TempCertDurationDays = 1
 // TestMain clears the certs folder for clean testing
 func TestMain(m *testing.M) {
 	logging.SetLogging("info", "")
-	tempFolder := path.Join(os.TempDir(), "wost-certs-test")
+	tempFolder := path.Join(os.TempDir(), "hivehub-certs-test")
 	// clean start
 	os.RemoveAll(tempFolder)
 	certFolder = path.Join(tempFolder, "certs")

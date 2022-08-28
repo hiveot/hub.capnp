@@ -1,6 +1,6 @@
-# WoST Infrastructure Challenges
+# Infrastructure Challenges
 
-The first iterations of WoST was intended as a discovery excercise to determine the best course for providing a Hub that is secure, lightweight and easy to scale. These iterations exposed various challenges, especially on the infrastructure side. Below a short summary of these challenges and how to overcome them.
+The first iterations of HiveOT was intended as a discovery excercise to determine the best course for providing a Hub that is secure, lightweight and easy to scale. These iterations exposed various challenges, especially on the infrastructure side. Below a short summary of these challenges and how to overcome them.
 
 ## Security
 
@@ -34,8 +34,8 @@ Integration is another core aspect of the Hub. There is a forest of IoT protocol
 
 Developers should only have the focus on solving the problem at hand and spend little time on how to integrate it in the whole. As such repetitive tasks such as auth, logging, config, resiliency, security, and others should not be a concern of service developers.
 
-The WoST middleware handles these aspects.
+The Hub middleware handles these aspects.
 
 ## Open Standards
 
-WoST is possible because of open standards like the Linux eco-system. As such it should use open standards where it makes sense.
+HiveOT is possible because of open standards like the Linux eco-system. As such it should use open standards where it makes sense.

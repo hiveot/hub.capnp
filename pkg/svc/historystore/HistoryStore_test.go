@@ -13,11 +13,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/wostzone/hub/pkg/svc/historystore/config"
-	"github.com/wostzone/hub/pkg/svc/historystore/mongohs"
-	"github.com/wostzone/wost-go/pkg/logging"
-	"github.com/wostzone/wost.grpc/go/svc"
-	"github.com/wostzone/wost.grpc/go/thing"
+	"github.com/hiveot/hub.go/pkg/logging"
+	"github.com/hiveot/hub.grpc/go/svc"
+	"github.com/hiveot/hub.grpc/go/thing"
+	"github.com/hiveot/hub/pkg/svc/historystore/config"
+	"github.com/hiveot/hub/pkg/svc/historystore/mongohs"
 )
 
 const thingIDPrefix = "thing-"
