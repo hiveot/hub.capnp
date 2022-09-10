@@ -1,2 +1,2 @@
 # hub.capnp
-Cap'n Proto based interface definitions for the hub
+Cap'n Proto interface definitions for the HiveOT Hub.

@@ -8,7 +8,7 @@ $Go.import("github.com/hiveot/hub.capnp/go/svc");
 
 
 interface CertService {
-# Certificate service for generating certificates
+# Certificate service capabilities for generating certificates
 # For management of the CA, use the CLI.
 
   createClientCert @0 (clientID:Text, pubKeyPEM:Text) -> (certPEM: Text, caCertPEM :Text);
