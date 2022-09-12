@@ -1,6 +1,6 @@
 # Makefile to build and test the HiveOT Hub launcher
 DIST_FOLDER=./dist
-INSTALL_HOME=~/bin/hivehub
+INSTALL_HOME=~/bin/hiveot
 .DEFAULT_GOAL := help
 
 .FORCE: 
@@ -8,7 +8,8 @@ INSTALL_HOME=~/bin/hivehub
 all: certsvc historystore hubcli oobprov thingstore   ## Build all services
 
 certsvc: .FORCE ## Build Hub certificate management service
-	go build -o $(DIST_FOLDER)/bin/$@ ./pkg/svc/certsvc/main.go ./pkg/svc/certsvc/CertServerRPC.go #./pkg/svc/certsvc/CertServerCapnpAdapter.go
+	# go build -o $(DIST_FOLDER)/bin/$@ ./pkg/svc/certsvc/main.go ./pkg/svc/certsvc/CertServerGRPCAdapter.go 
+	go build -o $(DIST_FOLDER)/bin/$@ ./pkg/svc/certsvc/*.go
 	@echo "> Build successful. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@"
 
 historystore: .FORCE ## Build Hub history-store service

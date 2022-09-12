@@ -6,12 +6,6 @@ import (
 	"time"
 
 	"github.com/sirupsen/logrus"
-	"github.com/urfave/cli/v2"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/metadata"
-
-	"github.com/hiveot/hub.grpc/go/svc"
 )
 
 // FIXME: centralize service name, until protobuf supports constants... (hint hint)
@@ -56,7 +50,6 @@ func GetProvAddCommand() *cli.Command {
 			}
 			err := HandleAddOobSecret(
 				provServiceAddress,
-				provisioningAppID,
 				cCtx.Args().Get(0),
 				cCtx.Args().Get(1))
 			fmt.Println("Adding secret for device: ", cCtx.Args().First())
@@ -66,11 +59,10 @@ func GetProvAddCommand() *cli.Command {
 }
 
 // HandleAddOobSecret invokes the out-of-band provisioning service to add a provisioning secret
-//  address is the destination service address:port, or the dapr sidecar port when the cli is launched with dapr
-//  appID is the provisioning service app-app when using dapr
+//  address is the destination service's address
 //  deviceID is the ID of the device whose secret to set
 //  secret to set
-func HandleAddOobSecret(address string, appID string, deviceID string, secret string) error {
+func HandleAddOobSecret(address string, deviceID string, secret string) error {
 	//// Set up a connection to the server.
 	//daprClient, err := dapr.NewClient()
 	//if err != nil {
@@ -81,9 +73,8 @@ func HandleAddOobSecret(address string, appID string, deviceID string, secret st
 	//defer daprClient.Close()
 	cred := insecure.NewCredentials()
 
-	// setup the context and tell dapr the app-id to connect to, when launched via the sidecar
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-	conn, err := grpc.DialContext(ctx, address,
+	conn, err := Dial(ctx, address,
 		grpc.WithTransportCredentials(cred),
 		grpc.WithBlock(),
 	)

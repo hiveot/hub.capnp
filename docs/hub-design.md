@@ -10,7 +10,8 @@ The following design patterns are leveraged in the Hub:
 
 * [Hub and Spokes with network peering](https://cloud.google.com/architecture/deploy-hub-spoke-vpc-network-topology) centralizes access to IoT devices via a central Hub. In this case the Hub itself can be distributed using network peering. This provides isolation between IoT devices, services, and consumers. As IoT devices are notoriously insecure this establishes a secure wall between them and the outside world.
 * [Microservices architecture](https://docs.microsoft.com/en-us/dotnet/architecture/microservices/architect-microservice-container-applications/microservices-architecture) support the single responsibility principle, simplifies testing and reduces the risk of bugs by focusing on a single task.
-* [Sidecar pattern](https://docs.dapr.io/concepts/dapr-services/sidecar/) offloads common tasks from services to the re-usable sidecar, provides process isolation, supports heterogeneous programming languages and technologies to implement the services.
+* [Capabilities based security](https://en.wikipedia.org/wiki/Capability-based_security) "A capability is a communicable, unforgeable token of authority." 
+* (tbd) [Sidecar pattern](https://docs.dapr.io/concepts/dapr-services/sidecar/) offloads common tasks from services to the re-usable sidecar, provides process isolation, supports heterogeneous programming languages and technologies to implement the services.
 * [API Gateway pattern](https://docs.microsoft.com/en-us/dotnet/architecture/microservices/architect-microservice-container-applications/direct-client-to-microservice-communication-versus-the-api-gateway-pattern) provides a single endpoint for clients to communicate with the services instead of a separate connection to each service. This reduces coupling with the services and enables the use of middleware for common tasks such as authentication.
 * [BFF design pattern](https://docs.microsoft.com/en-us/azure/architecture/patterns/backends-for-frontends) (Front For Backend Service). Dedicated services tailored to front-end usage separate the internal services API from the external API. Internal design changes do not affect the APIs and vice versa. This approach further reduces the number of request round trips as the API is tailored to the client's use-case.
 
@@ -18,18 +19,18 @@ Even though a distributed architecture might seem overkill for a simple solution
 
 ## Infrastructure
 
-The Hub infrastructure is build on [dapr](https://docs.dapr.io/concepts/building-blocks-concept/).
-Dapr manages the service to service communication, state management, pub/sub, secrets, configuration, and middleware hooks for authentication, logging, rate limiting and recovery. Lots of features in a small package. To top it off, it can run in a 'slim' lightweight container-less mode or scale out to a full-blown Kubernetes cluster.
+The Hub infrastructure is build on ~~[dapr](https://docs.dapr.io/concepts/building-blocks-concept/).~~ [Cap'n Proto](https://capnproto.org/)
+~~Dapr manages the service to service communication, state management, pub/sub, secrets, configuration, and middleware hooks for authentication, logging, rate limiting and recovery. Lots of features in a small package. To top it off, it can run in a 'slim' lightweight container-less mode or scale out to a full-blown Kubernetes cluster.~~
 
 ### Inter-Service Communication
 
-Hub services communicate using gRPC protobuffers. The only exception are gateway services that use the protocol for which they are the gateway such as HTTPs.
+Hub services communicate using ~~gRPC protobuffers~~ capnproto RPC and serialization. The only exception are gateway services that use the protocol for which they are the gateway such as HTTPs.
 
-Services run with their own dapr sidecar that routes incoming and outgoing communication of the service. The sidecar runs in a separate process and communicates with the service through a socket. On linux systems this can be a linux domain socket or a regular TCP port.
+~~Services run with their own dapr sidecar that routes incoming and outgoing communication of the service. The sidecar runs in a separate process and communicates with the service through a socket. On linux systems this can be a linux domain socket or a regular TCP port.~~
 
-The Hub launcher starts a service with dapr sidecar, providing both with an app-id, connection port and the grpc or http protocol to use. For another service to invoke a method of the service, it makes a gRPC call including the app-id of the remote service. Dapr sidecar figures out where the service lives and passes it on, logs and traces the call.
+~~The Hub launcher starts a service with dapr sidecar, providing both with an app-id, connection port and the grpc or http protocol to use. For another service to invoke a method of the service, it makes a gRPC call including the app-id of the remote service. Dapr sidecar figures out where the service lives and passes it on, logs and traces the call.~~
 
-If the service call fails for any reason, the sidecar attempts to recover by retrying or, if available, switching to another provider of the service.
+~~If the service call fails for any reason, the sidecar attempts to recover by retrying or, if available, switching to another provider of the service.~~
 
 ### API Gateway Communication
 
@@ -54,9 +55,9 @@ PB Services are provided through plugins that can be enabled by the administrato
 * Send events when Thing properties or outputs change value.
 * Pass on actions requested via the Hub to the Thing's IoT device
 
-PB Services implement the gRPC PB pub/sub API which defines the TD, Events and Actions as defined by the W3C WoT working group. This API has 3 main methods: Publish TD, Publish Event and Subscribe to Actions.
+~~PB Services implement the ~~gRPC~~ PB pub/sub API which defines the TD, Events and Actions as defined by the W3C WoT working group. This API has 3 main methods: Publish TD, Publish Event and Subscribe to Actions.~~
 
-PB Services are provided as plugins and are managed through the launcher service. Like any other service they are started with a dapr sidecar and have access to a state, secrets, and configuration store.
+~~PB Services are provided as plugins and are managed through the launcher service. Like any other service they are started with a dapr sidecar and have access to a state, secrets, and configuration store.~~
 
 ### IoT Device Communication
 
@@ -76,7 +77,7 @@ The difference between IoT device communication and protocol bindings is that Io
 
 ### Hub Message Bus
 
-The Hub utilizes dapr's pub/sub capability to publish messages to subscribers. Dapr supports various implementations including Redis, MQTT (Mosquitto), AMQP (RabbitMQ), Azure Service Bus, Google Cloud pub/sub and NATS streaming. By default Dapr is configured to use MongoDB.
+~~The Hub utilizes dapr's pub/sub capability to publish messages to subscribers. Dapr supports various implementations including Redis, MQTT (Mosquitto), AMQP (RabbitMQ), Azure Service Bus, Google Cloud pub/sub and NATS streaming. By default Dapr is configured to use MongoDB.~~
 
 The pub/sub is intended for internal use but can be connected to via API gateway services. Some rules around the use of the internal pub/sub are needed for this integration to work:
 
@@ -94,9 +95,9 @@ HiveOT detects device connectivity and updates the status accordingly. On reconn
 
 Hub functionality is provided through core services and services provided through plugins. The only difference is that core services are enabled out of the box while plugin services are add-ons are enabled as needed.
 
-Each service is started with a dapr sidecar for infrastructure access. This provides the service with named access to other services, state storage, event pub/sub and use of actors.
+~~Each service is started with a dapr sidecar for infrastructure access. This provides the service with named access to other services, state storage, event pub/sub and use of actors.~~
 
-Service plugins can be written in any programming language. The dapr SDK provides API's to access state storage and event pub/sub. Invocation of other services is done through gRPC using their protobuf APIs.
+Service plugins can be written in any programming language. ~~The dapr SDK provides API's to access state storage and event pub/sub. Invocation of other services is done through gRPC using their protobuf APIs.~~
 
 ### Core Service Methods
 
@@ -106,8 +107,8 @@ An abstract of Hub services that provide the core functions of the Hub. See the 
     * add user
     * remove user
     * set password
-    * obtain auth token (tbd, dapr middleware?)
-    * refresh auth token  (tbd, dapr middleware?)
+    * ~~obtain auth token (tbd, dapr middleware?)~~
+    * ~~refresh auth token  (tbd, dapr middleware?)~~
 * provisioning services for compatible IOT devices
     * set pre-approved OOB provisioning secrets
     * get device provisioning status

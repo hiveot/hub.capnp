@@ -28,7 +28,7 @@ const TempCertDurationDays = 1
 // TestMain clears the certs folder for clean testing
 func TestMain(m *testing.M) {
 	logging.SetLogging("info", "")
-	tempFolder := path.Join(os.TempDir(), "hivehub-certs-test")
+	tempFolder := path.Join(os.TempDir(), "hiveot-certs-test")
 	// clean start
 	os.RemoveAll(tempFolder)
 	certFolder = path.Join(tempFolder, "certs")

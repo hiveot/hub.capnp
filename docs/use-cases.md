@@ -65,7 +65,7 @@ After login, the consumer receives the capability to retrieve this list of TD do
 The groups are managed separately by the administrator.
 
 
-## Consumer Retrieves A Thing Property Values
+## Consumers Retrieve A Thing Property Values
 
 Once a list of available TD's is received, consumers can retrieve the property values of a thing.
 

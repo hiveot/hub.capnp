@@ -23,7 +23,7 @@ import (
 func CreateServiceListener(serviceName string) net.Listener {
 	var port int = 0
 	var address string = "localhost"
-	var unixSocket string = "/tmp/" + serviceName + ".sock"
+	var unixSocket string = "/tmp/" + serviceName + ".socket"
 	flag.Usage = func() {
 		fmt.Printf("Usage: %s [-p port | -u /path/to/unixdomainsocket]\n", os.Args[0])
 		flag.PrintDefaults()

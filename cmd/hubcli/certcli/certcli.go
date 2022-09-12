@@ -3,18 +3,24 @@ package certcli
 
 import (
 	"bytes"
+	"context"
 	"crypto/ecdsa"
 	"crypto/x509"
 	"fmt"
+	"log"
+	"net"
 	"os"
 	"os/exec"
 	"path"
+	"time"
 
+	"capnproto.org/go/capnp/v3/rpc"
+	svc2 "github.com/hiveot/hub.capnp/go/capnp/svc"
+	"github.com/hiveot/hub.go/pkg/certsclient"
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub/pkg/svc/certsvc/selfsigned"
 	"github.com/hiveot/hub/pkg/svc/certsvc/service"
-	"github.com/hiveot/hub.go/pkg/certsclient"
 )
 
 func loadCA(certFolder string) (caCert *x509.Certificate, caKey *ecdsa.PrivateKey, err error) {
@@ -105,27 +111,93 @@ func HandleCreateCACert(certsFolder string, sanName string, validityDays int, fo
 //  clientID for the CN of the client certificate. Used to identify the consumer.
 //  keyFile with path to the client's public or private key
 //  validity in days. 0 to use certconfig.DefaultClientCertDurationDays
-func HandleCreateClientCert(certFolder string, clientID string, keyFile string, validityDays int) error {
-	var pubKey *ecdsa.PublicKey
-	var generatedPrivKey *ecdsa.PrivateKey
-	var cert *x509.Certificate
+//func HandleCreateClientCert(certFolder string, clientID string, keyFile string, validityDays int) error {
+//	var pubKey *ecdsa.PublicKey
+//	var generatedPrivKey *ecdsa.PrivateKey
+//	var cert *x509.Certificate
+//
+//	if validityDays == 0 {
+//		validityDays = service.DefaultClientCertDurationDays
+//	}
+//	caCert, caKey, err := loadCA(certFolder)
+//	if err == nil {
+//		pubKey, generatedPrivKey, err = loadOrCreateKey(keyFile)
+//	}
+//	if err == nil {
+//		cert, err = selfsigned.CreateClientCert(clientID, certsclient.OUClient, pubKey, caCert, caKey, validityDays)
+//	}
+//	if err != nil {
+//		return err
+//	}
+//	certPem := certsclient.X509CertToPEM(cert)
+//	fmt.Printf("Certificate for %s, valid for %d days:\n", clientID, validityDays)
+//	fmt.Println(certPem)
+//	if generatedPrivKey != nil {
+//		keyPem, _ := certsclient.PrivateKeyToPEM(generatedPrivKey)
+//		fmt.Println()
+//		fmt.Printf("Generated pub/private key pair:\n")
+//		fmt.Println(keyPem)
+//	}
+//	return err
+//}
 
-	if validityDays == 0 {
-		validityDays = service.DefaultClientCertDurationDays
-	}
-	caCert, caKey, err := loadCA(certFolder)
-	if err == nil {
-		pubKey, generatedPrivKey, err = loadOrCreateKey(keyFile)
-	}
-	if err == nil {
-		cert, err = selfsigned.CreateClientCert(clientID, certsclient.OUClient, pubKey, caCert, caKey, validityDays)
-	}
+// HandleCreateClientCert creates a consumer client certificate and optionally private/public
+// keypair through the service via Capnp protocol.
+// This prints the certificate to stdout.
+//
+//  clientID for the CN of the client certificate. Used to identify the consumer.
+//  keyFile with path to the client's public or private key
+//  validity in days. 0 to use certconfig.DefaultClientCertDurationDays
+func HandleCreateClientCert(clientID string, keyFile string, validityDays int) error {
+	// Set up a connection to the server.
+	// for UDS need the schema prefix: https://github.com/grpc/grpc-go/issues/1846
+	// address := "unix:///tmp/certsvc.socket"
+
+	// fmt.Println("Connecting to: ", address)
+	// ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	// defer cancel()
+	// conn, err := grpc.DialContext(ctx, address,
+	// 	grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
+	// if err != nil {
+	// 	log.Fatalf("did not connect: %v", err)
+	// }
+	// defer conn.Close()
+
+	network := "unix"
+	address := "/tmp/certsvc.socket"
+	clientSideConn, err := net.Dial(network, address)
+	transport := rpc.NewStreamTransport(clientSideConn)
+	clientConn := rpc.NewConn(transport, nil)
+	defer clientConn.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
+	defer cancel()
+	certClient := svc2.CertServiceCap(clientConn.Bootstrap(ctx))
+
+	pubKey, generatedPrivKey, err := loadOrCreateKey(keyFile)
 	if err != nil {
-		return err
+		log.Fatal(err)
 	}
-	certPem := certsclient.X509CertToPEM(cert)
+	pubKeyPEM, err := certsclient.PublicKeyToPEM(pubKey)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// create the client capability (eg message)
+	resp, release := certClient.CreateClientCert(ctx,
+		func(params svc2.CertServiceCap_createClientCert_Params) error {
+			fmt.Println("CertServiceCap_createClientCert_Params")
+			err = params.SetClientID(clientID)
+			err = params.SetPubKeyPEM(pubKeyPEM)
+			return err
+		})
+	defer release()
+
+	result, err := resp.Struct()
+	if err != nil {
+		log.Fatalf("error getting response struct: %v", err)
+	}
 	fmt.Printf("Certificate for %s, valid for %d days:\n", clientID, validityDays)
-	fmt.Println(certPem)
+	fmt.Println(result.CertPEM())
+
 	if generatedPrivKey != nil {
 		keyPem, _ := certsclient.PrivateKeyToPEM(generatedPrivKey)
 		fmt.Println()

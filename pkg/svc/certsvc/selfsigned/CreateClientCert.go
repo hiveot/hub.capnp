@@ -25,8 +25,11 @@ import (
 //  caPrivKey CA's ECDSA key for signing
 //  durationDays nr of days the certificate will be valid
 // Returns the signed TLS certificate or error
-func CreateClientCert(clientID string, ou string,
-	ownerPubKey *ecdsa.PublicKey, caCert *x509.Certificate, caPrivKey *ecdsa.PrivateKey,
+func CreateClientCert(clientID string,
+	ou string,
+	ownerPubKey *ecdsa.PublicKey,
+	caCert *x509.Certificate,
+	caPrivKey *ecdsa.PrivateKey,
 	durationDays int) (clientCert *x509.Certificate, err error) {
 
 	if caCert == nil || caPrivKey == nil {

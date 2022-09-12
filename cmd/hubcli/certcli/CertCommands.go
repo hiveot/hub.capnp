@@ -1,4 +1,4 @@
-// Package certcli with certificate command handling
+// Package certcli with certificate commandline definitions
 package certcli
 
 import (
@@ -120,7 +120,9 @@ func GetCertCreateClientCommand(certFolder string) *cli.Command {
 			}
 			loginID := cCtx.Args().Get(0)
 			pubKeyFile := cCtx.String("pubkey")
-			err := HandleCreateClientCert(certFolder, loginID, pubKeyFile, validityDays)
+			// err := HandleCreateClientCert(certFolder, loginID, pubKeyFile, validityDays)
+			// err := HandleCreateClientCertGRPC(loginID, pubKeyFile, validityDays)
+			err := HandleCreateClientCertCapnp(loginID, pubKeyFile, validityDays)
 			return err
 		},
 	}
