@@ -1,114 +1,53 @@
 # Hive-Of-Things Hub
 
-The Hub for the *Hive of Things* is an intermediary between IoT devices 'Things', services, and consumers using a hub-and-spokes architecture. Consumers interact with Things via the Hub without connecting directly to the Thing device. The Hub uses the [cap'n proto](https://capnproto.org/) for Capabilities based secured communication.
+The Hub for the *Hive of Things* is an intermediary between IoT devices 'Things', services, and consumers using a hub-and-spokes architecture. Consumers interact with Things via the Hub without connecting directly to the Thing device. The Hub uses the [cap'n proto](https://capnproto.org/) for Capabilities based secure communication.
 
 ## Project Status
 
 Status: The status of the Hub is In Development. It is undergoing a rewrite to use **capnp** for infrastructure.
 
-HiveOT is based on the [W3C WoT TD 1.1 specification](https://www.w3.org/TR/wot-thing-description11/). See [docs/README-TD] for more information.
-
 ## Audience
 
 This project is aimed at software developers and system implementors that are working on secure IoT devices. Users choose to not run servers on Things and instead use a hub and spokes model which greatly reduces the security risk post by traditional IoT devices.
 
-## Objective
+## Objectives
 
-The primary objective of HiveOT is to provide a solution to use 'internet of things' devices in a highly secure manner. The Hub supports this objective by not allowing IoT devices to receive incoming network connections and by isolating IoT devices from the wider network via a secure Hub. Instead, IoT devices provide Capability services and connect to the Hub. By leveraging Capabilities based design, security is greatly improved while allowing for a largely decentralized approach to services.
+1. The primary objective of HiveOT is to provide a solution to secure the 'internet of things'.  
+
+The state of security of IoT devices is appalling. Many of those devices become part of botnets once exposed to the internet. It is too easy to hack these devices and most of them do not support firmware updates.
+
+The security objective is supported by not allowing direct access to IoT devices and isolate them from the rest of the network. Instead, IoT devices discover and connect to a 'hub' to exchange information through publish and subscribe. Hub services offer 'capabilities' to clients via a 'gateway' proxy service. Capabilities based security ensures that capability can only be used for its intended purpose. Unlike authentication tokens which when compromised offer access to all services of the 
+user.
 
 > The HiveOT mandate is: 'Things Do Not Run (TCP) Servers'.
 
-The secondary objective is to simplify development of IoT devices for the web of things. HiveOT supports this by requiring only minimal features to operate on an IoT device. Complexity and resource usage is kept minimal by not running a web server.    The Hub handles authentication and authorization on behalf of the device. 
+2. The secondary objective is to simplify development of IoT devices for the web of things. 
 
-The third objective is to follow the WoT and other open standard where possible.
+The HiveOT supports this objective by handling authentication, authorization, logging, tracing, persistence, rate limiting and resiliency. The IoT device only has to send the TD of things it has on board, submit events for changes, and accept actions by subscribing to the Hub.
+
+3. The third objective is to follow the WoT and other open standard where possible.
+
+HiveOT is based on the [W3C WoT TD 1.1 specification](https://www.w3.org/TR/wot-thing-description11/). See [docs/README-TD] for more information.
+
 
 ## Summary
 
-This document describes a technical high level overview of the Hub.
+This document describes a high level overview of the Hub.
 
 Security is big concern with today's IoT devices. The Internet of Things contains billions of devices that when not properly secured can be hacked. Unfortunately the reality is that the security of many of these devices leaves a lot to be desired. Many devices are vulnerable to attacks and are never upgraded with security patches. This problem is only going to get worse as more IoT devices are coming to market. Imagine a botnet of a billion devices on the Internet ready for use by unscrupulous
 actors.
 
-This 'HiveOT Hub' repository provides core services to securely interact with IoT devices and consumers. This includes certificate management, authentication, authorization, provisioning, message bus service and directory service.
+This 'HiveOT Hub' provides core services to securely interact with IoT devices and consumers. This includes certificate management, authentication, authorization, provisioning, message bus service and directory service.
 
 HiveOT compatible IoT devices (Things) therefore do not need to implement these features. This improves security as IoT devices do not run Web servers and are not directly accessible. They can remain isolated from the wider network and only require an outgoing connection to the Hub. This in turn reduces required device resources such as memory and CPU (and cost). An additional benefit is that consumers receive a consistent user experience independent of the IoT device provider as all
 interaction takes place via the Hub interface.
 
-HiveOT is based on the 'WoT' (Web of Things) open standard developed by the W3C organization. It aims to be compatible with this standard.
+HiveOT follows the 'WoT' (Web of Things) open standard developed by the W3C organization, to define 'Things'. It aims to be compatible with this standard.
 
 The communication infrastructure for the services is provided by 'Cap'n Proto', or capnp for short. Capnp provides a Capabilities based RPC for service invocation that is inherently secure. Only clients which have obtained a valid 'Capability' can invoke that capability, eg read a sensor or control a switch. The RPC will only pass requests that are valid, so the device does not have to concern itself with authentication and authorization. 
 
 Since the Hub acts as the intermediary, it is responsible for features such as authentication, logging, resiliency, pub/sub and other protocol integration. The Hub can dynamically delegate some of these services to devices that are capable of doing so, potentially creating a decentralized solution that can scale as needed and recover from device failure. As a minimum the Hub manages service discovery acts as a proxy for capabilities. 
 
-## Services
-
-All Hub features are provided through services. The first service is the Hub gateway which is the entry point into the Hub. When a clients connects to the gateway it  receives a set of 'capabilities' for authentication and other available features.
-
-Some of the services that are planned for the Hub:
-- Hub Gateway to which all clients (devices, consumers and other services) connect. The Hub gateway provides other service capabilities depending on the client. Multiple instances of the Hub gateway can exist on the network to offer redundancy and failover.   
-- Directory Service provides the capabilities to register Things by IoT devices and to query for available Things by consumers.
-- State Service offers services or clients an easy way to persist state into a configured backend.
-- Pub/Sub service offers other services an easy way to publish and subscribe messages onto a message bus. This is intended for notifying of events, actions and TD documents.
-- Authentication Service provides the capability to issue identity tokens to consumers. Identity tokens are used to determine what IoT Things the consumer can use.  
-- Group Service provides the capability to manage the IoT things a consumer has access to.
-- Provisioning Service provides the capability to register IoT devices and offer a client certificate. IoT devices use certificates instead of identity tokens to authenticate themselves.
-- Logging Service provides the capability to capture logging information and to send it to an external logging service such as Zipkin or other.
-- Tracing Service provides the capability to trace requests and measure performance.
-- Rate limiting Service limits the maximum rate at which clients can make RPC calls.
-- Resiliency Service handles RPC call failures and possibly provide a different service to handle the call.
-
-A second category of services are IoT Protocol Binding services. These services connect with IoT devices using 3rd party protocols such as ZWave, CoAP, Zigbee, LoRaWAN, 1-wire, and others.
-
-IoT devices can also connect to the Hub directly by using the Hub services for IoT devices for provisioning, directory and pub/sub.
-
-Consumers can receive events and control devices via the Hub. The Hub proxies the messages so the consumer only connects to the Hub gateway.
-
-Services can be written in any programming language but must provide and use Hub capabilities using capnp. The [writing-services.md] document describes how to write new services. Existing services/plugins can also serve as an example. Client libraries are available for using capnp in the most popular programming languages.
-
-Hub API's are defined with the [capnproto schema language](https://capnproto.org/language.html). This is like protobuf but then on steroids. 
-
-
-### Inter-service communication
-
-Services and compatible clients communicate using capnp RPC. Each service defines its interface and data types in a .capnp file. The compiler generates a corresponding language file in the programming language of choice.  The HiveOT project offers some client libraries to make using these APIs easier and reduce boilerplate.  
-
-Capnp is unique in that it is based on 'capabilities'. In order to invoke an RPC method a client must first have this method capability. This can be offered to the client by another service. This intrinsic security feature is core to the Hub security.  
-
-Capnp supports bi-directional streams, making it possible to publish and subscribe of events, actions and TD documents. 
-
-
-### idprov: Provisioning Service
-
-IoT devices that support the [idprov protocol](https://github.com/hiveot/idprov-standard) can automatically discover the Hub on the local network using the DNS-SD protocol and initiate the provisioning process. When accepted, a CA signed device (client) certificate is issued.
-
-The device certificate supports machine to machine authentication between IoT device and Hub. See [idprov service](https://github.com/hiveot/hub/tree/main/idprov) for more information.
-
-### authn: Authentication Service
-
-The authentication service manages users and issues access and refresh tokens.
-It provides a CLI to add/remove users and a service to handle authentication request and issue tokens. See [authn service](https://github.com/hiveot/hub/tree/main/authn) for more information.
-
-
-### groups: Manages groups of users and Things 
-
-The group service manages groups that contain consumers and Things.
-Consumers that are in the same group as a Thing have permission to access the Thing based on their role as viewer, operator, manager, administrator or thing. See the [authorization service](https://github.com/hiveot/hub/tree/main/authz) for more information.
-
-### mosquittomgr: Message Bus Manager and Mosquitto auth plugin (deprecated)
-
-This mosquittomgr service is replaced by pub/sub.
-
-Interaction with Things takes place via a message bus. [Exposed Things](https://www.w3.org/TR/wot-architecture/#exposed-thing-and-consumed-thing-abstractions) publish their TD document and events onto the bus and subscribe to action messages. Consumers can subscribe to these messages and publish actions to the Thing.
-
-The Mosquitto manager configures the Mosquitto MQTT broker (server) including authentication and authorization of things, services and consumers. See the [mosquittomgr service](https://github.com/hiveot/hub/tree/main/mosquittomgr) for more information.
-
-IoT devices must be able to connect to the message bus through TLS and use client certificate authentication. The Hub library provides protocol bindings to accomplish this.
-
-### thingdir: Directory Service
-
-The directory service captures TD document publications and lets consumer list and query for known Things. It uses the Authorization service to filter the TD's that a consumer is allowed to see. See the [directory service](https://github.com/hiveot/hub/tree/main/thingdir) for more information.
-
-The directory service is intended for use by consumers. IoT devices only need to use the pub/sub API to publish TDs and events, and subscribe to actions.
 
 ## Build
 
