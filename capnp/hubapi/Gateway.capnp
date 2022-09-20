@@ -2,24 +2,24 @@
 @0xdd3a962266ddd0e3;
 
 using Go = import "/go.capnp";
-$Go.package("svc");
-$Go.import("github.com/hiveot/hub.capnp/go/svc");
+$Go.package("hubapi");
+$Go.import("github.com/hiveot/hub.capnp/go/hubapi");
 
-using EventHistory = import "./EventHistory.capnp";
+using HistoryStore = import "./HistoryStore.capnp";
 using PropertyStore = import "./PropertyStore.capnp";
-using Provisioning = import "./Provisioning.capnp";
-using ThingDirectory = import "./ThingDirectory.capnp";
+using ProvisioningService = import "./ProvisioningService.capnp";
+using DirectoryStore = import "./DirectoryStore.capnp";
 
 struct ClientCapabilities {
     # Result of login with available capabilities. Each is optional.
     
-    directory @0 :ThingDirectory.ThingDirectory;
+    directoryStore @0 :DirectoryStore.DirectoryStore;
     #
-    eventHistory @1 :EventHistory.EventHistoryStore;
+    historyStore @1 :HistoryStore.HistoryStore;
     # 
     propertyStore @2 :PropertyStore.PropertyStore;
     #
-    provisioning @3 :Provisioning.ProvisioningService;
+    provisioningService @3 :ProvisioningService.ProvisioningService;
     #
 }
 
@@ -34,4 +34,3 @@ interface Gateway {
     capabilities @1 () -> (clientCap :ClientCapabilities);
     # Obtain the client capabilities based on the connection certificate
 }
-

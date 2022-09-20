@@ -2,8 +2,8 @@
 @0x907dec5c486f8a26;
 
 using Go = import "/go.capnp";
-$Go.package("svc");
-$Go.import("github.com/hiveot/hub.capnp/go/svc");
+$Go.package("hubapi");
+$Go.import("github.com/hiveot/hub.capnp/go/hubapi");
 
 
 struct PropValue {

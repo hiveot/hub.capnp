@@ -5,18 +5,16 @@ CAPNP_GO=capnp compile "-I$(GOPATH)/src/capnproto.org/go/capnp/std" -ogo:./go/ -
 .FORCE:
 
 # Capnproto RPC. This needs go-capnproto2 installed
-svc: .FORCE ## Compile cap'n proto (testing capnp)
-	$(CAPNP_GO)  ./capnp/svc/CertSvc.capnp 
-	$(CAPNP_GO)  ./capnp/svc/EventHistory.capnp 
-	$(CAPNP_GO)  ./capnp/svc/PropertyStore.capnp 
-	$(CAPNP_GO)  ./capnp/svc/Provisioning.capnp 
-	$(CAPNP_GO)  ./capnp/svc/ThingDirectory.capnp 
-	$(CAPNP_GO)  ./capnp/svc/Gateway.capnp 
-
-
-go: svc  ## Compile hub files for go
+go: .FORCE ## Compile cap'n proto to go (testing capnp)
+	$(CAPNP_GO)  ./capnp/hubapi/CertService.capnp
+	$(CAPNP_GO)  ./capnp/hubapi/DirectoryStore.capnp
+	$(CAPNP_GO)  ./capnp/hubapi/HistoryStore.capnp
+	$(CAPNP_GO)  ./capnp/hubapi/PropertyStore.capnp
+	$(CAPNP_GO)  ./capnp/hubapi/ProvisioningService.capnp
+	$(CAPNP_GO)  ./capnp/hubapi/Gateway.capnp
+	$(CAPNP_GO)  ./capnp/vocab/HiveVocabulary.capnp
+	$(CAPNP_GO)  ./capnp/vocab/WoTVocabulary.capnp
 	cd go && go mod tidy
-
 
 
 help: ## Show this help

@@ -1,4 +1,4 @@
-module github.com/hiveot/hub.capnp/go
+module github.com/hiveot/hub.capnp
 
 go 1.18
 

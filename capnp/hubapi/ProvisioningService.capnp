@@ -2,8 +2,8 @@
 @0x9579ece206ee504b;
 
 using Go = import "/go.capnp";
-$Go.package("svc");
-$Go.import("github.com/hiveot/hub.capnp/go/svc");
+$Go.package("hubapi");
+$Go.import("github.com/hiveot/hub.capnp/go/hubapi");
 
 struct OOBSecret {
     # OOBSecret holds a device's Out Of Band secret for automated provisioning
@@ -77,4 +77,3 @@ interface ProvisioningService {
     # If the deviceID and MD5 hash of the secret match with previously uploaded secrets then the 
     # request will be approved immediately.
 }
-
