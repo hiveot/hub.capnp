@@ -8,8 +8,7 @@ import (
 
 	"github.com/hiveot/hub.go/pkg/certsclient"
 	"github.com/hiveot/hub.go/pkg/logging"
-
-	"github.com/hiveot/hub/pkg/svc/certsvc/selfsigned"
+	"github.com/hiveot/hub/pkg/certservice/selfsigned"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -55,8 +54,9 @@ func TestClientCertBadCA(t *testing.T) {
 	clientID := "client1"
 	ou := certsclient.OUClient
 	caCert, caKey, err := selfsigned.CreateHubCA(1)
-	keys := certsclient.CreateECDSAKeys()
+	assert.NoError(t, err)
 
+	keys := certsclient.CreateECDSAKeys()
 	clientCert, err := selfsigned.CreateClientCert(clientID, ou,
 		&keys.PublicKey, nil, caKey, TempCertDurationDays)
 	assert.Error(t, err)

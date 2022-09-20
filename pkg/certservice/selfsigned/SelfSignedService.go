@@ -5,7 +5,6 @@ import (
 	"crypto/x509"
 
 	"github.com/hiveot/hub.go/pkg/certsclient"
-	"github.com/hiveot/hub/pkg/svc/certsvc/service"
 )
 
 // SelfSignedCertService creates certificates for use by services, devices and admin users.
@@ -18,7 +17,7 @@ type SelfSignedCertService struct {
 }
 
 // CreateClientCert creates a CA signed certificate for mutual authentication by consumers
-func (srv *SelfSignedCertService) CreateClientCert(clientID string, pubKeyPEM string) (
+func (srv *SelfSignedCertService) CreateClientCert(clientID string, pubKeyPEM string, durationDays int) (
 	certPEM string, caCertPEM string, err error) {
 
 	pubKey, err := certsclient.PublicKeyFromPEM(pubKeyPEM)
@@ -32,7 +31,7 @@ func (srv *SelfSignedCertService) CreateClientCert(clientID string, pubKeyPEM st
 		pubKey,
 		srv.caCert,
 		srv.caKey,
-		service.DefaultClientCertDurationDays)
+		durationDays)
 
 	caCertPEM = certsclient.X509CertToPEM(srv.caCert)
 	certPEM = certsclient.X509CertToPEM(cert)
@@ -40,19 +39,19 @@ func (srv *SelfSignedCertService) CreateClientCert(clientID string, pubKeyPEM st
 }
 
 // CreateDeviceCert creates a CA signed certificate for mutual authentication by IoT devices
-func (srv *SelfSignedCertService) CreateDeviceCert(clientID string, pubKeyPEM string) (
+func (srv *SelfSignedCertService) CreateDeviceCert(deviceID string, pubKeyPEM string, durationDays int) (
 	certPEM string, caCertPEM string, err error) {
 
 	var cert *x509.Certificate
 	pubKey, err := certsclient.PublicKeyFromPEM(pubKeyPEM)
 	if err == nil {
 		cert, err = CreateClientCert(
-			clientID,
+			deviceID,
 			certsclient.OUIoTDevice,
 			pubKey,
 			srv.caCert,
 			srv.caKey,
-			service.DefaultDeviceCertDurationDays)
+			durationDays)
 
 		caCertPEM = certsclient.X509CertToPEM(srv.caCert)
 		certPEM = certsclient.X509CertToPEM(cert)
@@ -61,7 +60,7 @@ func (srv *SelfSignedCertService) CreateDeviceCert(clientID string, pubKeyPEM st
 }
 
 // CreateServiceCert creates a CA signed service certificate for mutual authentication between services
-func (srv *SelfSignedCertService) CreateServiceCert(serviceID string, pubKeyPEM string, names []string) (
+func (srv *SelfSignedCertService) CreateServiceCert(serviceID string, pubKeyPEM string, names []string, durationDays int) (
 	certPEM string, caCertPEM string, err error) {
 	var cert *x509.Certificate
 
@@ -73,7 +72,7 @@ func (srv *SelfSignedCertService) CreateServiceCert(serviceID string, pubKeyPEM 
 			pubKey,
 			srv.caCert,
 			srv.caKey,
-			service.DefaultServiceCertDurationDays,
+			durationDays,
 		)
 
 		caCertPEM = certsclient.X509CertToPEM(srv.caCert)

@@ -30,7 +30,7 @@ func CreateClientCert(clientID string,
 	ownerPubKey *ecdsa.PublicKey,
 	caCert *x509.Certificate,
 	caPrivKey *ecdsa.PrivateKey,
-	durationDays int) (clientCert *x509.Certificate, err error) {
+	validityDays int) (clientCert *x509.Certificate, err error) {
 
 	if caCert == nil || caPrivKey == nil {
 		err := fmt.Errorf("CreateHubClientCert: missing CA cert or key")
@@ -51,7 +51,7 @@ func CreateClientCert(clientID string,
 			Names:              make([]pkix.AttributeTypeAndValue, 0),
 		},
 		NotBefore: time.Now(),
-		NotAfter:  time.Now().AddDate(0, 0, durationDays),
+		NotAfter:  time.Now().AddDate(0, 0, validityDays),
 
 		//KeyUsage: x509.KeyUsageDigitalSignature | x509.KeyUsageDataEncipherment | x509.KeyUsageKeyEncipherment,
 		KeyUsage:    x509.KeyUsageDigitalSignature,
