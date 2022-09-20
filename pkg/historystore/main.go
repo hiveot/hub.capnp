@@ -2,26 +2,25 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"io/ioutil"
-	"log"
 	"path"
 
 	"github.com/sirupsen/logrus"
-	"google.golang.org/grpc"
 	"gopkg.in/yaml.v3"
 
-	"github.com/hiveot/hub.grpc/go/svc"
 	"github.com/hiveot/hub/internal/folders"
 	"github.com/hiveot/hub/internal/listener"
-	"github.com/hiveot/hub/pkg/svc/historystore/config"
-	"github.com/hiveot/hub/pkg/svc/historystore/mongohs"
+	"github.com/hiveot/hub/pkg/historystore/adapter"
+	"github.com/hiveot/hub/pkg/historystore/config"
+	"github.com/hiveot/hub/pkg/historystore/mongohs"
 )
 
 // DefaultConfigFile is the default configuration file with database settings
 const DefaultConfigFile = "historystore.yaml"
 
-// Start the history store service using gRPC
+// Start the history store service
 func main() {
 	svcConfig := config.NewHistoryStoreConfig()
 	configFile := path.Join(folders.GetFolders("").Config, DefaultConfigFile)
@@ -40,17 +39,7 @@ func main() {
 
 	// For now only mongodb is supported
 	// This service needs the storage location and name
-	service := mongohs.NewMongoHistoryStoreServer(svcConfig)
-	s := grpc.NewServer()
-	svc.RegisterHistoryStoreServer(s, service)
+	store := mongohs.NewMongoHistoryStoreServer(svcConfig)
 
-	// exit the service when signal is received and close the listener
-	listener.ExitOnSignal(lis, func() {
-		logrus.Infof("Shutting down '%s'", config.ServiceName)
-	})
-
-	// Start listening
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("Service '%s; exited: %v", config.ServiceName, err)
-	}
+	adapter.StartHistoryStoreCapnpAdapter(context.Background(), lis, store)
 }

@@ -15,19 +15,18 @@ import (
 	"time"
 
 	"capnproto.org/go/capnp/v3/rpc"
-	svc2 "github.com/hiveot/hub.capnp/go/capnp/svc"
-	"github.com/hiveot/hub.go/pkg/certsclient"
 	"github.com/sirupsen/logrus"
 
-	"github.com/hiveot/hub/pkg/svc/certsvc/selfsigned"
-	"github.com/hiveot/hub/pkg/svc/certsvc/service"
+	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub.go/pkg/certsclient"
+	"github.com/hiveot/hub/pkg/certservice/selfsigned"
 )
 
 func loadCA(certFolder string) (caCert *x509.Certificate, caKey *ecdsa.PrivateKey, err error) {
-	pemPath := path.Join(certFolder, service.DefaultCaCertFile)
+	pemPath := path.Join(certFolder, hubapi.DefaultCaCertFile)
 	caCert, err = certsclient.LoadX509CertFromPEM(pemPath)
 	if err == nil {
-		pemPath = path.Join(certFolder, service.DefaultCaKeyFile)
+		pemPath = path.Join(certFolder, hubapi.DefaultCaKeyFile)
 		caKey, err = certsclient.LoadKeysFromPEM(pemPath)
 	}
 	if err != nil {
@@ -69,8 +68,8 @@ func loadOrCreateKey(keyFile string) (pubKey *ecdsa.PublicKey, generatedPrivKey 
 // in the given folder.
 // Use force to create the folder and overwrite existing certificate if it exists
 func HandleCreateCACert(certsFolder string, sanName string, validityDays int, force bool) error {
-	caCertPath := path.Join(certsFolder, service.DefaultCaCertFile)
-	caKeyPath := path.Join(certsFolder, service.DefaultCaKeyFile)
+	caCertPath := path.Join(certsFolder, hubapi.DefaultCaCertFile)
+	caKeyPath := path.Join(certsFolder, hubapi.DefaultCaKeyFile)
 
 	// folder doesn't exist
 	if _, err := os.Stat(certsFolder); err != nil {
@@ -149,20 +148,6 @@ func HandleCreateCACert(certsFolder string, sanName string, validityDays int, fo
 //  keyFile with path to the client's public or private key
 //  validity in days. 0 to use certconfig.DefaultClientCertDurationDays
 func HandleCreateClientCert(clientID string, keyFile string, validityDays int) error {
-	// Set up a connection to the server.
-	// for UDS need the schema prefix: https://github.com/grpc/grpc-go/issues/1846
-	// address := "unix:///tmp/certsvc.socket"
-
-	// fmt.Println("Connecting to: ", address)
-	// ctx, cancel := context.WithTimeout(context.Background(), time.Second*2)
-	// defer cancel()
-	// conn, err := grpc.DialContext(ctx, address,
-	// 	grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
-	// if err != nil {
-	// 	log.Fatalf("did not connect: %v", err)
-	// }
-	// defer conn.Close()
-
 	network := "unix"
 	address := "/tmp/certsvc.socket"
 	clientSideConn, err := net.Dial(network, address)

@@ -182,12 +182,15 @@ func (store *KVStore) autoSaveLoop() {
 
 // List returns a list of documents
 //
-// the keys can parameter can be used to limit the result to the given document keys.
+//  offset contains the offset in the list of results, sorted by ID
+//  limit contains the maximum or of responses, 0 for the default 100
+//  keys can be used to limit the result to the given document keys. Use nil to ignore.
+//
 // This returns an empty list if offset is equal or larger than the available nr of documents
 // Note that paging slows performance with larger datasets (100K+) due to sorting of keys
-func (store *KVStore) List(keys []string, limit int32, offset int32) (docs map[string]string, err error) {
+func (store *KVStore) List(limit int, offset int, keys []string) (docs map[string]string, err error) {
 	if limit <= 0 {
-		limit = int32(store.limit)
+		limit = store.limit
 	}
 
 	store.mutex.RLock()
@@ -227,11 +230,11 @@ func (store *KVStore) List(keys []string, limit int32, offset int32) (docs map[s
 //
 // Eg `$[? @.properties.deviceType=="sensor"]`
 //
-//  keys can be used to limit the result to documents with the given keys. Use nil to ignore
 //  jsonPath contains the query for each document.
 //  offset contains the offset in the list of results, sorted by ID
 //  limit contains the maximum or of responses, 0 for the default 100
-func (store *KVStore) Query(jsonPath string, offset int, limit int, keys []string) ([]string, error) {
+//  keys can be used to limit the result to documents with the given keys. Use nil to ignore
+func (store *KVStore) Query(jsonPath string, offset int, limit int, keys []string) (docs []string, err error) {
 	//  "github.com/PaesslerAG/jsonpath" - just works, amazing!
 	// Unfortunately no filter with bracket notation $[? @.["title"]=="my title"]
 	// res, err := jsonpath.Get(jsonPath, store.docs)
@@ -291,8 +294,8 @@ func (store *KVStore) Query(jsonPath string, offset int, limit int, keys []strin
 			}
 		}
 	}
-	// the problem with jp.Get is that it returns an interface and we lose the keys.
-	// Pretty useless in golang.
+	// A big problem with jp.Get is that it returns an interface and we lose the keys.
+	// The only option is to query each document in order to retain the keys. That however affects jsonPath formulation.
 	validDocs := jpExpr.Get(docsToQuery)
 
 	// Apply paging to the result
@@ -315,7 +318,6 @@ func (store *KVStore) Query(jsonPath string, offset int, limit int, keys []strin
 		jsonDocs = append(jsonDocs, string(jsonDoc))
 	}
 
-	// just use the keys and return the docs
 	return jsonDocs, err
 }
 

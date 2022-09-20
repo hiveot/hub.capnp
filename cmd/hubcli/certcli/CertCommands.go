@@ -7,7 +7,6 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/hiveot/hub/internal/folders"
-	"github.com/hiveot/hub/pkg/svc/certsvc/service"
 )
 
 // GetCertCommands returns the certificate handling commands
@@ -35,7 +34,7 @@ func GetCertCommands(homeFolder string) *cli.Command {
 func GetCertCreateCACommand(certFolder string) *cli.Command {
 	var hostname = "localhost"
 	var force = false
-	var validityDays = service.DefaultCACertDurationDays
+	var validityDays = hubapi.DefaultCACertDurationDays
 	return &cli.Command{
 		Name:      "ca",
 		Usage:     "Create Hub CA certificate and key",

@@ -28,7 +28,7 @@ import (
 func CreateServiceCert(
 	serviceID string, names []string, publicKey *ecdsa.PublicKey,
 	caCert *x509.Certificate, caPrivKey *ecdsa.PrivateKey,
-	durationDays int) (cert *x509.Certificate, err error) {
+	validityDays int) (cert *x509.Certificate, err error) {
 
 	if caCert == nil || caPrivKey == nil || names == nil {
 		err := fmt.Errorf("CreateServiceCert: missing argument")
@@ -54,7 +54,7 @@ func CreateServiceCert(
 			CommonName:         serviceID,
 		},
 		NotBefore: time.Now(),
-		NotAfter:  time.Now().AddDate(0, 0, durationDays),
+		NotAfter:  time.Now().AddDate(0, 0, validityDays),
 		//NotBefore: time.Now(),
 		//NotAfter:  time.Now().AddDate(0, 0, config.DefaultServiceCertDurationDays),
 

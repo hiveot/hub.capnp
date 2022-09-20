@@ -12,10 +12,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"google.golang.org/protobuf/encoding/protojson"
 
+	"github.com/hiveot/hub.go/pkg/thing"
 	"github.com/hiveot/hub/internal/kvstore"
-	"github.com/hiveot/hub.grpc/go/thing"
 
 	"github.com/hiveot/hub.go/pkg/vocab"
 )
@@ -47,29 +46,33 @@ const doc2 = `{
 // Create a TD document
 func createTD(id string) *thing.ThingDescription {
 	td := &thing.ThingDescription{
-		Id:         id,
+		ID:         id,
 		Title:      fmt.Sprintf("test TD %s", id),
 		AtType:     string(vocab.DeviceTypeSensor),
 		Properties: make(map[string]*thing.PropertyAffordance),
 		Events:     make(map[string]*thing.EventAffordance),
 	}
 	td.Properties[vocab.PropNameTitle] = &thing.PropertyAffordance{
-		Title:       "Sensor title",
-		Description: "This is a smart sensor",
-		Type:        vocab.WoTDataTypeString,
-		Default:     "Default value",
+		DataSchema: thing.DataSchema{
+			Title:       "Sensor title",
+			Description: "This is a smart sensor",
+			Type:        vocab.WoTDataTypeString,
+			Default:     "Default value",
+		},
 	}
 	td.Properties[vocab.PropNameSoftwareVersion] = &thing.PropertyAffordance{
-		Title:       "Version",
-		Description: "Embedded firmware",
-		Type:        vocab.WoTDataTypeString,
-		Default:     "Default value",
-		Const:       "v1.0",
+		DataSchema: thing.DataSchema{
+			Title:       "Version",
+			Description: "Embedded firmware",
+			Type:        vocab.WoTDataTypeString,
+			Default:     "Default value",
+			Const:       "v1.0",
+		},
 	}
 	td.Events[vocab.PropNameValue] = &thing.EventAffordance{
 		Title:       "Event 1",
 		Description: "Name of this event",
-		Data: &thing.DataSchema{
+		Data: thing.DataSchema{
 			Type:        vocab.WoTDataTypeString,
 			Const:       "123",
 			Title:       "Event name data",
@@ -77,7 +80,7 @@ func createTD(id string) *thing.ThingDescription {
 	}
 	td.Events[vocab.PropNameBattery] = &thing.EventAffordance{
 		Title: "Event 2",
-		Data: &thing.DataSchema{
+		Data: thing.DataSchema{
 			Type:        vocab.WoTDataTypeInteger,
 			Title:       "Battery level",
 			Unit:        vocab.UnitNamePercent,
@@ -99,8 +102,8 @@ func addDocs(store *kvstore.KVStore, count int) error {
 	for i := count; i > 2; i-- {
 		id := fmt.Sprintf("doc-%d", i)
 		td := createTD(id)
-		// td is a protobuf document with protbuf json annotations
-		jsonDoc, _ := protojson.Marshal(td)
+		// td is a capnpro document with json annotations
+		jsonDoc, _ := json.Marshal(td)
 		_ = store.Write(id, string(jsonDoc))
 	}
 	return nil
@@ -208,7 +211,7 @@ func TestList(t *testing.T) {
 	err = addDocs(store, total)
 	require.NoError(t, err)
 
-	resp, err := store.List(nil, 0, 0)
+	resp, err := store.List(0, 0, nil)
 	require.NoError(t, err)
 	assert.Equal(t, total, len(resp))
 }
@@ -222,17 +225,17 @@ func TestListWithLimit(t *testing.T) {
 	err = addDocs(store, total)
 	require.NoError(t, err)
 
-	resp, err := store.List(nil, 10, 20)
+	resp, err := store.List(10, 20, nil)
 	require.NoError(t, err)
 	assert.Equal(t, 10, len(resp))
 
 	// based on count of 100
-	resp, err = store.List(nil, 20, total-10)
+	resp, err = store.List(20, total-10, nil)
 	require.NoError(t, err)
 	assert.Equal(t, 10, len(resp))
 
 	// based on count of 100
-	resp, err = store.List(nil, 0, 105)
+	resp, err = store.List(0, 105, nil)
 	require.NoError(t, err)
 	assert.Equal(t, 0, len(docs))
 }
@@ -335,38 +338,44 @@ func TestQueryBracketNotationB(t *testing.T) {
 	id1 := "thing1"
 	id2 := "thing2"
 	td1 := thing.ThingDescription{
-		Id:         id1,
+		ID:         id1,
 		Title:      "test TD 1",
 		AtType:     string(vocab.DeviceTypeSensor),
 		Properties: make(map[string]*thing.PropertyAffordance),
 	}
 	//td1 := thing.CreateTD(id1, "test TD", vocab.DeviceTypeSensor)
 	td1.Properties[vocab.PropNameTitle] = &thing.PropertyAffordance{
-		Title: "Sensor title",
-		Type:  vocab.WoTDataTypeString,
+		DataSchema: thing.DataSchema{
+			Title: "Sensor title",
+			Type:  vocab.WoTDataTypeString,
+		},
 	}
 	td1.Properties[vocab.PropNameValue] = &thing.PropertyAffordance{
-		Title: "Sensor value",
-		Type:  vocab.WoTDataTypeNumber,
+		DataSchema: thing.DataSchema{
+			Title: "Sensor value",
+			Type:  vocab.WoTDataTypeNumber,
+		},
 	}
 
 	td2 := thing.ThingDescription{
-		Id:         id2,
+		ID:         id2,
 		Title:      "test TD 2",
 		AtType:     string(vocab.DeviceTypeSensor),
 		Properties: make(map[string]*thing.PropertyAffordance),
 	}
 	td2.Properties[vocab.PropNameTitle] = &thing.PropertyAffordance{
-		Title: "The switch",
-		Type:  vocab.WoTDataTypeBool,
+		DataSchema: thing.DataSchema{
+			Title: "The switch",
+			Type:  vocab.WoTDataTypeBool,
+		},
 	}
 
 	store, err := createNewStore()
 	require.NoError(t, err)
 
 	//td1json, err := json.MarshalIndent(td1, "", "")
-	td1json, err := protojson.Marshal(&td1)
-	td2json, err := protojson.Marshal(&td2)
+	td1json, err := json.Marshal(&td1)
+	td2json, err := json.Marshal(&td2)
 	_ = store.Write(id1, string(td1json))
 	err = store.Write(id2, string(td2json))
 	assert.NoError(t, err)
@@ -377,7 +386,7 @@ func TestQueryBracketNotationB(t *testing.T) {
 	require.Equal(t, 2, len(resp))
 
 	var readTD1 thing.ThingDescription
-	err = protojson.Unmarshal([]byte(resp[0]), &readTD1)
+	err = json.Unmarshal([]byte(resp[0]), &readTD1)
 	require.NoError(t, err)
 	read1type := readTD1.AtType
 	assert.Equal(t, string(vocab.DeviceTypeSensor), read1type)
@@ -413,7 +422,7 @@ func TestReadWritePerf(t *testing.T) {
 	for i = 0; i < iterations; i++ {
 		// write
 		docID := fmt.Sprintf("doc-%d", i)
-		tdDoc.Id = docID
+		tdDoc.ID = docID
 		//doc3, _ := json.Marshal(tdDoc)
 		//doc3 := fmt.Sprintf(`{"id":"%s","title":"%s-%d"}`, docID, "Hello ", i)
 		err = store.Write(docID, string(doc3))
@@ -430,7 +439,7 @@ func TestReadWritePerf(t *testing.T) {
 	}
 	d2 := time.Since(t2)
 	t3 := time.Now()
-	resp, err := store.List(nil, 1000, 0)
+	resp, err := store.List(1000, 0, nil)
 	assert.NoError(t, err)
 	require.NotEmpty(t, resp)
 	d3 := time.Since(t3)
@@ -458,7 +467,7 @@ func TestPerfList(t *testing.T) {
 	var i int
 	for i = 0; i < iterations; i++ {
 		// List
-		resp2, err := store.List(nil, listLimit, 0)
+		resp2, err := store.List(listLimit, 0, nil)
 		assert.NoError(t, err)
 		require.NotEmpty(t, resp2)
 	}

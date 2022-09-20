@@ -13,11 +13,9 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"google.golang.org/protobuf/types/known/emptypb"
 
-	"github.com/hiveot/hub.grpc/go/svc"
-	"github.com/hiveot/hub.grpc/go/thing"
-	"github.com/hiveot/hub/pkg/svc/historystore/config"
+	"github.com/hiveot/hub.go/pkg/thing"
+	"github.com/hiveot/hub/pkg/historystore/config"
 )
 
 const TimeStampField = "timestamp"
@@ -26,11 +24,8 @@ const DefaultEventCollectionName = "events"
 const DefaultActionCollectionName = "actions"
 const DefaultLatestCollectionName = "latest"
 
-// MongoHistoryStoreServer implements the svc.HistoryStoreServer interface
-// This store uses MongoDB to store events, actions, and properties in time-series collections.
-//
+// MongoHistoryStoreServer store uses MongoDB to store events, actions, and properties in time-series collections.
 type MongoHistoryStoreServer struct {
-	svc.UnimplementedHistoryStoreServer
 	config config.HistoryStoreConfig
 
 	// Client connection to the data store
@@ -56,62 +51,65 @@ type MongoHistoryStoreServer struct {
 }
 
 // AddAction adds a new action to the history store
-func (srv *MongoHistoryStoreServer) AddAction(ctx context.Context, args *thing.ThingValue) (*emptypb.Empty, error) {
+func (srv *MongoHistoryStoreServer) AddAction(ctx context.Context,
+	actionValue thing.ThingValue) error {
+
 	// Name and ThingID are required fields
-	if args.Name == "" || args.ThingID == "" {
+	if actionValue.Name == "" || actionValue.ThingID == "" {
 		err := fmt.Errorf("missing name or thingID")
 		logrus.Warning(err)
-		return nil, err
+		return err
 	}
-	if args.Created == "" {
-		args.Created = time.Now().UTC().Format(time.RFC3339)
+	if actionValue.Created == "" {
+		actionValue.Created = time.Now().UTC().Format(time.RFC3339)
 	}
 
 	// It would be nice to simply use bson marshal, but that isn't possible as the
 	// required timestamp needs to be added in BSON format.
-	createdTime, err := time.Parse(time.RFC3339, args.Created)
+	createdTime, err := time.Parse(time.RFC3339, actionValue.Created)
 	timestamp := primitive.NewDateTimeFromTime(createdTime)
 	evBson := bson.M{
 		TimeStampField: timestamp,
-		"metadata":     bson.M{"thingID": args.ThingID, "name": args.Name},
-		"name":         args.Name,
-		"thingID":      args.ThingID,
-		"value":        args.Value,
-		"created":      args.Created,
+		"metadata":     bson.M{"thingID": actionValue.ThingID, "name": actionValue.Name},
+		"name":         actionValue.Name,
+		"thingID":      actionValue.ThingID,
+		"value":        actionValue.ValueJSON,
+		"created":      actionValue.Created,
 	}
 	res, err := srv.actionCollection.InsertOne(ctx, evBson)
 	_ = res
-	return nil, err
+	return err
 }
 
 // AddEvent adds a new event to the history store
 // The event 'created' field will be used as timestamp after parsing it using time.RFC3339
-func (srv *MongoHistoryStoreServer) AddEvent(ctx context.Context, event *thing.ThingValue) (*emptypb.Empty, error) {
+func (srv *MongoHistoryStoreServer) AddEvent(
+	ctx context.Context, eventValue thing.ThingValue) error {
 
 	// Name and ThingID are required fields
-	if event.Name == "" || event.ThingID == "" {
+	if eventValue.Name == "" || eventValue.ThingID == "" {
 		err := fmt.Errorf("missing name or thingID")
 		logrus.Warning(err)
-		return nil, err
+		return err
 	}
-	if event.Created == "" {
-		event.Created = time.Now().UTC().Format(time.RFC3339)
+	if eventValue.Created == "" {
+		eventValue.Created = time.Now().UTC().Format(time.RFC3339)
 	}
 
 	// It would be nice to simply use bson marshal, but that isn't possible as the
 	// required timestamp needs to be added in BSON format.
 	//createdTime, err := time.Parse("2006-01-02T15:04:05-07:00", event.Created)
-	createdTime, err := time.Parse(time.RFC3339, event.Created)
+	createdTime, err := time.Parse(time.RFC3339, eventValue.Created)
 	timestamp := primitive.NewDateTimeFromTime(createdTime)
 	evBson := bson.M{
 		TimeStampField: timestamp,
 		//"metadata":     bson.M{"thingID": event.ThingID},
-		//"metadata": bson.M{"thingID": event.ThingID, "name": event.Name},
-		"metadata": bson.M{"name": event.Name},
-		"name":     event.Name,
-		"thingID":  event.ThingID,
-		"value":    event.Value,
-		"created":  event.Created,
+		//"metadata": bson.M{"thingID": thingID, "name": name},
+		"metadata": bson.M{"name": eventValue.Name},
+		"name":     eventValue.Name,
+		"thingID":  eventValue.ThingID,
+		"value":    eventValue.ValueJSON,
+		"created":  eventValue.Created,
 	}
 
 	// TODO: support different granularity by using expireAfterSeconds
@@ -120,7 +118,7 @@ func (srv *MongoHistoryStoreServer) AddEvent(ctx context.Context, event *thing.T
 	_ = res
 	if err != nil {
 		logrus.Error(err)
-		return nil, err
+		return err
 	}
 	//return nil, nil
 
@@ -128,7 +126,7 @@ func (srv *MongoHistoryStoreServer) AddEvent(ctx context.Context, event *thing.T
 	// This collection has a row per thingID with properties for each of the event names.
 	// Unfortunately this doubles the duration of AddEvent :(
 	if srv.useSeparateLatestTable {
-		err = srv.addLatest(ctx, event)
+		err = srv.addLatest(ctx, eventValue)
 
 		//// It is possible that events arrive out of order so the created date must be newer
 		//// than the existing date
@@ -162,22 +160,23 @@ func (srv *MongoHistoryStoreServer) AddEvent(ctx context.Context, event *thing.T
 	if err != nil {
 		logrus.Error(err)
 	}
-	return nil, err
+	return err
 }
 
 // AddEvents performs a bulk update of events
 // The event 'created' field will be used as timestamp after parsing it using time.RFC3339
-func (srv *MongoHistoryStoreServer) AddEvents(ctx context.Context, events *thing.ThingValueList) (*emptypb.Empty, error) {
+func (srv *MongoHistoryStoreServer) AddEvents(ctx context.Context,
+	events []thing.ThingValue) error {
 	evList := make([]interface{}, 0)
 
 	// convert to an array of bson objects
-	for _, event := range events.Values {
+	for _, event := range events {
 
 		// Name and ThingID are required fields
 		if event.Name == "" || event.ThingID == "" {
 			err := fmt.Errorf("missing name or thingID")
 			logrus.Warning(err)
-			return nil, err
+			return err
 		}
 		if event.Created == "" {
 			event.Created = time.Now().UTC().Format(time.RFC3339)
@@ -195,7 +194,7 @@ func (srv *MongoHistoryStoreServer) AddEvents(ctx context.Context, events *thing
 			"metadata": bson.M{"name": event.Name},
 			"name":     event.Name,
 			"thingID":  event.ThingID,
-			"value":    event.Value,
+			"value":    event.ValueJSON,
 			"created":  event.Created,
 		}
 		evList = append(evList, evBson)
@@ -213,8 +212,8 @@ func (srv *MongoHistoryStoreServer) AddEvents(ctx context.Context, events *thing
 	if srv.useSeparateLatestTable {
 		// reduce all samples to those with the highest timestamp for the given thing and value name
 		// build our own latest document for each thingID before updating
-		latestThings := make(map[string]map[string]*thing.ThingValue)
-		for _, event := range events.Values {
+		latestThings := make(map[string]map[string]thing.ThingValue)
+		for _, event := range events {
 			// map of values by thing ID
 			thingValues, found := latestThings[event.ThingID]
 			if found {
@@ -231,7 +230,7 @@ func (srv *MongoHistoryStoreServer) AddEvents(ctx context.Context, events *thing
 				}
 			} else {
 				// this thing is new
-				thingValues = make(map[string]*thing.ThingValue)
+				thingValues = make(map[string]thing.ThingValue)
 				thingValues[event.Name] = event
 				latestThings[event.ThingID] = thingValues
 			}
@@ -242,20 +241,22 @@ func (srv *MongoHistoryStoreServer) AddEvents(ctx context.Context, events *thing
 				err = srv.addLatest(ctx, value)
 				if err != nil {
 					logrus.Error(err)
-					return nil, err
+					return err
 				}
 			}
 		}
 	}
 	if err != nil {
 		logrus.Error(err)
-		return nil, err
+		return err
 	}
-	return nil, nil
+	return nil
 }
 
 // Update the latest record with the new value
-func (srv *MongoHistoryStoreServer) addLatest(ctx context.Context, value *thing.ThingValue) error {
+func (srv *MongoHistoryStoreServer) addLatest(ctx context.Context,
+	value thing.ThingValue) error {
+
 	// It is possible that events arrive out of order so the created date must be newer
 	// than the existing date
 	filter := bson.D{
@@ -309,36 +310,17 @@ func (srv *MongoHistoryStoreServer) Delete() error {
 }
 
 // GetActionHistory returns the action request history of a Thing
-func (srv *MongoHistoryStoreServer) GetActionHistory(ctx context.Context, args *svc.History_Args) (*thing.ThingValueList, error) {
-	var actions = make([]*thing.ThingValue, 0)
+func (srv *MongoHistoryStoreServer) GetActionHistory(ctx context.Context,
+	thingID string, actionName string, after string, before string) ([]thing.ThingValue, error) {
 
-	// Is this the right way to get the data? Why can't it unmarshal directly?
-	filter := bson.M{"thingID": args.ThingID}
-	cursor, err := srv.actionCollection.Find(ctx, filter)
-	defer cursor.Close(ctx)
-	res := &thing.ThingValueList{
-		Values: actions,
-	}
-	for cursor.Next(ctx) {
-		thingAction := thing.ThingValue{}
-		err = cursor.Decode(&thingAction)
-		res.Values = append(res.Values, &thingAction)
-	}
-	return res, err
-}
+	var actions = make([]thing.ThingValue, 0)
 
-// GetEventHistory returns the event history of a Thing
-func (srv *MongoHistoryStoreServer) GetEventHistory(
-	ctx context.Context, args *svc.History_Args) (*thing.ThingValueList, error) {
-	var events = make([]*thing.ThingValue, 0)
-
-	// Is this the right way to get the data?
 	filter := bson.M{
-		"thingID": args.ThingID,
+		"thingID": thingID,
 	}
 
-	if args.After != "" {
-		timeAfter, err := time.Parse(time.RFC3339, args.After)
+	if after != "" {
+		timeAfter, err := time.Parse(time.RFC3339, after)
 		if err != nil {
 			logrus.Infof("Invalid 'After' time: %s", err)
 			return nil, err
@@ -346,8 +328,8 @@ func (srv *MongoHistoryStoreServer) GetEventHistory(
 		timeAfterBson := primitive.NewDateTimeFromTime(timeAfter)
 		filter["after"] = timeAfterBson
 	}
-	if args.Before != "" {
-		timeBefore, err := time.Parse(time.RFC3339, args.Before)
+	if before != "" {
+		timeBefore, err := time.Parse(time.RFC3339, before)
 		if err != nil {
 			logrus.Infof("Invalid 'Before' time: %s", err)
 			return nil, err
@@ -355,29 +337,71 @@ func (srv *MongoHistoryStoreServer) GetEventHistory(
 		timeBeforeBson := primitive.NewDateTimeFromTime(timeBefore)
 		filter["before"] = timeBeforeBson
 	}
-	if args.Name != "" {
-		filter["name"] = args.Name
+	if actionName != "" {
+		filter["name"] = actionName
+	}
+
+	cursor, err := srv.actionCollection.Find(ctx, filter)
+	defer cursor.Close(ctx)
+	//res := make([]thing.ThingValue,0) &thing.ThingValueList{
+	//	Values: actions,
+	//}
+	for cursor.Next(ctx) {
+		actionValue := thing.ThingValue{}
+		err = cursor.Decode(&actionValue)
+		actions = append(actions, actionValue)
+	}
+	return actions, err
+}
+
+// GetEventHistory returns the event history of a Thing
+func (srv *MongoHistoryStoreServer) GetEventHistory(ctx context.Context,
+	thingID string, eventName string, after string, before string) ([]thing.ThingValue, error) {
+	var events = make([]thing.ThingValue, 0)
+
+	// Is this the right way to get the data?
+	filter := bson.M{
+		"thingID": thingID,
+	}
+
+	if after != "" {
+		timeAfter, err := time.Parse(time.RFC3339, after)
+		if err != nil {
+			logrus.Infof("Invalid 'After' time: %s", err)
+			return nil, err
+		}
+		timeAfterBson := primitive.NewDateTimeFromTime(timeAfter)
+		filter["after"] = timeAfterBson
+	}
+	if before != "" {
+		timeBefore, err := time.Parse(time.RFC3339, before)
+		if err != nil {
+			logrus.Infof("Invalid 'Before' time: %s", err)
+			return nil, err
+		}
+		timeBeforeBson := primitive.NewDateTimeFromTime(timeBefore)
+		filter["before"] = timeBeforeBson
+	}
+	if eventName != "" {
+		filter["name"] = eventName
 	}
 	cursor, err := srv.eventCollection.Find(ctx, filter)
 	defer cursor.Close(ctx)
-	res := &thing.ThingValueList{
-		Values: events,
-	}
 	for cursor.Next(ctx) {
-		thingEvent := thing.ThingValue{}
-		err = cursor.Decode(&thingEvent)
-		res.Values = append(res.Values, &thingEvent)
+		eventValue := thing.ThingValue{}
+		err = cursor.Decode(&eventValue)
+		events = append(events, eventValue)
 	}
-	return res, err
+	return events, err
 }
 
 // getLatestValuesFromTimeSeries using aggregate pipeline
 // NOTE: MONGODB DOESN'T SCALE. 1 million records, 100 things, 10 sensor names
 // takes a whopping 10 seconds to complete.
 func (srv *MongoHistoryStoreServer) getLatestValuesFromTimeSeries(
-	ctx context.Context, thingID string) (map[string]*thing.ThingValue, error) {
+	ctx context.Context, thingID string) (map[string]thing.ThingValue, error) {
 
-	values := make(map[string]*thing.ThingValue)
+	values := make(map[string]thing.ThingValue)
 	// equivalent to
 	// db.events.aggregate([
 	//   { $match: { "thingID": "thing-0" } },
@@ -444,7 +468,7 @@ func (srv *MongoHistoryStoreServer) getLatestValuesFromTimeSeries(
 		//one.Decode(&value)
 		err = cursor.Decode(&value)
 		if err == nil {
-			values[value.Name] = &value
+			values[value.Name] = value
 			count++
 		}
 	}
@@ -454,8 +478,9 @@ func (srv *MongoHistoryStoreServer) getLatestValuesFromTimeSeries(
 // getLatestValuesFromCollection using a separate collection to get the latest
 // This is very fast on read but doubles the write time :(
 func (srv *MongoHistoryStoreServer) getLatestValuesFromCollection(
-	ctx context.Context, thingID string) (map[string]*thing.ThingValue, error) {
-	propValues := map[string]*thing.ThingValue{}
+	ctx context.Context, thingID string) (map[string]thing.ThingValue, error) {
+
+	propValues := map[string]thing.ThingValue{}
 
 	filter := bson.M{"thingID": thingID}
 	res := srv.latestCollection.FindOne(ctx, filter)
@@ -476,21 +501,18 @@ func (srv *MongoHistoryStoreServer) getLatestValuesFromCollection(
 
 // GetLatestValues returns the last received event/properties of a Thing
 func (srv *MongoHistoryStoreServer) GetLatestValues(ctx context.Context,
-	args *svc.GetLatest_Args) (*thing.ThingValueMap, error) {
-	var propValues map[string]*thing.ThingValue
+	thingID string) (map[string]thing.ThingValue, error) {
+	var propValues map[string]thing.ThingValue
 	var err error
 
 	if srv.useSeparateLatestTable {
-		propValues, err = srv.getLatestValuesFromCollection(ctx, args.ThingID)
+		propValues, err = srv.getLatestValuesFromCollection(ctx, thingID)
 	} else {
-		propValues, err = srv.getLatestValuesFromTimeSeries(ctx, args.ThingID)
+		propValues, err = srv.getLatestValuesFromTimeSeries(ctx, thingID)
 	}
 	logrus.Infof("found %d different event names", len(propValues))
 
-	result := &thing.ThingValueMap{
-		PropValues: propValues,
-	}
-	return result, err
+	return propValues, err
 }
 
 // setup creates missing collections in the database
@@ -632,7 +654,7 @@ func (srv *MongoHistoryStoreServer) Stop() error {
 // NewMongoHistoryStoreServer creates a service to access events, actions and properties in the store
 // Call Start() when ready to use the store.
 //  dbConfig contains the database connection settings
-func NewMongoHistoryStoreServer(svcConfig config.HistoryStoreConfig) svc.HistoryStoreServer {
+func NewMongoHistoryStoreServer(svcConfig config.HistoryStoreConfig) *MongoHistoryStoreServer {
 
 	if svcConfig.DatabaseName == "" {
 		svcConfig.DatabaseName = DefaultStoreName

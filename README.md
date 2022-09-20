@@ -1,14 +1,14 @@
 # Hive-Of-Things Hub
 
-The Hub for the *Hive of Things* is an intermediary between IoT devices 'Things', services, and consumers using a hub-and-spokes architecture. Consumers interact with Things via the Hub without connecting directly to the Thing device. The Hub uses the [cap'n proto](https://capnproto.org/) for Capabilities based secure communication.
+The Hub for the *Hive of Things* is an intermediary between IoT devices 'Things', IoT services, and consumers using a hub-and-spokes architecture. Consumers interact with Things via the Hub without connecting directly to the IoT devices or services. The Hub uses the [cap'n proto](https://capnproto.org/) for Capabilities based secure communication.
 
 ## Project Status
 
-Status: The status of the Hub is In Development. It is undergoing a rewrite to use **capnp** for infrastructure.
+Status: The status of the Hub is In Development. It is undergoing a rewrite to Capabilities based design using **capnp** for infrastructure.
 
 ## Audience
 
-This project is aimed at software developers and system implementors that are working on secure IoT devices. Users choose to not run servers on Things and instead use a hub and spokes model which greatly reduces the security risk post by traditional IoT devices.
+This project is aimed at software developers and system implementors that are working on secure IoT devices. Users choose to not run servers on Things and instead use a hub and spokes model which greatly reduces the security risk posted by traditional IoT devices.
 
 ## Objectives
 
@@ -16,14 +16,14 @@ This project is aimed at software developers and system implementors that are wo
 
 The state of security of IoT devices is appalling. Many of those devices become part of botnets once exposed to the internet. It is too easy to hack these devices and most of them do not support firmware updates.
 
-The security objective is supported by not allowing direct access to IoT devices and isolate them from the rest of the network. Instead, IoT devices discover and connect to a 'hub' to exchange information through publish and subscribe. Hub services offer 'capabilities' to clients via a 'gateway' proxy service. Capabilities based security ensures that capability can only be used for its intended purpose. Unlike authentication tokens which when compromised offer access to all services of the 
+This security objective is supported by not allowing direct access to IoT devices and isolate them from the rest of the network. Instead, IoT devices discover and connect to a 'hub' to exchange information through publish and subscribe. Hub services offer 'capabilities' to clients via a 'gateway' proxy service. Capabilities based security ensures that capability can only be used for its intended purpose. Unlike authentication tokens which when compromised offer access to all services of the 
 user.
 
 > The HiveOT mandate is: 'Things Do Not Run (TCP) Servers'.
 
 2. The secondary objective is to simplify development of IoT devices for the web of things. 
 
-The HiveOT supports this objective by handling authentication, authorization, logging, tracing, persistence, rate limiting and resiliency. The IoT device only has to send the TD of things it has on board, submit events for changes, and accept actions by subscribing to the Hub.
+The HiveOT Hub supports this objective by handling authentication, authorization, logging, tracing, persistence, rate limiting and resiliency. The IoT device only has to send the TD of things it has on board, submit events for changes, and accept actions by subscribing to the Hub.
 
 3. The third objective is to follow the WoT and other open standard where possible.
 
@@ -32,12 +32,10 @@ HiveOT is based on the [W3C WoT TD 1.1 specification](https://www.w3.org/TR/wot-
 
 ## Summary
 
-This document describes a high level overview of the Hub.
-
 Security is big concern with today's IoT devices. The Internet of Things contains billions of devices that when not properly secured can be hacked. Unfortunately the reality is that the security of many of these devices leaves a lot to be desired. Many devices are vulnerable to attacks and are never upgraded with security patches. This problem is only going to get worse as more IoT devices are coming to market. Imagine a botnet of a billion devices on the Internet ready for use by unscrupulous
 actors.
 
-This 'HiveOT Hub' provides core services to securely interact with IoT devices and consumers. This includes certificate management, authentication, authorization, provisioning, message bus service and directory service.
+This 'HiveOT Hub' provides capabilities to securely interact with IoT devices and consumers. This includes certificate management, authentication, authorization, provisioning, message bus service and directory service.
 
 HiveOT compatible IoT devices (Things) therefore do not need to implement these features. This improves security as IoT devices do not run Web servers and are not directly accessible. They can remain isolated from the wider network and only require an outgoing connection to the Hub. This in turn reduces required device resources such as memory and CPU (and cost). An additional benefit is that consumers receive a consistent user experience independent of the IoT device provider as all
 interaction takes place via the Hub interface.
@@ -51,11 +49,9 @@ Since the Hub acts as the intermediary, it is responsible for features such as a
 
 ## Build
 
-This step can be skipped if you are using the pre-built binaries.
-
 ### Build From Source
 
-To build the core and bundled plugins from source, a Linux system with golang 1.15+ and make tools must be available on the target system. 3rd party plugins are out of scope for these instructions and can require nodejs, python and golang.
+To build the core and bundled plugins from source, a Linux system with golang and make tools must be available on the target system. 3rd party plugins are out of scope for these instructions and can require nodejs, python and golang.
 
 Prerequisites:
 
@@ -78,7 +74,7 @@ The makefile also support a quick install for the current user:
 make install
 ```
 
-This copies the binaries and config to the ~/bin/hivehub location as described in the manual install section below. Executables are always replaced but only new configuration files are installed. Existing configuration remains untouched.
+This copies the binaries and config to the ~/bin/hiveot location as described in the manual install section below. Executables are always replaced but only new configuration files are installed. Existing configuration remains untouched.
 
 Additional plugins are built similarly:
 
@@ -86,7 +82,7 @@ Additional plugins are built similarly:
 $ git clone https://github.com/hiveot/{plugin}
 $ cd {plugin}
 $ make all 
-$ make install                    (to install as user to ~/bin/hivehub/...)
+$ make install                    (to install as user to ~/bin/hiveot/...)
 ```
 
 ## Installation (draft)
@@ -97,7 +93,7 @@ The Hub is designed to run on Linux based computers. It might be able to work on
 
 The Hub can run on most small to large Intel and Arm based systems.
 
-The minimal requirement for the Hub is 100MB of RAM and an Intel Celeron, or ARMv7 CPU. Additional resources might be required for some plugins. See plugin documentation.
+The minimal requirement for the Hub is 100MB of RAM and an Intel Celeron, or ARMv7 CPU. Additional resources might be required for some add-on services. 
 
 ### Install From Package Manager
 
@@ -108,28 +104,28 @@ Installation from package managers is currently not available.
 The Hub can be installed and run as a dedicated user or system user. This section describes to install the Hub in a dedicated user home directory.
 
 0. Download or build the binaries. See the build section for more info.
-1. Create a user, for example a 'hivehub' user. Login as that user.
+1. Create a user, for example a 'hiveot' user. Login as that user.
 2. Create the hub folder structure
 
 ```sh
-mkdir -p ~/bin/hivehub/bin
-mkdir -p ~/bin/hivehub/config
-mkdir -p ~/bin/hivehub/logs 
-mkdir -p ~/bin/hivehub/certs 
-mkdir -p ~/bin/hivehub/certstore
+mkdir -p ~/bin/hiveot/bin
+mkdir -p ~/bin/hiveot/config
+mkdir -p ~/bin/hiveot/logs 
+mkdir -p ~/bin/hiveot/certs 
+mkdir -p ~/bin/hiveot/certstore
 ```
 
-3. Copy the application binaries into the ~/bin/hivehub/bin folder and default configuration in the ~/bin/hivehub/config folder
+3. Copy the application binaries into the ~/bin/hiveot/bin folder and default configuration in the ~/bin/hiveot/config folder
 
 ```sh
-cp bin/* ~/bin/hivehub/bin
-cp config/* ~/bin/hivehub/config
+cp bin/* ~/bin/hiveot/bin
+cp config/* ~/bin/hiveot/config
 ```
 
 4. Generate the certificates using the certs CLI
 
 ```sh
-cd ~/bin/hivehub
+cd ~/bin/hiveot
 bin/certs certbundle   
 ```
 
@@ -139,36 +135,36 @@ bin/certs certbundle
 bin/launcher start
 ```
 
-If desired, this can be started using systemd. Use the init/hivehub.service file.
+If desired, this can be started using systemd. Use the init/hiveot.service file.
 
 ### Install To System (tenative)
 
-For systemd installation to run as user 'hivehub'. When changing the user and folders make sure to edit the init/hivehub.service file accordingly. From the dist folder run:
+For systemd installation to run as user 'hiveot'. When changing the user and folders make sure to edit the init/hiveot.service file accordingly. From the dist folder run:
 
 1. Create the folders and install the files
 
 ```sh
-sudo mkdir /opt/hivehub/
-sudo mkdir -P /etc/hivehub/certs/ 
-sudo mkdir -P /var/lib/hivehub/certstore/ 
-sudo mkdir /var/log/hivehub/   
+sudo mkdir /opt/hiveot/
+sudo mkdir -P /etc/hiveot/certs/ 
+sudo mkdir -P /var/lib/hiveot/certstore/ 
+sudo mkdir /var/log/hiveot/   
 
 # Install HiveOT configuration and systemd
 # download and extract the binaries tarfile in a temp for and copy the files:
-tar -xf hivehub.tgz
-sudo cp config/* /etc/hivehub
-sudo vi /etc/hivehub/hub.yaml    - and edit the config, log, plugin folders
-sudo cp init/hivehub.service /etc/systemd/system
-sudo cp bin/* /opt/hivehub
+tar -xf hiveot.tgz
+sudo cp config/* /etc/hiveot
+sudo vi /etc/hiveot/hub.yaml    - and edit the config, log, plugin folders
+sudo cp init/hiveot.service /etc/systemd/system
+sudo cp bin/* /opt/hiveot
 ```
 
 2. Setup the system user and permissions
 
 ```sh
-sudo adduser --system --no-create-home --home /opt/hivehub --shell /usr/sbin/nologin --group hivehub
-sudo chown -R hivehub:hivehub /etc/hivehub
-sudo chown -R hivehub:hivehub /var/log/hivehub
-sudo chown -R hivehub:hivehub /var/lib/hivehub
+sudo adduser --system --no-create-home --home /opt/hiveot --shell /usr/sbin/nologin --group hiveot
+sudo chown -R hiveot:hiveot /etc/hiveot
+sudo chown -R hiveot:hiveot /var/log/hiveot
+sudo chown -R hiveot:hiveot /var/lib/hiveot
 
 sudo systemctl daemon-reload
 ```
@@ -176,13 +172,13 @@ sudo systemctl daemon-reload
 3. Start the hub
 
 ```sh
-sudo service hivehub start
+sudo service hiveot start
 ```
 
 4Autostart the hub after startup
 
 ```sh
-sudo systemctl enable hivehub
+sudo systemctl enable hiveot
 ```
 
 ## Configuration
@@ -198,18 +194,18 @@ Plugins can have their own plugin specific configuration file in the config fold
 The Hub can be launched manually by invoking the 'launcher' app in the Hub bin folder. eg:
 
 ```shell
-~/bin/hivehub/bin/launcher
+~/bin/hiveot/bin/launcher
 ```
 
 The services to start are defined in the config/launcher.yaml configuration file. When adding services, this file needs to be updated with the new service executable name.
 
-A systemd launcher is provided that can be configured to launch on startup for systemd compatible Linux systems. See 'init/hivehub.service'
+A systemd launcher is provided that can be configured to launch on startup for systemd compatible Linux systems. See 'init/hiveot.service'
 
 ```shell
-sudo cp init/hivehub.service /etc/systemd/system
-sudo vi /etc/systmd/system/hivehub.service      (edit user and working directory)
-sudo systemctl enable hivehub
-sudo systemctl start hivehub
+sudo cp init/hiveot.service /etc/systemd/system
+sudo vi /etc/systmd/system/hiveot.service      (edit user and working directory)
+sudo systemctl enable hiveot
+sudo systemctl start hiveot
 ```
 
 # Contributing

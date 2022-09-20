@@ -1,15 +1,10 @@
 package provcli
 
 import (
-	"context"
 	"fmt"
-	"time"
 
-	"github.com/sirupsen/logrus"
+	"github.com/urfave/cli"
 )
-
-// FIXME: centralize service name, until protobuf supports constants... (hint hint)
-const provisioningAppID = "oobprov"
 
 // GetProvCommands returns the provisioning handling commands
 // This requires the provisioning service to run.
@@ -20,7 +15,7 @@ func GetProvCommands(homeFolder string) *cli.Command {
 
 		Name:  "prov",
 		Usage: "IoT device provisioning",
-		Subcommands: []*cli.Command{
+		Subcommands: cli.Commands{
 			GetProvAddCommand(),
 		},
 	}
@@ -30,9 +25,9 @@ func GetProvCommands(homeFolder string) *cli.Command {
 
 // GetProvAddCommand
 // prov add [--secrets=folder] <deviceID> <oobsecret>
-func GetProvAddCommand() *cli.Command {
+func GetProvAddCommand() cli.Command {
 	provServiceAddress := "localhost:8881"
-	return &cli.Command{
+	return cli.Command{
 		Name:      "add",
 		Usage:     "Add an out-of-band device provisioning secret for automatic provisioning",
 		ArgsUsage: "<deviceID> <oobSecret>",
@@ -71,27 +66,22 @@ func HandleAddOobSecret(address string, deviceID string, secret string) error {
 	//	return err
 	//}
 	//defer daprClient.Close()
-	cred := insecure.NewCredentials()
+	// cred := insecure.NewCredentials()
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-	conn, err := Dial(ctx, address,
-		grpc.WithTransportCredentials(cred),
-		grpc.WithBlock(),
-	)
-	if err != nil {
-		logrus.Errorf("failed to connect: %v", err)
-		return err
-	}
-	defer conn.Close()
-	cl := svc.NewProvisioningClient(conn)
+	// ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+	// conn, err := Dial(ctx, address)
+	// if err != nil {
+	// 	logrus.Errorf("failed to connect: %v", err)
+	// 	return err
+	// }
+	// defer conn.Close()
+	// cl := svc.NewProvisioningClient(conn)
 
-	// The service name tells the sidecar what service to connect to
-	ctx = metadata.AppendToOutgoingContext(ctx, "dapr-app-id", appID)
-	defer cancel()
+	// defer cancel()
 
-	args := &svc.AddOobSecrets_Args{
-		Secrets: make([]*svc.AddOobSecrets_Args_OobSecret, 0),
-	}
-	_, err = cl.AddOobSecrets(ctx, args)
+	// args := &svc.AddOobSecrets_Args{
+	// 	Secrets: make([]*svc.AddOobSecrets_Args_OobSecret, 0),
+	// }
+	// _, err = cl.AddOobSecrets(ctx, args)
 	return err
 }

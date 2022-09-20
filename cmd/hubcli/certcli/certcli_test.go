@@ -12,16 +12,11 @@ import (
 
 	"capnproto.org/go/capnp/v3/rpc"
 	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 
-	svc2 "github.com/hiveot/hub.capnp/go/capnp/svc"
-	pb "github.com/hiveot/hub.grpc/go/svc"
 	"github.com/hiveot/hub/cmd/hubcli/certcli"
+	"github.com/hiveot/hub/pkg/certservice/selfsigned"
 
 	"github.com/hiveot/hub.go/pkg/certsclient"
-	"github.com/hiveot/hub/pkg/svc/certsvc/selfsigned"
-	"github.com/hiveot/hub/pkg/svc/certsvc/service"
 )
 
 func TestGetCommands(t *testing.T) {
@@ -114,41 +109,6 @@ func TestCreateClientCert(t *testing.T) {
 	// assert.Error(t, err)
 
 	_ = os.RemoveAll(tempFolder)
-}
-
-// create a cert using a running gRPC service
-func TestCreateClientCertGRPC(t *testing.T) {
-	clientID := "client"
-	const count = 10000
-
-	address := "unix:///tmp/certsvc.socket"
-	// address = "localhost:8881"
-
-	fmt.Println("Connecting to: ", address)
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*20)
-	defer cancel()
-	conn, _ := grpc.DialContext(ctx, address,
-		grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithBlock())
-	certClient := pb.NewCertServiceClient(conn)
-
-	privKey := certsclient.CreateECDSAKeys()
-	pubKeyPEM, err := certsclient.PublicKeyToPEM(&privKey.PublicKey)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// create the cert
-	t1 := time.Now()
-	for i := 0; i < count; i++ {
-
-		args := &pb.CreateClientCert_Args{ClientID: clientID, PubKeyPEM: pubKeyPEM}
-		resp, err := certClient.CreateClientCert(ctx, args)
-		_ = resp
-		assert.NoError(t, err)
-	}
-	d1 := time.Since(t1)
-	fmt.Printf("HandleCreateClientCert duration of %d calls: %d msec\n", count, d1.Milliseconds())
-
 }
 
 // create a cert using a running capnp service

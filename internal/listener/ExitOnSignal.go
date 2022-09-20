@@ -1,6 +1,7 @@
 package listener
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"os"
@@ -10,9 +11,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// ExitOnSignal invokes the shutdown callback, closes the listener and exits the service when a signal is received
-// This captures notify in a separate goroutine.
-func ExitOnSignal(listener net.Listener, shutdown func()) {
+// ExitOnSignal starts a background process that invokes the shutdown callback,
+// closes the context and listener and exits the service when a signal is received.
+//  release is an optional application release function invoked before the shutdown.
+//
+func ExitOnSignal(ctx context.Context, listener net.Listener, release func()) {
 
 	go func() {
 		// catch all signals since not explicitly listing
@@ -24,11 +27,12 @@ func ExitOnSignal(listener net.Listener, shutdown func()) {
 		sig := <-exitChannel
 		logrus.Warningf("RECEIVED SIGNAL: %s", sig)
 
-		if shutdown != nil {
-			shutdown()
+		if release != nil {
+			release()
 		}
 		fmt.Println("Closing listening socket")
 		listener.Close()
+		ctx.Done()
 		os.Exit(0)
 	}()
 }

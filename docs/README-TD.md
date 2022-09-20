@@ -1,58 +1,36 @@
 # HiveOT use of the TD - under development
 
 HiveOT intends to be compliant with the WoT Thing Description specification.
-The latest known draft at the time of writing
-is [Mar 2022](https://www.w3.org/TR/wot-thing-description11/#thing)
+The latest known draft at the time of writing is [Mar 2022](https://www.w3.org/TR/wot-thing-description11/#thing)
 
-Interpreting this specification is done as a best effort. In case where discrepancies are reported
-they will be corrected when possible as long as they do not conflict with the HiveOT core paradigm
-of 'Things do not run servers'.
+Interpreting this specification is done as a best effort. In case where discrepancies are reported they will be corrected when possible as long as they do not conflict with the HiveOT core paradigm of 'Things do not run servers'.
 
-The WoT specification is closer to a framework than an application. As such it doesn't dictate how
-an application should use it. This document describes how the HiveOT information model and behavior
-maps to the WoT TD.
+The WoT specification is closer to a framework than an application. As such it doesn't dictate how an application should use it. This document describes how the HiveOT information model and behavior maps to the WoT TD.
 
 # HiveOT IoT Device Model
 
 ## I/O Devices, Gateways and Publishers are IoT 'Things'
 
-Most IoT devices are pieces of hardware that have embedded software that manages its behavior.
-Virtual IoT devices are build with software only but are otherwise considered identical to hardware
-devices.
+Most IoT devices are pieces of hardware that have embedded software that manages its behavior. Virtual IoT devices are build with software only but are otherwise considered identical to hardware devices.
 
-IoT devices often fulfill multiple roles: a part provides network access, a part provides access to
-inputs and outputs, a part reports its state, and a part that manages its configuration.
+IoT devices often fulfill multiple roles: a part provides network access, a part provides access to inputs and outputs, a part reports its state, and a part that manages its configuration.
 
-HiveOT makes the following distinction based on the primary role of the device. These are identified
-by their device type:
+HiveOT makes the following distinction based on the primary role of the device. These are identified by their device type:
 
-* A gateway is a Thing that provides access to other independent Things. A Z-Wave controller
-  USB-stick is a gateway that uses the Z-Wave protocol to connect to I/O devices. A gateway is
-  independent of the Things it provides access to and can have its own inputs or outputs. Gateways
-  are often used when integrating with non-HiveOT Things.
-* A publisher is a Thing that publishes other Thing information to the HiveOT Hub. Publishers have
-  their own ID that is included as part of the Thing ID of all Things that it publishes. A publisher
-  has by default authorization to publish and subscribe to the things it is the publisher of.
-  Publishers often are services that convert between the WoT/HiveOT standards and a native protocol.
-* An I/O device is Thing whose primary role is to provide access to inputs and outputs and has its
-  own attributes and configuration. In case of hybrid hardware where attributes and configuration
-  are managed by a parent device then the inputs and outputs are also considered to be part of the
-  parent device.
+* A gateway is a Thing that provides access to other independent Things. A Z-Wave controller USB-stick is a gateway that uses the Z-Wave protocol to connect to I/O devices. A gateway is independent of the Things it provides access to and can have its own inputs or outputs. Gateways are often used when integrating with non-HiveOT Things.
+* A publisher is a Thing that publishes other Thing information to the HiveOT Hub. Publishers have their own ID that is included as part of the Thing ID of all Things that it publishes. A publisher has by default authorization to publish and subscribe to the things it is the publisher of. Publishers often are services that convert between the WoT/HiveOT standards and a native protocol.
+* An I/O device is Thing whose primary role is to provide access to inputs and outputs and has its own attributes and configuration. In case of hybrid hardware where attributes and configuration are managed by a parent device then the inputs and outputs are also considered to be part of the parent device.
 * A Hub bridge is a device that connects two Hubs and shares Thing information between them.
 
 ## Thing Description Document (TD)
 
-The Thing Description document is
-a [W3C WoT standard](https://www.w3.org/TR/wot-thing-description11/#thing) to describe Things. TDs
-that are published on the Hub MUST adhere to this standard and use the JSON representation format.
+The Thing Description document is a [W3C WoT standard](https://www.w3.org/TR/wot-thing-description11/#thing) to describe Things. TDs that are published on the Hub MUST adhere to this standard and use the JSON representation format.
 
-The TD consists of a set of attributes and properties that HiveOT uses to describe HiveOT things and
-their capabilities.
+The TD consists of a set of attributes and properties that HiveOT uses to describe HiveOT things and their capabilities.
 
 ## TD Attributes
 
-TD Attributes that HiveOT uses are as follows. Attributes marked here as optional in WoT are
-recommended in HiveOT:
+TD Attributes that HiveOT uses are as follows. Attributes marked here as optional in WoT are recommended in HiveOT:
 
 | name               | mandatory | description                                    |
 |--------------------|-----------|------------------------------------------------|

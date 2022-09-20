@@ -12,7 +12,6 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub.go/pkg/certsclient"
-	"github.com/hiveot/hub/pkg/svc/certsvc/service"
 )
 
 const CertOrgName = "HiveOT"
@@ -24,9 +23,6 @@ const CertOrgLocality = "HiveOT zone"
 //
 //  temporary set to generate a temporary CA for one-off signing
 func CreateHubCA(validityDays int) (cert *x509.Certificate, key *ecdsa.PrivateKey, err error) {
-	if validityDays == 0 {
-		validityDays = service.DefaultCACertDurationDays
-	}
 
 	// set up our CA certificate
 	// see also: https://superuser.com/questions/738612/openssl-ca-keyusage-extension

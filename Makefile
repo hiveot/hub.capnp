@@ -5,14 +5,21 @@ INSTALL_HOME=~/bin/hiveot
 
 .FORCE: 
 
-all: certsvc historystore hubcli oobprov thingstore   ## Build all services
+all: certs directory gateway history provisioning hubcli    ## Build all services
 
-certsvc: .FORCE ## Build Hub certificate management service
-	# go build -o $(DIST_FOLDER)/bin/$@ ./pkg/svc/certsvc/main.go ./pkg/svc/certsvc/CertServerGRPCAdapter.go 
-	go build -o $(DIST_FOLDER)/bin/$@ ./pkg/svc/certsvc/*.go
+certs: .FORCE ## Build the certificate management service
+	go build -o $(DIST_FOLDER)/bin/$@ ./pkg/certservice/*.go
 	@echo "> Build successful. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@"
 
-historystore: .FORCE ## Build Hub history-store service
+directory: .FORCE ## Build the Thing directory service
+	go build -o $(DIST_FOLDER)/bin/$@ ./pkg/directorystore/main.go
+	@echo "> Build successful. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@"
+
+gatewy: .FORCE ## Build the Hub gateway
+	go build -o $(DIST_FOLDER)/bin/$@ ./pkg/gateway/main.go
+	@echo "> Build successful. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@"
+
+history: .FORCE ## Build the Thing value history service
 	go build -o $(DIST_FOLDER)/bin/$@ ./pkg/svc/historystore/main.go
 	@echo "> Build successful. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@"
 
@@ -20,13 +27,10 @@ hubcli: .FORCE ## Build Hub CLI
 	go build -o $(DIST_FOLDER)/bin/$@ ./cmd/hubcli/main.go
 	@echo "> SUCCESS. The executable '$@' can be found in $(BIN_FOLDER)/$@"
 
-oobprov: .FORCE ## Build Hub out-of-band provisioning service
-	go build -o $(DIST_FOLDER)/bin/$@ ./pkg/svc/oobprov/main.go
+provisioning: .FORCE ## Build Hub provisioning service
+	go build -o $(DIST_FOLDER)/bin/$@ ./pkg/svc/provisioningservice/main.go
 	@echo "> Build successful. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@"
 
-thingstore: .FORCE ## Build Hub thingstore service
-	go build -o $(DIST_FOLDER)/bin/$@ ./pkg/svc/thingstore/main.go
-	@echo "> Build successful. The executable '$@' can be found in $(DIST_FOLDER)/bin/$@"
 
 clean: ## Clean distribution files
 	go mod tidy
