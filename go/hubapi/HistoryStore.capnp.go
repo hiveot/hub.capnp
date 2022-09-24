@@ -16,12 +16,12 @@ type ThingValue capnp.Struct
 const ThingValue_TypeID = 0xe97993dce68f7c8d
 
 func NewThingValue(s *capnp.Segment) (ThingValue, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 3})
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4})
 	return ThingValue(st), err
 }
 
 func NewRootThingValue(s *capnp.Segment) (ThingValue, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 3})
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4})
 	return ThingValue(st), err
 }
 
@@ -57,58 +57,76 @@ func (s ThingValue) Message() *capnp.Message {
 func (s ThingValue) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s ThingValue) Name() (string, error) {
+func (s ThingValue) ThingID() (string, error) {
 	p, err := capnp.Struct(s).Ptr(0)
+	return p.Text(), err
+}
+
+func (s ThingValue) HasThingID() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s ThingValue) ThingIDBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.TextBytes(), err
+}
+
+func (s ThingValue) SetThingID(v string) error {
+	return capnp.Struct(s).SetText(0, v)
+}
+
+func (s ThingValue) Name() (string, error) {
+	p, err := capnp.Struct(s).Ptr(1)
 	return p.Text(), err
 }
 
 func (s ThingValue) HasName() bool {
-	return capnp.Struct(s).HasPtr(0)
+	return capnp.Struct(s).HasPtr(1)
 }
 
 func (s ThingValue) NameBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(0)
+	p, err := capnp.Struct(s).Ptr(1)
 	return p.TextBytes(), err
 }
 
 func (s ThingValue) SetName(v string) error {
-	return capnp.Struct(s).SetText(0, v)
+	return capnp.Struct(s).SetText(1, v)
 }
 
 func (s ThingValue) ValueJSON() (string, error) {
-	p, err := capnp.Struct(s).Ptr(1)
+	p, err := capnp.Struct(s).Ptr(2)
 	return p.Text(), err
 }
 
 func (s ThingValue) HasValueJSON() bool {
-	return capnp.Struct(s).HasPtr(1)
+	return capnp.Struct(s).HasPtr(2)
 }
 
 func (s ThingValue) ValueJSONBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(1)
+	p, err := capnp.Struct(s).Ptr(2)
 	return p.TextBytes(), err
 }
 
 func (s ThingValue) SetValueJSON(v string) error {
-	return capnp.Struct(s).SetText(1, v)
+	return capnp.Struct(s).SetText(2, v)
 }
 
 func (s ThingValue) Created() (string, error) {
-	p, err := capnp.Struct(s).Ptr(2)
+	p, err := capnp.Struct(s).Ptr(3)
 	return p.Text(), err
 }
 
 func (s ThingValue) HasCreated() bool {
-	return capnp.Struct(s).HasPtr(2)
+	return capnp.Struct(s).HasPtr(3)
 }
 
 func (s ThingValue) CreatedBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(2)
+	p, err := capnp.Struct(s).Ptr(3)
 	return p.TextBytes(), err
 }
 
 func (s ThingValue) SetCreated(v string) error {
-	return capnp.Struct(s).SetText(2, v)
+	return capnp.Struct(s).SetText(3, v)
 }
 
 // ThingValue_List is a list of ThingValue.
@@ -116,7 +134,7 @@ type ThingValue_List = capnp.StructList[ThingValue]
 
 // NewThingValue creates a new list of ThingValue.
 func NewThingValue_List(s *capnp.Segment, sz int32) (ThingValue_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 3}, sz)
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4}, sz)
 	return capnp.StructList[ThingValue](l), err
 }
 
@@ -126,6 +144,204 @@ type ThingValue_Future struct{ *capnp.Future }
 func (p ThingValue_Future) Struct() (ThingValue, error) {
 	s, err := p.Future.Struct()
 	return ThingValue(s), err
+}
+
+type ThingValueMap capnp.Struct
+
+// ThingValueMap_TypeID is the unique identifier for the type ThingValueMap.
+const ThingValueMap_TypeID = 0xef0e8705e466c9b5
+
+func NewThingValueMap(s *capnp.Segment) (ThingValueMap, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return ThingValueMap(st), err
+}
+
+func NewRootThingValueMap(s *capnp.Segment) (ThingValueMap, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return ThingValueMap(st), err
+}
+
+func ReadRootThingValueMap(msg *capnp.Message) (ThingValueMap, error) {
+	root, err := msg.Root()
+	return ThingValueMap(root.Struct()), err
+}
+
+func (s ThingValueMap) String() string {
+	str, _ := text.Marshal(0xef0e8705e466c9b5, capnp.Struct(s))
+	return str
+}
+
+func (s ThingValueMap) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (ThingValueMap) DecodeFromPtr(p capnp.Ptr) ThingValueMap {
+	return ThingValueMap(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s ThingValueMap) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s ThingValueMap) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s ThingValueMap) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s ThingValueMap) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s ThingValueMap) Entries() (ThingValueMap_Entry_List, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return ThingValueMap_Entry_List(p.List()), err
+}
+
+func (s ThingValueMap) HasEntries() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s ThingValueMap) SetEntries(v ThingValueMap_Entry_List) error {
+	return capnp.Struct(s).SetPtr(0, v.ToPtr())
+}
+
+// NewEntries sets the entries field to a newly
+// allocated ThingValueMap_Entry_List, preferring placement in s's segment.
+func (s ThingValueMap) NewEntries(n int32) (ThingValueMap_Entry_List, error) {
+	l, err := NewThingValueMap_Entry_List(capnp.Struct(s).Segment(), n)
+	if err != nil {
+		return ThingValueMap_Entry_List{}, err
+	}
+	err = capnp.Struct(s).SetPtr(0, l.ToPtr())
+	return l, err
+}
+
+// ThingValueMap_List is a list of ThingValueMap.
+type ThingValueMap_List = capnp.StructList[ThingValueMap]
+
+// NewThingValueMap creates a new list of ThingValueMap.
+func NewThingValueMap_List(s *capnp.Segment, sz int32) (ThingValueMap_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[ThingValueMap](l), err
+}
+
+// ThingValueMap_Future is a wrapper for a ThingValueMap promised by a client call.
+type ThingValueMap_Future struct{ *capnp.Future }
+
+func (p ThingValueMap_Future) Struct() (ThingValueMap, error) {
+	s, err := p.Future.Struct()
+	return ThingValueMap(s), err
+}
+
+type ThingValueMap_Entry capnp.Struct
+
+// ThingValueMap_Entry_TypeID is the unique identifier for the type ThingValueMap_Entry.
+const ThingValueMap_Entry_TypeID = 0xf7ae792774c9c028
+
+func NewThingValueMap_Entry(s *capnp.Segment) (ThingValueMap_Entry, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	return ThingValueMap_Entry(st), err
+}
+
+func NewRootThingValueMap_Entry(s *capnp.Segment) (ThingValueMap_Entry, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	return ThingValueMap_Entry(st), err
+}
+
+func ReadRootThingValueMap_Entry(msg *capnp.Message) (ThingValueMap_Entry, error) {
+	root, err := msg.Root()
+	return ThingValueMap_Entry(root.Struct()), err
+}
+
+func (s ThingValueMap_Entry) String() string {
+	str, _ := text.Marshal(0xf7ae792774c9c028, capnp.Struct(s))
+	return str
+}
+
+func (s ThingValueMap_Entry) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (ThingValueMap_Entry) DecodeFromPtr(p capnp.Ptr) ThingValueMap_Entry {
+	return ThingValueMap_Entry(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s ThingValueMap_Entry) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s ThingValueMap_Entry) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s ThingValueMap_Entry) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s ThingValueMap_Entry) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s ThingValueMap_Entry) Key() (string, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.Text(), err
+}
+
+func (s ThingValueMap_Entry) HasKey() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s ThingValueMap_Entry) KeyBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.TextBytes(), err
+}
+
+func (s ThingValueMap_Entry) SetKey(v string) error {
+	return capnp.Struct(s).SetText(0, v)
+}
+
+func (s ThingValueMap_Entry) Value() (ThingValue, error) {
+	p, err := capnp.Struct(s).Ptr(1)
+	return ThingValue(p.Struct()), err
+}
+
+func (s ThingValueMap_Entry) HasValue() bool {
+	return capnp.Struct(s).HasPtr(1)
+}
+
+func (s ThingValueMap_Entry) SetValue(v ThingValue) error {
+	return capnp.Struct(s).SetPtr(1, capnp.Struct(v).ToPtr())
+}
+
+// NewValue sets the value field to a newly
+// allocated ThingValue struct, preferring placement in s's segment.
+func (s ThingValueMap_Entry) NewValue() (ThingValue, error) {
+	ss, err := NewThingValue(capnp.Struct(s).Segment())
+	if err != nil {
+		return ThingValue{}, err
+	}
+	err = capnp.Struct(s).SetPtr(1, capnp.Struct(ss).ToPtr())
+	return ss, err
+}
+
+// ThingValueMap_Entry_List is a list of ThingValueMap_Entry.
+type ThingValueMap_Entry_List = capnp.StructList[ThingValueMap_Entry]
+
+// NewThingValueMap_Entry creates a new list of ThingValueMap_Entry.
+func NewThingValueMap_Entry_List(s *capnp.Segment, sz int32) (ThingValueMap_Entry_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
+	return capnp.StructList[ThingValueMap_Entry](l), err
+}
+
+// ThingValueMap_Entry_Future is a wrapper for a ThingValueMap_Entry promised by a client call.
+type ThingValueMap_Entry_Future struct{ *capnp.Future }
+
+func (p ThingValueMap_Entry_Future) Struct() (ThingValueMap_Entry, error) {
+	s, err := p.Future.Struct()
+	return ThingValueMap_Entry(s), err
+}
+
+func (p ThingValueMap_Entry_Future) Value() ThingValue_Future {
+	return ThingValue_Future{Future: p.Future.Field(1, nil)}
 }
 
 type StoreInfo capnp.Struct
@@ -249,7 +465,7 @@ func (c HistoryStore) AddAction(ctx context.Context, params func(HistoryStore_ad
 		},
 	}
 	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 4}
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
 		s.PlaceArgs = func(s capnp.Struct) error { return params(HistoryStore_addAction_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
@@ -265,17 +481,33 @@ func (c HistoryStore) AddEvent(ctx context.Context, params func(HistoryStore_add
 		},
 	}
 	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 4}
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
 		s.PlaceArgs = func(s capnp.Struct) error { return params(HistoryStore_addEvent_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
 	return HistoryStore_addEvent_Results_Future{Future: ans.Future()}, release
 }
-func (c HistoryStore) GetActionHistory(ctx context.Context, params func(HistoryStore_getActionHistory_Params) error) (HistoryStore_getActionHistory_Results_Future, capnp.ReleaseFunc) {
+func (c HistoryStore) AddEvents(ctx context.Context, params func(HistoryStore_addEvents_Params) error) (HistoryStore_addEvents_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
 			InterfaceID:   0xde37c4f7e9846915,
 			MethodID:      2,
+			InterfaceName: "hubapi/HistoryStore.capnp:HistoryStore",
+			MethodName:    "addEvents",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(HistoryStore_addEvents_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return HistoryStore_addEvents_Results_Future{Future: ans.Future()}, release
+}
+func (c HistoryStore) GetActionHistory(ctx context.Context, params func(HistoryStore_getActionHistory_Params) error) (HistoryStore_getActionHistory_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xde37c4f7e9846915,
+			MethodID:      3,
 			InterfaceName: "hubapi/HistoryStore.capnp:HistoryStore",
 			MethodName:    "getActionHistory",
 		},
@@ -291,7 +523,7 @@ func (c HistoryStore) GetEventHistory(ctx context.Context, params func(HistorySt
 	s := capnp.Send{
 		Method: capnp.Method{
 			InterfaceID:   0xde37c4f7e9846915,
-			MethodID:      3,
+			MethodID:      4,
 			InterfaceName: "hubapi/HistoryStore.capnp:HistoryStore",
 			MethodName:    "getEventHistory",
 		},
@@ -303,11 +535,27 @@ func (c HistoryStore) GetEventHistory(ctx context.Context, params func(HistorySt
 	ans, release := capnp.Client(c).SendCall(ctx, s)
 	return HistoryStore_getEventHistory_Results_Future{Future: ans.Future()}, release
 }
+func (c HistoryStore) GetLatestEvents(ctx context.Context, params func(HistoryStore_getLatestEvents_Params) error) (HistoryStore_getLatestEvents_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xde37c4f7e9846915,
+			MethodID:      5,
+			InterfaceName: "hubapi/HistoryStore.capnp:HistoryStore",
+			MethodName:    "getLatestEvents",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(HistoryStore_getLatestEvents_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return HistoryStore_getLatestEvents_Results_Future{Future: ans.Future()}, release
+}
 func (c HistoryStore) Info(ctx context.Context, params func(HistoryStore_info_Params) error) (HistoryStore_info_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
 			InterfaceID:   0xde37c4f7e9846915,
-			MethodID:      4,
+			MethodID:      6,
 			InterfaceName: "hubapi/HistoryStore.capnp:HistoryStore",
 			MethodName:    "info",
 		},
@@ -346,9 +594,13 @@ type HistoryStore_Server interface {
 
 	AddEvent(context.Context, HistoryStore_addEvent) error
 
+	AddEvents(context.Context, HistoryStore_addEvents) error
+
 	GetActionHistory(context.Context, HistoryStore_getActionHistory) error
 
 	GetEventHistory(context.Context, HistoryStore_getEventHistory) error
+
+	GetLatestEvents(context.Context, HistoryStore_getLatestEvents) error
 
 	Info(context.Context, HistoryStore_info) error
 }
@@ -369,7 +621,7 @@ func HistoryStore_ServerToClient(s HistoryStore_Server) HistoryStore {
 // This can be used to create a more complicated Server.
 func HistoryStore_Methods(methods []server.Method, s HistoryStore_Server) []server.Method {
 	if cap(methods) == 0 {
-		methods = make([]server.Method, 0, 5)
+		methods = make([]server.Method, 0, 7)
 	}
 
 	methods = append(methods, server.Method{
@@ -401,6 +653,18 @@ func HistoryStore_Methods(methods []server.Method, s HistoryStore_Server) []serv
 			InterfaceID:   0xde37c4f7e9846915,
 			MethodID:      2,
 			InterfaceName: "hubapi/HistoryStore.capnp:HistoryStore",
+			MethodName:    "addEvents",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.AddEvents(ctx, HistoryStore_addEvents{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xde37c4f7e9846915,
+			MethodID:      3,
+			InterfaceName: "hubapi/HistoryStore.capnp:HistoryStore",
 			MethodName:    "getActionHistory",
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
@@ -411,7 +675,7 @@ func HistoryStore_Methods(methods []server.Method, s HistoryStore_Server) []serv
 	methods = append(methods, server.Method{
 		Method: capnp.Method{
 			InterfaceID:   0xde37c4f7e9846915,
-			MethodID:      3,
+			MethodID:      4,
 			InterfaceName: "hubapi/HistoryStore.capnp:HistoryStore",
 			MethodName:    "getEventHistory",
 		},
@@ -423,7 +687,19 @@ func HistoryStore_Methods(methods []server.Method, s HistoryStore_Server) []serv
 	methods = append(methods, server.Method{
 		Method: capnp.Method{
 			InterfaceID:   0xde37c4f7e9846915,
-			MethodID:      4,
+			MethodID:      5,
+			InterfaceName: "hubapi/HistoryStore.capnp:HistoryStore",
+			MethodName:    "getLatestEvents",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.GetLatestEvents(ctx, HistoryStore_getLatestEvents{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xde37c4f7e9846915,
+			MethodID:      6,
 			InterfaceName: "hubapi/HistoryStore.capnp:HistoryStore",
 			MethodName:    "info",
 		},
@@ -469,6 +745,23 @@ func (c HistoryStore_addEvent) AllocResults() (HistoryStore_addEvent_Results, er
 	return HistoryStore_addEvent_Results(r), err
 }
 
+// HistoryStore_addEvents holds the state for a server call to HistoryStore.addEvents.
+// See server.Call for documentation.
+type HistoryStore_addEvents struct {
+	*server.Call
+}
+
+// Args returns the call's arguments.
+func (c HistoryStore_addEvents) Args() HistoryStore_addEvents_Params {
+	return HistoryStore_addEvents_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c HistoryStore_addEvents) AllocResults() (HistoryStore_addEvents_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return HistoryStore_addEvents_Results(r), err
+}
+
 // HistoryStore_getActionHistory holds the state for a server call to HistoryStore.getActionHistory.
 // See server.Call for documentation.
 type HistoryStore_getActionHistory struct {
@@ -503,6 +796,23 @@ func (c HistoryStore_getEventHistory) AllocResults() (HistoryStore_getEventHisto
 	return HistoryStore_getEventHistory_Results(r), err
 }
 
+// HistoryStore_getLatestEvents holds the state for a server call to HistoryStore.getLatestEvents.
+// See server.Call for documentation.
+type HistoryStore_getLatestEvents struct {
+	*server.Call
+}
+
+// Args returns the call's arguments.
+func (c HistoryStore_getLatestEvents) Args() HistoryStore_getLatestEvents_Params {
+	return HistoryStore_getLatestEvents_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c HistoryStore_getLatestEvents) AllocResults() (HistoryStore_getLatestEvents_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return HistoryStore_getLatestEvents_Results(r), err
+}
+
 // HistoryStore_info holds the state for a server call to HistoryStore.info.
 // See server.Call for documentation.
 type HistoryStore_info struct {
@@ -535,12 +845,12 @@ type HistoryStore_addAction_Params capnp.Struct
 const HistoryStore_addAction_Params_TypeID = 0xe0c0af2032e40266
 
 func NewHistoryStore_addAction_Params(s *capnp.Segment) (HistoryStore_addAction_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4})
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
 	return HistoryStore_addAction_Params(st), err
 }
 
 func NewRootHistoryStore_addAction_Params(s *capnp.Segment) (HistoryStore_addAction_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4})
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
 	return HistoryStore_addAction_Params(st), err
 }
 
@@ -576,76 +886,28 @@ func (s HistoryStore_addAction_Params) Message() *capnp.Message {
 func (s HistoryStore_addAction_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s HistoryStore_addAction_Params) ThingID() (string, error) {
+func (s HistoryStore_addAction_Params) ActionValue() (ThingValue, error) {
 	p, err := capnp.Struct(s).Ptr(0)
-	return p.Text(), err
+	return ThingValue(p.Struct()), err
 }
 
-func (s HistoryStore_addAction_Params) HasThingID() bool {
+func (s HistoryStore_addAction_Params) HasActionValue() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s HistoryStore_addAction_Params) ThingIDBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.TextBytes(), err
+func (s HistoryStore_addAction_Params) SetActionValue(v ThingValue) error {
+	return capnp.Struct(s).SetPtr(0, capnp.Struct(v).ToPtr())
 }
 
-func (s HistoryStore_addAction_Params) SetThingID(v string) error {
-	return capnp.Struct(s).SetText(0, v)
-}
-
-func (s HistoryStore_addAction_Params) Name() (string, error) {
-	p, err := capnp.Struct(s).Ptr(1)
-	return p.Text(), err
-}
-
-func (s HistoryStore_addAction_Params) HasName() bool {
-	return capnp.Struct(s).HasPtr(1)
-}
-
-func (s HistoryStore_addAction_Params) NameBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(1)
-	return p.TextBytes(), err
-}
-
-func (s HistoryStore_addAction_Params) SetName(v string) error {
-	return capnp.Struct(s).SetText(1, v)
-}
-
-func (s HistoryStore_addAction_Params) ValueJSON() (string, error) {
-	p, err := capnp.Struct(s).Ptr(2)
-	return p.Text(), err
-}
-
-func (s HistoryStore_addAction_Params) HasValueJSON() bool {
-	return capnp.Struct(s).HasPtr(2)
-}
-
-func (s HistoryStore_addAction_Params) ValueJSONBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(2)
-	return p.TextBytes(), err
-}
-
-func (s HistoryStore_addAction_Params) SetValueJSON(v string) error {
-	return capnp.Struct(s).SetText(2, v)
-}
-
-func (s HistoryStore_addAction_Params) Created() (string, error) {
-	p, err := capnp.Struct(s).Ptr(3)
-	return p.Text(), err
-}
-
-func (s HistoryStore_addAction_Params) HasCreated() bool {
-	return capnp.Struct(s).HasPtr(3)
-}
-
-func (s HistoryStore_addAction_Params) CreatedBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(3)
-	return p.TextBytes(), err
-}
-
-func (s HistoryStore_addAction_Params) SetCreated(v string) error {
-	return capnp.Struct(s).SetText(3, v)
+// NewActionValue sets the actionValue field to a newly
+// allocated ThingValue struct, preferring placement in s's segment.
+func (s HistoryStore_addAction_Params) NewActionValue() (ThingValue, error) {
+	ss, err := NewThingValue(capnp.Struct(s).Segment())
+	if err != nil {
+		return ThingValue{}, err
+	}
+	err = capnp.Struct(s).SetPtr(0, capnp.Struct(ss).ToPtr())
+	return ss, err
 }
 
 // HistoryStore_addAction_Params_List is a list of HistoryStore_addAction_Params.
@@ -653,7 +915,7 @@ type HistoryStore_addAction_Params_List = capnp.StructList[HistoryStore_addActio
 
 // NewHistoryStore_addAction_Params creates a new list of HistoryStore_addAction_Params.
 func NewHistoryStore_addAction_Params_List(s *capnp.Segment, sz int32) (HistoryStore_addAction_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4}, sz)
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
 	return capnp.StructList[HistoryStore_addAction_Params](l), err
 }
 
@@ -663,6 +925,10 @@ type HistoryStore_addAction_Params_Future struct{ *capnp.Future }
 func (p HistoryStore_addAction_Params_Future) Struct() (HistoryStore_addAction_Params, error) {
 	s, err := p.Future.Struct()
 	return HistoryStore_addAction_Params(s), err
+}
+
+func (p HistoryStore_addAction_Params_Future) ActionValue() ThingValue_Future {
+	return ThingValue_Future{Future: p.Future.Field(0, nil)}
 }
 
 type HistoryStore_addAction_Results capnp.Struct
@@ -736,12 +1002,12 @@ type HistoryStore_addEvent_Params capnp.Struct
 const HistoryStore_addEvent_Params_TypeID = 0xd8f9594c2b743d06
 
 func NewHistoryStore_addEvent_Params(s *capnp.Segment) (HistoryStore_addEvent_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4})
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
 	return HistoryStore_addEvent_Params(st), err
 }
 
 func NewRootHistoryStore_addEvent_Params(s *capnp.Segment) (HistoryStore_addEvent_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4})
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
 	return HistoryStore_addEvent_Params(st), err
 }
 
@@ -777,76 +1043,28 @@ func (s HistoryStore_addEvent_Params) Message() *capnp.Message {
 func (s HistoryStore_addEvent_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s HistoryStore_addEvent_Params) ThingID() (string, error) {
+func (s HistoryStore_addEvent_Params) EventValue() (ThingValue, error) {
 	p, err := capnp.Struct(s).Ptr(0)
-	return p.Text(), err
+	return ThingValue(p.Struct()), err
 }
 
-func (s HistoryStore_addEvent_Params) HasThingID() bool {
+func (s HistoryStore_addEvent_Params) HasEventValue() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s HistoryStore_addEvent_Params) ThingIDBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.TextBytes(), err
+func (s HistoryStore_addEvent_Params) SetEventValue(v ThingValue) error {
+	return capnp.Struct(s).SetPtr(0, capnp.Struct(v).ToPtr())
 }
 
-func (s HistoryStore_addEvent_Params) SetThingID(v string) error {
-	return capnp.Struct(s).SetText(0, v)
-}
-
-func (s HistoryStore_addEvent_Params) Name() (string, error) {
-	p, err := capnp.Struct(s).Ptr(1)
-	return p.Text(), err
-}
-
-func (s HistoryStore_addEvent_Params) HasName() bool {
-	return capnp.Struct(s).HasPtr(1)
-}
-
-func (s HistoryStore_addEvent_Params) NameBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(1)
-	return p.TextBytes(), err
-}
-
-func (s HistoryStore_addEvent_Params) SetName(v string) error {
-	return capnp.Struct(s).SetText(1, v)
-}
-
-func (s HistoryStore_addEvent_Params) ValueJSON() (string, error) {
-	p, err := capnp.Struct(s).Ptr(2)
-	return p.Text(), err
-}
-
-func (s HistoryStore_addEvent_Params) HasValueJSON() bool {
-	return capnp.Struct(s).HasPtr(2)
-}
-
-func (s HistoryStore_addEvent_Params) ValueJSONBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(2)
-	return p.TextBytes(), err
-}
-
-func (s HistoryStore_addEvent_Params) SetValueJSON(v string) error {
-	return capnp.Struct(s).SetText(2, v)
-}
-
-func (s HistoryStore_addEvent_Params) Created() (string, error) {
-	p, err := capnp.Struct(s).Ptr(3)
-	return p.Text(), err
-}
-
-func (s HistoryStore_addEvent_Params) HasCreated() bool {
-	return capnp.Struct(s).HasPtr(3)
-}
-
-func (s HistoryStore_addEvent_Params) CreatedBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(3)
-	return p.TextBytes(), err
-}
-
-func (s HistoryStore_addEvent_Params) SetCreated(v string) error {
-	return capnp.Struct(s).SetText(3, v)
+// NewEventValue sets the eventValue field to a newly
+// allocated ThingValue struct, preferring placement in s's segment.
+func (s HistoryStore_addEvent_Params) NewEventValue() (ThingValue, error) {
+	ss, err := NewThingValue(capnp.Struct(s).Segment())
+	if err != nil {
+		return ThingValue{}, err
+	}
+	err = capnp.Struct(s).SetPtr(0, capnp.Struct(ss).ToPtr())
+	return ss, err
 }
 
 // HistoryStore_addEvent_Params_List is a list of HistoryStore_addEvent_Params.
@@ -854,7 +1072,7 @@ type HistoryStore_addEvent_Params_List = capnp.StructList[HistoryStore_addEvent_
 
 // NewHistoryStore_addEvent_Params creates a new list of HistoryStore_addEvent_Params.
 func NewHistoryStore_addEvent_Params_List(s *capnp.Segment, sz int32) (HistoryStore_addEvent_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4}, sz)
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
 	return capnp.StructList[HistoryStore_addEvent_Params](l), err
 }
 
@@ -864,6 +1082,10 @@ type HistoryStore_addEvent_Params_Future struct{ *capnp.Future }
 func (p HistoryStore_addEvent_Params_Future) Struct() (HistoryStore_addEvent_Params, error) {
 	s, err := p.Future.Struct()
 	return HistoryStore_addEvent_Params(s), err
+}
+
+func (p HistoryStore_addEvent_Params_Future) EventValue() ThingValue_Future {
+	return ThingValue_Future{Future: p.Future.Field(0, nil)}
 }
 
 type HistoryStore_addEvent_Results capnp.Struct
@@ -931,10 +1153,163 @@ func (p HistoryStore_addEvent_Results_Future) Struct() (HistoryStore_addEvent_Re
 	return HistoryStore_addEvent_Results(s), err
 }
 
+type HistoryStore_addEvents_Params capnp.Struct
+
+// HistoryStore_addEvents_Params_TypeID is the unique identifier for the type HistoryStore_addEvents_Params.
+const HistoryStore_addEvents_Params_TypeID = 0xd18cac01b2322503
+
+func NewHistoryStore_addEvents_Params(s *capnp.Segment) (HistoryStore_addEvents_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return HistoryStore_addEvents_Params(st), err
+}
+
+func NewRootHistoryStore_addEvents_Params(s *capnp.Segment) (HistoryStore_addEvents_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return HistoryStore_addEvents_Params(st), err
+}
+
+func ReadRootHistoryStore_addEvents_Params(msg *capnp.Message) (HistoryStore_addEvents_Params, error) {
+	root, err := msg.Root()
+	return HistoryStore_addEvents_Params(root.Struct()), err
+}
+
+func (s HistoryStore_addEvents_Params) String() string {
+	str, _ := text.Marshal(0xd18cac01b2322503, capnp.Struct(s))
+	return str
+}
+
+func (s HistoryStore_addEvents_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (HistoryStore_addEvents_Params) DecodeFromPtr(p capnp.Ptr) HistoryStore_addEvents_Params {
+	return HistoryStore_addEvents_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s HistoryStore_addEvents_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s HistoryStore_addEvents_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s HistoryStore_addEvents_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s HistoryStore_addEvents_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s HistoryStore_addEvents_Params) EventValues() (ThingValue_List, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return ThingValue_List(p.List()), err
+}
+
+func (s HistoryStore_addEvents_Params) HasEventValues() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s HistoryStore_addEvents_Params) SetEventValues(v ThingValue_List) error {
+	return capnp.Struct(s).SetPtr(0, v.ToPtr())
+}
+
+// NewEventValues sets the eventValues field to a newly
+// allocated ThingValue_List, preferring placement in s's segment.
+func (s HistoryStore_addEvents_Params) NewEventValues(n int32) (ThingValue_List, error) {
+	l, err := NewThingValue_List(capnp.Struct(s).Segment(), n)
+	if err != nil {
+		return ThingValue_List{}, err
+	}
+	err = capnp.Struct(s).SetPtr(0, l.ToPtr())
+	return l, err
+}
+
+// HistoryStore_addEvents_Params_List is a list of HistoryStore_addEvents_Params.
+type HistoryStore_addEvents_Params_List = capnp.StructList[HistoryStore_addEvents_Params]
+
+// NewHistoryStore_addEvents_Params creates a new list of HistoryStore_addEvents_Params.
+func NewHistoryStore_addEvents_Params_List(s *capnp.Segment, sz int32) (HistoryStore_addEvents_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[HistoryStore_addEvents_Params](l), err
+}
+
+// HistoryStore_addEvents_Params_Future is a wrapper for a HistoryStore_addEvents_Params promised by a client call.
+type HistoryStore_addEvents_Params_Future struct{ *capnp.Future }
+
+func (p HistoryStore_addEvents_Params_Future) Struct() (HistoryStore_addEvents_Params, error) {
+	s, err := p.Future.Struct()
+	return HistoryStore_addEvents_Params(s), err
+}
+
+type HistoryStore_addEvents_Results capnp.Struct
+
+// HistoryStore_addEvents_Results_TypeID is the unique identifier for the type HistoryStore_addEvents_Results.
+const HistoryStore_addEvents_Results_TypeID = 0x8672c1e5677e79ed
+
+func NewHistoryStore_addEvents_Results(s *capnp.Segment) (HistoryStore_addEvents_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return HistoryStore_addEvents_Results(st), err
+}
+
+func NewRootHistoryStore_addEvents_Results(s *capnp.Segment) (HistoryStore_addEvents_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return HistoryStore_addEvents_Results(st), err
+}
+
+func ReadRootHistoryStore_addEvents_Results(msg *capnp.Message) (HistoryStore_addEvents_Results, error) {
+	root, err := msg.Root()
+	return HistoryStore_addEvents_Results(root.Struct()), err
+}
+
+func (s HistoryStore_addEvents_Results) String() string {
+	str, _ := text.Marshal(0x8672c1e5677e79ed, capnp.Struct(s))
+	return str
+}
+
+func (s HistoryStore_addEvents_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (HistoryStore_addEvents_Results) DecodeFromPtr(p capnp.Ptr) HistoryStore_addEvents_Results {
+	return HistoryStore_addEvents_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s HistoryStore_addEvents_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s HistoryStore_addEvents_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s HistoryStore_addEvents_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s HistoryStore_addEvents_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+
+// HistoryStore_addEvents_Results_List is a list of HistoryStore_addEvents_Results.
+type HistoryStore_addEvents_Results_List = capnp.StructList[HistoryStore_addEvents_Results]
+
+// NewHistoryStore_addEvents_Results creates a new list of HistoryStore_addEvents_Results.
+func NewHistoryStore_addEvents_Results_List(s *capnp.Segment, sz int32) (HistoryStore_addEvents_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
+	return capnp.StructList[HistoryStore_addEvents_Results](l), err
+}
+
+// HistoryStore_addEvents_Results_Future is a wrapper for a HistoryStore_addEvents_Results promised by a client call.
+type HistoryStore_addEvents_Results_Future struct{ *capnp.Future }
+
+func (p HistoryStore_addEvents_Results_Future) Struct() (HistoryStore_addEvents_Results, error) {
+	s, err := p.Future.Struct()
+	return HistoryStore_addEvents_Results(s), err
+}
+
 type HistoryStore_getActionHistory_Params capnp.Struct
 
 // HistoryStore_getActionHistory_Params_TypeID is the unique identifier for the type HistoryStore_getActionHistory_Params.
-const HistoryStore_getActionHistory_Params_TypeID = 0xd18cac01b2322503
+const HistoryStore_getActionHistory_Params_TypeID = 0x9350201b82769348
 
 func NewHistoryStore_getActionHistory_Params(s *capnp.Segment) (HistoryStore_getActionHistory_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 4})
@@ -952,7 +1327,7 @@ func ReadRootHistoryStore_getActionHistory_Params(msg *capnp.Message) (HistorySt
 }
 
 func (s HistoryStore_getActionHistory_Params) String() string {
-	str, _ := text.Marshal(0xd18cac01b2322503, capnp.Struct(s))
+	str, _ := text.Marshal(0x9350201b82769348, capnp.Struct(s))
 	return str
 }
 
@@ -1078,7 +1453,7 @@ func (p HistoryStore_getActionHistory_Params_Future) Struct() (HistoryStore_getA
 type HistoryStore_getActionHistory_Results capnp.Struct
 
 // HistoryStore_getActionHistory_Results_TypeID is the unique identifier for the type HistoryStore_getActionHistory_Results.
-const HistoryStore_getActionHistory_Results_TypeID = 0x8672c1e5677e79ed
+const HistoryStore_getActionHistory_Results_TypeID = 0xb6b01c847d707c31
 
 func NewHistoryStore_getActionHistory_Results(s *capnp.Segment) (HistoryStore_getActionHistory_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
@@ -1096,7 +1471,7 @@ func ReadRootHistoryStore_getActionHistory_Results(msg *capnp.Message) (HistoryS
 }
 
 func (s HistoryStore_getActionHistory_Results) String() string {
-	str, _ := text.Marshal(0x8672c1e5677e79ed, capnp.Struct(s))
+	str, _ := text.Marshal(0xb6b01c847d707c31, capnp.Struct(s))
 	return str
 }
 
@@ -1166,7 +1541,7 @@ func (p HistoryStore_getActionHistory_Results_Future) Struct() (HistoryStore_get
 type HistoryStore_getEventHistory_Params capnp.Struct
 
 // HistoryStore_getEventHistory_Params_TypeID is the unique identifier for the type HistoryStore_getEventHistory_Params.
-const HistoryStore_getEventHistory_Params_TypeID = 0x9350201b82769348
+const HistoryStore_getEventHistory_Params_TypeID = 0xd4f0e52db20e0ec3
 
 func NewHistoryStore_getEventHistory_Params(s *capnp.Segment) (HistoryStore_getEventHistory_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 4})
@@ -1184,7 +1559,7 @@ func ReadRootHistoryStore_getEventHistory_Params(msg *capnp.Message) (HistorySto
 }
 
 func (s HistoryStore_getEventHistory_Params) String() string {
-	str, _ := text.Marshal(0x9350201b82769348, capnp.Struct(s))
+	str, _ := text.Marshal(0xd4f0e52db20e0ec3, capnp.Struct(s))
 	return str
 }
 
@@ -1310,7 +1685,7 @@ func (p HistoryStore_getEventHistory_Params_Future) Struct() (HistoryStore_getEv
 type HistoryStore_getEventHistory_Results capnp.Struct
 
 // HistoryStore_getEventHistory_Results_TypeID is the unique identifier for the type HistoryStore_getEventHistory_Results.
-const HistoryStore_getEventHistory_Results_TypeID = 0xb6b01c847d707c31
+const HistoryStore_getEventHistory_Results_TypeID = 0x9b0c90cfde24c2d6
 
 func NewHistoryStore_getEventHistory_Results(s *capnp.Segment) (HistoryStore_getEventHistory_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
@@ -1328,7 +1703,7 @@ func ReadRootHistoryStore_getEventHistory_Results(msg *capnp.Message) (HistorySt
 }
 
 func (s HistoryStore_getEventHistory_Results) String() string {
-	str, _ := text.Marshal(0xb6b01c847d707c31, capnp.Struct(s))
+	str, _ := text.Marshal(0x9b0c90cfde24c2d6, capnp.Struct(s))
 	return str
 }
 
@@ -1395,10 +1770,184 @@ func (p HistoryStore_getEventHistory_Results_Future) Struct() (HistoryStore_getE
 	return HistoryStore_getEventHistory_Results(s), err
 }
 
+type HistoryStore_getLatestEvents_Params capnp.Struct
+
+// HistoryStore_getLatestEvents_Params_TypeID is the unique identifier for the type HistoryStore_getLatestEvents_Params.
+const HistoryStore_getLatestEvents_Params_TypeID = 0xa7fb1ad5f824f7ad
+
+func NewHistoryStore_getLatestEvents_Params(s *capnp.Segment) (HistoryStore_getLatestEvents_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return HistoryStore_getLatestEvents_Params(st), err
+}
+
+func NewRootHistoryStore_getLatestEvents_Params(s *capnp.Segment) (HistoryStore_getLatestEvents_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return HistoryStore_getLatestEvents_Params(st), err
+}
+
+func ReadRootHistoryStore_getLatestEvents_Params(msg *capnp.Message) (HistoryStore_getLatestEvents_Params, error) {
+	root, err := msg.Root()
+	return HistoryStore_getLatestEvents_Params(root.Struct()), err
+}
+
+func (s HistoryStore_getLatestEvents_Params) String() string {
+	str, _ := text.Marshal(0xa7fb1ad5f824f7ad, capnp.Struct(s))
+	return str
+}
+
+func (s HistoryStore_getLatestEvents_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (HistoryStore_getLatestEvents_Params) DecodeFromPtr(p capnp.Ptr) HistoryStore_getLatestEvents_Params {
+	return HistoryStore_getLatestEvents_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s HistoryStore_getLatestEvents_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s HistoryStore_getLatestEvents_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s HistoryStore_getLatestEvents_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s HistoryStore_getLatestEvents_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s HistoryStore_getLatestEvents_Params) ThingID() (string, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.Text(), err
+}
+
+func (s HistoryStore_getLatestEvents_Params) HasThingID() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s HistoryStore_getLatestEvents_Params) ThingIDBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.TextBytes(), err
+}
+
+func (s HistoryStore_getLatestEvents_Params) SetThingID(v string) error {
+	return capnp.Struct(s).SetText(0, v)
+}
+
+// HistoryStore_getLatestEvents_Params_List is a list of HistoryStore_getLatestEvents_Params.
+type HistoryStore_getLatestEvents_Params_List = capnp.StructList[HistoryStore_getLatestEvents_Params]
+
+// NewHistoryStore_getLatestEvents_Params creates a new list of HistoryStore_getLatestEvents_Params.
+func NewHistoryStore_getLatestEvents_Params_List(s *capnp.Segment, sz int32) (HistoryStore_getLatestEvents_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[HistoryStore_getLatestEvents_Params](l), err
+}
+
+// HistoryStore_getLatestEvents_Params_Future is a wrapper for a HistoryStore_getLatestEvents_Params promised by a client call.
+type HistoryStore_getLatestEvents_Params_Future struct{ *capnp.Future }
+
+func (p HistoryStore_getLatestEvents_Params_Future) Struct() (HistoryStore_getLatestEvents_Params, error) {
+	s, err := p.Future.Struct()
+	return HistoryStore_getLatestEvents_Params(s), err
+}
+
+type HistoryStore_getLatestEvents_Results capnp.Struct
+
+// HistoryStore_getLatestEvents_Results_TypeID is the unique identifier for the type HistoryStore_getLatestEvents_Results.
+const HistoryStore_getLatestEvents_Results_TypeID = 0xa5727a24dd3cdac1
+
+func NewHistoryStore_getLatestEvents_Results(s *capnp.Segment) (HistoryStore_getLatestEvents_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return HistoryStore_getLatestEvents_Results(st), err
+}
+
+func NewRootHistoryStore_getLatestEvents_Results(s *capnp.Segment) (HistoryStore_getLatestEvents_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return HistoryStore_getLatestEvents_Results(st), err
+}
+
+func ReadRootHistoryStore_getLatestEvents_Results(msg *capnp.Message) (HistoryStore_getLatestEvents_Results, error) {
+	root, err := msg.Root()
+	return HistoryStore_getLatestEvents_Results(root.Struct()), err
+}
+
+func (s HistoryStore_getLatestEvents_Results) String() string {
+	str, _ := text.Marshal(0xa5727a24dd3cdac1, capnp.Struct(s))
+	return str
+}
+
+func (s HistoryStore_getLatestEvents_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (HistoryStore_getLatestEvents_Results) DecodeFromPtr(p capnp.Ptr) HistoryStore_getLatestEvents_Results {
+	return HistoryStore_getLatestEvents_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s HistoryStore_getLatestEvents_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s HistoryStore_getLatestEvents_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s HistoryStore_getLatestEvents_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s HistoryStore_getLatestEvents_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s HistoryStore_getLatestEvents_Results) ThingValueMap() (ThingValueMap, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return ThingValueMap(p.Struct()), err
+}
+
+func (s HistoryStore_getLatestEvents_Results) HasThingValueMap() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s HistoryStore_getLatestEvents_Results) SetThingValueMap(v ThingValueMap) error {
+	return capnp.Struct(s).SetPtr(0, capnp.Struct(v).ToPtr())
+}
+
+// NewThingValueMap sets the thingValueMap field to a newly
+// allocated ThingValueMap struct, preferring placement in s's segment.
+func (s HistoryStore_getLatestEvents_Results) NewThingValueMap() (ThingValueMap, error) {
+	ss, err := NewThingValueMap(capnp.Struct(s).Segment())
+	if err != nil {
+		return ThingValueMap{}, err
+	}
+	err = capnp.Struct(s).SetPtr(0, capnp.Struct(ss).ToPtr())
+	return ss, err
+}
+
+// HistoryStore_getLatestEvents_Results_List is a list of HistoryStore_getLatestEvents_Results.
+type HistoryStore_getLatestEvents_Results_List = capnp.StructList[HistoryStore_getLatestEvents_Results]
+
+// NewHistoryStore_getLatestEvents_Results creates a new list of HistoryStore_getLatestEvents_Results.
+func NewHistoryStore_getLatestEvents_Results_List(s *capnp.Segment, sz int32) (HistoryStore_getLatestEvents_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[HistoryStore_getLatestEvents_Results](l), err
+}
+
+// HistoryStore_getLatestEvents_Results_Future is a wrapper for a HistoryStore_getLatestEvents_Results promised by a client call.
+type HistoryStore_getLatestEvents_Results_Future struct{ *capnp.Future }
+
+func (p HistoryStore_getLatestEvents_Results_Future) Struct() (HistoryStore_getLatestEvents_Results, error) {
+	s, err := p.Future.Struct()
+	return HistoryStore_getLatestEvents_Results(s), err
+}
+
+func (p HistoryStore_getLatestEvents_Results_Future) ThingValueMap() ThingValueMap_Future {
+	return ThingValueMap_Future{Future: p.Future.Field(0, nil)}
+}
+
 type HistoryStore_info_Params capnp.Struct
 
 // HistoryStore_info_Params_TypeID is the unique identifier for the type HistoryStore_info_Params.
-const HistoryStore_info_Params_TypeID = 0xd4f0e52db20e0ec3
+const HistoryStore_info_Params_TypeID = 0xa1e1981cd6b58767
 
 func NewHistoryStore_info_Params(s *capnp.Segment) (HistoryStore_info_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
@@ -1416,7 +1965,7 @@ func ReadRootHistoryStore_info_Params(msg *capnp.Message) (HistoryStore_info_Par
 }
 
 func (s HistoryStore_info_Params) String() string {
-	str, _ := text.Marshal(0xd4f0e52db20e0ec3, capnp.Struct(s))
+	str, _ := text.Marshal(0xa1e1981cd6b58767, capnp.Struct(s))
 	return str
 }
 
@@ -1463,7 +2012,7 @@ func (p HistoryStore_info_Params_Future) Struct() (HistoryStore_info_Params, err
 type HistoryStore_info_Results capnp.Struct
 
 // HistoryStore_info_Results_TypeID is the unique identifier for the type HistoryStore_info_Results.
-const HistoryStore_info_Results_TypeID = 0x9b0c90cfde24c2d6
+const HistoryStore_info_Results_TypeID = 0xb3a3a412715ca160
 
 func NewHistoryStore_info_Results(s *capnp.Segment) (HistoryStore_info_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
@@ -1481,7 +2030,7 @@ func ReadRootHistoryStore_info_Results(msg *capnp.Message) (HistoryStore_info_Re
 }
 
 func (s HistoryStore_info_Results) String() string {
-	str, _ := text.Marshal(0x9b0c90cfde24c2d6, capnp.Struct(s))
+	str, _ := text.Marshal(0xb3a3a412715ca160, capnp.Struct(s))
 	return str
 }
 
@@ -1552,70 +2101,90 @@ func (p HistoryStore_info_Results_Future) Statistics() StoreInfo_Future {
 	return StoreInfo_Future{Future: p.Future.Field(0, nil)}
 }
 
-const schema_f1bd301f7c12caab = "x\xda\xccU]h\x1cU\x14>\xdf\xbd3;\x09l" +
-	"\x93\\w\x05\x1b\x85\x14\x8d\x14S\xa2i\xf2 \x0d\xc8" +
-	"nC\x83IH\xe3\xde4\x88)\x06\x9cd'\xc9\xc0" +
-	"\xee\xecfg64\x90X[\x82\x18I\xb1%>H" +
-	"}\x90\xfa\xaa\xb5ZPP\x144\x8a\xd0\xbe\x88\xe0\x1f" +
-	"(\xb5\x82U\xf2\xa0\xd8\x82\x88\xbe\x8c\xdc\xd9\xcc\xecT" +
-	"\xa1](\x15\xdfv\xcf|\xf7\x9c\xef;\xe7\xbb\xf7\xf4" +
-	"\xa4yV\xdb\xbb\xe3{\x9d\x98<\xa0'\xfc_\x96\x9e" +
-	"\x9e\xbb\xf2Q\xe5Y\x12\xbbA\xa4\xc3 \xea\xfb\x921" +
-	"FHm\xb1\x0c\xc1\x1f\xdaX<~\xf7\xae\xdc\x06\xc9" +
-	"\xddP\x08M!v\xf2k \xf4u\xf3\x0e\x10\xfc\xe4" +
-	"\x9e\xfb\xbe\xdd9\xd5}\x9ad;\xb8\xff\xda\xc5;\x96" +
-	";z>\xb8\xba\x9dl\xbfv/RR\x9dJ\x1d\xd4" +
-	"~&\xf8_mv^\xfa\xecd\xf2\xe5x\xc5\x07\xf4" +
-	"WAH\xed\xd3U\xc5\xbd\xcb\xe5\x95\xd5{\xde|'" +
-	"\x0e\x98\xd2\xffR\x80\x85\x00\xc0\xef\xef=\x8f\xd7\xd7?" +
-	"\xbf\x8e\xd2\x99\x00\xd1\xf7\xb6\x1eP\xfa\xb8\xa5\xe5|\xf7" +
-	"\x95\xdf\xbe\xa8\xe5\x08\x00\x17\x12\xa7A\x9a\x9fx\xc4\xdb" +
-	"3:\xf9\xe77\xdb\xd9\x83O\xef&\xdeS\xd9/$" +
-	"\x14\xbf;\xed\xd5\xad?>y\xf8\x12\x89\xf6\x98\x18B" +
-	"\xdf\x19\xa3\x1f\xa9\xb7\x0cu\xe0\xac\xf1(RkM\x06" +
-	"\x91?\xcb~\xec\xddu\xee\xc3\xcb\xf1|\x0bM\x9b*" +
-	"\xdf\xb1&\x95\xef\xd3\xe9\xb3\xc9\xab\x13\x97\x7f\x88Q\x99" +
-	"l\xbe\xa8\xa8\x9cX~\xe1\xa7\xef6\x96\xb6H\xb4#" +
-	"\xd66\xae \x07\x9b\xbb\x90\x9ajVm\x9bl>G" +
-	"\xf0\xdb\x9b\xde\x7f\xe3\xd7\xaf_\xb9\x16K\xf3{\xf3&" +
-	"\xa8\xc7\x9f\xafN\x9be\xfb\xa1!\xc3v\xbdRe\xe9" +
-	"\x90W\xaaX\x0f\xce\x98e\xa7\xdc?\x14\x0f\xcdY\xde" +
-	"\xfe\x19\xcf.9\xdb\xd1\xceq\xcb\xad\x16<\x97\xa4\xc6" +
-	"5\"\x0dDbG?\x91l\xe2\x90\x9d\x0c\x99E\xb3" +
-	"P\xb5\\\xb4\x10r\x1ch\xab\xf3%\xa8`T8q" +
-	"\xf3\xc2\x83\x8b\x96\xe3\x85us\x1df\xc5,\xba2\x1d" +
-	"\x95]\x19 \x92G8\xe4*\x83\x00\xd2j\xac\xe2\xd8" +
-	"8\x91|\x86C\xae3\x08\xc6\xd2`Db\xad\x97H" +
-	"\xaer\xc8\x93\x0c\x82\xf348\x918\xa1X?\xc7!" +
-	"_d\x80\x96\x86F$N)\xe0:\x87|\x89\xe1\xa8" +
-	"7o;s\xc3\x07\x90$\x86$\xc1\xb7\x14\x9d1\xb3" +
-	"H\xb0\xc2X\x879\xebY\x95\xf0_f\xda\x9a-U" +
-	"\xea\x1f\x0bv\xd1\xf6\xa0\x11\x83\x16\x13\xce\xff-<\xf8" +
-	"=l8\xb3\xa5\x1c \xdb\"\x85\xa6\xa2\xf8$\x87\x9c" +
-	"g\x08\x05ZJ`\x9eC\x96\x95@\xd4\x04\x16G\x88" +
-	"d\x81C\x1eQ\x02YM`U\x9d.s\xc8e\x86" +
-	"\x8c\xe5\xcc\xd9ND\xcdw*\xb5\xa9\x12\\\xe8\xc4\xa0" +
-	"\x07\xb1\xa0\xe1.\x11\x85\xb1L\xb5\xec\xd9E+\x82\x84" +
-	"\x1a\xf4\x9b\x0c\xcfvfK\x81S\x8c\x82\xe7\xc6\x9dr" +
-	"\x98H&9\xe4]\x0c\xbe\xeb\x99\x9e\xedz6\xf1\x19" +
-	"\x17m\xf5\x07\x81\x80\xb6[0\xcax\xa6\xe6\xd0\xff\xc0" +
-	"\xa0\xd7\xdf\x8cL\xae1\x87\x1e\xbem\x0e5\x03>c" +
-	"&\xf1\xe2-Y\xb4\xa1\xf1*\xb5\xbc\xe86|\xc8\xcc" +
-	"\xe7\x839E}\x8a\xf9|\xa0\xee\xf3\xa8OV\x17\x91" +
-	"|\x8aC\x16b}\xb2\x95\xfb\xe79\xa4\x17\xeb\xd3\xc2" +
-	"@\xdd\xfd\xff\xecI\xabc\xd6{\xe1\x07\xb3\x1f9\xf4" +
-	"\x18a,\x8c\x1d\x9d\xa9X\xa6g\xe5#\xcc\x0d\xeei" +
-	"MO\xa6\x16SW5\xcd\xf5\xd8k\x8e\xf0\xd5\x16\xa7" +
-	"\xc6\x89\x895\x03\x886\x07\xc2\xa7X\xac\x8c\x10\x13U" +
-	"\x03,ZI\x08\xf7\xa9\xb0\x9f'&,\x03<\xda\xa0" +
-	"\x08\x17\x9b\x98<NLH\x03Z\xb4\xa7\x10nE1" +
-	"\xd8EL\xec3|3\x9f\x0f<Ip\xb2\xf0\xc3\x8e" +
-	"\x13Q\x16~\xe8W\x84\x86\x0d\xa3\x01\x06a0\x8bV" +
-	"5\xde,rh\xfc.\x84u\x9d\xce\xdal\xe9\xff>" +
-	"\xdc\xc6\x05\x85\xfb\x8end\x8c\x09\xc5\xeb\xf1VE@" +
-	"\xd9\"\x19\x89\x1fT:\xb3\x1cr4&~X\xe9\x1c" +
-	"\xe2\x90\x131\xf1R\xe9\x1c\xe5\x90O\xb0\xdb\xab\xabv" +
-	"\x09CY\x7f\x07\x00\x00\xff\xff\x99C\x92&"
+const schema_f1bd301f7c12caab = "x\xda\xb4VohUe\x18\x7f~\xef{\xce=\xf7" +
+	"\xba9w\xbc\x1b\xe5\x12&v\xc5\xa9\xcct\x0b\x02I" +
+	"\xee\x1a\x09*j{\xa7\x08\x89\x82g\xdb\xd9v\xe8\xde" +
+	"\xbb\xeb\xbd\xe7\x9a\x8b\x99)++\x94\x14\x0b\xcc>\x84" +
+	"\x95\x84\x94\x16\xc6\x82\"A-\x8a\x09\x11\x83\xb2\xbf\x8a" +
+	"\x82+\xfcP\xa6 \xb6\xfap\xe2=g\xe7\xdc\xe3\xdd" +
+	"\xd4\x0d\xeb\xdb\xbd\xcf\xf9\xbd\xcf\xff\xe7\xf7<\x8b>\xe1" +
+	"M\xca\xe2\xa9W5bb\xa3\x1aq~\xef}\xb6k" +
+	"\xf8t\xee\x05\xd2\xe7\x82H\xd1\x88\x1a\xcf\xf3\xb3 \xc5" +
+	"Y~`\xeb\xae\x07f\xb5\x1c 1\x17 R\xddo" +
+	"C\xfco\x10\x1a\x87y-\x08N\xf9\x82\x07\x7f\x9e\xb1" +
+	"\xa9\xfe\x10\x89\x1ap\xe7\xbd\xb3\xd3\xfbj\x17\x9d\xbcF" +
+	"*$tD\x99\x8dxL\xd5\x88\xe2\xaa\xfa\x1b\xc19" +
+	"w&q\xe1\x9b}\xe5ox\xa6<\xd0%U\xea\x8b" +
+	"\xdfP\x93\x04\xa7k\xf7\xc0\xb9\x99\x07/\x1d\x0e\xf92" +
+	"'rH\xfar\xfa\xa7G\xcf'\x9e\xc9\x1d\x09?\xad" +
+	"\x8e\xb8O\xe7E\xe4\xd3c7\x13\x7f}W\xf3\xcf\xbb" +
+	"a\xc0\xea\xc8u\x090\\\xc0\xe6\xc3\x1b\xb7L\x7f\xe7" +
+	"\xed\x8f\xc2\x80\x9d\x91\xb7$`\xbf\x0bX\xdc\x97\xdd\xde" +
+	"?\xf3\xc3\x8f\xc3\x80\x81\x08c\x84\xf8\xa0\x0b\xe0s\x1a" +
+	"N\xe0\xfd=Ca\xc0H\xe4\x8c\xd4\x10\xd3$\xe0\xf3" +
+	"\x8a\x8a\x13\xf5\xc3\x7f~{K\xc2\x96j\xd2\x89F\xa1" +
+	"\xb9\x09\x8b,\xb5\x17\xaczr\xe4\x87\xb0\x0e3\xfa\xa9" +
+	"\xd4Q\x88J\x1d\xd5V\xff\x95\x9b_<r\x81\xf4\x9a" +
+	"PB\x09\x8d\xafG\x97 ~4*\x1f\x1c\x89~\x85" +
+	"\xf8\x8f1\x8d\xc8\xe9d\x97\x1bf}p\xeabX\xdf" +
+	"\xe9\x98\xeb\xd3PL\xea\xfb\xb2\xedX\xf9\xb5u\x17/" +
+	"\x85Rz#\xe6\x96wo\xdf+\xbf\xfer\xa0\xf7\x0a" +
+	"\xe95\x08\x95\xce\x85\\\x89\xcdG|DZ\x88\xdf\x88" +
+	"\xc9\xd2\x0d\x0cv^VwW\\-\x01\xbb\xf6\xbe\x9e" +
+	"\xd2\x8c\xf8\xf9)\xf7\x11\xc5\x87\xa7H\x9b5\xd1\xcf\x8e" +
+	"\xff\xf1\xfd\x9b\xd7C6\xab\xcb\xceH\x9bu\xa7\x06\xed" +
+	"\xb9\xbd\xc7o\x92^\x17\xd2\xa92\x09Q\xcbr\x88\xcf" +
+	"(\x936\xab\xcb\x9e\xa6z\xa7\xbb\xd0fd\xad\x87\x96" +
+	"G\xac\xbc\xdd\x93\xeb]k\xf7\xe4\xcc\x85\xedF6\x93" +
+	"]\xb2<,2::\x96m53v>\xd1j\xe6" +
+	"\x0b);O4\xe1\xb7]\xa6\xfdX\xbbm\xf5dF" +
+	"\xa5\x89d\x8b\x913\xd2yQ\xc5\x15\"\x05D\xfa\xf6" +
+	"f\"\xb1\x8dC\xf43\xe8@\x95,\xad\xbes\x03\x91" +
+	"x\x8eC\xeca\xd0\x19\xab\x02#\xd2_j \x12\xfd" +
+	"\x1cb\x1f\x83\xcey\x158\x91\xbew\x09\x91x\x91C" +
+	"\xbc\xca\x00\xa5\x0a\x0a\x91\xbe_\x02\xf7p\x88\x83\x0c;" +
+	"\xecn+\xd3\xb5\xe2q\x94\x13C9\xc11\\\x7f\xd6" +
+	"\x18\xc4\xd3\xa6/\xac5:m3\xe7\xffK\xb6\x99\x9d" +
+	"=\xb9\xe2\xc7\x94\x95\xb6l(\xc4\xa0\x10\x82\xd0\xf9\xd8" +
+	"\xd0\xdd\xdf+\xb4LgO\x0b *\x83\x10\x0d\xe9\xe3" +
+	"F\x0e\xd1\xcd\xe0Gh\xb6\x12\x89\x0e\x0e\x91\x95\x11\xc2" +
+	"\x8b0\xbd\x92H\xa48\xc46\x19!\xf3\",\xc8\xd7" +
+	"Y\x0e\xd1\xc7\x9043]V&p\xcd\xc9\xe4\xbc\xf4" +
+	"\x12\xf2P\x89Aue^\xb9\x88\xc8\x97%\x0bY\xdb" +
+	"J\x9b\x01d\x12\xe5su\xf9\xd5kMz\x1d \x94" +
+	" \xb6\xa9\xd2\xbb(\x87H0$\xb7\x1a\xa9\x82\x99G" +
+	"\x05\xa1\x85\x03\x95\xc5\x19 Ha`W\xbd\x8b]+" +
+	"\xd3\xd9\x93\x90\x9d\xc2\xd3\xf9\xc98\xbb\xca\xb0\xcd\xbc\xed" +
+	"w\xeb8\xce\xe6\x88D9\x87\xb8\x9f\xc1q\x1bc\xbd" +
+	"\x91\xa2\xda\x82\xb9\xda\xc8\xa2\xb281\x04TN.M" +
+	"\xb7Xn\xa9\xf5\x9a<d\xb8y4KU\xe3t\xe4" +
+	"\xa4\xb2\"gP+\x89jC(\xaa\xbcm\xd8V\xde" +
+	"\xb6\x88\xb7\xe7QY\xdc %!i\x93\x1d\\\x7f\xf6" +
+	"\xef\xb5\xf4\x13g\x1b\x8f)n1\xd86\x1ah\x1d\x83" +
+	"cJ\x94,\x9f\xf6\x9f\xd8-mu\xbf\x86w#\xaa" +
+	"\xd6\xff\x8d\xa8\xdc\x00\xd7\x18i\xc2=\xf1\x94:\xc1\x84" +
+	"\x07\xd4|\x9b\xc6\x0a\xf2\xcd\x0bfI\x9e+\xefL\x8b" +
+	"\x9e\xb9\xa4'\x93\xcc8\x93\xab\xa1\xdd\x0a\x7f\x87\xeaC" +
+	"\xad\xc4\xf4A\x0d\xc5=\x0e\x7f\xd7\xe9'W\x12\xd3\x07" +
+	"4\xb0\xe0N\x80\x7fZ\xe9G\xe5\xbb\xc3\x1axpS" +
+	"\xc1\xbf6\xf4\xd7^&\xa6\xef\xd7\xa0\x04\xe7\x03\xfc;" +
+	"I\x7f~\x171}\xbb\x0658o\xe0\x1fB\xfa\x16" +
+	"\xf9\xcd\xd2\x10\x09\xae&\xf8'\x8e\xbei>1]h" +
+	"\x8e\xd1\xd1\xe1\x0e\x09!\xd3\x04\xc7O$\x11\x85\xff!" +
+	"\xdf\x04\xc7\x1f'\xf8\xf3\xe4b\xfc\x9e\x83/\xf4d." +
+	"\x97`\x94L\xa8\x09\xd3\xe4\xe07\xa1\x05\x93\x9a\"o" +
+	"|\xef4E\xb2\xaa\xde6\\o\x90\x96\xbacY'" +
+	"np\xec\x910NK\xacs\xb9w\x9a\xe4\x8c\x92U" +
+	"\xd9\\\\\x95\xc1\x90\x99\xf3\x89\xc4f\x0e\x91\x0a\x0d\x99" +
+	"%'\xaf\x9bC\xd8\xa1!\xdb\xd2\\\\\xa0\xa5\x035" +
+	"-c\x147\xbe\xe3\xf2\xd5\xca\xb5O\x10\xd6\xf8\xb2\x1d" +
+	"\xed9\xd3\xb0\xcd\x8e1\xc4\xac\xdc.\x00\xa9c\xb5\x91" +
+	"%\xa1\x00\xa1\xe3\x0b\x0d\xb5\xcb2v\xaew\xbc\x05\x90" +
+	"`\xd8af\xec\x9c\x15&\xad\xe0i\x09i\x95Mt" +
+	"v\xfd\xa4\xfb\x0f\xef\xe2\xf0B\xcf?\x99\xfah\xe0\xe2" +
+	"\xbc\xd9D\"\xc1!\x16\x85R_/\x19\xaa\x8eC<" +
+	"\xcc\xa0=e\xf6\x06d\xe3\xe6ol\xc3\xfc\x1b\x00\x00" +
+	"\xff\xff\xa7{\xad\xc3"
 
 func init() {
 	schemas.Register(schema_f1bd301f7c12caab,
@@ -1623,6 +2192,10 @@ func init() {
 		0x9350201b82769348,
 		0x9a2d5d19db232b0c,
 		0x9b0c90cfde24c2d6,
+		0xa1e1981cd6b58767,
+		0xa5727a24dd3cdac1,
+		0xa7fb1ad5f824f7ad,
+		0xb3a3a412715ca160,
 		0xb6b01c847d707c31,
 		0xd18cac01b2322503,
 		0xd4f0e52db20e0ec3,
@@ -1631,5 +2204,7 @@ func init() {
 		0xe0c0af2032e40266,
 		0xe1e054f10cad62c6,
 		0xe97993dce68f7c8d,
-		0xf29fd7eeaebc081a)
+		0xef0e8705e466c9b5,
+		0xf29fd7eeaebc081a,
+		0xf7ae792774c9c028)
 }

@@ -27,25 +27,26 @@ interface CertService {
   const defaultServiceCertValidityDays :Int32 = 30;
   # Default validity of generated service certificates
 
-  createClientCert @0 (clientID:Text, pubKeyPEM:Text, validityDays:Int32) -> (certPEM: Text, caCertPEM :Text);
-  # Generate a client certificate for access hub gateway services
-  #  @clientID to include in the certificate
-  #  @pubKeyPEM with client's public key in PEM format
-  #  @validityDays validity of certificate in days. 0 to use the default
-  # returns: client certificate and the CA used to sign it in PEM format
-
-  createDeviceCert @1 (deviceID:Text, pubKeyPEM:Text, validityDays:Int32) -> (certPEM: Text, caCertPEM :Text);
+  createDeviceCert @1 (deviceID:Text, pubKeyPEM:Text, validityDays:Int32=0) -> (certPEM: Text, caCertPEM :Text);
   # Generate or renew IoT device certificate for access hub IoT gateway
   #  @deviceID to include in the certificate
-  #  @pubKeyPEM with client's public key in PEM format
+  #  @pubKeyPEM with device's public key in PEM format
   #  @validityDays validity of certificate in days. 0 to use the default
   # returns: device certificate and the CA used to sign it in PEM format
 
-  createServiceCert @2 (serviceID:Text, pubKeyPEM:Text, validityDays:Int32, names:List(Text)) -> (certPEM: Text, caCertPEM :Text);
+  createServiceCert @2 (serviceID:Text, pubKeyPEM:Text, validityDays:Int32=0, names:List(Text)) -> (certPEM: Text, caCertPEM :Text);
   # Generate a hub service certificate
-  #  @serviceID to include in the certificate
-  #  @pubKeyPEM with client's public key in PEM format
+  #  @serviceID to include in the certificate, for example hostname-servicename
+  #  @pubKeyPEM with service public key in PEM format
   #  @validityDays validity of certificate in days. 0 to use the default
   #  @names contain the service DNS names or IP addresses the service can be reached at
   # returns: service certificate and the CA used to sign it in PEM format
+
+  createUserCert @0 (clientID:Text, pubKeyPEM:Text, validityDays:Int32=0) -> (certPEM: Text, caCertPEM :Text);
+  # Generate an end-user certificate for access hub gateway services
+  #  @userID to include in the certificate, for example an email address
+  #  @pubKeyPEM with user's public key in PEM format
+  #  @validityDays validity of certificate in days. 0 to use the default
+  # returns: client certificate and the CA used to sign it in PEM format
+
 }

@@ -63,11 +63,27 @@ func (c DirectoryStore) ListTDs(ctx context.Context, params func(DirectoryStore_
 	ans, release := capnp.Client(c).SendCall(ctx, s)
 	return DirectoryStore_listTDs_Results_Future{Future: ans.Future()}, release
 }
-func (c DirectoryStore) UpdateTD(ctx context.Context, params func(DirectoryStore_updateTD_Params) error) (DirectoryStore_updateTD_Results_Future, capnp.ReleaseFunc) {
+func (c DirectoryStore) RemoveTD(ctx context.Context, params func(DirectoryStore_removeTD_Params) error) (DirectoryStore_removeTD_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
 			InterfaceID:   0xeca44c234aa2ed79,
 			MethodID:      3,
+			InterfaceName: "hubapi/DirectoryStore.capnp:DirectoryStore",
+			MethodName:    "removeTD",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(DirectoryStore_removeTD_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return DirectoryStore_removeTD_Results_Future{Future: ans.Future()}, release
+}
+func (c DirectoryStore) UpdateTD(ctx context.Context, params func(DirectoryStore_updateTD_Params) error) (DirectoryStore_updateTD_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xeca44c234aa2ed79,
+			MethodID:      4,
 			InterfaceName: "hubapi/DirectoryStore.capnp:DirectoryStore",
 			MethodName:    "updateTD",
 		},
@@ -108,6 +124,8 @@ type DirectoryStore_Server interface {
 
 	ListTDs(context.Context, DirectoryStore_listTDs) error
 
+	RemoveTD(context.Context, DirectoryStore_removeTD) error
+
 	UpdateTD(context.Context, DirectoryStore_updateTD) error
 }
 
@@ -127,7 +145,7 @@ func DirectoryStore_ServerToClient(s DirectoryStore_Server) DirectoryStore {
 // This can be used to create a more complicated Server.
 func DirectoryStore_Methods(methods []server.Method, s DirectoryStore_Server) []server.Method {
 	if cap(methods) == 0 {
-		methods = make([]server.Method, 0, 4)
+		methods = make([]server.Method, 0, 5)
 	}
 
 	methods = append(methods, server.Method{
@@ -170,6 +188,18 @@ func DirectoryStore_Methods(methods []server.Method, s DirectoryStore_Server) []
 		Method: capnp.Method{
 			InterfaceID:   0xeca44c234aa2ed79,
 			MethodID:      3,
+			InterfaceName: "hubapi/DirectoryStore.capnp:DirectoryStore",
+			MethodName:    "removeTD",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.RemoveTD(ctx, DirectoryStore_removeTD{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xeca44c234aa2ed79,
+			MethodID:      4,
 			InterfaceName: "hubapi/DirectoryStore.capnp:DirectoryStore",
 			MethodName:    "updateTD",
 		},
@@ -230,6 +260,23 @@ func (c DirectoryStore_listTDs) Args() DirectoryStore_listTDs_Params {
 func (c DirectoryStore_listTDs) AllocResults() (DirectoryStore_listTDs_Results, error) {
 	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
 	return DirectoryStore_listTDs_Results(r), err
+}
+
+// DirectoryStore_removeTD holds the state for a server call to DirectoryStore.removeTD.
+// See server.Call for documentation.
+type DirectoryStore_removeTD struct {
+	*server.Call
+}
+
+// Args returns the call's arguments.
+func (c DirectoryStore_removeTD) Args() DirectoryStore_removeTD_Params {
+	return DirectoryStore_removeTD_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c DirectoryStore_removeTD) AllocResults() (DirectoryStore_removeTD_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return DirectoryStore_removeTD_Results(r), err
 }
 
 // DirectoryStore_updateTD holds the state for a server call to DirectoryStore.updateTD.
@@ -776,10 +823,157 @@ func (p DirectoryStore_listTDs_Results_Future) Struct() (DirectoryStore_listTDs_
 	return DirectoryStore_listTDs_Results(s), err
 }
 
+type DirectoryStore_removeTD_Params capnp.Struct
+
+// DirectoryStore_removeTD_Params_TypeID is the unique identifier for the type DirectoryStore_removeTD_Params.
+const DirectoryStore_removeTD_Params_TypeID = 0x84eae1e2512f2536
+
+func NewDirectoryStore_removeTD_Params(s *capnp.Segment) (DirectoryStore_removeTD_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return DirectoryStore_removeTD_Params(st), err
+}
+
+func NewRootDirectoryStore_removeTD_Params(s *capnp.Segment) (DirectoryStore_removeTD_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return DirectoryStore_removeTD_Params(st), err
+}
+
+func ReadRootDirectoryStore_removeTD_Params(msg *capnp.Message) (DirectoryStore_removeTD_Params, error) {
+	root, err := msg.Root()
+	return DirectoryStore_removeTD_Params(root.Struct()), err
+}
+
+func (s DirectoryStore_removeTD_Params) String() string {
+	str, _ := text.Marshal(0x84eae1e2512f2536, capnp.Struct(s))
+	return str
+}
+
+func (s DirectoryStore_removeTD_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (DirectoryStore_removeTD_Params) DecodeFromPtr(p capnp.Ptr) DirectoryStore_removeTD_Params {
+	return DirectoryStore_removeTD_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s DirectoryStore_removeTD_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s DirectoryStore_removeTD_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s DirectoryStore_removeTD_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s DirectoryStore_removeTD_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s DirectoryStore_removeTD_Params) ThingID() (string, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.Text(), err
+}
+
+func (s DirectoryStore_removeTD_Params) HasThingID() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s DirectoryStore_removeTD_Params) ThingIDBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.TextBytes(), err
+}
+
+func (s DirectoryStore_removeTD_Params) SetThingID(v string) error {
+	return capnp.Struct(s).SetText(0, v)
+}
+
+// DirectoryStore_removeTD_Params_List is a list of DirectoryStore_removeTD_Params.
+type DirectoryStore_removeTD_Params_List = capnp.StructList[DirectoryStore_removeTD_Params]
+
+// NewDirectoryStore_removeTD_Params creates a new list of DirectoryStore_removeTD_Params.
+func NewDirectoryStore_removeTD_Params_List(s *capnp.Segment, sz int32) (DirectoryStore_removeTD_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[DirectoryStore_removeTD_Params](l), err
+}
+
+// DirectoryStore_removeTD_Params_Future is a wrapper for a DirectoryStore_removeTD_Params promised by a client call.
+type DirectoryStore_removeTD_Params_Future struct{ *capnp.Future }
+
+func (p DirectoryStore_removeTD_Params_Future) Struct() (DirectoryStore_removeTD_Params, error) {
+	s, err := p.Future.Struct()
+	return DirectoryStore_removeTD_Params(s), err
+}
+
+type DirectoryStore_removeTD_Results capnp.Struct
+
+// DirectoryStore_removeTD_Results_TypeID is the unique identifier for the type DirectoryStore_removeTD_Results.
+const DirectoryStore_removeTD_Results_TypeID = 0xf859edb6fcbd20a6
+
+func NewDirectoryStore_removeTD_Results(s *capnp.Segment) (DirectoryStore_removeTD_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return DirectoryStore_removeTD_Results(st), err
+}
+
+func NewRootDirectoryStore_removeTD_Results(s *capnp.Segment) (DirectoryStore_removeTD_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return DirectoryStore_removeTD_Results(st), err
+}
+
+func ReadRootDirectoryStore_removeTD_Results(msg *capnp.Message) (DirectoryStore_removeTD_Results, error) {
+	root, err := msg.Root()
+	return DirectoryStore_removeTD_Results(root.Struct()), err
+}
+
+func (s DirectoryStore_removeTD_Results) String() string {
+	str, _ := text.Marshal(0xf859edb6fcbd20a6, capnp.Struct(s))
+	return str
+}
+
+func (s DirectoryStore_removeTD_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (DirectoryStore_removeTD_Results) DecodeFromPtr(p capnp.Ptr) DirectoryStore_removeTD_Results {
+	return DirectoryStore_removeTD_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s DirectoryStore_removeTD_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s DirectoryStore_removeTD_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s DirectoryStore_removeTD_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s DirectoryStore_removeTD_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+
+// DirectoryStore_removeTD_Results_List is a list of DirectoryStore_removeTD_Results.
+type DirectoryStore_removeTD_Results_List = capnp.StructList[DirectoryStore_removeTD_Results]
+
+// NewDirectoryStore_removeTD_Results creates a new list of DirectoryStore_removeTD_Results.
+func NewDirectoryStore_removeTD_Results_List(s *capnp.Segment, sz int32) (DirectoryStore_removeTD_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
+	return capnp.StructList[DirectoryStore_removeTD_Results](l), err
+}
+
+// DirectoryStore_removeTD_Results_Future is a wrapper for a DirectoryStore_removeTD_Results promised by a client call.
+type DirectoryStore_removeTD_Results_Future struct{ *capnp.Future }
+
+func (p DirectoryStore_removeTD_Results_Future) Struct() (DirectoryStore_removeTD_Results, error) {
+	s, err := p.Future.Struct()
+	return DirectoryStore_removeTD_Results(s), err
+}
+
 type DirectoryStore_updateTD_Params capnp.Struct
 
 // DirectoryStore_updateTD_Params_TypeID is the unique identifier for the type DirectoryStore_updateTD_Params.
-const DirectoryStore_updateTD_Params_TypeID = 0x84eae1e2512f2536
+const DirectoryStore_updateTD_Params_TypeID = 0x81ec54e733859728
 
 func NewDirectoryStore_updateTD_Params(s *capnp.Segment) (DirectoryStore_updateTD_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
@@ -797,7 +991,7 @@ func ReadRootDirectoryStore_updateTD_Params(msg *capnp.Message) (DirectoryStore_
 }
 
 func (s DirectoryStore_updateTD_Params) String() string {
-	str, _ := text.Marshal(0x84eae1e2512f2536, capnp.Struct(s))
+	str, _ := text.Marshal(0x81ec54e733859728, capnp.Struct(s))
 	return str
 }
 
@@ -879,7 +1073,7 @@ func (p DirectoryStore_updateTD_Params_Future) Struct() (DirectoryStore_updateTD
 type DirectoryStore_updateTD_Results capnp.Struct
 
 // DirectoryStore_updateTD_Results_TypeID is the unique identifier for the type DirectoryStore_updateTD_Results.
-const DirectoryStore_updateTD_Results_TypeID = 0xf859edb6fcbd20a6
+const DirectoryStore_updateTD_Results_TypeID = 0xab7b629260c65a41
 
 func NewDirectoryStore_updateTD_Results(s *capnp.Segment) (DirectoryStore_updateTD_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
@@ -897,7 +1091,7 @@ func ReadRootDirectoryStore_updateTD_Results(msg *capnp.Message) (DirectoryStore
 }
 
 func (s DirectoryStore_updateTD_Results) String() string {
-	str, _ := text.Marshal(0xf859edb6fcbd20a6, capnp.Struct(s))
+	str, _ := text.Marshal(0xab7b629260c65a41, capnp.Struct(s))
 	return str
 }
 
@@ -941,55 +1135,62 @@ func (p DirectoryStore_updateTD_Results_Future) Struct() (DirectoryStore_updateT
 	return DirectoryStore_updateTD_Results(s), err
 }
 
-const schema_c8da54a8b024bd49 = "x\xda\x9c\x94Mh\x13O\x18\xc6\xdfgf\xda\xed!" +
-	"\xed\xff\xbf\xb4\x07\x11\xb1E\xd3\xa2\x94\x9a~!\xb4\x08" +
-	"\x89e\x0b6T\xc8h\x0e\xd6\x83\x12\x93m\x1bI\xb3" +
-	"ivc\xc9)\x1e\xbc\x08\x9e\xa4B\xaf\x8ah\x8b\x07" +
-	"=y2 \x82P=io\xadz\xb0\xb7\xaa\xc5k" +
-	"\x0f\xe2\xcal\xb3\xdbTDin\xfb\xf1\xcc\xfb{\xdf" +
-	"g\xe6\x99\xfe\x17\x88\x89\x81\xd6\x8a &\x87\x9b\x9a\xdd" +
-	"\xd3\xdd\x11\xb9\xf9\xf9\xcb-\xd2{A\xd4\xc44\xa2\xa1" +
-	"n\xb6\x01B\xfb\x08[ \xb8g\xban\xbc\xfb\xce\xae" +
-	",\xd6\x04P\x82{\xec\xad\x12\xac\xb0(\xc1\xbd\xb9\x9a" +
-	"\xb6\x0e\xad}]\"\xd9\x8b@\xf1f\xb7\xc4'\xf6\x94" +
-	"\xe0F\xf1r\xfd\xf0\x93\xa3\xf7\xebK\x94\xf9+%\xb8" +
-	"\xcdU\x89\xc5;\x1f\x97\x8c\xffB\xcb\xf5\x82\x15\xbe\xa9" +
-	"\x04UO\xb0\xd5\x13\xb9\xdb\xf3\xe1q\xb5^\xb0\xcd=" +
-	"\x04\x84\x12\x94\xb7\x1f\xc4\x8fO>\xfcF\xfa\x11\xeeN" +
-	"T\xc3\xcf\x96\x93\x1b\xabD\x18\x1a\x10\x97\xd1>.\xd4" +
-	"\x82\xb3BC\xfb\x96zt\x1fuU\x7f<\xdf\x9e\xda" +
-	"\xd9\xad\xe7\xfd}/6A\xc2m\x8b\\]\xaf\xfc\\" +
-	"\xdc\xa9M\xe3\xfdz-\xd6\x14i],P\x9f;[" +
-	"\xba\x96*d#Fs\xb6h\xa6\x1d\xabX\xbe\xe8X" +
-	"E\xf3T:U\xc8\x17F\x8d\xfd\x1fK\x85L\xca1" +
-	"\x93F8\x91*\xa6\xf8\x9c-[\xb8 \x12 \xd2O" +
-	"\x8e\x11\xc90\x87\xecg\xd0\x81\x0e\x05\xd3\xfb\x06\x89\xe4" +
-	"\x09\x0e9\xccPqf\xb3\xf9\x99\x09\x03!b\x08\x11" +
-	":\x9d\x8ca\xa5\xfd\xb7\x03\xb51c:I#|\xc1" +
-	"\xb4K9\xc7&\x92\"\xe8\xa2u\x94H\xb6p\xc8\x0e" +
-	"\x86\xa8\x93\x89\xdbV\xbe!\xc2|\xc9,\x96\x93\x86\x1d" +
-	"\x0c\x1a\x0a\x10\xe3q\"ip\xc8\x04\x83?\xe7y5" +
-	"\xe79\x0e\x99d\xd0\x19:\xc0\x88t\xa9z\x99\xe4\x90" +
-	"\x97\x18\xdc\xeb\xb6\x95O\xa4\x9cY\"\x0a\x0c\xc8e\xe7" +
-	"\xb2\x0e\x041\x08B\xd4\x9a\x9e\xb6\xcd\xe0\xb5\x01?T" +
-	"\xabs\xf6>7\xc6\xf6\xdc\xf8\xdd\xfe\xc6\xecP\x9ek" +
-	"9\xc7\xae\x87\x1c\xabA\xc2\x0c\x9a\x93\xb1\xd1FHp" +
-	"x\x9c\xb6\x03rrY\xdb\xf119\xde\x10F\xfc\x0b" +
-	"\xc3\x8bf\x02\x90\xff\xf3&\xa2 \xc9\xf0o\x05}~" +
-	"\x90\x98nj\xd8\xbb\x07\xe0\xa7Y\x9f\x8a\x13\xd3\xa5\x06" +
-	"\x16\xa4\x0a~\x90\xf5\xf11b\xfa\x88\x06\x1e\xdc@\xf0" +
-	"C\xa9\xf7\xa9u\xddZ\xa7\xb7O1\xb8\xbe\x9dD\x14" +
-	"C\xa56t\x0c\xae\x1f/\xef{\x02h,\x9b\xfe\x1e" +
-	"5\xe4\xbcw\x88\xb0/\xd8\x83\x7f\x0a\xf6\xe8^\xb0\xff" +
-	"z\x8e\x7f\x05\x00\x00\xff\xff\xc9\xa6\x87\xe7"
+const schema_c8da54a8b024bd49 = "x\xda\xb4\x94OL\x13K\x1c\xc7\x7f\xbf\x99Y\x96C" +
+	"\xe1eB_\xf2\xf2\xf2\xf2\xe0\xbd\xd7Gx!\xbc\xf2" +
+	"GL$$\xadd\x89\xd2@\xd2\xd1\x9a\x08\x07\xb5\xb4" +
+	"\x0b\xd4\xb4\xdd\xd2\xddB\x1aC\x90Dn^ \x18\xb9" +
+	"j\x8c\x92pP/\xdeH\xd4DC<\x19n\xa0\x17" +
+	"\xb9\x18\x15\xe2\x95\x83\xbaf\x96\xeeR\xa2\xd1\xb4\xc6\xe3" +
+	"\xec|g>\xdf\xfd\xce\xcc\xb7\xfd#\x86YG]P" +
+	"\x01\"z\x95\x1a\xbb\xe5\xfa|\xd7\xeb\xd8\xce\x1c\xf0V" +
+	"\x04P\x88\x0a\xd05C\xb6\x10\xb0a\x81L\x03\xdaG" +
+	"\xff\x0d\x8a\xedWo\xaf\x94\x04(\x05\xbb\xfb\x02\xa4!" +
+	"@\xbb\xb7i\xea\xf9{rn\xa9\\\xf0\x17}&\x05" +
+	"\xdd\x8e\xe0\xf2z\xc2\xf8m\xe3\xdd2\x88V\xf4\x14g" +
+	"\xa8\xb3E\x8a\xde\x05\xb4C\xf8p\xf3\xf7\xd5?o\x94" +
+	"o\xa1\xb0\xc7R\xf0+\x93[,]}\xb9\xac\xfd\xe2" +
+	"[)\x17t\xb3m)\x18p\x04\xc7G\x9e^X\x1c" +
+	"\xbd\xb4\xba/`r\xbe(\xe7\x99\xfd\xa69\xb8\xd8\xfc" +
+	"\xe2\xceZ\xf9\xd2\x0cs\xe0s\xce\xd2\xe2\xee\xcd\xc8?" +
+	"\x83\xb7v\x80\xffA\xed\x81\xb5\xc0\xbd\x95\xd8\xd6:\x00" +
+	"v\xddg#\xd8\xf0\xc4\xd9\xeb\x11;\x81\x0d\xd7\x14\x15" +
+	"\xc0\xbe\xdd\xb4\xf6\xe1\xc1\xee\xf0^\x19iFqH\xf5" +
+	"\xc1\xf3\x9b\xb3\x9f\x96\xf6J\xff\xe9LM*\x1b\x924" +
+	"\xafLC\x9b=Q\x18\x8d\xe7RA\xad&\x95\xd7\x13" +
+	"\x96\x91/\x9e\xb6\x8c\xbc\xfe\x7f\"\x9e\xcb\xe6z\xb4\xc3" +
+	"\x1f\x0b\xb9d\xdc\xd2cZ \x1a\xcf\xc7i\xc6\x14\xb5" +
+	"\x94\x010\x04\xe0\xff\xf5\x01\x88\x00E\xd1N\x90#\xfa" +
+	"%\x8c\xb7u\x02\x88\x16\x8a\xe2\x08\xc1Yk\"\x95\x1d" +
+	"\x1f\xd0\xd0\x07\x04}\x80\x8dVR3\x12\xee\xa8\"\x1b" +
+	"y=cL\x95\xdb`\x9e\x8d:i\xa3\x96\xa2\xf0\x7f" +
+	"I\xac\x881\xae[1-pJ7\x0bi\xcb\x04(" +
+	"G\xf4\x1c BV2b\x1a\xd9\xaa\x08\x93\x05=_" +
+	"\x8ci\xa6\xf7\x17>\x0f\xd1\x1f\x01\x10\x1aE\x11%\xe8" +
+	"f9$\xb3<IQ\xc4\x08r\x82~$\x00\\H" +
+	"/\x83\x14\xc5Y\x82\xf6E\xd3\xc8F\xe3\xd6\x04\x00x" +
+	"!\xa7S\x99\x94\x85\x0c\x082\xc0\x9016f\xea\xde" +
+	"\xb0\x8a<\xa4\xd5\x8c\x09?#p/\x0e\x99\xb9\x9a\xb6" +
+	"\x0e\x9d\xea\xdf%H\x80\xa0j%M\xac\x07\x8cRt" +
+	"8\xf5\x15r\xbc;\xecr*Z\x9dN\x99\x96k2" +
+	"M\xab2\xc9\xbe\x87\xa1y=\x8a(\xfcT\x01\xf0Z" +
+	"\x08\xddF\xe3\x0b\x9d@\xf8\xbc\x8a\x07\x1d\x86n\x13\xf1" +
+	"b\x04\x08\x9fT\x91x\xef\x1e\xdd\xaa\xe1z\x1f\x10>" +
+	"\xac\"\xf5\xda\x13\xdd\xda\xe0Cr]\xbf\x8a\xcc\xab^" +
+	"t\xcb\x8b\x1f\x93s\x1dj\xa3s\x03\xc2h\xbb\x07\x05" +
+	"\x00a\x9c-\x05\x12F\xdb}\x95\xcew\xdb\x8d\xd9\x19" +
+	"E\xb1\xca\x07\xfeCg\xe4\\V<TR\x9d_+" +
+	"\xa9\x9e\x83\x92\xfa\xe6{\xf9\x1c\x00\x00\xff\xff\x97\xef\xd7" +
+	"\x9b"
 
 func init() {
 	schemas.Register(schema_c8da54a8b024bd49,
+		0x81ec54e733859728,
 		0x84eae1e2512f2536,
 		0x945e02efd076203c,
 		0x98ebd2186f63c880,
 		0xa11eab1ad9c0013f,
 		0xa80c0f4498dc8c94,
+		0xab7b629260c65a41,
 		0xbda7db26922f26e9,
 		0xeca44c234aa2ed79,
 		0xf859edb6fcbd20a6,

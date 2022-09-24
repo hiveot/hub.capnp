@@ -26,21 +26,21 @@ type CertService capnp.Client
 // CertService_TypeID is the unique identifier for the type CertService.
 const CertService_TypeID = 0x8b685cd5f259a3b3
 
-func (c CertService) CreateClientCert(ctx context.Context, params func(CertService_createClientCert_Params) error) (CertService_createClientCert_Results_Future, capnp.ReleaseFunc) {
+func (c CertService) CreateUserCert(ctx context.Context, params func(CertService_createUserCert_Params) error) (CertService_createUserCert_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
 			InterfaceID:   0x8b685cd5f259a3b3,
 			MethodID:      0,
 			InterfaceName: "hubapi/CertService.capnp:CertService",
-			MethodName:    "createClientCert",
+			MethodName:    "createUserCert",
 		},
 	}
 	if params != nil {
 		s.ArgsSize = capnp.ObjectSize{DataSize: 8, PointerCount: 2}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CertService_createClientCert_Params(s)) }
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CertService_createUserCert_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CertService_createClientCert_Results_Future{Future: ans.Future()}, release
+	return CertService_createUserCert_Results_Future{Future: ans.Future()}, release
 }
 func (c CertService) CreateDeviceCert(ctx context.Context, params func(CertService_createDeviceCert_Params) error) (CertService_createDeviceCert_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
@@ -97,7 +97,7 @@ func (c CertService) IsValid() bool {
 
 // A CertService_Server is a CertService with a local implementation.
 type CertService_Server interface {
-	CreateClientCert(context.Context, CertService_createClientCert) error
+	CreateUserCert(context.Context, CertService_createUserCert) error
 
 	CreateDeviceCert(context.Context, CertService_createDeviceCert) error
 
@@ -128,10 +128,10 @@ func CertService_Methods(methods []server.Method, s CertService_Server) []server
 			InterfaceID:   0x8b685cd5f259a3b3,
 			MethodID:      0,
 			InterfaceName: "hubapi/CertService.capnp:CertService",
-			MethodName:    "createClientCert",
+			MethodName:    "createUserCert",
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.CreateClientCert(ctx, CertService_createClientCert{call})
+			return s.CreateUserCert(ctx, CertService_createUserCert{call})
 		},
 	})
 
@@ -162,21 +162,21 @@ func CertService_Methods(methods []server.Method, s CertService_Server) []server
 	return methods
 }
 
-// CertService_createClientCert holds the state for a server call to CertService.createClientCert.
+// CertService_createUserCert holds the state for a server call to CertService.createUserCert.
 // See server.Call for documentation.
-type CertService_createClientCert struct {
+type CertService_createUserCert struct {
 	*server.Call
 }
 
 // Args returns the call's arguments.
-func (c CertService_createClientCert) Args() CertService_createClientCert_Params {
-	return CertService_createClientCert_Params(c.Call.Args())
+func (c CertService_createUserCert) Args() CertService_createUserCert_Params {
+	return CertService_createUserCert_Params(c.Call.Args())
 }
 
 // AllocResults allocates the results struct.
-func (c CertService_createClientCert) AllocResults() (CertService_createClientCert_Results, error) {
+func (c CertService_createUserCert) AllocResults() (CertService_createUserCert_Results, error) {
 	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 2})
-	return CertService_createClientCert_Results(r), err
+	return CertService_createUserCert_Results(r), err
 }
 
 // CertService_createDeviceCert holds the state for a server call to CertService.createDeviceCert.
@@ -222,212 +222,212 @@ func NewCertService_List(s *capnp.Segment, sz int32) (CertService_List, error) {
 	return capnp.CapList[CertService](l), err
 }
 
-type CertService_createClientCert_Params capnp.Struct
+type CertService_createUserCert_Params capnp.Struct
 
-// CertService_createClientCert_Params_TypeID is the unique identifier for the type CertService_createClientCert_Params.
-const CertService_createClientCert_Params_TypeID = 0xf01c40f65e7294b7
+// CertService_createUserCert_Params_TypeID is the unique identifier for the type CertService_createUserCert_Params.
+const CertService_createUserCert_Params_TypeID = 0xf01c40f65e7294b7
 
-func NewCertService_createClientCert_Params(s *capnp.Segment) (CertService_createClientCert_Params, error) {
+func NewCertService_createUserCert_Params(s *capnp.Segment) (CertService_createUserCert_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2})
-	return CertService_createClientCert_Params(st), err
+	return CertService_createUserCert_Params(st), err
 }
 
-func NewRootCertService_createClientCert_Params(s *capnp.Segment) (CertService_createClientCert_Params, error) {
+func NewRootCertService_createUserCert_Params(s *capnp.Segment) (CertService_createUserCert_Params, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2})
-	return CertService_createClientCert_Params(st), err
+	return CertService_createUserCert_Params(st), err
 }
 
-func ReadRootCertService_createClientCert_Params(msg *capnp.Message) (CertService_createClientCert_Params, error) {
+func ReadRootCertService_createUserCert_Params(msg *capnp.Message) (CertService_createUserCert_Params, error) {
 	root, err := msg.Root()
-	return CertService_createClientCert_Params(root.Struct()), err
+	return CertService_createUserCert_Params(root.Struct()), err
 }
 
-func (s CertService_createClientCert_Params) String() string {
+func (s CertService_createUserCert_Params) String() string {
 	str, _ := text.Marshal(0xf01c40f65e7294b7, capnp.Struct(s))
 	return str
 }
 
-func (s CertService_createClientCert_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CertService_createUserCert_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CertService_createClientCert_Params) DecodeFromPtr(p capnp.Ptr) CertService_createClientCert_Params {
-	return CertService_createClientCert_Params(capnp.Struct{}.DecodeFromPtr(p))
+func (CertService_createUserCert_Params) DecodeFromPtr(p capnp.Ptr) CertService_createUserCert_Params {
+	return CertService_createUserCert_Params(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CertService_createClientCert_Params) ToPtr() capnp.Ptr {
+func (s CertService_createUserCert_Params) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CertService_createClientCert_Params) IsValid() bool {
+func (s CertService_createUserCert_Params) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CertService_createClientCert_Params) Message() *capnp.Message {
+func (s CertService_createUserCert_Params) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CertService_createClientCert_Params) Segment() *capnp.Segment {
+func (s CertService_createUserCert_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CertService_createClientCert_Params) ClientID() (string, error) {
+func (s CertService_createUserCert_Params) ClientID() (string, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.Text(), err
 }
 
-func (s CertService_createClientCert_Params) HasClientID() bool {
+func (s CertService_createUserCert_Params) HasClientID() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CertService_createClientCert_Params) ClientIDBytes() ([]byte, error) {
+func (s CertService_createUserCert_Params) ClientIDBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.TextBytes(), err
 }
 
-func (s CertService_createClientCert_Params) SetClientID(v string) error {
+func (s CertService_createUserCert_Params) SetClientID(v string) error {
 	return capnp.Struct(s).SetText(0, v)
 }
 
-func (s CertService_createClientCert_Params) PubKeyPEM() (string, error) {
+func (s CertService_createUserCert_Params) PubKeyPEM() (string, error) {
 	p, err := capnp.Struct(s).Ptr(1)
 	return p.Text(), err
 }
 
-func (s CertService_createClientCert_Params) HasPubKeyPEM() bool {
+func (s CertService_createUserCert_Params) HasPubKeyPEM() bool {
 	return capnp.Struct(s).HasPtr(1)
 }
 
-func (s CertService_createClientCert_Params) PubKeyPEMBytes() ([]byte, error) {
+func (s CertService_createUserCert_Params) PubKeyPEMBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(1)
 	return p.TextBytes(), err
 }
 
-func (s CertService_createClientCert_Params) SetPubKeyPEM(v string) error {
+func (s CertService_createUserCert_Params) SetPubKeyPEM(v string) error {
 	return capnp.Struct(s).SetText(1, v)
 }
 
-func (s CertService_createClientCert_Params) ValidityDays() int32 {
+func (s CertService_createUserCert_Params) ValidityDays() int32 {
 	return int32(capnp.Struct(s).Uint32(0))
 }
 
-func (s CertService_createClientCert_Params) SetValidityDays(v int32) {
+func (s CertService_createUserCert_Params) SetValidityDays(v int32) {
 	capnp.Struct(s).SetUint32(0, uint32(v))
 }
 
-// CertService_createClientCert_Params_List is a list of CertService_createClientCert_Params.
-type CertService_createClientCert_Params_List = capnp.StructList[CertService_createClientCert_Params]
+// CertService_createUserCert_Params_List is a list of CertService_createUserCert_Params.
+type CertService_createUserCert_Params_List = capnp.StructList[CertService_createUserCert_Params]
 
-// NewCertService_createClientCert_Params creates a new list of CertService_createClientCert_Params.
-func NewCertService_createClientCert_Params_List(s *capnp.Segment, sz int32) (CertService_createClientCert_Params_List, error) {
+// NewCertService_createUserCert_Params creates a new list of CertService_createUserCert_Params.
+func NewCertService_createUserCert_Params_List(s *capnp.Segment, sz int32) (CertService_createUserCert_Params_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2}, sz)
-	return capnp.StructList[CertService_createClientCert_Params](l), err
+	return capnp.StructList[CertService_createUserCert_Params](l), err
 }
 
-// CertService_createClientCert_Params_Future is a wrapper for a CertService_createClientCert_Params promised by a client call.
-type CertService_createClientCert_Params_Future struct{ *capnp.Future }
+// CertService_createUserCert_Params_Future is a wrapper for a CertService_createUserCert_Params promised by a client call.
+type CertService_createUserCert_Params_Future struct{ *capnp.Future }
 
-func (p CertService_createClientCert_Params_Future) Struct() (CertService_createClientCert_Params, error) {
+func (p CertService_createUserCert_Params_Future) Struct() (CertService_createUserCert_Params, error) {
 	s, err := p.Future.Struct()
-	return CertService_createClientCert_Params(s), err
+	return CertService_createUserCert_Params(s), err
 }
 
-type CertService_createClientCert_Results capnp.Struct
+type CertService_createUserCert_Results capnp.Struct
 
-// CertService_createClientCert_Results_TypeID is the unique identifier for the type CertService_createClientCert_Results.
-const CertService_createClientCert_Results_TypeID = 0xa2d4945bd89164fa
+// CertService_createUserCert_Results_TypeID is the unique identifier for the type CertService_createUserCert_Results.
+const CertService_createUserCert_Results_TypeID = 0xa2d4945bd89164fa
 
-func NewCertService_createClientCert_Results(s *capnp.Segment) (CertService_createClientCert_Results, error) {
+func NewCertService_createUserCert_Results(s *capnp.Segment) (CertService_createUserCert_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
-	return CertService_createClientCert_Results(st), err
+	return CertService_createUserCert_Results(st), err
 }
 
-func NewRootCertService_createClientCert_Results(s *capnp.Segment) (CertService_createClientCert_Results, error) {
+func NewRootCertService_createUserCert_Results(s *capnp.Segment) (CertService_createUserCert_Results, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
-	return CertService_createClientCert_Results(st), err
+	return CertService_createUserCert_Results(st), err
 }
 
-func ReadRootCertService_createClientCert_Results(msg *capnp.Message) (CertService_createClientCert_Results, error) {
+func ReadRootCertService_createUserCert_Results(msg *capnp.Message) (CertService_createUserCert_Results, error) {
 	root, err := msg.Root()
-	return CertService_createClientCert_Results(root.Struct()), err
+	return CertService_createUserCert_Results(root.Struct()), err
 }
 
-func (s CertService_createClientCert_Results) String() string {
+func (s CertService_createUserCert_Results) String() string {
 	str, _ := text.Marshal(0xa2d4945bd89164fa, capnp.Struct(s))
 	return str
 }
 
-func (s CertService_createClientCert_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CertService_createUserCert_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CertService_createClientCert_Results) DecodeFromPtr(p capnp.Ptr) CertService_createClientCert_Results {
-	return CertService_createClientCert_Results(capnp.Struct{}.DecodeFromPtr(p))
+func (CertService_createUserCert_Results) DecodeFromPtr(p capnp.Ptr) CertService_createUserCert_Results {
+	return CertService_createUserCert_Results(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CertService_createClientCert_Results) ToPtr() capnp.Ptr {
+func (s CertService_createUserCert_Results) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CertService_createClientCert_Results) IsValid() bool {
+func (s CertService_createUserCert_Results) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CertService_createClientCert_Results) Message() *capnp.Message {
+func (s CertService_createUserCert_Results) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CertService_createClientCert_Results) Segment() *capnp.Segment {
+func (s CertService_createUserCert_Results) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CertService_createClientCert_Results) CertPEM() (string, error) {
+func (s CertService_createUserCert_Results) CertPEM() (string, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.Text(), err
 }
 
-func (s CertService_createClientCert_Results) HasCertPEM() bool {
+func (s CertService_createUserCert_Results) HasCertPEM() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CertService_createClientCert_Results) CertPEMBytes() ([]byte, error) {
+func (s CertService_createUserCert_Results) CertPEMBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.TextBytes(), err
 }
 
-func (s CertService_createClientCert_Results) SetCertPEM(v string) error {
+func (s CertService_createUserCert_Results) SetCertPEM(v string) error {
 	return capnp.Struct(s).SetText(0, v)
 }
 
-func (s CertService_createClientCert_Results) CaCertPEM() (string, error) {
+func (s CertService_createUserCert_Results) CaCertPEM() (string, error) {
 	p, err := capnp.Struct(s).Ptr(1)
 	return p.Text(), err
 }
 
-func (s CertService_createClientCert_Results) HasCaCertPEM() bool {
+func (s CertService_createUserCert_Results) HasCaCertPEM() bool {
 	return capnp.Struct(s).HasPtr(1)
 }
 
-func (s CertService_createClientCert_Results) CaCertPEMBytes() ([]byte, error) {
+func (s CertService_createUserCert_Results) CaCertPEMBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(1)
 	return p.TextBytes(), err
 }
 
-func (s CertService_createClientCert_Results) SetCaCertPEM(v string) error {
+func (s CertService_createUserCert_Results) SetCaCertPEM(v string) error {
 	return capnp.Struct(s).SetText(1, v)
 }
 
-// CertService_createClientCert_Results_List is a list of CertService_createClientCert_Results.
-type CertService_createClientCert_Results_List = capnp.StructList[CertService_createClientCert_Results]
+// CertService_createUserCert_Results_List is a list of CertService_createUserCert_Results.
+type CertService_createUserCert_Results_List = capnp.StructList[CertService_createUserCert_Results]
 
-// NewCertService_createClientCert_Results creates a new list of CertService_createClientCert_Results.
-func NewCertService_createClientCert_Results_List(s *capnp.Segment, sz int32) (CertService_createClientCert_Results_List, error) {
+// NewCertService_createUserCert_Results creates a new list of CertService_createUserCert_Results.
+func NewCertService_createUserCert_Results_List(s *capnp.Segment, sz int32) (CertService_createUserCert_Results_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
-	return capnp.StructList[CertService_createClientCert_Results](l), err
+	return capnp.StructList[CertService_createUserCert_Results](l), err
 }
 
-// CertService_createClientCert_Results_Future is a wrapper for a CertService_createClientCert_Results promised by a client call.
-type CertService_createClientCert_Results_Future struct{ *capnp.Future }
+// CertService_createUserCert_Results_Future is a wrapper for a CertService_createUserCert_Results promised by a client call.
+type CertService_createUserCert_Results_Future struct{ *capnp.Future }
 
-func (p CertService_createClientCert_Results_Future) Struct() (CertService_createClientCert_Results, error) {
+func (p CertService_createUserCert_Results_Future) Struct() (CertService_createUserCert_Results, error) {
 	s, err := p.Future.Struct()
-	return CertService_createClientCert_Results(s), err
+	return CertService_createUserCert_Results(s), err
 }
 
 type CertService_createDeviceCert_Params capnp.Struct
@@ -870,66 +870,67 @@ func (p CertService_createServiceCert_Results_Future) Struct() (CertService_crea
 	return CertService_createServiceCert_Results(s), err
 }
 
-const schema_cd6ed2180540008c = "x\xda\xb4T]h\x1cU\x14>\xe7\xde\xbb3\"\xb1" +
-	"\xf12\x11\xad\x14\xd3j\x16Li\xfe\x9a\xfa\x13i\xe9" +
-	"\xd6\xdd\xc465\xb2w7J[E3\xd9\\\xc9\xc8" +
-	"\xee\xb2\xce\xccF\x16\x05A\xb0\xd0\x98\x07\x95\xbeX\x1f" +
-	"\x84\xd6\x0a\xfa`\xfcy\x10\x04Q\x0b\xea\xcb*\xb4X" +
-	"\xc8\x8bh\x1f\x8aF|(A\x04\x83:rg2;" +
-	"\xb3[\xbamC\xf38\xe7~\xf3\x9d\xef|\xdf\xb9w" +
-	"\xf0$I\xb1\xa1[\x1e\xd0\x80\x88\xfd\x09\xcd[\xf8\xfa" +
-	"\xfcN9p\xea\x18\xf0$\x02$\x88\x0e0\x8ct\x05" +
-	"\x01\x8d\xdb\xe8\x0b\x80\xde\xa7\xa7\x0e\xaf\x9c\x7fj\xf65" +
-	"\xe0\x9b\xe9\xbf\x0b\xa9\xc4\x1d\xe7\xca\xdf\x03\x0eW\xe9v" +
-	"4^\xa5\xb7\x03\x18o\xd1\xef\x8c^\xa6\x03x\x1dS" +
-	"K\xe4\xdd\xc9\xf9\x13\xc07\xb3\x18\x96\xb3\xcf1@\xe4" +
-	"{\x18\xc5\xfc #\x08\xe0\xddy\xee\xbf\x8f.l\xff" +
-	"\xf3\x9d\x16\xf46\x85\x1e\xf1\xd1\xbb\x14:\x15\xa0Wg" +
-	"\xdeXz\xf2\xf8\x8f'\xe3B\x87\x98/t\x94)\xa1" +
-	"\xf7\xe5~\xd6n\x1e\xbe\xe7}\xe0I\x16\xa9\x06\x1c>" +
-	"\xcd\xee&\xc67>\xe1W\x8a\xb0\x1e\x10\xce\xbf\xfd\xc1" +
-	"\xd8{\xff\xec\xfa\xb8\xa5\xfd\x17l\x1c\x8d\xb3>\xba\xae" +
-	"\xd0K\x01\xfa\xc5\xf2\xfd\xf7:\xa7\x9f\xf9\xa4\x05}\x96" +
-	"\x1dA\xe3\xa2\x8f\xfeE\xa1\xff\x08\xd0'\x06\x12\xf6\xf8" +
-	"\xd6Kg\xe2b/\xb2U%\xf6o_\xac\xb3\xbc{" +
-	"\xcf\xe4\xe2\xf2\xb7 \x92\xd8@\x1cN\xfc\xae\x10\xa5\xc4" +
-	"\"\xa0W\xff\xb2|\xe8\xa7\xf9\x0f\xeb\xad^j94" +
-	"\x92\x9aj\xb8U\xa3\x98\xdf\xa1\xf9\x0d\x8f^@k\xcb" +
-	"+\x8f\xfc\x16\xf2Q\xc5\x97\xd4|{F\xb4_\x01\xbd" +
-	"\x85\xa3\xc7~\x18_\xd9\xb6\xdc\xc2\xd7\xab\x9fAc\x9f" +
-	"\xae\xf8v\xeb\x14\xf3\xfbu\x9f\xef\xb3\xe3\xf6\xd3\x7f\xa5" +
-	"\xb6\\j\xd27\xa2\xfb\xfa&\xf4E\xe8\xf3f\xab\xd3" +
-	"f\xc5\x1aHk\xd2v\xf3\xd2\x9e\xb3\x0a\xb2\xbf`V" +
-	"\xca\x95\x87\xd2\xf1\x8a-MWf\xa4\xfaP\xf5\x9e\x9c" +
-	"\xecv\xaaE\xd7\x117Q\x06\xc0\x10\x80\xf7>\x0c " +
-	"z(\x8aA\x82\x1c\xb1K5\xe4}9\x00\xb1\x83\xa2" +
-	"x\x90\xe0\xcb\x05i\xbb\xd9\xd1\x09\xec\x00\x82\x1d\x80^" +
-	"\xc1L\xfb\x15\xc0\xa8\x16\xea\xa1W\xd2\xd3\xa9J\x82a" +
-	"|Sp\xd5\x9b\x91\xcf\x9a\xd5\xa2\x9b'\xc1?\x0a\xfc" +
-	"\x84Y\xb4f\xac\xbdn-c\xd6\x1c\xd1A\x131C" +
-	"0\xdcC.\xe6\x81\xf0\x09\x1d\xa301\xbcL|\x9f" +
-	":\xdb\xa3#i\x04\x83\xe1J\xf0\xa17\x81\xf0>\xdd" +
-	"\x0b\xacI\x17\xd1\x92eW\xb5\x05H\xa1\x17\x1a\x86\xa1" +
-	"\x98X5/1\xd4\x88n\x0a\xb3\x18M\x9d\xb8l\xea" +
-	"\xb5\xb9\"\xeb\x9b\xa6\xca\"\"\x03\xc2\xd9]p\x0d$" +
-	"\xe9b\xa8\xf1\xea$\xd7\xb2\x0f\x11\xdf\xc6\xef\x83\xdeV" +
-	"O\x98~k\xf8n-\xa3_iBv\x19c!\xaa" +
-	"<f\x96$\x80\xfa/\x10\x02\x1c\xa7=u\xeeH{" +
-	"\x0et\xab \xdb\xf0\x84v\xfb\xe3\x8cY\xb4(\x9b\x88" +
-	"\x8e\xac\x0d\xda_\x01*K\xd7\xe5xl\xc0\x9e\xdc^" +
-	"\xb9\xb1\x96_\xe7\x93\x905;m\xb3\xa4.Z(g" +
-	"t\x1c@d(\x8alL\xce\x84\x92\xf3(Eq\x88" +
-	" \x92.$\x00\xfc\xf1\xe7\x00\xc4$E1E\xd0\x9b" +
-	"\xf1)\x0fd\x00\xa0!\xa9R\x9d>(k\xcd2\xe7" +
-	"\xd6\x12\x86N\xb5\xc4*_dm\xe3m\xc4rP\xd6" +
-	"\xc6\xac\"6\xa7\x92\xf3\x0a\xea\xa0\xbf\"\x01\xd7\x1fJ" +
-	"\xb6\xdb\xf4M\xb8\xb5a\x82\xa9\xe6\x9d\xa2(\x8a1\x13" +
-	",U\x9c\xa5(\xdc\xc8\x84\xe7\x95\x09\x15\x8a\xe2%\x82" +
-	"\x9c\x92.\xa4\x00\xbc\xb6\x13@\xb8\x14\xc5\xeb\x04='" +
-	"ht\x000\xb3\x0eg\xba\xcbfI:\xb8\x090K" +
-	"\x83\xb97\xb5\x0d\xbb\xcd\x9d2k\x0e\xdc\x88W\xe3F" +
-	"\xadL\xc1\xa7\\\xef\xca\xfc\x1f\x00\x00\xff\xff\xd06\x93" +
-	"\x0d"
+const schema_cd6ed2180540008c = "x\xda\xb4TOh\x1c\xd5\x1f\xff~\xde{;\xf3\xe3" +
+	"G\xda8lD+\xd14\x9a@[\x9a?6F\xab" +
+	"4$\x9am4\xa9\x95}\xbb\x89\xd4*\x9a\xc9\xe6I" +
+	"F6\xcb:3\x1bY\x15\x04\xc1Bc\x0e*\xbdX" +
+	"\x0fR\xab\x82\x1e\x8c\x7f\x0e\xa2\x08\xd2\x1e\xb4\x87\xc6C" +
+	"i\xa1\x88\"\xf1b\xe3\xa9\x04\xf5\x10\xd4\x917\x93\xd9" +
+	"\xddliH\xa3=\xeew?\xf3y\x9f?\xdf\xf7\xba" +
+	"O\xb0\x01q\xe7\x96{\x0cb\xf2\xa1\x84\x11\xcc\x9d\xba" +
+	"\xb0Gu\x9d<JV;\x88\x12\xcc$\xea\x01_\x06" +
+	"!y#\x7f\x8e\x10|v\xf2\xb1\xe5\x0bOL\xbdJ" +
+	"\xd66\xfe\xd7\xdc@\xe2\xe6s\x85\x05BO\x89\xefB" +
+	"\xf2\x15~\x13Q\xf2M\xfem\xb2]\x98DA\xc3\xf8" +
+	"E\xf6\xee\xe8\xecq\xb2\xb6\x89\x1a\xec\x16\xf1%\"D" +
+	"v\xbb\xe0\xc8\xee\x16\x0cD\xc1-\xe7\xfe\xfexq\xd7" +
+	"oo\xd7\xa1o\xd5\xe8\xde\x10\xdd\xad\xd1\xfb\"\xf4\xca" +
+	"\xe4\xeb\x17\x1f?v\xfe\x9dZ\xa1\x1d\xe2g-\xf4~" +
+	"\xa1\x85\xf6f~2\xfe\xdfs\xc7\x07d\xb5\x8b\xaaj" +
+	"B\xcf\x09q;K\x9e\x0a\x09\xbf\xd2\x84g\"\xc2\xd9" +
+	"\xb7>\x1cz\xff\xcf\xbb>\xa9;\xfe\x0b1\x82\xe4B" +
+	"\x88>\xa3\xd1\xe7#\xf4\x0b\x85\xbbwx\xef=\xf5i" +
+	"\x1dzA\x1cFr1D\xff\xa0\xd1\x97\"\xf4\xf1\xae" +
+	"\x84;\xb2\xfd\xf2\xe9Z\xb1\x8bbE\x8b\xfd=\x14\xeb" +
+	"-\xed\xeb\x1b\x9d_\xfa\x86d;*\x88\xb1\xc4\xaf\x1a" +
+	"\xe1$\xe6\x09\xc1\xd9\xaf\x0b\x87~\x9c\xfd\xe8l}\x96" +
+	"F\x06\xc9VC\x1f\xd8lpdw\x18\xe1\x81G\x16" +
+	"\xe14\xbf\xfc\xe0\xa5\x98\x8fk\xbeV#\xec\xb1\xd7\xf8" +
+	"\x85\x10\xcc\x1d9\xfa\xdd\xc8r\xebR\x1d_\xbby\x1a" +
+	"\xc9>S\xf3\xed59\xb2)3\xe4\xfb\xfc\x98\xfb\xe4" +
+	"\x1f\x03\xcd\x97\xd7\xe8\xeb5\xbf\xd7|\xc3\xe6<u\x04" +
+	"S\xa5\x09\xbb\xe8t\x0d\x1a\xca\xf5\xb3\xca\x9dqr\xaa" +
+	"3g\x17\x0b\xc5\xfb\x06k'\xae\xb2}\x95R\xfa\x87" +
+	"\x9e\xb7eT\x8bW\xca\xfb\x9e\xfc\x1f\x17D\x02D\xd6" +
+	"\xce\x07\x88d\x1b\x87\xecf\xb0\x80&}\xa0\xd5\x91!" +
+	"\x92\xbb9\xe4^\x86\x97r\xca\xf5\xd3\xfb\x0f\xa2\x81\x18" +
+	"\x1a\x08A\xce\x1e\x0c'\x84\xea,\xd6\xc3\xaf\xa6\xa7Q" +
+	"\x8f\xa4@\xed\xa6`%\x98TO\xdb\xa5\xbc\x9fe\xd1" +
+	"7\x1a\xfc\xa8\x9dw&\x9d~\xbf\x9c\xb2\xcb\x9el\xe0" +
+	"\x09\xb0J \x88\xf7\xd0\x92\xcf\x13\xb3\x86\xf5\xda\xc7e" +
+	"\"\xbeLV\xdf,1\xeb^\x13\xa8\x14\x83x%\xac" +
+	"\x8e7\x88Y;\xcd \x8af\xcc\xa3~\xe5\xeaS\x07" +
+	"\x10\xc4i!VBT\x99f\x15b\x81\xf0\x07\x90F" +
+	"\xd5r\xe2\x0a\xcb\xab\xa6\xaa\xb9\xaf\xb1\x94\x06 \x88Y" +
+	"\xe26\xda\x00\xc9`\xdeQ\x05\x7fc$\x1bY\x861" +
+	"/\xf2\xdb\x96Q^\xc9\xbc\x9e\xab`\xae\xab&.\xbe" +
+	"\xbew\xbf\x9c2\xaf\xe6O\\\xc1\x98\xabN\x1e\xb1\xa7" +
+	"\x15\x91\xfe.\x12B\x16&\x02\xfd\xbf\xa7\xdc\x192\x9d" +
+	"\x9cZ\x87'\x0e;\xb43\xe4\xf0\xbcZCtx\xd5" +
+	"hg\x91\xb8\x9a\xbe\xa6\xbck\x0c\xb6e\xfa\xd5\xf5\xbd" +
+	"}\xd7\xf8\x1a\xa4\xedF\xd7\x9e\xd6w,\x96\xb3\x7f\x84" +
+	"H\xa68d\xbaF\xceA-\xe7a\x0ey\x88\x01\xac" +
+	"\x09\x0c\xb0\xc6\x9e!\x92\xa3\x1cr\x9c!\x98\x0c)\x87" +
+	"SDT\x91T,M\x1cP\xe5\xb52gV\x1b\xa6" +
+	"F\xbd\xc2\xba_\x88u\xeb\xad\xd4r@\x95\x87\x9c<" +
+	"\xd6\xb6\x92\x09r\xfa\x8f\xce\xa2\"l\xbe\x94t\x8b\x1d" +
+	"\x86pC%\x04[\xfb\x1d\xe7\x90\xf9\x9a\x10\x1c=\x9c" +
+	"\xe2\x90~5\x84gu\x08E\x0e\xf9\"\x83\xc5Y\x13" +
+	"8\x91U\xdeC$}\x0e\xf9\x1aC\xe0E\x07\x0d\x13" +
+	"R\x9bH\xa6\xa5`O+\x0f[\x09i\x1e\xf9\xde\xba" +
+	"n\xd9\xeb\xdc)\xbb\xec\xd1\xbf\x7f3\xd2\xb6k\xf3\xff" +
+	"`ar\xe1\xa3\xb6\xd9\x85\xf9'\x00\x00\xff\xff!\x83" +
+	"\x90\x0c"
 
 func init() {
 	schemas.Register(schema_cd6ed2180540008c,

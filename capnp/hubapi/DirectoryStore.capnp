@@ -18,8 +18,11 @@ interface DirectoryStore {
   
   listTDs @2 (limit:Int32, offset:Int32) -> (tds :List(Text));
   # List all TD's
-  
-  updateTD @3 (thingID :Text, tdDoc :Text) -> ();
+
+  removeTD @3 (thingID :Text) -> ();
+  # Remove the TD document in the directory
+
+  updateTD @4 (thingID :Text, tdDoc :Text) -> ();
   # Update the TD document in the directory
   # If the TD with the given ID doesn't exist it will be added.
 }
