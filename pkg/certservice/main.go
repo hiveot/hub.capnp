@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"crypto/ecdsa"
 	"crypto/x509"
 	"flag"
@@ -57,6 +56,6 @@ func main() {
 	}
 
 	logrus.Infof("CertServiceCapnpAdapter starting")
-	service := selfsigned.NewSelfSignedServer(caCert, caKey)
-	adapter.StartCertServiceCapnpAdapter(context.Background(), lis, service)
+	service := selfsigned.NewSelfSignedService(caCert, caKey)
+	adapter.StartCertServiceCapnpAdapter(lis, service)
 }

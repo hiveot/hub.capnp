@@ -14,7 +14,7 @@ import (
 // for use by http or grpc server.
 //
 // This parses the commandline for options '-p port' or '-u unixsocket' to listen on
-// The default socket is /tmp/{serviceName}.sock
+// The default socket is /tmp/{serviceName}.socket
 // In case of error this exits with Fatal.
 //
 // By default this listens on the unix domain socket /tmp/serviceName.sock
@@ -25,7 +25,7 @@ func CreateServiceListener(serviceName string) net.Listener {
 	var address string = "localhost"
 	var unixSocket string = "/tmp/" + serviceName + ".socket"
 	flag.Usage = func() {
-		fmt.Printf("Usage: %s [-p port | -u /path/to/unixdomainsocket]\n", os.Args[0])
+		fmt.Printf("Usage: %s [-p port | -u /path/to/unixdomain.socket]\n", os.Args[0])
 		flag.PrintDefaults()
 		//"thingstore [-p port|domainsocket]"
 	}

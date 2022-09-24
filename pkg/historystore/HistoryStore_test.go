@@ -5,8 +5,10 @@ import (
 	"context"
 	"fmt"
 	"math/rand"
+	"net"
 	"os"
 	"strconv"
+	"syscall"
 	"testing"
 	"time"
 
@@ -16,11 +18,17 @@ import (
 
 	"github.com/hiveot/hub.go/pkg/logging"
 	"github.com/hiveot/hub.go/pkg/thing"
+	"github.com/hiveot/hub/pkg/historystore/adapter"
+	"github.com/hiveot/hub/pkg/historystore/client"
 	"github.com/hiveot/hub/pkg/historystore/config"
 	"github.com/hiveot/hub/pkg/historystore/mongohs"
 )
 
 const thingIDPrefix = "thing-"
+
+// when testing using the capnp RPC
+const testAddress = "/tmp/histstore_test.socket"
+const useCapnp = true
 
 var svcConfig = config.HistoryStoreConfig{
 	DatabaseType:    "mongodb",
@@ -35,10 +43,46 @@ var names = []string{"temperature", "humidity", "pressure", "wind", "speed", "sw
 var testItems = make(map[string]thing.ThingValue)
 var highestName = make(map[string]thing.ThingValue)
 
+// Create a new store, delete if it already exists
+func newStore() client.IHistoryStore {
+	store := mongohs.NewMongoHistoryStoreServer(svcConfig)
+	// start to delete the store
+	_ = store.Start()
+	_ = store.Delete()
+	// start to recreate the store
+	err := store.Start()
+	if err != nil {
+		logrus.Fatalf("Failed starting the store server: %s", err)
+	}
+
+	// optionally test with capnp RPC
+	if useCapnp {
+		_ = syscall.Unlink(testAddress)
+		lis, _ := net.Listen("unix", testAddress)
+		go adapter.StartHistoryStoreCapnpAdapter(lis, store)
+
+		cl, err := client.NewHistoryStoreCapnpClient(testAddress, true)
+		if err != nil {
+			logrus.Fatalf("Failed starting capnp client: %s", err)
+		}
+		return cl
+	}
+
+	return store
+}
+
+//func stopStore(store client.IHistoryStore) error {
+//	return store.(*mongohs.MongoHistoryStoreServer).Stop()
+//}
+
 // add some history to the store
-func addHistory(store *mongohs.MongoHistoryStoreServer,
+func addHistory(store client.IHistoryStore,
 	count int, nrThings int, timespanSec int) {
-	const batchSize = 10000
+	var batchSize = 1000
+	if batchSize > count {
+		batchSize = count
+	}
+
 	// use add multiple in 100's
 	for i := 0; i < count/batchSize; i++ {
 		evList := make([]thing.ThingValue, 0)
@@ -67,20 +111,6 @@ func addHistory(store *mongohs.MongoHistoryStoreServer,
 	}
 }
 
-func startStore() *mongohs.MongoHistoryStoreServer {
-	store := mongohs.NewMongoHistoryStoreServer(svcConfig)
-	store.Start()
-	return store
-}
-
-func stopStore(store *mongohs.MongoHistoryStoreServer) error {
-	return store.Stop()
-}
-
-func deleteStore(store *mongohs.MongoHistoryStoreServer) error {
-	return store.Delete()
-}
-
 func TestMain(m *testing.M) {
 	logging.SetLogging("info", "")
 
@@ -91,14 +121,13 @@ func TestMain(m *testing.M) {
 // Test creating and deleting the history database
 // This requires a local unsecured MongoDB instance
 func TestCreateDelete(t *testing.T) {
-	store := startStore()
+	store := newStore()
 	if assert.NotNil(t, store) {
-		err := stopStore(store)
-		assert.NoError(t, err)
-		store = startStore()
+		//err := stopStore(store)
+		//assert.NoError(t, err)
+		store = newStore()
 	}
-	err := deleteStore(store)
-	assert.NoError(t, err)
+	assert.NotNil(t, store)
 }
 
 func TestAddGetEvent(t *testing.T) {
@@ -106,7 +135,7 @@ func TestAddGetEvent(t *testing.T) {
 	const id2 = "thing2"
 	const evName1 = "temperature"
 	const evName2 = "humidity"
-	store := startStore()
+	store := newStore()
 	ctx := context.Background()
 	// add events for thing 1
 	err := store.AddEvent(ctx,
@@ -128,28 +157,27 @@ func TestAddGetEvent(t *testing.T) {
 	assert.NoError(t, err)
 
 	// query all events of thing 1
-	res, err := store.GetEventHistory(ctx, id1, "", "", "")
-	assert.NoError(t, err)
-	assert.Equal(t, 2, len(res))
+	res, err := store.GetEventHistory(ctx, id1, "", "", "", 0)
+	require.NoError(t, err)
+	require.Equal(t, 2, len(res))
 	assert.Equal(t, id1, res[0].ThingID)
 	assert.Equal(t, evName1, res[0].Name)
 
 	// query temperatures of thing 2
-	res, err = store.GetEventHistory(ctx, id2, evName1, "", "")
+	res, err = store.GetEventHistory(ctx, id2, evName1, "", "", 0)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(res))
 
-	latest, err := store.GetLatestValues(ctx, id1)
+	latestEvents, err := store.GetLatestEvents(ctx, id1)
 	assert.NoError(t, err)
-	assert.True(t, len(latest) > 0)
-	_ = deleteStore(store)
+	assert.True(t, len(latestEvents) > 0)
 }
 
 func TestEventPerf(t *testing.T) {
 	const id1 = "thing-1"
 	const evName = "event-"
 	const nrRecords = 10000 // 10000 recs: 6sec to write, 45msec to read
-	store := startStore()
+	store := newStore()
 
 	//addHistory(store, 10000, 1000)
 
@@ -178,33 +206,28 @@ func TestEventPerf(t *testing.T) {
 	// test reading records
 	t2 := time.Now()
 	//afterTime := time.Now().Add(-time.Hour * 600).Format(time.RFC3339)
-	res, err := store.GetEventHistory(ctx, id1, "", "", "")
+	res, err := store.GetEventHistory(ctx, id1, "", "", "", 0)
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
 	d2 := time.Now().Sub(t2)
 	t.Logf("Reading %d events: %d msec", len(res), d2.Milliseconds())
-
-	_ = deleteStore(store)
 }
 
 func TestGetLatest(t *testing.T) {
 	const id1 = thingIDPrefix + "0" // matches a percentage of the random things
 	const name = "action1"
-	store := startStore()
-	_ = deleteStore(store)
-	store = startStore()
+	store := newStore()
 
 	// 10 sensors -> 1 sample per minute, 60 per hour -> 600
 	addHistory(store, 1000000, 1, 3600*24*30)
 
 	ctx := context.Background()
 	t1 := time.Now()
-	values, err := store.GetLatestValues(ctx, id1)
+	values, err := store.GetLatestEvents(ctx, id1)
 	d1 := time.Now().Sub(t1)
 	logrus.Infof("Duration: %d msec", d1.Milliseconds())
 	assert.NotNil(t, values)
 	if !assert.NoError(t, err) {
-		_ = deleteStore(store)
 		return
 	}
 
@@ -219,14 +242,12 @@ func TestGetLatest(t *testing.T) {
 			assert.Equal(t, highest.Created, val.Created)
 		}
 	}
-
-	_ = deleteStore(store)
 }
 
 func TestAddGetAction(t *testing.T) {
 	const id1 = "thing1"
 	const name = "action1"
-	store := startStore()
+	store := newStore()
 	ctx := context.Background()
 	actionData := `{"switch":"on"}`
 	action := thing.ThingValue{
@@ -240,10 +261,18 @@ func TestAddGetAction(t *testing.T) {
 	err = store.AddAction(ctx, action)
 	assert.NoError(t, err)
 
-	actions, err := store.GetActionHistory(ctx, id1, "", "", "")
+	actions, err := store.GetActionHistory(ctx, id1, "", "", "", 0)
 	assert.NoError(t, err)
 	assert.NotNil(t, actions)
 	assert.Greater(t, len(actions), 1)
+}
 
-	_ = deleteStore(store)
+func TestGetInfo(t *testing.T) {
+	store := newStore()
+	addHistory(store, 20, 5, 1000)
+	ctx := context.Background()
+
+	info, err := store.Info(ctx)
+	assert.NoError(t, err)
+	assert.Equal(t, 20, info.NrEvents)
 }

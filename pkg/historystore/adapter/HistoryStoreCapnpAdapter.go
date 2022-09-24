@@ -2,31 +2,33 @@ package adapter
 
 import (
 	"context"
-	"fmt"
 	"net"
+	"time"
 
 	"capnproto.org/go/capnp/v3"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub.go/pkg/thing"
 	"github.com/hiveot/hub/internal/caphelp"
+	"github.com/hiveot/hub/pkg/historystore/client"
 	"github.com/hiveot/hub/pkg/historystore/mongohs"
 )
 
 // HistoryStoreCapnpAdapter is a capnproto adapter for the history store
 // This implements the capnproto generated interface HistoryStore_Server
-// See hub.capnp/go/hubapi/History.capnp.go for the interface.
+// See hub.capnp/go/hubapi/HistoryStore.capnp.go for the interface.
 type HistoryStoreCapnpAdapter struct {
-	srv *mongohs.MongoHistoryStoreServer
+	srv client.IHistoryStore
 }
 
 func (adpt *HistoryStoreCapnpAdapter) AddAction(
 	ctx context.Context, call hubapi.HistoryStore_addAction) error {
 	args := call.Args()
-	thingID, _ := args.ThingID()
-	name, _ := args.Name()
-	valueJSON, _ := args.ValueJSON()
-	created, _ := args.Created()
+	capValue, _ := args.ActionValue()
+	thingID, _ := capValue.ThingID()
+	name, _ := capValue.Name()
+	valueJSON, _ := capValue.ValueJSON()
+	created, _ := capValue.Created()
 	actionValue := thing.ThingValue{
 		ThingID:   thingID,
 		Name:      name,
@@ -41,10 +43,11 @@ func (adpt *HistoryStoreCapnpAdapter) AddAction(
 func (adpt *HistoryStoreCapnpAdapter) AddEvent(
 	ctx context.Context, call hubapi.HistoryStore_addEvent) error {
 	args := call.Args()
-	thingID, _ := args.ThingID()
-	name, _ := args.Name()
-	valueJSON, _ := args.ValueJSON()
-	created, _ := args.Created()
+	capValue, _ := args.EventValue()
+	thingID, _ := capValue.ThingID()
+	name, _ := capValue.Name()
+	valueJSON, _ := capValue.ValueJSON()
+	created, _ := capValue.Created()
 	eventValue := thing.ThingValue{
 		ThingID:   thingID,
 		Name:      name,
@@ -52,6 +55,14 @@ func (adpt *HistoryStoreCapnpAdapter) AddEvent(
 		Created:   created,
 	}
 	err := adpt.srv.AddEvent(ctx, eventValue)
+	return err
+}
+func (adpt *HistoryStoreCapnpAdapter) AddEvents(
+	ctx context.Context, call hubapi.HistoryStore_addEvents) error {
+	args := call.Args()
+	capValues, _ := args.EventValues()
+	eventValues := caphelp.CapnpToThingValueList(capValues)
+	err := adpt.srv.AddEvents(ctx, eventValues)
 	return err
 }
 
@@ -62,20 +73,12 @@ func (adpt *HistoryStoreCapnpAdapter) GetActionHistory(
 	name, _ := args.ActionName()
 	after, _ := args.After()
 	before, _ := args.Before()
-	hist, err := adpt.srv.GetActionHistory(ctx, thingID, name, after, before)
+	limit := args.Limit()
+	hist, err := adpt.srv.GetActionHistory(ctx, thingID, name, after, before, int(limit))
 	if err == nil {
 		res, _ := call.AllocResults()
-		valList := caphelp.ToCapnpValueList(hist)
+		valList := caphelp.ThingValueListToCapnp(hist)
 		res.SetValues(valList)
-
-		//valList, _ := res.Values()
-		//for i := 0; i < len(hist); i++ {
-		//	histValue := hist[i]
-		//	capValue := valList.At(i)
-		//	capValue.SetName(histValue.Name)
-		//	capValue.SetValueJSON(histValue.ValueJSON)
-		//	capValue.SetCreated(histValue.Created)
-		//}
 	}
 	return err
 }
@@ -87,33 +90,51 @@ func (adpt *HistoryStoreCapnpAdapter) GetEventHistory(
 	name, _ := args.EventName()
 	after, _ := args.After()
 	before, _ := args.Before()
+	limit := args.Limit()
 
-	hist, err := adpt.srv.GetEventHistory(ctx, thingID, name, after, before)
+	hist, err := adpt.srv.GetEventHistory(ctx, thingID, name, after, before, int(limit))
 	if err == nil {
 		res, _ := call.AllocResults()
-		valList, _ := res.Values()
-		for i := 0; i < len(hist); i++ {
-			histValue := hist[i]
-			capValue := valList.At(i)
-			capValue.SetName(histValue.Name)
-			capValue.SetValueJSON(histValue.ValueJSON)
-			capValue.SetCreated(histValue.Created)
-		}
+		valList := caphelp.ThingValueListToCapnp(hist)
+		res.SetValues(valList)
 	}
 	return err
 }
 
-// TODO
+func (adpt *HistoryStoreCapnpAdapter) GetLatestEvents(
+	ctx context.Context, call hubapi.HistoryStore_getLatestEvents) error {
+
+	args := call.Args()
+	thingID, _ := args.ThingID()
+
+	hist, err := adpt.srv.GetLatestEvents(ctx, thingID)
+	if err == nil {
+		res, _ := call.AllocResults()
+		capMap := caphelp.ThingValueMapToCapnp(hist)
+		res.SetThingValueMap(capMap)
+	}
+	return err
+}
+
 func (adpt *HistoryStoreCapnpAdapter) Info(
-	ctx context.Context, call hubapi.HistoryStore_info) error {
-	//todo
-	//err := adpt.srv.Info(ctx)
-	return fmt.Errorf("Not implemented")
+	ctx context.Context, call hubapi.HistoryStore_info) (err error) {
+
+	inf, err := adpt.srv.Info(ctx)
+	if err == nil {
+		res, err2 := call.AllocResults()
+		err = err2
+		storeInfo, _ := res.NewStatistics()
+		storeInfo.SetNrActions(int64(inf.NrActions))
+		storeInfo.SetNrEvents(int64(inf.NrEvents))
+		storeInfo.SetEngine(inf.Engine)
+		storeInfo.SetUptime(int64(inf.Uptime))
+	}
+
+	return err
 }
 
 // StartHistoryStoreCapnpAdapter starts the history store capnp protocol server
-func StartHistoryStoreCapnpAdapter(ctx context.Context,
-	listener net.Listener,
+func StartHistoryStoreCapnpAdapter(listener net.Listener,
 	srv *mongohs.MongoHistoryStoreServer) error {
 
 	adpt := &HistoryStoreCapnpAdapter{
@@ -121,6 +142,7 @@ func StartHistoryStoreCapnpAdapter(ctx context.Context,
 	}
 	// Create the capnp client to receive requests
 	main := hubapi.HistoryStore_ServerToClient(adpt)
+	ctx, _ := context.WithTimeout(context.Background(), time.Second*60)
 
 	return caphelp.CapServe(ctx, listener, capnp.Client(main))
 }

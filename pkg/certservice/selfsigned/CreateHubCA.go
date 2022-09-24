@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
-	"fmt"
 	"math/big"
 	"time"
 
@@ -63,9 +62,7 @@ func CreateHubCA(validityDays int) (cert *x509.Certificate, key *ecdsa.PrivateKe
 	caCertDer, err := x509.CreateCertificate(rand.Reader, rootTemplate, rootTemplate, &privKey.PublicKey, privKey)
 	if err != nil {
 		// normally this never happens
-		err := fmt.Errorf("unable to create HiveHub CA cert: %s", err)
-		logrus.Error(err)
-		return nil, nil, err
+		logrus.Fatalf("unable to create HiveHub CA cert: %s", err)
 	}
 	caCert, _ := x509.ParseCertificate(caCertDer)
 	return caCert, privKey, nil

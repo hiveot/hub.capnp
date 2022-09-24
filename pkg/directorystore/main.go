@@ -1,34 +1,35 @@
-// Package main with the thing store
+// Package main with the thing directory store
 package main
 
 import (
-	"context"
 	"flag"
 	"log"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub/internal/listener"
 	"github.com/hiveot/hub/pkg/directorystore/adapter"
 
-	"github.com/hiveot/hub/pkg/directorystore/thingkvstore"
+	"github.com/hiveot/hub/pkg/directorystore/directorykvstore"
 )
 
 // ServiceName is the name of the store for logging
-const ServiceName = "thingstore"
+const ServiceName = "directorystore"
 
-// ThingStorePath is the path to the storage file for the in-memory store.
-const ThingStorePath = "config/thingstore.json"
+// DirectoryStorePath is the path to the storage file for the in-memory store.
+const DirectoryStorePath = "config/directorystore.json"
 
 // Use the commandline option -f path/to/store.json for the storage file
 func main() {
-	thingStorePath := ThingStorePath
-	flag.StringVar(&thingStorePath, "f", thingStorePath, "File path of the Thing store.")
+	storePath := DirectoryStorePath
+	flag.StringVar(&storePath, "f", storePath, "File path of the Thing store.")
 
 	lis := listener.CreateServiceListener(ServiceName)
 
-	store, err := thingkvstore.NewThingKVStoreServer(thingStorePath)
+	store, err := directorykvstore.NewDirectoryKVStoreServer(storePath)
 	if err != nil {
 		log.Fatalf("Service '%s' failed to start: %s", ServiceName, err)
 	}
-
-	adapter.StartDirectoryStoreCapnpAdapter(context.Background(), lis, store)
+	logrus.Infof("StartDirectoryStoreCapnpAdapter starting")
+	adapter.StartDirectoryStoreCapnpAdapter(lis, store)
 }

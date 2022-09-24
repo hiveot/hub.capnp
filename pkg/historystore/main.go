@@ -2,7 +2,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"io/ioutil"
 	"path"
@@ -29,17 +28,17 @@ func main() {
 	flag.StringVar(&configFile, "c", configFile, "Service configuration with database connection info")
 	lis := listener.CreateServiceListener(config.ServiceName)
 
+	// config file is optional
 	configData, err := ioutil.ReadFile(configFile)
 	if err == nil {
 		err = yaml.Unmarshal(configData, &svcConfig)
+		if err != nil {
+			logrus.Fatalf("Error reading service configuration file '%s': %v", configFile, err)
+		}
 	}
-	if err != nil {
-		logrus.Fatalf("Error reading service configuration file '%s': %v", configFile, err)
-	}
-
 	// For now only mongodb is supported
 	// This service needs the storage location and name
 	store := mongohs.NewMongoHistoryStoreServer(svcConfig)
 
-	adapter.StartHistoryStoreCapnpAdapter(context.Background(), lis, store)
+	adapter.StartHistoryStoreCapnpAdapter(lis, store)
 }

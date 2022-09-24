@@ -4,54 +4,33 @@ package adapter
 import (
 	"context"
 	"net"
+	"time"
 
 	"capnproto.org/go/capnp/v3"
+	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/internal/caphelp"
-
-	"github.com/sirupsen/logrus"
-
-	"github.com/hiveot/hub/pkg/certservice/selfsigned"
+	"github.com/hiveot/hub/pkg/certservice/client"
 )
 
 // CertServiceCapnpAdapter implements the capnproto generated interface CertsService_Server
 // See hub.capnp/go/hubapi/Cert.capnp.go for the interface
 type CertServiceCapnpAdapter struct {
-	srv *selfsigned.SelfSignedCertService
-}
-
-func (adr *CertServiceCapnpAdapter) CreateClientCert(
-	ctx context.Context, call hubapi.CertService_createClientCert) error {
-
-	clientID, _ := call.Args().ClientID()
-	pubKeyPEM, _ := call.Args().PubKeyPEM()
-	validityDays := call.Args().ValidityDays()
-	if validityDays == 0 {
-		validityDays = hubapi.DefaultClientCertValidityDays
-	}
-	certPEM, caCertPEM, err := adr.srv.CreateClientCert(clientID, pubKeyPEM, int(validityDays))
-	if err == nil {
-		logrus.Infof("Created client cert for %s", clientID)
-		res, err2 := call.AllocResults()
-		res.SetCertPEM(certPEM)
-		res.SetCaCertPEM(caCertPEM)
-		err = err2
-	}
-	return err
+	srv client.ICertService
 }
 
 func (adr *CertServiceCapnpAdapter) CreateDeviceCert(
 	_ context.Context, call hubapi.CertService_createDeviceCert) error {
-	clientID, _ := call.Args().DeviceID()
+	deviceID, _ := call.Args().DeviceID()
 	pubKeyPEM, _ := call.Args().PubKeyPEM()
 	validityDays := call.Args().ValidityDays()
 	if validityDays == 0 {
 		validityDays = hubapi.DefaultClientCertValidityDays
 	}
-	certPEM, caCertPEM, err := adr.srv.CreateDeviceCert(clientID, pubKeyPEM, int(validityDays))
+	certPEM, caCertPEM, err := adr.srv.CreateDeviceCert(deviceID, pubKeyPEM, int(validityDays))
 	if err == nil {
-		logrus.Infof("Created device cert for %s", clientID)
+		//logrus.Infof("Created device cert for %s", deviceID)
 		res, err2 := call.AllocResults()
 		res.SetCertPEM(certPEM)
 		res.SetCaCertPEM(caCertPEM)
@@ -72,7 +51,27 @@ func (adr *CertServiceCapnpAdapter) CreateServiceCert(
 	}
 	certPEM, caCertPEM, err := adr.srv.CreateServiceCert(clientID, pubKeyPEM, names, int(hubapi.DefaultServiceCertValidityDays))
 	if err == nil {
-		logrus.Infof("Created device cert for %s", clientID)
+		//logrus.Infof("Created device cert for %s", clientID)
+		res, err2 := call.AllocResults()
+		res.SetCertPEM(certPEM)
+		res.SetCaCertPEM(caCertPEM)
+		err = err2
+	}
+	return err
+}
+
+func (adr *CertServiceCapnpAdapter) CreateUserCert(
+	ctx context.Context, call hubapi.CertService_createUserCert) error {
+
+	clientID, _ := call.Args().ClientID()
+	pubKeyPEM, _ := call.Args().PubKeyPEM()
+	validityDays := call.Args().ValidityDays()
+	if validityDays == 0 {
+		validityDays = hubapi.DefaultClientCertValidityDays
+	}
+	certPEM, caCertPEM, err := adr.srv.CreateUserCert(clientID, pubKeyPEM, int(validityDays))
+	if err == nil {
+		//logrus.Infof("Created client cert for %s", clientID)
 		res, err2 := call.AllocResults()
 		res.SetCertPEM(certPEM)
 		res.SetCaCertPEM(caCertPEM)
@@ -82,13 +81,17 @@ func (adr *CertServiceCapnpAdapter) CreateServiceCert(
 }
 
 // StartCertServiceCapnpAdapter starts the certificate service capnp protocol server
-func StartCertServiceCapnpAdapter(ctx context.Context,
-	lis net.Listener,
-	srv *selfsigned.SelfSignedCertService) error {
+func StartCertServiceCapnpAdapter(lis net.Listener, srv client.ICertService) error {
+
+	logrus.Infof("Starting cert service capnp adapter on: %s", lis.Addr())
 
 	// Create the capnp client to receive requests
 	main := hubapi.CertService_ServerToClient(&CertServiceCapnpAdapter{
 		srv: srv,
 	})
-	return caphelp.CapServe(ctx, lis, capnp.Client(main))
+
+	ctx, ctxCancel := context.WithTimeout(context.Background(), time.Second*10)
+	err := caphelp.CapServe(ctx, lis, capnp.Client(main))
+	ctxCancel()
+	return err
 }

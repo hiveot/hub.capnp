@@ -1,4 +1,4 @@
-# Thing Event History Store
+# Thing Value History Store
 
 The objective of the history store is to provide time-based reading of thing events, properties and actions.
 
