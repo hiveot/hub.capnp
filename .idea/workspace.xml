@@ -5,44 +5,60 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a8355b86-cb16-4dbc-90ec-9852fdfe1e16" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/internal/caphelp/CapMap.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/internal/caphelp/Strings.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/internal/caphelp/ThingValue.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/certservice/client/CertServiceCapnpClient.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/directorystore/client/DirectoryStoreCapnpClient.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/directorystore/client/IDirectoryStore.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/historystore/client/HistoryStoreCapnpClient.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/historystore/client/IHistoryStore.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/provisioning/IProvisioning.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/provisioning/old/idprovclient/Client_test.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/provisioning/old/idprovclient/Discover.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/provisioning/old/idprovclient/Discover_test.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/provisioning/old/idprovclient/IDProvClient.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/provisioning/old/idprovclient/Signature.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/provisioning/old/idprovclient/main_test.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/provisioning/old/idprovclient/messages.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/provisioning/old/idprovclient/signature_test.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/provisioning/old/idprovserver/IDProvServer.go.old" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/provisioning/old/idprovserver/IDProvServer.go.old_test.go.old" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/provisioning/old/idprovserver/ServeDiscovery.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/provisioning/old/idprovserver/ServePostOOB.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/provisioning/old/idprovserver/ServePostOOB_test.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/provisioning/old/idprovserver/ServeProvisionRequest.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/provisioning/old/idprovserver/ServeProvisionRequest_test.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/provisioning/old/idprovserver/ServeStatus.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/provisioning/old/idprovserver/main_test.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/provisioning/old/oobclient/OobClient.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/provisioning/old/oobclient/OobClient_test.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/provisioning/service/ProvisioningService.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/CertService.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/CertService.capnp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/DirectoryStore.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/DirectoryStore.capnp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/HistoryStore.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/HistoryStore.capnp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/ProvisioningService.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/ProvisioningService.capnp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/CertService.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/CertService.capnp.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/DirectoryStore.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/DirectoryStore.capnp.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Gateway.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Gateway.capnp.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/HistoryStore.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/HistoryStore.capnp.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../hub.go/pkg/certsclient/Certs.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.go/pkg/certsclient/Certs.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/ProvisioningService.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/ProvisioningService.capnp.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/caphelp/ValueList.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/listener/CreateServiceListener.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/listener/CreateServiceListener.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/certservice/adapter/CertServiceCapnpAdapter.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/certservice/adapter/CertServiceCapnpAdapter.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/certservice/client/CertClientCapnp.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/certservice/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/certservice/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/certservice/selfsigned/CreateClientCert.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/certservice/selfsigned/CreateHubCA.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/certservice/selfsigned/CreateHubCA.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/certservice/selfsigned/CreateServiceCert.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/certservice/selfsigned/SelfSignedService.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/certservice/selfsigned/SelfSignedService.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/certservice/selfsigned/SelfSignedService_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/certservice/CertService_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/directorystore/Directory_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/directorystore/Directory_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/directorystore/adapter/DirectoryCapnpAdapter.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/directorystore/adapter/DirectoryStoreCapnpAdapter.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/directorystore/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/directorystore/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/directorystore/thingkvstore/ThingKVStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/directorystore/directorykvstore/DirectoryKVStore.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/historystore/HistoryStore_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/historystore/HistoryStore_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/historystore/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/historystore/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/historystore/adapter/HistoryStoreCapnpAdapter.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/historystore/adapter/HistoryStoreCapnpAdapter.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/historystore/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/historystore/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/historystore/mongohs/MongoHS.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/historystore/mongohs/MongoHS.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/svc/certsvc/service/ICertService.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/certservice/client/ICertService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/certservice/CertService_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/certs/Certs_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/certservice/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/certs/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/certservice/adapter/CertServiceCapnpAdapter.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/certs/service/CertServiceCapnpAdapter.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/certservice/client/CertServiceCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/certs/client/CertServiceCapnpClient.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/certservice/client/ICertService.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/certs/ICerts.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/certservice/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/certs/cmd/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/certservice/selfsigned/CreateHubCA.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/certs/service/selfsigned/CreateHubCA.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/certservice/selfsigned/SelfSignedService.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/certs/service/selfsigned/SelfSignedCertsService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/directorystore/Directory_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/directory/Directory_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/directorystore/adapter/DirectoryStoreCapnpAdapter.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/directory/service/DirectoryCapnpAdapter.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/directorystore/client/DirectoryStoreCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/directory/client/DirectoryCapnpClient.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/directorystore/client/IDirectoryStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/directory/IDirectory.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/directorystore/directorykvstore/DirectoryKVStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/directory/service/directorykvstore/DirectoryKVStore.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/directorystore/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/directory/cmd/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/historystore/HistoryStore_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/History_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/historystore/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/historystore/adapter/HistoryStoreCapnpAdapter.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/service/HistoryStoreCapnpAdapter.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/historystore/client/HistoryStoreCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/client/HistoryStoreCapnpClient.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/historystore/client/IHistoryStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/IHistory.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/historystore/config/HistoryStoreConfig.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/config/HistoryStoreConfig.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/historystore/config/historystore.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/config/historystore.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/historystore/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/cmd/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/historystore/mongohs/MongoHS.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/service/mongohs/MongoHS.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/provisioningservice/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/provisioning/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/provisioningservice/adapter/ProvisioningCapnpAdapter.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/provisioning/service/ProvisioningCapnpAdapter.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/provisioningservice/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/provisioning/cmd/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/provisioningservice/oobprov_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/provisioning/provisioning_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/provisioningservice/oobprovserver/OobProvServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/provisioning/old/oobprovserver/OobProvServer.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -73,100 +89,105 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "DefaultGoTemplateProperty": "Go File",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.go.format.on.save.advertiser.fired": "true",
-    "RunOnceActivity.go.formatter.settings.were.checked": "true",
-    "RunOnceActivity.go.migrated.go.modules.settings": "true",
-    "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
-    "RunOnceActivity.go.watchers.conflict.with.on.save.actions.check.performed": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "go.import.settings.migrated": "true",
-    "go.sdk.automatically.set": "true",
-    "last_opened_file_path": "/home/henk/dev/hiveot/hub/pkg/historystore",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.lookFeel"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;DefaultGoTemplateProperty&quot;: &quot;Go File&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.format.on.save.advertiser.fired&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.modules.go.list.on.any.changes.was.set&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.watchers.conflict.with.on.save.actions.check.performed&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
+    &quot;go.sdk.automatically.set&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/henk/dev/hiveot/hub/pkg/provisioning/service/idprovserver&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;
   },
-  "keyToStringList": {
-    "DatabaseDriversLRU": [
-      "mongo"
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;mongo&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/pkg/provisioning/service/idprovserver" />
+      <recent name="$PROJECT_DIR$/pkg/provisioning/service" />
       <recent name="$PROJECT_DIR$/pkg/historystore" />
       <recent name="$PROJECT_DIR$/pkg/directorystore/client" />
       <recent name="$PROJECT_DIR$/pkg/certservice" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/pkg/certservice/client" />
-      <recent name="$PROJECT_DIR$/../hub.capnp/capnp/thing" />
-      <recent name="$PROJECT_DIR$/../hub.capnp/capnp/svc" />
-      <recent name="$PROJECT_DIR$/../hub.capnp" />
-      <recent name="$PROJECT_DIR$/../hub.capnp/capnp" />
+      <recent name="$PROJECT_DIR$/pkg/certs/service/selfsigned" />
+      <recent name="$PROJECT_DIR$/pkg/certs/service" />
+      <recent name="$PROJECT_DIR$/pkg/provisioning/service" />
+      <recent name="$PROJECT_DIR$/pkg/provisioning/old" />
+      <recent name="$PROJECT_DIR$/pkg/provisioning/cmd" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Build.go build github.com/hiveot/hub/pkg/historystore">
-    <configuration name="go build github.com/hiveot/hub/pkg/historystore" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Go Test.TestCreateDeviceCert in github.com/hiveot/hub/pkg/certs">
+    <configuration name="TestCreateDelete in github.com/hiveot/hub/pkg/history" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="hub" />
-      <working_directory value="$PROJECT_DIR$" />
-      <kind value="PACKAGE" />
-      <package value="github.com/hiveot/hub/pkg/historystore" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$/pkg/historystore/main.go" />
-      <method v="2" />
-    </configuration>
-    <configuration name="TestAddGetEvent in github.com/hiveot/hub/pkg/historystore" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="hub" />
-      <working_directory value="$PROJECT_DIR$/pkg/historystore" />
+      <working_directory value="$PROJECT_DIR$/pkg/history" />
       <root_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <package value="github.com/hiveot/hub/pkg/historystore" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <pattern value="^\QTestAddGetEvent\E$" />
-      <method v="2" />
-    </configuration>
-    <configuration name="TestCreateDelete in github.com/hiveot/hub/pkg/historystore" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="hub" />
-      <working_directory value="$PROJECT_DIR$/pkg/historystore" />
-      <root_directory value="$PROJECT_DIR$" />
-      <kind value="PACKAGE" />
-      <package value="github.com/hiveot/hub/pkg/historystore" />
+      <package value="github.com/hiveot/hub/pkg/history" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
       <pattern value="^\QTestCreateDelete\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestGetInfo in github.com/hiveot/hub/pkg/historystore" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestCreateDeviceCert in github.com/hiveot/hub/pkg/certs" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="hub" />
-      <working_directory value="$PROJECT_DIR$/pkg/historystore" />
+      <working_directory value="$PROJECT_DIR$/pkg/certs" />
       <root_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <package value="github.com/hiveot/hub/pkg/historystore" />
+      <package value="github.com/hiveot/hub/pkg/certs" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestGetInfo\E$" />
+      <pattern value="^\QTestCreateDeviceCert\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="go test github.com/hiveot/hub/pkg/historystore" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestCreateService in github.com/hiveot/hub/pkg/certs" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="hub" />
-      <working_directory value="$PROJECT_DIR$/pkg/historystore" />
+      <working_directory value="$PROJECT_DIR$/pkg/certs" />
       <root_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <package value="github.com/hiveot/hub/pkg/historystore" />
+      <package value="github.com/hiveot/hub/pkg/certs" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestCreateService\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestCreateServiceCert in github.com/hiveot/hub/pkg/certs" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="hub" />
+      <working_directory value="$PROJECT_DIR$/pkg/certs" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/hiveot/hub/pkg/certs" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestCreateServiceCert\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="go test github.com/hiveot/hub/pkg/certs" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="hub" />
+      <working_directory value="$PROJECT_DIR$/pkg/certs" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/hiveot/hub/pkg/certs" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
@@ -174,11 +195,11 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Go Build.go build github.com/hiveot/hub/pkg/historystore" />
-        <item itemvalue="Go Test.go test github.com/hiveot/hub/pkg/historystore" />
-        <item itemvalue="Go Test.TestGetInfo in github.com/hiveot/hub/pkg/historystore" />
-        <item itemvalue="Go Test.TestAddGetEvent in github.com/hiveot/hub/pkg/historystore" />
-        <item itemvalue="Go Test.TestCreateDelete in github.com/hiveot/hub/pkg/historystore" />
+        <item itemvalue="Go Test.TestCreateDeviceCert in github.com/hiveot/hub/pkg/certs" />
+        <item itemvalue="Go Test.TestCreateServiceCert in github.com/hiveot/hub/pkg/certs" />
+        <item itemvalue="Go Test.go test github.com/hiveot/hub/pkg/certs" />
+        <item itemvalue="Go Test.TestCreateService in github.com/hiveot/hub/pkg/certs" />
+        <item itemvalue="Go Test.TestCreateDelete in github.com/hiveot/hub/pkg/history" />
       </list>
     </recent_temporary>
   </component>
@@ -206,7 +227,8 @@
     <MESSAGE value="dev iteration. Slowly migrating to use capnp" />
     <MESSAGE value="dev iteration. Update documentation with design ideas." />
     <MESSAGE value="dev iteration. conversion of services to using a capnproto wrapper." />
-    <option name="LAST_COMMIT_MESSAGE" value="dev iteration. conversion of services to using a capnproto wrapper." />
+    <MESSAGE value="dev iteration. conversion of services to using a capnproto wrapper for both client and server." />
+    <option name="LAST_COMMIT_MESSAGE" value="dev iteration. conversion of services to using a capnproto wrapper for both client and server." />
   </component>
   <component name="VgoProject">
     <settings-migrated>true</settings-migrated>
@@ -215,12 +237,12 @@
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/pkg/historystore/adapter/HistoryStoreCapnpAdapter.go</url>
+          <url>file://$PROJECT_DIR$/pkg/history/service/HistoryStoreCapnpAdapter.go</url>
           <line>126</line>
           <option name="timeStamp" value="22" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/pkg/historystore/mongohs/MongoHS.go</url>
+          <url>file://$PROJECT_DIR$/pkg/history/service/mongohs/MongoHS.go</url>
           <line>476</line>
           <option name="timeStamp" value="23" />
         </line-breakpoint>
@@ -232,5 +254,6 @@
     <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_directorystore.out" NAME="go test github.com/hiveot/hub/pkg/directorystore Coverage Results" MODIFIED="1663876228079" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_certservice.out" NAME="go test github.com/hiveot/hub/pkg/certservice Coverage Results" MODIFIED="1663899705475" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_historystore.out" NAME="go test github.com/hiveot/hub/pkg/historystore Coverage Results" MODIFIED="1663989968436" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_directory.out" NAME="go test github.com/hiveot/hub/pkg/directory Coverage Results" MODIFIED="1664038196810" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
   </component>
 </project>
