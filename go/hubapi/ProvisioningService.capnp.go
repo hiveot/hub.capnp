@@ -451,21 +451,21 @@ func (c ProvisioningService) GetPendingRequests(ctx context.Context, params func
 	ans, release := capnp.Client(c).SendCall(ctx, s)
 	return ProvisioningService_getPendingRequests_Results_Future{Future: ans.Future()}, release
 }
-func (c ProvisioningService) RefreshProvisioning(ctx context.Context, params func(ProvisioningService_refreshProvisioning_Params) error) (ProvisioningService_refreshProvisioning_Results_Future, capnp.ReleaseFunc) {
+func (c ProvisioningService) RefreshDeviceCert(ctx context.Context, params func(ProvisioningService_refreshDeviceCert_Params) error) (ProvisioningService_refreshDeviceCert_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
 			InterfaceID:   0xd34829042db383f7,
 			MethodID:      3,
 			InterfaceName: "hubapi/ProvisioningService.capnp:ProvisioningService",
-			MethodName:    "refreshProvisioning",
+			MethodName:    "refreshDeviceCert",
 		},
 	}
 	if params != nil {
 		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 2}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(ProvisioningService_refreshProvisioning_Params(s)) }
+		s.PlaceArgs = func(s capnp.Struct) error { return params(ProvisioningService_refreshDeviceCert_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return ProvisioningService_refreshProvisioning_Results_Future{Future: ans.Future()}, release
+	return ProvisioningService_refreshDeviceCert_Results_Future{Future: ans.Future()}, release
 }
 func (c ProvisioningService) SubmitProvisioningRequest(ctx context.Context, params func(ProvisioningService_submitProvisioningRequest_Params) error) (ProvisioningService_submitProvisioningRequest_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
@@ -512,7 +512,7 @@ type ProvisioningService_Server interface {
 
 	GetPendingRequests(context.Context, ProvisioningService_getPendingRequests) error
 
-	RefreshProvisioning(context.Context, ProvisioningService_refreshProvisioning) error
+	RefreshDeviceCert(context.Context, ProvisioningService_refreshDeviceCert) error
 
 	SubmitProvisioningRequest(context.Context, ProvisioningService_submitProvisioningRequest) error
 }
@@ -577,10 +577,10 @@ func ProvisioningService_Methods(methods []server.Method, s ProvisioningService_
 			InterfaceID:   0xd34829042db383f7,
 			MethodID:      3,
 			InterfaceName: "hubapi/ProvisioningService.capnp:ProvisioningService",
-			MethodName:    "refreshProvisioning",
+			MethodName:    "refreshDeviceCert",
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.RefreshProvisioning(ctx, ProvisioningService_refreshProvisioning{call})
+			return s.RefreshDeviceCert(ctx, ProvisioningService_refreshDeviceCert{call})
 		},
 	})
 
@@ -650,21 +650,21 @@ func (c ProvisioningService_getPendingRequests) AllocResults() (ProvisioningServ
 	return ProvisioningService_getPendingRequests_Results(r), err
 }
 
-// ProvisioningService_refreshProvisioning holds the state for a server call to ProvisioningService.refreshProvisioning.
+// ProvisioningService_refreshDeviceCert holds the state for a server call to ProvisioningService.refreshDeviceCert.
 // See server.Call for documentation.
-type ProvisioningService_refreshProvisioning struct {
+type ProvisioningService_refreshDeviceCert struct {
 	*server.Call
 }
 
 // Args returns the call's arguments.
-func (c ProvisioningService_refreshProvisioning) Args() ProvisioningService_refreshProvisioning_Params {
-	return ProvisioningService_refreshProvisioning_Params(c.Call.Args())
+func (c ProvisioningService_refreshDeviceCert) Args() ProvisioningService_refreshDeviceCert_Params {
+	return ProvisioningService_refreshDeviceCert_Params(c.Call.Args())
 }
 
 // AllocResults allocates the results struct.
-func (c ProvisioningService_refreshProvisioning) AllocResults() (ProvisioningService_refreshProvisioning_Results, error) {
+func (c ProvisioningService_refreshDeviceCert) AllocResults() (ProvisioningService_refreshDeviceCert_Results, error) {
 	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return ProvisioningService_refreshProvisioning_Results(r), err
+	return ProvisioningService_refreshDeviceCert_Results(r), err
 }
 
 // ProvisioningService_submitProvisioningRequest holds the state for a server call to ProvisioningService.submitProvisioningRequest.
@@ -1146,169 +1146,169 @@ func (p ProvisioningService_getPendingRequests_Results_Future) Struct() (Provisi
 	return ProvisioningService_getPendingRequests_Results(s), err
 }
 
-type ProvisioningService_refreshProvisioning_Params capnp.Struct
+type ProvisioningService_refreshDeviceCert_Params capnp.Struct
 
-// ProvisioningService_refreshProvisioning_Params_TypeID is the unique identifier for the type ProvisioningService_refreshProvisioning_Params.
-const ProvisioningService_refreshProvisioning_Params_TypeID = 0x8abc4f8f3ed3e1c2
+// ProvisioningService_refreshDeviceCert_Params_TypeID is the unique identifier for the type ProvisioningService_refreshDeviceCert_Params.
+const ProvisioningService_refreshDeviceCert_Params_TypeID = 0x8abc4f8f3ed3e1c2
 
-func NewProvisioningService_refreshProvisioning_Params(s *capnp.Segment) (ProvisioningService_refreshProvisioning_Params, error) {
+func NewProvisioningService_refreshDeviceCert_Params(s *capnp.Segment) (ProvisioningService_refreshDeviceCert_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
-	return ProvisioningService_refreshProvisioning_Params(st), err
+	return ProvisioningService_refreshDeviceCert_Params(st), err
 }
 
-func NewRootProvisioningService_refreshProvisioning_Params(s *capnp.Segment) (ProvisioningService_refreshProvisioning_Params, error) {
+func NewRootProvisioningService_refreshDeviceCert_Params(s *capnp.Segment) (ProvisioningService_refreshDeviceCert_Params, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
-	return ProvisioningService_refreshProvisioning_Params(st), err
+	return ProvisioningService_refreshDeviceCert_Params(st), err
 }
 
-func ReadRootProvisioningService_refreshProvisioning_Params(msg *capnp.Message) (ProvisioningService_refreshProvisioning_Params, error) {
+func ReadRootProvisioningService_refreshDeviceCert_Params(msg *capnp.Message) (ProvisioningService_refreshDeviceCert_Params, error) {
 	root, err := msg.Root()
-	return ProvisioningService_refreshProvisioning_Params(root.Struct()), err
+	return ProvisioningService_refreshDeviceCert_Params(root.Struct()), err
 }
 
-func (s ProvisioningService_refreshProvisioning_Params) String() string {
+func (s ProvisioningService_refreshDeviceCert_Params) String() string {
 	str, _ := text.Marshal(0x8abc4f8f3ed3e1c2, capnp.Struct(s))
 	return str
 }
 
-func (s ProvisioningService_refreshProvisioning_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s ProvisioningService_refreshDeviceCert_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (ProvisioningService_refreshProvisioning_Params) DecodeFromPtr(p capnp.Ptr) ProvisioningService_refreshProvisioning_Params {
-	return ProvisioningService_refreshProvisioning_Params(capnp.Struct{}.DecodeFromPtr(p))
+func (ProvisioningService_refreshDeviceCert_Params) DecodeFromPtr(p capnp.Ptr) ProvisioningService_refreshDeviceCert_Params {
+	return ProvisioningService_refreshDeviceCert_Params(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s ProvisioningService_refreshProvisioning_Params) ToPtr() capnp.Ptr {
+func (s ProvisioningService_refreshDeviceCert_Params) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s ProvisioningService_refreshProvisioning_Params) IsValid() bool {
+func (s ProvisioningService_refreshDeviceCert_Params) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s ProvisioningService_refreshProvisioning_Params) Message() *capnp.Message {
+func (s ProvisioningService_refreshDeviceCert_Params) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s ProvisioningService_refreshProvisioning_Params) Segment() *capnp.Segment {
+func (s ProvisioningService_refreshDeviceCert_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s ProvisioningService_refreshProvisioning_Params) DeviceID() (string, error) {
+func (s ProvisioningService_refreshDeviceCert_Params) DeviceID() (string, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.Text(), err
 }
 
-func (s ProvisioningService_refreshProvisioning_Params) HasDeviceID() bool {
+func (s ProvisioningService_refreshDeviceCert_Params) HasDeviceID() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s ProvisioningService_refreshProvisioning_Params) DeviceIDBytes() ([]byte, error) {
+func (s ProvisioningService_refreshDeviceCert_Params) DeviceIDBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.TextBytes(), err
 }
 
-func (s ProvisioningService_refreshProvisioning_Params) SetDeviceID(v string) error {
+func (s ProvisioningService_refreshDeviceCert_Params) SetDeviceID(v string) error {
 	return capnp.Struct(s).SetText(0, v)
 }
 
-func (s ProvisioningService_refreshProvisioning_Params) PubKeyPEM() (string, error) {
+func (s ProvisioningService_refreshDeviceCert_Params) PubKeyPEM() (string, error) {
 	p, err := capnp.Struct(s).Ptr(1)
 	return p.Text(), err
 }
 
-func (s ProvisioningService_refreshProvisioning_Params) HasPubKeyPEM() bool {
+func (s ProvisioningService_refreshDeviceCert_Params) HasPubKeyPEM() bool {
 	return capnp.Struct(s).HasPtr(1)
 }
 
-func (s ProvisioningService_refreshProvisioning_Params) PubKeyPEMBytes() ([]byte, error) {
+func (s ProvisioningService_refreshDeviceCert_Params) PubKeyPEMBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(1)
 	return p.TextBytes(), err
 }
 
-func (s ProvisioningService_refreshProvisioning_Params) SetPubKeyPEM(v string) error {
+func (s ProvisioningService_refreshDeviceCert_Params) SetPubKeyPEM(v string) error {
 	return capnp.Struct(s).SetText(1, v)
 }
 
-// ProvisioningService_refreshProvisioning_Params_List is a list of ProvisioningService_refreshProvisioning_Params.
-type ProvisioningService_refreshProvisioning_Params_List = capnp.StructList[ProvisioningService_refreshProvisioning_Params]
+// ProvisioningService_refreshDeviceCert_Params_List is a list of ProvisioningService_refreshDeviceCert_Params.
+type ProvisioningService_refreshDeviceCert_Params_List = capnp.StructList[ProvisioningService_refreshDeviceCert_Params]
 
-// NewProvisioningService_refreshProvisioning_Params creates a new list of ProvisioningService_refreshProvisioning_Params.
-func NewProvisioningService_refreshProvisioning_Params_List(s *capnp.Segment, sz int32) (ProvisioningService_refreshProvisioning_Params_List, error) {
+// NewProvisioningService_refreshDeviceCert_Params creates a new list of ProvisioningService_refreshDeviceCert_Params.
+func NewProvisioningService_refreshDeviceCert_Params_List(s *capnp.Segment, sz int32) (ProvisioningService_refreshDeviceCert_Params_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
-	return capnp.StructList[ProvisioningService_refreshProvisioning_Params](l), err
+	return capnp.StructList[ProvisioningService_refreshDeviceCert_Params](l), err
 }
 
-// ProvisioningService_refreshProvisioning_Params_Future is a wrapper for a ProvisioningService_refreshProvisioning_Params promised by a client call.
-type ProvisioningService_refreshProvisioning_Params_Future struct{ *capnp.Future }
+// ProvisioningService_refreshDeviceCert_Params_Future is a wrapper for a ProvisioningService_refreshDeviceCert_Params promised by a client call.
+type ProvisioningService_refreshDeviceCert_Params_Future struct{ *capnp.Future }
 
-func (p ProvisioningService_refreshProvisioning_Params_Future) Struct() (ProvisioningService_refreshProvisioning_Params, error) {
+func (p ProvisioningService_refreshDeviceCert_Params_Future) Struct() (ProvisioningService_refreshDeviceCert_Params, error) {
 	s, err := p.Future.Struct()
-	return ProvisioningService_refreshProvisioning_Params(s), err
+	return ProvisioningService_refreshDeviceCert_Params(s), err
 }
 
-type ProvisioningService_refreshProvisioning_Results capnp.Struct
+type ProvisioningService_refreshDeviceCert_Results capnp.Struct
 
-// ProvisioningService_refreshProvisioning_Results_TypeID is the unique identifier for the type ProvisioningService_refreshProvisioning_Results.
-const ProvisioningService_refreshProvisioning_Results_TypeID = 0xd75389ae8c73fdf1
+// ProvisioningService_refreshDeviceCert_Results_TypeID is the unique identifier for the type ProvisioningService_refreshDeviceCert_Results.
+const ProvisioningService_refreshDeviceCert_Results_TypeID = 0xd75389ae8c73fdf1
 
-func NewProvisioningService_refreshProvisioning_Results(s *capnp.Segment) (ProvisioningService_refreshProvisioning_Results, error) {
+func NewProvisioningService_refreshDeviceCert_Results(s *capnp.Segment) (ProvisioningService_refreshDeviceCert_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return ProvisioningService_refreshProvisioning_Results(st), err
+	return ProvisioningService_refreshDeviceCert_Results(st), err
 }
 
-func NewRootProvisioningService_refreshProvisioning_Results(s *capnp.Segment) (ProvisioningService_refreshProvisioning_Results, error) {
+func NewRootProvisioningService_refreshDeviceCert_Results(s *capnp.Segment) (ProvisioningService_refreshDeviceCert_Results, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return ProvisioningService_refreshProvisioning_Results(st), err
+	return ProvisioningService_refreshDeviceCert_Results(st), err
 }
 
-func ReadRootProvisioningService_refreshProvisioning_Results(msg *capnp.Message) (ProvisioningService_refreshProvisioning_Results, error) {
+func ReadRootProvisioningService_refreshDeviceCert_Results(msg *capnp.Message) (ProvisioningService_refreshDeviceCert_Results, error) {
 	root, err := msg.Root()
-	return ProvisioningService_refreshProvisioning_Results(root.Struct()), err
+	return ProvisioningService_refreshDeviceCert_Results(root.Struct()), err
 }
 
-func (s ProvisioningService_refreshProvisioning_Results) String() string {
+func (s ProvisioningService_refreshDeviceCert_Results) String() string {
 	str, _ := text.Marshal(0xd75389ae8c73fdf1, capnp.Struct(s))
 	return str
 }
 
-func (s ProvisioningService_refreshProvisioning_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s ProvisioningService_refreshDeviceCert_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (ProvisioningService_refreshProvisioning_Results) DecodeFromPtr(p capnp.Ptr) ProvisioningService_refreshProvisioning_Results {
-	return ProvisioningService_refreshProvisioning_Results(capnp.Struct{}.DecodeFromPtr(p))
+func (ProvisioningService_refreshDeviceCert_Results) DecodeFromPtr(p capnp.Ptr) ProvisioningService_refreshDeviceCert_Results {
+	return ProvisioningService_refreshDeviceCert_Results(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s ProvisioningService_refreshProvisioning_Results) ToPtr() capnp.Ptr {
+func (s ProvisioningService_refreshDeviceCert_Results) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s ProvisioningService_refreshProvisioning_Results) IsValid() bool {
+func (s ProvisioningService_refreshDeviceCert_Results) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s ProvisioningService_refreshProvisioning_Results) Message() *capnp.Message {
+func (s ProvisioningService_refreshDeviceCert_Results) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s ProvisioningService_refreshProvisioning_Results) Segment() *capnp.Segment {
+func (s ProvisioningService_refreshDeviceCert_Results) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s ProvisioningService_refreshProvisioning_Results) ProvResp() (ProvisionResponse, error) {
+func (s ProvisioningService_refreshDeviceCert_Results) ProvResp() (ProvisionResponse, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return ProvisionResponse(p.Struct()), err
 }
 
-func (s ProvisioningService_refreshProvisioning_Results) HasProvResp() bool {
+func (s ProvisioningService_refreshDeviceCert_Results) HasProvResp() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s ProvisioningService_refreshProvisioning_Results) SetProvResp(v ProvisionResponse) error {
+func (s ProvisioningService_refreshDeviceCert_Results) SetProvResp(v ProvisionResponse) error {
 	return capnp.Struct(s).SetPtr(0, capnp.Struct(v).ToPtr())
 }
 
 // NewProvResp sets the provResp field to a newly
 // allocated ProvisionResponse struct, preferring placement in s's segment.
-func (s ProvisioningService_refreshProvisioning_Results) NewProvResp() (ProvisionResponse, error) {
+func (s ProvisioningService_refreshDeviceCert_Results) NewProvResp() (ProvisionResponse, error) {
 	ss, err := NewProvisionResponse(capnp.Struct(s).Segment())
 	if err != nil {
 		return ProvisionResponse{}, err
@@ -1317,24 +1317,24 @@ func (s ProvisioningService_refreshProvisioning_Results) NewProvResp() (Provisio
 	return ss, err
 }
 
-// ProvisioningService_refreshProvisioning_Results_List is a list of ProvisioningService_refreshProvisioning_Results.
-type ProvisioningService_refreshProvisioning_Results_List = capnp.StructList[ProvisioningService_refreshProvisioning_Results]
+// ProvisioningService_refreshDeviceCert_Results_List is a list of ProvisioningService_refreshDeviceCert_Results.
+type ProvisioningService_refreshDeviceCert_Results_List = capnp.StructList[ProvisioningService_refreshDeviceCert_Results]
 
-// NewProvisioningService_refreshProvisioning_Results creates a new list of ProvisioningService_refreshProvisioning_Results.
-func NewProvisioningService_refreshProvisioning_Results_List(s *capnp.Segment, sz int32) (ProvisioningService_refreshProvisioning_Results_List, error) {
+// NewProvisioningService_refreshDeviceCert_Results creates a new list of ProvisioningService_refreshDeviceCert_Results.
+func NewProvisioningService_refreshDeviceCert_Results_List(s *capnp.Segment, sz int32) (ProvisioningService_refreshDeviceCert_Results_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[ProvisioningService_refreshProvisioning_Results](l), err
+	return capnp.StructList[ProvisioningService_refreshDeviceCert_Results](l), err
 }
 
-// ProvisioningService_refreshProvisioning_Results_Future is a wrapper for a ProvisioningService_refreshProvisioning_Results promised by a client call.
-type ProvisioningService_refreshProvisioning_Results_Future struct{ *capnp.Future }
+// ProvisioningService_refreshDeviceCert_Results_Future is a wrapper for a ProvisioningService_refreshDeviceCert_Results promised by a client call.
+type ProvisioningService_refreshDeviceCert_Results_Future struct{ *capnp.Future }
 
-func (p ProvisioningService_refreshProvisioning_Results_Future) Struct() (ProvisioningService_refreshProvisioning_Results, error) {
+func (p ProvisioningService_refreshDeviceCert_Results_Future) Struct() (ProvisioningService_refreshDeviceCert_Results, error) {
 	s, err := p.Future.Struct()
-	return ProvisioningService_refreshProvisioning_Results(s), err
+	return ProvisioningService_refreshDeviceCert_Results(s), err
 }
 
-func (p ProvisioningService_refreshProvisioning_Results_Future) ProvResp() ProvisionResponse_Future {
+func (p ProvisioningService_refreshDeviceCert_Results_Future) ProvResp() ProvisionResponse_Future {
 	return ProvisionResponse_Future{Future: p.Future.Field(0, nil)}
 }
 
@@ -1522,75 +1522,75 @@ func (p ProvisioningService_submitProvisioningRequest_Results_Future) ProvResp()
 	return ProvisionResponse_Future{Future: p.Future.Field(0, nil)}
 }
 
-const schema_9579ece206ee504b = "x\xda\xbc\x95m\x88TU\x18\xc7\x9f\xff9\xf7\xce\x1d" +
-	"\xc1\x979\xcdH\x12\x88\x19[\xe9\x07\xd3e\x95\xe8u" +
-	"\xc7\x97\xa5}a\xd99\xb3-\xe1\xa6\x1f\xe6\xe54{" +
-	"c\xdev\xee\x9d\xd5\x15\xa26\x89P$I\x08J*" +
-	"0\xd60\xd1(K\xd0\xd4\x88\"1\xfaR\xf9!\x0a" +
-	"*\x0cz\x83\xda\x08\x0c?-7\xce\xcc\xde;\xb7m" +
-	"-\\\xabo\x97\xf3<\xf79\xff\xf3?\xcf\xf9=\xeb" +
-	"\xbeaI\xa3}\xd1\x9d\x11b\xb2\xdb\x8cx\xef_\xba" +
-	"x\xff\xfe\x81\xb3{Il\x00\x91\xc9,\xa2\x0e\xf0'" +
-	"\x19!\xbe\x9c\xef x\xf6M\xdd\xdfw<<tx" +
-	"&\x01:a\x82\xbf\xa3\x13\x0e\xf1N\x82\xf7L\xb9\xd0" +
-	"y\xa4\xf7\xfck$W\x02^_j*\xf2\xed\xcf\xe3" +
-	"\xcf\xcd\x94\xfa\x90\x1fD\xfc+n\x11\xc5\xbf\xe0?\x10" +
-	"\xbc\xcb\xfb\xb6\x1d[\xbb{\xfb\xd1f9C\xe7\x9c6" +
-	"\xb2\x8c\x0co\xff\xcd\xa7?}\xf0\xeb\x13\xa7B\x91\x93" +
-	"FZG\xd6O-O\xf7\x9f\xe9\xfb8\x14y\xd3\xd8" +
-	"\xa5#\xefN\xdcs\xd7\xd6+\x0b>\x09\x8b;n4" +
-	"\xd4\x7fdhqWv\xbf\xb5\xc6X\xdd}\x91\xc4J" +
-	"\xde\xd2F\xe8\x986\x8e\"\xbe\xd4\xd4?\x08\xf3\x01\xc4" +
-	"\xa7\xf5\xa7\xf7\xdb\xb4\xb3\xef\xf5=\x83\x9f\x87\xeb}g" +
-	"\xee\xd5\xf5\xcc\x88\xaew\xeb\x81\xa5#\x1f\x14&\xbf$" +
-	"\xb12|\xd6\x88N\\\x1d9\x80\xf8\xc6\xc6\xe7}\x91" +
-	"\x87@\xf0n\xfb\xf1B\xe2\xc6\xf3\x1b\x7f\x0a\x97{\xc9" +
-	":\xa1\xcb\x9d\xb3\x1a\xde\xdd\xd0\xd5\xb6\xfc\xd5\xc4\xaf\xe1" +
-	"\x84KV\xafN\x98n$\x98\xbf,\xd9.\xc7\x9f\xbe" +
-	"\x1cNh\x8f\x0e\xeb\x84\xfe\xa8N\x98zY,=s" +
-	"\xfb\xce\xdfg\x09j\x98?\x1a\x1dF\xfc\xa9\xa86\x7f" +
-	"\"\xba\x83\xd6x#\xf5l\xa6j\xafM-\xa8U\xc6" +
-	"l\xc7\xae\x94\xedraP\xd5\xc6\xec\x9c\xba#\x97\xa9" +
-	"\x96\xabw\xa7\xe6\x88\xd4\xd4#5\xe5\x8c\x84Cm\xa9" +
-	"L-SrHF\xb9Ad\x80H\xac\xee%\x92\xab" +
-	"8\xe4z\x06\x01$\xa0\x17\xdb\xd3Dr\x1d\x87\xbc\x97" +
-	"\xc1\xcb+]\xaeg\x0b\x11a!1,$x\xd5z" +
-	"\xb6O\x8d\xa7\xba\x08\xfd\xc1\xda\xfcT:\xf5l\xc9v" +
-	"\xc3\x91\xb4\x1a\xad+\xc7mKw*\xa7^t\x1di" +
-	"\x04b\x17i\xb1\x0b9\xe42\x06\xafZ\xab\x8c\xa5\x95" +
-	"S\xd5\xbab\xadv& \x16Rc\xfe\xb3\x1a]\xa4" +
-	"R\xe6\x8eJ\x012\x16l\x96\xd9D$\xb7q\xc8\x11" +
-	"\x06\xdf\x18U#\x92y\x0eYe\x10\x0c\x090\"Q" +
-	"\xd2n\x159\xe4N\x06\xc1\x91\x00\x07D]Ku9" +
-	"\xe4\x13\x0c\x8fWU9o\x97\x0b\x001\xe8\x06\xcb\x15" +
-	"mUv7+ZQsS]-\x0bs\x99\xcdJ" +
-	"\xaf\x84m\xad)\xb76>\xa8r\xfa\x98\x06\xb1v#" +
-	"\xb68t\xbc\xe85\x99\x9d\xa9j\xd3T\xe0\xb0r\xea" +
-	"V\xd1u\xe6[-\x9f\x1f\x18\xd84\xa8r5\xd5\xac" +
-	"Ut1\xdfZ\x05\xe5\xa6\x9a&\xcd\x88s\xda:\x9b" +
-	"\xcd:\xcf\xbe\x9a\xa3`S\xa2Cs5\xd4*\xa6\x9d" +
-	"n&j\xa7\x17\x13R\x1c\x88\xb5\xc8A\xc0\xe2k\xeb" +
-	"\xabfd\x89\x0e\xe9\xceJp\x93(@\x07|n\x8a" +
-	"g\x1f%&\xf6XhQ\x03>m\xc5c\xbb\x88\x89" +
-	"\xba\x05\x16\xc0\x14>;\x85}\x90\x98P\x16x0\x0c" +
-	"\xe0sPl}\x85\x98\x18\xb2`\x04,\x83?\x10D" +
-	"\xcfg\xc4D\x8f\xe5\xf9\xd7GK\xf4\x05&\xe1\xf9\xdd" +
-	"A\x9dM#\x92\xf0|\x17\xe1\xdb\xc8]'\xa9\x9dj" +
-	"\xa2\x05\xfeQ-\xbb\\H\xc2\xf3\x1f3\x9b\xfd\x9a\xe1" +
-	"&\x91\x02\xfeE\x92\xf9\x97I\xff\x03\x1e\x9a'\xd0w" +
-	"\xb8,\xd8\xeb\x05\xbd\xd7\xf3\x1cr2\xc4\xcdC\xb7\x10" +
-	"\xc9\x179\xe4\x11\x8d\x07\xd6\xc4\xc3a\x8d\x87I\x0e\xf9" +
-	"\x86\xc6\x03O\x80\x13\x89\xe3z\xf1\x18\x87<\xc5 \x0c" +
-	"#\x01\x83H\x9c\x1c&\x92os\xc8\xf7\x18\x84i&" +
-	"`\x12\x89s:\xf3,\x87\xbc07\x8b\xadR&\x17" +
-	"\xc0\xc2i<\xc6\xfe-\x84\x0d\x7f\xcb\xea\xb1L\xd1\xce" +
-	"\x0f\x95]\xe2v1Xt\xed\x92r\xdcL\x89P\xfd" +
-	"\xcf\xa0\x9eZ\xd1x\xd4\xe1K\xcb\xfe\xe5\xd2F\xebd" +
-	")\xc7\x9d\xf5\xfab\xf3\xc7^\x18T3#\xf0O}" +
-	"3\x1c\xa2@\xa5\x92md\x12w\x9d\x16\x06\x82y=" +
-	"\x0b\x03\xd7\xc5_-\x85\x97\xae:\xe0\xe6\x1a\xbc\xfe\xbe" +
-	"\xc6U\xf7\x9d9)W\x8d\x86\xbd\xdeA\x1f\xb8\x01\xd7" +
-	"_\xfb#\x00\x00\xff\xffQ\x02\x19}"
+const schema_9579ece206ee504b = "x\xda\xbc\x95[h\x1cU\x18\xc7\xbf\xff9\xb3;[" +
+	"\xe8e\x8f\xbb\xc5\"\x94ZI\xb5}\xa8mH\x8b\xd4" +
+	"[b\x9b`.\x84\xec\xd9\x18\xa4\xb1}\xd8\xcb1\x19" +
+	"\xd9[gf\xd3&P4\xf6A*\xc5b@\xb0E" +
+	"\x84B*\xb5\xb4\xa2\xd5Bc\xab\x88b\xa9\xf8\xa2\xf6" +
+	"A\x14ZP\xf0\x06\x1a\x11*\xc5\x870rv3\xb3" +
+	"\xd3\x98*I\xd5\xb7\xdd\xf3\xfd\xe7;\xff\xf9\x9fo~" +
+	"g\xf3U\xd6f4/\xbb/JLvF\xa2\xde\x87" +
+	"\xdf\\~\xf8p\xdf\x85\xe7Il\x05Q\x84\x99D-" +
+	"\xe06#$V\xf3\xbd\x04\xcf\xba\xa3\xf3\xfb\x96'\x06" +
+	"\x8e\xcf\x0a\xa0\x05\xe3\xfc]-8\xc6[\x09\xde\x0b\xa5" +
+	"\xa1\xd6\x13\xdd\x17_'\xb9\x16\xf0zR\xd3\xd1o\x7f" +
+	"\x1e}i\xb6\xd5\xc7\xfc(\x12W\xb8I\x94\xf8\x8a\xff" +
+	"@\xf0\xae\x1d\xdauj\xd3\x81\xdd'\xeb\xed\x0c\xad\x99" +
+	"2\xb2\x8c\x0c\xef\xf0\x9dS\x9f?v\xf5\xcc\xb9P\xe5" +
+	"\xac\x91\xd6\x95-\xd3\xab\xd3\xbd\xe7{>\x0dU\xde2" +
+	"\xc6t\xe5\xfd\xf1\x07\xb6\xed\xbc\xbe\xe4\xb3\xb0\xb9\xd3\xc6" +
+	"\xb3\xda\xdc'\x866w\xfd\xc0\xdb\x1b\x8d\x0d\x9d\x97I" +
+	"\xac\xe5\x0do\x84\x96\x19\xe3$\x12+#\xfa\x01\x11y" +
+	"\x14\x89\x19\xfd\xd3\xfbm\xc69\xf4\xc6\xc1\xfe/\xc3\xfd" +
+	"\xbe\x8b\x8c\xe9~\x88\xea~\xeb&V\x0e\x7f44\xf9" +
+	"5\x89\xb5\xe1w\x8dj\xe1\xba\xe8\x04\x12\x0f\xd5~n" +
+	"\x8b>\x0e\x82w\xf7\x8f\x97\x92\xb7_|\xe4\xa7p\xbb" +
+	"#\xe6\x19\xddn\xca\xacew[G\xd3\xea\xd7\x92\xbf" +
+	"\x86\x05W\xccn-\xf8\xa3&\x88\xfc\xb2b\xb7\x1c}" +
+	"\xeeZX\xb016\xa8\x05]1-\x98~U\xac<" +
+	"\x7f\xcf\xbe\xdf\xe7\x18\xaa\x85_\x8c\x0d\"1\x1e\xd3\xe1" +
+	"\xef\x8f\xed\xa5\x8d\xdep5\x9b\xa9X\x9bR1\xbb<" +
+	"b9V\xb9d\x95\x86\xfa\x95=b\xe5\xd4\xbd\xb9L" +
+	"\xa5T\xb9?5O\xc5VO\xda\xca\x19nW\xfa\xdf" +
+	"\x0ee\xbbM\xa95\x19;Std\x8c\x1bD\x06\x88" +
+	"\xc4\x86n\"\xb9\x9eCna\x10@\x12z\xb19M" +
+	"$7s\xc8\x07\x19\xbc|\xed\xf1\xaev\"\xc2Rb" +
+	"XJ\xf0*\xd5l\x8f\x1aMu\x10z\x835\xdf\xe3" +
+	"\x92\x05yt\xaa\xd9\xa2\xe5\x86+i\xb5\xa7\xaa\x1c\xb7" +
+	")\xdd\xaa\x9cj\xc1u\xa4\x11\x98]\xa6\xcd.\xe5\x90" +
+	"\xab\x18\xbc\x8a]\x1eI+\xa7\xa2}\xc5\x1b\xc3L@" +
+	"<\xe4&\xf2\xcfnt\x93r\x89;*\x05\xc8x\xb0" +
+	"Yf;\x91\xdc\xc5!\x87\x19\xfc`\x94M$\xf3\x1c" +
+	"\xb2\xc2 \x18\x92`D\xa2\xa8\xd3*p\xc8}\x0c\x82" +
+	"#\x09\x0e\x88\xaa\xb6\xear\xc8g\x18\x9e\xae\xa8R\xde" +
+	"*\x0d\x01\xc4\xa0\xc7+W\xb0T\xc9\xdd\xa1h\x8d\xed" +
+	"\xa6:\x1a\x11\xe62\xfa\x94n\x8c\xd5V\xae=\xda\xaf" +
+	"r\xfa5\x0db\xcdF|y\xe8\xf5\x166\x10\x99\x8a" +
+	"\x0eM\x05\x09+\xa7j\x16\\g\xb1\xdd\xf2\xf9\xbe\xbe" +
+	"\xed\xfd*g\xabz\xaf\x82\x8b\xc5\xf6\x1aRn\xaa\x1e" +
+	"\xd2\xac9\xa7\xa95U\x9b\xd5E\xce\xd5<\x0d\xeb\x16" +
+	"\x1d\x9ao\xa0\xd63\x9dt]\xa8\x93^NHq " +
+	"\xde\xe0\x06\x01\xcb\x176W\xf5\xca\x0a]\xd2\x93\x95\xe4" +
+	"\x11\xa2\x00\x1c\xf0\xa9)^|\x8a\x988h\xa2\xc1\x0c" +
+	"\xf8\xac\x15\xfb\xc7\x88\x89\xaa\x09\x16\xa0\x14>9\x85u" +
+	"\x94\x98P&xp\x15\xc0\xa7\xa0\xd89AL\x0c\x98" +
+	"0\x02\x92\xc1\xbf\x0eD\xd7\x17\xc4D\x97\xe9\xf9\xc7G" +
+	"+\xf4\x01\xb6\xc1\xf3\xa7\x83Z\xebA\xb4\xc1\xf3S\x84" +
+	"\x1f#w\x9d6\x9dT\x1d,\xf0\xc9\x02-\xf6?e" +
+	"6\xf7[\xd6\xd5\x14\xf0\xafQ\xec\x7f$C\xdd\xbe>" +
+	"\xbeU\xc1^G\xf4^/s\xc8\xc9\x102\x8f\xddE" +
+	"$_\xe1\x90'4\x19X\x9d\x0c\xc75\x19&9\xe4" +
+	"\x9b\x9a\x0c<\x09N$N\xeb\xc5S\x1c\xf2\x1c\x830" +
+	"\x8c$\x0c\"qv\x90H\xbe\xc3!?`\x10\x91H" +
+	"\x12\x11\"\xf1\x9eV^\xe0\x90\x97\xe6\xc7\xb0Y\xcc\xe4" +
+	"\x02N8\xb5\xef\xb0\xb7\x9d\xb0\xf5o1=\x92)X" +
+	"\xf9\x81\x92K\xdc*\x04\x8b\xaeUT\x8e\x9b)\x12*" +
+	"\xff\x19\xcf\xfd\xbb'th\xd9\xbf\x1c\xda\x9e*\x99\xca" +
+	"q\xe7|x\xf1\xc5\x13/\xcc\xa8:P\xe8\x06\x00\x0c" +
+	"\x86\x00P.gkJ\xe2\xae\xd3 @pQ\xcf!" +
+	"\xc0-\xa1W[\xe1\xc5\x9bN\xf0|w\xae\xbf\xafq" +
+	"\xd3}g\xdf\x94\xab\xda\xc0\xde\xea\x1d\x1f\xa4\x01\xd7_" +
+	"\xfb3\x00\x00\xff\xff\xa8\x92\x15\xf3"
 
 func init() {
 	schemas.Register(schema_9579ece206ee504b,

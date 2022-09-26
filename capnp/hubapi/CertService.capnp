@@ -20,27 +20,52 @@ const defaultClientCertValidityDays :Int32 = 30;
 const defaultDeviceCertValidityDays :Int32 = 30;
 # Default validity of generated device certificates
 
-interface CertService {
-# Certificate service capabilities for generating certificates
-# For management of the CA, use the CLI.
-  
-  const defaultServiceCertValidityDays :Int32 = 30;
-  # Default validity of generated service certificates
 
-  createDeviceCert @1 (deviceID:Text, pubKeyPEM:Text, validityDays:Int32=0) -> (certPEM: Text, caCertPEM :Text);
+interface CapCertService {
+# TBD: is this the best way to break down capabilities that can be handed out?
+# or should this move to a gateway that issues capability based on auth?
+
+# Certificate service for providing capabilities
+# For management of the CA, use the CLI.
+
+  getDeviceCertCapability @0 () -> (cap :CapDeviceCert);
+  # Get the capability to create device certificates
+
+  getServiceCertCapability @1 () -> (cap :CapServiceCert);
+  # Get the capability to create service certificates
+
+  getUserCertCapability @2 () -> (cap :CapUserCert);
+  # Get the capability to create user certificates
+
+  getVerifyCertCapability @3 () -> (cap :CapVerifyCert);
+  # Verify the given certificate
+}
+
+interface CapDeviceCert {
+# Capability to create device certificates
+
+  createDeviceCert @0 (deviceID:Text, pubKeyPEM:Text, validityDays:Int32=0) -> (certPEM: Text, caCertPEM :Text);
   # Generate or renew IoT device certificate for access hub IoT gateway
   #  @deviceID to include in the certificate
   #  @pubKeyPEM with device's public key in PEM format
   #  @validityDays validity of certificate in days. 0 to use the default
   # returns: device certificate and the CA used to sign it in PEM format
+}
 
-  createServiceCert @2 (serviceID:Text, pubKeyPEM:Text, validityDays:Int32=0, names:List(Text)) -> (certPEM: Text, caCertPEM :Text);
+interface CapServiceCert {
+# Capability to create service certificates
+
+  createServiceCert @0 (serviceID:Text, pubKeyPEM:Text, validityDays:Int32=0, names:List(Text)) -> (certPEM: Text, caCertPEM :Text);
   # Generate a hub service certificate
   #  @serviceID to include in the certificate, for example hostname-servicename
   #  @pubKeyPEM with service public key in PEM format
   #  @validityDays validity of certificate in days. 0 to use the default
   #  @names contain the service DNS names or IP addresses the service can be reached at
   # returns: service certificate and the CA used to sign it in PEM format
+}
+
+interface CapUserCert {
+# Capability to create user certificates
 
   createUserCert @0 (clientID:Text, pubKeyPEM:Text, validityDays:Int32=0) -> (certPEM: Text, caCertPEM :Text);
   # Generate an end-user certificate for access hub gateway services
@@ -48,5 +73,14 @@ interface CertService {
   #  @pubKeyPEM with user's public key in PEM format
   #  @validityDays validity of certificate in days. 0 to use the default
   # returns: client certificate and the CA used to sign it in PEM format
+}
 
+
+interface CapVerifyCert {
+# Capability to verify certificate. Intended for verification before renewal.
+
+  verifyCert @0 (clientID:Text, certPEM:Text) -> ();
+  #  @clientID must match the certificate assigned CN
+  #  @certPEM certificate to verify in PEM format
+  # returns: error if certificate is invalid
 }

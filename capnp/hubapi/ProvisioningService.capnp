@@ -68,8 +68,8 @@ interface ProvisioningService {
     getPendingRequests @2 () -> (requests :List(ProvisionRequest));
     # GetPendingRequests returns a list of pending requests
 
-    refreshProvisioning @3 (deviceID:Text, pubKeyPEM:Text) -> (provResp :ProvisionResponse);
-    # Refresh the provisioning and return a new certificate.
+    refreshDeviceCert @3 (deviceID:Text, pubKeyPEM:Text) -> (provResp :ProvisionResponse);
+    # Refresh the device certificate and return a certificate with a new expiry date
     # This will only succeed if the request is made with a valid certificate.
 
     submitProvisioningRequest @4 (provRequest:ProvisionRequest) -> (provResp:ProvisionResponse);
