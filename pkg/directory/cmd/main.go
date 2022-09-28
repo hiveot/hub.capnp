@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
 
@@ -26,10 +27,10 @@ func main() {
 
 	lis := listener.CreateServiceListener(ServiceName)
 
-	store, err := directorykvstore.NewDirectoryKVStoreServer(storePath)
+	svc, err := directorykvstore.NewDirectoryKVStoreServer(storePath)
 	if err != nil {
 		log.Fatalf("Service '%s' failed to start: %s", ServiceName, err)
 	}
 	logrus.Infof("StartDirectoryStoreCapnpAdapter starting")
-	service.StartDirectoryStoreCapnpAdapter(lis, store)
+	service.StartDirectoryStoreCapnpAdapter(context.Background(), lis, svc)
 }

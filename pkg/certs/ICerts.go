@@ -2,6 +2,8 @@
 // Unfortunately capnp does generate POGS types so we need to duplicate them
 package certs
 
+import "context"
+
 // Default validity of generated service certificates
 const defaultServiceCertValidityDays = 30
 
@@ -13,12 +15,32 @@ const defaultDeviceCertValidityDays = 30
 
 // ICerts defines a POGS based capability API of the cert service
 // This interface aggregates all certificate capabilities.
-// This approach is experimental and intended to separate capabilities using the capnp protocol.
+// This approach is experimental and intended to improve security by providing capabilities based on
+// user credentials, enforced by the capnp protocol.
 type ICerts interface {
+
+	// CapDeviceCerts provides the capability to manage device certificates
+	CapDeviceCerts() IDeviceCerts
+
+	// CapServiceCerts provides the capability to manage service certificates
+	CapServiceCerts() IServiceCerts
+
+	// CapUserCerts provides the capability to manage user certificates
+	CapUserCerts() IUserCerts
+
+	// CapVerifyCerts provides the capability to verify certificates
+	CapVerifyCerts() IVerifyCerts
+
+	// Release the provided capabilities
+	Release()
+}
+
+// ICertsService is the aggregate capability as implemented by the internal service
+type ICertsService interface {
 	IDeviceCerts
-	IVerifyCert
 	IServiceCerts
 	IUserCerts
+	IVerifyCerts
 }
 
 // IDeviceCerts defines the POGS based capability to create device certificates
@@ -27,7 +49,8 @@ type IDeviceCerts interface {
 	//  deviceID is the unique device's ID
 	//  pubkeyPEM is the device's public key in PEM format
 	//  validityDays is the duration the cert is valid for. Use 0 for default.
-	CreateDeviceCert(deviceID string, pubKeyPEM string, validityDays int) (
+	CreateDeviceCert(
+		ctx context.Context, deviceID string, pubKeyPEM string, validityDays int) (
 		certPEM string, caCertPEM string, err error)
 }
 
@@ -37,7 +60,8 @@ type IServiceCerts interface {
 	//  serviceID is the unique service ID, for example hostname-serviceName
 	//  pubkeyPEM is the device's public key in PEM format
 	//  validityDays is the duration the cert is valid for. Use 0 for default.
-	CreateServiceCert(serviceID string, pubKeyPEM string, names []string, validityDays int) (
+	CreateServiceCert(
+		ctx context.Context, serviceID string, pubKeyPEM string, names []string, validityDays int) (
 		certPEM string, caCertPEM string, err error)
 }
 
@@ -49,12 +73,13 @@ type IUserCerts interface {
 	//  userID is the unique user's ID, for example an email address
 	//  pubkeyPEM is the user's public key in PEM format
 	//  validityDays is the duration the cert is valid for. Use 0 for default.
-	CreateUserCert(userID string, pubKeyPEM string, validityDays int) (
+	CreateUserCert(
+		ctx context.Context, userID string, pubKeyPEM string, validityDays int) (
 		certPEM string, caCertPEM string, err error)
 }
 
-// IVerifyCert defines the POGS based capability to verify an issued certificate
-type IVerifyCert interface {
-	// VerifyCert verifies if the certificate is valid for the Hub and not revoked
-	VerifyCert(clientID string, certPEM string) error
+// IVerifyCerts defines the POGS based capability to verify an issued certificate
+type IVerifyCerts interface {
+	// VerifyCert verifies if the certificate is valid for the Hub
+	VerifyCert(ctx context.Context, clientID string, certPEM string) error
 }

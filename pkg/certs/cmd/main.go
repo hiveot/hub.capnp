@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"crypto/x509"
 	"flag"
@@ -10,8 +11,7 @@ import (
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub.go/pkg/certsclient"
-	"github.com/hiveot/hub/pkg/certs/service"
-
+	"github.com/hiveot/hub/pkg/certs/capnpserver"
 	"github.com/hiveot/hub/pkg/certs/service/selfsigned"
 
 	"github.com/hiveot/hub/internal/folders"
@@ -55,7 +55,7 @@ func main() {
 		logrus.Fatalf("Error loading CA key from '%s': %v", caKeyPath, err)
 	}
 
-	logrus.Infof("CertServiceCapnpAdapter starting")
+	logrus.Infof("CertServiceCapnpServer starting")
 	svc := selfsigned.NewSelfSignedCertsService(caCert, caKey)
-	service.StartCertServiceCapnpAdapter(lis, svc)
+	_ = capnpserver.StartCertsCapnpServer(context.Background(), lis, svc)
 }

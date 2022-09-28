@@ -4,12 +4,23 @@ import (
 	"context"
 
 	"github.com/hiveot/hub/internal/kvstore"
+	"github.com/hiveot/hub/pkg/directory"
 )
 
 // DirectoryKVStoreServer is a thing wrapper around the internal KVStore
-// This implements the IDirectoryStore interface
+// This implements the IDirectory, IReadDirectory and IUpdateDirectory interfaces
 type DirectoryKVStoreServer struct {
 	store *kvstore.KVStore
+}
+
+// CapReadDirectory provides the service to read the directory
+func (srv *DirectoryKVStoreServer) CapReadDirectory() directory.IReadDirectory {
+	return srv
+}
+
+// CapUpdateDirectory provides the service to update the directory
+func (srv *DirectoryKVStoreServer) CapUpdateDirectory() directory.IUpdateDirectory {
+	return srv
 }
 
 // GetTD returns the TD document with the given ID
