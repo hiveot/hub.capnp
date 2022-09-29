@@ -20,12 +20,6 @@ import (
 
 const ServiceName = "certs"
 
-// DefaultCaCertPath is the path to the CA Certificate in PEM format
-const DefaultCaCertPath = "config/caCert.pem"
-
-// DefaultCaKeyPath is the path to the CA Certificate Private key
-const DefaultCaKeyPath = "config/caKey.pem"
-
 // Start the certs service
 //  commandline options:
 //  --certs <certificate folder>
@@ -36,10 +30,6 @@ func main() {
 
 	var certFolder = folders.GetFolders("").Certs
 	flag.StringVar(&certFolder, "certs", certFolder, "Certificate folder.")
-
-	// handle commandline to create a listener
-	lis := listener.CreateServiceListener(ServiceName)
-	_ = lis
 
 	// This service needs the CA certificate and key to operate
 	caCertPath := path.Join(certFolder, hubapi.DefaultCaCertFile)
@@ -55,7 +45,11 @@ func main() {
 		logrus.Fatalf("Error loading CA key from '%s': %v", caKeyPath, err)
 	}
 
-	logrus.Infof("CertServiceCapnpServer starting")
+	// check commandline and create a listener
+	lis := listener.CreateServiceListener(ServiceName)
+	_ = lis
+
+	logrus.Infof("CertServiceCapnpServer starting on %s", lis.Addr())
 	svc := selfsigned.NewSelfSignedCertsService(caCert, caKey)
 	_ = capnpserver.StartCertsCapnpServer(context.Background(), lis, svc)
 }

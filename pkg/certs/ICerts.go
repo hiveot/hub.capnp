@@ -35,14 +35,6 @@ type ICerts interface {
 	Release()
 }
 
-// ICertsService is the aggregate capability as implemented by the internal service
-type ICertsService interface {
-	IDeviceCerts
-	IServiceCerts
-	IUserCerts
-	IVerifyCerts
-}
-
 // IDeviceCerts defines the POGS based capability to create device certificates
 type IDeviceCerts interface {
 	// CreateDeviceCert generates or renews IoT device certificate for access hub IoT gateway

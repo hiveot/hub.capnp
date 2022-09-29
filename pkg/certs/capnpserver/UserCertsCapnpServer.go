@@ -37,7 +37,7 @@ func (capsrv *UserCertsCapnpServer) CreateUserCert(
 	return err
 }
 
-// NewUserCertsCapnpServer creates a new instance of user certificate capnp server to serve a client.
+// NewUserCertsCapnpServer creates a new instance of user certificate capnp server
 // For internal use to serve the capnp request for certificate capability. A new instance
 // is created for each client that receives this capability.
 func NewUserCertsCapnpServer(srv certs.IUserCerts) *UserCertsCapnpServer {

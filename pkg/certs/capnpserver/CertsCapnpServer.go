@@ -82,7 +82,7 @@ func (capsrv *CertsCapnpServer) CapVerifyCerts(
 	return err
 }
 
-// StartCertsCapnpServer starts the certificate service capnp protocol server
+// StartCertsCapnpServer starts the capnp protocol server for the certificates service
 func StartCertsCapnpServer(ctx context.Context, lis net.Listener, srv certs.ICerts) error {
 
 	logrus.Infof("Starting certs service capnp server on: %s", lis.Addr())

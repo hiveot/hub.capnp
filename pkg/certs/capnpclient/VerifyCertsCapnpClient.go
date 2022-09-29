@@ -5,7 +5,6 @@ import (
 	"context"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
-	"github.com/hiveot/hub/pkg/certs"
 )
 
 // VerifyCertsCapnpClient provides the POGS wrapper around the Capnp API
@@ -32,7 +31,7 @@ func (cl *VerifyCertsCapnpClient) VerifyCert(
 
 // NewVerifyCertsCapnpClient returns a capability to verify certificates using the capnp protocol
 // This is for internal use. The capability has to be obtained using CertsCapnpClient.
-func NewVerifyCertsCapnpClient(cap hubapi.CapVerifyCerts) certs.IVerifyCerts {
+func NewVerifyCertsCapnpClient(cap hubapi.CapVerifyCerts) *VerifyCertsCapnpClient {
 	cl := &VerifyCertsCapnpClient{capability: cap}
 	return cl
 }

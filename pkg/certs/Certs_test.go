@@ -78,7 +78,8 @@ func TestCreateDeviceCert(t *testing.T) {
 	keys := certsclient.CreateECDSAKeys()
 	pubKeyPEM, _ := certsclient.PublicKeyToPEM(&keys.PublicKey)
 
-	deviceCertPEM, caCertPEM, err := svc.CapDeviceCerts().CreateDeviceCert(
+	deviceCertsSvc := svc.CapDeviceCerts()
+	deviceCertPEM, caCertPEM, err := deviceCertsSvc.CreateDeviceCert(
 		ctx, deviceID, pubKeyPEM, 1)
 	require.NoError(t, err)
 
@@ -90,9 +91,10 @@ func TestCreateDeviceCert(t *testing.T) {
 	require.NotNil(t, caCert2)
 
 	// verify certificate
-	err = svc.CapVerifyCerts().VerifyCert(ctx, deviceID, deviceCertPEM)
+	verifyCertsSvc := svc.CapVerifyCerts()
+	err = verifyCertsSvc.VerifyCert(ctx, deviceID, deviceCertPEM)
 	assert.NoError(t, err)
-	err = svc.CapVerifyCerts().VerifyCert(ctx, "notanid", deviceCertPEM)
+	err = verifyCertsSvc.VerifyCert(ctx, "notanid", deviceCertPEM)
 	assert.Error(t, err)
 
 	// verify certificate against CA
@@ -113,17 +115,17 @@ func TestDeviceCertBadParms(t *testing.T) {
 
 	// test creating hub certificate
 	svc := NewService()
-	deviceCerts := svc.CapDeviceCerts()
+	deviceCertsSvc := svc.CapDeviceCerts()
 	keys := certsclient.CreateECDSAKeys()
 	pubKeyPEM, _ := certsclient.PublicKeyToPEM(&keys.PublicKey)
 
 	// missing device ID
-	certPEM, _, err := deviceCerts.CreateDeviceCert(ctx, "", pubKeyPEM, 0)
+	certPEM, _, err := deviceCertsSvc.CreateDeviceCert(ctx, "", pubKeyPEM, 0)
 	require.Error(t, err)
 	assert.Empty(t, certPEM)
 
 	// missing public key
-	certPEM, _, err = deviceCerts.CreateDeviceCert(ctx, deviceID, "", 1)
+	certPEM, _, err = deviceCertsSvc.CreateDeviceCert(ctx, deviceID, "", 1)
 	require.Error(t, err)
 	assert.Empty(t, certPEM)
 
@@ -138,7 +140,8 @@ func TestCreateServiceCert(t *testing.T) {
 	svc := NewService()
 	keys := certsclient.CreateECDSAKeys()
 	pubKeyPEM, _ := certsclient.PublicKeyToPEM(&keys.PublicKey)
-	serviceCertPEM, caCertPEM, err := svc.CapServiceCerts().CreateServiceCert(
+	serviceCertsSvc := svc.CapServiceCerts()
+	serviceCertPEM, caCertPEM, err := serviceCertsSvc.CreateServiceCert(
 		ctx, serviceID, pubKeyPEM, names, 0)
 	require.NoError(t, err)
 	serviceCert, err := certsclient.X509CertFromPEM(serviceCertPEM)
@@ -147,7 +150,8 @@ func TestCreateServiceCert(t *testing.T) {
 	require.NoError(t, err)
 
 	// verify service certificate against CA
-	err = svc.CapVerifyCerts().VerifyCert(ctx, serviceID, serviceCertPEM)
+	verifyCertsSvc := svc.CapVerifyCerts()
+	err = verifyCertsSvc.VerifyCert(ctx, serviceID, serviceCertPEM)
 	assert.NoError(t, err)
 
 	caCertPool := x509.NewCertPool()

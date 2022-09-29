@@ -8,7 +8,7 @@ import (
 	"github.com/hiveot/hub/pkg/certs"
 )
 
-// DeviceCertsCapnpServer provides the capnpr RPC server for device certificates
+// DeviceCertsCapnpServer provides the capnp RPC server for device certificates
 // TODO: option to restrict capability to a specific deviceID
 type DeviceCertsCapnpServer struct {
 	srv certs.IDeviceCerts
@@ -40,7 +40,7 @@ func (capsrv *DeviceCertsCapnpServer) CreateDeviceCert(
 	return err
 }
 
-// NewDeviceCertsCapnpServer creates a new instance of device certificate capnp server to serve a client
+// NewDeviceCertsCapnpServer creates a new instance of device certificate capnp server
 // For internal use to serve the capnp RPC request for device certificate capability. A new instance
 // is created for each client that receives this capability.
 func NewDeviceCertsCapnpServer(srv certs.IDeviceCerts) *DeviceCertsCapnpServer {
