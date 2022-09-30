@@ -10,38 +10,41 @@ const certServiceName :Text = "certservice";
 
 const defaultCaCertFile :Text = "caCert.pem";
 # Default name of CA certificate file
+
 const defaultCaKeyFile :Text = "caKey.pem";
 # Default name of CA key file
 
 const defaultServiceCertValidityDays :Int32 = 30;
 # Default validity of generated service certificates
+
 const defaultClientCertValidityDays :Int32 = 30;
 # Default validity of generated client certificates
+
 const defaultDeviceCertValidityDays :Int32 = 30;
 # Default validity of generated device certificates
 
 
-interface CapCertService {
+interface CapCerts {
 # TBD: is this the best way to break down capabilities that can be handed out?
 # or should this move to a gateway that issues capability based on auth?
 
 # Certificate service for providing capabilities
 # For management of the CA, use the CLI.
 
-  getDeviceCertCapability @0 () -> (cap :CapDeviceCert);
+  capDeviceCerts @0 () -> (cap :CapDeviceCerts);
   # Get the capability to create device certificates
 
-  getServiceCertCapability @1 () -> (cap :CapServiceCert);
+  capServiceCerts @1 () -> (cap :CapServiceCerts);
   # Get the capability to create service certificates
 
-  getUserCertCapability @2 () -> (cap :CapUserCert);
+  capUserCerts @2 () -> (cap :CapUserCerts);
   # Get the capability to create user certificates
 
-  getVerifyCertCapability @3 () -> (cap :CapVerifyCert);
-  # Verify the given certificate
+  capVerifyCerts @3 () -> (cap :CapVerifyCerts);
+  # Get the capability to verify certificates
 }
 
-interface CapDeviceCert {
+interface CapDeviceCerts {
 # Capability to create device certificates
 
   createDeviceCert @0 (deviceID:Text, pubKeyPEM:Text, validityDays:Int32=0) -> (certPEM: Text, caCertPEM :Text);
@@ -52,7 +55,7 @@ interface CapDeviceCert {
   # returns: device certificate and the CA used to sign it in PEM format
 }
 
-interface CapServiceCert {
+interface CapServiceCerts {
 # Capability to create service certificates
 
   createServiceCert @0 (serviceID:Text, pubKeyPEM:Text, validityDays:Int32=0, names:List(Text)) -> (certPEM: Text, caCertPEM :Text);
@@ -64,7 +67,7 @@ interface CapServiceCert {
   # returns: service certificate and the CA used to sign it in PEM format
 }
 
-interface CapUserCert {
+interface CapUserCerts {
 # Capability to create user certificates
 
   createUserCert @0 (clientID:Text, pubKeyPEM:Text, validityDays:Int32=0) -> (certPEM: Text, caCertPEM :Text);
@@ -76,7 +79,7 @@ interface CapUserCert {
 }
 
 
-interface CapVerifyCert {
+interface CapVerifyCerts {
 # Capability to verify certificate. Intended for verification before renewal.
 
   verifyCert @0 (clientID:Text, certPEM:Text) -> ();

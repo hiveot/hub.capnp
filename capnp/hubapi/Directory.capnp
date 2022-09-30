@@ -6,23 +6,38 @@ $Go.package("hubapi");
 $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
 
 
-interface DirectoryStore {
-  # Thing Directory store
+interface CapDirectory {
+  # Available Thing directory capabilities
+
+  capReadDirectory @0 () -> (cap :CapReadDirectory);
+  # Capabilities to read the directory
+
+  capUpdateDirectory @1 () -> (cap :CapUpdateDirectory);
+  # Capabilities to update the directory
+}
+
+interface CapReadDirectory {
+# Capability to read from the directory
 
   getTD @0 (thingID :Text) -> (tdJson :Text);
   # Return the TD with the given Thing ID in JSON format
 
   queryTDs @1 (jsonPath :Text, limit:Int32, offset:Int32) -> (tds :List(Text));
   # Query for TD's using JSONpath on the TD content
-  # See 'docs/query-tds.md' for examples 
-  
+  # See 'docs/query-tds.md' for examples
+
   listTDs @2 (limit:Int32, offset:Int32) -> (tds :List(Text));
   # List all TD's
+}
 
-  removeTD @3 (thingID :Text) -> ();
+
+interface CapUpdateDirectory {
+# Capability to update the directory
+
+  removeTD @0 (thingID :Text) -> ();
   # Remove the TD document in the directory
 
-  updateTD @4 (thingID :Text, tdDoc :Text) -> ();
+  updateTD @1 (thingID :Text, tdDoc :Text) -> ();
   # Update the TD document in the directory
   # If the TD with the given ID doesn't exist it will be added.
 }
