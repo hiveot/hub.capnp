@@ -43,7 +43,7 @@ func (capsrv *DirectoryCapnpServer) CapUpdateDirectory(
 	return err
 }
 
-// StartDirectoryCapnpServer starts the directory service capnp protocol server
+// StartDirectoryCapnpServer starts the capnp protocol server for the directory service
 func StartDirectoryCapnpServer(ctx context.Context, lis net.Listener, srv directory.IDirectory) error {
 
 	logrus.Infof("Starting directory service capnp adapter on: %s", lis.Addr())

@@ -9,8 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub/internal/listener"
-	"github.com/hiveot/hub/pkg/directory/service"
-
+	"github.com/hiveot/hub/pkg/directory/capnpserver"
 	"github.com/hiveot/hub/pkg/directory/service/directorykvstore"
 )
 
@@ -31,6 +30,6 @@ func main() {
 	if err != nil {
 		log.Fatalf("Service '%s' failed to start: %s", ServiceName, err)
 	}
-	logrus.Infof("StartDirectoryStoreCapnpAdapter starting")
-	service.StartDirectoryStoreCapnpAdapter(context.Background(), lis, svc)
+	logrus.Infof("DirectoryCapnpServer starting on: %s", lis.Addr())
+	capnpserver.StartDirectoryCapnpServer(context.Background(), lis, svc)
 }
