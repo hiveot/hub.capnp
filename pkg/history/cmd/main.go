@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"io/ioutil"
 	"path"
@@ -11,8 +12,8 @@ import (
 
 	"github.com/hiveot/hub/internal/folders"
 	"github.com/hiveot/hub/internal/listener"
+	"github.com/hiveot/hub/pkg/history/capnpserver"
 	"github.com/hiveot/hub/pkg/history/config"
-	"github.com/hiveot/hub/pkg/history/service"
 	"github.com/hiveot/hub/pkg/history/service/mongohs"
 )
 
@@ -38,7 +39,7 @@ func main() {
 	}
 	// For now only mongodb is supported
 	// This service needs the storage location and name
-	svc := mongohs.NewMongoHistoryStoreServer(svcConfig)
+	svc := mongohs.NewMongoHistoryServer(svcConfig)
 
-	service.StartHistoryStoreCapnpAdapter(lis, svc)
+	_ = capnpserver.StartHistoryCapnpServer(context.Background(), lis, svc)
 }

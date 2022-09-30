@@ -17,9 +17,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/hiveot/hub/pkg/history"
-	"github.com/hiveot/hub/pkg/history/client"
+	"github.com/hiveot/hub/pkg/history/capnpclient"
+	"github.com/hiveot/hub/pkg/history/capnpserver"
 	"github.com/hiveot/hub/pkg/history/config"
-	"github.com/hiveot/hub/pkg/history/service"
 	"github.com/hiveot/hub/pkg/history/service/mongohs"
 
 	"github.com/hiveot/hub.go/pkg/logging"
@@ -30,7 +30,7 @@ const thingIDPrefix = "thing-"
 
 // when testing using the capnp RPC
 const testAddress = "/tmp/histstore_test.socket"
-const useCapnp = true
+const useTestCapnp = true
 
 var svcConfig = config.HistoryStoreConfig{
 	DatabaseType:    "mongodb",
@@ -42,12 +42,13 @@ var svcConfig = config.HistoryStoreConfig{
 }
 
 var names = []string{"temperature", "humidity", "pressure", "wind", "speed", "switch", "location", "sensor-A", "sensor-B", "sensor-C"}
-var testItems = make(map[string]thing.ThingValue)
+
+//var testItems = make(map[string]thing.ThingValue)
 var highestName = make(map[string]thing.ThingValue)
 
 // Create a new store, delete if it already exists
-func newStore() history.IHistory {
-	store := mongohs.NewMongoHistoryStoreServer(svcConfig)
+func newStore(useCapnp bool) history.IHistory {
+	store := mongohs.NewMongoHistoryServer(svcConfig)
 	// start to delete the store
 	_ = store.Start()
 	_ = store.Delete()
@@ -61,9 +62,9 @@ func newStore() history.IHistory {
 	if useCapnp {
 		_ = syscall.Unlink(testAddress)
 		lis, _ := net.Listen("unix", testAddress)
-		go service.StartHistoryStoreCapnpAdapter(lis, store)
+		go capnpserver.StartHistoryCapnpServer(context.Background(), lis, store)
 
-		cl, err := client.NewHistoryStoreCapnpClient(testAddress, true)
+		cl, err := capnpclient.NewHistoryStoreCapnpClient(testAddress, true)
 		if err != nil {
 			logrus.Fatalf("Failed starting capnp client: %s", err)
 		}
@@ -74,7 +75,7 @@ func newStore() history.IHistory {
 }
 
 //func stopStore(store client.IHistory) error {
-//	return store.(*mongohs.MongoHistoryStoreServer).Stop()
+//	return store.(*mongohs.MongoHistoryServer).Stop()
 //}
 
 // add some history to the store
@@ -109,7 +110,7 @@ func addHistory(store history.IHistory,
 			}
 			evList = append(evList, ev)
 		}
-		_ = store.AddEvents(nil, evList)
+		_ = store.CapUpdateHistory().AddEvents(context.Background(), evList)
 	}
 }
 
@@ -123,11 +124,11 @@ func TestMain(m *testing.M) {
 // Test creating and deleting the history database
 // This requires a local unsecured MongoDB instance
 func TestCreateDelete(t *testing.T) {
-	store := newStore()
+	store := newStore(useTestCapnp)
 	if assert.NotNil(t, store) {
 		//err := stopStore(store)
 		//assert.NoError(t, err)
-		store = newStore()
+		store = newStore(useTestCapnp)
 	}
 	assert.NotNil(t, store)
 }
@@ -137,53 +138,55 @@ func TestAddGetEvent(t *testing.T) {
 	const id2 = "thing2"
 	const evName1 = "temperature"
 	const evName2 = "humidity"
-	store := newStore()
+	store := newStore(useTestCapnp)
 	ctx := context.Background()
 	// add events for thing 1
-	err := store.AddEvent(ctx,
+	updateHistory := store.CapUpdateHistory()
+	err := updateHistory.AddEvent(ctx,
 		thing.ThingValue{ThingID: id1, Name: evName1, ValueJSON: "12.5"},
 	)
 	assert.NoError(t, err)
-	err = store.AddEvent(ctx,
+	err = updateHistory.AddEvent(ctx,
 		thing.ThingValue{ThingID: id1, Name: evName2, ValueJSON: "70"},
 	)
 	assert.NoError(t, err)
 	// add events for thing 2
-	err = store.AddEvent(ctx,
+	err = updateHistory.AddEvent(ctx,
 		thing.ThingValue{ThingID: id2, Name: evName2, ValueJSON: "50"},
 	)
 	assert.NoError(t, err)
-	err = store.AddEvent(ctx,
+	err = updateHistory.AddEvent(ctx,
 		thing.ThingValue{ThingID: id2, Name: evName1, ValueJSON: "17.5"},
 	)
 	assert.NoError(t, err)
 
 	// query all events of thing 1
-	res, err := store.GetEventHistory(ctx, id1, "", "", "", 0)
+	readHistory := store.CapReadHistory()
+	res, err := readHistory.GetEventHistory(ctx, id1, "", "", "", 0)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(res))
 	assert.Equal(t, id1, res[0].ThingID)
 	assert.Equal(t, evName1, res[0].Name)
 
 	// query temperatures of thing 2
-	res, err = store.GetEventHistory(ctx, id2, evName1, "", "", 0)
+	res, err = readHistory.GetEventHistory(ctx, id2, evName1, "", "", 0)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(res))
 
-	latestEvents, err := store.GetLatestEvents(ctx, id1)
+	latestEvents, err := readHistory.GetLatestEvents(ctx, id1)
 	assert.NoError(t, err)
 	assert.True(t, len(latestEvents) > 0)
 }
 
 func TestEventPerf(t *testing.T) {
 	const id1 = "thing-1"
-	const evName = "event-"
-	const nrRecords = 10000 // 10000 recs: 6sec to write, 45msec to read
-	store := newStore()
+	const nrRecords = 1000 // 10000 recs: 8sec to write, 6.3sec to read
+	store := newStore(true)
 
 	//addHistory(store, 10000, 1000)
 
 	ctx := context.Background()
+	updateHistory := store.CapUpdateHistory()
 
 	// test adding records
 	evData := `{"temperature":"12.5"}`
@@ -195,11 +198,12 @@ func TestEventPerf(t *testing.T) {
 		ev := thing.ThingValue{
 			ThingID: id1,
 			Created: time.Now().Format(time.RFC3339),
-			//Created: randomTime,
+			//Created:   randomTime,
 			Name:      names[randomName],
 			ValueJSON: evData}
 
-		err := store.AddEvent(ctx, ev)
+		//err := store.CapUpdateHistory().AddEvent(ctx, ev)
+		err := updateHistory.AddEvent(ctx, ev)
 		require.NoError(t, err)
 	}
 	d1 := time.Now().Sub(t1)
@@ -208,24 +212,25 @@ func TestEventPerf(t *testing.T) {
 	// test reading records
 	t2 := time.Now()
 	//afterTime := time.Now().Add(-time.Hour * 600).Format(time.RFC3339)
-	res, err := store.GetEventHistory(ctx, id1, "", "", "", 0)
-	assert.NoError(t, err)
-	assert.NotNil(t, res)
+	readHistory := store.CapReadHistory()
+	for i := 0; i < nrRecords; i++ {
+		_, err := readHistory.GetEventHistory(ctx, id1, "", "", "", 10)
+		require.NoError(t, err)
+	}
 	d2 := time.Now().Sub(t2)
-	t.Logf("Reading %d events: %d msec", len(res), d2.Milliseconds())
+	t.Logf("Reading %d events: %d msec", nrRecords, d2.Milliseconds())
 }
 
 func TestGetLatest(t *testing.T) {
 	const id1 = thingIDPrefix + "0" // matches a percentage of the random things
-	const name = "action1"
-	store := newStore()
+	store := newStore(useTestCapnp)
 
 	// 10 sensors -> 1 sample per minute, 60 per hour -> 600
-	addHistory(store, 1000000, 1, 3600*24*30)
+	addHistory(store, 10000, 1, 3600*24*30)
 
 	ctx := context.Background()
 	t1 := time.Now()
-	values, err := store.GetLatestEvents(ctx, id1)
+	values, err := store.CapReadHistory().GetLatestEvents(ctx, id1)
 	d1 := time.Now().Sub(t1)
 	logrus.Infof("Duration: %d msec", d1.Milliseconds())
 	assert.NotNil(t, values)
@@ -249,7 +254,7 @@ func TestGetLatest(t *testing.T) {
 func TestAddGetAction(t *testing.T) {
 	const id1 = "thing1"
 	const name = "action1"
-	store := newStore()
+	store := newStore(useTestCapnp)
 	ctx := context.Background()
 	actionData := `{"switch":"on"}`
 	action := thing.ThingValue{
@@ -258,23 +263,25 @@ func TestAddGetAction(t *testing.T) {
 		Name:      name,
 		ValueJSON: actionData}
 
-	err := store.AddAction(ctx, action)
+	updateHistory := store.CapUpdateHistory()
+	err := updateHistory.AddAction(ctx, action)
 	assert.NoError(t, err)
-	err = store.AddAction(ctx, action)
+	err = updateHistory.AddAction(ctx, action)
 	assert.NoError(t, err)
 
-	actions, err := store.GetActionHistory(ctx, id1, "", "", "", 0)
+	readHistory := store.CapReadHistory()
+	actions, err := readHistory.GetActionHistory(ctx, id1, "", "", "", 0)
 	assert.NoError(t, err)
 	assert.NotNil(t, actions)
 	assert.Greater(t, len(actions), 1)
 }
 
 func TestGetInfo(t *testing.T) {
-	store := newStore()
+	store := newStore(useTestCapnp)
 	addHistory(store, 20, 5, 1000)
 	ctx := context.Background()
 
-	info, err := store.Info(ctx)
+	info, err := store.CapReadHistory().Info(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, 20, info.NrEvents)
 }

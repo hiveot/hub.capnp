@@ -40,16 +40,15 @@ type StoreInfo struct {
 
 // IHistory defines a POGS based capability API of the thing history
 type IHistory interface {
+	// CapReadHistory provides the capability to read history
+	CapReadHistory() IReadHistory
 
-	// AddAction adds a Thing action with the given name and value to the action history
-	// value is json encoded. Optionally include a 'created' ISO8601 timestamp
-	AddAction(ctx context.Context, actionValue thing.ThingValue) error
+	// CapUpdateHistory provides the capability to update history
+	CapUpdateHistory() IUpdateHistory
+}
 
-	// AddEvent adds an event to the event history
-	AddEvent(ctx context.Context, eventValue thing.ThingValue) error
-
-	// AddEvents provides a bulk-add of events to the event history
-	AddEvents(ctx context.Context, eventValues []thing.ThingValue) error
+// IReadHistory defines the POGS based capability to read Thing history
+type IReadHistory interface {
 
 	// GetActionHistory returns the history of a Thing action
 	// before and after are timestamps in iso8601 format (YYYY-MM-DDTHH:MM:SS-TZ)
@@ -64,4 +63,18 @@ type IHistory interface {
 
 	// Info return storage information
 	Info(ctx context.Context) (info StoreInfo, err error)
+}
+
+// IUpdateHistory defines the POGS based capability to update the Thing history
+type IUpdateHistory interface {
+
+	// AddAction adds a Thing action with the given name and value to the action history
+	// value is json encoded. Optionally include a 'created' ISO8601 timestamp
+	AddAction(ctx context.Context, actionValue thing.ThingValue) error
+
+	// AddEvent adds an event to the event history
+	AddEvent(ctx context.Context, eventValue thing.ThingValue) error
+
+	// AddEvents provides a bulk-add of events to the event history
+	AddEvents(ctx context.Context, eventValues []thing.ThingValue) error
 }
