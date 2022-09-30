@@ -47,31 +47,48 @@ struct StoreInfo {
     # Nr of seconds the service is running
 }
 
-interface HistoryStore {
-# History store service for storage of thing properties, events, and actions
+interface CapHistory {
+# Available History store capabilities
+
+  capReadHistory @0 () -> (cap :CapReadHistory);
+  # Capabilities to read the event and action history
+
+  capUpdateHistory @1 () -> (cap :CapUpdateHistory);
+  # Capabilities to update the Thing history
+  # TBD. Limit to a specific Thing ID or publisher when used by a device directly
+
+}
+
+interface CapReadHistory {
+# Capability to read from the history store
+
+  getActionHistory @0 (thingID :Text, actionName :Text, after:Text, before:Text, limit:Int32) -> (values :List(ThingValue));
+  # Return the history of a Thing action
+  # before and after are timestamps in iso8601 format (YYYY-MM-DDTHH:MM:SS-TZ)
+
+  getEventHistory @1 (thingID :Text, eventName :Text, after:Text, before:Text, limit:Int32) -> (values :List(ThingValue));
+  # Return the history of a Thing event
+  # before and after are timestamps in iso8601 format (YYYY-MM-DDTHH:MM:SS-TZ)
+
+  getLatestEvents @2 (thingID :Text) -> (thingValueMap :ThingValueMap);
+  # Return a map with the most recent event values of a Thing
+
+  info @3 () -> (statistics :StoreInfo);
+  # Return storage information
+}
+
+interface CapUpdateHistory {
+# Capability to update the history store
 
   addAction @0 (actionValue :ThingValue) -> ();
   # Add a Thing action with the given name and value to the action history
   # value is json encoded. Optionally include a 'created' ISO8601 timestamp
+
 
   addEvent @1 (eventValue :ThingValue) -> ();
   # Add an event to the event history
 
   addEvents @2 (eventValues :List(ThingValue)) -> ();
   # Bulk add events to the event history
-
-  getActionHistory @3 (thingID :Text, actionName :Text, after:Text, before:Text, limit:Int32) -> (values :List(ThingValue));
-  # Return the history of a Thing action
-  # before and after are timestamps in iso8601 format (YYYY-MM-DDTHH:MM:SS-TZ)
-
-  getEventHistory @4 (thingID :Text, eventName :Text, after:Text, before:Text, limit:Int32) -> (values :List(ThingValue));
-  # Return the history of a Thing event
-  # before and after are timestamps in iso8601 format (YYYY-MM-DDTHH:MM:SS-TZ)
-
-  getLatestEvents @5 (thingID :Text) -> (thingValueMap :ThingValueMap);
-  # Return a map with the most recent event values of a Thing
-
-  info @6 () -> (statistics :StoreInfo);
-  # Return storage information
 
 }

@@ -10,158 +10,6 @@ import (
 	context "context"
 )
 
-type ClientCapabilities capnp.Struct
-
-// ClientCapabilities_TypeID is the unique identifier for the type ClientCapabilities.
-const ClientCapabilities_TypeID = 0xf625f2c3c988ee07
-
-func NewClientCapabilities(s *capnp.Segment) (ClientCapabilities, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4})
-	return ClientCapabilities(st), err
-}
-
-func NewRootClientCapabilities(s *capnp.Segment) (ClientCapabilities, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4})
-	return ClientCapabilities(st), err
-}
-
-func ReadRootClientCapabilities(msg *capnp.Message) (ClientCapabilities, error) {
-	root, err := msg.Root()
-	return ClientCapabilities(root.Struct()), err
-}
-
-func (s ClientCapabilities) String() string {
-	str, _ := text.Marshal(0xf625f2c3c988ee07, capnp.Struct(s))
-	return str
-}
-
-func (s ClientCapabilities) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (ClientCapabilities) DecodeFromPtr(p capnp.Ptr) ClientCapabilities {
-	return ClientCapabilities(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s ClientCapabilities) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s ClientCapabilities) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s ClientCapabilities) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s ClientCapabilities) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s ClientCapabilities) DirectoryStore() DirectoryStore {
-	p, _ := capnp.Struct(s).Ptr(0)
-	return DirectoryStore(p.Interface().Client())
-}
-
-func (s ClientCapabilities) HasDirectoryStore() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s ClientCapabilities) SetDirectoryStore(v DirectoryStore) error {
-	if !v.IsValid() {
-		return capnp.Struct(s).SetPtr(0, capnp.Ptr{})
-	}
-	seg := s.Segment()
-	in := capnp.NewInterface(seg, seg.Message().AddCap(capnp.Client(v)))
-	return capnp.Struct(s).SetPtr(0, in.ToPtr())
-}
-
-func (s ClientCapabilities) HistoryStore() HistoryStore {
-	p, _ := capnp.Struct(s).Ptr(1)
-	return HistoryStore(p.Interface().Client())
-}
-
-func (s ClientCapabilities) HasHistoryStore() bool {
-	return capnp.Struct(s).HasPtr(1)
-}
-
-func (s ClientCapabilities) SetHistoryStore(v HistoryStore) error {
-	if !v.IsValid() {
-		return capnp.Struct(s).SetPtr(1, capnp.Ptr{})
-	}
-	seg := s.Segment()
-	in := capnp.NewInterface(seg, seg.Message().AddCap(capnp.Client(v)))
-	return capnp.Struct(s).SetPtr(1, in.ToPtr())
-}
-
-func (s ClientCapabilities) PropertyStore() PropertyStore {
-	p, _ := capnp.Struct(s).Ptr(2)
-	return PropertyStore(p.Interface().Client())
-}
-
-func (s ClientCapabilities) HasPropertyStore() bool {
-	return capnp.Struct(s).HasPtr(2)
-}
-
-func (s ClientCapabilities) SetPropertyStore(v PropertyStore) error {
-	if !v.IsValid() {
-		return capnp.Struct(s).SetPtr(2, capnp.Ptr{})
-	}
-	seg := s.Segment()
-	in := capnp.NewInterface(seg, seg.Message().AddCap(capnp.Client(v)))
-	return capnp.Struct(s).SetPtr(2, in.ToPtr())
-}
-
-func (s ClientCapabilities) ProvisioningService() ProvisioningService {
-	p, _ := capnp.Struct(s).Ptr(3)
-	return ProvisioningService(p.Interface().Client())
-}
-
-func (s ClientCapabilities) HasProvisioningService() bool {
-	return capnp.Struct(s).HasPtr(3)
-}
-
-func (s ClientCapabilities) SetProvisioningService(v ProvisioningService) error {
-	if !v.IsValid() {
-		return capnp.Struct(s).SetPtr(3, capnp.Ptr{})
-	}
-	seg := s.Segment()
-	in := capnp.NewInterface(seg, seg.Message().AddCap(capnp.Client(v)))
-	return capnp.Struct(s).SetPtr(3, in.ToPtr())
-}
-
-// ClientCapabilities_List is a list of ClientCapabilities.
-type ClientCapabilities_List = capnp.StructList[ClientCapabilities]
-
-// NewClientCapabilities creates a new list of ClientCapabilities.
-func NewClientCapabilities_List(s *capnp.Segment, sz int32) (ClientCapabilities_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4}, sz)
-	return capnp.StructList[ClientCapabilities](l), err
-}
-
-// ClientCapabilities_Future is a wrapper for a ClientCapabilities promised by a client call.
-type ClientCapabilities_Future struct{ *capnp.Future }
-
-func (p ClientCapabilities_Future) Struct() (ClientCapabilities, error) {
-	s, err := p.Future.Struct()
-	return ClientCapabilities(s), err
-}
-
-func (p ClientCapabilities_Future) DirectoryStore() DirectoryStore {
-	return DirectoryStore(p.Future.Field(0, nil).Client())
-}
-
-func (p ClientCapabilities_Future) HistoryStore() HistoryStore {
-	return HistoryStore(p.Future.Field(1, nil).Client())
-}
-
-func (p ClientCapabilities_Future) PropertyStore() PropertyStore {
-	return PropertyStore(p.Future.Field(2, nil).Client())
-}
-
-func (p ClientCapabilities_Future) ProvisioningService() ProvisioningService {
-	return ProvisioningService(p.Future.Field(3, nil).Client())
-}
-
 type Gateway capnp.Client
 
 // Gateway_TypeID is the unique identifier for the type Gateway.
@@ -183,21 +31,21 @@ func (c Gateway) Login(ctx context.Context, params func(Gateway_login_Params) er
 	ans, release := capnp.Client(c).SendCall(ctx, s)
 	return Gateway_login_Results_Future{Future: ans.Future()}, release
 }
-func (c Gateway) Capabilities(ctx context.Context, params func(Gateway_capabilities_Params) error) (Gateway_capabilities_Results_Future, capnp.ReleaseFunc) {
+func (c Gateway) CapProvisionRequest(ctx context.Context, params func(Gateway_capProvisionRequest_Params) error) (Gateway_capProvisionRequest_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
 			InterfaceID:   0x928a26cd0a89a930,
 			MethodID:      1,
 			InterfaceName: "hubapi/Gateway.capnp:Gateway",
-			MethodName:    "capabilities",
+			MethodName:    "capProvisionRequest",
 		},
 	}
 	if params != nil {
 		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(Gateway_capabilities_Params(s)) }
+		s.PlaceArgs = func(s capnp.Struct) error { return params(Gateway_capProvisionRequest_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return Gateway_capabilities_Results_Future{Future: ans.Future()}, release
+	return Gateway_capProvisionRequest_Results_Future{Future: ans.Future()}, release
 }
 
 func (c Gateway) AddRef() Gateway {
@@ -224,7 +72,7 @@ func (c Gateway) IsValid() bool {
 type Gateway_Server interface {
 	Login(context.Context, Gateway_login) error
 
-	Capabilities(context.Context, Gateway_capabilities) error
+	CapProvisionRequest(context.Context, Gateway_capProvisionRequest) error
 }
 
 // Gateway_NewServer creates a new Server from an implementation of Gateway_Server.
@@ -263,10 +111,10 @@ func Gateway_Methods(methods []server.Method, s Gateway_Server) []server.Method 
 			InterfaceID:   0x928a26cd0a89a930,
 			MethodID:      1,
 			InterfaceName: "hubapi/Gateway.capnp:Gateway",
-			MethodName:    "capabilities",
+			MethodName:    "capProvisionRequest",
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.Capabilities(ctx, Gateway_capabilities{call})
+			return s.CapProvisionRequest(ctx, Gateway_capProvisionRequest{call})
 		},
 	})
 
@@ -290,21 +138,21 @@ func (c Gateway_login) AllocResults() (Gateway_login_Results, error) {
 	return Gateway_login_Results(r), err
 }
 
-// Gateway_capabilities holds the state for a server call to Gateway.capabilities.
+// Gateway_capProvisionRequest holds the state for a server call to Gateway.capProvisionRequest.
 // See server.Call for documentation.
-type Gateway_capabilities struct {
+type Gateway_capProvisionRequest struct {
 	*server.Call
 }
 
 // Args returns the call's arguments.
-func (c Gateway_capabilities) Args() Gateway_capabilities_Params {
-	return Gateway_capabilities_Params(c.Call.Args())
+func (c Gateway_capProvisionRequest) Args() Gateway_capProvisionRequest_Params {
+	return Gateway_capProvisionRequest_Params(c.Call.Args())
 }
 
 // AllocResults allocates the results struct.
-func (c Gateway_capabilities) AllocResults() (Gateway_capabilities_Results, error) {
+func (c Gateway_capProvisionRequest) AllocResults() (Gateway_capProvisionRequest_Results, error) {
 	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return Gateway_capabilities_Results(r), err
+	return Gateway_capProvisionRequest_Results(r), err
 }
 
 // Gateway_List is a list of Gateway.
@@ -463,22 +311,22 @@ func (s Gateway_login_Results) Message() *capnp.Message {
 func (s Gateway_login_Results) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s Gateway_login_Results) ClientCertPEM() (string, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.Text(), err
+func (s Gateway_login_Results) Cap() ClientCapabilities {
+	p, _ := capnp.Struct(s).Ptr(0)
+	return ClientCapabilities(p.Interface().Client())
 }
 
-func (s Gateway_login_Results) HasClientCertPEM() bool {
+func (s Gateway_login_Results) HasCap() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s Gateway_login_Results) ClientCertPEMBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.TextBytes(), err
-}
-
-func (s Gateway_login_Results) SetClientCertPEM(v string) error {
-	return capnp.Struct(s).SetText(0, v)
+func (s Gateway_login_Results) SetCap(v ClientCapabilities) error {
+	if !v.IsValid() {
+		return capnp.Struct(s).SetPtr(0, capnp.Ptr{})
+	}
+	seg := s.Segment()
+	in := capnp.NewInterface(seg, seg.Message().AddCap(capnp.Client(v)))
+	return capnp.Struct(s).SetPtr(0, in.ToPtr())
 }
 
 // Gateway_login_Results_List is a list of Gateway_login_Results.
@@ -498,209 +346,671 @@ func (p Gateway_login_Results_Future) Struct() (Gateway_login_Results, error) {
 	return Gateway_login_Results(s), err
 }
 
-type Gateway_capabilities_Params capnp.Struct
+func (p Gateway_login_Results_Future) Cap() ClientCapabilities {
+	return ClientCapabilities(p.Future.Field(0, nil).Client())
+}
 
-// Gateway_capabilities_Params_TypeID is the unique identifier for the type Gateway_capabilities_Params.
-const Gateway_capabilities_Params_TypeID = 0x87103ac78ef7acf7
+type Gateway_capProvisionRequest_Params capnp.Struct
 
-func NewGateway_capabilities_Params(s *capnp.Segment) (Gateway_capabilities_Params, error) {
+// Gateway_capProvisionRequest_Params_TypeID is the unique identifier for the type Gateway_capProvisionRequest_Params.
+const Gateway_capProvisionRequest_Params_TypeID = 0x87103ac78ef7acf7
+
+func NewGateway_capProvisionRequest_Params(s *capnp.Segment) (Gateway_capProvisionRequest_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return Gateway_capabilities_Params(st), err
+	return Gateway_capProvisionRequest_Params(st), err
 }
 
-func NewRootGateway_capabilities_Params(s *capnp.Segment) (Gateway_capabilities_Params, error) {
+func NewRootGateway_capProvisionRequest_Params(s *capnp.Segment) (Gateway_capProvisionRequest_Params, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return Gateway_capabilities_Params(st), err
+	return Gateway_capProvisionRequest_Params(st), err
 }
 
-func ReadRootGateway_capabilities_Params(msg *capnp.Message) (Gateway_capabilities_Params, error) {
+func ReadRootGateway_capProvisionRequest_Params(msg *capnp.Message) (Gateway_capProvisionRequest_Params, error) {
 	root, err := msg.Root()
-	return Gateway_capabilities_Params(root.Struct()), err
+	return Gateway_capProvisionRequest_Params(root.Struct()), err
 }
 
-func (s Gateway_capabilities_Params) String() string {
+func (s Gateway_capProvisionRequest_Params) String() string {
 	str, _ := text.Marshal(0x87103ac78ef7acf7, capnp.Struct(s))
 	return str
 }
 
-func (s Gateway_capabilities_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s Gateway_capProvisionRequest_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (Gateway_capabilities_Params) DecodeFromPtr(p capnp.Ptr) Gateway_capabilities_Params {
-	return Gateway_capabilities_Params(capnp.Struct{}.DecodeFromPtr(p))
+func (Gateway_capProvisionRequest_Params) DecodeFromPtr(p capnp.Ptr) Gateway_capProvisionRequest_Params {
+	return Gateway_capProvisionRequest_Params(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s Gateway_capabilities_Params) ToPtr() capnp.Ptr {
+func (s Gateway_capProvisionRequest_Params) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s Gateway_capabilities_Params) IsValid() bool {
+func (s Gateway_capProvisionRequest_Params) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s Gateway_capabilities_Params) Message() *capnp.Message {
+func (s Gateway_capProvisionRequest_Params) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s Gateway_capabilities_Params) Segment() *capnp.Segment {
+func (s Gateway_capProvisionRequest_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
 
-// Gateway_capabilities_Params_List is a list of Gateway_capabilities_Params.
-type Gateway_capabilities_Params_List = capnp.StructList[Gateway_capabilities_Params]
+// Gateway_capProvisionRequest_Params_List is a list of Gateway_capProvisionRequest_Params.
+type Gateway_capProvisionRequest_Params_List = capnp.StructList[Gateway_capProvisionRequest_Params]
 
-// NewGateway_capabilities_Params creates a new list of Gateway_capabilities_Params.
-func NewGateway_capabilities_Params_List(s *capnp.Segment, sz int32) (Gateway_capabilities_Params_List, error) {
+// NewGateway_capProvisionRequest_Params creates a new list of Gateway_capProvisionRequest_Params.
+func NewGateway_capProvisionRequest_Params_List(s *capnp.Segment, sz int32) (Gateway_capProvisionRequest_Params_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
-	return capnp.StructList[Gateway_capabilities_Params](l), err
+	return capnp.StructList[Gateway_capProvisionRequest_Params](l), err
 }
 
-// Gateway_capabilities_Params_Future is a wrapper for a Gateway_capabilities_Params promised by a client call.
-type Gateway_capabilities_Params_Future struct{ *capnp.Future }
+// Gateway_capProvisionRequest_Params_Future is a wrapper for a Gateway_capProvisionRequest_Params promised by a client call.
+type Gateway_capProvisionRequest_Params_Future struct{ *capnp.Future }
 
-func (p Gateway_capabilities_Params_Future) Struct() (Gateway_capabilities_Params, error) {
+func (p Gateway_capProvisionRequest_Params_Future) Struct() (Gateway_capProvisionRequest_Params, error) {
 	s, err := p.Future.Struct()
-	return Gateway_capabilities_Params(s), err
+	return Gateway_capProvisionRequest_Params(s), err
 }
 
-type Gateway_capabilities_Results capnp.Struct
+type Gateway_capProvisionRequest_Results capnp.Struct
 
-// Gateway_capabilities_Results_TypeID is the unique identifier for the type Gateway_capabilities_Results.
-const Gateway_capabilities_Results_TypeID = 0xfb8d66387b9cc035
+// Gateway_capProvisionRequest_Results_TypeID is the unique identifier for the type Gateway_capProvisionRequest_Results.
+const Gateway_capProvisionRequest_Results_TypeID = 0xfb8d66387b9cc035
 
-func NewGateway_capabilities_Results(s *capnp.Segment) (Gateway_capabilities_Results, error) {
+func NewGateway_capProvisionRequest_Results(s *capnp.Segment) (Gateway_capProvisionRequest_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return Gateway_capabilities_Results(st), err
+	return Gateway_capProvisionRequest_Results(st), err
 }
 
-func NewRootGateway_capabilities_Results(s *capnp.Segment) (Gateway_capabilities_Results, error) {
+func NewRootGateway_capProvisionRequest_Results(s *capnp.Segment) (Gateway_capProvisionRequest_Results, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return Gateway_capabilities_Results(st), err
+	return Gateway_capProvisionRequest_Results(st), err
 }
 
-func ReadRootGateway_capabilities_Results(msg *capnp.Message) (Gateway_capabilities_Results, error) {
+func ReadRootGateway_capProvisionRequest_Results(msg *capnp.Message) (Gateway_capProvisionRequest_Results, error) {
 	root, err := msg.Root()
-	return Gateway_capabilities_Results(root.Struct()), err
+	return Gateway_capProvisionRequest_Results(root.Struct()), err
 }
 
-func (s Gateway_capabilities_Results) String() string {
+func (s Gateway_capProvisionRequest_Results) String() string {
 	str, _ := text.Marshal(0xfb8d66387b9cc035, capnp.Struct(s))
 	return str
 }
 
-func (s Gateway_capabilities_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s Gateway_capProvisionRequest_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (Gateway_capabilities_Results) DecodeFromPtr(p capnp.Ptr) Gateway_capabilities_Results {
-	return Gateway_capabilities_Results(capnp.Struct{}.DecodeFromPtr(p))
+func (Gateway_capProvisionRequest_Results) DecodeFromPtr(p capnp.Ptr) Gateway_capProvisionRequest_Results {
+	return Gateway_capProvisionRequest_Results(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s Gateway_capabilities_Results) ToPtr() capnp.Ptr {
+func (s Gateway_capProvisionRequest_Results) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s Gateway_capabilities_Results) IsValid() bool {
+func (s Gateway_capProvisionRequest_Results) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s Gateway_capabilities_Results) Message() *capnp.Message {
+func (s Gateway_capProvisionRequest_Results) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s Gateway_capabilities_Results) Segment() *capnp.Segment {
+func (s Gateway_capProvisionRequest_Results) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s Gateway_capabilities_Results) ClientCap() (ClientCapabilities, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return ClientCapabilities(p.Struct()), err
+func (s Gateway_capProvisionRequest_Results) Cap() CapProvisionRequest {
+	p, _ := capnp.Struct(s).Ptr(0)
+	return CapProvisionRequest(p.Interface().Client())
 }
 
-func (s Gateway_capabilities_Results) HasClientCap() bool {
+func (s Gateway_capProvisionRequest_Results) HasCap() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s Gateway_capabilities_Results) SetClientCap(v ClientCapabilities) error {
-	return capnp.Struct(s).SetPtr(0, capnp.Struct(v).ToPtr())
-}
-
-// NewClientCap sets the clientCap field to a newly
-// allocated ClientCapabilities struct, preferring placement in s's segment.
-func (s Gateway_capabilities_Results) NewClientCap() (ClientCapabilities, error) {
-	ss, err := NewClientCapabilities(capnp.Struct(s).Segment())
-	if err != nil {
-		return ClientCapabilities{}, err
+func (s Gateway_capProvisionRequest_Results) SetCap(v CapProvisionRequest) error {
+	if !v.IsValid() {
+		return capnp.Struct(s).SetPtr(0, capnp.Ptr{})
 	}
-	err = capnp.Struct(s).SetPtr(0, capnp.Struct(ss).ToPtr())
-	return ss, err
+	seg := s.Segment()
+	in := capnp.NewInterface(seg, seg.Message().AddCap(capnp.Client(v)))
+	return capnp.Struct(s).SetPtr(0, in.ToPtr())
 }
 
-// Gateway_capabilities_Results_List is a list of Gateway_capabilities_Results.
-type Gateway_capabilities_Results_List = capnp.StructList[Gateway_capabilities_Results]
+// Gateway_capProvisionRequest_Results_List is a list of Gateway_capProvisionRequest_Results.
+type Gateway_capProvisionRequest_Results_List = capnp.StructList[Gateway_capProvisionRequest_Results]
 
-// NewGateway_capabilities_Results creates a new list of Gateway_capabilities_Results.
-func NewGateway_capabilities_Results_List(s *capnp.Segment, sz int32) (Gateway_capabilities_Results_List, error) {
+// NewGateway_capProvisionRequest_Results creates a new list of Gateway_capProvisionRequest_Results.
+func NewGateway_capProvisionRequest_Results_List(s *capnp.Segment, sz int32) (Gateway_capProvisionRequest_Results_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[Gateway_capabilities_Results](l), err
+	return capnp.StructList[Gateway_capProvisionRequest_Results](l), err
 }
 
-// Gateway_capabilities_Results_Future is a wrapper for a Gateway_capabilities_Results promised by a client call.
-type Gateway_capabilities_Results_Future struct{ *capnp.Future }
+// Gateway_capProvisionRequest_Results_Future is a wrapper for a Gateway_capProvisionRequest_Results promised by a client call.
+type Gateway_capProvisionRequest_Results_Future struct{ *capnp.Future }
 
-func (p Gateway_capabilities_Results_Future) Struct() (Gateway_capabilities_Results, error) {
+func (p Gateway_capProvisionRequest_Results_Future) Struct() (Gateway_capProvisionRequest_Results, error) {
 	s, err := p.Future.Struct()
-	return Gateway_capabilities_Results(s), err
+	return Gateway_capProvisionRequest_Results(s), err
 }
 
-func (p Gateway_capabilities_Results_Future) ClientCap() ClientCapabilities_Future {
-	return ClientCapabilities_Future{Future: p.Future.Field(0, nil)}
+func (p Gateway_capProvisionRequest_Results_Future) Cap() CapProvisionRequest {
+	return CapProvisionRequest(p.Future.Field(0, nil).Client())
 }
 
-const schema_dd3a962266ddd0e3 = "x\xda\x8c\x93\xcfKT]\x18\xc7\xbf\xcf=w\xde\xf1" +
-	"}g\x06\xe70\xca[\x8b\x10J#\x17\x95\xf6\x83L" +
-	"\x02%\x0bM\x0a\xe68\xabZu\x1d\xafzd\x9c{" +
-	"\xbd\xf7\xaa\xdc\xb2U\x81?\xa0 \xa1(\x88\x16\xd2&" +
-	"j\xe7?\x10\x18D\x82\x10\xb4\x8a\xb2MD\x14\xd5\"" +
-	"\xa8!\"N\x9c\xd1\xb9N\xe5\xc2\xdd=\x0f\xdf\xe7\xfb" +
-	"\xf9\x9e\xe7\xb9\xa7e\x91u\x9a\xad\xa9\xa1\xffa\xe4\xd2" +
-	"\x14\xfbG\x95\x1e\x96\xae=iOO\x83\xef \xc0\x8c" +
-	"\x03\x07o'\xe6\x08\xa6j\xb9?\xfb\xdf\xca\xee\xb9y" +
-	"\xf0z\xa6\xde<[\x1d\xdcy\xb3}\x15\xa0\xccl\xe2" +
-	"C\xe6F\"\x0ed\xae'\xa63o\xf5\x97\x1a\xf0\x96" +
-	"{\x06\xbf\xb7\xddZ\xb3\x89\x91\xf6YI\x9c#P\xe6" +
-	"E\xa2\x03\xa4V_\x1eu\xbeZ\xaf\x16\xd7\x05\x86\x16" +
-	"\xfcL\xf4i\xc1\xbf\xc9I\x90\x8a\x7f\x9ey\xba\xf4\xa5" +
-	"\xe9\x1bx=m\xe0b\xe5D\xa3\xc9\xe3\x94\xb9\x94\xd4" +
-	"\xc80\xf9\x0e\xa4\x0e?\xbas\xb1m\xf0\xea\x8fj\x9c" +
-	"\x95\x9a\xd7nc\xa9\x0e((<P\xc3\xe3\xfd\x96+" +
-	"\xf7w\xc7\xac\xc0\x9e\xb4\xc2}y\xcb-\xba\xed\xdd\x1b" +
-	"'\xab_\x16d m\xbf1ky\xd6\xa8\x0fD=" +
-	"\xc6\x9f=\xb5\xfa\x98%\x125,\x06D\xd7\xa1\xca\xc5" +
-	"y\xeb\x01\x18\xbc)N\x14\x8d\x94*)\xf9\xf6\x11\x18" +
-	"\x9c\xc7\x1b\x0a\xce\x90,v\x92\xaa\xb0Q\xab\xe9\x9d\x94" +
-	"%\x8a\xc8\xe6\xa6i\xcb\x9d\x8d}\xb6?^`\x81/" +
-	"Lf\x02&\x01<\xe5\x01\"\xc9Hl3H\xe5\x0b" +
-	"\xd2.\x06]6\x1a\xbc {\xf2\x0c%aP\x12[" +
-	"\xf3.\x8f\x80|Q\x13Y7\xf7\x02b\x0f#q\xc8" +
-	" NTG\xba\xd8\xaa\x8b-\x8c\xc4\xb1\x88w\xea\x04" +
-	"\x80\x88\xe5Z\xbe?\xe9x\x03\xd5\xb5\xcd\xf9]ki" +
-	"\xab\xf6\x00=\xe0t\x14\xc0\xba\x00\x88\xf3\x8cD\xa1*" +
-	"\x80\x1c\x01\xc40#\x11\x18\xc4\x0d\xa3\x8e\x0c\x80\x8f\xe9" +
-	")\xb8\x8c\xc4\x94A\x9c\xb1:b\x00\x0f\x17\x001\xc5" +
-	"H\xcc\x18\xa4\x06\xa4g\xe7\x03\xc7CG\x98\x0b\x1c\xcf" +
-	"&\xae\xc2O\x0b\xbd\xbbN\xdf\xfb\x08\x10q\x9dR\xfa" +
-	"\x81\xe3\x859\xd4\xae\x0b\xea\xe5\x95\xf7\xa5\xc7G^W" +
-	"\x04\xae\xe7\xb8\xb6\x17\x84h\xa8X\xf4\x9f\xe5\xa9\xbbK" +
-	"\xbd\xcbU\x8a\x09\xe9K\x87\x8a\xb28\x94\xb3\xbd\x89\xb8" +
-	"\xcck]\xe9\xf2\xe2^\xb3\xb9\xe7y\x84\xda\xfa\xafY" +
-	"\xdey@\xbf\xed\xbc\xef\xef\x9d[ \x97\xd2\x1b\xaf\x08" +
-	"Di\xd0\xaf\x00\x00\x00\xff\xff\xd0\x00$\xe6"
+type ClientCapabilities capnp.Client
+
+// ClientCapabilities_TypeID is the unique identifier for the type ClientCapabilities.
+const ClientCapabilities_TypeID = 0xf625f2c3c988ee07
+
+func (c ClientCapabilities) ReadDirectoryCapability(ctx context.Context, params func(ClientCapabilities_readDirectoryCapability_Params) error) (ClientCapabilities_readDirectoryCapability_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xf625f2c3c988ee07,
+			MethodID:      0,
+			InterfaceName: "hubapi/Gateway.capnp:ClientCapabilities",
+			MethodName:    "readDirectoryCapability",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(ClientCapabilities_readDirectoryCapability_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return ClientCapabilities_readDirectoryCapability_Results_Future{Future: ans.Future()}, release
+}
+func (c ClientCapabilities) ReadHistoryCapability(ctx context.Context, params func(ClientCapabilities_readHistoryCapability_Params) error) (ClientCapabilities_readHistoryCapability_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xf625f2c3c988ee07,
+			MethodID:      1,
+			InterfaceName: "hubapi/Gateway.capnp:ClientCapabilities",
+			MethodName:    "readHistoryCapability",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(ClientCapabilities_readHistoryCapability_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return ClientCapabilities_readHistoryCapability_Results_Future{Future: ans.Future()}, release
+}
+
+func (c ClientCapabilities) AddRef() ClientCapabilities {
+	return ClientCapabilities(capnp.Client(c).AddRef())
+}
+
+func (c ClientCapabilities) Release() {
+	capnp.Client(c).Release()
+}
+
+func (c ClientCapabilities) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Client(c).EncodeAsPtr(seg)
+}
+
+func (ClientCapabilities) DecodeFromPtr(p capnp.Ptr) ClientCapabilities {
+	return ClientCapabilities(capnp.Client{}.DecodeFromPtr(p))
+}
+
+func (c ClientCapabilities) IsValid() bool {
+	return capnp.Client(c).IsValid()
+}
+
+// A ClientCapabilities_Server is a ClientCapabilities with a local implementation.
+type ClientCapabilities_Server interface {
+	ReadDirectoryCapability(context.Context, ClientCapabilities_readDirectoryCapability) error
+
+	ReadHistoryCapability(context.Context, ClientCapabilities_readHistoryCapability) error
+}
+
+// ClientCapabilities_NewServer creates a new Server from an implementation of ClientCapabilities_Server.
+func ClientCapabilities_NewServer(s ClientCapabilities_Server) *server.Server {
+	c, _ := s.(server.Shutdowner)
+	return server.New(ClientCapabilities_Methods(nil, s), s, c)
+}
+
+// ClientCapabilities_ServerToClient creates a new Client from an implementation of ClientCapabilities_Server.
+// The caller is responsible for calling Release on the returned Client.
+func ClientCapabilities_ServerToClient(s ClientCapabilities_Server) ClientCapabilities {
+	return ClientCapabilities(capnp.NewClient(ClientCapabilities_NewServer(s)))
+}
+
+// ClientCapabilities_Methods appends Methods to a slice that invoke the methods on s.
+// This can be used to create a more complicated Server.
+func ClientCapabilities_Methods(methods []server.Method, s ClientCapabilities_Server) []server.Method {
+	if cap(methods) == 0 {
+		methods = make([]server.Method, 0, 2)
+	}
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xf625f2c3c988ee07,
+			MethodID:      0,
+			InterfaceName: "hubapi/Gateway.capnp:ClientCapabilities",
+			MethodName:    "readDirectoryCapability",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.ReadDirectoryCapability(ctx, ClientCapabilities_readDirectoryCapability{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xf625f2c3c988ee07,
+			MethodID:      1,
+			InterfaceName: "hubapi/Gateway.capnp:ClientCapabilities",
+			MethodName:    "readHistoryCapability",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.ReadHistoryCapability(ctx, ClientCapabilities_readHistoryCapability{call})
+		},
+	})
+
+	return methods
+}
+
+// ClientCapabilities_readDirectoryCapability holds the state for a server call to ClientCapabilities.readDirectoryCapability.
+// See server.Call for documentation.
+type ClientCapabilities_readDirectoryCapability struct {
+	*server.Call
+}
+
+// Args returns the call's arguments.
+func (c ClientCapabilities_readDirectoryCapability) Args() ClientCapabilities_readDirectoryCapability_Params {
+	return ClientCapabilities_readDirectoryCapability_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c ClientCapabilities_readDirectoryCapability) AllocResults() (ClientCapabilities_readDirectoryCapability_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return ClientCapabilities_readDirectoryCapability_Results(r), err
+}
+
+// ClientCapabilities_readHistoryCapability holds the state for a server call to ClientCapabilities.readHistoryCapability.
+// See server.Call for documentation.
+type ClientCapabilities_readHistoryCapability struct {
+	*server.Call
+}
+
+// Args returns the call's arguments.
+func (c ClientCapabilities_readHistoryCapability) Args() ClientCapabilities_readHistoryCapability_Params {
+	return ClientCapabilities_readHistoryCapability_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c ClientCapabilities_readHistoryCapability) AllocResults() (ClientCapabilities_readHistoryCapability_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return ClientCapabilities_readHistoryCapability_Results(r), err
+}
+
+// ClientCapabilities_List is a list of ClientCapabilities.
+type ClientCapabilities_List = capnp.CapList[ClientCapabilities]
+
+// NewClientCapabilities creates a new list of ClientCapabilities.
+func NewClientCapabilities_List(s *capnp.Segment, sz int32) (ClientCapabilities_List, error) {
+	l, err := capnp.NewPointerList(s, sz)
+	return capnp.CapList[ClientCapabilities](l), err
+}
+
+type ClientCapabilities_readDirectoryCapability_Params capnp.Struct
+
+// ClientCapabilities_readDirectoryCapability_Params_TypeID is the unique identifier for the type ClientCapabilities_readDirectoryCapability_Params.
+const ClientCapabilities_readDirectoryCapability_Params_TypeID = 0x9ee026ee14ae37eb
+
+func NewClientCapabilities_readDirectoryCapability_Params(s *capnp.Segment) (ClientCapabilities_readDirectoryCapability_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return ClientCapabilities_readDirectoryCapability_Params(st), err
+}
+
+func NewRootClientCapabilities_readDirectoryCapability_Params(s *capnp.Segment) (ClientCapabilities_readDirectoryCapability_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return ClientCapabilities_readDirectoryCapability_Params(st), err
+}
+
+func ReadRootClientCapabilities_readDirectoryCapability_Params(msg *capnp.Message) (ClientCapabilities_readDirectoryCapability_Params, error) {
+	root, err := msg.Root()
+	return ClientCapabilities_readDirectoryCapability_Params(root.Struct()), err
+}
+
+func (s ClientCapabilities_readDirectoryCapability_Params) String() string {
+	str, _ := text.Marshal(0x9ee026ee14ae37eb, capnp.Struct(s))
+	return str
+}
+
+func (s ClientCapabilities_readDirectoryCapability_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (ClientCapabilities_readDirectoryCapability_Params) DecodeFromPtr(p capnp.Ptr) ClientCapabilities_readDirectoryCapability_Params {
+	return ClientCapabilities_readDirectoryCapability_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s ClientCapabilities_readDirectoryCapability_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s ClientCapabilities_readDirectoryCapability_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s ClientCapabilities_readDirectoryCapability_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s ClientCapabilities_readDirectoryCapability_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+
+// ClientCapabilities_readDirectoryCapability_Params_List is a list of ClientCapabilities_readDirectoryCapability_Params.
+type ClientCapabilities_readDirectoryCapability_Params_List = capnp.StructList[ClientCapabilities_readDirectoryCapability_Params]
+
+// NewClientCapabilities_readDirectoryCapability_Params creates a new list of ClientCapabilities_readDirectoryCapability_Params.
+func NewClientCapabilities_readDirectoryCapability_Params_List(s *capnp.Segment, sz int32) (ClientCapabilities_readDirectoryCapability_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
+	return capnp.StructList[ClientCapabilities_readDirectoryCapability_Params](l), err
+}
+
+// ClientCapabilities_readDirectoryCapability_Params_Future is a wrapper for a ClientCapabilities_readDirectoryCapability_Params promised by a client call.
+type ClientCapabilities_readDirectoryCapability_Params_Future struct{ *capnp.Future }
+
+func (p ClientCapabilities_readDirectoryCapability_Params_Future) Struct() (ClientCapabilities_readDirectoryCapability_Params, error) {
+	s, err := p.Future.Struct()
+	return ClientCapabilities_readDirectoryCapability_Params(s), err
+}
+
+type ClientCapabilities_readDirectoryCapability_Results capnp.Struct
+
+// ClientCapabilities_readDirectoryCapability_Results_TypeID is the unique identifier for the type ClientCapabilities_readDirectoryCapability_Results.
+const ClientCapabilities_readDirectoryCapability_Results_TypeID = 0xe0cb225b7f595eb9
+
+func NewClientCapabilities_readDirectoryCapability_Results(s *capnp.Segment) (ClientCapabilities_readDirectoryCapability_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return ClientCapabilities_readDirectoryCapability_Results(st), err
+}
+
+func NewRootClientCapabilities_readDirectoryCapability_Results(s *capnp.Segment) (ClientCapabilities_readDirectoryCapability_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return ClientCapabilities_readDirectoryCapability_Results(st), err
+}
+
+func ReadRootClientCapabilities_readDirectoryCapability_Results(msg *capnp.Message) (ClientCapabilities_readDirectoryCapability_Results, error) {
+	root, err := msg.Root()
+	return ClientCapabilities_readDirectoryCapability_Results(root.Struct()), err
+}
+
+func (s ClientCapabilities_readDirectoryCapability_Results) String() string {
+	str, _ := text.Marshal(0xe0cb225b7f595eb9, capnp.Struct(s))
+	return str
+}
+
+func (s ClientCapabilities_readDirectoryCapability_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (ClientCapabilities_readDirectoryCapability_Results) DecodeFromPtr(p capnp.Ptr) ClientCapabilities_readDirectoryCapability_Results {
+	return ClientCapabilities_readDirectoryCapability_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s ClientCapabilities_readDirectoryCapability_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s ClientCapabilities_readDirectoryCapability_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s ClientCapabilities_readDirectoryCapability_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s ClientCapabilities_readDirectoryCapability_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s ClientCapabilities_readDirectoryCapability_Results) Cap() CapReadDirectory {
+	p, _ := capnp.Struct(s).Ptr(0)
+	return CapReadDirectory(p.Interface().Client())
+}
+
+func (s ClientCapabilities_readDirectoryCapability_Results) HasCap() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s ClientCapabilities_readDirectoryCapability_Results) SetCap(v CapReadDirectory) error {
+	if !v.IsValid() {
+		return capnp.Struct(s).SetPtr(0, capnp.Ptr{})
+	}
+	seg := s.Segment()
+	in := capnp.NewInterface(seg, seg.Message().AddCap(capnp.Client(v)))
+	return capnp.Struct(s).SetPtr(0, in.ToPtr())
+}
+
+// ClientCapabilities_readDirectoryCapability_Results_List is a list of ClientCapabilities_readDirectoryCapability_Results.
+type ClientCapabilities_readDirectoryCapability_Results_List = capnp.StructList[ClientCapabilities_readDirectoryCapability_Results]
+
+// NewClientCapabilities_readDirectoryCapability_Results creates a new list of ClientCapabilities_readDirectoryCapability_Results.
+func NewClientCapabilities_readDirectoryCapability_Results_List(s *capnp.Segment, sz int32) (ClientCapabilities_readDirectoryCapability_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[ClientCapabilities_readDirectoryCapability_Results](l), err
+}
+
+// ClientCapabilities_readDirectoryCapability_Results_Future is a wrapper for a ClientCapabilities_readDirectoryCapability_Results promised by a client call.
+type ClientCapabilities_readDirectoryCapability_Results_Future struct{ *capnp.Future }
+
+func (p ClientCapabilities_readDirectoryCapability_Results_Future) Struct() (ClientCapabilities_readDirectoryCapability_Results, error) {
+	s, err := p.Future.Struct()
+	return ClientCapabilities_readDirectoryCapability_Results(s), err
+}
+
+func (p ClientCapabilities_readDirectoryCapability_Results_Future) Cap() CapReadDirectory {
+	return CapReadDirectory(p.Future.Field(0, nil).Client())
+}
+
+type ClientCapabilities_readHistoryCapability_Params capnp.Struct
+
+// ClientCapabilities_readHistoryCapability_Params_TypeID is the unique identifier for the type ClientCapabilities_readHistoryCapability_Params.
+const ClientCapabilities_readHistoryCapability_Params_TypeID = 0xc484e4a2e23ad244
+
+func NewClientCapabilities_readHistoryCapability_Params(s *capnp.Segment) (ClientCapabilities_readHistoryCapability_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return ClientCapabilities_readHistoryCapability_Params(st), err
+}
+
+func NewRootClientCapabilities_readHistoryCapability_Params(s *capnp.Segment) (ClientCapabilities_readHistoryCapability_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return ClientCapabilities_readHistoryCapability_Params(st), err
+}
+
+func ReadRootClientCapabilities_readHistoryCapability_Params(msg *capnp.Message) (ClientCapabilities_readHistoryCapability_Params, error) {
+	root, err := msg.Root()
+	return ClientCapabilities_readHistoryCapability_Params(root.Struct()), err
+}
+
+func (s ClientCapabilities_readHistoryCapability_Params) String() string {
+	str, _ := text.Marshal(0xc484e4a2e23ad244, capnp.Struct(s))
+	return str
+}
+
+func (s ClientCapabilities_readHistoryCapability_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (ClientCapabilities_readHistoryCapability_Params) DecodeFromPtr(p capnp.Ptr) ClientCapabilities_readHistoryCapability_Params {
+	return ClientCapabilities_readHistoryCapability_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s ClientCapabilities_readHistoryCapability_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s ClientCapabilities_readHistoryCapability_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s ClientCapabilities_readHistoryCapability_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s ClientCapabilities_readHistoryCapability_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+
+// ClientCapabilities_readHistoryCapability_Params_List is a list of ClientCapabilities_readHistoryCapability_Params.
+type ClientCapabilities_readHistoryCapability_Params_List = capnp.StructList[ClientCapabilities_readHistoryCapability_Params]
+
+// NewClientCapabilities_readHistoryCapability_Params creates a new list of ClientCapabilities_readHistoryCapability_Params.
+func NewClientCapabilities_readHistoryCapability_Params_List(s *capnp.Segment, sz int32) (ClientCapabilities_readHistoryCapability_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
+	return capnp.StructList[ClientCapabilities_readHistoryCapability_Params](l), err
+}
+
+// ClientCapabilities_readHistoryCapability_Params_Future is a wrapper for a ClientCapabilities_readHistoryCapability_Params promised by a client call.
+type ClientCapabilities_readHistoryCapability_Params_Future struct{ *capnp.Future }
+
+func (p ClientCapabilities_readHistoryCapability_Params_Future) Struct() (ClientCapabilities_readHistoryCapability_Params, error) {
+	s, err := p.Future.Struct()
+	return ClientCapabilities_readHistoryCapability_Params(s), err
+}
+
+type ClientCapabilities_readHistoryCapability_Results capnp.Struct
+
+// ClientCapabilities_readHistoryCapability_Results_TypeID is the unique identifier for the type ClientCapabilities_readHistoryCapability_Results.
+const ClientCapabilities_readHistoryCapability_Results_TypeID = 0xcf85423f75519571
+
+func NewClientCapabilities_readHistoryCapability_Results(s *capnp.Segment) (ClientCapabilities_readHistoryCapability_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return ClientCapabilities_readHistoryCapability_Results(st), err
+}
+
+func NewRootClientCapabilities_readHistoryCapability_Results(s *capnp.Segment) (ClientCapabilities_readHistoryCapability_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return ClientCapabilities_readHistoryCapability_Results(st), err
+}
+
+func ReadRootClientCapabilities_readHistoryCapability_Results(msg *capnp.Message) (ClientCapabilities_readHistoryCapability_Results, error) {
+	root, err := msg.Root()
+	return ClientCapabilities_readHistoryCapability_Results(root.Struct()), err
+}
+
+func (s ClientCapabilities_readHistoryCapability_Results) String() string {
+	str, _ := text.Marshal(0xcf85423f75519571, capnp.Struct(s))
+	return str
+}
+
+func (s ClientCapabilities_readHistoryCapability_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (ClientCapabilities_readHistoryCapability_Results) DecodeFromPtr(p capnp.Ptr) ClientCapabilities_readHistoryCapability_Results {
+	return ClientCapabilities_readHistoryCapability_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s ClientCapabilities_readHistoryCapability_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s ClientCapabilities_readHistoryCapability_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s ClientCapabilities_readHistoryCapability_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s ClientCapabilities_readHistoryCapability_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s ClientCapabilities_readHistoryCapability_Results) Cap() CapReadHistory {
+	p, _ := capnp.Struct(s).Ptr(0)
+	return CapReadHistory(p.Interface().Client())
+}
+
+func (s ClientCapabilities_readHistoryCapability_Results) HasCap() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s ClientCapabilities_readHistoryCapability_Results) SetCap(v CapReadHistory) error {
+	if !v.IsValid() {
+		return capnp.Struct(s).SetPtr(0, capnp.Ptr{})
+	}
+	seg := s.Segment()
+	in := capnp.NewInterface(seg, seg.Message().AddCap(capnp.Client(v)))
+	return capnp.Struct(s).SetPtr(0, in.ToPtr())
+}
+
+// ClientCapabilities_readHistoryCapability_Results_List is a list of ClientCapabilities_readHistoryCapability_Results.
+type ClientCapabilities_readHistoryCapability_Results_List = capnp.StructList[ClientCapabilities_readHistoryCapability_Results]
+
+// NewClientCapabilities_readHistoryCapability_Results creates a new list of ClientCapabilities_readHistoryCapability_Results.
+func NewClientCapabilities_readHistoryCapability_Results_List(s *capnp.Segment, sz int32) (ClientCapabilities_readHistoryCapability_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[ClientCapabilities_readHistoryCapability_Results](l), err
+}
+
+// ClientCapabilities_readHistoryCapability_Results_Future is a wrapper for a ClientCapabilities_readHistoryCapability_Results promised by a client call.
+type ClientCapabilities_readHistoryCapability_Results_Future struct{ *capnp.Future }
+
+func (p ClientCapabilities_readHistoryCapability_Results_Future) Struct() (ClientCapabilities_readHistoryCapability_Results, error) {
+	s, err := p.Future.Struct()
+	return ClientCapabilities_readHistoryCapability_Results(s), err
+}
+
+func (p ClientCapabilities_readHistoryCapability_Results_Future) Cap() CapReadHistory {
+	return CapReadHistory(p.Future.Field(0, nil).Client())
+}
+
+const schema_dd3a962266ddd0e3 = "x\xda\x9cT_HS_\x1c\xff~\xef\xae\x9e\xbb\x1f" +
+	"\xfa\xb3\xc3\x9d\x0f\x12b\x89\x9a\x05\x99\xd3\"\x1b\xc5\x86" +
+	"\x1aZ\x04\xed\x0ez\xa8 \xb8\xcek]X\xdb\xdc\xbd" +
+	"\xb71z\xe8\xa5\x98\x05\x06\x05ED\x04I\x04AJ" +
+	"\x19\x04>\x08\xa1\x81hD\x11\xf4\x105\xb0\xf2\xa9\xc0" +
+	"\x07\xa1$z8q6\xcf6G\xa4\xf9v\xef\xf9\xfe" +
+	"\xf9\xfc\xf9\x9e\xefi\x9d\x91\x02\xb2\xb7r[\x15H\xda" +
+	"\xe3\xb2r\xb6\xfch\xf9\xea\x8coS\x1ah-\x02\xc8" +
+	"\x04\xa0=E\xa6\x10d\xd6\xfa\xf0\xf2\x7f\xaf\x9a\xae\\" +
+	"\x07Z\xedb_\xded\x06\xeao\xfa2\x00\xa8\x9a\xe4" +
+	"\xab\xea\x10\x02\xa0\x0e\x92\xb4:\xcb\xbfX\x7fb\xaew" +
+	"\xe0g\xc7\xad\\\x9b2\xe4}\x9e\x90\x13\x08\xa8N\x12" +
+	"? \xfb\xb6w\xcc\xb3\xd84\x7f\x17h\xb3\xc0\xc9\x10" +
+	"\x9f\x042\xcb|\xd8\x17\xfb\xae\x7f|\xbaR*\xf1\xd0" +
+	";\x12\xe2\xa5\x9fH\x12\x90u\xbf\xf5}\x1eY\xb8\xf8" +
+	"\xa2\xa8\xf4\xa0\xb2\x83\x97\x0e\xde\xd0\x1c\x7f\xe7\xa5\xd7\xb9" +
+	"H\x0e\xf5\x80\xd2&\x01\xaa\xc7\x14\x8e:q\xea\xf8\x85" +
+	"\x93\xf5/\xe7\x8b\x13\x1c\xa5\x93'\x0cg\x13\xc8\xe2\xd0" +
+	"\xec\xf4R\xe3\x8fR\x91\xed\xa3J'\xaa\x93\x0aW9" +
+	"\xa1\xa4\xd5\x1a7W\xb9\xe7\xf9\x9d\xf3\x1d\x03\xc3\xbf\x8a" +
+	"U\xa2{\x8eS\xadv\xfb\x81A\x92\x9dq\xfa\xf4\xb8" +
+	"\xb9\xab\xc7\xad\xdbFRO\xb5\x84\xf5x4\xee\xeb)" +
+	"\xfc\x05\x13\xb1s\xa6e\xc6\xa2!c\xd01,\xbb!" +
+	"\xa8'\xf4\xb3\x16\x88\xc2\xd2\xba*\xfe\x1bD\xd4\x14W" +
+	"\x19@\xde-\x14\x8eSo\x1bH\xb4\x91 \xe6g\x89" +
+	"\x82'\xad\x19\x01\x89V\x93\xbaH\xec\xb4\x19\x0d \x13" +
+	"\xf8(\x08\x10\xc3\xb2\x03\x18D\xcc\x13\x97\xffH<\xdb" +
+	"\xa0!dXN\xc4e[\x9a\xec\x92\x01d\x04\xa0\x95" +
+	"\xf5\x00\x9a\xe2B\xcd#!\x09\xebq\xa4\x05O\x01\x91" +
+	"B\xa13Y\xd5\xb9+b\x1aQ\xbbK\x8f\xeb}f" +
+	"\xc4\xb4M\xc3jI\x18z\x7f\xb7\x990\xc2v,\x91" +
+	"\xcaGR\x0d\xfe\x9cE\xeb\xa2\x98MEKS\xf2\x0c" +
+	"\xb7\x1f\x06\xd0\x9a]\xa8\xed\x96\x90\"z\x90\x1fz\xf9" +
+	"a\xab\x0b\xb5\xfd\x12\xb2p\x96\xca\xa1n\x00\xc0\x0a\x90" +
+	"\xb0\x02\x90\xc5u\xcbJ\xc6\x12\xfd\xc5g\xff$\xa4\xd7" +
+	"\xb4Jd\x04\xf5\xaaU26\xd8&d\xd4YNd" +
+	"\xad!l9\xea\xdc\xdf<\xf4~\xb4t\x08\xcaF\x87" +
+	"\x90\x9d\xbdm\xc1\xdfa\xff\xbf66\xbd0{\xfb^" +
+	")\xac\xbc\x06,\x14n\xb8x)P,/\xf5N\x81" +
+	"Dw\xf2\x1b.\x9e\x02\x14\x9bO\xb7\x8e\x83Dk\x09" +
+	"\x13\xb4\xa5\x12\xde\x10@&|D\x11\xa9\xcb\x86V\xdf" +
+	"\xfb\xf2u/\xacpb\x0d+\xd2K\x0f\xac\xf1#\x9e" +
+	"g+V\xfc\x0e\x00\x00\xff\xffA\x16\xb3g"
 
 func init() {
 	schemas.Register(schema_dd3a962266ddd0e3,
 		0x87103ac78ef7acf7,
 		0x928a26cd0a89a930,
 		0x9838f96648ca7264,
+		0x9ee026ee14ae37eb,
 		0xb3dc61f56f39dbdd,
+		0xc484e4a2e23ad244,
+		0xcf85423f75519571,
+		0xe0cb225b7f595eb9,
 		0xf625f2c3c988ee07,
 		0xfb8d66387b9cc035)
 }
