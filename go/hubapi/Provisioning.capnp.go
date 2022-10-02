@@ -110,310 +110,174 @@ func (p OOBSecret_Future) Struct() (OOBSecret, error) {
 	return OOBSecret(s), err
 }
 
-type ProvisionRequest capnp.Struct
+type ProvisionStatus capnp.Struct
 
-// ProvisionRequest_TypeID is the unique identifier for the type ProvisionRequest.
-const ProvisionRequest_TypeID = 0xdaa467c368159225
+// ProvisionStatus_TypeID is the unique identifier for the type ProvisionStatus.
+const ProvisionStatus_TypeID = 0xfc89b3e24fe8aa64
 
-func NewProvisionRequest(s *capnp.Segment) (ProvisionRequest, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4})
-	return ProvisionRequest(st), err
-}
-
-func NewRootProvisionRequest(s *capnp.Segment) (ProvisionRequest, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4})
-	return ProvisionRequest(st), err
-}
-
-func ReadRootProvisionRequest(msg *capnp.Message) (ProvisionRequest, error) {
-	root, err := msg.Root()
-	return ProvisionRequest(root.Struct()), err
-}
-
-func (s ProvisionRequest) String() string {
-	str, _ := text.Marshal(0xdaa467c368159225, capnp.Struct(s))
-	return str
-}
-
-func (s ProvisionRequest) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (ProvisionRequest) DecodeFromPtr(p capnp.Ptr) ProvisionRequest {
-	return ProvisionRequest(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s ProvisionRequest) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s ProvisionRequest) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s ProvisionRequest) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s ProvisionRequest) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s ProvisionRequest) DeviceID() (string, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.Text(), err
-}
-
-func (s ProvisionRequest) HasDeviceID() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s ProvisionRequest) DeviceIDBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.TextBytes(), err
-}
-
-func (s ProvisionRequest) SetDeviceID(v string) error {
-	return capnp.Struct(s).SetText(0, v)
-}
-
-func (s ProvisionRequest) Mac() (string, error) {
-	p, err := capnp.Struct(s).Ptr(1)
-	return p.Text(), err
-}
-
-func (s ProvisionRequest) HasMac() bool {
-	return capnp.Struct(s).HasPtr(1)
-}
-
-func (s ProvisionRequest) MacBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(1)
-	return p.TextBytes(), err
-}
-
-func (s ProvisionRequest) SetMac(v string) error {
-	return capnp.Struct(s).SetText(1, v)
-}
-
-func (s ProvisionRequest) SecretMD5() (string, error) {
-	p, err := capnp.Struct(s).Ptr(2)
-	return p.Text(), err
-}
-
-func (s ProvisionRequest) HasSecretMD5() bool {
-	return capnp.Struct(s).HasPtr(2)
-}
-
-func (s ProvisionRequest) SecretMD5Bytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(2)
-	return p.TextBytes(), err
-}
-
-func (s ProvisionRequest) SetSecretMD5(v string) error {
-	return capnp.Struct(s).SetText(2, v)
-}
-
-func (s ProvisionRequest) PubKeyPEM() (string, error) {
-	p, err := capnp.Struct(s).Ptr(3)
-	return p.Text(), err
-}
-
-func (s ProvisionRequest) HasPubKeyPEM() bool {
-	return capnp.Struct(s).HasPtr(3)
-}
-
-func (s ProvisionRequest) PubKeyPEMBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(3)
-	return p.TextBytes(), err
-}
-
-func (s ProvisionRequest) SetPubKeyPEM(v string) error {
-	return capnp.Struct(s).SetText(3, v)
-}
-
-// ProvisionRequest_List is a list of ProvisionRequest.
-type ProvisionRequest_List = capnp.StructList[ProvisionRequest]
-
-// NewProvisionRequest creates a new list of ProvisionRequest.
-func NewProvisionRequest_List(s *capnp.Segment, sz int32) (ProvisionRequest_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4}, sz)
-	return capnp.StructList[ProvisionRequest](l), err
-}
-
-// ProvisionRequest_Future is a wrapper for a ProvisionRequest promised by a client call.
-type ProvisionRequest_Future struct{ *capnp.Future }
-
-func (p ProvisionRequest_Future) Struct() (ProvisionRequest, error) {
-	s, err := p.Future.Struct()
-	return ProvisionRequest(s), err
-}
-
-type ProvisionResponse capnp.Struct
-
-// ProvisionResponse_TypeID is the unique identifier for the type ProvisionResponse.
-const ProvisionResponse_TypeID = 0xa9c64aa83f676e8e
-
-func NewProvisionResponse(s *capnp.Segment) (ProvisionResponse, error) {
+func NewProvisionStatus(s *capnp.Segment) (ProvisionStatus, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 5})
-	return ProvisionResponse(st), err
+	return ProvisionStatus(st), err
 }
 
-func NewRootProvisionResponse(s *capnp.Segment) (ProvisionResponse, error) {
+func NewRootProvisionStatus(s *capnp.Segment) (ProvisionStatus, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 5})
-	return ProvisionResponse(st), err
+	return ProvisionStatus(st), err
 }
 
-func ReadRootProvisionResponse(msg *capnp.Message) (ProvisionResponse, error) {
+func ReadRootProvisionStatus(msg *capnp.Message) (ProvisionStatus, error) {
 	root, err := msg.Root()
-	return ProvisionResponse(root.Struct()), err
+	return ProvisionStatus(root.Struct()), err
 }
 
-func (s ProvisionResponse) String() string {
-	str, _ := text.Marshal(0xa9c64aa83f676e8e, capnp.Struct(s))
+func (s ProvisionStatus) String() string {
+	str, _ := text.Marshal(0xfc89b3e24fe8aa64, capnp.Struct(s))
 	return str
 }
 
-func (s ProvisionResponse) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s ProvisionStatus) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (ProvisionResponse) DecodeFromPtr(p capnp.Ptr) ProvisionResponse {
-	return ProvisionResponse(capnp.Struct{}.DecodeFromPtr(p))
+func (ProvisionStatus) DecodeFromPtr(p capnp.Ptr) ProvisionStatus {
+	return ProvisionStatus(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s ProvisionResponse) ToPtr() capnp.Ptr {
+func (s ProvisionStatus) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s ProvisionResponse) IsValid() bool {
+func (s ProvisionStatus) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s ProvisionResponse) Message() *capnp.Message {
+func (s ProvisionStatus) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s ProvisionResponse) Segment() *capnp.Segment {
+func (s ProvisionStatus) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s ProvisionResponse) DeviceID() (string, error) {
+func (s ProvisionStatus) DeviceID() (string, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.Text(), err
 }
 
-func (s ProvisionResponse) HasDeviceID() bool {
+func (s ProvisionStatus) HasDeviceID() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s ProvisionResponse) DeviceIDBytes() ([]byte, error) {
+func (s ProvisionStatus) DeviceIDBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.TextBytes(), err
 }
 
-func (s ProvisionResponse) SetDeviceID(v string) error {
+func (s ProvisionStatus) SetDeviceID(v string) error {
 	return capnp.Struct(s).SetText(0, v)
 }
 
-func (s ProvisionResponse) CaCertPEM() (string, error) {
+func (s ProvisionStatus) CaCertPEM() (string, error) {
 	p, err := capnp.Struct(s).Ptr(1)
 	return p.Text(), err
 }
 
-func (s ProvisionResponse) HasCaCertPEM() bool {
+func (s ProvisionStatus) HasCaCertPEM() bool {
 	return capnp.Struct(s).HasPtr(1)
 }
 
-func (s ProvisionResponse) CaCertPEMBytes() ([]byte, error) {
+func (s ProvisionStatus) CaCertPEMBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(1)
 	return p.TextBytes(), err
 }
 
-func (s ProvisionResponse) SetCaCertPEM(v string) error {
+func (s ProvisionStatus) SetCaCertPEM(v string) error {
 	return capnp.Struct(s).SetText(1, v)
 }
 
-func (s ProvisionResponse) ClientCertPEM() (string, error) {
+func (s ProvisionStatus) ClientCertPEM() (string, error) {
 	p, err := capnp.Struct(s).Ptr(2)
 	return p.Text(), err
 }
 
-func (s ProvisionResponse) HasClientCertPEM() bool {
+func (s ProvisionStatus) HasClientCertPEM() bool {
 	return capnp.Struct(s).HasPtr(2)
 }
 
-func (s ProvisionResponse) ClientCertPEMBytes() ([]byte, error) {
+func (s ProvisionStatus) ClientCertPEMBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(2)
 	return p.TextBytes(), err
 }
 
-func (s ProvisionResponse) SetClientCertPEM(v string) error {
+func (s ProvisionStatus) SetClientCertPEM(v string) error {
 	return capnp.Struct(s).SetText(2, v)
 }
 
-func (s ProvisionResponse) Pending() bool {
+func (s ProvisionStatus) Pending() bool {
 	return capnp.Struct(s).Bit(0)
 }
 
-func (s ProvisionResponse) SetPending(v bool) {
+func (s ProvisionStatus) SetPending(v bool) {
 	capnp.Struct(s).SetBit(0, v)
 }
 
-func (s ProvisionResponse) PubKeyPEM() (string, error) {
+func (s ProvisionStatus) PubKeyPEM() (string, error) {
 	p, err := capnp.Struct(s).Ptr(3)
 	return p.Text(), err
 }
 
-func (s ProvisionResponse) HasPubKeyPEM() bool {
+func (s ProvisionStatus) HasPubKeyPEM() bool {
 	return capnp.Struct(s).HasPtr(3)
 }
 
-func (s ProvisionResponse) PubKeyPEMBytes() ([]byte, error) {
+func (s ProvisionStatus) PubKeyPEMBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(3)
 	return p.TextBytes(), err
 }
 
-func (s ProvisionResponse) SetPubKeyPEM(v string) error {
+func (s ProvisionStatus) SetPubKeyPEM(v string) error {
 	return capnp.Struct(s).SetText(3, v)
 }
 
-func (s ProvisionResponse) RequestTime() (string, error) {
+func (s ProvisionStatus) RequestTime() (string, error) {
 	p, err := capnp.Struct(s).Ptr(4)
 	return p.Text(), err
 }
 
-func (s ProvisionResponse) HasRequestTime() bool {
+func (s ProvisionStatus) HasRequestTime() bool {
 	return capnp.Struct(s).HasPtr(4)
 }
 
-func (s ProvisionResponse) RequestTimeBytes() ([]byte, error) {
+func (s ProvisionStatus) RequestTimeBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(4)
 	return p.TextBytes(), err
 }
 
-func (s ProvisionResponse) SetRequestTime(v string) error {
+func (s ProvisionStatus) SetRequestTime(v string) error {
 	return capnp.Struct(s).SetText(4, v)
 }
 
-func (s ProvisionResponse) RetrySec() int32 {
+func (s ProvisionStatus) RetrySec() int32 {
 	return int32(capnp.Struct(s).Uint32(4) ^ 3600)
 }
 
-func (s ProvisionResponse) SetRetrySec(v int32) {
+func (s ProvisionStatus) SetRetrySec(v int32) {
 	capnp.Struct(s).SetUint32(4, uint32(v)^3600)
 }
 
-// ProvisionResponse_List is a list of ProvisionResponse.
-type ProvisionResponse_List = capnp.StructList[ProvisionResponse]
+// ProvisionStatus_List is a list of ProvisionStatus.
+type ProvisionStatus_List = capnp.StructList[ProvisionStatus]
 
-// NewProvisionResponse creates a new list of ProvisionResponse.
-func NewProvisionResponse_List(s *capnp.Segment, sz int32) (ProvisionResponse_List, error) {
+// NewProvisionStatus creates a new list of ProvisionStatus.
+func NewProvisionStatus_List(s *capnp.Segment, sz int32) (ProvisionStatus_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 5}, sz)
-	return capnp.StructList[ProvisionResponse](l), err
+	return capnp.StructList[ProvisionStatus](l), err
 }
 
-// ProvisionResponse_Future is a wrapper for a ProvisionResponse promised by a client call.
-type ProvisionResponse_Future struct{ *capnp.Future }
+// ProvisionStatus_Future is a wrapper for a ProvisionStatus promised by a client call.
+type ProvisionStatus_Future struct{ *capnp.Future }
 
-func (p ProvisionResponse_Future) Struct() (ProvisionResponse, error) {
+func (p ProvisionStatus_Future) Struct() (ProvisionStatus, error) {
 	s, err := p.Future.Struct()
-	return ProvisionResponse(s), err
+	return ProvisionStatus(s), err
 }
 
 type CapProvisioning capnp.Client
@@ -421,37 +285,53 @@ type CapProvisioning capnp.Client
 // CapProvisioning_TypeID is the unique identifier for the type CapProvisioning.
 const CapProvisioning_TypeID = 0xb27307efca3363be
 
-func (c CapProvisioning) CapProvisionManagement(ctx context.Context, params func(CapProvisioning_capProvisionManagement_Params) error) (CapProvisioning_capProvisionManagement_Results_Future, capnp.ReleaseFunc) {
+func (c CapProvisioning) CapManageProvisioning(ctx context.Context, params func(CapProvisioning_capManageProvisioning_Params) error) (CapProvisioning_capManageProvisioning_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
 			InterfaceID:   0xb27307efca3363be,
 			MethodID:      0,
 			InterfaceName: "hubapi/Provisioning.capnp:CapProvisioning",
-			MethodName:    "capProvisionManagement",
+			MethodName:    "capManageProvisioning",
 		},
 	}
 	if params != nil {
 		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapProvisioning_capProvisionManagement_Params(s)) }
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapProvisioning_capManageProvisioning_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapProvisioning_capProvisionManagement_Results_Future{Future: ans.Future()}, release
+	return CapProvisioning_capManageProvisioning_Results_Future{Future: ans.Future()}, release
 }
-func (c CapProvisioning) CapProvisionRequest(ctx context.Context, params func(CapProvisioning_capProvisionRequest_Params) error) (CapProvisioning_capProvisionRequest_Results_Future, capnp.ReleaseFunc) {
+func (c CapProvisioning) CapRequestProvisioning(ctx context.Context, params func(CapProvisioning_capRequestProvisioning_Params) error) (CapProvisioning_capRequestProvisioning_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
 			InterfaceID:   0xb27307efca3363be,
 			MethodID:      1,
 			InterfaceName: "hubapi/Provisioning.capnp:CapProvisioning",
-			MethodName:    "capProvisionRequest",
+			MethodName:    "capRequestProvisioning",
 		},
 	}
 	if params != nil {
 		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapProvisioning_capProvisionRequest_Params(s)) }
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapProvisioning_capRequestProvisioning_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapProvisioning_capProvisionRequest_Results_Future{Future: ans.Future()}, release
+	return CapProvisioning_capRequestProvisioning_Results_Future{Future: ans.Future()}, release
+}
+func (c CapProvisioning) CapRefreshProvisioning(ctx context.Context, params func(CapProvisioning_capRefreshProvisioning_Params) error) (CapProvisioning_capRefreshProvisioning_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xb27307efca3363be,
+			MethodID:      2,
+			InterfaceName: "hubapi/Provisioning.capnp:CapProvisioning",
+			MethodName:    "capRefreshProvisioning",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapProvisioning_capRefreshProvisioning_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapProvisioning_capRefreshProvisioning_Results_Future{Future: ans.Future()}, release
 }
 
 func (c CapProvisioning) AddRef() CapProvisioning {
@@ -476,9 +356,11 @@ func (c CapProvisioning) IsValid() bool {
 
 // A CapProvisioning_Server is a CapProvisioning with a local implementation.
 type CapProvisioning_Server interface {
-	CapProvisionManagement(context.Context, CapProvisioning_capProvisionManagement) error
+	CapManageProvisioning(context.Context, CapProvisioning_capManageProvisioning) error
 
-	CapProvisionRequest(context.Context, CapProvisioning_capProvisionRequest) error
+	CapRequestProvisioning(context.Context, CapProvisioning_capRequestProvisioning) error
+
+	CapRefreshProvisioning(context.Context, CapProvisioning_capRefreshProvisioning) error
 }
 
 // CapProvisioning_NewServer creates a new Server from an implementation of CapProvisioning_Server.
@@ -497,7 +379,7 @@ func CapProvisioning_ServerToClient(s CapProvisioning_Server) CapProvisioning {
 // This can be used to create a more complicated Server.
 func CapProvisioning_Methods(methods []server.Method, s CapProvisioning_Server) []server.Method {
 	if cap(methods) == 0 {
-		methods = make([]server.Method, 0, 2)
+		methods = make([]server.Method, 0, 3)
 	}
 
 	methods = append(methods, server.Method{
@@ -505,10 +387,10 @@ func CapProvisioning_Methods(methods []server.Method, s CapProvisioning_Server) 
 			InterfaceID:   0xb27307efca3363be,
 			MethodID:      0,
 			InterfaceName: "hubapi/Provisioning.capnp:CapProvisioning",
-			MethodName:    "capProvisionManagement",
+			MethodName:    "capManageProvisioning",
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.CapProvisionManagement(ctx, CapProvisioning_capProvisionManagement{call})
+			return s.CapManageProvisioning(ctx, CapProvisioning_capManageProvisioning{call})
 		},
 	})
 
@@ -517,48 +399,77 @@ func CapProvisioning_Methods(methods []server.Method, s CapProvisioning_Server) 
 			InterfaceID:   0xb27307efca3363be,
 			MethodID:      1,
 			InterfaceName: "hubapi/Provisioning.capnp:CapProvisioning",
-			MethodName:    "capProvisionRequest",
+			MethodName:    "capRequestProvisioning",
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.CapProvisionRequest(ctx, CapProvisioning_capProvisionRequest{call})
+			return s.CapRequestProvisioning(ctx, CapProvisioning_capRequestProvisioning{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xb27307efca3363be,
+			MethodID:      2,
+			InterfaceName: "hubapi/Provisioning.capnp:CapProvisioning",
+			MethodName:    "capRefreshProvisioning",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.CapRefreshProvisioning(ctx, CapProvisioning_capRefreshProvisioning{call})
 		},
 	})
 
 	return methods
 }
 
-// CapProvisioning_capProvisionManagement holds the state for a server call to CapProvisioning.capProvisionManagement.
+// CapProvisioning_capManageProvisioning holds the state for a server call to CapProvisioning.capManageProvisioning.
 // See server.Call for documentation.
-type CapProvisioning_capProvisionManagement struct {
+type CapProvisioning_capManageProvisioning struct {
 	*server.Call
 }
 
 // Args returns the call's arguments.
-func (c CapProvisioning_capProvisionManagement) Args() CapProvisioning_capProvisionManagement_Params {
-	return CapProvisioning_capProvisionManagement_Params(c.Call.Args())
+func (c CapProvisioning_capManageProvisioning) Args() CapProvisioning_capManageProvisioning_Params {
+	return CapProvisioning_capManageProvisioning_Params(c.Call.Args())
 }
 
 // AllocResults allocates the results struct.
-func (c CapProvisioning_capProvisionManagement) AllocResults() (CapProvisioning_capProvisionManagement_Results, error) {
+func (c CapProvisioning_capManageProvisioning) AllocResults() (CapProvisioning_capManageProvisioning_Results, error) {
 	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapProvisioning_capProvisionManagement_Results(r), err
+	return CapProvisioning_capManageProvisioning_Results(r), err
 }
 
-// CapProvisioning_capProvisionRequest holds the state for a server call to CapProvisioning.capProvisionRequest.
+// CapProvisioning_capRequestProvisioning holds the state for a server call to CapProvisioning.capRequestProvisioning.
 // See server.Call for documentation.
-type CapProvisioning_capProvisionRequest struct {
+type CapProvisioning_capRequestProvisioning struct {
 	*server.Call
 }
 
 // Args returns the call's arguments.
-func (c CapProvisioning_capProvisionRequest) Args() CapProvisioning_capProvisionRequest_Params {
-	return CapProvisioning_capProvisionRequest_Params(c.Call.Args())
+func (c CapProvisioning_capRequestProvisioning) Args() CapProvisioning_capRequestProvisioning_Params {
+	return CapProvisioning_capRequestProvisioning_Params(c.Call.Args())
 }
 
 // AllocResults allocates the results struct.
-func (c CapProvisioning_capProvisionRequest) AllocResults() (CapProvisioning_capProvisionRequest_Results, error) {
+func (c CapProvisioning_capRequestProvisioning) AllocResults() (CapProvisioning_capRequestProvisioning_Results, error) {
 	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapProvisioning_capProvisionRequest_Results(r), err
+	return CapProvisioning_capRequestProvisioning_Results(r), err
+}
+
+// CapProvisioning_capRefreshProvisioning holds the state for a server call to CapProvisioning.capRefreshProvisioning.
+// See server.Call for documentation.
+type CapProvisioning_capRefreshProvisioning struct {
+	*server.Call
+}
+
+// Args returns the call's arguments.
+func (c CapProvisioning_capRefreshProvisioning) Args() CapProvisioning_capRefreshProvisioning_Params {
+	return CapProvisioning_capRefreshProvisioning_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c CapProvisioning_capRefreshProvisioning) AllocResults() (CapProvisioning_capRefreshProvisioning_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapProvisioning_capRefreshProvisioning_Results(r), err
 }
 
 // CapProvisioning_List is a list of CapProvisioning.
@@ -570,128 +481,128 @@ func NewCapProvisioning_List(s *capnp.Segment, sz int32) (CapProvisioning_List, 
 	return capnp.CapList[CapProvisioning](l), err
 }
 
-type CapProvisioning_capProvisionManagement_Params capnp.Struct
+type CapProvisioning_capManageProvisioning_Params capnp.Struct
 
-// CapProvisioning_capProvisionManagement_Params_TypeID is the unique identifier for the type CapProvisioning_capProvisionManagement_Params.
-const CapProvisioning_capProvisionManagement_Params_TypeID = 0xfc3703eae91b8639
+// CapProvisioning_capManageProvisioning_Params_TypeID is the unique identifier for the type CapProvisioning_capManageProvisioning_Params.
+const CapProvisioning_capManageProvisioning_Params_TypeID = 0xfc3703eae91b8639
 
-func NewCapProvisioning_capProvisionManagement_Params(s *capnp.Segment) (CapProvisioning_capProvisionManagement_Params, error) {
+func NewCapProvisioning_capManageProvisioning_Params(s *capnp.Segment) (CapProvisioning_capManageProvisioning_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapProvisioning_capProvisionManagement_Params(st), err
+	return CapProvisioning_capManageProvisioning_Params(st), err
 }
 
-func NewRootCapProvisioning_capProvisionManagement_Params(s *capnp.Segment) (CapProvisioning_capProvisionManagement_Params, error) {
+func NewRootCapProvisioning_capManageProvisioning_Params(s *capnp.Segment) (CapProvisioning_capManageProvisioning_Params, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapProvisioning_capProvisionManagement_Params(st), err
+	return CapProvisioning_capManageProvisioning_Params(st), err
 }
 
-func ReadRootCapProvisioning_capProvisionManagement_Params(msg *capnp.Message) (CapProvisioning_capProvisionManagement_Params, error) {
+func ReadRootCapProvisioning_capManageProvisioning_Params(msg *capnp.Message) (CapProvisioning_capManageProvisioning_Params, error) {
 	root, err := msg.Root()
-	return CapProvisioning_capProvisionManagement_Params(root.Struct()), err
+	return CapProvisioning_capManageProvisioning_Params(root.Struct()), err
 }
 
-func (s CapProvisioning_capProvisionManagement_Params) String() string {
+func (s CapProvisioning_capManageProvisioning_Params) String() string {
 	str, _ := text.Marshal(0xfc3703eae91b8639, capnp.Struct(s))
 	return str
 }
 
-func (s CapProvisioning_capProvisionManagement_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapProvisioning_capManageProvisioning_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapProvisioning_capProvisionManagement_Params) DecodeFromPtr(p capnp.Ptr) CapProvisioning_capProvisionManagement_Params {
-	return CapProvisioning_capProvisionManagement_Params(capnp.Struct{}.DecodeFromPtr(p))
+func (CapProvisioning_capManageProvisioning_Params) DecodeFromPtr(p capnp.Ptr) CapProvisioning_capManageProvisioning_Params {
+	return CapProvisioning_capManageProvisioning_Params(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapProvisioning_capProvisionManagement_Params) ToPtr() capnp.Ptr {
+func (s CapProvisioning_capManageProvisioning_Params) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapProvisioning_capProvisionManagement_Params) IsValid() bool {
+func (s CapProvisioning_capManageProvisioning_Params) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapProvisioning_capProvisionManagement_Params) Message() *capnp.Message {
+func (s CapProvisioning_capManageProvisioning_Params) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapProvisioning_capProvisionManagement_Params) Segment() *capnp.Segment {
+func (s CapProvisioning_capManageProvisioning_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
 
-// CapProvisioning_capProvisionManagement_Params_List is a list of CapProvisioning_capProvisionManagement_Params.
-type CapProvisioning_capProvisionManagement_Params_List = capnp.StructList[CapProvisioning_capProvisionManagement_Params]
+// CapProvisioning_capManageProvisioning_Params_List is a list of CapProvisioning_capManageProvisioning_Params.
+type CapProvisioning_capManageProvisioning_Params_List = capnp.StructList[CapProvisioning_capManageProvisioning_Params]
 
-// NewCapProvisioning_capProvisionManagement_Params creates a new list of CapProvisioning_capProvisionManagement_Params.
-func NewCapProvisioning_capProvisionManagement_Params_List(s *capnp.Segment, sz int32) (CapProvisioning_capProvisionManagement_Params_List, error) {
+// NewCapProvisioning_capManageProvisioning_Params creates a new list of CapProvisioning_capManageProvisioning_Params.
+func NewCapProvisioning_capManageProvisioning_Params_List(s *capnp.Segment, sz int32) (CapProvisioning_capManageProvisioning_Params_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
-	return capnp.StructList[CapProvisioning_capProvisionManagement_Params](l), err
+	return capnp.StructList[CapProvisioning_capManageProvisioning_Params](l), err
 }
 
-// CapProvisioning_capProvisionManagement_Params_Future is a wrapper for a CapProvisioning_capProvisionManagement_Params promised by a client call.
-type CapProvisioning_capProvisionManagement_Params_Future struct{ *capnp.Future }
+// CapProvisioning_capManageProvisioning_Params_Future is a wrapper for a CapProvisioning_capManageProvisioning_Params promised by a client call.
+type CapProvisioning_capManageProvisioning_Params_Future struct{ *capnp.Future }
 
-func (p CapProvisioning_capProvisionManagement_Params_Future) Struct() (CapProvisioning_capProvisionManagement_Params, error) {
+func (p CapProvisioning_capManageProvisioning_Params_Future) Struct() (CapProvisioning_capManageProvisioning_Params, error) {
 	s, err := p.Future.Struct()
-	return CapProvisioning_capProvisionManagement_Params(s), err
+	return CapProvisioning_capManageProvisioning_Params(s), err
 }
 
-type CapProvisioning_capProvisionManagement_Results capnp.Struct
+type CapProvisioning_capManageProvisioning_Results capnp.Struct
 
-// CapProvisioning_capProvisionManagement_Results_TypeID is the unique identifier for the type CapProvisioning_capProvisionManagement_Results.
-const CapProvisioning_capProvisionManagement_Results_TypeID = 0xf402ccb00738f2d2
+// CapProvisioning_capManageProvisioning_Results_TypeID is the unique identifier for the type CapProvisioning_capManageProvisioning_Results.
+const CapProvisioning_capManageProvisioning_Results_TypeID = 0xf402ccb00738f2d2
 
-func NewCapProvisioning_capProvisionManagement_Results(s *capnp.Segment) (CapProvisioning_capProvisionManagement_Results, error) {
+func NewCapProvisioning_capManageProvisioning_Results(s *capnp.Segment) (CapProvisioning_capManageProvisioning_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapProvisioning_capProvisionManagement_Results(st), err
+	return CapProvisioning_capManageProvisioning_Results(st), err
 }
 
-func NewRootCapProvisioning_capProvisionManagement_Results(s *capnp.Segment) (CapProvisioning_capProvisionManagement_Results, error) {
+func NewRootCapProvisioning_capManageProvisioning_Results(s *capnp.Segment) (CapProvisioning_capManageProvisioning_Results, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapProvisioning_capProvisionManagement_Results(st), err
+	return CapProvisioning_capManageProvisioning_Results(st), err
 }
 
-func ReadRootCapProvisioning_capProvisionManagement_Results(msg *capnp.Message) (CapProvisioning_capProvisionManagement_Results, error) {
+func ReadRootCapProvisioning_capManageProvisioning_Results(msg *capnp.Message) (CapProvisioning_capManageProvisioning_Results, error) {
 	root, err := msg.Root()
-	return CapProvisioning_capProvisionManagement_Results(root.Struct()), err
+	return CapProvisioning_capManageProvisioning_Results(root.Struct()), err
 }
 
-func (s CapProvisioning_capProvisionManagement_Results) String() string {
+func (s CapProvisioning_capManageProvisioning_Results) String() string {
 	str, _ := text.Marshal(0xf402ccb00738f2d2, capnp.Struct(s))
 	return str
 }
 
-func (s CapProvisioning_capProvisionManagement_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapProvisioning_capManageProvisioning_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapProvisioning_capProvisionManagement_Results) DecodeFromPtr(p capnp.Ptr) CapProvisioning_capProvisionManagement_Results {
-	return CapProvisioning_capProvisionManagement_Results(capnp.Struct{}.DecodeFromPtr(p))
+func (CapProvisioning_capManageProvisioning_Results) DecodeFromPtr(p capnp.Ptr) CapProvisioning_capManageProvisioning_Results {
+	return CapProvisioning_capManageProvisioning_Results(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapProvisioning_capProvisionManagement_Results) ToPtr() capnp.Ptr {
+func (s CapProvisioning_capManageProvisioning_Results) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapProvisioning_capProvisionManagement_Results) IsValid() bool {
+func (s CapProvisioning_capManageProvisioning_Results) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapProvisioning_capProvisionManagement_Results) Message() *capnp.Message {
+func (s CapProvisioning_capManageProvisioning_Results) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapProvisioning_capProvisionManagement_Results) Segment() *capnp.Segment {
+func (s CapProvisioning_capManageProvisioning_Results) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapProvisioning_capProvisionManagement_Results) Cap() CapProvisionManagement {
+func (s CapProvisioning_capManageProvisioning_Results) Cap() CapManageProvisioning {
 	p, _ := capnp.Struct(s).Ptr(0)
-	return CapProvisionManagement(p.Interface().Client())
+	return CapManageProvisioning(p.Interface().Client())
 }
 
-func (s CapProvisioning_capProvisionManagement_Results) HasCap() bool {
+func (s CapProvisioning_capManageProvisioning_Results) HasCap() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapProvisioning_capProvisionManagement_Results) SetCap(v CapProvisionManagement) error {
+func (s CapProvisioning_capManageProvisioning_Results) SetCap(v CapManageProvisioning) error {
 	if !v.IsValid() {
 		return capnp.Struct(s).SetPtr(0, capnp.Ptr{})
 	}
@@ -700,149 +611,149 @@ func (s CapProvisioning_capProvisionManagement_Results) SetCap(v CapProvisionMan
 	return capnp.Struct(s).SetPtr(0, in.ToPtr())
 }
 
-// CapProvisioning_capProvisionManagement_Results_List is a list of CapProvisioning_capProvisionManagement_Results.
-type CapProvisioning_capProvisionManagement_Results_List = capnp.StructList[CapProvisioning_capProvisionManagement_Results]
+// CapProvisioning_capManageProvisioning_Results_List is a list of CapProvisioning_capManageProvisioning_Results.
+type CapProvisioning_capManageProvisioning_Results_List = capnp.StructList[CapProvisioning_capManageProvisioning_Results]
 
-// NewCapProvisioning_capProvisionManagement_Results creates a new list of CapProvisioning_capProvisionManagement_Results.
-func NewCapProvisioning_capProvisionManagement_Results_List(s *capnp.Segment, sz int32) (CapProvisioning_capProvisionManagement_Results_List, error) {
+// NewCapProvisioning_capManageProvisioning_Results creates a new list of CapProvisioning_capManageProvisioning_Results.
+func NewCapProvisioning_capManageProvisioning_Results_List(s *capnp.Segment, sz int32) (CapProvisioning_capManageProvisioning_Results_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapProvisioning_capProvisionManagement_Results](l), err
+	return capnp.StructList[CapProvisioning_capManageProvisioning_Results](l), err
 }
 
-// CapProvisioning_capProvisionManagement_Results_Future is a wrapper for a CapProvisioning_capProvisionManagement_Results promised by a client call.
-type CapProvisioning_capProvisionManagement_Results_Future struct{ *capnp.Future }
+// CapProvisioning_capManageProvisioning_Results_Future is a wrapper for a CapProvisioning_capManageProvisioning_Results promised by a client call.
+type CapProvisioning_capManageProvisioning_Results_Future struct{ *capnp.Future }
 
-func (p CapProvisioning_capProvisionManagement_Results_Future) Struct() (CapProvisioning_capProvisionManagement_Results, error) {
+func (p CapProvisioning_capManageProvisioning_Results_Future) Struct() (CapProvisioning_capManageProvisioning_Results, error) {
 	s, err := p.Future.Struct()
-	return CapProvisioning_capProvisionManagement_Results(s), err
+	return CapProvisioning_capManageProvisioning_Results(s), err
 }
 
-func (p CapProvisioning_capProvisionManagement_Results_Future) Cap() CapProvisionManagement {
-	return CapProvisionManagement(p.Future.Field(0, nil).Client())
+func (p CapProvisioning_capManageProvisioning_Results_Future) Cap() CapManageProvisioning {
+	return CapManageProvisioning(p.Future.Field(0, nil).Client())
 }
 
-type CapProvisioning_capProvisionRequest_Params capnp.Struct
+type CapProvisioning_capRequestProvisioning_Params capnp.Struct
 
-// CapProvisioning_capProvisionRequest_Params_TypeID is the unique identifier for the type CapProvisioning_capProvisionRequest_Params.
-const CapProvisioning_capProvisionRequest_Params_TypeID = 0xd639555807730795
+// CapProvisioning_capRequestProvisioning_Params_TypeID is the unique identifier for the type CapProvisioning_capRequestProvisioning_Params.
+const CapProvisioning_capRequestProvisioning_Params_TypeID = 0xd639555807730795
 
-func NewCapProvisioning_capProvisionRequest_Params(s *capnp.Segment) (CapProvisioning_capProvisionRequest_Params, error) {
+func NewCapProvisioning_capRequestProvisioning_Params(s *capnp.Segment) (CapProvisioning_capRequestProvisioning_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapProvisioning_capProvisionRequest_Params(st), err
+	return CapProvisioning_capRequestProvisioning_Params(st), err
 }
 
-func NewRootCapProvisioning_capProvisionRequest_Params(s *capnp.Segment) (CapProvisioning_capProvisionRequest_Params, error) {
+func NewRootCapProvisioning_capRequestProvisioning_Params(s *capnp.Segment) (CapProvisioning_capRequestProvisioning_Params, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapProvisioning_capProvisionRequest_Params(st), err
+	return CapProvisioning_capRequestProvisioning_Params(st), err
 }
 
-func ReadRootCapProvisioning_capProvisionRequest_Params(msg *capnp.Message) (CapProvisioning_capProvisionRequest_Params, error) {
+func ReadRootCapProvisioning_capRequestProvisioning_Params(msg *capnp.Message) (CapProvisioning_capRequestProvisioning_Params, error) {
 	root, err := msg.Root()
-	return CapProvisioning_capProvisionRequest_Params(root.Struct()), err
+	return CapProvisioning_capRequestProvisioning_Params(root.Struct()), err
 }
 
-func (s CapProvisioning_capProvisionRequest_Params) String() string {
+func (s CapProvisioning_capRequestProvisioning_Params) String() string {
 	str, _ := text.Marshal(0xd639555807730795, capnp.Struct(s))
 	return str
 }
 
-func (s CapProvisioning_capProvisionRequest_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapProvisioning_capRequestProvisioning_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapProvisioning_capProvisionRequest_Params) DecodeFromPtr(p capnp.Ptr) CapProvisioning_capProvisionRequest_Params {
-	return CapProvisioning_capProvisionRequest_Params(capnp.Struct{}.DecodeFromPtr(p))
+func (CapProvisioning_capRequestProvisioning_Params) DecodeFromPtr(p capnp.Ptr) CapProvisioning_capRequestProvisioning_Params {
+	return CapProvisioning_capRequestProvisioning_Params(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapProvisioning_capProvisionRequest_Params) ToPtr() capnp.Ptr {
+func (s CapProvisioning_capRequestProvisioning_Params) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapProvisioning_capProvisionRequest_Params) IsValid() bool {
+func (s CapProvisioning_capRequestProvisioning_Params) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapProvisioning_capProvisionRequest_Params) Message() *capnp.Message {
+func (s CapProvisioning_capRequestProvisioning_Params) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapProvisioning_capProvisionRequest_Params) Segment() *capnp.Segment {
+func (s CapProvisioning_capRequestProvisioning_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
 
-// CapProvisioning_capProvisionRequest_Params_List is a list of CapProvisioning_capProvisionRequest_Params.
-type CapProvisioning_capProvisionRequest_Params_List = capnp.StructList[CapProvisioning_capProvisionRequest_Params]
+// CapProvisioning_capRequestProvisioning_Params_List is a list of CapProvisioning_capRequestProvisioning_Params.
+type CapProvisioning_capRequestProvisioning_Params_List = capnp.StructList[CapProvisioning_capRequestProvisioning_Params]
 
-// NewCapProvisioning_capProvisionRequest_Params creates a new list of CapProvisioning_capProvisionRequest_Params.
-func NewCapProvisioning_capProvisionRequest_Params_List(s *capnp.Segment, sz int32) (CapProvisioning_capProvisionRequest_Params_List, error) {
+// NewCapProvisioning_capRequestProvisioning_Params creates a new list of CapProvisioning_capRequestProvisioning_Params.
+func NewCapProvisioning_capRequestProvisioning_Params_List(s *capnp.Segment, sz int32) (CapProvisioning_capRequestProvisioning_Params_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
-	return capnp.StructList[CapProvisioning_capProvisionRequest_Params](l), err
+	return capnp.StructList[CapProvisioning_capRequestProvisioning_Params](l), err
 }
 
-// CapProvisioning_capProvisionRequest_Params_Future is a wrapper for a CapProvisioning_capProvisionRequest_Params promised by a client call.
-type CapProvisioning_capProvisionRequest_Params_Future struct{ *capnp.Future }
+// CapProvisioning_capRequestProvisioning_Params_Future is a wrapper for a CapProvisioning_capRequestProvisioning_Params promised by a client call.
+type CapProvisioning_capRequestProvisioning_Params_Future struct{ *capnp.Future }
 
-func (p CapProvisioning_capProvisionRequest_Params_Future) Struct() (CapProvisioning_capProvisionRequest_Params, error) {
+func (p CapProvisioning_capRequestProvisioning_Params_Future) Struct() (CapProvisioning_capRequestProvisioning_Params, error) {
 	s, err := p.Future.Struct()
-	return CapProvisioning_capProvisionRequest_Params(s), err
+	return CapProvisioning_capRequestProvisioning_Params(s), err
 }
 
-type CapProvisioning_capProvisionRequest_Results capnp.Struct
+type CapProvisioning_capRequestProvisioning_Results capnp.Struct
 
-// CapProvisioning_capProvisionRequest_Results_TypeID is the unique identifier for the type CapProvisioning_capProvisionRequest_Results.
-const CapProvisioning_capProvisionRequest_Results_TypeID = 0xf28d935389e9c513
+// CapProvisioning_capRequestProvisioning_Results_TypeID is the unique identifier for the type CapProvisioning_capRequestProvisioning_Results.
+const CapProvisioning_capRequestProvisioning_Results_TypeID = 0xf28d935389e9c513
 
-func NewCapProvisioning_capProvisionRequest_Results(s *capnp.Segment) (CapProvisioning_capProvisionRequest_Results, error) {
+func NewCapProvisioning_capRequestProvisioning_Results(s *capnp.Segment) (CapProvisioning_capRequestProvisioning_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapProvisioning_capProvisionRequest_Results(st), err
+	return CapProvisioning_capRequestProvisioning_Results(st), err
 }
 
-func NewRootCapProvisioning_capProvisionRequest_Results(s *capnp.Segment) (CapProvisioning_capProvisionRequest_Results, error) {
+func NewRootCapProvisioning_capRequestProvisioning_Results(s *capnp.Segment) (CapProvisioning_capRequestProvisioning_Results, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapProvisioning_capProvisionRequest_Results(st), err
+	return CapProvisioning_capRequestProvisioning_Results(st), err
 }
 
-func ReadRootCapProvisioning_capProvisionRequest_Results(msg *capnp.Message) (CapProvisioning_capProvisionRequest_Results, error) {
+func ReadRootCapProvisioning_capRequestProvisioning_Results(msg *capnp.Message) (CapProvisioning_capRequestProvisioning_Results, error) {
 	root, err := msg.Root()
-	return CapProvisioning_capProvisionRequest_Results(root.Struct()), err
+	return CapProvisioning_capRequestProvisioning_Results(root.Struct()), err
 }
 
-func (s CapProvisioning_capProvisionRequest_Results) String() string {
+func (s CapProvisioning_capRequestProvisioning_Results) String() string {
 	str, _ := text.Marshal(0xf28d935389e9c513, capnp.Struct(s))
 	return str
 }
 
-func (s CapProvisioning_capProvisionRequest_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapProvisioning_capRequestProvisioning_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapProvisioning_capProvisionRequest_Results) DecodeFromPtr(p capnp.Ptr) CapProvisioning_capProvisionRequest_Results {
-	return CapProvisioning_capProvisionRequest_Results(capnp.Struct{}.DecodeFromPtr(p))
+func (CapProvisioning_capRequestProvisioning_Results) DecodeFromPtr(p capnp.Ptr) CapProvisioning_capRequestProvisioning_Results {
+	return CapProvisioning_capRequestProvisioning_Results(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapProvisioning_capProvisionRequest_Results) ToPtr() capnp.Ptr {
+func (s CapProvisioning_capRequestProvisioning_Results) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapProvisioning_capProvisionRequest_Results) IsValid() bool {
+func (s CapProvisioning_capRequestProvisioning_Results) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapProvisioning_capProvisionRequest_Results) Message() *capnp.Message {
+func (s CapProvisioning_capRequestProvisioning_Results) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapProvisioning_capProvisionRequest_Results) Segment() *capnp.Segment {
+func (s CapProvisioning_capRequestProvisioning_Results) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapProvisioning_capProvisionRequest_Results) Cap() CapProvisionRequest {
+func (s CapProvisioning_capRequestProvisioning_Results) Cap() CapRequestProvisioning {
 	p, _ := capnp.Struct(s).Ptr(0)
-	return CapProvisionRequest(p.Interface().Client())
+	return CapRequestProvisioning(p.Interface().Client())
 }
 
-func (s CapProvisioning_capProvisionRequest_Results) HasCap() bool {
+func (s CapProvisioning_capRequestProvisioning_Results) HasCap() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapProvisioning_capProvisionRequest_Results) SetCap(v CapProvisionRequest) error {
+func (s CapProvisioning_capRequestProvisioning_Results) SetCap(v CapRequestProvisioning) error {
 	if !v.IsValid() {
 		return capnp.Struct(s).SetPtr(0, capnp.Ptr{})
 	}
@@ -851,338 +762,489 @@ func (s CapProvisioning_capProvisionRequest_Results) SetCap(v CapProvisionReques
 	return capnp.Struct(s).SetPtr(0, in.ToPtr())
 }
 
-// CapProvisioning_capProvisionRequest_Results_List is a list of CapProvisioning_capProvisionRequest_Results.
-type CapProvisioning_capProvisionRequest_Results_List = capnp.StructList[CapProvisioning_capProvisionRequest_Results]
+// CapProvisioning_capRequestProvisioning_Results_List is a list of CapProvisioning_capRequestProvisioning_Results.
+type CapProvisioning_capRequestProvisioning_Results_List = capnp.StructList[CapProvisioning_capRequestProvisioning_Results]
 
-// NewCapProvisioning_capProvisionRequest_Results creates a new list of CapProvisioning_capProvisionRequest_Results.
-func NewCapProvisioning_capProvisionRequest_Results_List(s *capnp.Segment, sz int32) (CapProvisioning_capProvisionRequest_Results_List, error) {
+// NewCapProvisioning_capRequestProvisioning_Results creates a new list of CapProvisioning_capRequestProvisioning_Results.
+func NewCapProvisioning_capRequestProvisioning_Results_List(s *capnp.Segment, sz int32) (CapProvisioning_capRequestProvisioning_Results_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapProvisioning_capProvisionRequest_Results](l), err
+	return capnp.StructList[CapProvisioning_capRequestProvisioning_Results](l), err
 }
 
-// CapProvisioning_capProvisionRequest_Results_Future is a wrapper for a CapProvisioning_capProvisionRequest_Results promised by a client call.
-type CapProvisioning_capProvisionRequest_Results_Future struct{ *capnp.Future }
+// CapProvisioning_capRequestProvisioning_Results_Future is a wrapper for a CapProvisioning_capRequestProvisioning_Results promised by a client call.
+type CapProvisioning_capRequestProvisioning_Results_Future struct{ *capnp.Future }
 
-func (p CapProvisioning_capProvisionRequest_Results_Future) Struct() (CapProvisioning_capProvisionRequest_Results, error) {
+func (p CapProvisioning_capRequestProvisioning_Results_Future) Struct() (CapProvisioning_capRequestProvisioning_Results, error) {
 	s, err := p.Future.Struct()
-	return CapProvisioning_capProvisionRequest_Results(s), err
+	return CapProvisioning_capRequestProvisioning_Results(s), err
 }
 
-func (p CapProvisioning_capProvisionRequest_Results_Future) Cap() CapProvisionRequest {
-	return CapProvisionRequest(p.Future.Field(0, nil).Client())
+func (p CapProvisioning_capRequestProvisioning_Results_Future) Cap() CapRequestProvisioning {
+	return CapRequestProvisioning(p.Future.Field(0, nil).Client())
 }
 
-type CapProvisionManagement capnp.Client
+type CapProvisioning_capRefreshProvisioning_Params capnp.Struct
 
-// CapProvisionManagement_TypeID is the unique identifier for the type CapProvisionManagement.
-const CapProvisionManagement_TypeID = 0xd1d2cfc883c4c801
+// CapProvisioning_capRefreshProvisioning_Params_TypeID is the unique identifier for the type CapProvisioning_capRefreshProvisioning_Params.
+const CapProvisioning_capRefreshProvisioning_Params_TypeID = 0x8aefb2c2be92348a
 
-func (c CapProvisionManagement) AddOOBSecret(ctx context.Context, params func(CapProvisionManagement_addOOBSecret_Params) error) (CapProvisionManagement_addOOBSecret_Results_Future, capnp.ReleaseFunc) {
+func NewCapProvisioning_capRefreshProvisioning_Params(s *capnp.Segment) (CapProvisioning_capRefreshProvisioning_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapProvisioning_capRefreshProvisioning_Params(st), err
+}
+
+func NewRootCapProvisioning_capRefreshProvisioning_Params(s *capnp.Segment) (CapProvisioning_capRefreshProvisioning_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapProvisioning_capRefreshProvisioning_Params(st), err
+}
+
+func ReadRootCapProvisioning_capRefreshProvisioning_Params(msg *capnp.Message) (CapProvisioning_capRefreshProvisioning_Params, error) {
+	root, err := msg.Root()
+	return CapProvisioning_capRefreshProvisioning_Params(root.Struct()), err
+}
+
+func (s CapProvisioning_capRefreshProvisioning_Params) String() string {
+	str, _ := text.Marshal(0x8aefb2c2be92348a, capnp.Struct(s))
+	return str
+}
+
+func (s CapProvisioning_capRefreshProvisioning_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapProvisioning_capRefreshProvisioning_Params) DecodeFromPtr(p capnp.Ptr) CapProvisioning_capRefreshProvisioning_Params {
+	return CapProvisioning_capRefreshProvisioning_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapProvisioning_capRefreshProvisioning_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapProvisioning_capRefreshProvisioning_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapProvisioning_capRefreshProvisioning_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapProvisioning_capRefreshProvisioning_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+
+// CapProvisioning_capRefreshProvisioning_Params_List is a list of CapProvisioning_capRefreshProvisioning_Params.
+type CapProvisioning_capRefreshProvisioning_Params_List = capnp.StructList[CapProvisioning_capRefreshProvisioning_Params]
+
+// NewCapProvisioning_capRefreshProvisioning_Params creates a new list of CapProvisioning_capRefreshProvisioning_Params.
+func NewCapProvisioning_capRefreshProvisioning_Params_List(s *capnp.Segment, sz int32) (CapProvisioning_capRefreshProvisioning_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
+	return capnp.StructList[CapProvisioning_capRefreshProvisioning_Params](l), err
+}
+
+// CapProvisioning_capRefreshProvisioning_Params_Future is a wrapper for a CapProvisioning_capRefreshProvisioning_Params promised by a client call.
+type CapProvisioning_capRefreshProvisioning_Params_Future struct{ *capnp.Future }
+
+func (p CapProvisioning_capRefreshProvisioning_Params_Future) Struct() (CapProvisioning_capRefreshProvisioning_Params, error) {
+	s, err := p.Future.Struct()
+	return CapProvisioning_capRefreshProvisioning_Params(s), err
+}
+
+type CapProvisioning_capRefreshProvisioning_Results capnp.Struct
+
+// CapProvisioning_capRefreshProvisioning_Results_TypeID is the unique identifier for the type CapProvisioning_capRefreshProvisioning_Results.
+const CapProvisioning_capRefreshProvisioning_Results_TypeID = 0xed54d0e7b62886ec
+
+func NewCapProvisioning_capRefreshProvisioning_Results(s *capnp.Segment) (CapProvisioning_capRefreshProvisioning_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapProvisioning_capRefreshProvisioning_Results(st), err
+}
+
+func NewRootCapProvisioning_capRefreshProvisioning_Results(s *capnp.Segment) (CapProvisioning_capRefreshProvisioning_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapProvisioning_capRefreshProvisioning_Results(st), err
+}
+
+func ReadRootCapProvisioning_capRefreshProvisioning_Results(msg *capnp.Message) (CapProvisioning_capRefreshProvisioning_Results, error) {
+	root, err := msg.Root()
+	return CapProvisioning_capRefreshProvisioning_Results(root.Struct()), err
+}
+
+func (s CapProvisioning_capRefreshProvisioning_Results) String() string {
+	str, _ := text.Marshal(0xed54d0e7b62886ec, capnp.Struct(s))
+	return str
+}
+
+func (s CapProvisioning_capRefreshProvisioning_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapProvisioning_capRefreshProvisioning_Results) DecodeFromPtr(p capnp.Ptr) CapProvisioning_capRefreshProvisioning_Results {
+	return CapProvisioning_capRefreshProvisioning_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapProvisioning_capRefreshProvisioning_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapProvisioning_capRefreshProvisioning_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapProvisioning_capRefreshProvisioning_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapProvisioning_capRefreshProvisioning_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapProvisioning_capRefreshProvisioning_Results) Cap() CapRefreshProvisioning {
+	p, _ := capnp.Struct(s).Ptr(0)
+	return CapRefreshProvisioning(p.Interface().Client())
+}
+
+func (s CapProvisioning_capRefreshProvisioning_Results) HasCap() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapProvisioning_capRefreshProvisioning_Results) SetCap(v CapRefreshProvisioning) error {
+	if !v.IsValid() {
+		return capnp.Struct(s).SetPtr(0, capnp.Ptr{})
+	}
+	seg := s.Segment()
+	in := capnp.NewInterface(seg, seg.Message().AddCap(capnp.Client(v)))
+	return capnp.Struct(s).SetPtr(0, in.ToPtr())
+}
+
+// CapProvisioning_capRefreshProvisioning_Results_List is a list of CapProvisioning_capRefreshProvisioning_Results.
+type CapProvisioning_capRefreshProvisioning_Results_List = capnp.StructList[CapProvisioning_capRefreshProvisioning_Results]
+
+// NewCapProvisioning_capRefreshProvisioning_Results creates a new list of CapProvisioning_capRefreshProvisioning_Results.
+func NewCapProvisioning_capRefreshProvisioning_Results_List(s *capnp.Segment, sz int32) (CapProvisioning_capRefreshProvisioning_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[CapProvisioning_capRefreshProvisioning_Results](l), err
+}
+
+// CapProvisioning_capRefreshProvisioning_Results_Future is a wrapper for a CapProvisioning_capRefreshProvisioning_Results promised by a client call.
+type CapProvisioning_capRefreshProvisioning_Results_Future struct{ *capnp.Future }
+
+func (p CapProvisioning_capRefreshProvisioning_Results_Future) Struct() (CapProvisioning_capRefreshProvisioning_Results, error) {
+	s, err := p.Future.Struct()
+	return CapProvisioning_capRefreshProvisioning_Results(s), err
+}
+
+func (p CapProvisioning_capRefreshProvisioning_Results_Future) Cap() CapRefreshProvisioning {
+	return CapRefreshProvisioning(p.Future.Field(0, nil).Client())
+}
+
+type CapManageProvisioning capnp.Client
+
+// CapManageProvisioning_TypeID is the unique identifier for the type CapManageProvisioning.
+const CapManageProvisioning_TypeID = 0xc5cabd19dec29fbb
+
+func (c CapManageProvisioning) AddOOBSecrets(ctx context.Context, params func(CapManageProvisioning_addOOBSecrets_Params) error) (CapManageProvisioning_addOOBSecrets_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
-			InterfaceID:   0xd1d2cfc883c4c801,
+			InterfaceID:   0xc5cabd19dec29fbb,
 			MethodID:      0,
-			InterfaceName: "hubapi/Provisioning.capnp:CapProvisionManagement",
-			MethodName:    "addOOBSecret",
+			InterfaceName: "hubapi/Provisioning.capnp:CapManageProvisioning",
+			MethodName:    "addOOBSecrets",
 		},
 	}
 	if params != nil {
 		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapProvisionManagement_addOOBSecret_Params(s)) }
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapManageProvisioning_addOOBSecrets_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapProvisionManagement_addOOBSecret_Results_Future{Future: ans.Future()}, release
+	return CapManageProvisioning_addOOBSecrets_Results_Future{Future: ans.Future()}, release
 }
-func (c CapProvisionManagement) ApproveRequest(ctx context.Context, params func(CapProvisionManagement_approveRequest_Params) error) (CapProvisionManagement_approveRequest_Results_Future, capnp.ReleaseFunc) {
+func (c CapManageProvisioning) ApproveRequest(ctx context.Context, params func(CapManageProvisioning_approveRequest_Params) error) (CapManageProvisioning_approveRequest_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
-			InterfaceID:   0xd1d2cfc883c4c801,
+			InterfaceID:   0xc5cabd19dec29fbb,
 			MethodID:      1,
-			InterfaceName: "hubapi/Provisioning.capnp:CapProvisionManagement",
+			InterfaceName: "hubapi/Provisioning.capnp:CapManageProvisioning",
 			MethodName:    "approveRequest",
 		},
 	}
 	if params != nil {
 		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapProvisionManagement_approveRequest_Params(s)) }
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapManageProvisioning_approveRequest_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapProvisionManagement_approveRequest_Results_Future{Future: ans.Future()}, release
+	return CapManageProvisioning_approveRequest_Results_Future{Future: ans.Future()}, release
 }
-func (c CapProvisionManagement) GetApprovedRequests(ctx context.Context, params func(CapProvisionManagement_getApprovedRequests_Params) error) (CapProvisionManagement_getApprovedRequests_Results_Future, capnp.ReleaseFunc) {
+func (c CapManageProvisioning) GetApprovedRequests(ctx context.Context, params func(CapManageProvisioning_getApprovedRequests_Params) error) (CapManageProvisioning_getApprovedRequests_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
-			InterfaceID:   0xd1d2cfc883c4c801,
+			InterfaceID:   0xc5cabd19dec29fbb,
 			MethodID:      2,
-			InterfaceName: "hubapi/Provisioning.capnp:CapProvisionManagement",
+			InterfaceName: "hubapi/Provisioning.capnp:CapManageProvisioning",
 			MethodName:    "getApprovedRequests",
 		},
 	}
 	if params != nil {
 		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapProvisionManagement_getApprovedRequests_Params(s)) }
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapManageProvisioning_getApprovedRequests_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapProvisionManagement_getApprovedRequests_Results_Future{Future: ans.Future()}, release
+	return CapManageProvisioning_getApprovedRequests_Results_Future{Future: ans.Future()}, release
 }
-func (c CapProvisionManagement) GetPendingRequests(ctx context.Context, params func(CapProvisionManagement_getPendingRequests_Params) error) (CapProvisionManagement_getPendingRequests_Results_Future, capnp.ReleaseFunc) {
+func (c CapManageProvisioning) GetPendingRequests(ctx context.Context, params func(CapManageProvisioning_getPendingRequests_Params) error) (CapManageProvisioning_getPendingRequests_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
-			InterfaceID:   0xd1d2cfc883c4c801,
+			InterfaceID:   0xc5cabd19dec29fbb,
 			MethodID:      3,
-			InterfaceName: "hubapi/Provisioning.capnp:CapProvisionManagement",
+			InterfaceName: "hubapi/Provisioning.capnp:CapManageProvisioning",
 			MethodName:    "getPendingRequests",
 		},
 	}
 	if params != nil {
 		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapProvisionManagement_getPendingRequests_Params(s)) }
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapManageProvisioning_getPendingRequests_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapProvisionManagement_getPendingRequests_Results_Future{Future: ans.Future()}, release
+	return CapManageProvisioning_getPendingRequests_Results_Future{Future: ans.Future()}, release
 }
 
-func (c CapProvisionManagement) AddRef() CapProvisionManagement {
-	return CapProvisionManagement(capnp.Client(c).AddRef())
+func (c CapManageProvisioning) AddRef() CapManageProvisioning {
+	return CapManageProvisioning(capnp.Client(c).AddRef())
 }
 
-func (c CapProvisionManagement) Release() {
+func (c CapManageProvisioning) Release() {
 	capnp.Client(c).Release()
 }
 
-func (c CapProvisionManagement) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (c CapManageProvisioning) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Client(c).EncodeAsPtr(seg)
 }
 
-func (CapProvisionManagement) DecodeFromPtr(p capnp.Ptr) CapProvisionManagement {
-	return CapProvisionManagement(capnp.Client{}.DecodeFromPtr(p))
+func (CapManageProvisioning) DecodeFromPtr(p capnp.Ptr) CapManageProvisioning {
+	return CapManageProvisioning(capnp.Client{}.DecodeFromPtr(p))
 }
 
-func (c CapProvisionManagement) IsValid() bool {
+func (c CapManageProvisioning) IsValid() bool {
 	return capnp.Client(c).IsValid()
 }
 
-// A CapProvisionManagement_Server is a CapProvisionManagement with a local implementation.
-type CapProvisionManagement_Server interface {
-	AddOOBSecret(context.Context, CapProvisionManagement_addOOBSecret) error
+// A CapManageProvisioning_Server is a CapManageProvisioning with a local implementation.
+type CapManageProvisioning_Server interface {
+	AddOOBSecrets(context.Context, CapManageProvisioning_addOOBSecrets) error
 
-	ApproveRequest(context.Context, CapProvisionManagement_approveRequest) error
+	ApproveRequest(context.Context, CapManageProvisioning_approveRequest) error
 
-	GetApprovedRequests(context.Context, CapProvisionManagement_getApprovedRequests) error
+	GetApprovedRequests(context.Context, CapManageProvisioning_getApprovedRequests) error
 
-	GetPendingRequests(context.Context, CapProvisionManagement_getPendingRequests) error
+	GetPendingRequests(context.Context, CapManageProvisioning_getPendingRequests) error
 }
 
-// CapProvisionManagement_NewServer creates a new Server from an implementation of CapProvisionManagement_Server.
-func CapProvisionManagement_NewServer(s CapProvisionManagement_Server) *server.Server {
+// CapManageProvisioning_NewServer creates a new Server from an implementation of CapManageProvisioning_Server.
+func CapManageProvisioning_NewServer(s CapManageProvisioning_Server) *server.Server {
 	c, _ := s.(server.Shutdowner)
-	return server.New(CapProvisionManagement_Methods(nil, s), s, c)
+	return server.New(CapManageProvisioning_Methods(nil, s), s, c)
 }
 
-// CapProvisionManagement_ServerToClient creates a new Client from an implementation of CapProvisionManagement_Server.
+// CapManageProvisioning_ServerToClient creates a new Client from an implementation of CapManageProvisioning_Server.
 // The caller is responsible for calling Release on the returned Client.
-func CapProvisionManagement_ServerToClient(s CapProvisionManagement_Server) CapProvisionManagement {
-	return CapProvisionManagement(capnp.NewClient(CapProvisionManagement_NewServer(s)))
+func CapManageProvisioning_ServerToClient(s CapManageProvisioning_Server) CapManageProvisioning {
+	return CapManageProvisioning(capnp.NewClient(CapManageProvisioning_NewServer(s)))
 }
 
-// CapProvisionManagement_Methods appends Methods to a slice that invoke the methods on s.
+// CapManageProvisioning_Methods appends Methods to a slice that invoke the methods on s.
 // This can be used to create a more complicated Server.
-func CapProvisionManagement_Methods(methods []server.Method, s CapProvisionManagement_Server) []server.Method {
+func CapManageProvisioning_Methods(methods []server.Method, s CapManageProvisioning_Server) []server.Method {
 	if cap(methods) == 0 {
 		methods = make([]server.Method, 0, 4)
 	}
 
 	methods = append(methods, server.Method{
 		Method: capnp.Method{
-			InterfaceID:   0xd1d2cfc883c4c801,
+			InterfaceID:   0xc5cabd19dec29fbb,
 			MethodID:      0,
-			InterfaceName: "hubapi/Provisioning.capnp:CapProvisionManagement",
-			MethodName:    "addOOBSecret",
+			InterfaceName: "hubapi/Provisioning.capnp:CapManageProvisioning",
+			MethodName:    "addOOBSecrets",
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.AddOOBSecret(ctx, CapProvisionManagement_addOOBSecret{call})
+			return s.AddOOBSecrets(ctx, CapManageProvisioning_addOOBSecrets{call})
 		},
 	})
 
 	methods = append(methods, server.Method{
 		Method: capnp.Method{
-			InterfaceID:   0xd1d2cfc883c4c801,
+			InterfaceID:   0xc5cabd19dec29fbb,
 			MethodID:      1,
-			InterfaceName: "hubapi/Provisioning.capnp:CapProvisionManagement",
+			InterfaceName: "hubapi/Provisioning.capnp:CapManageProvisioning",
 			MethodName:    "approveRequest",
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.ApproveRequest(ctx, CapProvisionManagement_approveRequest{call})
+			return s.ApproveRequest(ctx, CapManageProvisioning_approveRequest{call})
 		},
 	})
 
 	methods = append(methods, server.Method{
 		Method: capnp.Method{
-			InterfaceID:   0xd1d2cfc883c4c801,
+			InterfaceID:   0xc5cabd19dec29fbb,
 			MethodID:      2,
-			InterfaceName: "hubapi/Provisioning.capnp:CapProvisionManagement",
+			InterfaceName: "hubapi/Provisioning.capnp:CapManageProvisioning",
 			MethodName:    "getApprovedRequests",
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.GetApprovedRequests(ctx, CapProvisionManagement_getApprovedRequests{call})
+			return s.GetApprovedRequests(ctx, CapManageProvisioning_getApprovedRequests{call})
 		},
 	})
 
 	methods = append(methods, server.Method{
 		Method: capnp.Method{
-			InterfaceID:   0xd1d2cfc883c4c801,
+			InterfaceID:   0xc5cabd19dec29fbb,
 			MethodID:      3,
-			InterfaceName: "hubapi/Provisioning.capnp:CapProvisionManagement",
+			InterfaceName: "hubapi/Provisioning.capnp:CapManageProvisioning",
 			MethodName:    "getPendingRequests",
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.GetPendingRequests(ctx, CapProvisionManagement_getPendingRequests{call})
+			return s.GetPendingRequests(ctx, CapManageProvisioning_getPendingRequests{call})
 		},
 	})
 
 	return methods
 }
 
-// CapProvisionManagement_addOOBSecret holds the state for a server call to CapProvisionManagement.addOOBSecret.
+// CapManageProvisioning_addOOBSecrets holds the state for a server call to CapManageProvisioning.addOOBSecrets.
 // See server.Call for documentation.
-type CapProvisionManagement_addOOBSecret struct {
+type CapManageProvisioning_addOOBSecrets struct {
 	*server.Call
 }
 
 // Args returns the call's arguments.
-func (c CapProvisionManagement_addOOBSecret) Args() CapProvisionManagement_addOOBSecret_Params {
-	return CapProvisionManagement_addOOBSecret_Params(c.Call.Args())
+func (c CapManageProvisioning_addOOBSecrets) Args() CapManageProvisioning_addOOBSecrets_Params {
+	return CapManageProvisioning_addOOBSecrets_Params(c.Call.Args())
 }
 
 // AllocResults allocates the results struct.
-func (c CapProvisionManagement_addOOBSecret) AllocResults() (CapProvisionManagement_addOOBSecret_Results, error) {
+func (c CapManageProvisioning_addOOBSecrets) AllocResults() (CapManageProvisioning_addOOBSecrets_Results, error) {
 	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapProvisionManagement_addOOBSecret_Results(r), err
+	return CapManageProvisioning_addOOBSecrets_Results(r), err
 }
 
-// CapProvisionManagement_approveRequest holds the state for a server call to CapProvisionManagement.approveRequest.
+// CapManageProvisioning_approveRequest holds the state for a server call to CapManageProvisioning.approveRequest.
 // See server.Call for documentation.
-type CapProvisionManagement_approveRequest struct {
+type CapManageProvisioning_approveRequest struct {
 	*server.Call
 }
 
 // Args returns the call's arguments.
-func (c CapProvisionManagement_approveRequest) Args() CapProvisionManagement_approveRequest_Params {
-	return CapProvisionManagement_approveRequest_Params(c.Call.Args())
+func (c CapManageProvisioning_approveRequest) Args() CapManageProvisioning_approveRequest_Params {
+	return CapManageProvisioning_approveRequest_Params(c.Call.Args())
 }
 
 // AllocResults allocates the results struct.
-func (c CapProvisionManagement_approveRequest) AllocResults() (CapProvisionManagement_approveRequest_Results, error) {
+func (c CapManageProvisioning_approveRequest) AllocResults() (CapManageProvisioning_approveRequest_Results, error) {
 	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapProvisionManagement_approveRequest_Results(r), err
+	return CapManageProvisioning_approveRequest_Results(r), err
 }
 
-// CapProvisionManagement_getApprovedRequests holds the state for a server call to CapProvisionManagement.getApprovedRequests.
+// CapManageProvisioning_getApprovedRequests holds the state for a server call to CapManageProvisioning.getApprovedRequests.
 // See server.Call for documentation.
-type CapProvisionManagement_getApprovedRequests struct {
+type CapManageProvisioning_getApprovedRequests struct {
 	*server.Call
 }
 
 // Args returns the call's arguments.
-func (c CapProvisionManagement_getApprovedRequests) Args() CapProvisionManagement_getApprovedRequests_Params {
-	return CapProvisionManagement_getApprovedRequests_Params(c.Call.Args())
+func (c CapManageProvisioning_getApprovedRequests) Args() CapManageProvisioning_getApprovedRequests_Params {
+	return CapManageProvisioning_getApprovedRequests_Params(c.Call.Args())
 }
 
 // AllocResults allocates the results struct.
-func (c CapProvisionManagement_getApprovedRequests) AllocResults() (CapProvisionManagement_getApprovedRequests_Results, error) {
+func (c CapManageProvisioning_getApprovedRequests) AllocResults() (CapManageProvisioning_getApprovedRequests_Results, error) {
 	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapProvisionManagement_getApprovedRequests_Results(r), err
+	return CapManageProvisioning_getApprovedRequests_Results(r), err
 }
 
-// CapProvisionManagement_getPendingRequests holds the state for a server call to CapProvisionManagement.getPendingRequests.
+// CapManageProvisioning_getPendingRequests holds the state for a server call to CapManageProvisioning.getPendingRequests.
 // See server.Call for documentation.
-type CapProvisionManagement_getPendingRequests struct {
+type CapManageProvisioning_getPendingRequests struct {
 	*server.Call
 }
 
 // Args returns the call's arguments.
-func (c CapProvisionManagement_getPendingRequests) Args() CapProvisionManagement_getPendingRequests_Params {
-	return CapProvisionManagement_getPendingRequests_Params(c.Call.Args())
+func (c CapManageProvisioning_getPendingRequests) Args() CapManageProvisioning_getPendingRequests_Params {
+	return CapManageProvisioning_getPendingRequests_Params(c.Call.Args())
 }
 
 // AllocResults allocates the results struct.
-func (c CapProvisionManagement_getPendingRequests) AllocResults() (CapProvisionManagement_getPendingRequests_Results, error) {
+func (c CapManageProvisioning_getPendingRequests) AllocResults() (CapManageProvisioning_getPendingRequests_Results, error) {
 	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapProvisionManagement_getPendingRequests_Results(r), err
+	return CapManageProvisioning_getPendingRequests_Results(r), err
 }
 
-// CapProvisionManagement_List is a list of CapProvisionManagement.
-type CapProvisionManagement_List = capnp.CapList[CapProvisionManagement]
+// CapManageProvisioning_List is a list of CapManageProvisioning.
+type CapManageProvisioning_List = capnp.CapList[CapManageProvisioning]
 
-// NewCapProvisionManagement creates a new list of CapProvisionManagement.
-func NewCapProvisionManagement_List(s *capnp.Segment, sz int32) (CapProvisionManagement_List, error) {
+// NewCapManageProvisioning creates a new list of CapManageProvisioning.
+func NewCapManageProvisioning_List(s *capnp.Segment, sz int32) (CapManageProvisioning_List, error) {
 	l, err := capnp.NewPointerList(s, sz)
-	return capnp.CapList[CapProvisionManagement](l), err
+	return capnp.CapList[CapManageProvisioning](l), err
 }
 
-type CapProvisionManagement_addOOBSecret_Params capnp.Struct
+type CapManageProvisioning_addOOBSecrets_Params capnp.Struct
 
-// CapProvisionManagement_addOOBSecret_Params_TypeID is the unique identifier for the type CapProvisionManagement_addOOBSecret_Params.
-const CapProvisionManagement_addOOBSecret_Params_TypeID = 0x88ead591abf22555
+// CapManageProvisioning_addOOBSecrets_Params_TypeID is the unique identifier for the type CapManageProvisioning_addOOBSecrets_Params.
+const CapManageProvisioning_addOOBSecrets_Params_TypeID = 0x8ec39d491b2497d1
 
-func NewCapProvisionManagement_addOOBSecret_Params(s *capnp.Segment) (CapProvisionManagement_addOOBSecret_Params, error) {
+func NewCapManageProvisioning_addOOBSecrets_Params(s *capnp.Segment) (CapManageProvisioning_addOOBSecrets_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapProvisionManagement_addOOBSecret_Params(st), err
+	return CapManageProvisioning_addOOBSecrets_Params(st), err
 }
 
-func NewRootCapProvisionManagement_addOOBSecret_Params(s *capnp.Segment) (CapProvisionManagement_addOOBSecret_Params, error) {
+func NewRootCapManageProvisioning_addOOBSecrets_Params(s *capnp.Segment) (CapManageProvisioning_addOOBSecrets_Params, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapProvisionManagement_addOOBSecret_Params(st), err
+	return CapManageProvisioning_addOOBSecrets_Params(st), err
 }
 
-func ReadRootCapProvisionManagement_addOOBSecret_Params(msg *capnp.Message) (CapProvisionManagement_addOOBSecret_Params, error) {
+func ReadRootCapManageProvisioning_addOOBSecrets_Params(msg *capnp.Message) (CapManageProvisioning_addOOBSecrets_Params, error) {
 	root, err := msg.Root()
-	return CapProvisionManagement_addOOBSecret_Params(root.Struct()), err
+	return CapManageProvisioning_addOOBSecrets_Params(root.Struct()), err
 }
 
-func (s CapProvisionManagement_addOOBSecret_Params) String() string {
-	str, _ := text.Marshal(0x88ead591abf22555, capnp.Struct(s))
+func (s CapManageProvisioning_addOOBSecrets_Params) String() string {
+	str, _ := text.Marshal(0x8ec39d491b2497d1, capnp.Struct(s))
 	return str
 }
 
-func (s CapProvisionManagement_addOOBSecret_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapManageProvisioning_addOOBSecrets_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapProvisionManagement_addOOBSecret_Params) DecodeFromPtr(p capnp.Ptr) CapProvisionManagement_addOOBSecret_Params {
-	return CapProvisionManagement_addOOBSecret_Params(capnp.Struct{}.DecodeFromPtr(p))
+func (CapManageProvisioning_addOOBSecrets_Params) DecodeFromPtr(p capnp.Ptr) CapManageProvisioning_addOOBSecrets_Params {
+	return CapManageProvisioning_addOOBSecrets_Params(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapProvisionManagement_addOOBSecret_Params) ToPtr() capnp.Ptr {
+func (s CapManageProvisioning_addOOBSecrets_Params) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapProvisionManagement_addOOBSecret_Params) IsValid() bool {
+func (s CapManageProvisioning_addOOBSecrets_Params) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapProvisionManagement_addOOBSecret_Params) Message() *capnp.Message {
+func (s CapManageProvisioning_addOOBSecrets_Params) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapProvisionManagement_addOOBSecret_Params) Segment() *capnp.Segment {
+func (s CapManageProvisioning_addOOBSecrets_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapProvisionManagement_addOOBSecret_Params) OobSecrets() (OOBSecret_List, error) {
+func (s CapManageProvisioning_addOOBSecrets_Params) OobSecrets() (OOBSecret_List, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return OOBSecret_List(p.List()), err
 }
 
-func (s CapProvisionManagement_addOOBSecret_Params) HasOobSecrets() bool {
+func (s CapManageProvisioning_addOOBSecrets_Params) HasOobSecrets() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapProvisionManagement_addOOBSecret_Params) SetOobSecrets(v OOBSecret_List) error {
+func (s CapManageProvisioning_addOOBSecrets_Params) SetOobSecrets(v OOBSecret_List) error {
 	return capnp.Struct(s).SetPtr(0, v.ToPtr())
 }
 
 // NewOobSecrets sets the oobSecrets field to a newly
 // allocated OOBSecret_List, preferring placement in s's segment.
-func (s CapProvisionManagement_addOOBSecret_Params) NewOobSecrets(n int32) (OOBSecret_List, error) {
+func (s CapManageProvisioning_addOOBSecrets_Params) NewOobSecrets(n int32) (OOBSecret_List, error) {
 	l, err := NewOOBSecret_List(capnp.Struct(s).Segment(), n)
 	if err != nil {
 		return OOBSecret_List{}, err
@@ -1191,1186 +1253,1258 @@ func (s CapProvisionManagement_addOOBSecret_Params) NewOobSecrets(n int32) (OOBS
 	return l, err
 }
 
-// CapProvisionManagement_addOOBSecret_Params_List is a list of CapProvisionManagement_addOOBSecret_Params.
-type CapProvisionManagement_addOOBSecret_Params_List = capnp.StructList[CapProvisionManagement_addOOBSecret_Params]
+// CapManageProvisioning_addOOBSecrets_Params_List is a list of CapManageProvisioning_addOOBSecrets_Params.
+type CapManageProvisioning_addOOBSecrets_Params_List = capnp.StructList[CapManageProvisioning_addOOBSecrets_Params]
 
-// NewCapProvisionManagement_addOOBSecret_Params creates a new list of CapProvisionManagement_addOOBSecret_Params.
-func NewCapProvisionManagement_addOOBSecret_Params_List(s *capnp.Segment, sz int32) (CapProvisionManagement_addOOBSecret_Params_List, error) {
+// NewCapManageProvisioning_addOOBSecrets_Params creates a new list of CapManageProvisioning_addOOBSecrets_Params.
+func NewCapManageProvisioning_addOOBSecrets_Params_List(s *capnp.Segment, sz int32) (CapManageProvisioning_addOOBSecrets_Params_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapProvisionManagement_addOOBSecret_Params](l), err
+	return capnp.StructList[CapManageProvisioning_addOOBSecrets_Params](l), err
 }
 
-// CapProvisionManagement_addOOBSecret_Params_Future is a wrapper for a CapProvisionManagement_addOOBSecret_Params promised by a client call.
-type CapProvisionManagement_addOOBSecret_Params_Future struct{ *capnp.Future }
+// CapManageProvisioning_addOOBSecrets_Params_Future is a wrapper for a CapManageProvisioning_addOOBSecrets_Params promised by a client call.
+type CapManageProvisioning_addOOBSecrets_Params_Future struct{ *capnp.Future }
 
-func (p CapProvisionManagement_addOOBSecret_Params_Future) Struct() (CapProvisionManagement_addOOBSecret_Params, error) {
+func (p CapManageProvisioning_addOOBSecrets_Params_Future) Struct() (CapManageProvisioning_addOOBSecrets_Params, error) {
 	s, err := p.Future.Struct()
-	return CapProvisionManagement_addOOBSecret_Params(s), err
+	return CapManageProvisioning_addOOBSecrets_Params(s), err
 }
 
-type CapProvisionManagement_addOOBSecret_Results capnp.Struct
+type CapManageProvisioning_addOOBSecrets_Results capnp.Struct
 
-// CapProvisionManagement_addOOBSecret_Results_TypeID is the unique identifier for the type CapProvisionManagement_addOOBSecret_Results.
-const CapProvisionManagement_addOOBSecret_Results_TypeID = 0xe75ad003f3dfad45
+// CapManageProvisioning_addOOBSecrets_Results_TypeID is the unique identifier for the type CapManageProvisioning_addOOBSecrets_Results.
+const CapManageProvisioning_addOOBSecrets_Results_TypeID = 0x838ce274c4d89b89
 
-func NewCapProvisionManagement_addOOBSecret_Results(s *capnp.Segment) (CapProvisionManagement_addOOBSecret_Results, error) {
+func NewCapManageProvisioning_addOOBSecrets_Results(s *capnp.Segment) (CapManageProvisioning_addOOBSecrets_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapProvisionManagement_addOOBSecret_Results(st), err
+	return CapManageProvisioning_addOOBSecrets_Results(st), err
 }
 
-func NewRootCapProvisionManagement_addOOBSecret_Results(s *capnp.Segment) (CapProvisionManagement_addOOBSecret_Results, error) {
+func NewRootCapManageProvisioning_addOOBSecrets_Results(s *capnp.Segment) (CapManageProvisioning_addOOBSecrets_Results, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapProvisionManagement_addOOBSecret_Results(st), err
+	return CapManageProvisioning_addOOBSecrets_Results(st), err
 }
 
-func ReadRootCapProvisionManagement_addOOBSecret_Results(msg *capnp.Message) (CapProvisionManagement_addOOBSecret_Results, error) {
+func ReadRootCapManageProvisioning_addOOBSecrets_Results(msg *capnp.Message) (CapManageProvisioning_addOOBSecrets_Results, error) {
 	root, err := msg.Root()
-	return CapProvisionManagement_addOOBSecret_Results(root.Struct()), err
+	return CapManageProvisioning_addOOBSecrets_Results(root.Struct()), err
 }
 
-func (s CapProvisionManagement_addOOBSecret_Results) String() string {
-	str, _ := text.Marshal(0xe75ad003f3dfad45, capnp.Struct(s))
+func (s CapManageProvisioning_addOOBSecrets_Results) String() string {
+	str, _ := text.Marshal(0x838ce274c4d89b89, capnp.Struct(s))
 	return str
 }
 
-func (s CapProvisionManagement_addOOBSecret_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapManageProvisioning_addOOBSecrets_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapProvisionManagement_addOOBSecret_Results) DecodeFromPtr(p capnp.Ptr) CapProvisionManagement_addOOBSecret_Results {
-	return CapProvisionManagement_addOOBSecret_Results(capnp.Struct{}.DecodeFromPtr(p))
+func (CapManageProvisioning_addOOBSecrets_Results) DecodeFromPtr(p capnp.Ptr) CapManageProvisioning_addOOBSecrets_Results {
+	return CapManageProvisioning_addOOBSecrets_Results(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapProvisionManagement_addOOBSecret_Results) ToPtr() capnp.Ptr {
+func (s CapManageProvisioning_addOOBSecrets_Results) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapProvisionManagement_addOOBSecret_Results) IsValid() bool {
+func (s CapManageProvisioning_addOOBSecrets_Results) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapProvisionManagement_addOOBSecret_Results) Message() *capnp.Message {
+func (s CapManageProvisioning_addOOBSecrets_Results) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapProvisionManagement_addOOBSecret_Results) Segment() *capnp.Segment {
+func (s CapManageProvisioning_addOOBSecrets_Results) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
 
-// CapProvisionManagement_addOOBSecret_Results_List is a list of CapProvisionManagement_addOOBSecret_Results.
-type CapProvisionManagement_addOOBSecret_Results_List = capnp.StructList[CapProvisionManagement_addOOBSecret_Results]
+// CapManageProvisioning_addOOBSecrets_Results_List is a list of CapManageProvisioning_addOOBSecrets_Results.
+type CapManageProvisioning_addOOBSecrets_Results_List = capnp.StructList[CapManageProvisioning_addOOBSecrets_Results]
 
-// NewCapProvisionManagement_addOOBSecret_Results creates a new list of CapProvisionManagement_addOOBSecret_Results.
-func NewCapProvisionManagement_addOOBSecret_Results_List(s *capnp.Segment, sz int32) (CapProvisionManagement_addOOBSecret_Results_List, error) {
+// NewCapManageProvisioning_addOOBSecrets_Results creates a new list of CapManageProvisioning_addOOBSecrets_Results.
+func NewCapManageProvisioning_addOOBSecrets_Results_List(s *capnp.Segment, sz int32) (CapManageProvisioning_addOOBSecrets_Results_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
-	return capnp.StructList[CapProvisionManagement_addOOBSecret_Results](l), err
+	return capnp.StructList[CapManageProvisioning_addOOBSecrets_Results](l), err
 }
 
-// CapProvisionManagement_addOOBSecret_Results_Future is a wrapper for a CapProvisionManagement_addOOBSecret_Results promised by a client call.
-type CapProvisionManagement_addOOBSecret_Results_Future struct{ *capnp.Future }
+// CapManageProvisioning_addOOBSecrets_Results_Future is a wrapper for a CapManageProvisioning_addOOBSecrets_Results promised by a client call.
+type CapManageProvisioning_addOOBSecrets_Results_Future struct{ *capnp.Future }
 
-func (p CapProvisionManagement_addOOBSecret_Results_Future) Struct() (CapProvisionManagement_addOOBSecret_Results, error) {
+func (p CapManageProvisioning_addOOBSecrets_Results_Future) Struct() (CapManageProvisioning_addOOBSecrets_Results, error) {
 	s, err := p.Future.Struct()
-	return CapProvisionManagement_addOOBSecret_Results(s), err
+	return CapManageProvisioning_addOOBSecrets_Results(s), err
 }
 
-type CapProvisionManagement_approveRequest_Params capnp.Struct
+type CapManageProvisioning_approveRequest_Params capnp.Struct
 
-// CapProvisionManagement_approveRequest_Params_TypeID is the unique identifier for the type CapProvisionManagement_approveRequest_Params.
-const CapProvisionManagement_approveRequest_Params_TypeID = 0xe5e35c7394e86351
+// CapManageProvisioning_approveRequest_Params_TypeID is the unique identifier for the type CapManageProvisioning_approveRequest_Params.
+const CapManageProvisioning_approveRequest_Params_TypeID = 0xb7048da50fee071e
 
-func NewCapProvisionManagement_approveRequest_Params(s *capnp.Segment) (CapProvisionManagement_approveRequest_Params, error) {
+func NewCapManageProvisioning_approveRequest_Params(s *capnp.Segment) (CapManageProvisioning_approveRequest_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapProvisionManagement_approveRequest_Params(st), err
+	return CapManageProvisioning_approveRequest_Params(st), err
 }
 
-func NewRootCapProvisionManagement_approveRequest_Params(s *capnp.Segment) (CapProvisionManagement_approveRequest_Params, error) {
+func NewRootCapManageProvisioning_approveRequest_Params(s *capnp.Segment) (CapManageProvisioning_approveRequest_Params, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapProvisionManagement_approveRequest_Params(st), err
+	return CapManageProvisioning_approveRequest_Params(st), err
 }
 
-func ReadRootCapProvisionManagement_approveRequest_Params(msg *capnp.Message) (CapProvisionManagement_approveRequest_Params, error) {
+func ReadRootCapManageProvisioning_approveRequest_Params(msg *capnp.Message) (CapManageProvisioning_approveRequest_Params, error) {
 	root, err := msg.Root()
-	return CapProvisionManagement_approveRequest_Params(root.Struct()), err
+	return CapManageProvisioning_approveRequest_Params(root.Struct()), err
 }
 
-func (s CapProvisionManagement_approveRequest_Params) String() string {
-	str, _ := text.Marshal(0xe5e35c7394e86351, capnp.Struct(s))
+func (s CapManageProvisioning_approveRequest_Params) String() string {
+	str, _ := text.Marshal(0xb7048da50fee071e, capnp.Struct(s))
 	return str
 }
 
-func (s CapProvisionManagement_approveRequest_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapManageProvisioning_approveRequest_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapProvisionManagement_approveRequest_Params) DecodeFromPtr(p capnp.Ptr) CapProvisionManagement_approveRequest_Params {
-	return CapProvisionManagement_approveRequest_Params(capnp.Struct{}.DecodeFromPtr(p))
+func (CapManageProvisioning_approveRequest_Params) DecodeFromPtr(p capnp.Ptr) CapManageProvisioning_approveRequest_Params {
+	return CapManageProvisioning_approveRequest_Params(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapProvisionManagement_approveRequest_Params) ToPtr() capnp.Ptr {
+func (s CapManageProvisioning_approveRequest_Params) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapProvisionManagement_approveRequest_Params) IsValid() bool {
+func (s CapManageProvisioning_approveRequest_Params) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapProvisionManagement_approveRequest_Params) Message() *capnp.Message {
+func (s CapManageProvisioning_approveRequest_Params) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapProvisionManagement_approveRequest_Params) Segment() *capnp.Segment {
+func (s CapManageProvisioning_approveRequest_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapProvisionManagement_approveRequest_Params) DeviceID() (string, error) {
+func (s CapManageProvisioning_approveRequest_Params) DeviceID() (string, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.Text(), err
 }
 
-func (s CapProvisionManagement_approveRequest_Params) HasDeviceID() bool {
+func (s CapManageProvisioning_approveRequest_Params) HasDeviceID() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapProvisionManagement_approveRequest_Params) DeviceIDBytes() ([]byte, error) {
+func (s CapManageProvisioning_approveRequest_Params) DeviceIDBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.TextBytes(), err
 }
 
-func (s CapProvisionManagement_approveRequest_Params) SetDeviceID(v string) error {
+func (s CapManageProvisioning_approveRequest_Params) SetDeviceID(v string) error {
 	return capnp.Struct(s).SetText(0, v)
 }
 
-// CapProvisionManagement_approveRequest_Params_List is a list of CapProvisionManagement_approveRequest_Params.
-type CapProvisionManagement_approveRequest_Params_List = capnp.StructList[CapProvisionManagement_approveRequest_Params]
+// CapManageProvisioning_approveRequest_Params_List is a list of CapManageProvisioning_approveRequest_Params.
+type CapManageProvisioning_approveRequest_Params_List = capnp.StructList[CapManageProvisioning_approveRequest_Params]
 
-// NewCapProvisionManagement_approveRequest_Params creates a new list of CapProvisionManagement_approveRequest_Params.
-func NewCapProvisionManagement_approveRequest_Params_List(s *capnp.Segment, sz int32) (CapProvisionManagement_approveRequest_Params_List, error) {
+// NewCapManageProvisioning_approveRequest_Params creates a new list of CapManageProvisioning_approveRequest_Params.
+func NewCapManageProvisioning_approveRequest_Params_List(s *capnp.Segment, sz int32) (CapManageProvisioning_approveRequest_Params_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapProvisionManagement_approveRequest_Params](l), err
+	return capnp.StructList[CapManageProvisioning_approveRequest_Params](l), err
 }
 
-// CapProvisionManagement_approveRequest_Params_Future is a wrapper for a CapProvisionManagement_approveRequest_Params promised by a client call.
-type CapProvisionManagement_approveRequest_Params_Future struct{ *capnp.Future }
+// CapManageProvisioning_approveRequest_Params_Future is a wrapper for a CapManageProvisioning_approveRequest_Params promised by a client call.
+type CapManageProvisioning_approveRequest_Params_Future struct{ *capnp.Future }
 
-func (p CapProvisionManagement_approveRequest_Params_Future) Struct() (CapProvisionManagement_approveRequest_Params, error) {
+func (p CapManageProvisioning_approveRequest_Params_Future) Struct() (CapManageProvisioning_approveRequest_Params, error) {
 	s, err := p.Future.Struct()
-	return CapProvisionManagement_approveRequest_Params(s), err
+	return CapManageProvisioning_approveRequest_Params(s), err
 }
 
-type CapProvisionManagement_approveRequest_Results capnp.Struct
+type CapManageProvisioning_approveRequest_Results capnp.Struct
 
-// CapProvisionManagement_approveRequest_Results_TypeID is the unique identifier for the type CapProvisionManagement_approveRequest_Results.
-const CapProvisionManagement_approveRequest_Results_TypeID = 0x99139c5b2ee414a9
+// CapManageProvisioning_approveRequest_Results_TypeID is the unique identifier for the type CapManageProvisioning_approveRequest_Results.
+const CapManageProvisioning_approveRequest_Results_TypeID = 0xe26c156c3850092a
 
-func NewCapProvisionManagement_approveRequest_Results(s *capnp.Segment) (CapProvisionManagement_approveRequest_Results, error) {
+func NewCapManageProvisioning_approveRequest_Results(s *capnp.Segment) (CapManageProvisioning_approveRequest_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapProvisionManagement_approveRequest_Results(st), err
+	return CapManageProvisioning_approveRequest_Results(st), err
 }
 
-func NewRootCapProvisionManagement_approveRequest_Results(s *capnp.Segment) (CapProvisionManagement_approveRequest_Results, error) {
+func NewRootCapManageProvisioning_approveRequest_Results(s *capnp.Segment) (CapManageProvisioning_approveRequest_Results, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapProvisionManagement_approveRequest_Results(st), err
+	return CapManageProvisioning_approveRequest_Results(st), err
 }
 
-func ReadRootCapProvisionManagement_approveRequest_Results(msg *capnp.Message) (CapProvisionManagement_approveRequest_Results, error) {
+func ReadRootCapManageProvisioning_approveRequest_Results(msg *capnp.Message) (CapManageProvisioning_approveRequest_Results, error) {
 	root, err := msg.Root()
-	return CapProvisionManagement_approveRequest_Results(root.Struct()), err
+	return CapManageProvisioning_approveRequest_Results(root.Struct()), err
 }
 
-func (s CapProvisionManagement_approveRequest_Results) String() string {
-	str, _ := text.Marshal(0x99139c5b2ee414a9, capnp.Struct(s))
+func (s CapManageProvisioning_approveRequest_Results) String() string {
+	str, _ := text.Marshal(0xe26c156c3850092a, capnp.Struct(s))
 	return str
 }
 
-func (s CapProvisionManagement_approveRequest_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapManageProvisioning_approveRequest_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapProvisionManagement_approveRequest_Results) DecodeFromPtr(p capnp.Ptr) CapProvisionManagement_approveRequest_Results {
-	return CapProvisionManagement_approveRequest_Results(capnp.Struct{}.DecodeFromPtr(p))
+func (CapManageProvisioning_approveRequest_Results) DecodeFromPtr(p capnp.Ptr) CapManageProvisioning_approveRequest_Results {
+	return CapManageProvisioning_approveRequest_Results(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapProvisionManagement_approveRequest_Results) ToPtr() capnp.Ptr {
+func (s CapManageProvisioning_approveRequest_Results) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapProvisionManagement_approveRequest_Results) IsValid() bool {
+func (s CapManageProvisioning_approveRequest_Results) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapProvisionManagement_approveRequest_Results) Message() *capnp.Message {
+func (s CapManageProvisioning_approveRequest_Results) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapProvisionManagement_approveRequest_Results) Segment() *capnp.Segment {
+func (s CapManageProvisioning_approveRequest_Results) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
 
-// CapProvisionManagement_approveRequest_Results_List is a list of CapProvisionManagement_approveRequest_Results.
-type CapProvisionManagement_approveRequest_Results_List = capnp.StructList[CapProvisionManagement_approveRequest_Results]
+// CapManageProvisioning_approveRequest_Results_List is a list of CapManageProvisioning_approveRequest_Results.
+type CapManageProvisioning_approveRequest_Results_List = capnp.StructList[CapManageProvisioning_approveRequest_Results]
 
-// NewCapProvisionManagement_approveRequest_Results creates a new list of CapProvisionManagement_approveRequest_Results.
-func NewCapProvisionManagement_approveRequest_Results_List(s *capnp.Segment, sz int32) (CapProvisionManagement_approveRequest_Results_List, error) {
+// NewCapManageProvisioning_approveRequest_Results creates a new list of CapManageProvisioning_approveRequest_Results.
+func NewCapManageProvisioning_approveRequest_Results_List(s *capnp.Segment, sz int32) (CapManageProvisioning_approveRequest_Results_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
-	return capnp.StructList[CapProvisionManagement_approveRequest_Results](l), err
+	return capnp.StructList[CapManageProvisioning_approveRequest_Results](l), err
 }
 
-// CapProvisionManagement_approveRequest_Results_Future is a wrapper for a CapProvisionManagement_approveRequest_Results promised by a client call.
-type CapProvisionManagement_approveRequest_Results_Future struct{ *capnp.Future }
+// CapManageProvisioning_approveRequest_Results_Future is a wrapper for a CapManageProvisioning_approveRequest_Results promised by a client call.
+type CapManageProvisioning_approveRequest_Results_Future struct{ *capnp.Future }
 
-func (p CapProvisionManagement_approveRequest_Results_Future) Struct() (CapProvisionManagement_approveRequest_Results, error) {
+func (p CapManageProvisioning_approveRequest_Results_Future) Struct() (CapManageProvisioning_approveRequest_Results, error) {
 	s, err := p.Future.Struct()
-	return CapProvisionManagement_approveRequest_Results(s), err
+	return CapManageProvisioning_approveRequest_Results(s), err
 }
 
-type CapProvisionManagement_getApprovedRequests_Params capnp.Struct
+type CapManageProvisioning_getApprovedRequests_Params capnp.Struct
 
-// CapProvisionManagement_getApprovedRequests_Params_TypeID is the unique identifier for the type CapProvisionManagement_getApprovedRequests_Params.
-const CapProvisionManagement_getApprovedRequests_Params_TypeID = 0xdf3cfb656f3f6b3b
+// CapManageProvisioning_getApprovedRequests_Params_TypeID is the unique identifier for the type CapManageProvisioning_getApprovedRequests_Params.
+const CapManageProvisioning_getApprovedRequests_Params_TypeID = 0xe06d5ae541d18a4d
 
-func NewCapProvisionManagement_getApprovedRequests_Params(s *capnp.Segment) (CapProvisionManagement_getApprovedRequests_Params, error) {
+func NewCapManageProvisioning_getApprovedRequests_Params(s *capnp.Segment) (CapManageProvisioning_getApprovedRequests_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapProvisionManagement_getApprovedRequests_Params(st), err
+	return CapManageProvisioning_getApprovedRequests_Params(st), err
 }
 
-func NewRootCapProvisionManagement_getApprovedRequests_Params(s *capnp.Segment) (CapProvisionManagement_getApprovedRequests_Params, error) {
+func NewRootCapManageProvisioning_getApprovedRequests_Params(s *capnp.Segment) (CapManageProvisioning_getApprovedRequests_Params, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapProvisionManagement_getApprovedRequests_Params(st), err
+	return CapManageProvisioning_getApprovedRequests_Params(st), err
 }
 
-func ReadRootCapProvisionManagement_getApprovedRequests_Params(msg *capnp.Message) (CapProvisionManagement_getApprovedRequests_Params, error) {
+func ReadRootCapManageProvisioning_getApprovedRequests_Params(msg *capnp.Message) (CapManageProvisioning_getApprovedRequests_Params, error) {
 	root, err := msg.Root()
-	return CapProvisionManagement_getApprovedRequests_Params(root.Struct()), err
+	return CapManageProvisioning_getApprovedRequests_Params(root.Struct()), err
 }
 
-func (s CapProvisionManagement_getApprovedRequests_Params) String() string {
-	str, _ := text.Marshal(0xdf3cfb656f3f6b3b, capnp.Struct(s))
+func (s CapManageProvisioning_getApprovedRequests_Params) String() string {
+	str, _ := text.Marshal(0xe06d5ae541d18a4d, capnp.Struct(s))
 	return str
 }
 
-func (s CapProvisionManagement_getApprovedRequests_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapManageProvisioning_getApprovedRequests_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapProvisionManagement_getApprovedRequests_Params) DecodeFromPtr(p capnp.Ptr) CapProvisionManagement_getApprovedRequests_Params {
-	return CapProvisionManagement_getApprovedRequests_Params(capnp.Struct{}.DecodeFromPtr(p))
+func (CapManageProvisioning_getApprovedRequests_Params) DecodeFromPtr(p capnp.Ptr) CapManageProvisioning_getApprovedRequests_Params {
+	return CapManageProvisioning_getApprovedRequests_Params(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapProvisionManagement_getApprovedRequests_Params) ToPtr() capnp.Ptr {
+func (s CapManageProvisioning_getApprovedRequests_Params) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapProvisionManagement_getApprovedRequests_Params) IsValid() bool {
+func (s CapManageProvisioning_getApprovedRequests_Params) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapProvisionManagement_getApprovedRequests_Params) Message() *capnp.Message {
+func (s CapManageProvisioning_getApprovedRequests_Params) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapProvisionManagement_getApprovedRequests_Params) Segment() *capnp.Segment {
+func (s CapManageProvisioning_getApprovedRequests_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
 
-// CapProvisionManagement_getApprovedRequests_Params_List is a list of CapProvisionManagement_getApprovedRequests_Params.
-type CapProvisionManagement_getApprovedRequests_Params_List = capnp.StructList[CapProvisionManagement_getApprovedRequests_Params]
+// CapManageProvisioning_getApprovedRequests_Params_List is a list of CapManageProvisioning_getApprovedRequests_Params.
+type CapManageProvisioning_getApprovedRequests_Params_List = capnp.StructList[CapManageProvisioning_getApprovedRequests_Params]
 
-// NewCapProvisionManagement_getApprovedRequests_Params creates a new list of CapProvisionManagement_getApprovedRequests_Params.
-func NewCapProvisionManagement_getApprovedRequests_Params_List(s *capnp.Segment, sz int32) (CapProvisionManagement_getApprovedRequests_Params_List, error) {
+// NewCapManageProvisioning_getApprovedRequests_Params creates a new list of CapManageProvisioning_getApprovedRequests_Params.
+func NewCapManageProvisioning_getApprovedRequests_Params_List(s *capnp.Segment, sz int32) (CapManageProvisioning_getApprovedRequests_Params_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
-	return capnp.StructList[CapProvisionManagement_getApprovedRequests_Params](l), err
+	return capnp.StructList[CapManageProvisioning_getApprovedRequests_Params](l), err
 }
 
-// CapProvisionManagement_getApprovedRequests_Params_Future is a wrapper for a CapProvisionManagement_getApprovedRequests_Params promised by a client call.
-type CapProvisionManagement_getApprovedRequests_Params_Future struct{ *capnp.Future }
+// CapManageProvisioning_getApprovedRequests_Params_Future is a wrapper for a CapManageProvisioning_getApprovedRequests_Params promised by a client call.
+type CapManageProvisioning_getApprovedRequests_Params_Future struct{ *capnp.Future }
 
-func (p CapProvisionManagement_getApprovedRequests_Params_Future) Struct() (CapProvisionManagement_getApprovedRequests_Params, error) {
+func (p CapManageProvisioning_getApprovedRequests_Params_Future) Struct() (CapManageProvisioning_getApprovedRequests_Params, error) {
 	s, err := p.Future.Struct()
-	return CapProvisionManagement_getApprovedRequests_Params(s), err
+	return CapManageProvisioning_getApprovedRequests_Params(s), err
 }
 
-type CapProvisionManagement_getApprovedRequests_Results capnp.Struct
+type CapManageProvisioning_getApprovedRequests_Results capnp.Struct
 
-// CapProvisionManagement_getApprovedRequests_Results_TypeID is the unique identifier for the type CapProvisionManagement_getApprovedRequests_Results.
-const CapProvisionManagement_getApprovedRequests_Results_TypeID = 0xcea99610b5414861
+// CapManageProvisioning_getApprovedRequests_Results_TypeID is the unique identifier for the type CapManageProvisioning_getApprovedRequests_Results.
+const CapManageProvisioning_getApprovedRequests_Results_TypeID = 0xe35d87bd41df41a2
 
-func NewCapProvisionManagement_getApprovedRequests_Results(s *capnp.Segment) (CapProvisionManagement_getApprovedRequests_Results, error) {
+func NewCapManageProvisioning_getApprovedRequests_Results(s *capnp.Segment) (CapManageProvisioning_getApprovedRequests_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapProvisionManagement_getApprovedRequests_Results(st), err
+	return CapManageProvisioning_getApprovedRequests_Results(st), err
 }
 
-func NewRootCapProvisionManagement_getApprovedRequests_Results(s *capnp.Segment) (CapProvisionManagement_getApprovedRequests_Results, error) {
+func NewRootCapManageProvisioning_getApprovedRequests_Results(s *capnp.Segment) (CapManageProvisioning_getApprovedRequests_Results, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapProvisionManagement_getApprovedRequests_Results(st), err
+	return CapManageProvisioning_getApprovedRequests_Results(st), err
 }
 
-func ReadRootCapProvisionManagement_getApprovedRequests_Results(msg *capnp.Message) (CapProvisionManagement_getApprovedRequests_Results, error) {
+func ReadRootCapManageProvisioning_getApprovedRequests_Results(msg *capnp.Message) (CapManageProvisioning_getApprovedRequests_Results, error) {
 	root, err := msg.Root()
-	return CapProvisionManagement_getApprovedRequests_Results(root.Struct()), err
+	return CapManageProvisioning_getApprovedRequests_Results(root.Struct()), err
 }
 
-func (s CapProvisionManagement_getApprovedRequests_Results) String() string {
-	str, _ := text.Marshal(0xcea99610b5414861, capnp.Struct(s))
+func (s CapManageProvisioning_getApprovedRequests_Results) String() string {
+	str, _ := text.Marshal(0xe35d87bd41df41a2, capnp.Struct(s))
 	return str
 }
 
-func (s CapProvisionManagement_getApprovedRequests_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapManageProvisioning_getApprovedRequests_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapProvisionManagement_getApprovedRequests_Results) DecodeFromPtr(p capnp.Ptr) CapProvisionManagement_getApprovedRequests_Results {
-	return CapProvisionManagement_getApprovedRequests_Results(capnp.Struct{}.DecodeFromPtr(p))
+func (CapManageProvisioning_getApprovedRequests_Results) DecodeFromPtr(p capnp.Ptr) CapManageProvisioning_getApprovedRequests_Results {
+	return CapManageProvisioning_getApprovedRequests_Results(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapProvisionManagement_getApprovedRequests_Results) ToPtr() capnp.Ptr {
+func (s CapManageProvisioning_getApprovedRequests_Results) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapProvisionManagement_getApprovedRequests_Results) IsValid() bool {
+func (s CapManageProvisioning_getApprovedRequests_Results) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapProvisionManagement_getApprovedRequests_Results) Message() *capnp.Message {
+func (s CapManageProvisioning_getApprovedRequests_Results) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapProvisionManagement_getApprovedRequests_Results) Segment() *capnp.Segment {
+func (s CapManageProvisioning_getApprovedRequests_Results) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapProvisionManagement_getApprovedRequests_Results) Requests() (ProvisionResponse_List, error) {
+func (s CapManageProvisioning_getApprovedRequests_Results) Requests() (ProvisionStatus_List, error) {
 	p, err := capnp.Struct(s).Ptr(0)
-	return ProvisionResponse_List(p.List()), err
+	return ProvisionStatus_List(p.List()), err
 }
 
-func (s CapProvisionManagement_getApprovedRequests_Results) HasRequests() bool {
+func (s CapManageProvisioning_getApprovedRequests_Results) HasRequests() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapProvisionManagement_getApprovedRequests_Results) SetRequests(v ProvisionResponse_List) error {
+func (s CapManageProvisioning_getApprovedRequests_Results) SetRequests(v ProvisionStatus_List) error {
 	return capnp.Struct(s).SetPtr(0, v.ToPtr())
 }
 
 // NewRequests sets the requests field to a newly
-// allocated ProvisionResponse_List, preferring placement in s's segment.
-func (s CapProvisionManagement_getApprovedRequests_Results) NewRequests(n int32) (ProvisionResponse_List, error) {
-	l, err := NewProvisionResponse_List(capnp.Struct(s).Segment(), n)
+// allocated ProvisionStatus_List, preferring placement in s's segment.
+func (s CapManageProvisioning_getApprovedRequests_Results) NewRequests(n int32) (ProvisionStatus_List, error) {
+	l, err := NewProvisionStatus_List(capnp.Struct(s).Segment(), n)
 	if err != nil {
-		return ProvisionResponse_List{}, err
+		return ProvisionStatus_List{}, err
 	}
 	err = capnp.Struct(s).SetPtr(0, l.ToPtr())
 	return l, err
 }
 
-// CapProvisionManagement_getApprovedRequests_Results_List is a list of CapProvisionManagement_getApprovedRequests_Results.
-type CapProvisionManagement_getApprovedRequests_Results_List = capnp.StructList[CapProvisionManagement_getApprovedRequests_Results]
+// CapManageProvisioning_getApprovedRequests_Results_List is a list of CapManageProvisioning_getApprovedRequests_Results.
+type CapManageProvisioning_getApprovedRequests_Results_List = capnp.StructList[CapManageProvisioning_getApprovedRequests_Results]
 
-// NewCapProvisionManagement_getApprovedRequests_Results creates a new list of CapProvisionManagement_getApprovedRequests_Results.
-func NewCapProvisionManagement_getApprovedRequests_Results_List(s *capnp.Segment, sz int32) (CapProvisionManagement_getApprovedRequests_Results_List, error) {
+// NewCapManageProvisioning_getApprovedRequests_Results creates a new list of CapManageProvisioning_getApprovedRequests_Results.
+func NewCapManageProvisioning_getApprovedRequests_Results_List(s *capnp.Segment, sz int32) (CapManageProvisioning_getApprovedRequests_Results_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapProvisionManagement_getApprovedRequests_Results](l), err
+	return capnp.StructList[CapManageProvisioning_getApprovedRequests_Results](l), err
 }
 
-// CapProvisionManagement_getApprovedRequests_Results_Future is a wrapper for a CapProvisionManagement_getApprovedRequests_Results promised by a client call.
-type CapProvisionManagement_getApprovedRequests_Results_Future struct{ *capnp.Future }
+// CapManageProvisioning_getApprovedRequests_Results_Future is a wrapper for a CapManageProvisioning_getApprovedRequests_Results promised by a client call.
+type CapManageProvisioning_getApprovedRequests_Results_Future struct{ *capnp.Future }
 
-func (p CapProvisionManagement_getApprovedRequests_Results_Future) Struct() (CapProvisionManagement_getApprovedRequests_Results, error) {
+func (p CapManageProvisioning_getApprovedRequests_Results_Future) Struct() (CapManageProvisioning_getApprovedRequests_Results, error) {
 	s, err := p.Future.Struct()
-	return CapProvisionManagement_getApprovedRequests_Results(s), err
+	return CapManageProvisioning_getApprovedRequests_Results(s), err
 }
 
-type CapProvisionManagement_getPendingRequests_Params capnp.Struct
+type CapManageProvisioning_getPendingRequests_Params capnp.Struct
 
-// CapProvisionManagement_getPendingRequests_Params_TypeID is the unique identifier for the type CapProvisionManagement_getPendingRequests_Params.
-const CapProvisionManagement_getPendingRequests_Params_TypeID = 0xb6be4b5227a76e87
+// CapManageProvisioning_getPendingRequests_Params_TypeID is the unique identifier for the type CapManageProvisioning_getPendingRequests_Params.
+const CapManageProvisioning_getPendingRequests_Params_TypeID = 0x847e5dea644198b3
 
-func NewCapProvisionManagement_getPendingRequests_Params(s *capnp.Segment) (CapProvisionManagement_getPendingRequests_Params, error) {
+func NewCapManageProvisioning_getPendingRequests_Params(s *capnp.Segment) (CapManageProvisioning_getPendingRequests_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapProvisionManagement_getPendingRequests_Params(st), err
+	return CapManageProvisioning_getPendingRequests_Params(st), err
 }
 
-func NewRootCapProvisionManagement_getPendingRequests_Params(s *capnp.Segment) (CapProvisionManagement_getPendingRequests_Params, error) {
+func NewRootCapManageProvisioning_getPendingRequests_Params(s *capnp.Segment) (CapManageProvisioning_getPendingRequests_Params, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapProvisionManagement_getPendingRequests_Params(st), err
+	return CapManageProvisioning_getPendingRequests_Params(st), err
 }
 
-func ReadRootCapProvisionManagement_getPendingRequests_Params(msg *capnp.Message) (CapProvisionManagement_getPendingRequests_Params, error) {
+func ReadRootCapManageProvisioning_getPendingRequests_Params(msg *capnp.Message) (CapManageProvisioning_getPendingRequests_Params, error) {
 	root, err := msg.Root()
-	return CapProvisionManagement_getPendingRequests_Params(root.Struct()), err
+	return CapManageProvisioning_getPendingRequests_Params(root.Struct()), err
 }
 
-func (s CapProvisionManagement_getPendingRequests_Params) String() string {
-	str, _ := text.Marshal(0xb6be4b5227a76e87, capnp.Struct(s))
+func (s CapManageProvisioning_getPendingRequests_Params) String() string {
+	str, _ := text.Marshal(0x847e5dea644198b3, capnp.Struct(s))
 	return str
 }
 
-func (s CapProvisionManagement_getPendingRequests_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapManageProvisioning_getPendingRequests_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapProvisionManagement_getPendingRequests_Params) DecodeFromPtr(p capnp.Ptr) CapProvisionManagement_getPendingRequests_Params {
-	return CapProvisionManagement_getPendingRequests_Params(capnp.Struct{}.DecodeFromPtr(p))
+func (CapManageProvisioning_getPendingRequests_Params) DecodeFromPtr(p capnp.Ptr) CapManageProvisioning_getPendingRequests_Params {
+	return CapManageProvisioning_getPendingRequests_Params(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapProvisionManagement_getPendingRequests_Params) ToPtr() capnp.Ptr {
+func (s CapManageProvisioning_getPendingRequests_Params) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapProvisionManagement_getPendingRequests_Params) IsValid() bool {
+func (s CapManageProvisioning_getPendingRequests_Params) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapProvisionManagement_getPendingRequests_Params) Message() *capnp.Message {
+func (s CapManageProvisioning_getPendingRequests_Params) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapProvisionManagement_getPendingRequests_Params) Segment() *capnp.Segment {
+func (s CapManageProvisioning_getPendingRequests_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
 
-// CapProvisionManagement_getPendingRequests_Params_List is a list of CapProvisionManagement_getPendingRequests_Params.
-type CapProvisionManagement_getPendingRequests_Params_List = capnp.StructList[CapProvisionManagement_getPendingRequests_Params]
+// CapManageProvisioning_getPendingRequests_Params_List is a list of CapManageProvisioning_getPendingRequests_Params.
+type CapManageProvisioning_getPendingRequests_Params_List = capnp.StructList[CapManageProvisioning_getPendingRequests_Params]
 
-// NewCapProvisionManagement_getPendingRequests_Params creates a new list of CapProvisionManagement_getPendingRequests_Params.
-func NewCapProvisionManagement_getPendingRequests_Params_List(s *capnp.Segment, sz int32) (CapProvisionManagement_getPendingRequests_Params_List, error) {
+// NewCapManageProvisioning_getPendingRequests_Params creates a new list of CapManageProvisioning_getPendingRequests_Params.
+func NewCapManageProvisioning_getPendingRequests_Params_List(s *capnp.Segment, sz int32) (CapManageProvisioning_getPendingRequests_Params_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
-	return capnp.StructList[CapProvisionManagement_getPendingRequests_Params](l), err
+	return capnp.StructList[CapManageProvisioning_getPendingRequests_Params](l), err
 }
 
-// CapProvisionManagement_getPendingRequests_Params_Future is a wrapper for a CapProvisionManagement_getPendingRequests_Params promised by a client call.
-type CapProvisionManagement_getPendingRequests_Params_Future struct{ *capnp.Future }
+// CapManageProvisioning_getPendingRequests_Params_Future is a wrapper for a CapManageProvisioning_getPendingRequests_Params promised by a client call.
+type CapManageProvisioning_getPendingRequests_Params_Future struct{ *capnp.Future }
 
-func (p CapProvisionManagement_getPendingRequests_Params_Future) Struct() (CapProvisionManagement_getPendingRequests_Params, error) {
+func (p CapManageProvisioning_getPendingRequests_Params_Future) Struct() (CapManageProvisioning_getPendingRequests_Params, error) {
 	s, err := p.Future.Struct()
-	return CapProvisionManagement_getPendingRequests_Params(s), err
+	return CapManageProvisioning_getPendingRequests_Params(s), err
 }
 
-type CapProvisionManagement_getPendingRequests_Results capnp.Struct
+type CapManageProvisioning_getPendingRequests_Results capnp.Struct
 
-// CapProvisionManagement_getPendingRequests_Results_TypeID is the unique identifier for the type CapProvisionManagement_getPendingRequests_Results.
-const CapProvisionManagement_getPendingRequests_Results_TypeID = 0xceaa1cf884e71a63
+// CapManageProvisioning_getPendingRequests_Results_TypeID is the unique identifier for the type CapManageProvisioning_getPendingRequests_Results.
+const CapManageProvisioning_getPendingRequests_Results_TypeID = 0xb709d610e685ddfa
 
-func NewCapProvisionManagement_getPendingRequests_Results(s *capnp.Segment) (CapProvisionManagement_getPendingRequests_Results, error) {
+func NewCapManageProvisioning_getPendingRequests_Results(s *capnp.Segment) (CapManageProvisioning_getPendingRequests_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapProvisionManagement_getPendingRequests_Results(st), err
+	return CapManageProvisioning_getPendingRequests_Results(st), err
 }
 
-func NewRootCapProvisionManagement_getPendingRequests_Results(s *capnp.Segment) (CapProvisionManagement_getPendingRequests_Results, error) {
+func NewRootCapManageProvisioning_getPendingRequests_Results(s *capnp.Segment) (CapManageProvisioning_getPendingRequests_Results, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapProvisionManagement_getPendingRequests_Results(st), err
+	return CapManageProvisioning_getPendingRequests_Results(st), err
 }
 
-func ReadRootCapProvisionManagement_getPendingRequests_Results(msg *capnp.Message) (CapProvisionManagement_getPendingRequests_Results, error) {
+func ReadRootCapManageProvisioning_getPendingRequests_Results(msg *capnp.Message) (CapManageProvisioning_getPendingRequests_Results, error) {
 	root, err := msg.Root()
-	return CapProvisionManagement_getPendingRequests_Results(root.Struct()), err
+	return CapManageProvisioning_getPendingRequests_Results(root.Struct()), err
 }
 
-func (s CapProvisionManagement_getPendingRequests_Results) String() string {
-	str, _ := text.Marshal(0xceaa1cf884e71a63, capnp.Struct(s))
+func (s CapManageProvisioning_getPendingRequests_Results) String() string {
+	str, _ := text.Marshal(0xb709d610e685ddfa, capnp.Struct(s))
 	return str
 }
 
-func (s CapProvisionManagement_getPendingRequests_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapManageProvisioning_getPendingRequests_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapProvisionManagement_getPendingRequests_Results) DecodeFromPtr(p capnp.Ptr) CapProvisionManagement_getPendingRequests_Results {
-	return CapProvisionManagement_getPendingRequests_Results(capnp.Struct{}.DecodeFromPtr(p))
+func (CapManageProvisioning_getPendingRequests_Results) DecodeFromPtr(p capnp.Ptr) CapManageProvisioning_getPendingRequests_Results {
+	return CapManageProvisioning_getPendingRequests_Results(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapProvisionManagement_getPendingRequests_Results) ToPtr() capnp.Ptr {
+func (s CapManageProvisioning_getPendingRequests_Results) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapProvisionManagement_getPendingRequests_Results) IsValid() bool {
+func (s CapManageProvisioning_getPendingRequests_Results) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapProvisionManagement_getPendingRequests_Results) Message() *capnp.Message {
+func (s CapManageProvisioning_getPendingRequests_Results) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapProvisionManagement_getPendingRequests_Results) Segment() *capnp.Segment {
+func (s CapManageProvisioning_getPendingRequests_Results) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapProvisionManagement_getPendingRequests_Results) Requests() (ProvisionResponse_List, error) {
+func (s CapManageProvisioning_getPendingRequests_Results) Requests() (ProvisionStatus_List, error) {
 	p, err := capnp.Struct(s).Ptr(0)
-	return ProvisionResponse_List(p.List()), err
+	return ProvisionStatus_List(p.List()), err
 }
 
-func (s CapProvisionManagement_getPendingRequests_Results) HasRequests() bool {
+func (s CapManageProvisioning_getPendingRequests_Results) HasRequests() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapProvisionManagement_getPendingRequests_Results) SetRequests(v ProvisionResponse_List) error {
+func (s CapManageProvisioning_getPendingRequests_Results) SetRequests(v ProvisionStatus_List) error {
 	return capnp.Struct(s).SetPtr(0, v.ToPtr())
 }
 
 // NewRequests sets the requests field to a newly
-// allocated ProvisionResponse_List, preferring placement in s's segment.
-func (s CapProvisionManagement_getPendingRequests_Results) NewRequests(n int32) (ProvisionResponse_List, error) {
-	l, err := NewProvisionResponse_List(capnp.Struct(s).Segment(), n)
+// allocated ProvisionStatus_List, preferring placement in s's segment.
+func (s CapManageProvisioning_getPendingRequests_Results) NewRequests(n int32) (ProvisionStatus_List, error) {
+	l, err := NewProvisionStatus_List(capnp.Struct(s).Segment(), n)
 	if err != nil {
-		return ProvisionResponse_List{}, err
+		return ProvisionStatus_List{}, err
 	}
 	err = capnp.Struct(s).SetPtr(0, l.ToPtr())
 	return l, err
 }
 
-// CapProvisionManagement_getPendingRequests_Results_List is a list of CapProvisionManagement_getPendingRequests_Results.
-type CapProvisionManagement_getPendingRequests_Results_List = capnp.StructList[CapProvisionManagement_getPendingRequests_Results]
+// CapManageProvisioning_getPendingRequests_Results_List is a list of CapManageProvisioning_getPendingRequests_Results.
+type CapManageProvisioning_getPendingRequests_Results_List = capnp.StructList[CapManageProvisioning_getPendingRequests_Results]
 
-// NewCapProvisionManagement_getPendingRequests_Results creates a new list of CapProvisionManagement_getPendingRequests_Results.
-func NewCapProvisionManagement_getPendingRequests_Results_List(s *capnp.Segment, sz int32) (CapProvisionManagement_getPendingRequests_Results_List, error) {
+// NewCapManageProvisioning_getPendingRequests_Results creates a new list of CapManageProvisioning_getPendingRequests_Results.
+func NewCapManageProvisioning_getPendingRequests_Results_List(s *capnp.Segment, sz int32) (CapManageProvisioning_getPendingRequests_Results_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapProvisionManagement_getPendingRequests_Results](l), err
+	return capnp.StructList[CapManageProvisioning_getPendingRequests_Results](l), err
 }
 
-// CapProvisionManagement_getPendingRequests_Results_Future is a wrapper for a CapProvisionManagement_getPendingRequests_Results promised by a client call.
-type CapProvisionManagement_getPendingRequests_Results_Future struct{ *capnp.Future }
+// CapManageProvisioning_getPendingRequests_Results_Future is a wrapper for a CapManageProvisioning_getPendingRequests_Results promised by a client call.
+type CapManageProvisioning_getPendingRequests_Results_Future struct{ *capnp.Future }
 
-func (p CapProvisionManagement_getPendingRequests_Results_Future) Struct() (CapProvisionManagement_getPendingRequests_Results, error) {
+func (p CapManageProvisioning_getPendingRequests_Results_Future) Struct() (CapManageProvisioning_getPendingRequests_Results, error) {
 	s, err := p.Future.Struct()
-	return CapProvisionManagement_getPendingRequests_Results(s), err
+	return CapManageProvisioning_getPendingRequests_Results(s), err
 }
 
-type CapProvisionRequest capnp.Client
+type CapRequestProvisioning capnp.Client
 
-// CapProvisionRequest_TypeID is the unique identifier for the type CapProvisionRequest.
-const CapProvisionRequest_TypeID = 0xb6144cb273a6f287
+// CapRequestProvisioning_TypeID is the unique identifier for the type CapRequestProvisioning.
+const CapRequestProvisioning_TypeID = 0xc030b983562bd8a4
 
-func (c CapProvisionRequest) SubmitProvisioningRequest(ctx context.Context, params func(CapProvisionRequest_submitProvisioningRequest_Params) error) (CapProvisionRequest_submitProvisioningRequest_Results_Future, capnp.ReleaseFunc) {
+func (c CapRequestProvisioning) SubmitProvisioningRequest(ctx context.Context, params func(CapRequestProvisioning_submitProvisioningRequest_Params) error) (CapRequestProvisioning_submitProvisioningRequest_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
-			InterfaceID:   0xb6144cb273a6f287,
+			InterfaceID:   0xc030b983562bd8a4,
 			MethodID:      0,
-			InterfaceName: "hubapi/Provisioning.capnp:CapProvisionRequest",
+			InterfaceName: "hubapi/Provisioning.capnp:CapRequestProvisioning",
 			MethodName:    "submitProvisioningRequest",
 		},
 	}
 	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapProvisionRequest_submitProvisioningRequest_Params(s)) }
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 3}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapRequestProvisioning_submitProvisioningRequest_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapProvisionRequest_submitProvisioningRequest_Results_Future{Future: ans.Future()}, release
-}
-func (c CapProvisionRequest) RefreshDeviceCert(ctx context.Context, params func(CapProvisionRequest_refreshDeviceCert_Params) error) (CapProvisionRequest_refreshDeviceCert_Results_Future, capnp.ReleaseFunc) {
-	s := capnp.Send{
-		Method: capnp.Method{
-			InterfaceID:   0xb6144cb273a6f287,
-			MethodID:      1,
-			InterfaceName: "hubapi/Provisioning.capnp:CapProvisionRequest",
-			MethodName:    "refreshDeviceCert",
-		},
-	}
-	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 2}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapProvisionRequest_refreshDeviceCert_Params(s)) }
-	}
-	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapProvisionRequest_refreshDeviceCert_Results_Future{Future: ans.Future()}, release
+	return CapRequestProvisioning_submitProvisioningRequest_Results_Future{Future: ans.Future()}, release
 }
 
-func (c CapProvisionRequest) AddRef() CapProvisionRequest {
-	return CapProvisionRequest(capnp.Client(c).AddRef())
+func (c CapRequestProvisioning) AddRef() CapRequestProvisioning {
+	return CapRequestProvisioning(capnp.Client(c).AddRef())
 }
 
-func (c CapProvisionRequest) Release() {
+func (c CapRequestProvisioning) Release() {
 	capnp.Client(c).Release()
 }
 
-func (c CapProvisionRequest) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (c CapRequestProvisioning) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Client(c).EncodeAsPtr(seg)
 }
 
-func (CapProvisionRequest) DecodeFromPtr(p capnp.Ptr) CapProvisionRequest {
-	return CapProvisionRequest(capnp.Client{}.DecodeFromPtr(p))
+func (CapRequestProvisioning) DecodeFromPtr(p capnp.Ptr) CapRequestProvisioning {
+	return CapRequestProvisioning(capnp.Client{}.DecodeFromPtr(p))
 }
 
-func (c CapProvisionRequest) IsValid() bool {
+func (c CapRequestProvisioning) IsValid() bool {
 	return capnp.Client(c).IsValid()
 }
 
-// A CapProvisionRequest_Server is a CapProvisionRequest with a local implementation.
-type CapProvisionRequest_Server interface {
-	SubmitProvisioningRequest(context.Context, CapProvisionRequest_submitProvisioningRequest) error
-
-	RefreshDeviceCert(context.Context, CapProvisionRequest_refreshDeviceCert) error
+// A CapRequestProvisioning_Server is a CapRequestProvisioning with a local implementation.
+type CapRequestProvisioning_Server interface {
+	SubmitProvisioningRequest(context.Context, CapRequestProvisioning_submitProvisioningRequest) error
 }
 
-// CapProvisionRequest_NewServer creates a new Server from an implementation of CapProvisionRequest_Server.
-func CapProvisionRequest_NewServer(s CapProvisionRequest_Server) *server.Server {
+// CapRequestProvisioning_NewServer creates a new Server from an implementation of CapRequestProvisioning_Server.
+func CapRequestProvisioning_NewServer(s CapRequestProvisioning_Server) *server.Server {
 	c, _ := s.(server.Shutdowner)
-	return server.New(CapProvisionRequest_Methods(nil, s), s, c)
+	return server.New(CapRequestProvisioning_Methods(nil, s), s, c)
 }
 
-// CapProvisionRequest_ServerToClient creates a new Client from an implementation of CapProvisionRequest_Server.
+// CapRequestProvisioning_ServerToClient creates a new Client from an implementation of CapRequestProvisioning_Server.
 // The caller is responsible for calling Release on the returned Client.
-func CapProvisionRequest_ServerToClient(s CapProvisionRequest_Server) CapProvisionRequest {
-	return CapProvisionRequest(capnp.NewClient(CapProvisionRequest_NewServer(s)))
+func CapRequestProvisioning_ServerToClient(s CapRequestProvisioning_Server) CapRequestProvisioning {
+	return CapRequestProvisioning(capnp.NewClient(CapRequestProvisioning_NewServer(s)))
 }
 
-// CapProvisionRequest_Methods appends Methods to a slice that invoke the methods on s.
+// CapRequestProvisioning_Methods appends Methods to a slice that invoke the methods on s.
 // This can be used to create a more complicated Server.
-func CapProvisionRequest_Methods(methods []server.Method, s CapProvisionRequest_Server) []server.Method {
+func CapRequestProvisioning_Methods(methods []server.Method, s CapRequestProvisioning_Server) []server.Method {
 	if cap(methods) == 0 {
-		methods = make([]server.Method, 0, 2)
+		methods = make([]server.Method, 0, 1)
 	}
 
 	methods = append(methods, server.Method{
 		Method: capnp.Method{
-			InterfaceID:   0xb6144cb273a6f287,
+			InterfaceID:   0xc030b983562bd8a4,
 			MethodID:      0,
-			InterfaceName: "hubapi/Provisioning.capnp:CapProvisionRequest",
+			InterfaceName: "hubapi/Provisioning.capnp:CapRequestProvisioning",
 			MethodName:    "submitProvisioningRequest",
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.SubmitProvisioningRequest(ctx, CapProvisionRequest_submitProvisioningRequest{call})
-		},
-	})
-
-	methods = append(methods, server.Method{
-		Method: capnp.Method{
-			InterfaceID:   0xb6144cb273a6f287,
-			MethodID:      1,
-			InterfaceName: "hubapi/Provisioning.capnp:CapProvisionRequest",
-			MethodName:    "refreshDeviceCert",
-		},
-		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.RefreshDeviceCert(ctx, CapProvisionRequest_refreshDeviceCert{call})
+			return s.SubmitProvisioningRequest(ctx, CapRequestProvisioning_submitProvisioningRequest{call})
 		},
 	})
 
 	return methods
 }
 
-// CapProvisionRequest_submitProvisioningRequest holds the state for a server call to CapProvisionRequest.submitProvisioningRequest.
+// CapRequestProvisioning_submitProvisioningRequest holds the state for a server call to CapRequestProvisioning.submitProvisioningRequest.
 // See server.Call for documentation.
-type CapProvisionRequest_submitProvisioningRequest struct {
+type CapRequestProvisioning_submitProvisioningRequest struct {
 	*server.Call
 }
 
 // Args returns the call's arguments.
-func (c CapProvisionRequest_submitProvisioningRequest) Args() CapProvisionRequest_submitProvisioningRequest_Params {
-	return CapProvisionRequest_submitProvisioningRequest_Params(c.Call.Args())
+func (c CapRequestProvisioning_submitProvisioningRequest) Args() CapRequestProvisioning_submitProvisioningRequest_Params {
+	return CapRequestProvisioning_submitProvisioningRequest_Params(c.Call.Args())
 }
 
 // AllocResults allocates the results struct.
-func (c CapProvisionRequest_submitProvisioningRequest) AllocResults() (CapProvisionRequest_submitProvisioningRequest_Results, error) {
+func (c CapRequestProvisioning_submitProvisioningRequest) AllocResults() (CapRequestProvisioning_submitProvisioningRequest_Results, error) {
 	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapProvisionRequest_submitProvisioningRequest_Results(r), err
+	return CapRequestProvisioning_submitProvisioningRequest_Results(r), err
 }
 
-// CapProvisionRequest_refreshDeviceCert holds the state for a server call to CapProvisionRequest.refreshDeviceCert.
-// See server.Call for documentation.
-type CapProvisionRequest_refreshDeviceCert struct {
-	*server.Call
-}
+// CapRequestProvisioning_List is a list of CapRequestProvisioning.
+type CapRequestProvisioning_List = capnp.CapList[CapRequestProvisioning]
 
-// Args returns the call's arguments.
-func (c CapProvisionRequest_refreshDeviceCert) Args() CapProvisionRequest_refreshDeviceCert_Params {
-	return CapProvisionRequest_refreshDeviceCert_Params(c.Call.Args())
-}
-
-// AllocResults allocates the results struct.
-func (c CapProvisionRequest_refreshDeviceCert) AllocResults() (CapProvisionRequest_refreshDeviceCert_Results, error) {
-	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapProvisionRequest_refreshDeviceCert_Results(r), err
-}
-
-// CapProvisionRequest_List is a list of CapProvisionRequest.
-type CapProvisionRequest_List = capnp.CapList[CapProvisionRequest]
-
-// NewCapProvisionRequest creates a new list of CapProvisionRequest.
-func NewCapProvisionRequest_List(s *capnp.Segment, sz int32) (CapProvisionRequest_List, error) {
+// NewCapRequestProvisioning creates a new list of CapRequestProvisioning.
+func NewCapRequestProvisioning_List(s *capnp.Segment, sz int32) (CapRequestProvisioning_List, error) {
 	l, err := capnp.NewPointerList(s, sz)
-	return capnp.CapList[CapProvisionRequest](l), err
+	return capnp.CapList[CapRequestProvisioning](l), err
 }
 
-type CapProvisionRequest_submitProvisioningRequest_Params capnp.Struct
+type CapRequestProvisioning_submitProvisioningRequest_Params capnp.Struct
 
-// CapProvisionRequest_submitProvisioningRequest_Params_TypeID is the unique identifier for the type CapProvisionRequest_submitProvisioningRequest_Params.
-const CapProvisionRequest_submitProvisioningRequest_Params_TypeID = 0xcb11311a734d1743
+// CapRequestProvisioning_submitProvisioningRequest_Params_TypeID is the unique identifier for the type CapRequestProvisioning_submitProvisioningRequest_Params.
+const CapRequestProvisioning_submitProvisioningRequest_Params_TypeID = 0xbbdcc0b62dd56424
 
-func NewCapProvisionRequest_submitProvisioningRequest_Params(s *capnp.Segment) (CapProvisionRequest_submitProvisioningRequest_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapProvisionRequest_submitProvisioningRequest_Params(st), err
+func NewCapRequestProvisioning_submitProvisioningRequest_Params(s *capnp.Segment) (CapRequestProvisioning_submitProvisioningRequest_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 3})
+	return CapRequestProvisioning_submitProvisioningRequest_Params(st), err
 }
 
-func NewRootCapProvisionRequest_submitProvisioningRequest_Params(s *capnp.Segment) (CapProvisionRequest_submitProvisioningRequest_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapProvisionRequest_submitProvisioningRequest_Params(st), err
+func NewRootCapRequestProvisioning_submitProvisioningRequest_Params(s *capnp.Segment) (CapRequestProvisioning_submitProvisioningRequest_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 3})
+	return CapRequestProvisioning_submitProvisioningRequest_Params(st), err
 }
 
-func ReadRootCapProvisionRequest_submitProvisioningRequest_Params(msg *capnp.Message) (CapProvisionRequest_submitProvisioningRequest_Params, error) {
+func ReadRootCapRequestProvisioning_submitProvisioningRequest_Params(msg *capnp.Message) (CapRequestProvisioning_submitProvisioningRequest_Params, error) {
 	root, err := msg.Root()
-	return CapProvisionRequest_submitProvisioningRequest_Params(root.Struct()), err
+	return CapRequestProvisioning_submitProvisioningRequest_Params(root.Struct()), err
 }
 
-func (s CapProvisionRequest_submitProvisioningRequest_Params) String() string {
-	str, _ := text.Marshal(0xcb11311a734d1743, capnp.Struct(s))
+func (s CapRequestProvisioning_submitProvisioningRequest_Params) String() string {
+	str, _ := text.Marshal(0xbbdcc0b62dd56424, capnp.Struct(s))
 	return str
 }
 
-func (s CapProvisionRequest_submitProvisioningRequest_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapRequestProvisioning_submitProvisioningRequest_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapProvisionRequest_submitProvisioningRequest_Params) DecodeFromPtr(p capnp.Ptr) CapProvisionRequest_submitProvisioningRequest_Params {
-	return CapProvisionRequest_submitProvisioningRequest_Params(capnp.Struct{}.DecodeFromPtr(p))
+func (CapRequestProvisioning_submitProvisioningRequest_Params) DecodeFromPtr(p capnp.Ptr) CapRequestProvisioning_submitProvisioningRequest_Params {
+	return CapRequestProvisioning_submitProvisioningRequest_Params(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapProvisionRequest_submitProvisioningRequest_Params) ToPtr() capnp.Ptr {
+func (s CapRequestProvisioning_submitProvisioningRequest_Params) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapProvisionRequest_submitProvisioningRequest_Params) IsValid() bool {
+func (s CapRequestProvisioning_submitProvisioningRequest_Params) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapProvisionRequest_submitProvisioningRequest_Params) Message() *capnp.Message {
+func (s CapRequestProvisioning_submitProvisioningRequest_Params) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapProvisionRequest_submitProvisioningRequest_Params) Segment() *capnp.Segment {
+func (s CapRequestProvisioning_submitProvisioningRequest_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapProvisionRequest_submitProvisioningRequest_Params) ProvRequest() (ProvisionRequest, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return ProvisionRequest(p.Struct()), err
-}
-
-func (s CapProvisionRequest_submitProvisioningRequest_Params) HasProvRequest() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s CapProvisionRequest_submitProvisioningRequest_Params) SetProvRequest(v ProvisionRequest) error {
-	return capnp.Struct(s).SetPtr(0, capnp.Struct(v).ToPtr())
-}
-
-// NewProvRequest sets the provRequest field to a newly
-// allocated ProvisionRequest struct, preferring placement in s's segment.
-func (s CapProvisionRequest_submitProvisioningRequest_Params) NewProvRequest() (ProvisionRequest, error) {
-	ss, err := NewProvisionRequest(capnp.Struct(s).Segment())
-	if err != nil {
-		return ProvisionRequest{}, err
-	}
-	err = capnp.Struct(s).SetPtr(0, capnp.Struct(ss).ToPtr())
-	return ss, err
-}
-
-// CapProvisionRequest_submitProvisioningRequest_Params_List is a list of CapProvisionRequest_submitProvisioningRequest_Params.
-type CapProvisionRequest_submitProvisioningRequest_Params_List = capnp.StructList[CapProvisionRequest_submitProvisioningRequest_Params]
-
-// NewCapProvisionRequest_submitProvisioningRequest_Params creates a new list of CapProvisionRequest_submitProvisioningRequest_Params.
-func NewCapProvisionRequest_submitProvisioningRequest_Params_List(s *capnp.Segment, sz int32) (CapProvisionRequest_submitProvisioningRequest_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapProvisionRequest_submitProvisioningRequest_Params](l), err
-}
-
-// CapProvisionRequest_submitProvisioningRequest_Params_Future is a wrapper for a CapProvisionRequest_submitProvisioningRequest_Params promised by a client call.
-type CapProvisionRequest_submitProvisioningRequest_Params_Future struct{ *capnp.Future }
-
-func (p CapProvisionRequest_submitProvisioningRequest_Params_Future) Struct() (CapProvisionRequest_submitProvisioningRequest_Params, error) {
-	s, err := p.Future.Struct()
-	return CapProvisionRequest_submitProvisioningRequest_Params(s), err
-}
-
-func (p CapProvisionRequest_submitProvisioningRequest_Params_Future) ProvRequest() ProvisionRequest_Future {
-	return ProvisionRequest_Future{Future: p.Future.Field(0, nil)}
-}
-
-type CapProvisionRequest_submitProvisioningRequest_Results capnp.Struct
-
-// CapProvisionRequest_submitProvisioningRequest_Results_TypeID is the unique identifier for the type CapProvisionRequest_submitProvisioningRequest_Results.
-const CapProvisionRequest_submitProvisioningRequest_Results_TypeID = 0xae899e65f380792e
-
-func NewCapProvisionRequest_submitProvisioningRequest_Results(s *capnp.Segment) (CapProvisionRequest_submitProvisioningRequest_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapProvisionRequest_submitProvisioningRequest_Results(st), err
-}
-
-func NewRootCapProvisionRequest_submitProvisioningRequest_Results(s *capnp.Segment) (CapProvisionRequest_submitProvisioningRequest_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapProvisionRequest_submitProvisioningRequest_Results(st), err
-}
-
-func ReadRootCapProvisionRequest_submitProvisioningRequest_Results(msg *capnp.Message) (CapProvisionRequest_submitProvisioningRequest_Results, error) {
-	root, err := msg.Root()
-	return CapProvisionRequest_submitProvisioningRequest_Results(root.Struct()), err
-}
-
-func (s CapProvisionRequest_submitProvisioningRequest_Results) String() string {
-	str, _ := text.Marshal(0xae899e65f380792e, capnp.Struct(s))
-	return str
-}
-
-func (s CapProvisionRequest_submitProvisioningRequest_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapProvisionRequest_submitProvisioningRequest_Results) DecodeFromPtr(p capnp.Ptr) CapProvisionRequest_submitProvisioningRequest_Results {
-	return CapProvisionRequest_submitProvisioningRequest_Results(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapProvisionRequest_submitProvisioningRequest_Results) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapProvisionRequest_submitProvisioningRequest_Results) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapProvisionRequest_submitProvisioningRequest_Results) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapProvisionRequest_submitProvisioningRequest_Results) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s CapProvisionRequest_submitProvisioningRequest_Results) ProvResp() (ProvisionResponse, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return ProvisionResponse(p.Struct()), err
-}
-
-func (s CapProvisionRequest_submitProvisioningRequest_Results) HasProvResp() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s CapProvisionRequest_submitProvisioningRequest_Results) SetProvResp(v ProvisionResponse) error {
-	return capnp.Struct(s).SetPtr(0, capnp.Struct(v).ToPtr())
-}
-
-// NewProvResp sets the provResp field to a newly
-// allocated ProvisionResponse struct, preferring placement in s's segment.
-func (s CapProvisionRequest_submitProvisioningRequest_Results) NewProvResp() (ProvisionResponse, error) {
-	ss, err := NewProvisionResponse(capnp.Struct(s).Segment())
-	if err != nil {
-		return ProvisionResponse{}, err
-	}
-	err = capnp.Struct(s).SetPtr(0, capnp.Struct(ss).ToPtr())
-	return ss, err
-}
-
-// CapProvisionRequest_submitProvisioningRequest_Results_List is a list of CapProvisionRequest_submitProvisioningRequest_Results.
-type CapProvisionRequest_submitProvisioningRequest_Results_List = capnp.StructList[CapProvisionRequest_submitProvisioningRequest_Results]
-
-// NewCapProvisionRequest_submitProvisioningRequest_Results creates a new list of CapProvisionRequest_submitProvisioningRequest_Results.
-func NewCapProvisionRequest_submitProvisioningRequest_Results_List(s *capnp.Segment, sz int32) (CapProvisionRequest_submitProvisioningRequest_Results_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapProvisionRequest_submitProvisioningRequest_Results](l), err
-}
-
-// CapProvisionRequest_submitProvisioningRequest_Results_Future is a wrapper for a CapProvisionRequest_submitProvisioningRequest_Results promised by a client call.
-type CapProvisionRequest_submitProvisioningRequest_Results_Future struct{ *capnp.Future }
-
-func (p CapProvisionRequest_submitProvisioningRequest_Results_Future) Struct() (CapProvisionRequest_submitProvisioningRequest_Results, error) {
-	s, err := p.Future.Struct()
-	return CapProvisionRequest_submitProvisioningRequest_Results(s), err
-}
-
-func (p CapProvisionRequest_submitProvisioningRequest_Results_Future) ProvResp() ProvisionResponse_Future {
-	return ProvisionResponse_Future{Future: p.Future.Field(0, nil)}
-}
-
-type CapProvisionRequest_refreshDeviceCert_Params capnp.Struct
-
-// CapProvisionRequest_refreshDeviceCert_Params_TypeID is the unique identifier for the type CapProvisionRequest_refreshDeviceCert_Params.
-const CapProvisionRequest_refreshDeviceCert_Params_TypeID = 0xa8996f4bd778d1c8
-
-func NewCapProvisionRequest_refreshDeviceCert_Params(s *capnp.Segment) (CapProvisionRequest_refreshDeviceCert_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
-	return CapProvisionRequest_refreshDeviceCert_Params(st), err
-}
-
-func NewRootCapProvisionRequest_refreshDeviceCert_Params(s *capnp.Segment) (CapProvisionRequest_refreshDeviceCert_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
-	return CapProvisionRequest_refreshDeviceCert_Params(st), err
-}
-
-func ReadRootCapProvisionRequest_refreshDeviceCert_Params(msg *capnp.Message) (CapProvisionRequest_refreshDeviceCert_Params, error) {
-	root, err := msg.Root()
-	return CapProvisionRequest_refreshDeviceCert_Params(root.Struct()), err
-}
-
-func (s CapProvisionRequest_refreshDeviceCert_Params) String() string {
-	str, _ := text.Marshal(0xa8996f4bd778d1c8, capnp.Struct(s))
-	return str
-}
-
-func (s CapProvisionRequest_refreshDeviceCert_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapProvisionRequest_refreshDeviceCert_Params) DecodeFromPtr(p capnp.Ptr) CapProvisionRequest_refreshDeviceCert_Params {
-	return CapProvisionRequest_refreshDeviceCert_Params(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapProvisionRequest_refreshDeviceCert_Params) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapProvisionRequest_refreshDeviceCert_Params) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapProvisionRequest_refreshDeviceCert_Params) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapProvisionRequest_refreshDeviceCert_Params) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s CapProvisionRequest_refreshDeviceCert_Params) DeviceID() (string, error) {
+func (s CapRequestProvisioning_submitProvisioningRequest_Params) DeviceID() (string, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.Text(), err
 }
 
-func (s CapProvisionRequest_refreshDeviceCert_Params) HasDeviceID() bool {
+func (s CapRequestProvisioning_submitProvisioningRequest_Params) HasDeviceID() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapProvisionRequest_refreshDeviceCert_Params) DeviceIDBytes() ([]byte, error) {
+func (s CapRequestProvisioning_submitProvisioningRequest_Params) DeviceIDBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.TextBytes(), err
 }
 
-func (s CapProvisionRequest_refreshDeviceCert_Params) SetDeviceID(v string) error {
+func (s CapRequestProvisioning_submitProvisioningRequest_Params) SetDeviceID(v string) error {
 	return capnp.Struct(s).SetText(0, v)
 }
 
-func (s CapProvisionRequest_refreshDeviceCert_Params) PubKeyPEM() (string, error) {
+func (s CapRequestProvisioning_submitProvisioningRequest_Params) Md5Secret() (string, error) {
 	p, err := capnp.Struct(s).Ptr(1)
 	return p.Text(), err
 }
 
-func (s CapProvisionRequest_refreshDeviceCert_Params) HasPubKeyPEM() bool {
+func (s CapRequestProvisioning_submitProvisioningRequest_Params) HasMd5Secret() bool {
 	return capnp.Struct(s).HasPtr(1)
 }
 
-func (s CapProvisionRequest_refreshDeviceCert_Params) PubKeyPEMBytes() ([]byte, error) {
+func (s CapRequestProvisioning_submitProvisioningRequest_Params) Md5SecretBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(1)
 	return p.TextBytes(), err
 }
 
-func (s CapProvisionRequest_refreshDeviceCert_Params) SetPubKeyPEM(v string) error {
+func (s CapRequestProvisioning_submitProvisioningRequest_Params) SetMd5Secret(v string) error {
 	return capnp.Struct(s).SetText(1, v)
 }
 
-// CapProvisionRequest_refreshDeviceCert_Params_List is a list of CapProvisionRequest_refreshDeviceCert_Params.
-type CapProvisionRequest_refreshDeviceCert_Params_List = capnp.StructList[CapProvisionRequest_refreshDeviceCert_Params]
-
-// NewCapProvisionRequest_refreshDeviceCert_Params creates a new list of CapProvisionRequest_refreshDeviceCert_Params.
-func NewCapProvisionRequest_refreshDeviceCert_Params_List(s *capnp.Segment, sz int32) (CapProvisionRequest_refreshDeviceCert_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
-	return capnp.StructList[CapProvisionRequest_refreshDeviceCert_Params](l), err
+func (s CapRequestProvisioning_submitProvisioningRequest_Params) PubKeyPEM() (string, error) {
+	p, err := capnp.Struct(s).Ptr(2)
+	return p.Text(), err
 }
 
-// CapProvisionRequest_refreshDeviceCert_Params_Future is a wrapper for a CapProvisionRequest_refreshDeviceCert_Params promised by a client call.
-type CapProvisionRequest_refreshDeviceCert_Params_Future struct{ *capnp.Future }
+func (s CapRequestProvisioning_submitProvisioningRequest_Params) HasPubKeyPEM() bool {
+	return capnp.Struct(s).HasPtr(2)
+}
 
-func (p CapProvisionRequest_refreshDeviceCert_Params_Future) Struct() (CapProvisionRequest_refreshDeviceCert_Params, error) {
+func (s CapRequestProvisioning_submitProvisioningRequest_Params) PubKeyPEMBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(2)
+	return p.TextBytes(), err
+}
+
+func (s CapRequestProvisioning_submitProvisioningRequest_Params) SetPubKeyPEM(v string) error {
+	return capnp.Struct(s).SetText(2, v)
+}
+
+// CapRequestProvisioning_submitProvisioningRequest_Params_List is a list of CapRequestProvisioning_submitProvisioningRequest_Params.
+type CapRequestProvisioning_submitProvisioningRequest_Params_List = capnp.StructList[CapRequestProvisioning_submitProvisioningRequest_Params]
+
+// NewCapRequestProvisioning_submitProvisioningRequest_Params creates a new list of CapRequestProvisioning_submitProvisioningRequest_Params.
+func NewCapRequestProvisioning_submitProvisioningRequest_Params_List(s *capnp.Segment, sz int32) (CapRequestProvisioning_submitProvisioningRequest_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 3}, sz)
+	return capnp.StructList[CapRequestProvisioning_submitProvisioningRequest_Params](l), err
+}
+
+// CapRequestProvisioning_submitProvisioningRequest_Params_Future is a wrapper for a CapRequestProvisioning_submitProvisioningRequest_Params promised by a client call.
+type CapRequestProvisioning_submitProvisioningRequest_Params_Future struct{ *capnp.Future }
+
+func (p CapRequestProvisioning_submitProvisioningRequest_Params_Future) Struct() (CapRequestProvisioning_submitProvisioningRequest_Params, error) {
 	s, err := p.Future.Struct()
-	return CapProvisionRequest_refreshDeviceCert_Params(s), err
+	return CapRequestProvisioning_submitProvisioningRequest_Params(s), err
 }
 
-type CapProvisionRequest_refreshDeviceCert_Results capnp.Struct
+type CapRequestProvisioning_submitProvisioningRequest_Results capnp.Struct
 
-// CapProvisionRequest_refreshDeviceCert_Results_TypeID is the unique identifier for the type CapProvisionRequest_refreshDeviceCert_Results.
-const CapProvisionRequest_refreshDeviceCert_Results_TypeID = 0xd87ad476e0b8d0e2
+// CapRequestProvisioning_submitProvisioningRequest_Results_TypeID is the unique identifier for the type CapRequestProvisioning_submitProvisioningRequest_Results.
+const CapRequestProvisioning_submitProvisioningRequest_Results_TypeID = 0xc3743df7b9645cc6
 
-func NewCapProvisionRequest_refreshDeviceCert_Results(s *capnp.Segment) (CapProvisionRequest_refreshDeviceCert_Results, error) {
+func NewCapRequestProvisioning_submitProvisioningRequest_Results(s *capnp.Segment) (CapRequestProvisioning_submitProvisioningRequest_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapProvisionRequest_refreshDeviceCert_Results(st), err
+	return CapRequestProvisioning_submitProvisioningRequest_Results(st), err
 }
 
-func NewRootCapProvisionRequest_refreshDeviceCert_Results(s *capnp.Segment) (CapProvisionRequest_refreshDeviceCert_Results, error) {
+func NewRootCapRequestProvisioning_submitProvisioningRequest_Results(s *capnp.Segment) (CapRequestProvisioning_submitProvisioningRequest_Results, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapProvisionRequest_refreshDeviceCert_Results(st), err
+	return CapRequestProvisioning_submitProvisioningRequest_Results(st), err
 }
 
-func ReadRootCapProvisionRequest_refreshDeviceCert_Results(msg *capnp.Message) (CapProvisionRequest_refreshDeviceCert_Results, error) {
+func ReadRootCapRequestProvisioning_submitProvisioningRequest_Results(msg *capnp.Message) (CapRequestProvisioning_submitProvisioningRequest_Results, error) {
 	root, err := msg.Root()
-	return CapProvisionRequest_refreshDeviceCert_Results(root.Struct()), err
+	return CapRequestProvisioning_submitProvisioningRequest_Results(root.Struct()), err
 }
 
-func (s CapProvisionRequest_refreshDeviceCert_Results) String() string {
-	str, _ := text.Marshal(0xd87ad476e0b8d0e2, capnp.Struct(s))
+func (s CapRequestProvisioning_submitProvisioningRequest_Results) String() string {
+	str, _ := text.Marshal(0xc3743df7b9645cc6, capnp.Struct(s))
 	return str
 }
 
-func (s CapProvisionRequest_refreshDeviceCert_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapRequestProvisioning_submitProvisioningRequest_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapProvisionRequest_refreshDeviceCert_Results) DecodeFromPtr(p capnp.Ptr) CapProvisionRequest_refreshDeviceCert_Results {
-	return CapProvisionRequest_refreshDeviceCert_Results(capnp.Struct{}.DecodeFromPtr(p))
+func (CapRequestProvisioning_submitProvisioningRequest_Results) DecodeFromPtr(p capnp.Ptr) CapRequestProvisioning_submitProvisioningRequest_Results {
+	return CapRequestProvisioning_submitProvisioningRequest_Results(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapProvisionRequest_refreshDeviceCert_Results) ToPtr() capnp.Ptr {
+func (s CapRequestProvisioning_submitProvisioningRequest_Results) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapProvisionRequest_refreshDeviceCert_Results) IsValid() bool {
+func (s CapRequestProvisioning_submitProvisioningRequest_Results) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapProvisionRequest_refreshDeviceCert_Results) Message() *capnp.Message {
+func (s CapRequestProvisioning_submitProvisioningRequest_Results) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapProvisionRequest_refreshDeviceCert_Results) Segment() *capnp.Segment {
+func (s CapRequestProvisioning_submitProvisioningRequest_Results) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapProvisionRequest_refreshDeviceCert_Results) ProvResp() (ProvisionResponse, error) {
+func (s CapRequestProvisioning_submitProvisioningRequest_Results) Status() (ProvisionStatus, error) {
 	p, err := capnp.Struct(s).Ptr(0)
-	return ProvisionResponse(p.Struct()), err
+	return ProvisionStatus(p.Struct()), err
 }
 
-func (s CapProvisionRequest_refreshDeviceCert_Results) HasProvResp() bool {
+func (s CapRequestProvisioning_submitProvisioningRequest_Results) HasStatus() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapProvisionRequest_refreshDeviceCert_Results) SetProvResp(v ProvisionResponse) error {
+func (s CapRequestProvisioning_submitProvisioningRequest_Results) SetStatus(v ProvisionStatus) error {
 	return capnp.Struct(s).SetPtr(0, capnp.Struct(v).ToPtr())
 }
 
-// NewProvResp sets the provResp field to a newly
-// allocated ProvisionResponse struct, preferring placement in s's segment.
-func (s CapProvisionRequest_refreshDeviceCert_Results) NewProvResp() (ProvisionResponse, error) {
-	ss, err := NewProvisionResponse(capnp.Struct(s).Segment())
+// NewStatus sets the status field to a newly
+// allocated ProvisionStatus struct, preferring placement in s's segment.
+func (s CapRequestProvisioning_submitProvisioningRequest_Results) NewStatus() (ProvisionStatus, error) {
+	ss, err := NewProvisionStatus(capnp.Struct(s).Segment())
 	if err != nil {
-		return ProvisionResponse{}, err
+		return ProvisionStatus{}, err
 	}
 	err = capnp.Struct(s).SetPtr(0, capnp.Struct(ss).ToPtr())
 	return ss, err
 }
 
-// CapProvisionRequest_refreshDeviceCert_Results_List is a list of CapProvisionRequest_refreshDeviceCert_Results.
-type CapProvisionRequest_refreshDeviceCert_Results_List = capnp.StructList[CapProvisionRequest_refreshDeviceCert_Results]
+// CapRequestProvisioning_submitProvisioningRequest_Results_List is a list of CapRequestProvisioning_submitProvisioningRequest_Results.
+type CapRequestProvisioning_submitProvisioningRequest_Results_List = capnp.StructList[CapRequestProvisioning_submitProvisioningRequest_Results]
 
-// NewCapProvisionRequest_refreshDeviceCert_Results creates a new list of CapProvisionRequest_refreshDeviceCert_Results.
-func NewCapProvisionRequest_refreshDeviceCert_Results_List(s *capnp.Segment, sz int32) (CapProvisionRequest_refreshDeviceCert_Results_List, error) {
+// NewCapRequestProvisioning_submitProvisioningRequest_Results creates a new list of CapRequestProvisioning_submitProvisioningRequest_Results.
+func NewCapRequestProvisioning_submitProvisioningRequest_Results_List(s *capnp.Segment, sz int32) (CapRequestProvisioning_submitProvisioningRequest_Results_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapProvisionRequest_refreshDeviceCert_Results](l), err
+	return capnp.StructList[CapRequestProvisioning_submitProvisioningRequest_Results](l), err
 }
 
-// CapProvisionRequest_refreshDeviceCert_Results_Future is a wrapper for a CapProvisionRequest_refreshDeviceCert_Results promised by a client call.
-type CapProvisionRequest_refreshDeviceCert_Results_Future struct{ *capnp.Future }
+// CapRequestProvisioning_submitProvisioningRequest_Results_Future is a wrapper for a CapRequestProvisioning_submitProvisioningRequest_Results promised by a client call.
+type CapRequestProvisioning_submitProvisioningRequest_Results_Future struct{ *capnp.Future }
 
-func (p CapProvisionRequest_refreshDeviceCert_Results_Future) Struct() (CapProvisionRequest_refreshDeviceCert_Results, error) {
+func (p CapRequestProvisioning_submitProvisioningRequest_Results_Future) Struct() (CapRequestProvisioning_submitProvisioningRequest_Results, error) {
 	s, err := p.Future.Struct()
-	return CapProvisionRequest_refreshDeviceCert_Results(s), err
+	return CapRequestProvisioning_submitProvisioningRequest_Results(s), err
 }
 
-func (p CapProvisionRequest_refreshDeviceCert_Results_Future) ProvResp() ProvisionResponse_Future {
-	return ProvisionResponse_Future{Future: p.Future.Field(0, nil)}
+func (p CapRequestProvisioning_submitProvisioningRequest_Results_Future) Status() ProvisionStatus_Future {
+	return ProvisionStatus_Future{Future: p.Future.Field(0, nil)}
 }
 
-const schema_9579ece206ee504b = "x\xda\xb4W{lTe\x16?\xe7\xfb\xee\xf4\x9b\xb6" +
-	"<\xe6\xcb\x0c\xd9M\x17BJ\xda\xf0H\xe82\xcb\x92" +
-	"]X\x92\x96\x16\x92\xa5\xdd\x86\xb9\xc36\xd9t5\xf1" +
-	"\xce\xf4\xb3\x1d\xec<\x98;S)\x89\x11\x1f\x111A" +
-	"#\x8a\x09FI4>\xa8\x06\xa3D\x88/\x88D0" +
-	"\x8d\xcf\x96\xa0\xa2\x91\xf0\x10\x83\x10\xc4\xa4h4Qs" +
-	"\xcd\xb93\xf7\xf6vZ\xca`\xf1\xbf\xc9w\xcf\xf7\x9d" +
-	"\xdf9\xe7w\xce\xef\xcc\x92S\xbcI\x0bO\xff\xd1\x0f" +
-	"L\xef\xf1UX\x1d\xf5#/>\xfc\xc9\xc5\xfbA\x86" +
-	"\x11\xc0\x87\x02`\xa9\xa1-b\x80\xc1~\xad\x11\xd0\x1a" +
-	"\x08\x9dk\xf8\xff\x13\xc1]\x05\x03\x8d\xbe\xef\xd5\x9a\x19" +
-	"h\xd6\xe0\xf0\xa6\xcf\xda\xd2\xbb\xf6\x80l\xa0\xab\x8c>" +
-	"=\xab\xad\xa0\xab\x07\xb5\xdb\x01\xad\x07S\xdd\x8d{Z" +
-	"\xdf\x1d\x00\xbd\x06\xd1j\x8b\\\xae8{\xa9\x7f'\xf8" +
-	"|dY\xeb\x8bap\x99\xfd3\xec{\x08\x01\xad\x86" +
-	"\xfe-W\xd4\xeem/\x15\xdf\xb3\xa1\x0cW\xdcM\xef" +
-	"}[AP\x0e\xc5\x97\xbe\xf7\x9d0\xf7\x81\xac\xe1\xa3" +
-	"\xcf\x01.\x95\"\x8a\xc1z!\x00\x82\xb5bk\xf0." +
-	"\xfaem\x1dy\xce\xdc\xf7\x9f\xd0\x81q\xd6\x09\x91\xc5" +
-	"\xe0\x1d\xb6u\xbf\xd8\x1a<Y\xb0N=??\xdav" +
-	"\xe8\x80'\xcc\xa3\xa2\x93\xc2l\xf9S\xbbY\x13\x96\xef" +
-	"{a\x1d\x16\x9b\x09\xd6IA\xb0\x8c\x7f\xaf\xda\x1fx" +
-	"l\xe0#o\x0a\xd1\xbf\x81\x0c\xe6\xf8\xc9 ^s\xfe" +
-	"\xde\x9ff\xbf0\xc6@\xf7\xc7\xc8 i\x1b\xe0\xe0\x91" +
-	"{\x06?>6<\x0e\xeaS\xfe\x070\xf8\xba\x9f." +
-	"\xec\xf7\x0b\x0c&+\x09\xebNa\x8a\xffu,\xff\x14" +
-	"\xe4\"\x07kG\xe5\"\xc2zv\xe8\xb5\xd3}\xc77" +
-	"\x9f\xf0bm\xafl&O\xaa\x92<\xd5\xef\x98\xd5\xf3" +
-	"N\xf73_\x80\xac\xf1V\xc4~c[e'\x06\x9f" +
-	"$\x0f\xc1]\x95\xe7\x01\xad\x7f\xdd\xd6\x98V?\xaf<" +
-	"\xe5\xc9I\x7fU\x8c\xfc\xe8\xf1o\x1e5o\xfa\xeak" +
-	"oD\xf9*\xbb\xf4\xdb\xab\xc8\xcf\x9a\xbd\xa7\xae\xf0\xa1" +
-	"\xce\xf3\x9e\xab\xafT\xfd\x8d\xae\x06\x8f^\xd8\xb6\xfe\x91" +
-	"\xed#\x05\xf0\x85\xab\x03\xf4\x09\x83\x87\xed\xab\xc7F\xfe" +
-	")^\xfe\x80}\xef58S\xd5J\x06\xbf\xda\x06\x97" +
-	"w\xcbYo\xce\xdf\xf4CI\x0c6\xff\xe6T\xcf\xc3" +
-	"\xe0\xe2j\x8aaa5qp\xf9}\x7f\xb9p\x91\xff" +
-	"\xe3\x17O\xae\xb6W73Xb\xf5\xe4cF&\xf1" +
-	"\xd7\x88\xc8\xa6\xfb\x12f\"\x9dJ\xa4\xba\x1b\xe2F&" +
-	"\x95Y\xd1bd\"\xcei\xbb\x912\xbaUR\xa5r" +
-	"\x0dFW\xd7\xbau\xcd\xebU<\xabru\x11cf" +
-	"\xd6H\x9a\xba\xc65\x00\x0d\x01\xe4\xf4N\x00}\x1aG" +
-	"}\x01C+\x9d\x8e\xd9\x86\xc0s&\xce\x00\x8cp\xc4" +
-	"\xc0(t@:t1\x04\xca\xc7\x90\xc9d\xd3}*" +
-	"\xaa6\xe6\x95\x99\xab\x8b*3\xdf\x9b3\xc1yh\xf2" +
-	"w\x8a\xb7\x1a\xb2\xea\xd6\xac2{V\xab\xbeD\\\xb5" +
-	"\xa8l\xae\xae1b\xd8\xd1\xf8\xddh\x16\xb6\x02\xe8\x0b" +
-	"8\xea\x7fg(\x11CH\x87\xe1(\x80\xbe\x84\xa3\xbe" +
-	"\x92\xa1\xd5e__\xbb\x1a\x00p\x1a0\x9c\x06he" +
-	"\xf2\xb16\xd5\x1fY\x03\xd8\xee\x9e9\xd8\xb4\xf1\xe0<" +
-	"\xc8\xccLZ\xa4L\x15A\xd4g\xbb \xf6\x13\x88W" +
-	"9\xeao{@\x1c$\x10oq\xd4\x07\x19J\xc6B" +
-	"\xc8\x00\xe4\xd1,\x80~\x84\xa3>\xc4\x10y\x089\x80" +
-	"\xfc\xb0\x19@\x1f\xe4\xa8\x1fg(5\x1eB\x0d@\x0e" +
-	"\xd3\xed!\x8e\xfa\x97\x0ce\x05\x86\xd0\x87(?'?" +
-	"'8\xea\xe7\x18J\x9f\x16\xc2\x0a\x00y&\x06\xa0\x9f" +
-	"\xe6\xa8_\xbaJ\xb0q\x83r76\xd8xoB\xa5" +
-	"r-\x0a\xe6\xd2\x17\xf7\xfc\xce\x8cJu%R\xdd\x88" +
-	"\xc0\x10\xaf\x92\xa8\xac\xcae\xfb\xd7\xab8\xf9\xd0\x80\x85" +
-	"\xb5\xc0\x0c\xfb\xd4.\xda\x7fA$\x92j\\R+\xcb" +
-	"\xab\xb8\x99\x8f%\x139/=J\x19\xe4%rk\x91" +
-	"\xc8\x7ffh\x11\xdd\xa8:\x04*0:\xd2\x0110" +
-	"ym\xbd0\x12)\xec\xa6\xca\xfa\xb9\x0f\xc0\xedIt" +
-	"Z]\x86\xdf\x00&\x17\x0bDw\xb6\xa13'd\xed" +
-	"\xd3\xc0\xe4\x1ca\xc5\x8b\xef\xa1\xd3\x11\x8d\x85\x96h\xc2" +
-	"\xb1\x9f(0\xa1\xcc\\\x13F\xb0l\x80Q5\xd7N" +
-	"\xc7(Hg\xec\xa3#K2|\x0c\x98\x0c\x13HG" +
-	"\xf9\xd0\x99\xb7\xb2~\x070Y+,'\xcf\xac4\xd1" +
-	"H8\x9d\xbeC\xa7\xf1\xb0\x04\xa5\xbf\xec9\xd0\xadr" +
-	"\x91\x02\xa5\x8a\x854\xeb\xa8\x85y\xd2,\xf7\xb1kS" +
-	"\xc3\x19\x0a\x1ef\xc4\xc61cc\x1e(\xdb\x18\x18\xd5" +
-	"\x96\x12n\\WP\xab\x0a\xf3\xad\xcb\x8d*\xaa\xcc\x99" +
-	"D\xd0\x89\xf8I\x83\xb6\xd8\x1e&\xf1\xd3\x9d\xb3^\x9a" +
-	"\xce\x80\x1b\x94_\xea\x14q\xa3\x90\xf8\xcaE\x02@\x9c" +
-	"\x0c\xd8\x9ct\x965t\xe4Un\xdc\x00L&\x88\x93" +
-	"\x8e$\xa3\xb3\xb0\xc9\x9b7\x03\x93\x1d\x02\x99+\xe4\xe8" +
-	"\xac*r-5\xd5\x1a\x81\xdc]|\xd0\xd9R\xe4\xf2" +
-	"\xc7\x81\xc9e\xc2r\xe4\x0ef\x92\xe05\xa1\xe5h\x0f" +
-	"4\x16\"mB\xcb\xa9\x18:%\x13f\xce,\x9c\xdb" +
-	"\xe9C'\x7f\x9c\x8e\xbdT\x17\xd7\x9a\x18\xf6i)[" +
-	"\x1d\xd9\xbd^\x92\x8fW\xbc?l\xee\x8d\xf5\xcd\x0b3" +
-	"%\xe0:1\xc8\xc9-\x1c\xf5^\x8f\xa4%\xe6\x01\xe8" +
-	"]\x1c\xf5\x8cG\xd2\x92\xa4T\xbd\x1c\xf5M\x0c%/" +
-	"jZ\x9e\x0es\x1c\xf5-\x13\x8b\x92H\x1aqW$" +
-	"L{Ui_\x0d\xb8\xac,\x85\x9eZ\xa7F\x8c\xac" +
-	"\xf0\x96F\xfc\xde\xa5f\x82\xb9\xe3\xad\xccDR<\xc5" +
-	"e.\xaa\xe6\xdal\x98*;\x9dw\xbc\xd0\xa9\xb4~" +
-	"\x8ez\x88\xa1\x88\x1b\x19\x94\xa3\xffL\x00Q\x96\x9f\xfe" +
-	"R\xa7\xa3\xc1\xb8d\x86\xc9\x1d\xbb\xff3J\x1c\xf3\xf1" +
-	"\x8e\x0b\xb9\x11YU\x94\xc4\xa9\xad\x85\xee6\x8c\xb9\xeb" +
-	"%\xdd$Q\x17h\x02\xbf\x05\x00\x00\xff\xff\x97bv" +
-	"\x0c"
+type CapRefreshProvisioning capnp.Client
+
+// CapRefreshProvisioning_TypeID is the unique identifier for the type CapRefreshProvisioning.
+const CapRefreshProvisioning_TypeID = 0x940570d71d747d70
+
+func (c CapRefreshProvisioning) RefreshDeviceCert(ctx context.Context, params func(CapRefreshProvisioning_refreshDeviceCert_Params) error) (CapRefreshProvisioning_refreshDeviceCert_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0x940570d71d747d70,
+			MethodID:      0,
+			InterfaceName: "hubapi/Provisioning.capnp:CapRefreshProvisioning",
+			MethodName:    "refreshDeviceCert",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapRefreshProvisioning_refreshDeviceCert_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapRefreshProvisioning_refreshDeviceCert_Results_Future{Future: ans.Future()}, release
+}
+
+func (c CapRefreshProvisioning) AddRef() CapRefreshProvisioning {
+	return CapRefreshProvisioning(capnp.Client(c).AddRef())
+}
+
+func (c CapRefreshProvisioning) Release() {
+	capnp.Client(c).Release()
+}
+
+func (c CapRefreshProvisioning) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Client(c).EncodeAsPtr(seg)
+}
+
+func (CapRefreshProvisioning) DecodeFromPtr(p capnp.Ptr) CapRefreshProvisioning {
+	return CapRefreshProvisioning(capnp.Client{}.DecodeFromPtr(p))
+}
+
+func (c CapRefreshProvisioning) IsValid() bool {
+	return capnp.Client(c).IsValid()
+}
+
+// A CapRefreshProvisioning_Server is a CapRefreshProvisioning with a local implementation.
+type CapRefreshProvisioning_Server interface {
+	RefreshDeviceCert(context.Context, CapRefreshProvisioning_refreshDeviceCert) error
+}
+
+// CapRefreshProvisioning_NewServer creates a new Server from an implementation of CapRefreshProvisioning_Server.
+func CapRefreshProvisioning_NewServer(s CapRefreshProvisioning_Server) *server.Server {
+	c, _ := s.(server.Shutdowner)
+	return server.New(CapRefreshProvisioning_Methods(nil, s), s, c)
+}
+
+// CapRefreshProvisioning_ServerToClient creates a new Client from an implementation of CapRefreshProvisioning_Server.
+// The caller is responsible for calling Release on the returned Client.
+func CapRefreshProvisioning_ServerToClient(s CapRefreshProvisioning_Server) CapRefreshProvisioning {
+	return CapRefreshProvisioning(capnp.NewClient(CapRefreshProvisioning_NewServer(s)))
+}
+
+// CapRefreshProvisioning_Methods appends Methods to a slice that invoke the methods on s.
+// This can be used to create a more complicated Server.
+func CapRefreshProvisioning_Methods(methods []server.Method, s CapRefreshProvisioning_Server) []server.Method {
+	if cap(methods) == 0 {
+		methods = make([]server.Method, 0, 1)
+	}
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0x940570d71d747d70,
+			MethodID:      0,
+			InterfaceName: "hubapi/Provisioning.capnp:CapRefreshProvisioning",
+			MethodName:    "refreshDeviceCert",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.RefreshDeviceCert(ctx, CapRefreshProvisioning_refreshDeviceCert{call})
+		},
+	})
+
+	return methods
+}
+
+// CapRefreshProvisioning_refreshDeviceCert holds the state for a server call to CapRefreshProvisioning.refreshDeviceCert.
+// See server.Call for documentation.
+type CapRefreshProvisioning_refreshDeviceCert struct {
+	*server.Call
+}
+
+// Args returns the call's arguments.
+func (c CapRefreshProvisioning_refreshDeviceCert) Args() CapRefreshProvisioning_refreshDeviceCert_Params {
+	return CapRefreshProvisioning_refreshDeviceCert_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c CapRefreshProvisioning_refreshDeviceCert) AllocResults() (CapRefreshProvisioning_refreshDeviceCert_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapRefreshProvisioning_refreshDeviceCert_Results(r), err
+}
+
+// CapRefreshProvisioning_List is a list of CapRefreshProvisioning.
+type CapRefreshProvisioning_List = capnp.CapList[CapRefreshProvisioning]
+
+// NewCapRefreshProvisioning creates a new list of CapRefreshProvisioning.
+func NewCapRefreshProvisioning_List(s *capnp.Segment, sz int32) (CapRefreshProvisioning_List, error) {
+	l, err := capnp.NewPointerList(s, sz)
+	return capnp.CapList[CapRefreshProvisioning](l), err
+}
+
+type CapRefreshProvisioning_refreshDeviceCert_Params capnp.Struct
+
+// CapRefreshProvisioning_refreshDeviceCert_Params_TypeID is the unique identifier for the type CapRefreshProvisioning_refreshDeviceCert_Params.
+const CapRefreshProvisioning_refreshDeviceCert_Params_TypeID = 0xe07174b85cc1d213
+
+func NewCapRefreshProvisioning_refreshDeviceCert_Params(s *capnp.Segment) (CapRefreshProvisioning_refreshDeviceCert_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapRefreshProvisioning_refreshDeviceCert_Params(st), err
+}
+
+func NewRootCapRefreshProvisioning_refreshDeviceCert_Params(s *capnp.Segment) (CapRefreshProvisioning_refreshDeviceCert_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapRefreshProvisioning_refreshDeviceCert_Params(st), err
+}
+
+func ReadRootCapRefreshProvisioning_refreshDeviceCert_Params(msg *capnp.Message) (CapRefreshProvisioning_refreshDeviceCert_Params, error) {
+	root, err := msg.Root()
+	return CapRefreshProvisioning_refreshDeviceCert_Params(root.Struct()), err
+}
+
+func (s CapRefreshProvisioning_refreshDeviceCert_Params) String() string {
+	str, _ := text.Marshal(0xe07174b85cc1d213, capnp.Struct(s))
+	return str
+}
+
+func (s CapRefreshProvisioning_refreshDeviceCert_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapRefreshProvisioning_refreshDeviceCert_Params) DecodeFromPtr(p capnp.Ptr) CapRefreshProvisioning_refreshDeviceCert_Params {
+	return CapRefreshProvisioning_refreshDeviceCert_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapRefreshProvisioning_refreshDeviceCert_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapRefreshProvisioning_refreshDeviceCert_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapRefreshProvisioning_refreshDeviceCert_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapRefreshProvisioning_refreshDeviceCert_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapRefreshProvisioning_refreshDeviceCert_Params) CertPEM() (string, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.Text(), err
+}
+
+func (s CapRefreshProvisioning_refreshDeviceCert_Params) HasCertPEM() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapRefreshProvisioning_refreshDeviceCert_Params) CertPEMBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.TextBytes(), err
+}
+
+func (s CapRefreshProvisioning_refreshDeviceCert_Params) SetCertPEM(v string) error {
+	return capnp.Struct(s).SetText(0, v)
+}
+
+// CapRefreshProvisioning_refreshDeviceCert_Params_List is a list of CapRefreshProvisioning_refreshDeviceCert_Params.
+type CapRefreshProvisioning_refreshDeviceCert_Params_List = capnp.StructList[CapRefreshProvisioning_refreshDeviceCert_Params]
+
+// NewCapRefreshProvisioning_refreshDeviceCert_Params creates a new list of CapRefreshProvisioning_refreshDeviceCert_Params.
+func NewCapRefreshProvisioning_refreshDeviceCert_Params_List(s *capnp.Segment, sz int32) (CapRefreshProvisioning_refreshDeviceCert_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[CapRefreshProvisioning_refreshDeviceCert_Params](l), err
+}
+
+// CapRefreshProvisioning_refreshDeviceCert_Params_Future is a wrapper for a CapRefreshProvisioning_refreshDeviceCert_Params promised by a client call.
+type CapRefreshProvisioning_refreshDeviceCert_Params_Future struct{ *capnp.Future }
+
+func (p CapRefreshProvisioning_refreshDeviceCert_Params_Future) Struct() (CapRefreshProvisioning_refreshDeviceCert_Params, error) {
+	s, err := p.Future.Struct()
+	return CapRefreshProvisioning_refreshDeviceCert_Params(s), err
+}
+
+type CapRefreshProvisioning_refreshDeviceCert_Results capnp.Struct
+
+// CapRefreshProvisioning_refreshDeviceCert_Results_TypeID is the unique identifier for the type CapRefreshProvisioning_refreshDeviceCert_Results.
+const CapRefreshProvisioning_refreshDeviceCert_Results_TypeID = 0xdb45b32e421221f7
+
+func NewCapRefreshProvisioning_refreshDeviceCert_Results(s *capnp.Segment) (CapRefreshProvisioning_refreshDeviceCert_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapRefreshProvisioning_refreshDeviceCert_Results(st), err
+}
+
+func NewRootCapRefreshProvisioning_refreshDeviceCert_Results(s *capnp.Segment) (CapRefreshProvisioning_refreshDeviceCert_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapRefreshProvisioning_refreshDeviceCert_Results(st), err
+}
+
+func ReadRootCapRefreshProvisioning_refreshDeviceCert_Results(msg *capnp.Message) (CapRefreshProvisioning_refreshDeviceCert_Results, error) {
+	root, err := msg.Root()
+	return CapRefreshProvisioning_refreshDeviceCert_Results(root.Struct()), err
+}
+
+func (s CapRefreshProvisioning_refreshDeviceCert_Results) String() string {
+	str, _ := text.Marshal(0xdb45b32e421221f7, capnp.Struct(s))
+	return str
+}
+
+func (s CapRefreshProvisioning_refreshDeviceCert_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapRefreshProvisioning_refreshDeviceCert_Results) DecodeFromPtr(p capnp.Ptr) CapRefreshProvisioning_refreshDeviceCert_Results {
+	return CapRefreshProvisioning_refreshDeviceCert_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapRefreshProvisioning_refreshDeviceCert_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapRefreshProvisioning_refreshDeviceCert_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapRefreshProvisioning_refreshDeviceCert_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapRefreshProvisioning_refreshDeviceCert_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapRefreshProvisioning_refreshDeviceCert_Results) Status() (ProvisionStatus, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return ProvisionStatus(p.Struct()), err
+}
+
+func (s CapRefreshProvisioning_refreshDeviceCert_Results) HasStatus() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapRefreshProvisioning_refreshDeviceCert_Results) SetStatus(v ProvisionStatus) error {
+	return capnp.Struct(s).SetPtr(0, capnp.Struct(v).ToPtr())
+}
+
+// NewStatus sets the status field to a newly
+// allocated ProvisionStatus struct, preferring placement in s's segment.
+func (s CapRefreshProvisioning_refreshDeviceCert_Results) NewStatus() (ProvisionStatus, error) {
+	ss, err := NewProvisionStatus(capnp.Struct(s).Segment())
+	if err != nil {
+		return ProvisionStatus{}, err
+	}
+	err = capnp.Struct(s).SetPtr(0, capnp.Struct(ss).ToPtr())
+	return ss, err
+}
+
+// CapRefreshProvisioning_refreshDeviceCert_Results_List is a list of CapRefreshProvisioning_refreshDeviceCert_Results.
+type CapRefreshProvisioning_refreshDeviceCert_Results_List = capnp.StructList[CapRefreshProvisioning_refreshDeviceCert_Results]
+
+// NewCapRefreshProvisioning_refreshDeviceCert_Results creates a new list of CapRefreshProvisioning_refreshDeviceCert_Results.
+func NewCapRefreshProvisioning_refreshDeviceCert_Results_List(s *capnp.Segment, sz int32) (CapRefreshProvisioning_refreshDeviceCert_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[CapRefreshProvisioning_refreshDeviceCert_Results](l), err
+}
+
+// CapRefreshProvisioning_refreshDeviceCert_Results_Future is a wrapper for a CapRefreshProvisioning_refreshDeviceCert_Results promised by a client call.
+type CapRefreshProvisioning_refreshDeviceCert_Results_Future struct{ *capnp.Future }
+
+func (p CapRefreshProvisioning_refreshDeviceCert_Results_Future) Struct() (CapRefreshProvisioning_refreshDeviceCert_Results, error) {
+	s, err := p.Future.Struct()
+	return CapRefreshProvisioning_refreshDeviceCert_Results(s), err
+}
+
+func (p CapRefreshProvisioning_refreshDeviceCert_Results_Future) Status() ProvisionStatus_Future {
+	return ProvisionStatus_Future{Future: p.Future.Field(0, nil)}
+}
+
+const schema_9579ece206ee504b = "x\xda\xacV\x7fhU\xe5\x1b\x7f\x9e\xf7=g\xe7\x1e" +
+	"\xd8t\xef\xf7L\xf8\xa6\xd9P\x16\xa91\xdb\x9c\x92J" +
+	"\xb2\xdd\xcd!\xd3\x86\xe7\xdci\x98(tv\xef\xeb\xbc" +
+	"\xb0\x1fw\xe7\x9c\xbbZPR\xa6\xb1\x91\x05\x96\x14F" +
+	"\x05\x92\x04ATZ\x96\xd9\xc4\xfcQ&\x05*eF" +
+	"V\xba\xb2RLQ\x12#\x8c\x13\xef9;gg\xbb" +
+	"\x9b\xde\x96\xff\x1d\xce\xf3y\x9f\x1f\x9f\xe7g\xc5\x9f\xb4" +
+	"F\xaa,zC\x05bd\xe4\x02\xb7\xe7\xe5\x93\x07\x9d" +
+	"\xfeg\xd6\x03\xab@\x00I\x01\xa8\xda-\xcd\" \xb9" +
+	";_\x8a\xa7\xce\xaf~\xfc\xa9\x88\xe4])!$\xbd" +
+	"\xb37\xef\xdd\xbf\xe3R/\xb0\x19\x81\xe4-\xa9VH" +
+	"\x8e\xbdX6\xa9\xe1\x95\x03\xcf\xfaod\x14\xa2\xed\xd2" +
+	"\x0c\x02\xa8\xf5I\xd5\x80n\xe61g\xf27\x19\xf9\x05" +
+	"`\x13\xa9\xbbD\xbfX\xd0\x7f\xa1{\x0b\x00V]\x96" +
+	"zQSe\x05@\x93\xe5E\xda\x1c\xf1\xe5\xeeMV" +
+	"\x1d\xb9\xa4\xd8;r\xd0\x93\xe5\x04j\x95\x1e\xba\\\xfe" +
+	"L\xeb\xf3\xd0w(\x17\xc7o\xdf$}0\xc4\xb8<" +
+	"\xcb3.\x0b\xe3\x7f}\xbf\xe1\x97\xe2\x13\xea\x10\xc0\x19" +
+	"y\xa5\x00\xfc\xed\x01\xcaR_\x97\xef\xdawj\x0f\xb0" +
+	"J\x01\xa0\x02PY\xb0Y\x00\x8c\x82\xb7\x01\xdd\xd7O" +
+	"\xde\xfd\xc0\xfa\xdd\x15\xfbr\x1c\xbaZ\xd0\x8bZ\x91\"" +
+	"\x1cR\x95E\xda\x02\xf1\xe5~\xba*\xb5\xfb\xda\x02\xe7" +
+	"\xc0\x80:\xcf\xde\x9d\xcaV\xa1\xae^\x11\xf6\xf6\xbc\xb6" +
+	"\xff\x87\xdb\xfa\x8e\x1c\xcaQ\xc7\x95'Q\xeb\x16J\xaa" +
+	"\xb2\x8a\x82ZyL\xe8\xdb\xa2\xd8\xca\x8a\xe5\xf3ND" +
+	"x\x9f\x10\xf3x\xbf6\xe5\x7f\xb53w\xd6\x7f\x17\xb5" +
+	"T\x14\xf3\"\x9b\x1e\x13\x96\x1a{\x8f\xc5\xcf\xael;" +
+	"\x1dIf\x83\x90K\xaev\xfc\x93U\x1f:\x9d\xa7\xa3" +
+	"O\xebc\x09\xf1\xd4\xf4\x9e\xceP\xf5\xb9\xad\x13Z\xfb" +
+	"#O\x9f\x88\xcd\x17O\xb7\xc5\x7f\x8c\xf7=\xbd\xfa\xa7" +
+	"(\x9f\xdd\xb1f\xf1t\x8b\xf7\xf4\xc2\xc6i\xbb~=" +
+	"\xba\xecw\xdfa\x1f\xf0yl\xb1\x00\x9c\xf5\x00\xda\xa1" +
+	"s=M\xcfo\xba\x12\x05\xc8\xaa\x07\x98\xa2\x0a\xc0\xf1" +
+	"+s\x95w\xbe \x7fD\x01q\xb5V\x00\x1e\xf4\x00" +
+	"\x17_e\x13\xf6\xdc\xf5\xc8U`\x13q\x90B\x99x" +
+	"\xbe\xa8SQ\xebQER6\xa8\x0f\x03\xba\xf36N" +
+	":w\x9e\xde{=B\xe09\xd5\x0b%\xf5\xe6oK" +
+	"\xfbw\xf6\\\x07c\"F\xf5\xc8^\x8d\xa8\x09\xd4\xae" +
+	"\x0a=U\x97\xd5\xe7\x10\xca\xdd\xb5\xd9f3\x93\xbeG" +
+	"W\xac\x8e\xae\xb4\x9d\xeehO\xb7\xb7\xccL\x9a\x99\xf6" +
+	"\xcc\xfc:3\xd3h\xb6\x9b-\\\x8f\xca\xccTj\xe9" +
+	"\xd2\xda&\x9e\xb4\xb8c\x97%x\xa9\x9dmu\xecP" +
+	"O,_=-\xdc\xd1y{*\xdd\xde\x92\xe0\x9dY" +
+	"n;v\x99nZf\x1b\x0e\xea*\x1eQ\x97>\xec" +
+	"o\x82\xaf\xb1\xb8\xbd6\xfa\xdb\xd7dC\xa0hl\xb1" +
+	"\xe9\xe6x\xa1\xc5\x90\xa8\x04 !\x00+Z\x09`\x14" +
+	"R4\xa6\x11t;:\x9a=$P\xc7\xc6q\x80:" +
+	"E,\x1e\xcc\"\xa0\xf8\x19\xc6\"\x8f\xe8\xc3\x08\xbe\x03" +
+	"\xe8\x88\x86De\x80\xb0\xa21\xe8\x0a\xc66\x03aE" +
+	"\x8ak\xf9\x0f\x17\"\xefJ'y\x1d\xb7\xd0\xa9A\x1d" +
+	"\x07\xedI7\xe3\x0e[\x84\x9dB\xcfNPM\x18\x14" +
+	")3v\x00a\x8d\x0ab\xd8\xaa\x18T8\x8b\x7f\x04" +
+	"\x84-P\x90\x84\xe3\x13\x83\xf6`\x95BV\xae\xb8\xc9" +
+	"\x01~1 \xb8\xd4\xf3\xa4\x06]/c\x9dY\x8e\xb6" +
+	"\xe3\x8b\xaa\xd3CDk,\x8e\x01#\xa1(\x1aY\xfe" +
+	"\x95\x9a\xc9X\x1d]|\xa0\xbc\xca\xf4Rsx:\x17" +
+	"\x0f\xa4\xf3\xff\x04\xdd\x94\xc7d\xc3B\x00\xc0B X" +
+	"\x18I\xde\x7f)\xea\x04\xb7\xb3\xad\xd4\x19\xd1\xae(#" +
+	"k\x00(\xec\x86U\x146\xf1\xb0*RG\xa9\"O" +
+	"\xc5\x10O\xecls[z\xc8\xaf\x90\x07\xbf\xcb\x8c\xc2" +
+	"\xd0\x9fz\xe1\xcfB\x8a\x86N\x90!\x96\xa0\xf8\xd9\x98" +
+	"\x000\xee\xa7h\xac \xc8\x08)A\x02\xc0\x96\x8b\x9f" +
+	"\xcb(\x1a\x0f\x8d\xc2X[j\x8e\xdf\x14\xe8\x84\xff2" +
+	"\xd9\xe6%\xbc[\xaf\x07l\xccaV\xce7\xa0h[" +
+	"\x04\xcb\x0d\x83\xb5\xc4\xd8q \x8c)n\x105\x19\x1e" +
+	"\xf6\xf0\xf6\xb8\x15D\x8e\x94\xd9\xf9\x00F\x8c\xa2QB" +
+	"\xb0\xdavL'k\x0f\xcbf\xf1M\x83\xcf-+/" +
+	"\xf4b/\xf4\xe0,\xc1\xe0\xdaa\x9d\x16\x10\x96\x16\x9d" +
+	"\x1a\\\x0d\x18\xec9\xb6\xfaQ l\xb9\xe8\xd4`k" +
+	"b\xb0\xe9X\xc36 \xac^A\x1a\x9eG\x18\\\x15" +
+	"l\xdeV l\x8e\xe2\x06\xf3\x10J\xbd\x89X\x83n" +
+	"\xd0SP\xed\x93P\x83n\x0bw\xe2\xe2/v\xf1\x94" +
+	"G\x8db{\xd0\xa0\x170`\x8c\x8a\xdf\xd1$\xb0<" +
+	"\xe7{NR\xf2\x9a\xef#\xcc\xd6\x99\xc1\xd8\x0c\xa6\xe6" +
+	"-H\xe2\xbf\x99\x0dq\x9f\xbd\xd4\x90\x8dG\xdbn\xb6" +
+	"=\xf3\x8b$\xe8\xebH \xb5\x83\x81\xacKr\xcb\xd1" +
+	"\xebs;p\xac\xe34Q\xcd\xc7\xbe\xf9s\x88\x10i" +
+	"PZo\xd1\x94\x8c\x8d\xf9nH\xf81\x01D\xfd\x98" +
+	":\xc8\xa2\x9243\xc8\x06o\x7f@dc0\x9c[" +
+	"\xd0y\x1a\x0e\xaf\xf61\x19\xce\xcdEh\xf7\xc6f\xc3" +
+	"\xeb~\x98Y\x9ak\xd6\xbf\x9f\x14\x8b;bh\xc5B" +
+	"\xad\xd3E6\xa7Q4fGvL\xa5X'\x15\x14" +
+	"\x8d\xfbFY'\xe1\x8d\x15Y'7.\xdc<b\xae" +
+	"\xf6\xa7\xc7\x8dN\xa5\x10\xdf$\xda\x1fm\x11\xcb\xeda" +
+	",\xef\x8bX\xde\xa3h\xec\x8b\xc4\xd2'b\xf9\x98\xa2" +
+	"q8\xb2/\x0fY\x00\xc6A\x8a\xc6Q\x82HK\x90" +
+	"\x02\xb0/EW\x1e\xa6h|E\x90I\xb4\x04%\x00" +
+	"vL\xbc>J\xd18E\x90\x15`\x09\xca\x88\xec[" +
+	"a\xe7$E\xe3g\x82L\x96J\xb0\x00\x80\x9di\x06" +
+	"0NS4.\x8c\xc2Y\xd2\xac\xf3Z=\xban\x93" +
+	"\xadi\xde\xee\xd4q(\x1d2\x04\xd6e\xfcc\x05\x11" +
+	"\x08\xe2(\xab\xda\xe2\x8e\xd5\xdd\xc4\x93\xc2\x86\x04\xa4R" +
+	"*\x1e\x07aC.\x03%\xdd\xc6\x03\xec?\x01\x00\x00" +
+	"\xff\xffU'\xcbK"
 
 func init() {
 	schemas.Register(schema_9579ece206ee504b,
-		0x88ead591abf22555,
-		0x99139c5b2ee414a9,
-		0xa8996f4bd778d1c8,
-		0xa9c64aa83f676e8e,
-		0xae899e65f380792e,
+		0x838ce274c4d89b89,
+		0x847e5dea644198b3,
+		0x8aefb2c2be92348a,
+		0x8ec39d491b2497d1,
+		0x940570d71d747d70,
 		0xb27307efca3363be,
-		0xb6144cb273a6f287,
-		0xb6be4b5227a76e87,
-		0xcb11311a734d1743,
-		0xcea99610b5414861,
-		0xceaa1cf884e71a63,
-		0xd1d2cfc883c4c801,
+		0xb7048da50fee071e,
+		0xb709d610e685ddfa,
+		0xbbdcc0b62dd56424,
+		0xc030b983562bd8a4,
+		0xc3743df7b9645cc6,
+		0xc5cabd19dec29fbb,
 		0xd639555807730795,
-		0xd87ad476e0b8d0e2,
-		0xdaa467c368159225,
-		0xdf3cfb656f3f6b3b,
-		0xe5e35c7394e86351,
-		0xe75ad003f3dfad45,
+		0xdb45b32e421221f7,
+		0xe06d5ae541d18a4d,
+		0xe07174b85cc1d213,
+		0xe26c156c3850092a,
+		0xe35d87bd41df41a2,
+		0xed54d0e7b62886ec,
 		0xf28d935389e9c513,
 		0xf402ccb00738f2d2,
 		0xf57827bb15119eee,
-		0xfc3703eae91b8639)
+		0xfc3703eae91b8639,
+		0xfc89b3e24fe8aa64)
 }

@@ -16,45 +16,27 @@ struct OOBSecret {
     # The OOB secret of the device, 
 }
 
-
-struct ProvisionRequest {
-    # ProvisionRequest holds the data of a provisioning request
-
-    deviceID @0 :Text;
-    # deviceID must be unique for the local network. 
-
-    mac @1 :Text;
-    # mac is the IoT device/service MAC address
-
-    secretMD5 @2 :Text;
-    # secretMD5 is the MD5 hash of the out-of-band secret if available. Use "" for manual approval
-
-    pubKeyPEM @3 :Text;
-    # pubKeyPEM is the public key of the IoT device, used to generate the client certificate.
-}
-
-
-struct ProvisionResponse {
-    # Struct holding the response to a provisioning request
+struct ProvisionStatus {
+    # Struct holding the status of a provisioning request
 
     deviceID @0 :Text;
     # deviceID of the request
 
     caCertPEM @1 :Text;
-    # CA's certificate used to handle the request, in PEM format.
+    # CA's certificate for future secure TLS connections, in PEM format.
 
     clientCertPEM @2 :Text;
     # The issued client certificate, if approved, in PEM format.
     # This is empty if the request is pending.
 
     pending @3 :Bool;
-    # The request is pending approval, wait the recommended retrySec before retrying.
+    # The request is pending approval, wait retrySec seconds before retrying.
 
     pubKeyPEM @4 :Text;
     # pubKeyPEM is the public key of the IoT device, used to generate the client certificate.
 
     requestTime @6 :Text;
-    # ISO8601 timestamp when the request was received. This is set by the service.
+    # ISO8601 timestamp when the request was received. Used to expire requests.
 
     retrySec @5 :Int32  = 3600;
     # Recommended delay before retrying if the request is pending
@@ -63,39 +45,49 @@ struct ProvisionResponse {
 interface CapProvisioning {
 # Capabilities for provisioning of IoT devices
 
-    capProvisionManagement @0 () -> (cap :CapProvisionManagement);
+    capManageProvisioning @0 () -> (cap :CapManageProvisioning);
     # getManagementCapability provides the capability to manage provisioning requests
 
-    capProvisionRequest @1 () ->(cap :CapProvisionRequest);
+    capRequestProvisioning @1 () ->(cap :CapRequestProvisioning);
     # getRequestCapability provides the capability to provision IoT devices
+
+    capRefreshProvisioning @2 () ->(cap :CapRefreshProvisioning);
+    # getRequestCapability provides the capability to provision IoT devices
+    # The request must be made with a valid certificate and is only valid for a matching deviceID.
 }
 
-interface CapProvisionManagement {
+interface CapManageProvisioning {
 # Capability to manage provisioning requests and OOB secrets
 
-    addOOBSecret @0 (oobSecrets:List(OOBSecret)) -> ();
+    addOOBSecrets @0 (oobSecrets:List(OOBSecret)) -> ();
     # Add a list of OOB secrets for automated pre-approved provisioning
 
     approveRequest @1 (deviceID:Text) -> ();
     # Approve a pending request for the given device ID
 
-    getApprovedRequests @2 () -> (requests :List(ProvisionResponse));
+    getApprovedRequests @2 () -> (requests :List(ProvisionStatus));
     # GetApprovedRequests returns a list of provisioned devices
 
-    getPendingRequests @3 () -> (requests :List(ProvisionResponse));
+    getPendingRequests @3 () -> (requests :List(ProvisionStatus));
     # GetPendingRequests returns a list of pending provisioning requests
 }
 
-interface CapProvisionRequest {
-# Capability to issue provisioning requests and certificate renewal
+interface CapRequestProvisioning {
+# Capability to request IoT device provisioning and receive a certificate
 
-    submitProvisioningRequest @0 (provRequest:ProvisionRequest) -> (provResp:ProvisionResponse);
+    submitProvisioningRequest @0 (deviceID :Text, md5Secret :Text, pubKeyPEM :Text) -> (status:ProvisionStatus);
     # IoT device submits a provisioning request with the MD5 hash of the out-of-band secret
     # If the deviceID and MD5 hash of the secret match with previously uploaded secrets then the
-    # request will be approved immediately.
+    # request will be approved immediately, otherwise a pending request will be created.
 
-    refreshDeviceCert @1 (deviceID:Text, pubKeyPEM:Text) -> (provResp :ProvisionResponse);
+}
+
+interface CapRefreshProvisioning {
+# Capability to refresh an existing IoT device certificate
+# This is only available to IoT devices with an existing valid certificate.
+
+    refreshDeviceCert @0 (certPEM:Text) -> (status :ProvisionStatus);
     # Refresh the device certificate and return a certificate with a new expiry date
-    # This will only succeed if the request is made with a valid certificate.
-
+	# If the certificate is still valid this will succeed. If the certificate is expired
+	# then the request must be approved by the administrator.
 }

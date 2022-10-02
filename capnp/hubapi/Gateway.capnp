@@ -16,7 +16,7 @@ interface Gateway {
     login @0 (clientID:Text, password:Text) -> (cap :ClientCapabilities);
     # Login to the gateway and obtain the capabilities to use the gateway
 
-    capProvisionRequest @1 () -> (cap :Provisioning.CapProvisionRequest);
+    capRequestProvisioning @1 () -> (cap :Provisioning.CapRequestProvisioning);
     # obtain capability to request provisioning
     # intended for use by IoT devices
 }
