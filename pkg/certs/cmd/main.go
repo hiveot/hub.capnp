@@ -49,7 +49,7 @@ func main() {
 	lis := listener.CreateServiceListener(ServiceName)
 	_ = lis
 
-	logrus.Infof("CertServiceCapnpServer starting on %s", lis.Addr())
+	logrus.Infof("CertServiceCapnpServer starting on: %s", lis.Addr())
 	svc := selfsigned.NewSelfSignedCertsService(caCert, caKey)
 	_ = capnpserver.StartCertsCapnpServer(context.Background(), lis, svc)
 }

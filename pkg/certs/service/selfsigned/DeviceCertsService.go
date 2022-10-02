@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"crypto/x509"
+	"fmt"
 
 	"github.com/sirupsen/logrus"
 
@@ -45,7 +46,9 @@ func (srv *DeviceCertsService) CreateDeviceCert(
 
 	logrus.Infof("deviceID='%s' pubKey='%s'", deviceID, pubKeyPEM)
 	pubKey, err := certsclient.PublicKeyFromPEM(pubKeyPEM)
-	if err == nil {
+	if err != nil {
+		err = fmt.Errorf("public key for '%s' is invalid: %s", deviceID, err)
+	} else {
 		cert, err = srv._createDeviceCert(deviceID, pubKey, durationDays)
 	}
 	if err == nil {

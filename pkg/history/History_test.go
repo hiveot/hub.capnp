@@ -64,7 +64,7 @@ func newStore(useCapnp bool) history.IHistory {
 		lis, _ := net.Listen("unix", testAddress)
 		go capnpserver.StartHistoryCapnpServer(context.Background(), lis, store)
 
-		cl, err := capnpclient.NewHistoryStoreCapnpClient(testAddress, true)
+		cl, err := capnpclient.NewHistoryCapnpClient(testAddress, true)
 		if err != nil {
 			logrus.Fatalf("Failed starting capnp client: %s", err)
 		}

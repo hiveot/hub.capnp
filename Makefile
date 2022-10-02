@@ -7,23 +7,23 @@ INSTALL_HOME=~/bin/hiveot
 
 all: certservice directorystore historystore provisioning hubcli gateway  ## Build all services
 
-certservice: .FORCE ## Build the certificate management service
-	go build -o $(DIST_FOLDER)/bin/$@ ./pkg/certservice/*.go
+certs: .FORCE ## Build the certificate management service
+	go build -o $(DIST_FOLDER)/bin/$@ ./pkg/certservice/cmd/main.go
 
-directorystore: .FORCE ## Build the Thing directory store
-	go build -o $(DIST_FOLDER)/bin/$@ ./pkg/directorystore/main.go
+directory: .FORCE ## Build the Thing directory store
+	go build -o $(DIST_FOLDER)/bin/$@ ./pkg/directory/cmd/main.go
 
 gateway: .FORCE ## Build the Hub gateway
 	go build -o $(DIST_FOLDER)/bin/$@ ./pkg/gateway/main.go
 
-historystore: .FORCE ## Build the Thing value history store
-	go build -o $(DIST_FOLDER)/bin/$@ ./pkg/historystore/main.go
+history: .FORCE ## Build the Thing value history store
+	go build -o $(DIST_FOLDER)/bin/$@ ./pkg/history/main.go
 
 hubcli: .FORCE ## Build Hub CLI
 	go build -o $(DIST_FOLDER)/bin/$@ ./cmd/hubcli/main.go
 
 provisioning: .FORCE ## Build Hub provisioning service
-	go build -o $(DIST_FOLDER)/bin/$@ ./pkg/provisioningservice/main.go
+	go build -o $(DIST_FOLDER)/bin/$@ ./pkg/provisioning/main.go
 
 
 
