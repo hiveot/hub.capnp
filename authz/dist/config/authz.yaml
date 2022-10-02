@@ -1,4 +1,0 @@
-# Authentication service configuration
-
-# name or location of the ACL file
-#aclfilename = "hub.acl"   # default is hub.acl

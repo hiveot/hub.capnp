@@ -10,7 +10,9 @@
     <orderEntry type="module" module-name="libserve-go" />
     <orderEntry type="module" module-name="owserver-pb" />
     <orderEntry type="module" module-name="auth" />
-    <orderEntry type="module" module-name="thingdir" />
-    <orderEntry type="module" module-name="wost-go" />
+    <orderEntry type="module" module-name="hub.go" />
+    <orderEntry type="module" module-name="hub.grpc" />
+    <orderEntry type="module" module-name="hub.capnp" />
+    <orderEntry type="module" module-name="hub.go" />
   </component>
 </module>

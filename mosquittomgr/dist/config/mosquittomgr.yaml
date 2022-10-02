@@ -1,9 +1,0 @@
-# Mosquitto manager configuration
-
-#clientID: "mosquittomgr"
-
-# Mosquitto template file
-#mosquittoTemplateFile: "mosquitto.conf.template"
-
-# Mosquitto generated config file
-#mosquittoConfFile: "mosquitto.conf"

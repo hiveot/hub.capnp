@@ -2,7 +2,8 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../owserver-pb" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/../wost-go" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../hub.capnp" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/../hub.go" vcs="Git" />
   </component>
 </project>

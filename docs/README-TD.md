@@ -1,63 +1,41 @@
-# WoST use of the TD - under development
+# HiveOT use of the TD - under development
 
-WoST intends to be compliant with the WoT Thing Description specification.
-The latest known draft at the time of writing
-is [Mar 2022](https://www.w3.org/TR/wot-thing-description11/#thing)
+HiveOT intends to be compliant with the WoT Thing Description specification.
+The latest known draft at the time of writing is [Mar 2022](https://www.w3.org/TR/wot-thing-description11/#thing)
 
-Interpreting this specification is done as a best effort. In case where discrepancies are reported
-they will be corrected when possible as long as they do not conflict with the WoST core paradigm
-of 'Things do not run servers'.
+Interpreting this specification is done as a best effort. In case where discrepancies are reported they will be corrected when possible as long as they do not conflict with the HiveOT core paradigm of 'Things do not run servers'.
 
-The WoT specification is closer to a framework than an application. As such it doesn't dictate how
-an application should use it. This document describes how the WoST information model and behavior
-maps to the WoT TD.
+The WoT specification is closer to a framework than an application. As such it doesn't dictate how an application should use it. This document describes how the HiveOT information model and behavior maps to the WoT TD.
 
-# WoST IoT Device Model
+# HiveOT IoT Device Model
 
 ## I/O Devices, Gateways and Publishers are IoT 'Things'
 
-Most IoT devices are pieces of hardware that have embedded software that manages its behavior.
-Virtual IoT devices are build with software only but are otherwise considered identical to hardware
-devices.
+Most IoT devices are pieces of hardware that have embedded software that manages its behavior. Virtual IoT devices are build with software only but are otherwise considered identical to hardware devices.
 
-IoT devices often fulfill multiple roles: a part provides network access, a part provides access to
-inputs and outputs, a part reports its state, and a part that manages its configuration.
+IoT devices often fulfill multiple roles: a part provides network access, a part provides access to inputs and outputs, a part reports its state, and a part that manages its configuration.
 
-WoST makes the following distinction based on the primary role of the device. These are identified
-by their device type:
+HiveOT makes the following distinction based on the primary role of the device. These are identified by their device type:
 
-* A gateway is a Thing that provides access to other independent Things. A Z-Wave controller
-  USB-stick is a gateway that uses the Z-Wave protocol to connect to I/O devices. A gateway is
-  independent of the Things it provides access to and can have its own inputs or outputs. Gateways
-  are often used when integrating with non-WoST Things.
-* A publisher is a Thing that publishes other Thing information to the WoST Hub. Publishers have
-  their own ID that is included as part of the Thing ID of all Things that it publishes. A publisher
-  has by default authorization to publish and subscribe to the things it is the publisher of.
-  Publishers often are services that convert between the WoT/WoST standards and a native protocol.
-* An I/O device is Thing whose primary role is to provide access to inputs and outputs and has its
-  own attributes and configuration. In case of hybrid hardware where attributes and configuration
-  are managed by a parent device then the inputs and outputs are also considered to be part of the
-  parent device.
+* A gateway is a Thing that provides access to other independent Things. A Z-Wave controller USB-stick is a gateway that uses the Z-Wave protocol to connect to I/O devices. A gateway is independent of the Things it provides access to and can have its own inputs or outputs. Gateways are often used when integrating with non-HiveOT Things.
+* A publisher is a Thing that publishes other Thing information to the HiveOT Hub. Publishers have their own ID that is included as part of the Thing ID of all Things that it publishes. A publisher has by default authorization to publish and subscribe to the things it is the publisher of. Publishers often are services that convert between the WoT/HiveOT standards and a native protocol.
+* An I/O device is Thing whose primary role is to provide access to inputs and outputs and has its own attributes and configuration. In case of hybrid hardware where attributes and configuration are managed by a parent device then the inputs and outputs are also considered to be part of the parent device.
 * A Hub bridge is a device that connects two Hubs and shares Thing information between them.
 
 ## Thing Description Document (TD)
 
-The Thing Description document is
-a [W3C WoT standard](https://www.w3.org/TR/wot-thing-description11/#thing) to describe Things. TDs
-that are published on the Hub MUST adhere to this standard and use the JSON representation format.
+The Thing Description document is a [W3C WoT standard](https://www.w3.org/TR/wot-thing-description11/#thing) to describe Things. TDs that are published on the Hub MUST adhere to this standard and use the JSON representation format.
 
-The TD consists of a set of attributes and properties that WoST uses to describe WoST things and
-their capabilities.
+The TD consists of a set of attributes and properties that HiveOT uses to describe HiveOT things and their capabilities.
 
 ## TD Attributes
 
-TD Attributes that WoST uses are as follows. Attributes marked here as optional in WoT are
-recommended in WoST:
+TD Attributes that HiveOT uses are as follows. Attributes marked here as optional in WoT are recommended in HiveOT:
 
 | name               | mandatory | description                                    |
 |--------------------|-----------|------------------------------------------------|
 | @context           | mandatory | "http://www.w3.org/ns/td"                      |
-| id                 | mandatory | Unique Thing ID following the WoST ID format   |
+| id                 | mandatory | Unique Thing ID following the HiveOT ID format   |
 | title              | mandatory | Human readable description of the Thing        |
 | modified           | optional  | ISO8601 date this document was last updated    |
 | properties         | optional  | Attributes and Configuration objects           |
@@ -69,19 +47,19 @@ recommended in WoST:
 
 note1: Consumers do not connect directly to the IoT device and authentication & authorization is
 handled by the Hub services. As a result the security definitions in the TD depend on the method
-used to access the WoST service, not the IoT device.
+used to access the HiveOT service, not the IoT device.
 
-* WoST compatible IoT devices can simply use the 'nosec' security type when creating their TD and
+* HiveOT compatible IoT devices can simply use the 'nosec' security type when creating their TD and
   use a NoSecurityScheme as securityDefinition.
 * Consumers, which access devices via 'Consumed Things', only need to know how connect to the Hub
-  services and MQTT message bus. No knowledge of the IoT device protocol is needed.
+  services. No knowledge of the IoT device protocol is needed.
 
-## WOST Thing ID Format
+## HiveOT Thing ID Format
 
 All Things have an ID that is unique to the Hub. To support uniqueness, authorization, and sharing
-with other Hubs, a WoST ID is constructed as follows:
+with other Hubs, a HiveOT ID is constructed as follows:
 
-> WoST compatible IoT devices publish their 'Thing' with the following ID:
+> HiveOT compatible IoT devices publish their 'Thing' with the following ID:
 > urn:{zone}/{deviceID}/{deviceType}
 
 > Protocol binding or services that publish multiple 'Things', for example a ZWave protocol binding,
@@ -93,17 +71,17 @@ with other Hubs, a WoST ID is constructed as follows:
   that shares Things from another Hub will change the zone of of the shared Things to that of the
   bridge domain.
 * {publisherID} is the deviceID of the IoT device that provides access to a Thing. It must be unique
-  on the Hub it is publishing to. Publishers MUST be WoST compliant and implement the WoT/WoST
+  on the Hub it is publishing to. Publishers MUST be HiveOT compliant and implement the WoT/HiveOT
   standard.
   IoT devices that publish their own Thing can omit the publisher. In that case the publisherID and
   deviceID are the same and must be unique on the Hub.
 * {deviceID} is the ID of the hardware or software Thing being accessed. It must be unique on the
   publisher that is publishing it. In case of protocol bindings this is the ID of the original
   protocol.
-  In case of a WoST compatible IoT Device this can be a mac address or other locally unique feature
+  In case of a HiveOT compatible IoT Device this can be a mac address or other locally unique feature
   of the device.
 * {deviceType} is the type of Thing as defined in
-  the [WoST vocabulary](https://github.com/wostzone/wost-go/blob/pkg/vocab/IoTVocabulary.go). See
+  the [HiveOT vocabulary](https://github.com/hiveot/hub.go/blob/pkg/vocab/IoTVocabulary.go). See
   the constants with prefix DeviceType. It describes the primary role of the device.
 
 When integrating with 3rd party systems that use a URI as the ID, the ID can be used as-is. If
@@ -125,7 +103,7 @@ a sub-class of
 an [interaction affordance](https://www.w3.org/TR/wot-thing-description11/#interactionaffordance)
 and [dataschema](https://www.w3.org/TR/wot-thing-description11/#dataschema).
 
-WoST uses the following attributes to describe properties.
+HiveOT uses the following attributes to describe properties.
 
 | Attribute   | WoT       | description                                                               |
 |-------------|-----------|---------------------------------------------------------------------------|
@@ -133,7 +111,7 @@ WoST uses the following attributes to describe properties.
 | type        | optional  | data type: string, number, integer, boolean, object, array, or null       |
 | title       | optional  | Human description of the attribute.                                       |
 | description | optional  | In case a more elaborate description is needed for humans                 |
-| forms       | mandatory | Tbd. WoST uses a standard MQTT address format for all operations          | 
+| forms       | mandatory | Tbd.                                                                      |  
 | value       | optional  | Value of the attribute.                                                   |
 | minimum     | optional  | Minimum range value for numbers                                           |
 | maximum     | optional  | Maximum range value for numbers                                           |
@@ -147,17 +125,17 @@ Notes:
 
 1. Property names are standardized as part of the vocabulary so consumers can understand their
    purpose.
-2. WoT specifies Forms to define the protocol for operations. In WoST all operations operate via a
+2. WoT specifies Forms to define the protocol for operations. In HiveOT all operations operate via a
    message bus with a simple address scheme. There is therefore no need for Forms. In addition,
    requiring a Forms section in every single property description causes unnecessary bloat that
    needs to be generated, parsed and stored by exposed and consumed things.
-3. In WoST the namespace for properties, events and actions is shared to avoid ambiguity. A change
+3. In HiveOT the namespace for properties, events and actions is shared to avoid ambiguity. A change
    in property value can lead to an event with the property name. Writing a property value is done
    with an action of the same name. (the WoT group position on this is unknown. Is this intended?)
 4. The use of readOnly and writeOnly attributes is unfortunate as it is seems redundant but isn't.
-   What does writeOnly true mean? WoST things only use 'readOnly'. When omitted it is
+   What does writeOnly true mean? HiveOT things only use 'readOnly'. When omitted it is
    assumed to be true. Since JSON doesn't support default values, it might cause parsing
-   complications. WoST only uses readOnly and ignores writeOnly. readOnly false means writable.
+   complications. HiveOT only uses readOnly and ignores writeOnly. readOnly false means writable.
 
 ## Events
 
@@ -181,26 +159,26 @@ publishes in its events affordance section and is serialized as JSON in the foll
 Where:
 
 * {name}: The name of the event. Event names share the same namespace as property names. The names
-  are standardized in the WoST vocabulary.
+  are standardized in the HiveOT vocabulary.
 * data: Defines the data schema of event messages. The content follows
   the [dataSchema](https://www.w3.org/TR/wot-thing-description11/#dataschema) format, similar to
   properties.
 * dataResponse: Describes the data schema of a possible response to the event. EventResponses are
-  currently not used in WoST.
+  currently not used in HiveOT.
 
 The [TD EventAffordance](https://www.w3.org/TR/wot-thing-description11/#eventaffordance) also
-describes optional subscription and cancellation attributes. These are not used in WoST as
-subscription is not handled by a Thing but by the MQTT message bus.
+describes optional subscription and cancellation attributes. These are not used in HiveOT as
+subscription is not handled by a Thing but by the Hub API/MQTT message bus.
 
 ### The "properties" Event
 
-In WoST, changes to property values are sent using events. Rather than sending a separate event for
-each property, WoST defines a 'properties' event. This events contains a properties map with
+In HiveOT, changes to property values are sent using events. Rather than sending a separate event for
+each property, HiveOT defines a 'properties' event. This events contains a properties map with
 property name-value pairs. The concern this tries to address is that this reduces the amount of
 events that need to be sent by small devices, reducing battery power and bandwidth.
 
-As the 'properties' event is part of the WoST standard does not have to be included in the '
-events' section of the TDs (but is recommended).  (should this be part of a WoST @content? tbd)
+As the 'properties' event is part of the HiveOT standard does not have to be included in the '
+events' section of the TDs (but is recommended).  (should this be part of a HiveOT @content? tbd)
 
 Alternative (tbd) each property change is a separate event. The concern is that this can lead to a
 lot of events which can consume significant resources on small devices.
@@ -235,9 +213,9 @@ Actions are used to control inputs and change the value of configuration propert
 The format of actions is defined in the Thing Description document
 through [action affordances](https://www.w3.org/TR/wot-thing-description/#actionaffordance).
 
-Note: The specification 'requires' a 'forms' element in each action affordance. WoST deviates from
+Note: The specification 'requires' a 'forms' element in each action affordance. HiveOT deviates from
 the standard in that the 'forms' element is not used for individual actions, events and properties.
-Instead, a single generic mqtt address format is used of "things/{id}/action/{name}". Ideally this
+Instead, a single generic address format is used of "things/{id}/action/{name}". Ideally this
 can be defined generically at the top level of the TD but no such specification exists at the time
 of writing. This section might be revised in the future.
 
@@ -314,7 +292,7 @@ The spec describes a [link](https://www.w3.org/TR/wot-thing-description11/#link)
 viewed as a statement of the form "link context has a relation type resource at link target", where
 the optional target attributes may further describe the resource"
 
-In WoST a link can be used as long as it is not served by the IoT device, as this would conflict
+In HiveOT a link can be used as long as it is not served by the IoT device, as this would conflict
 with the paradigm that "Things are not servers".
 
 ## Forms
@@ -326,12 +304,12 @@ required request.
 
 The provided example shows an HTTP POST to write a property.
 
-In WoST an important constraint is that operations that interact with the Thing use the MQTT
-protocol and topic of the Hub message bus as Things can only interact via the message bus.
+In HiveOT an important constraint is that operations that interact with the Thing use the Hub APIS to do so.
+Things can only interact via the message bus.
 
 Forms can use other protocols to describe interaction with external services. For example, to read
 Thing property values, a form can define the https protocol to access a directory service that
-collects the latest value by listening on the message bus. This is the approach taken by the WoST
+collects the latest value by listening on the message bus. This is the approach taken by the HiveOT
 directory service. In this example, the directory service can augment the TD of the thing to include
 a form for the readproperties operation including its own endpoint.
 
@@ -341,13 +319,13 @@ time of writing.
 
 ### SecuritySchema 'scheme' (1)
 
-In WoST all authentication and authorization is handled by the Hub. Therefore, the security scheme
-section only applies to Hub services and does not apply to WoST Things. Things have a '
+In HiveOT all authentication and authorization is handled by the Hub. Therefore, the security scheme
+section only applies to Hub services and does not apply to HiveOT Things. Things have a '
 NoSecurityScheme' as they cannot be directly interacted with.
 
 # REST APIs
 
-WoST compliant Things do not implement servers. All interaction takes place via WoST Hub services
+HiveOT compliant Things do not implement servers. All interaction takes place via HiveOT Hub services
 and message bus. Therefore, this section only applies to Hub services that provide a web API. For
 example, the Directory Service and Provisioning Service provide web REST API's.
 
@@ -359,7 +337,7 @@ GET https://address:port/things/{thingID}[/...]
 ```
 
 Note 1: the WoT examples often assume or suggest that Things are directly accessed, which
-is not allowed in WoST. Therefore, the implementation of this API in WoST MUST follow the following
+is not allowed in HiveOT. Therefore, the implementation of this API in HiveOT MUST follow the following
 rules:
 
 1. The Thing address is that of the hub it is connected to.

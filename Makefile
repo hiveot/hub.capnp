@@ -1,45 +1,49 @@
-# Makefile to build and test the WoST Hub core services
+# Makefile to build and test the HiveOT Hub launcher
 DIST_FOLDER=./dist
-PKG_NAME=wosthub.tgz
-INSTALL_HOME=~/bin/wosthub
+INSTALL_HOME=~/bin/hiveot
 .DEFAULT_GOAL := help
 
 .FORCE: 
 
-all: authn authz certs idprov launcher logger mosquittomgr thingdir  ## Build the launcher and core plugins
-	@echo "> Build successful. The executable(s) '$?' can be found in $(DIST_FOLDER)/bin"
+all: certservice directorystore historystore provisioning hubcli gateway  ## Build all services
 
-authn authz certs idprov launcher logger mosquittomgr thingdir: .FORCE  ## Build Hub services
-	make -C $@ all
-	cp $@/dist/bin/* dist/bin
-	cp $@/dist/config/* dist/config
+certs: .FORCE ## Build the certificate management service
+	go build -o $(DIST_FOLDER)/bin/$@ ./pkg/certservice/cmd/main.go
+
+directory: .FORCE ## Build the Thing directory store
+	go build -o $(DIST_FOLDER)/bin/$@ ./pkg/directory/cmd/main.go
+
+gateway: .FORCE ## Build the Hub gateway
+	go build -o $(DIST_FOLDER)/bin/$@ ./pkg/gateway/main.go
+
+history: .FORCE ## Build the Thing value history store
+	go build -o $(DIST_FOLDER)/bin/$@ ./pkg/history/main.go
+
+hubcli: .FORCE ## Build Hub CLI
+	go build -o $(DIST_FOLDER)/bin/$@ ./cmd/hubcli/main.go
+
+provisioning: .FORCE ## Build Hub provisioning service
+	go build -o $(DIST_FOLDER)/bin/$@ ./pkg/provisioning/main.go
+
 
 
 clean: ## Clean distribution files
+	go mod tidy
+	go clean -cache -testcache
 	rm -f $(DIST_FOLDER)/bin/*
-	rm -f $(DIST_FOLDER)/config/*
-	mkdir -p $(DIST_FOLDER)/bin
-	mkdir -p $(DIST_FOLDER)/config
-
-dist: clean   ## Build binary distribution tarball
-	tar -czf $(PKG_NAME) -C $(DIST_FOLDER) .
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-install:  all ## Install the launcher into ~/bin/wost/bin and config
+install:  all ## build and install the services
 	mkdir -p $(INSTALL_HOME)/bin
 	mkdir -p $(INSTALL_HOME)/config
-	mkdir -p $(INSTALL_HOME)/log
-	cp $(DIST_FOLDER)/bin/* $(INSTALL_HOME)/bin/
-	cp -n $(DIST_FOLDER)/config/* $(INSTALL_HOME)/config/  
+	cp $(DIST_FOLDER)/bin/* $(INSTALL_HOME)/bin
+	cp -n $(DIST_FOLDER)/config/* $(INSTALL_HOME)/config/
 
-test: clean ## Test all plugins
-	make -C authn test
-	make -C authz test
-	make -C certs test
-	make -C idprov test
-	make -C launcher test
-	make -C logger test
-	make -C mosquittomgr test
-	make -C thingdir test
+test: all  ## Run tests (stop on first error, don't run parallel)
+	go test -race -failfast -p 1 -cover ./...
+
+upgrade:
+	go get -u all
+	go mod tidy
