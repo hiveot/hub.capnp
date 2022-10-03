@@ -1,0 +1,14 @@
+# State.yaml - configuration file for the state storage.
+
+# backend storage to use. Options are: 'kvstore'
+# backend: kvstore
+
+# limits for services
+services:
+#  maxKeys:      100        # maximum nr of keys per service, default is 100
+#  maxValueSize: 100K       # maximum size of a single value per key, default is 100K
+
+# limits for end-users
+users:
+#  maxKeys:      100        # maximum nr of keys per user, default is 100
+#  maxValueSize: 100K       # maximum size of a single value per key, default is 100K
