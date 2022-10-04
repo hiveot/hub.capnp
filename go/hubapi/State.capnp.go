@@ -15,37 +15,21 @@ type CapState capnp.Client
 // CapState_TypeID is the unique identifier for the type CapState.
 const CapState_TypeID = 0xd11db16b4eb22eec
 
-func (c CapState) Get(ctx context.Context, params func(CapState_get_Params) error) (CapState_get_Results_Future, capnp.ReleaseFunc) {
+func (c CapState) CapClientState(ctx context.Context, params func(CapState_capClientState_Params) error) (CapState_capClientState_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
 			InterfaceID:   0xd11db16b4eb22eec,
 			MethodID:      0,
 			InterfaceName: "hubapi/State.capnp:CapState",
-			MethodName:    "get",
-		},
-	}
-	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapState_get_Params(s)) }
-	}
-	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapState_get_Results_Future{Future: ans.Future()}, release
-}
-func (c CapState) Set(ctx context.Context, params func(CapState_set_Params) error) (CapState_set_Results_Future, capnp.ReleaseFunc) {
-	s := capnp.Send{
-		Method: capnp.Method{
-			InterfaceID:   0xd11db16b4eb22eec,
-			MethodID:      1,
-			InterfaceName: "hubapi/State.capnp:CapState",
-			MethodName:    "set",
+			MethodName:    "capClientState",
 		},
 	}
 	if params != nil {
 		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 2}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapState_set_Params(s)) }
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapState_capClientState_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapState_set_Results_Future{Future: ans.Future()}, release
+	return CapState_capClientState_Results_Future{Future: ans.Future()}, release
 }
 
 func (c CapState) AddRef() CapState {
@@ -70,9 +54,7 @@ func (c CapState) IsValid() bool {
 
 // A CapState_Server is a CapState with a local implementation.
 type CapState_Server interface {
-	Get(context.Context, CapState_get) error
-
-	Set(context.Context, CapState_set) error
+	CapClientState(context.Context, CapState_capClientState) error
 }
 
 // CapState_NewServer creates a new Server from an implementation of CapState_Server.
@@ -91,7 +73,7 @@ func CapState_ServerToClient(s CapState_Server) CapState {
 // This can be used to create a more complicated Server.
 func CapState_Methods(methods []server.Method, s CapState_Server) []server.Method {
 	if cap(methods) == 0 {
-		methods = make([]server.Method, 0, 2)
+		methods = make([]server.Method, 0, 1)
 	}
 
 	methods = append(methods, server.Method{
@@ -99,60 +81,31 @@ func CapState_Methods(methods []server.Method, s CapState_Server) []server.Metho
 			InterfaceID:   0xd11db16b4eb22eec,
 			MethodID:      0,
 			InterfaceName: "hubapi/State.capnp:CapState",
-			MethodName:    "get",
+			MethodName:    "capClientState",
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.Get(ctx, CapState_get{call})
-		},
-	})
-
-	methods = append(methods, server.Method{
-		Method: capnp.Method{
-			InterfaceID:   0xd11db16b4eb22eec,
-			MethodID:      1,
-			InterfaceName: "hubapi/State.capnp:CapState",
-			MethodName:    "set",
-		},
-		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.Set(ctx, CapState_set{call})
+			return s.CapClientState(ctx, CapState_capClientState{call})
 		},
 	})
 
 	return methods
 }
 
-// CapState_get holds the state for a server call to CapState.get.
+// CapState_capClientState holds the state for a server call to CapState.capClientState.
 // See server.Call for documentation.
-type CapState_get struct {
+type CapState_capClientState struct {
 	*server.Call
 }
 
 // Args returns the call's arguments.
-func (c CapState_get) Args() CapState_get_Params {
-	return CapState_get_Params(c.Call.Args())
+func (c CapState_capClientState) Args() CapState_capClientState_Params {
+	return CapState_capClientState_Params(c.Call.Args())
 }
 
 // AllocResults allocates the results struct.
-func (c CapState_get) AllocResults() (CapState_get_Results, error) {
+func (c CapState_capClientState) AllocResults() (CapState_capClientState_Results, error) {
 	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapState_get_Results(r), err
-}
-
-// CapState_set holds the state for a server call to CapState.set.
-// See server.Call for documentation.
-type CapState_set struct {
-	*server.Call
-}
-
-// Args returns the call's arguments.
-func (c CapState_set) Args() CapState_set_Params {
-	return CapState_set_Params(c.Call.Args())
-}
-
-// AllocResults allocates the results struct.
-func (c CapState_set) AllocResults() (CapState_set_Results, error) {
-	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapState_set_Results(r), err
+	return CapState_capClientState_Results(r), err
 }
 
 // CapState_List is a list of CapState.
@@ -164,364 +117,719 @@ func NewCapState_List(s *capnp.Segment, sz int32) (CapState_List, error) {
 	return capnp.CapList[CapState](l), err
 }
 
-type CapState_get_Params capnp.Struct
+type CapState_capClientState_Params capnp.Struct
 
-// CapState_get_Params_TypeID is the unique identifier for the type CapState_get_Params.
-const CapState_get_Params_TypeID = 0xebba2a63a6381c2f
+// CapState_capClientState_Params_TypeID is the unique identifier for the type CapState_capClientState_Params.
+const CapState_capClientState_Params_TypeID = 0xebba2a63a6381c2f
 
-func NewCapState_get_Params(s *capnp.Segment) (CapState_get_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapState_get_Params(st), err
+func NewCapState_capClientState_Params(s *capnp.Segment) (CapState_capClientState_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	return CapState_capClientState_Params(st), err
 }
 
-func NewRootCapState_get_Params(s *capnp.Segment) (CapState_get_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapState_get_Params(st), err
+func NewRootCapState_capClientState_Params(s *capnp.Segment) (CapState_capClientState_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	return CapState_capClientState_Params(st), err
 }
 
-func ReadRootCapState_get_Params(msg *capnp.Message) (CapState_get_Params, error) {
+func ReadRootCapState_capClientState_Params(msg *capnp.Message) (CapState_capClientState_Params, error) {
 	root, err := msg.Root()
-	return CapState_get_Params(root.Struct()), err
+	return CapState_capClientState_Params(root.Struct()), err
 }
 
-func (s CapState_get_Params) String() string {
+func (s CapState_capClientState_Params) String() string {
 	str, _ := text.Marshal(0xebba2a63a6381c2f, capnp.Struct(s))
 	return str
 }
 
-func (s CapState_get_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapState_capClientState_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapState_get_Params) DecodeFromPtr(p capnp.Ptr) CapState_get_Params {
-	return CapState_get_Params(capnp.Struct{}.DecodeFromPtr(p))
+func (CapState_capClientState_Params) DecodeFromPtr(p capnp.Ptr) CapState_capClientState_Params {
+	return CapState_capClientState_Params(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapState_get_Params) ToPtr() capnp.Ptr {
+func (s CapState_capClientState_Params) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapState_get_Params) IsValid() bool {
+func (s CapState_capClientState_Params) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapState_get_Params) Message() *capnp.Message {
+func (s CapState_capClientState_Params) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapState_get_Params) Segment() *capnp.Segment {
+func (s CapState_capClientState_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapState_get_Params) Key() (string, error) {
+func (s CapState_capClientState_Params) ClientID() (string, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.Text(), err
 }
 
-func (s CapState_get_Params) HasKey() bool {
+func (s CapState_capClientState_Params) HasClientID() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapState_get_Params) KeyBytes() ([]byte, error) {
+func (s CapState_capClientState_Params) ClientIDBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.TextBytes(), err
 }
 
-func (s CapState_get_Params) SetKey(v string) error {
+func (s CapState_capClientState_Params) SetClientID(v string) error {
 	return capnp.Struct(s).SetText(0, v)
 }
 
-// CapState_get_Params_List is a list of CapState_get_Params.
-type CapState_get_Params_List = capnp.StructList[CapState_get_Params]
-
-// NewCapState_get_Params creates a new list of CapState_get_Params.
-func NewCapState_get_Params_List(s *capnp.Segment, sz int32) (CapState_get_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapState_get_Params](l), err
+func (s CapState_capClientState_Params) AppID() (string, error) {
+	p, err := capnp.Struct(s).Ptr(1)
+	return p.Text(), err
 }
 
-// CapState_get_Params_Future is a wrapper for a CapState_get_Params promised by a client call.
-type CapState_get_Params_Future struct{ *capnp.Future }
+func (s CapState_capClientState_Params) HasAppID() bool {
+	return capnp.Struct(s).HasPtr(1)
+}
 
-func (p CapState_get_Params_Future) Struct() (CapState_get_Params, error) {
+func (s CapState_capClientState_Params) AppIDBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(1)
+	return p.TextBytes(), err
+}
+
+func (s CapState_capClientState_Params) SetAppID(v string) error {
+	return capnp.Struct(s).SetText(1, v)
+}
+
+// CapState_capClientState_Params_List is a list of CapState_capClientState_Params.
+type CapState_capClientState_Params_List = capnp.StructList[CapState_capClientState_Params]
+
+// NewCapState_capClientState_Params creates a new list of CapState_capClientState_Params.
+func NewCapState_capClientState_Params_List(s *capnp.Segment, sz int32) (CapState_capClientState_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
+	return capnp.StructList[CapState_capClientState_Params](l), err
+}
+
+// CapState_capClientState_Params_Future is a wrapper for a CapState_capClientState_Params promised by a client call.
+type CapState_capClientState_Params_Future struct{ *capnp.Future }
+
+func (p CapState_capClientState_Params_Future) Struct() (CapState_capClientState_Params, error) {
 	s, err := p.Future.Struct()
-	return CapState_get_Params(s), err
+	return CapState_capClientState_Params(s), err
 }
 
-type CapState_get_Results capnp.Struct
+type CapState_capClientState_Results capnp.Struct
 
-// CapState_get_Results_TypeID is the unique identifier for the type CapState_get_Results.
-const CapState_get_Results_TypeID = 0x9592f3c8d197afde
+// CapState_capClientState_Results_TypeID is the unique identifier for the type CapState_capClientState_Results.
+const CapState_capClientState_Results_TypeID = 0x9592f3c8d197afde
 
-func NewCapState_get_Results(s *capnp.Segment) (CapState_get_Results, error) {
+func NewCapState_capClientState_Results(s *capnp.Segment) (CapState_capClientState_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapState_get_Results(st), err
+	return CapState_capClientState_Results(st), err
 }
 
-func NewRootCapState_get_Results(s *capnp.Segment) (CapState_get_Results, error) {
+func NewRootCapState_capClientState_Results(s *capnp.Segment) (CapState_capClientState_Results, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapState_get_Results(st), err
+	return CapState_capClientState_Results(st), err
 }
 
-func ReadRootCapState_get_Results(msg *capnp.Message) (CapState_get_Results, error) {
+func ReadRootCapState_capClientState_Results(msg *capnp.Message) (CapState_capClientState_Results, error) {
 	root, err := msg.Root()
-	return CapState_get_Results(root.Struct()), err
+	return CapState_capClientState_Results(root.Struct()), err
 }
 
-func (s CapState_get_Results) String() string {
+func (s CapState_capClientState_Results) String() string {
 	str, _ := text.Marshal(0x9592f3c8d197afde, capnp.Struct(s))
 	return str
 }
 
-func (s CapState_get_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapState_capClientState_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapState_get_Results) DecodeFromPtr(p capnp.Ptr) CapState_get_Results {
-	return CapState_get_Results(capnp.Struct{}.DecodeFromPtr(p))
+func (CapState_capClientState_Results) DecodeFromPtr(p capnp.Ptr) CapState_capClientState_Results {
+	return CapState_capClientState_Results(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapState_get_Results) ToPtr() capnp.Ptr {
+func (s CapState_capClientState_Results) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapState_get_Results) IsValid() bool {
+func (s CapState_capClientState_Results) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapState_get_Results) Message() *capnp.Message {
+func (s CapState_capClientState_Results) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapState_get_Results) Segment() *capnp.Segment {
+func (s CapState_capClientState_Results) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapState_get_Results) Value() (string, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.Text(), err
+func (s CapState_capClientState_Results) Cap() CapClientState {
+	p, _ := capnp.Struct(s).Ptr(0)
+	return CapClientState(p.Interface().Client())
 }
 
-func (s CapState_get_Results) HasValue() bool {
+func (s CapState_capClientState_Results) HasCap() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapState_get_Results) ValueBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.TextBytes(), err
+func (s CapState_capClientState_Results) SetCap(v CapClientState) error {
+	if !v.IsValid() {
+		return capnp.Struct(s).SetPtr(0, capnp.Ptr{})
+	}
+	seg := s.Segment()
+	in := capnp.NewInterface(seg, seg.Message().AddCap(capnp.Client(v)))
+	return capnp.Struct(s).SetPtr(0, in.ToPtr())
 }
 
-func (s CapState_get_Results) SetValue(v string) error {
-	return capnp.Struct(s).SetText(0, v)
-}
+// CapState_capClientState_Results_List is a list of CapState_capClientState_Results.
+type CapState_capClientState_Results_List = capnp.StructList[CapState_capClientState_Results]
 
-// CapState_get_Results_List is a list of CapState_get_Results.
-type CapState_get_Results_List = capnp.StructList[CapState_get_Results]
-
-// NewCapState_get_Results creates a new list of CapState_get_Results.
-func NewCapState_get_Results_List(s *capnp.Segment, sz int32) (CapState_get_Results_List, error) {
+// NewCapState_capClientState_Results creates a new list of CapState_capClientState_Results.
+func NewCapState_capClientState_Results_List(s *capnp.Segment, sz int32) (CapState_capClientState_Results_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapState_get_Results](l), err
+	return capnp.StructList[CapState_capClientState_Results](l), err
 }
 
-// CapState_get_Results_Future is a wrapper for a CapState_get_Results promised by a client call.
-type CapState_get_Results_Future struct{ *capnp.Future }
+// CapState_capClientState_Results_Future is a wrapper for a CapState_capClientState_Results promised by a client call.
+type CapState_capClientState_Results_Future struct{ *capnp.Future }
 
-func (p CapState_get_Results_Future) Struct() (CapState_get_Results, error) {
+func (p CapState_capClientState_Results_Future) Struct() (CapState_capClientState_Results, error) {
 	s, err := p.Future.Struct()
-	return CapState_get_Results(s), err
+	return CapState_capClientState_Results(s), err
 }
 
-type CapState_set_Params capnp.Struct
-
-// CapState_set_Params_TypeID is the unique identifier for the type CapState_set_Params.
-const CapState_set_Params_TypeID = 0xedf53bb8be824ca1
-
-func NewCapState_set_Params(s *capnp.Segment) (CapState_set_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
-	return CapState_set_Params(st), err
+func (p CapState_capClientState_Results_Future) Cap() CapClientState {
+	return CapClientState(p.Future.Field(0, nil).Client())
 }
 
-func NewRootCapState_set_Params(s *capnp.Segment) (CapState_set_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
-	return CapState_set_Params(st), err
+type CapClientState capnp.Client
+
+// CapClientState_TypeID is the unique identifier for the type CapClientState.
+const CapClientState_TypeID = 0xf78da3a18a6bdd8f
+
+func (c CapClientState) Get(ctx context.Context, params func(CapClientState_get_Params) error) (CapClientState_get_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xf78da3a18a6bdd8f,
+			MethodID:      0,
+			InterfaceName: "hubapi/State.capnp:CapClientState",
+			MethodName:    "get",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapClientState_get_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapClientState_get_Results_Future{Future: ans.Future()}, release
+}
+func (c CapClientState) Set(ctx context.Context, params func(CapClientState_set_Params) error) (CapClientState_set_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xf78da3a18a6bdd8f,
+			MethodID:      1,
+			InterfaceName: "hubapi/State.capnp:CapClientState",
+			MethodName:    "set",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 2}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapClientState_set_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapClientState_set_Results_Future{Future: ans.Future()}, release
 }
 
-func ReadRootCapState_set_Params(msg *capnp.Message) (CapState_set_Params, error) {
+func (c CapClientState) AddRef() CapClientState {
+	return CapClientState(capnp.Client(c).AddRef())
+}
+
+func (c CapClientState) Release() {
+	capnp.Client(c).Release()
+}
+
+func (c CapClientState) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Client(c).EncodeAsPtr(seg)
+}
+
+func (CapClientState) DecodeFromPtr(p capnp.Ptr) CapClientState {
+	return CapClientState(capnp.Client{}.DecodeFromPtr(p))
+}
+
+func (c CapClientState) IsValid() bool {
+	return capnp.Client(c).IsValid()
+}
+
+// A CapClientState_Server is a CapClientState with a local implementation.
+type CapClientState_Server interface {
+	Get(context.Context, CapClientState_get) error
+
+	Set(context.Context, CapClientState_set) error
+}
+
+// CapClientState_NewServer creates a new Server from an implementation of CapClientState_Server.
+func CapClientState_NewServer(s CapClientState_Server) *server.Server {
+	c, _ := s.(server.Shutdowner)
+	return server.New(CapClientState_Methods(nil, s), s, c)
+}
+
+// CapClientState_ServerToClient creates a new Client from an implementation of CapClientState_Server.
+// The caller is responsible for calling Release on the returned Client.
+func CapClientState_ServerToClient(s CapClientState_Server) CapClientState {
+	return CapClientState(capnp.NewClient(CapClientState_NewServer(s)))
+}
+
+// CapClientState_Methods appends Methods to a slice that invoke the methods on s.
+// This can be used to create a more complicated Server.
+func CapClientState_Methods(methods []server.Method, s CapClientState_Server) []server.Method {
+	if cap(methods) == 0 {
+		methods = make([]server.Method, 0, 2)
+	}
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xf78da3a18a6bdd8f,
+			MethodID:      0,
+			InterfaceName: "hubapi/State.capnp:CapClientState",
+			MethodName:    "get",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.Get(ctx, CapClientState_get{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xf78da3a18a6bdd8f,
+			MethodID:      1,
+			InterfaceName: "hubapi/State.capnp:CapClientState",
+			MethodName:    "set",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.Set(ctx, CapClientState_set{call})
+		},
+	})
+
+	return methods
+}
+
+// CapClientState_get holds the state for a server call to CapClientState.get.
+// See server.Call for documentation.
+type CapClientState_get struct {
+	*server.Call
+}
+
+// Args returns the call's arguments.
+func (c CapClientState_get) Args() CapClientState_get_Params {
+	return CapClientState_get_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c CapClientState_get) AllocResults() (CapClientState_get_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapClientState_get_Results(r), err
+}
+
+// CapClientState_set holds the state for a server call to CapClientState.set.
+// See server.Call for documentation.
+type CapClientState_set struct {
+	*server.Call
+}
+
+// Args returns the call's arguments.
+func (c CapClientState_set) Args() CapClientState_set_Params {
+	return CapClientState_set_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c CapClientState_set) AllocResults() (CapClientState_set_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapClientState_set_Results(r), err
+}
+
+// CapClientState_List is a list of CapClientState.
+type CapClientState_List = capnp.CapList[CapClientState]
+
+// NewCapClientState creates a new list of CapClientState.
+func NewCapClientState_List(s *capnp.Segment, sz int32) (CapClientState_List, error) {
+	l, err := capnp.NewPointerList(s, sz)
+	return capnp.CapList[CapClientState](l), err
+}
+
+type CapClientState_get_Params capnp.Struct
+
+// CapClientState_get_Params_TypeID is the unique identifier for the type CapClientState_get_Params.
+const CapClientState_get_Params_TypeID = 0x840787d39c20c911
+
+func NewCapClientState_get_Params(s *capnp.Segment) (CapClientState_get_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapClientState_get_Params(st), err
+}
+
+func NewRootCapClientState_get_Params(s *capnp.Segment) (CapClientState_get_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapClientState_get_Params(st), err
+}
+
+func ReadRootCapClientState_get_Params(msg *capnp.Message) (CapClientState_get_Params, error) {
 	root, err := msg.Root()
-	return CapState_set_Params(root.Struct()), err
+	return CapClientState_get_Params(root.Struct()), err
 }
 
-func (s CapState_set_Params) String() string {
-	str, _ := text.Marshal(0xedf53bb8be824ca1, capnp.Struct(s))
+func (s CapClientState_get_Params) String() string {
+	str, _ := text.Marshal(0x840787d39c20c911, capnp.Struct(s))
 	return str
 }
 
-func (s CapState_set_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapClientState_get_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapState_set_Params) DecodeFromPtr(p capnp.Ptr) CapState_set_Params {
-	return CapState_set_Params(capnp.Struct{}.DecodeFromPtr(p))
+func (CapClientState_get_Params) DecodeFromPtr(p capnp.Ptr) CapClientState_get_Params {
+	return CapClientState_get_Params(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapState_set_Params) ToPtr() capnp.Ptr {
+func (s CapClientState_get_Params) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapState_set_Params) IsValid() bool {
+func (s CapClientState_get_Params) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapState_set_Params) Message() *capnp.Message {
+func (s CapClientState_get_Params) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapState_set_Params) Segment() *capnp.Segment {
+func (s CapClientState_get_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapState_set_Params) Key() (string, error) {
+func (s CapClientState_get_Params) Key() (string, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.Text(), err
 }
 
-func (s CapState_set_Params) HasKey() bool {
+func (s CapClientState_get_Params) HasKey() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapState_set_Params) KeyBytes() ([]byte, error) {
+func (s CapClientState_get_Params) KeyBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.TextBytes(), err
 }
 
-func (s CapState_set_Params) SetKey(v string) error {
+func (s CapClientState_get_Params) SetKey(v string) error {
 	return capnp.Struct(s).SetText(0, v)
 }
 
-func (s CapState_set_Params) Value() (string, error) {
+// CapClientState_get_Params_List is a list of CapClientState_get_Params.
+type CapClientState_get_Params_List = capnp.StructList[CapClientState_get_Params]
+
+// NewCapClientState_get_Params creates a new list of CapClientState_get_Params.
+func NewCapClientState_get_Params_List(s *capnp.Segment, sz int32) (CapClientState_get_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[CapClientState_get_Params](l), err
+}
+
+// CapClientState_get_Params_Future is a wrapper for a CapClientState_get_Params promised by a client call.
+type CapClientState_get_Params_Future struct{ *capnp.Future }
+
+func (p CapClientState_get_Params_Future) Struct() (CapClientState_get_Params, error) {
+	s, err := p.Future.Struct()
+	return CapClientState_get_Params(s), err
+}
+
+type CapClientState_get_Results capnp.Struct
+
+// CapClientState_get_Results_TypeID is the unique identifier for the type CapClientState_get_Results.
+const CapClientState_get_Results_TypeID = 0xe31782358d7fbadb
+
+func NewCapClientState_get_Results(s *capnp.Segment) (CapClientState_get_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapClientState_get_Results(st), err
+}
+
+func NewRootCapClientState_get_Results(s *capnp.Segment) (CapClientState_get_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapClientState_get_Results(st), err
+}
+
+func ReadRootCapClientState_get_Results(msg *capnp.Message) (CapClientState_get_Results, error) {
+	root, err := msg.Root()
+	return CapClientState_get_Results(root.Struct()), err
+}
+
+func (s CapClientState_get_Results) String() string {
+	str, _ := text.Marshal(0xe31782358d7fbadb, capnp.Struct(s))
+	return str
+}
+
+func (s CapClientState_get_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapClientState_get_Results) DecodeFromPtr(p capnp.Ptr) CapClientState_get_Results {
+	return CapClientState_get_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapClientState_get_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapClientState_get_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapClientState_get_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapClientState_get_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapClientState_get_Results) Value() (string, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.Text(), err
+}
+
+func (s CapClientState_get_Results) HasValue() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapClientState_get_Results) ValueBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.TextBytes(), err
+}
+
+func (s CapClientState_get_Results) SetValue(v string) error {
+	return capnp.Struct(s).SetText(0, v)
+}
+
+// CapClientState_get_Results_List is a list of CapClientState_get_Results.
+type CapClientState_get_Results_List = capnp.StructList[CapClientState_get_Results]
+
+// NewCapClientState_get_Results creates a new list of CapClientState_get_Results.
+func NewCapClientState_get_Results_List(s *capnp.Segment, sz int32) (CapClientState_get_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[CapClientState_get_Results](l), err
+}
+
+// CapClientState_get_Results_Future is a wrapper for a CapClientState_get_Results promised by a client call.
+type CapClientState_get_Results_Future struct{ *capnp.Future }
+
+func (p CapClientState_get_Results_Future) Struct() (CapClientState_get_Results, error) {
+	s, err := p.Future.Struct()
+	return CapClientState_get_Results(s), err
+}
+
+type CapClientState_set_Params capnp.Struct
+
+// CapClientState_set_Params_TypeID is the unique identifier for the type CapClientState_set_Params.
+const CapClientState_set_Params_TypeID = 0xb1035539ef0fdf36
+
+func NewCapClientState_set_Params(s *capnp.Segment) (CapClientState_set_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	return CapClientState_set_Params(st), err
+}
+
+func NewRootCapClientState_set_Params(s *capnp.Segment) (CapClientState_set_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	return CapClientState_set_Params(st), err
+}
+
+func ReadRootCapClientState_set_Params(msg *capnp.Message) (CapClientState_set_Params, error) {
+	root, err := msg.Root()
+	return CapClientState_set_Params(root.Struct()), err
+}
+
+func (s CapClientState_set_Params) String() string {
+	str, _ := text.Marshal(0xb1035539ef0fdf36, capnp.Struct(s))
+	return str
+}
+
+func (s CapClientState_set_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapClientState_set_Params) DecodeFromPtr(p capnp.Ptr) CapClientState_set_Params {
+	return CapClientState_set_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapClientState_set_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapClientState_set_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapClientState_set_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapClientState_set_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapClientState_set_Params) Key() (string, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.Text(), err
+}
+
+func (s CapClientState_set_Params) HasKey() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapClientState_set_Params) KeyBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.TextBytes(), err
+}
+
+func (s CapClientState_set_Params) SetKey(v string) error {
+	return capnp.Struct(s).SetText(0, v)
+}
+
+func (s CapClientState_set_Params) Value() (string, error) {
 	p, err := capnp.Struct(s).Ptr(1)
 	return p.Text(), err
 }
 
-func (s CapState_set_Params) HasValue() bool {
+func (s CapClientState_set_Params) HasValue() bool {
 	return capnp.Struct(s).HasPtr(1)
 }
 
-func (s CapState_set_Params) ValueBytes() ([]byte, error) {
+func (s CapClientState_set_Params) ValueBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(1)
 	return p.TextBytes(), err
 }
 
-func (s CapState_set_Params) SetValue(v string) error {
+func (s CapClientState_set_Params) SetValue(v string) error {
 	return capnp.Struct(s).SetText(1, v)
 }
 
-// CapState_set_Params_List is a list of CapState_set_Params.
-type CapState_set_Params_List = capnp.StructList[CapState_set_Params]
+// CapClientState_set_Params_List is a list of CapClientState_set_Params.
+type CapClientState_set_Params_List = capnp.StructList[CapClientState_set_Params]
 
-// NewCapState_set_Params creates a new list of CapState_set_Params.
-func NewCapState_set_Params_List(s *capnp.Segment, sz int32) (CapState_set_Params_List, error) {
+// NewCapClientState_set_Params creates a new list of CapClientState_set_Params.
+func NewCapClientState_set_Params_List(s *capnp.Segment, sz int32) (CapClientState_set_Params_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
-	return capnp.StructList[CapState_set_Params](l), err
+	return capnp.StructList[CapClientState_set_Params](l), err
 }
 
-// CapState_set_Params_Future is a wrapper for a CapState_set_Params promised by a client call.
-type CapState_set_Params_Future struct{ *capnp.Future }
+// CapClientState_set_Params_Future is a wrapper for a CapClientState_set_Params promised by a client call.
+type CapClientState_set_Params_Future struct{ *capnp.Future }
 
-func (p CapState_set_Params_Future) Struct() (CapState_set_Params, error) {
+func (p CapClientState_set_Params_Future) Struct() (CapClientState_set_Params, error) {
 	s, err := p.Future.Struct()
-	return CapState_set_Params(s), err
+	return CapClientState_set_Params(s), err
 }
 
-type CapState_set_Results capnp.Struct
+type CapClientState_set_Results capnp.Struct
 
-// CapState_set_Results_TypeID is the unique identifier for the type CapState_set_Results.
-const CapState_set_Results_TypeID = 0xf16aa8ea798f0f72
+// CapClientState_set_Results_TypeID is the unique identifier for the type CapClientState_set_Results.
+const CapClientState_set_Results_TypeID = 0xa1b5065fb07e3b9f
 
-func NewCapState_set_Results(s *capnp.Segment) (CapState_set_Results, error) {
+func NewCapClientState_set_Results(s *capnp.Segment) (CapClientState_set_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapState_set_Results(st), err
+	return CapClientState_set_Results(st), err
 }
 
-func NewRootCapState_set_Results(s *capnp.Segment) (CapState_set_Results, error) {
+func NewRootCapClientState_set_Results(s *capnp.Segment) (CapClientState_set_Results, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapState_set_Results(st), err
+	return CapClientState_set_Results(st), err
 }
 
-func ReadRootCapState_set_Results(msg *capnp.Message) (CapState_set_Results, error) {
+func ReadRootCapClientState_set_Results(msg *capnp.Message) (CapClientState_set_Results, error) {
 	root, err := msg.Root()
-	return CapState_set_Results(root.Struct()), err
+	return CapClientState_set_Results(root.Struct()), err
 }
 
-func (s CapState_set_Results) String() string {
-	str, _ := text.Marshal(0xf16aa8ea798f0f72, capnp.Struct(s))
+func (s CapClientState_set_Results) String() string {
+	str, _ := text.Marshal(0xa1b5065fb07e3b9f, capnp.Struct(s))
 	return str
 }
 
-func (s CapState_set_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapClientState_set_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapState_set_Results) DecodeFromPtr(p capnp.Ptr) CapState_set_Results {
-	return CapState_set_Results(capnp.Struct{}.DecodeFromPtr(p))
+func (CapClientState_set_Results) DecodeFromPtr(p capnp.Ptr) CapClientState_set_Results {
+	return CapClientState_set_Results(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapState_set_Results) ToPtr() capnp.Ptr {
+func (s CapClientState_set_Results) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapState_set_Results) IsValid() bool {
+func (s CapClientState_set_Results) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapState_set_Results) Message() *capnp.Message {
+func (s CapClientState_set_Results) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapState_set_Results) Segment() *capnp.Segment {
+func (s CapClientState_set_Results) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
 
-// CapState_set_Results_List is a list of CapState_set_Results.
-type CapState_set_Results_List = capnp.StructList[CapState_set_Results]
+// CapClientState_set_Results_List is a list of CapClientState_set_Results.
+type CapClientState_set_Results_List = capnp.StructList[CapClientState_set_Results]
 
-// NewCapState_set_Results creates a new list of CapState_set_Results.
-func NewCapState_set_Results_List(s *capnp.Segment, sz int32) (CapState_set_Results_List, error) {
+// NewCapClientState_set_Results creates a new list of CapClientState_set_Results.
+func NewCapClientState_set_Results_List(s *capnp.Segment, sz int32) (CapClientState_set_Results_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
-	return capnp.StructList[CapState_set_Results](l), err
+	return capnp.StructList[CapClientState_set_Results](l), err
 }
 
-// CapState_set_Results_Future is a wrapper for a CapState_set_Results promised by a client call.
-type CapState_set_Results_Future struct{ *capnp.Future }
+// CapClientState_set_Results_Future is a wrapper for a CapClientState_set_Results promised by a client call.
+type CapClientState_set_Results_Future struct{ *capnp.Future }
 
-func (p CapState_set_Results_Future) Struct() (CapState_set_Results, error) {
+func (p CapClientState_set_Results_Future) Struct() (CapClientState_set_Results, error) {
 	s, err := p.Future.Struct()
-	return CapState_set_Results(s), err
+	return CapClientState_set_Results(s), err
 }
 
-const schema_9a80401eba6f7fe3 = "x\xda\x12\xb8\xee\xc0b\xc8+\xcf\xcc\xc0\x14\xa8\xc2\xca" +
-	"\xf6\xff\xde\xfa\xe9\x17O|\x9e4\x95AP\x86\x91\x81" +
-	"\x81\x95\x91\x9d\x81\xc1\xb8\x94\xd1\x89\x91\x81Q\xb8\x96\xd1" +
-	"\x9e\x81\xf1\xff\x1b\xbdM~\xd9\x1be/2\x08\x0a3" +
-	"\xff\x7f\\\x9f\xbfK\xce\xa1a\x16\x03\x03\xa3\xf0\\\xc6" +
-	"G\xc2+A\xea\x85\x972\xb6\x0b\x7f\x05\xb1\xfe\xeb\xcb" +
-	"X,K\xd6\xda\xf5\x1a\xd9\xb4\xbb\x8cV \xd3\x9e\x82" +
-	"M[\xe8\xd3\xb4o\x87\xf5\xd7\xb7P\x05L \x05\xac" +
-	"L`\x05\xbcL\xe5\x0c\x8c\xff\x8b\xf8\xfb+_\xad\xc8" +
-	"\xfa\x08Q\xc0\x02\x92\xcfdrbd0\xf8\x9fQ\x9a" +
-	"\x94X\x90\xa9\x1f\xccR\x92X\x92\xaa\x97\x9cX\x90W" +
-	"`\xe5\x9cX\x10\x0c\xe6\xa6\xa7\x96\xa8\x04\xa5\x16\x97\xe6" +
-	"\x94\x143\x04\xb20\xb300\xb0020\x08\xf2\x1a" +
-	"10\x04r03\x06\x8a01\xca\x97%\xe6\x94\xa6" +
-	"2\xf2001\xf200\xc2\x8dcB7\x8e=\xb1" +
-	"$5\x80\x911\x90\x83\x99\x15\xc9G\x8c\xb0\x80\x124" +
-	"Tb`\x12TegDx\x86\x11\xe6hAI\x90" +
-	"\x1c/;{zj\x89\x03#{1\x88\x0c`D\xd8" +
-	"\xc5\x8c\xcb\xe9\xf6\x01\x89E\x89\xb9\xc5\xc8.WB\xb8" +
-	"\x9c=;\xb5\x12\xc3\xddX\xcd*F2\x8b\x03n\x96" +
-	"&\xc8,\x15f\xc6@\x03&FAFF\x11F\x90" +
-	"\xa0.(h4\x98\x19\x03MP-\xc0\x11L,\xb8" +
-	"\xac\x83\x85: \x00\x00\xff\xff\xc3\x0f\xa0S"
+const schema_9a80401eba6f7fe3 = "x\xda\x8cSMh\x13A\x18\xfd\xde\xcc\xa6\x1b\xa1\xa1" +
+	"\x8c[\x10\xa1Z\x09)\xfeP\xdb\xa4\xb5R\xf5\xd0H" +
+	"\x0bR\xa1\xb2\xdb\xd0\xb3\x8ca\xa95I]\xb3\x1bE" +
+	"\x0fVD(\x08E(\x88P\x04)\x82\xe0I#\xf4" +
+	"\x12\xf0(\xe81x\x94*\xd8\xa3\x82\x88\x07\xf1\xb42" +
+	"\xdb\xee&iI\xc9e\xd9\x9d\xef\xed{\xef{\xdf|" +
+	"\xe9\x19d\xb5L\xe2\xb8F\xccJ\xc7\xba|\xf1\xe9\xd8" +
+	"\xf3\xcf\xcb\xfa#\x12I\x10\xc5\xa0\x13\x8d\xfe\xc3\x0d\x10" +
+	"\x8c\x18\x9b \xf8_\xdf<\xab\x7f\xfc\xb3\xfa\x94D_" +
+	"\x04\x18`k\x0a0\x16\x00^\\\xb8\xff\xf6j\xd7\xc6" +
+	"\xfa6\x83\xa6\xeas\xac\x0c\xd2\xfc\xb3\xdfz~\x9d\x9b" +
+	"\xe3\xd5\x1dn\xa6J\x17Y\xc0=\xc3\xee\x10\xfc\x9fC" +
+	"\xef\xae\x14\xaaG\xea$\x0c\xeeo-\xdd\xac\x1d\xcd>" +
+	"X#\x82\xf1\x9a}76\x14\xde\xa8\xb2K\xc6\xa6z" +
+	"\xf3\xbf\xd4\x96V\xc6\x1e\x1e\xdajv\xfaA\x09\xc1\xa8" +
+	"\x07F\x86\xfb\xc6_\xe5O\xd5~\xec8\x0d\xe4~\xb3" +
+	"U\x05\x00WrO6\x0b\x8f\xd7_\xae\xfc\xdd-7" +
+	"*\xf9A\x18\xb7\xb8\xd2+\xf1e\xe3=\xd7i\xd0\xbf" +
+	"^\xb9&\x9d\x85\xe1\x9c\xe6I\xcf\x1e\xcaKg\xd19" +
+	"?)\x9d\xc9\xe2\x82\xbd\xe8\xe5\x82\xc3y\xdbK\x99\xb2" +
+	"\xa7,K\xae\xa5q\x8dH\x03\x91H$\x89\xac8\x87" +
+	"\xd5\xcb\xa0\x17\xec\xbb\xe8&\x86nB\xc4\x18ke\xcc" +
+	"\x85\x9fM\xd4\xa9Y\xdb\xad\x14\xb9\xd7\x967/\x1d\x88" +
+	"FG\x04\x88&\x85}<\xbb\xb6\x97\x9a\xb5\xfb\xddJ" +
+	"\xd1s;\xc5\x87=\xc6#/'\x95\x97\x14\x87\x95f" +
+	"\x10@/\xd4\xe1\xe9\x11\"\xeb\x04\x87u\xa6\xb5\xf1\xfe" +
+	"\xdb\xb2X\xb1\xf7\xc4\xc0v\xc7\xa0K\xcf6\x01K\xe3" +
+	"1\xa2h\x9c\x08o\xa0\x10\xf7\x88\x89\x03\xba\x1fFE" +
+	"\x13\xdb\x1e\xb30\x81N\xe7\x15\xf6\xde\x1c\xecH#\xd8" +
+	"6^;\x19\x99)\xcb\xb2\x84\x96\x94.7\x02\x89R" +
+	"\xca(\xb5A\x0ek\x9c\xc1\xcf\x07\xffOO\x11Q\x94" +
+	"\x96t\x9c\xe9\xa9=\x0ex\xbb\xb6\x10d\x16\x0f2\x0b" +
+	"\xb7\x19\xe1\xb2\x88L\x92\x98\x18\xd0\x81h\x1b\x11.\xac" +
+	"8\xacj\x09]\x9f\xb7\xbd,tW=M\xe0\x7f\x00" +
+	"\x00\x00\xff\xff\x03\x02\x1b\xa7"
 
 func init() {
 	schemas.Register(schema_9a80401eba6f7fe3,
+		0x840787d39c20c911,
 		0x9592f3c8d197afde,
+		0xa1b5065fb07e3b9f,
+		0xb1035539ef0fdf36,
 		0xd11db16b4eb22eec,
+		0xe31782358d7fbadb,
 		0xebba2a63a6381c2f,
-		0xedf53bb8be824ca1,
-		0xf16aa8ea798f0f72)
+		0xf78da3a18a6bdd8f)
 }

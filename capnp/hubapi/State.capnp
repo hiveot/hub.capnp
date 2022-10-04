@@ -9,6 +9,14 @@ $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
 interface CapState {
   # State storage
 
+    capClientState @0 (clientID :Text, appID :Text) -> (cap :CapClientState);
+    # Get the capability to store state for a client application
+}
+
+
+interface CapClientState {
+# Capability for reading and writing state values
+
   get @0 (key :Text) -> (value :Text);
   # Get state value for key
 
