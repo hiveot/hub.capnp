@@ -3,39 +3,38 @@ package statekvstore
 import (
 	"context"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/hiveot/hub/internal/kvstore"
+	"github.com/hiveot/hub/pkg/state"
 )
 
-// StateKVStoreServer is a wrapper around the internal KVStore
+// StateKVStore implements the server for storing application state
 // This implements the IState interface
-type StateKVStoreServer struct {
+type StateKVStore struct {
+	// The underlying persistence store that is concurrent safe
 	store *kvstore.KVStore
 }
 
-// Get returns the document for the given key
-// The document can be any text.
-func (srv *StateKVStoreServer) Get(_ context.Context, key string) (value string, err error) {
-	val, err := srv.store.Read(key)
-	return val, err
+// CapClientState returns the capability to store client application state
+func (srv *StateKVStore) CapClientState(_ context.Context, clientID string, appID string) state.IClientState {
+	capability := NewClientStateKVStore(srv.store, clientID, appID)
+	return capability
 }
 
-// Set writes a document with the given key
-func (srv *StateKVStoreServer) Set(ctx context.Context, key string, value string) error {
-	err := srv.store.Write(key, value)
-	return err
-}
-
-// Stop the storage server and flush changes to disk
-func (srv *StateKVStoreServer) Stop() {
+// Stop the store and flush changes to disk
+func (srv *StateKVStore) Stop() {
+	logrus.Infof("stopping state store")
 	srv.store.Stop()
 }
 
-// NewStateKVStoreServer creates a state storage server instance
+// NewStateKVStore creates a state storage server instance.
+// Intended for use by the launcher.
 //  stateStorePath is the file holding the state store data
-func NewStateKVStoreServer(stateStorePath string) (*StateKVStoreServer, error) {
+func NewStateKVStore(stateStorePath string) (*StateKVStore, error) {
 	// TODO: use configuration to determine backend and load limits
 	kvStore, err := kvstore.NewKVStore(stateStorePath)
-	srv := &StateKVStoreServer{
+	srv := &StateKVStore{
 		store: kvStore,
 	}
 	err = kvStore.Start()

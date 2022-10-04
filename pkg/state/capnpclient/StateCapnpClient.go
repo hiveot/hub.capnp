@@ -9,6 +9,7 @@ import (
 	"capnproto.org/go/capnp/v3/rpc"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/pkg/state"
 )
 
 // StateCapnpClient provides the POGS wrapper around the capnp client API
@@ -20,39 +21,19 @@ type StateCapnpClient struct {
 	ctxCancel  context.CancelFunc
 }
 
-// Get reads the state
-func (cl *StateCapnpClient) Get(ctx context.Context, key string) (string, error) {
-	var err error
-	var val string
-
-	method, release := cl.capability.Get(ctx,
-		func(params hubapi.CapState_get_Params) error {
-			err = params.SetKey(key)
-			return err
+func (cl *StateCapnpClient) CapClientState(ctx context.Context, clientID string, appID string) state.IClientState {
+	getCap, _ := cl.capability.CapClientState(ctx,
+		func(params hubapi.CapState_capClientState_Params) error {
+			err2 := params.SetClientID(clientID)
+			_ = params.SetAppID(appID)
+			return err2
 		})
-	defer release()
-	resp, err := method.Struct()
-	if err == nil {
-		val, err = resp.Value()
-	}
-	return val, err
-}
-
-// Set reads the state
-func (cl *StateCapnpClient) Set(ctx context.Context, key string, value string) error {
-	var err error
-	method, release := cl.capability.Set(ctx,
-		func(params hubapi.CapState_set_Params) error {
-			err = params.SetKey(key)
-			_ = params.SetValue(value)
-			return err
-		})
-	defer release()
-	_, err = method.Struct()
-	return err
+	capability := getCap.Cap()
+	return NewClientStateCapnpClient(capability)
 }
 
 // NewStateCapnpClient returns a state store client using the capnp protocol
+// Intended for bootstrapping the capability chain
 func NewStateCapnpClient(address string, isUDS bool) (*StateCapnpClient, error) {
 	var cl *StateCapnpClient
 	network := "tcp"

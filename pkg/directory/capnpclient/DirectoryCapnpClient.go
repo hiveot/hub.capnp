@@ -1,4 +1,4 @@
-// Package client that wraps the capnp generated client with a POGS API
+// Package capnpclient that wraps the capnp generated client with a POGS API
 package capnpclient
 
 import (
@@ -40,8 +40,9 @@ func (cl *DirectoryCapnpClient) CapUpdateDirectory() directory.IUpdateDirectory 
 	return NewUpdateDirectoryCapnpClient(cap)
 }
 
-// NewDirectoryStoreCapnpClient returns a directory store client using the capnp protocol
-func NewDirectoryStoreCapnpClient(address string, isUDS bool) (*DirectoryCapnpClient, error) {
+// NewDirectoryCapnpClient returns a directory store client using the capnp protocol
+// Intended for bootstrapping the capability chain
+func NewDirectoryCapnpClient(address string, isUDS bool) (*DirectoryCapnpClient, error) {
 	var cl *DirectoryCapnpClient
 	network := "tcp"
 	if isUDS {

@@ -21,7 +21,9 @@ type HistoryCapnpServer struct {
 func (capsrv *HistoryCapnpServer) CapReadHistory(
 	ctx context.Context, call hubapi.CapHistory_capReadHistory) error {
 	// create a client instance for reading the history
-	readHistoryCapSrv := NewReadHistoryCapnpServer(capsrv.srv.CapReadHistory())
+	readHistoryCapSrv := &ReadHistoryCapnpServer{
+		srv: capsrv.srv.CapReadHistory(),
+	}
 	cap := hubapi.CapReadHistory_ServerToClient(readHistoryCapSrv)
 	res, err := call.AllocResults()
 	res.SetCap(cap)
@@ -30,7 +32,10 @@ func (capsrv *HistoryCapnpServer) CapReadHistory(
 func (capsrv *HistoryCapnpServer) CapUpdateHistory(
 	ctx context.Context, call hubapi.CapHistory_capUpdateHistory) error {
 	// create a client instance for updating the history
-	updateHistoryCapSrv := NewUpdateHistoryCapnpServer(capsrv.srv.CapUpdateHistory())
+	updateHistoryCapSrv := &UpdateHistoryCapnpServer{
+		srv: capsrv.srv.CapUpdateHistory(),
+	}
+
 	cap := hubapi.CapUpdateHistory_ServerToClient(updateHistoryCapSrv)
 	res, err := call.AllocResults()
 	res.SetCap(cap)

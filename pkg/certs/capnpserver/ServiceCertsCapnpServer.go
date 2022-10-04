@@ -40,11 +40,3 @@ func (capsrv *ServiceCertsCapnpServer) CreateServiceCert(
 	}
 	return err
 }
-
-// NewServiceCertsCapnpServer creates a new instance of service certificate capnp server
-// For internal use to serve the capnp request for device certificate capability. A new instance
-// is created for each client that receives this capability.
-func NewServiceCertsCapnpServer(srv certs.IServiceCerts) *ServiceCertsCapnpServer {
-	capsrv := &ServiceCertsCapnpServer{srv: srv}
-	return capsrv
-}

@@ -27,9 +27,3 @@ func (capsrv *RequestProvisioningCapnpServer) SubmitProvisioningRequest(
 	}
 	return err
 }
-
-// NewRequestProvisioningCapnpServer serves the requests to provision
-func NewRequestProvisioningCapnpServer(srv provisioning.IRequestProvisioning) *RequestProvisioningCapnpServer {
-	capsrv := &RequestProvisioningCapnpServer{srv: srv}
-	return capsrv
-}

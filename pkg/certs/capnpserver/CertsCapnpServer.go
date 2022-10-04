@@ -27,7 +27,10 @@ func (capsrv *CertsCapnpServer) CapDeviceCerts(
 
 	// Create the capnp proxy that provides the capability to create device certificates
 	// TODO: use context to identify caller and include as part of restrictions?
-	deviceCertsSrv := NewDeviceCertsCapnpServer(capsrv.srv.CapDeviceCerts())
+	deviceCertsSrv := &DeviceCertsCapnpServer{
+		srv: capsrv.srv.CapDeviceCerts(),
+	}
+
 	capability := hubapi.CapDeviceCerts_ServerToClient(deviceCertsSrv)
 	//capability := hubapi.CapDeviceCerts_ServerToClient(capsrv)
 	res, err := call.AllocResults()
@@ -43,7 +46,10 @@ func (capsrv *CertsCapnpServer) CapServiceCerts(
 	_ context.Context, call hubapi.CapCerts_capServiceCerts) error {
 
 	// Create the capnp proxy that provides the capability to create certificates
-	serviceCertsSrv := NewServiceCertsCapnpServer(capsrv.srv.CapServiceCerts())
+	serviceCertsSrv := &ServiceCertsCapnpServer{
+		srv: capsrv.srv.CapServiceCerts(),
+	}
+
 	capability := hubapi.CapServiceCerts_ServerToClient(serviceCertsSrv)
 	res, err := call.AllocResults()
 	if err == nil {
@@ -58,7 +64,10 @@ func (capsrv *CertsCapnpServer) CapUserCerts(
 	_ context.Context, call hubapi.CapCerts_capUserCerts) error {
 
 	// Create the capnp proxy that provides the capability to create certificates
-	userCertsSrv := NewUserCertsCapnpServer(capsrv.srv.CapUserCerts())
+	userCertsSrv := &UserCertsCapnpServer{
+		srv: capsrv.srv.CapUserCerts(),
+	}
+
 	capability := hubapi.CapUserCerts_ServerToClient(userCertsSrv)
 	res, err := call.AllocResults()
 	if err == nil {
@@ -73,7 +82,10 @@ func (capsrv *CertsCapnpServer) CapVerifyCerts(
 	ctx context.Context, call hubapi.CapCerts_capVerifyCerts) error {
 
 	// Create the capnp proxy that provides the capability to create certificates
-	verifyCertsSrv := NewVerifyCertsCapnpServer(capsrv.srv.CapVerifyCerts())
+	verifyCertsSrv := &VerifyCertsCapnpServer{
+		srv: capsrv.srv.CapVerifyCerts(),
+	}
+
 	capability := hubapi.CapVerifyCerts_ServerToClient(verifyCertsSrv)
 	res, err := call.AllocResults()
 	if err == nil {

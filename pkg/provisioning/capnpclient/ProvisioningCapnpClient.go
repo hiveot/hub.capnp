@@ -42,6 +42,7 @@ func (cl *ProvisioningCapnpClient) CapRefreshProvisioning() provisioning.IRefres
 }
 
 // NewProvisioningCapnpClient returns a provisioning service client using the capnp protocol
+// Intended for bootstrapping the capability chain
 func NewProvisioningCapnpClient(address string, isUDS bool) (*ProvisioningCapnpClient, error) {
 	var cl *ProvisioningCapnpClient
 	network := "tcp"

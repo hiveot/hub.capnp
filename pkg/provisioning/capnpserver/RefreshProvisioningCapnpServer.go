@@ -28,10 +28,3 @@ func (capsrv *RefreshProvisioningCapnpServer) RefreshDeviceCert(
 
 	return err
 }
-
-// NewRefreshProvisioningCapnpServer serves refreshing a device certificate
-func NewRefreshProvisioningCapnpServer(srv provisioning.IRefreshProvisioning) *RefreshProvisioningCapnpServer {
-	capsrv := &RefreshProvisioningCapnpServer{srv: srv}
-
-	return capsrv
-}

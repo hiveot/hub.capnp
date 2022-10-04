@@ -79,9 +79,3 @@ func (capsrv *ReadHistoryCapnpServer) Info(
 
 	return err
 }
-
-// NewReadHistoryCapnpServer creates an instance of the capnp server for reading history
-func NewReadHistoryCapnpServer(srv history.IReadHistory) *ReadHistoryCapnpServer {
-	capsrv := &ReadHistoryCapnpServer{srv: srv}
-	return capsrv
-}

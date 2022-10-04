@@ -21,11 +21,3 @@ func (capsrv *VerifyCertsCapnpServer) VerifyCert(
 	err := capsrv.srv.VerifyCert(ctx, clientID, certPEM)
 	return err
 }
-
-// NewVerifyCertsCapnpServer creates a new instance of the RPC handler for certificate verification
-// For internal use to serve the capnp RPC request for certificate verification. A new instance
-// is created for each client that receives this capability.
-func NewVerifyCertsCapnpServer(srv certs.IVerifyCerts) *VerifyCertsCapnpServer {
-	capsrv := &VerifyCertsCapnpServer{srv: srv}
-	return capsrv
-}

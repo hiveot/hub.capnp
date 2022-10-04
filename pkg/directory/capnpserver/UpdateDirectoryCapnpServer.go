@@ -32,9 +32,3 @@ func (capsrv *UpdateDirectoryCapnpServer) UpdateTD(
 	err = capsrv.srv.UpdateTD(ctx, thingID, tdDoc)
 	return err
 }
-
-// NewUpdateDirectoryCapnpServer creates a new instance of the capnp server for updating the directory
-func NewUpdateDirectoryCapnpServer(srv directory.IUpdateDirectory) *UpdateDirectoryCapnpServer {
-	capsrv := &UpdateDirectoryCapnpServer{srv: srv}
-	return capsrv
-}

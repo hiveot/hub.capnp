@@ -58,13 +58,13 @@ The service API is defined with capnproto IDL at:
 A golang interface at:
 > github.com/hiveot/hub/pkg/directory/IDirectory
 
-### Golang Clients
+### Golang POGS Client
 
 An easy to use golang POGS (plain old Golang Struct) client can be found at:
 > github.com/hiveot/hub/pkg/directory/capnpclient
 
 To use this client, first obtain the capability (see below) and create the POGS instance. For example, to list the directory:
-```
+```golang
   directoryCap := GetCapability()                       // from an authorized source
   readAPI := NewReadDirectoryCapnpClient(directoryCap)   // returns IReadDirectory
   jsonDocs, err := readAPI.ListTDs(ctx, limit, offset) 

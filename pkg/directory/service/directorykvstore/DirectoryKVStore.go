@@ -73,11 +73,17 @@ func (srv *DirectoryKVStoreServer) UpdateTD(_ context.Context, id string, td str
 	return err
 }
 
+// Stop the storage server and flush changes to disk
+func (srv *DirectoryKVStoreServer) Stop() {
+	srv.store.Stop()
+}
+
 // NewDirectoryKVStoreServer creates a service to access TDs in the state store
-//  storeName is the name of the TD state store. Default is 'DefaultTDStoreName'
+//  thingStorePath is the file holding the directory data.
 func NewDirectoryKVStoreServer(thingStorePath string) (*DirectoryKVStoreServer, error) {
 
 	kvStore, err := kvstore.NewKVStore(thingStorePath)
+	err = kvStore.Start()
 	srv := &DirectoryKVStoreServer{
 		store: kvStore,
 	}

@@ -63,9 +63,3 @@ func (capsrv *UpdateHistoryCapnpServer) AddEvents(
 	err := capsrv.srv.AddEvents(ctx, eventValues)
 	return err
 }
-
-// NewUpdateHistoryCapnpServer creates an instance of the update history capnp server
-func NewUpdateHistoryCapnpServer(srv history.IUpdateHistory) *UpdateHistoryCapnpServer {
-	capsrv := &UpdateHistoryCapnpServer{srv: srv}
-	return capsrv
-}

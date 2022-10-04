@@ -16,29 +16,29 @@ import (
 // This implements the capnproto generated interface State_Server
 // See hub.capnp/go/hubapi/State.capnp.go for the interface.
 type StateCapnpServer struct {
-	srv state.IState
+	pogo state.IState
 }
 
-func (capsrv *StateCapnpServer) Get(
-	ctx context.Context, call hubapi.CapState_get) error {
+// CapClientState returns a capnp server instance for accessing client state
+// this wraps the POGS server with a capnp binding for client application state access
+func (capsrv *StateCapnpServer) CapClientState(
+	ctx context.Context, call hubapi.CapState_capClientState) error {
+
+	// first create the instance of the POGS server for this client application
 	args := call.Args()
-	key, _ := args.Key()
-	value, err := capsrv.srv.Get(ctx, key)
+	clientID, _ := args.ClientID()
+	appID, _ := args.AppID()
+	pogoClientStateServer := capsrv.pogo.CapClientState(ctx, clientID, appID)
+	// second, wrap it in a capnp binding which implements the capnp generated API
+	capnpClientStateServer := &ClientStateCapnpServer{srv: pogoClientStateServer}
+
+	// last, create the capnp RPC server for this capability
+	capability := hubapi.CapClientState_ServerToClient(capnpClientStateServer)
+
+	res, err := call.AllocResults()
 	if err == nil {
-		res, err := call.AllocResults()
-		if err == nil {
-			err = res.SetValue(value)
-		}
+		err = res.SetCap(capability)
 	}
-	return err
-}
-
-func (capsrv *StateCapnpServer) Set(
-	ctx context.Context, call hubapi.CapState_set) error {
-	args := call.Args()
-	key, _ := args.Key()
-	value, _ := args.Value()
-	err := capsrv.srv.Set(ctx, key, value)
 	return err
 }
 
@@ -48,7 +48,7 @@ func StartStateCapnpServer(ctx context.Context, lis net.Listener, srv state.ISta
 	logrus.Infof("Starting state store capnp adapter on: %s", lis.Addr())
 
 	main := hubapi.CapState_ServerToClient(&StateCapnpServer{
-		srv: srv,
+		pogo: srv,
 	})
 
 	err := caphelp.CapServe(ctx, lis, capnp.Client(main))

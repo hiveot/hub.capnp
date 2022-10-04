@@ -22,7 +22,10 @@ type DirectoryCapnpServer struct {
 func (capsrv *DirectoryCapnpServer) CapReadDirectory(
 	ctx context.Context, call hubapi.CapDirectory_capReadDirectory) error {
 
-	readCapSrv := NewReadDirectoyCapnpServer(capsrv.srv.CapReadDirectory())
+	readCapSrv := &ReadDirectoryCapnpServer{
+		srv: capsrv.srv.CapReadDirectory(),
+	}
+
 	capability := hubapi.CapReadDirectory_ServerToClient(readCapSrv)
 	res, err := call.AllocResults()
 	if err == nil {
@@ -34,7 +37,10 @@ func (capsrv *DirectoryCapnpServer) CapReadDirectory(
 func (capsrv *DirectoryCapnpServer) CapUpdateDirectory(
 	ctx context.Context, call hubapi.CapDirectory_capUpdateDirectory) error {
 
-	updateCapSrv := NewUpdateDirectoryCapnpServer(capsrv.srv.CapUpdateDirectory())
+	updateCapSrv := &UpdateDirectoryCapnpServer{
+		srv: capsrv.srv.CapUpdateDirectory(),
+	}
+
 	capability := hubapi.CapUpdateDirectory_ServerToClient(updateCapSrv)
 	res, err := call.AllocResults()
 	if err == nil {

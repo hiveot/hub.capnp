@@ -7,6 +7,14 @@ import "context"
 // IState defines a POGS based capability API of the state store
 type IState interface {
 
+	// CapClientState provides the capability to store state for a client application
+	// The caller must verify that the clientID is properly authenticated to ensure the capability
+	// is handed out to a valid user.
+	CapClientState(ctx context.Context, clientID string, appID string) IClientState
+}
+
+// IClientState defines a POGS based capability for reading and writing state values
+type IClientState interface {
 	// Get returns the document for the given key
 	// Returns an error if the key doesn't exist
 	Get(ctx context.Context, key string) (value string, err error)

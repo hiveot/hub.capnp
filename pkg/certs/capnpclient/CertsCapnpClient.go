@@ -61,11 +61,14 @@ func (cl *CertsCapnpClient) CapVerifyCerts() certs.IVerifyCerts {
 }
 
 // Release the provided capabilities after use
+// FIXME: Is this required, optional, or not useful at all?
+// What is managing this lifecycle aspect?
 func (cl *CertsCapnpClient) Release() {
 	cl.capability.Release()
 }
 
 // NewCertServiceCapnpClient returns a capability to create certificates using the capnp protocol
+// Intended for bootstrapping the capability chain
 func NewCertServiceCapnpClient(address string, isUDS bool) (*CertsCapnpClient, error) {
 	network := "tcp"
 	if isUDS {

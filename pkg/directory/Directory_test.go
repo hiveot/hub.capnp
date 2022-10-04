@@ -36,7 +36,7 @@ func createNewStore(useCapnp bool) (directory.IDirectory, error) {
 		lis, _ := net.Listen("unix", testAddress)
 		go capnpserver.StartDirectoryCapnpServer(ctx, lis, store)
 
-		capClient, err := capnpclient.NewDirectoryStoreCapnpClient(testAddress, true)
+		capClient, err := capnpclient.NewDirectoryCapnpClient(testAddress, true)
 		return capClient, err
 	}
 	return store, nil

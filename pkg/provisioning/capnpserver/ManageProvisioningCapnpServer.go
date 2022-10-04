@@ -62,8 +62,3 @@ func (capsrv *ManageProvisioningCapnpServer) GetPendingRequests(
 	}
 	return err
 }
-
-func NewManageProvisioningCapnpServer(srv provisioning.IManageProvisioning) *ManageProvisioningCapnpServer {
-	capsrv := &ManageProvisioningCapnpServer{srv: srv}
-	return capsrv
-}

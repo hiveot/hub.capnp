@@ -38,6 +38,7 @@ func (cl *HistoryCapnpClient) CapUpdateHistory() history.IUpdateHistory {
 }
 
 // NewHistoryCapnpClient returns a history store client using the capnp protocol
+// Intended for bootstrapping the capability chain
 func NewHistoryCapnpClient(address string, isUDS bool) (*HistoryCapnpClient, error) {
 	var cl *HistoryCapnpClient
 	network := "tcp"

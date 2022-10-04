@@ -108,7 +108,7 @@ func readStoreFile(storePath string) (docs map[string]string, err error) {
 //   storePath is the full path to the file
 //   docs contains an object map of the store objects
 func writeStoreFile(storePath string, docs map[string]string) error {
-	logrus.Infof("writeStoreFile: Writing data to json store to '%s'", storePath)
+	logrus.Infof("writeStoreFile: Flush changes to json store at '%s'", storePath)
 
 	// create the folder if needed
 	storeFolder := path.Dir(storePath)

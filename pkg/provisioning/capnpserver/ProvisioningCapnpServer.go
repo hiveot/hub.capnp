@@ -5,6 +5,7 @@ import (
 	"net"
 
 	"capnproto.org/go/capnp/v3"
+	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/internal/caphelp"
@@ -23,7 +24,10 @@ func (capsrv *ProvisioningCapnpServer) CapManageProvisioning(
 	ctx context.Context, call hubapi.CapProvisioning_capManageProvisioning) error {
 
 	// create the service instance for this request
-	mngCapSrv := NewManageProvisioningCapnpServer(capsrv.pogo.CapManageProvisioning())
+	mngCapSrv := &ManageProvisioningCapnpServer{
+		srv: capsrv.pogo.CapManageProvisioning(),
+	}
+
 	// wrap it with a capnp proxy
 	capability := hubapi.CapManageProvisioning_ServerToClient(mngCapSrv)
 	res, err := call.AllocResults()
@@ -39,7 +43,10 @@ func (capsrv *ProvisioningCapnpServer) CapRefreshProvisioning(
 
 	// create the service instance for this request
 	// TODO: restrict it to the deviceID of the caller
-	refreshCapSrv := NewRefreshProvisioningCapnpServer(capsrv.pogo.CapRefreshProvisioning())
+	refreshCapSrv := &RefreshProvisioningCapnpServer{
+		srv: capsrv.pogo.CapRefreshProvisioning(),
+	}
+
 	// wrap it with a capnp proxy
 	capability := hubapi.CapRefreshProvisioning_ServerToClient(refreshCapSrv)
 	res, err := call.AllocResults()
@@ -52,7 +59,10 @@ func (capsrv *ProvisioningCapnpServer) CapRefreshProvisioning(
 func (capsrv *ProvisioningCapnpServer) CapRequestProvisioning(
 	ctx context.Context, call hubapi.CapProvisioning_capRequestProvisioning) error {
 	// create the service instance for this request
-	reqCapSrv := NewRequestProvisioningCapnpServer(capsrv.pogo.CapRequestProvisioning())
+	reqCapSrv := &RequestProvisioningCapnpServer{
+		srv: capsrv.pogo.CapRequestProvisioning(),
+	}
+
 	// wrap it with a capnp proxy
 	capability := hubapi.CapRequestProvisioning_ServerToClient(reqCapSrv)
 	res, err := call.AllocResults()
@@ -65,6 +75,7 @@ func (capsrv *ProvisioningCapnpServer) CapRequestProvisioning(
 // StartProvisioningCapnpServer starts the capnp server for the provisioning service
 func StartProvisioningCapnpServer(
 	ctx context.Context, lis net.Listener, srv provisioning.IProvisioning) error {
+	logrus.Infof("Starting provisioning service capnp adapter on: %s", lis.Addr())
 
 	main := hubapi.CapProvisioning_ServerToClient(&ProvisioningCapnpServer{
 		pogo: srv,

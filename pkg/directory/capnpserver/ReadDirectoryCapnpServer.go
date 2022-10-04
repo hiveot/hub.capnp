@@ -64,9 +64,3 @@ func (capsrv *ReadDirectoryCapnpServer) QueryTDs(ctx context.Context, call hubap
 	}
 	return err
 }
-
-// NewReadDirectoyCapnpServer creates a new instance of capnp handler for reading directory
-func NewReadDirectoyCapnpServer(srv directory.IReadDirectory) *ReadDirectoryCapnpServer {
-	capsrv := &ReadDirectoryCapnpServer{srv: srv}
-	return capsrv
-}
