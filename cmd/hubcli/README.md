@@ -1,10 +1,15 @@
 # CLI
 
-The Hub CLI provides the commandline interface for managing starting and stopping Hub services. Use of the CLI is optional but simplifies running services with dapr.
+The Hub CLI provides a commandline interface for managing Hub services.
 
 ## Summary
 
-The hubcli start and stops services with their dapr sidecar. It is configured through the launcher.yaml configuration file. See templates/launcher.yaml for examples.
+The hubcli provides a commandline interface to the Hub services.
+
+Usage:
+  hubcli -h   
+
+
 
 ## Launcher Configuration
 

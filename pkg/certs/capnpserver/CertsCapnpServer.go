@@ -3,10 +3,10 @@ package capnpserver
 
 import (
 	"context"
+	"log"
 	"net"
 
 	"capnproto.org/go/capnp/v3"
-	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/internal/caphelp"
@@ -95,9 +95,10 @@ func (capsrv *CertsCapnpServer) CapVerifyCerts(
 }
 
 // StartCertsCapnpServer starts the capnp protocol server for the certificates service
+//func StartCertsCapnpServer(ctx context.Context, lis net.Listener, srv certs.ICerts) error {
 func StartCertsCapnpServer(ctx context.Context, lis net.Listener, srv certs.ICerts) error {
 
-	logrus.Infof("Starting certs service capnp server on: %s", lis.Addr())
+	log.Printf("Certs service capnp server started on: %s", lis.Addr())
 
 	// Create the capnp proxy that provides the certificate capability
 	main := hubapi.CapCerts_ServerToClient(&CertsCapnpServer{
@@ -106,5 +107,8 @@ func StartCertsCapnpServer(ctx context.Context, lis net.Listener, srv certs.ICer
 
 	// serve the requests by creating client instances of main (I think)
 	err := caphelp.CapServe(ctx, lis, capnp.Client(main))
+
+	log.Printf("Certs service capnp server stopped")
+
 	return err
 }

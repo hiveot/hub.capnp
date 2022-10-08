@@ -4,6 +4,8 @@ package state
 
 import "context"
 
+const ServiceName = "state"
+
 // IState defines a POGS based capability API of the state store
 type IState interface {
 

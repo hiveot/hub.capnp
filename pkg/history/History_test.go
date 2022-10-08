@@ -49,6 +49,7 @@ var highestName = make(map[string]thing.ThingValue)
 // Create a new store, delete if it already exists
 func newStore(useCapnp bool) history.IHistory {
 	store := mongohs.NewMongoHistoryServer(svcConfig)
+	ctx := context.Background()
 	// start to delete the store
 	_ = store.Start()
 	_ = store.Delete()
@@ -61,10 +62,11 @@ func newStore(useCapnp bool) history.IHistory {
 	// optionally test with capnp RPC
 	if useCapnp {
 		_ = syscall.Unlink(testAddress)
-		lis, _ := net.Listen("unix", testAddress)
-		go capnpserver.StartHistoryCapnpServer(context.Background(), lis, store)
-
-		cl, err := capnpclient.NewHistoryCapnpClient(testAddress, true)
+		srvListener, _ := net.Listen("unix", testAddress)
+		go capnpserver.StartHistoryCapnpServer(context.Background(), srvListener, store)
+		// connect the client to the server above
+		clConn, _ := net.Dial("unix", testAddress)
+		cl, err := capnpclient.NewHistoryCapnpClient(ctx, clConn)
 		if err != nil {
 			logrus.Fatalf("Failed starting capnp client: %s", err)
 		}

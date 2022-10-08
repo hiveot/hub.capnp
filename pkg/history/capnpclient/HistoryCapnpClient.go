@@ -4,7 +4,6 @@ package capnpclient
 import (
 	"context"
 	"net"
-	"time"
 
 	"capnproto.org/go/capnp/v3/rpc"
 
@@ -18,7 +17,6 @@ type HistoryCapnpClient struct {
 	connection *rpc.Conn         // connection to capnp server
 	capability hubapi.CapHistory // capnp client
 	ctx        context.Context
-	ctxCancel  context.CancelFunc
 }
 
 // CapReadHistory the capability to read the history
@@ -38,26 +36,18 @@ func (cl *HistoryCapnpClient) CapUpdateHistory() history.IUpdateHistory {
 }
 
 // NewHistoryCapnpClient returns a history store client using the capnp protocol
-// Intended for bootstrapping the capability chain
-func NewHistoryCapnpClient(address string, isUDS bool) (*HistoryCapnpClient, error) {
+//  ctx is the context for getting capabilities from the server
+//  connection is the connection to the capnp server
+func NewHistoryCapnpClient(ctx context.Context, connection net.Conn) (*HistoryCapnpClient, error) {
 	var cl *HistoryCapnpClient
-	network := "tcp"
-	if isUDS {
-		network = "unix"
-	}
-	connection, err := net.Dial(network, address)
-	if err == nil {
-		transport := rpc.NewStreamTransport(connection)
-		rpcConn := rpc.NewConn(transport, nil)
-		ctx, ctxCancel := context.WithTimeout(context.Background(), time.Second*60)
-		capability := hubapi.CapHistory(rpcConn.Bootstrap(ctx))
+	transport := rpc.NewStreamTransport(connection)
+	rpcConn := rpc.NewConn(transport, nil)
+	capability := hubapi.CapHistory(rpcConn.Bootstrap(ctx))
 
-		cl = &HistoryCapnpClient{
-			connection: rpcConn,
-			capability: capability,
-			ctx:        ctx,
-			ctxCancel:  ctxCancel,
-		}
+	cl = &HistoryCapnpClient{
+		connection: rpcConn,
+		capability: capability,
+		ctx:        ctx,
 	}
 	return cl, nil
 }

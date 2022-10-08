@@ -11,7 +11,7 @@ import (
 // ManageProvisioningCapnpServer provides the capnproto RPC server for IOT device provisioning.
 // This implements the capnproto generated interface CapManageProvisioning_Server
 type ManageProvisioningCapnpServer struct {
-	srv provisioning.IManageProvisioning
+	pogosrv provisioning.IManageProvisioning
 }
 
 func (capsrv *ManageProvisioningCapnpServer) AddOOBSecrets(
@@ -20,7 +20,7 @@ func (capsrv *ManageProvisioningCapnpServer) AddOOBSecrets(
 	args := call.Args()
 	secretsCapnp, _ := args.OobSecrets()
 	secretsPOGS := capnp4POGS.OobSecretsCapnp2POGS(secretsCapnp)
-	err := capsrv.srv.AddOOBSecrets(ctx, secretsPOGS)
+	err := capsrv.pogosrv.AddOOBSecrets(ctx, secretsPOGS)
 	return err
 }
 
@@ -29,14 +29,14 @@ func (capsrv *ManageProvisioningCapnpServer) ApproveRequest(
 
 	args := call.Args()
 	deviceID, _ := args.DeviceID()
-	err := capsrv.srv.ApproveRequest(ctx, deviceID)
+	err := capsrv.pogosrv.ApproveRequest(ctx, deviceID)
 	return err
 }
 
 func (capsrv *ManageProvisioningCapnpServer) GetApprovedRequests(
 	ctx context.Context, call hubapi.CapManageProvisioning_getApprovedRequests) error {
 
-	statusList, err := capsrv.srv.GetApprovedRequests(ctx)
+	statusList, err := capsrv.pogosrv.GetApprovedRequests(ctx)
 	if err == nil {
 		res, err2 := call.AllocResults()
 		err = err2
@@ -51,7 +51,7 @@ func (capsrv *ManageProvisioningCapnpServer) GetApprovedRequests(
 func (capsrv *ManageProvisioningCapnpServer) GetPendingRequests(
 	ctx context.Context, call hubapi.CapManageProvisioning_getPendingRequests) error {
 
-	statusList, err := capsrv.srv.GetPendingRequests(ctx)
+	statusList, err := capsrv.pogosrv.GetPendingRequests(ctx)
 	if err == nil {
 		res, err2 := call.AllocResults()
 		err = err2

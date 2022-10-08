@@ -3,7 +3,6 @@ package capnpclient
 import (
 	"context"
 	"net"
-	"time"
 
 	"capnproto.org/go/capnp/v3/rpc"
 
@@ -17,7 +16,6 @@ type ProvisioningCapnpClient struct {
 	connection *rpc.Conn              // connection to the capnp server
 	capability hubapi.CapProvisioning // capnp client
 	ctx        context.Context
-	ctxCancel  context.CancelFunc
 }
 
 // CapManageProvisioning provides the capability to manage provisioning requests
@@ -42,26 +40,19 @@ func (cl *ProvisioningCapnpClient) CapRefreshProvisioning() provisioning.IRefres
 }
 
 // NewProvisioningCapnpClient returns a provisioning service client using the capnp protocol
-// Intended for bootstrapping the capability chain
-func NewProvisioningCapnpClient(address string, isUDS bool) (*ProvisioningCapnpClient, error) {
+//  ctx is the context for retrieving capabilities
+//  conn is the connection with the provisioning capnp RPC server
+func NewProvisioningCapnpClient(ctx context.Context, connection net.Conn) (*ProvisioningCapnpClient, error) {
 	var cl *ProvisioningCapnpClient
-	network := "tcp"
-	if isUDS {
-		network = "unix"
-	}
-	connection, err := net.Dial(network, address)
-	if err == nil {
-		transport := rpc.NewStreamTransport(connection)
-		rpcConn := rpc.NewConn(transport, nil)
-		ctx, ctxCancel := context.WithTimeout(context.Background(), time.Second*60)
-		capability := hubapi.CapProvisioning(rpcConn.Bootstrap(ctx))
 
-		cl = &ProvisioningCapnpClient{
-			connection: rpcConn,
-			capability: capability,
-			ctx:        ctx,
-			ctxCancel:  ctxCancel,
-		}
+	transport := rpc.NewStreamTransport(connection)
+	rpcConn := rpc.NewConn(transport, nil)
+	capability := hubapi.CapProvisioning(rpcConn.Bootstrap(ctx))
+
+	cl = &ProvisioningCapnpClient{
+		connection: rpcConn,
+		capability: capability,
+		ctx:        ctx,
 	}
 	return cl, nil
 }

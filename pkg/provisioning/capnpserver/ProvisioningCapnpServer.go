@@ -25,7 +25,7 @@ func (capsrv *ProvisioningCapnpServer) CapManageProvisioning(
 
 	// create the service instance for this request
 	mngCapSrv := &ManageProvisioningCapnpServer{
-		srv: capsrv.pogo.CapManageProvisioning(),
+		pogosrv: capsrv.pogo.CapManageProvisioning(),
 	}
 
 	// wrap it with a capnp proxy
@@ -44,7 +44,7 @@ func (capsrv *ProvisioningCapnpServer) CapRefreshProvisioning(
 	// create the service instance for this request
 	// TODO: restrict it to the deviceID of the caller
 	refreshCapSrv := &RefreshProvisioningCapnpServer{
-		srv: capsrv.pogo.CapRefreshProvisioning(),
+		pogosrv: capsrv.pogo.CapRefreshProvisioning(),
 	}
 
 	// wrap it with a capnp proxy
@@ -60,7 +60,7 @@ func (capsrv *ProvisioningCapnpServer) CapRequestProvisioning(
 	ctx context.Context, call hubapi.CapProvisioning_capRequestProvisioning) error {
 	// create the service instance for this request
 	reqCapSrv := &RequestProvisioningCapnpServer{
-		srv: capsrv.pogo.CapRequestProvisioning(),
+		pogosrv: capsrv.pogo.CapRequestProvisioning(),
 	}
 
 	// wrap it with a capnp proxy
@@ -75,6 +75,7 @@ func (capsrv *ProvisioningCapnpServer) CapRequestProvisioning(
 // StartProvisioningCapnpServer starts the capnp server for the provisioning service
 func StartProvisioningCapnpServer(
 	ctx context.Context, lis net.Listener, srv provisioning.IProvisioning) error {
+
 	logrus.Infof("Starting provisioning service capnp adapter on: %s", lis.Addr())
 
 	main := hubapi.CapProvisioning_ServerToClient(&ProvisioningCapnpServer{

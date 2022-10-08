@@ -28,17 +28,17 @@ func createStateStore(useCapnp bool) (store state.IState, stopFn func(), err err
 	// optionally test with capnp RPC
 	if err == nil && useCapnp {
 		ctx, cancelCtx := context.WithCancel(context.Background())
-		_ = syscall.Unlink(testAddress)
-		lis, _ := net.Listen("unix", testAddress)
-		go func() {
-			err = capnpserver.StartStateCapnpServer(ctx, lis, stateStore)
-		}()
 
-		capClient, err := capnpclient.NewStateCapnpClient(testAddress, true)
+		_ = syscall.Unlink(testAddress)
+		srvListener, _ := net.Listen("unix", testAddress)
+		go capnpserver.StartStateCapnpServer(ctx, srvListener, stateStore)
+		// connect the client to the server above
+		clConn, _ := net.Dial("unix", testAddress)
+		capClient, err := capnpclient.NewStateCapnpClient(ctx, clConn)
 		// the stop function cancels the context, closes the listener and stops the store
 		return capClient, func() {
 			cancelCtx()
-			_ = lis.Close()
+			_ = clConn.Close()
 			stateStore.Stop()
 		}, err
 	}

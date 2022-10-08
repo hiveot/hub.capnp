@@ -3,43 +3,53 @@ package main
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"flag"
 	"log"
-	"path"
+	"os"
+	"path/filepath"
 
-	"github.com/hiveot/hub.capnp/go/hubapi"
-	"github.com/hiveot/hub.go/pkg/certsclient"
 	"github.com/hiveot/hub/internal/folders"
 	"github.com/hiveot/hub/internal/listener"
+	"github.com/hiveot/hub/pkg/certs"
+	certsclient "github.com/hiveot/hub/pkg/certs/capnpclient"
+	"github.com/hiveot/hub/pkg/provisioning/capnpserver"
 	"github.com/hiveot/hub/pkg/provisioning/service"
-
-	"github.com/hiveot/hub/pkg/provisioning/service/oobprovserver"
 )
 
 // ServiceName is the name of the store for logging
 const ServiceName = "provisioning"
 
+// FIXME: don't use hard coded socket address for certs service
+const CertsSvcAddress = "/tmp/certs.socket"
+
 // Start the provisioning service
+// This must be run from a properly setup environment. See GetFolders for details.
 func main() {
-	var caKey *ecdsa.PrivateKey
-	var svc *oobprovserver.OobProvServer
+	var svc *service.ProvisioningService
+	var deviceCap certs.IDeviceCerts
+	var verifyCap certs.IVerifyCerts
+	var certsClient certs.ICerts
+	ctx, _ := context.WithCancel(context.Background())
 
-	certFolder := folders.GetFolders("").Certs
-	flag.StringVar(&certFolder, "certs", certFolder, "Certificate folder.")
+	// Determine the folder layout.
+	homeFolder := filepath.Join(filepath.Dir(os.Args[0]), "../..")
+	f := folders.GetFolders(homeFolder, false)
+	flag.Parse()
 
-	lis := listener.CreateServiceListener(ServiceName)
-	caCertPath := path.Join(certFolder, hubapi.DefaultCaCertFile)
-	caKeyPath := path.Join(certFolder, hubapi.DefaultCaKeyFile)
-	caCert, err := certsclient.LoadX509CertFromPEM(caCertPath)
+	// connect to the certificate service to get its capability for issuing device certificates
+	certConn, err := listener.CreateClientConnection(f.Run, certs.ServiceName)
 	if err == nil {
-		caKey, err = certsclient.LoadKeysFromPEM(caKeyPath)
+		certsClient, err = certsclient.NewCertServiceCapnpClient(ctx, certConn)
 	}
 	if err == nil {
-		svc, err = oobprovserver.NewOobProvServer(caCert, caKey)
+		deviceCap = certsClient.CapDeviceCerts()
+		verifyCap = certsClient.CapVerifyCerts()
 	}
+	// now we have the capability to create certificates, create the service and start listening for capnp clients
 	if err == nil {
-		err = service.StartProvisioningCapnpAdapter(context.Background(), lis, svc)
+		svc = service.NewProvisioningService(deviceCap, verifyCap)
+		srvListener := listener.CreateServiceListener(f.Run, ServiceName)
+		err = capnpserver.StartProvisioningCapnpServer(context.Background(), srvListener, svc)
 	}
 	if err != nil {
 		log.Fatalf("Service '%s' failed to start: %s", ServiceName, err)

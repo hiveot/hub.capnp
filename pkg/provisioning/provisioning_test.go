@@ -38,14 +38,16 @@ func getCertCap() certs.ICerts {
 func newServer(useCapnp bool) provisioning.IProvisioning {
 	certCap := getCertCap()
 	svc := service.NewProvisioningService(certCap.CapDeviceCerts(), certCap.CapVerifyCerts())
+	ctx, _ := context.WithCancel(context.Background())
 
 	// optionally test with capnp RPC
 	if useCapnp {
 		_ = syscall.Unlink(testAddress)
 		lis, _ := net.Listen("unix", testAddress)
-		go capnpserver.StartProvisioningCapnpServer(context.Background(), lis, svc)
-
-		cl, err := capnpclient.NewProvisioningCapnpClient(testAddress, true)
+		go capnpserver.StartProvisioningCapnpServer(ctx, lis, svc)
+		// connect the client to the server above
+		clConn, _ := net.Dial("unix", testAddress)
+		cl, err := capnpclient.NewProvisioningCapnpClient(ctx, clConn)
 		if err != nil {
 			logrus.Fatalf("Failed starting capnp client: %s", err)
 		}

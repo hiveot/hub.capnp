@@ -10,7 +10,7 @@ import (
 
 // RequestProvisioningCapnpServer provides the capnproto RPC server to request device provisioning
 type RequestProvisioningCapnpServer struct {
-	srv provisioning.IRequestProvisioning
+	pogosrv provisioning.IRequestProvisioning
 }
 
 func (capsrv *RequestProvisioningCapnpServer) SubmitProvisioningRequest(
@@ -19,7 +19,7 @@ func (capsrv *RequestProvisioningCapnpServer) SubmitProvisioningRequest(
 	deviceID, _ := args.DeviceID()
 	pubKeyPEM, _ := args.PubKeyPEM()
 	secretMd5, _ := args.Md5Secret()
-	status, err := capsrv.srv.SubmitProvisioningRequest(ctx, deviceID, secretMd5, pubKeyPEM)
+	status, err := capsrv.pogosrv.SubmitProvisioningRequest(ctx, deviceID, secretMd5, pubKeyPEM)
 	if err == nil {
 		res, _ := call.AllocResults()
 		provStatusCapnp := capnp4POGS.ProvStatusPOGS2Capnp(status)

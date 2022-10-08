@@ -8,7 +8,9 @@ import (
 	"github.com/hiveot/hub.go/pkg/thing"
 )
 
-//
+// ServiceName is the name of this service to connect to
+const ServiceName = "historystore"
+
 //// ThingValue containing an event or action value of a thing
 //type ThingValue struct {
 //

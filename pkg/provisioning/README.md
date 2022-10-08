@@ -9,6 +9,10 @@ the '[idprov standard](https://github.com/wostzone/idprov-standard)'
 Provisioned devices receive a client certificate that can be used to authenticate themselves
 with the WoST Hub and its services.
 
+## Roadmap
+
+1. TBD Integrate with Hub discovery instead of stand-alone discovery. 
+
 ## Summary 
 
 This project implements the 'idprov' IoT device provisioning protocol. It is intended for automated provisioning of IoT devices to enable secure authenticated connections from an IoT device to IoT services.

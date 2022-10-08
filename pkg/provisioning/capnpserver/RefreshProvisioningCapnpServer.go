@@ -10,7 +10,7 @@ import (
 
 // RefreshProvisioningCapnpServer provides the capnproto RPC server to Refresh device provisioning
 type RefreshProvisioningCapnpServer struct {
-	srv provisioning.IRefreshProvisioning
+	pogosrv provisioning.IRefreshProvisioning
 }
 
 func (capsrv *RefreshProvisioningCapnpServer) RefreshDeviceCert(
@@ -19,11 +19,11 @@ func (capsrv *RefreshProvisioningCapnpServer) RefreshDeviceCert(
 	args := call.Args()
 	//deviceID, _ := args.DeviceID()
 	certPEM, _ := args.CertPEM()
-	status, err := capsrv.srv.RefreshDeviceCert(ctx, certPEM)
+	status, err := capsrv.pogosrv.RefreshDeviceCert(ctx, certPEM)
 	if err == nil {
 		res, _ := call.AllocResults()
 		provStatusCapnp := capnp4POGS.ProvStatusPOGS2Capnp(status)
-		res.SetStatus(provStatusCapnp)
+		err = res.SetStatus(provStatusCapnp)
 	}
 
 	return err

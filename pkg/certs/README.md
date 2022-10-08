@@ -4,6 +4,16 @@
 
 Manage certificates for authentication of hub services, IoT devices and consumers.
 
+## Roadmap
+
+1. Revisit the use-cases for certificates now services always listen using UDS, (except for the gateway). 
+   * How are remote services discovered?
+   * How are connections to remote services established?
+   * When are service certificates needed? If at all.
+
+2. TBD. Add support for LetsEncrypt 
+
+
 ## Summary
 
 This service manages authentication certificates for use by services, IoT devices and end-users on the local network:
@@ -78,14 +88,14 @@ When launched from the installation folder this service works out of the box wit
 
 The service has its configuration in the application 'config' directory. This is either the  './config' subdirectory of the application installation directory, or the /etc/hiveot/config directory as described in the hub README.md
 
-The following configuration files are used:
+The following files are used:
 * config/certs.yaml        - Service configuration
-* config/certs/caCert.pem  - CA public certificate in PEM format
-* config/certs/caKey.pem   - CA private key. Read-only for hub process only.
+* certs/caCert.pem  - CA public certificate in PEM format
+* certs/caKey.pem   - CA private key. Read-only for hub process only.
 
 Issued service certificates are stored:
-* config/certs/<service>Cert.pem - Issued service public certificate in PEM format
-* config/certs/<service>Key.pem  - Issued service public/private key in PEM format
+* certs/<service>Cert.pem - Issued service public certificate in PEM format
+* certs/<service>Key.pem  - Issued service public/private key in PEM format
 
 IoT device certificates and user certificates are not stored on the Hub.
 

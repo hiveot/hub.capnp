@@ -33,6 +33,6 @@ func ExitOnSignal(ctx context.Context, listener net.Listener, release func()) {
 		fmt.Println("Closing listening socket")
 		listener.Close()
 		ctx.Done()
-		os.Exit(0)
+		os.Exit(-1)
 	}()
 }

@@ -2,16 +2,23 @@
 // Unfortunately capnp does generate POGS types so we need to duplicate them
 package certs
 
-import "context"
+import (
+	"context"
 
-// Default validity of generated service certificates
-const defaultServiceCertValidityDays = 30
+	"github.com/hiveot/hub.capnp/go/hubapi"
+)
 
-// Default validity of generated client certificates
-const defaultClientCertValidityDays = 30
+// DefaultServiceCertValidityDays with validity of generated service certificates
+const DefaultServiceCertValidityDays = int(hubapi.DefaultServiceCertValidityDays)
 
-// Default validity of generated device certificates
-const defaultDeviceCertValidityDays = 30
+// DefaultClientCertValidityDays with validity of generated client certificates
+const DefaultClientCertValidityDays = int(hubapi.DefaultClientCertValidityDays)
+
+// DefaultDeviceCertValidityDays with validity of generated device certificates
+const DefaultDeviceCertValidityDays = int(hubapi.DefaultDeviceCertValidityDays)
+
+// ServiceName to connect to the service
+const ServiceName = "certs"
 
 // ICerts defines a POGS based capability API of the cert service
 // This interface aggregates all certificate capabilities.

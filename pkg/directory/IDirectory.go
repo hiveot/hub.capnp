@@ -4,6 +4,9 @@ package directory
 
 import "context"
 
+// ServiceName is the name of the service to connect to
+const ServiceName = "directory"
+
 // IDirectory defines a POGS based capability API of the thing directory
 type IDirectory interface {
 	// CapReadDirectory provides the capability to read and query the thing directory

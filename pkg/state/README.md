@@ -6,6 +6,11 @@ The state storage provides a simple key-value storage services to store applicat
 
 Persist the state of other services and consumers.
 
+## Roadmap
+
+1. Add support for SQLite to support increased capacity
+2. Add list and query support
+
 ## Summary
 
 Services that need to persist state can use this key-value store to save their state. This is also available to consumers that like to store state of their web application, for example a dashboard layout.

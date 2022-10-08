@@ -33,10 +33,11 @@ func createNewStore(useCapnp bool) (directory.IDirectory, error) {
 	if useCapnp {
 		ctx := context.Background()
 		_ = syscall.Unlink(testAddress)
-		lis, _ := net.Listen("unix", testAddress)
-		go capnpserver.StartDirectoryCapnpServer(ctx, lis, store)
-
-		capClient, err := capnpclient.NewDirectoryCapnpClient(testAddress, true)
+		srvListener, _ := net.Listen("unix", testAddress)
+		go capnpserver.StartDirectoryCapnpServer(ctx, srvListener, store)
+		// connect the client to the server above
+		clConn, _ := net.Dial("unix", testAddress)
+		capClient, err := capnpclient.NewDirectoryCapnpClient(ctx, clConn)
 		return capClient, err
 	}
 	return store, nil

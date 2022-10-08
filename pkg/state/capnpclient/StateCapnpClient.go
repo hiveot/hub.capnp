@@ -4,7 +4,6 @@ package capnpclient
 import (
 	"context"
 	"net"
-	"time"
 
 	"capnproto.org/go/capnp/v3/rpc"
 
@@ -18,7 +17,6 @@ type StateCapnpClient struct {
 	connection *rpc.Conn       // connection to capnp server
 	capability hubapi.CapState // capnp client of the state store
 	ctx        context.Context
-	ctxCancel  context.CancelFunc
 }
 
 func (cl *StateCapnpClient) CapClientState(ctx context.Context, clientID string, appID string) state.IClientState {
@@ -33,26 +31,18 @@ func (cl *StateCapnpClient) CapClientState(ctx context.Context, clientID string,
 }
 
 // NewStateCapnpClient returns a state store client using the capnp protocol
-// Intended for bootstrapping the capability chain
-func NewStateCapnpClient(address string, isUDS bool) (*StateCapnpClient, error) {
+//  ctx is the context for retrieving capabilities
+//  connection is the client connection to the capnp RPC server
+func NewStateCapnpClient(ctx context.Context, connection net.Conn) (*StateCapnpClient, error) {
 	var cl *StateCapnpClient
-	network := "tcp"
-	if isUDS {
-		network = "unix"
-	}
-	connection, err := net.Dial(network, address)
-	if err == nil {
-		transport := rpc.NewStreamTransport(connection)
-		rpcConn := rpc.NewConn(transport, nil)
-		ctx, ctxCancel := context.WithTimeout(context.Background(), time.Second*60)
-		capability := hubapi.CapState(rpcConn.Bootstrap(ctx))
+	transport := rpc.NewStreamTransport(connection)
+	rpcConn := rpc.NewConn(transport, nil)
+	capability := hubapi.CapState(rpcConn.Bootstrap(ctx))
 
-		cl = &StateCapnpClient{
-			connection: rpcConn,
-			capability: capability,
-			ctx:        ctx,
-			ctxCancel:  ctxCancel,
-		}
+	cl = &StateCapnpClient{
+		connection: rpcConn,
+		capability: capability,
+		ctx:        ctx,
 	}
 	return cl, nil
 }

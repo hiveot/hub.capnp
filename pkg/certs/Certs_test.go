@@ -33,15 +33,18 @@ const testAddress = "/tmp/certservice_test.socket"
 // Factory for creating service instance. Currently the only implementation is selfsigned.
 func NewService() certs.ICerts {
 	// use selfsigned to create a new CA for these tests
+	ctx, _ := context.WithCancel(context.Background())
 	caCert, caKey, _ := selfsigned.CreateHubCA(1)
 	svc := selfsigned.NewSelfSignedCertsService(caCert, caKey)
 	// when using capnp, return a client instance instead the svc
 	if useCapnp {
 		// remove stale handle
 		_ = syscall.Unlink(testAddress)
-		lis, _ := net.Listen("unix", testAddress)
-		go capnpserver.StartCertsCapnpServer(context.Background(), lis, svc)
-		capClient, _ := capnpclient.NewCertServiceCapnpClient(testAddress, true)
+		srvListener, _ := net.Listen("unix", testAddress)
+		go capnpserver.StartCertsCapnpServer(context.Background(), srvListener, svc)
+		// connect the client to the server above
+		clConn, _ := net.Dial("unix", testAddress)
+		capClient, _ := capnpclient.NewCertServiceCapnpClient(ctx, clConn)
 		return capClient
 	}
 	return svc

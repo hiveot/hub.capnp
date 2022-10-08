@@ -28,10 +28,10 @@ func (cl *DeviceCertsCapnpClient) CreateDeviceCert(
 		})
 	defer release()
 	// invoke the method and get the result
-	resp2, err := createDeviceCertMethod.Struct()
+	resp, err := createDeviceCertMethod.Struct()
 	if err == nil {
-		certPEM, err = resp2.CertPEM()
-		caCertPEM, _ = resp2.CaCertPEM()
+		certPEM, err = resp.CertPEM()
+		caCertPEM, _ = resp.CaCertPEM()
 	}
 	return certPEM, caCertPEM, err
 }

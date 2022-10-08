@@ -4,7 +4,6 @@ package capnpclient
 import (
 	"context"
 	"net"
-	"time"
 
 	"capnproto.org/go/capnp/v3/rpc"
 
@@ -18,7 +17,6 @@ type DirectoryCapnpClient struct {
 	connection *rpc.Conn           // connection to capnp server
 	capability hubapi.CapDirectory // capnp client of the directory
 	ctx        context.Context
-	ctxCancel  context.CancelFunc
 }
 
 // CapReadDirectory returns the capability to read the directory
@@ -33,34 +31,23 @@ func (cl *DirectoryCapnpClient) CapReadDirectory() directory.IReadDirectory {
 func (cl *DirectoryCapnpClient) CapUpdateDirectory() directory.IUpdateDirectory {
 	// The use of a result 'future' avoids a round trip, making this more efficient
 	getCap, _ := cl.capability.CapUpdateDirectory(cl.ctx, nil)
-	cap := getCap.Cap()
-	//res, _ := getCap.Struct()
-	//cap := res.Cap()
-
-	return NewUpdateDirectoryCapnpClient(cap)
+	capability := getCap.Cap()
+	return NewUpdateDirectoryCapnpClient(capability)
 }
 
 // NewDirectoryCapnpClient returns a directory store client using the capnp protocol
-// Intended for bootstrapping the capability chain
-func NewDirectoryCapnpClient(address string, isUDS bool) (*DirectoryCapnpClient, error) {
+//  ctx is the context for retrieving capabilities
+//  connection is the client connection to the capnp server
+func NewDirectoryCapnpClient(ctx context.Context, connection net.Conn) (*DirectoryCapnpClient, error) {
 	var cl *DirectoryCapnpClient
-	network := "tcp"
-	if isUDS {
-		network = "unix"
-	}
-	connection, err := net.Dial(network, address)
-	if err == nil {
-		transport := rpc.NewStreamTransport(connection)
-		rpcConn := rpc.NewConn(transport, nil)
-		ctx, ctxCancel := context.WithTimeout(context.Background(), time.Second*60)
-		capability := hubapi.CapDirectory(rpcConn.Bootstrap(ctx))
+	transport := rpc.NewStreamTransport(connection)
+	rpcConn := rpc.NewConn(transport, nil)
+	capability := hubapi.CapDirectory(rpcConn.Bootstrap(ctx))
 
-		cl = &DirectoryCapnpClient{
-			connection: rpcConn,
-			capability: capability,
-			ctx:        ctx,
-			ctxCancel:  ctxCancel,
-		}
+	cl = &DirectoryCapnpClient{
+		connection: rpcConn,
+		capability: capability,
+		ctx:        ctx,
 	}
 	return cl, nil
 }

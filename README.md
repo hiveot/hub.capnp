@@ -6,6 +6,8 @@ The Hub for the *Hive of Things* is an intermediary between IoT devices 'Things'
 
 Status: The status of the Hub is In Development. It is undergoing a rewrite to Capabilities based design using **capnp** for infrastructure.
 
+The first release is aimed at Linux systems. 
+
 ## Audience
 
 This project is aimed at software developers and system implementors that are working on secure IoT devices. Users choose to not run servers on Things and instead use a hub and spokes model which greatly reduces the security risk posted by traditional IoT devices.
@@ -61,7 +63,7 @@ To build the core and bundled plugins from source, a Linux system with golang an
 
 Prerequisites:
 
-1. Golang 1.17 or newer
+1. Golang 1.18 or newer
 2. GCC Make
 
 Build from source (tentative):
@@ -114,17 +116,16 @@ The Hub can be installed and run as a dedicated user or system user. This sectio
 2. Create the hub folder structure
 
 ```sh
-mkdir -p ~/bin/hiveot/bin
+mkdir -p ~/bin/hiveot/bin/services
 mkdir -p ~/bin/hiveot/config
 mkdir -p ~/bin/hiveot/logs 
 mkdir -p ~/bin/hiveot/certs 
-mkdir -p ~/bin/hiveot/certstore
 ```
 
 3. Copy the application binaries into the ~/bin/hiveot/bin folder and default configuration in the ~/bin/hiveot/config folder
 
 ```sh
-cp bin/* ~/bin/hiveot/bin
+cp -a bin/* ~/bin/hiveot/bin
 cp config/* ~/bin/hiveot/config
 ```
 
@@ -150,10 +151,11 @@ For systemd installation to run as user 'hiveot'. When changing the user and fol
 1. Create the folders and install the files
 
 ```sh
-sudo mkdir /opt/hiveot/
+sudo mkdir -P /opt/hiveot/services
+sudo mkdir -P /etc/hiveot/conf.d/ 
 sudo mkdir -P /etc/hiveot/certs/ 
-sudo mkdir -P /var/lib/hiveot/certstore/ 
 sudo mkdir /var/log/hiveot/   
+sudo mkdir /run/hiveot/   
 
 # Install HiveOT configuration and systemd
 # download and extract the binaries tarfile in a temp for and copy the files:
@@ -161,7 +163,7 @@ tar -xf hiveot.tgz
 sudo cp config/* /etc/hiveot
 sudo vi /etc/hiveot/hub.yaml    - and edit the config, log, plugin folders
 sudo cp init/hiveot.service /etc/systemd/system
-sudo cp bin/* /opt/hiveot
+sudo cp -a bin/* /opt/hiveot
 ```
 
 2. Setup the system user and permissions
@@ -189,11 +191,11 @@ sudo systemctl enable hiveot
 
 ## Configuration
 
-All Hub services will run out of the box with their default configuration. To change the default network and folder locations edit the 'config/hub.yaml' configuration file.
+All Hub services will run out of the box with their default configuration. To change the default network and folder locations edit the 'config/hub.yaml' configuration file (or /etc/hiveot/conf.d/hub.yaml).
 
 Hub services load their common configuration from the hub.yaml file in the config folder. This file MUST exist as it contains the message bus connection information for use by plugins. If no address is configured, the host outbound IP address is determined during startup. For hosts with multiple addresses, the address to use can be configured in hub.yaml
 
-Plugins can have their own plugin specific configuration file in the config folder. Plugins must be able to run without a configuration file.
+Services and plugins can have their own plugin specific configuration file in the config folder. Plugins must be able to run without a configuration file.
 
 ## Launching
 

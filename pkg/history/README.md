@@ -10,6 +10,11 @@ History provides capture are restore of past events and actions.
 
 The main use-case is to view and analyze past values of things.  
 
+## Roadmap
+
+1. Use a secure connection to the mongodb database
+2. TBD determine what other query features are needed, if any.
+3. TBD Add support for SQLite
 
 ## Backend Storage
 

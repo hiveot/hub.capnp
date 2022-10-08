@@ -37,7 +37,7 @@ type ProvisionStatus struct {
 	RetrySec int
 }
 
-// IProvisioning defines a POGS based interface of the provisioning services
+// IProvisioning defines a POGS based interface of the provisioning service
 type IProvisioning interface {
 
 	// CapManageProvisioning provides the capability to manage provisioning requests

@@ -4,7 +4,6 @@ package capnpclient
 import (
 	"context"
 	"net"
-	"time"
 
 	"capnproto.org/go/capnp/v3/rpc"
 
@@ -21,7 +20,6 @@ type CertsCapnpClient struct {
 	connection *rpc.Conn // connection to capnp server
 	capability hubapi.CapCerts
 	ctx        context.Context
-	ctxCancel  context.CancelFunc
 }
 
 // CapDeviceCerts returns the capability to create device certificates
@@ -69,25 +67,16 @@ func (cl *CertsCapnpClient) Release() {
 
 // NewCertServiceCapnpClient returns a capability to create certificates using the capnp protocol
 // Intended for bootstrapping the capability chain
-func NewCertServiceCapnpClient(address string, isUDS bool) (*CertsCapnpClient, error) {
-	network := "tcp"
-	if isUDS {
-		network = "unix"
-	}
-	connection, err := net.Dial(network, address)
-	if err != nil {
-		return nil, err
-	}
-	transport := rpc.NewStreamTransport(connection)
+//  ctx is the context for retrieving capabilities
+func NewCertServiceCapnpClient(ctx context.Context, conn net.Conn) (*CertsCapnpClient, error) {
+	transport := rpc.NewStreamTransport(conn)
 	rpcConn := rpc.NewConn(transport, nil)
-	ctx, ctxCancel := context.WithTimeout(context.Background(), time.Second*60)
 	capability := hubapi.CapCerts(rpcConn.Bootstrap(ctx))
 
 	cl := &CertsCapnpClient{
 		connection: rpcConn,
 		capability: capability,
 		ctx:        ctx,
-		ctxCancel:  ctxCancel,
 	}
 	return cl, nil
 }

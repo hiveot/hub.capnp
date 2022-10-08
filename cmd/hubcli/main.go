@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"context"
 	"os"
 	"path"
 
@@ -9,11 +9,11 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/hiveot/hub/cmd/hubcli/certcli"
-	"github.com/hiveot/hub/cmd/hubcli/provcli"
-	"github.com/hiveot/hub/cmd/hubcli/svccli"
+	"github.com/hiveot/hub/cmd/hubcli/launchercli"
+	"github.com/hiveot/hub/internal/folders"
 )
 
-const Version = `0.4-alpha`
+const Version = `0.5-alpha`
 
 var binFolder string
 var homeFolder string
@@ -23,20 +23,39 @@ func main() {
 	logrus.SetLevel(logrus.InfoLevel)
 	binFolder = path.Dir(os.Args[0])
 	homeFolder = path.Dir(binFolder)
+	f := folders.GetFolders(homeFolder, false)
+	ctx := context.Background()
 
 	app := &cli.App{
 		EnableBashCompletion: true,
 		Name:                 "hubcli",
 		Usage:                "Hub Commandline Interface",
 		Version:              Version,
+
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:        "home",
+				Usage:       "Path to home `folder`.",
+				Value:       f.Home,
+				Destination: &f.Home,
+			},
+			&cli.StringFlag{
+				Name:        "services",
+				Usage:       "Path to services directory",
+				Value:       f.Services,
+				Destination: &f.Services,
+			},
+		},
 		Commands: []*cli.Command{
-			certcli.GetCertCommands(homeFolder),
-			provcli.GetProvCommands(homeFolder),
-			svccli.GetSvcCommands(homeFolder),
+			certcli.CACommands(ctx, f),
+			launchercli.LauncherCommands(ctx, f),
+			//certcli.GetCertCommands(homeFolder),
+			//provcli.GetProvCommands(homeFolder),
+			//svccli.GetSvcCommands(homeFolder),
 		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		log.Fatal(err)
+		logrus.Error("ERROR: ", err)
 	}
 }

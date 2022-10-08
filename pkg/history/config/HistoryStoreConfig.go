@@ -1,8 +1,5 @@
 package config
 
-// ServiceName is the name of this service for logging
-const ServiceName = "historystore"
-
 // DefaultDBName is the name of the storage database
 const DefaultDBName = "historystore"
 
