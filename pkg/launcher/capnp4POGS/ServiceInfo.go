@@ -17,7 +17,7 @@ func ServiceInfoCapnp2POGS(serviceInfoCapnp hubapi.ServiceInfo) launcher.Service
 
 	serviceInfoPOGS := launcher.ServiceInfo{
 		CPU:          int(serviceInfoCapnp.Cpu()),
-		MEM:          int(serviceInfoCapnp.Mem()),
+		RSS:          int(serviceInfoCapnp.Rss()),
 		Error:        errorText,
 		ModifiedTime: modifiedTime,
 		Name:         serviceName,
@@ -37,7 +37,7 @@ func ServiceInfoPOGS2Capnp(serviceInfoPOGS launcher.ServiceInfo) hubapi.ServiceI
 	_, seg, _ := capnp.NewMessage(capnp.SingleSegment(nil))
 	siCapnp, _ := hubapi.NewServiceInfo(seg)
 	siCapnp.SetCpu(int32(serviceInfoPOGS.CPU))
-	siCapnp.SetMem(int32(serviceInfoPOGS.MEM))
+	siCapnp.SetRss(int64(serviceInfoPOGS.RSS))
 	_ = siCapnp.SetError(serviceInfoPOGS.Error)
 	_ = siCapnp.SetModifiedTime(serviceInfoPOGS.ModifiedTime)
 	_ = siCapnp.SetName(serviceInfoPOGS.Name)

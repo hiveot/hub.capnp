@@ -1,14 +1,20 @@
 package provcli
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/urfave/cli"
+	"github.com/urfave/cli/v2"
+
+	"github.com/hiveot/hub/internal/folders"
+	"github.com/hiveot/hub/internal/listener"
+	"github.com/hiveot/hub/pkg/provisioning"
+	"github.com/hiveot/hub/pkg/provisioning/capnpclient"
 )
 
-// GetProvCommands returns the provisioning handling commands
+// ProvisioningCommands returns the provisioning handling commands
 // This requires the provisioning service to run.
-func GetProvCommands(homeFolder string) *cli.Command {
+func ProvisioningCommands(ctx context.Context, f folders.AppFolders) *cli.Command {
 
 	cmd := &cli.Command{
 		//hub prov add|list  <deviceID> <secret>
@@ -16,35 +22,28 @@ func GetProvCommands(homeFolder string) *cli.Command {
 		Name:  "prov",
 		Usage: "IoT device provisioning",
 		Subcommands: cli.Commands{
-			GetProvAddCommand(),
+			ProvisionAddOOBSecretsCommand(ctx, f),
+			ProvisionApproveRequestCommand(ctx, f),
+			ProvisionGetPendingRequestsCommand(ctx, f),
+			ProvisionGetApprovedRequestsCommand(ctx, f),
 		},
 	}
 
 	return cmd
 }
 
-// GetProvAddCommand
-// prov add [--secrets=folder] <deviceID> <oobsecret>
-func GetProvAddCommand() cli.Command {
-	provServiceAddress := "localhost:8881"
-	return cli.Command{
+// ProvisionAddOOBSecretsCommand
+// prov add  <deviceID> <oobsecret>
+func ProvisionAddOOBSecretsCommand(ctx context.Context, f folders.AppFolders) *cli.Command {
+	return &cli.Command{
 		Name:      "add",
 		Usage:     "Add an out-of-band device provisioning secret for automatic provisioning",
 		ArgsUsage: "<deviceID> <oobSecret>",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:        "address",
-				Usage:       "Provisioning service address",
-				Value:       provServiceAddress,
-				Destination: &provServiceAddress,
-			},
-		},
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 2 {
 				return fmt.Errorf("expected 2 arguments. Got %d instead", cCtx.NArg())
 			}
-			err := HandleAddOobSecret(
-				provServiceAddress,
+			err := HandleAddOobSecret(ctx, f,
 				cCtx.Args().Get(0),
 				cCtx.Args().Get(1))
 			fmt.Println("Adding secret for device: ", cCtx.Args().First())
@@ -53,35 +52,145 @@ func GetProvAddCommand() cli.Command {
 	}
 }
 
+// ProvisionApproveRequestCommand
+// prov approve <deviceID>
+func ProvisionApproveRequestCommand(ctx context.Context, f folders.AppFolders) *cli.Command {
+	return &cli.Command{
+		Name:      "approve",
+		Usage:     "Approve a pending provisioning request",
+		ArgsUsage: "<deviceID> ",
+		Action: func(cCtx *cli.Context) error {
+			if cCtx.NArg() != 1 {
+				return fmt.Errorf("expected 1 arguments. Got %d instead", cCtx.NArg())
+			}
+			deviceID := cCtx.Args().First()
+			err := HandleApproveRequest(ctx, f, deviceID)
+			return err
+		},
+	}
+}
+
+// ProvisionGetApprovedRequestsCommand
+// prov approved
+func ProvisionGetApprovedRequestsCommand(ctx context.Context, f folders.AppFolders) *cli.Command {
+	return &cli.Command{
+		Name:      "approved",
+		Usage:     "Get a list of approved provisioning requests",
+		ArgsUsage: "(no arguments)",
+		Action: func(cCtx *cli.Context) error {
+			err := HandleGetApprovedRequests(ctx, f)
+			return err
+		},
+	}
+}
+
+// ProvisionGetPendingRequestsCommand
+// prov approved
+func ProvisionGetPendingRequestsCommand(ctx context.Context, f folders.AppFolders) *cli.Command {
+	return &cli.Command{
+		Name:      "pending",
+		Usage:     "Get a list of pending provisioning requests",
+		ArgsUsage: "(no arguments)",
+		Action: func(cCtx *cli.Context) error {
+			err := HandleGetPendingRequests(ctx, f)
+			return err
+		},
+	}
+}
+
 // HandleAddOobSecret invokes the out-of-band provisioning service to add a provisioning secret
-//  address is the destination service's address
 //  deviceID is the ID of the device whose secret to set
 //  secret to set
-func HandleAddOobSecret(address string, deviceID string, secret string) error {
-	//// Set up a connection to the server.
-	//daprClient, err := dapr.NewClient()
-	//if err != nil {
-	//	err2 := fmt.Errorf("Error initialize dapr client. Make sure thsi runs with a sidecart:%s", err)
-	//	log.Println(err2)
-	//	return err
-	//}
-	//defer daprClient.Close()
-	// cred := insecure.NewCredentials()
+func HandleAddOobSecret(ctx context.Context, f folders.AppFolders, deviceID string, secret string) error {
+	var pc provisioning.IProvisioning
+	var secrets []provisioning.OOBSecret
 
-	// ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-	// conn, err := Dial(ctx, address)
-	// if err != nil {
-	// 	logrus.Errorf("failed to connect: %v", err)
-	// 	return err
-	// }
-	// defer conn.Close()
-	// cl := svc.NewProvisioningClient(conn)
+	conn, err := listener.CreateClientConnection(f.Run, provisioning.ServiceName)
+	if err == nil {
+		pc, err = capnpclient.NewProvisioningCapnpClient(ctx, conn)
+	}
+	if err != nil {
+		return err
+	}
+	manage := pc.CapManageProvisioning()
 
-	// defer cancel()
+	secrets = []provisioning.OOBSecret{
+		{
+			DeviceID:  deviceID,
+			OobSecret: secret,
+		},
+	}
+	err = manage.AddOOBSecrets(ctx, secrets)
 
-	// args := &svc.AddOobSecrets_Args{
-	// 	Secrets: make([]*svc.AddOobSecrets_Args_OobSecret, 0),
-	// }
-	// _, err = cl.AddOobSecrets(ctx, args)
+	return err
+}
+
+// HandleApproveRequest
+//  deviceID is the ID of the device to approve
+func HandleApproveRequest(ctx context.Context, f folders.AppFolders, deviceID string) error {
+	var pc provisioning.IProvisioning
+
+	conn, err := listener.CreateClientConnection(f.Run, provisioning.ServiceName)
+	if err == nil {
+		pc, err = capnpclient.NewProvisioningCapnpClient(ctx, conn)
+	}
+	pc.CapManageProvisioning()
+	if err != nil {
+		return err
+	}
+	manage := pc.CapManageProvisioning()
+	err = manage.ApproveRequest(ctx, deviceID)
+
+	return err
+}
+
+// HandleGetApprovedRequests
+func HandleGetApprovedRequests(ctx context.Context, f folders.AppFolders) error {
+	var pc provisioning.IProvisioning
+
+	conn, err := listener.CreateClientConnection(f.Run, provisioning.ServiceName)
+	if err == nil {
+		pc, err = capnpclient.NewProvisioningCapnpClient(ctx, conn)
+	}
+	pc.CapManageProvisioning()
+	if err != nil {
+		return err
+	}
+	manage := pc.CapManageProvisioning()
+	provStatus, err := manage.GetApprovedRequests(ctx)
+	fmt.Printf("Client ID              Request Time      Assigned\n")
+	fmt.Printf("--------------------   ------------      --------\n")
+	for _, provStatus := range provStatus {
+		// a certificate is assigned when generated
+		assigned := provStatus.ClientCertPEM != ""
+		fmt.Printf("%20s  %s, %s\n",
+			provStatus.DeviceID, provStatus.RequestTime, assigned)
+	}
+
+	return err
+}
+
+// HandleGetPendingRequests
+func HandleGetPendingRequests(ctx context.Context, f folders.AppFolders) error {
+	var pc provisioning.IProvisioning
+
+	conn, err := listener.CreateClientConnection(f.Run, provisioning.ServiceName)
+	if err == nil {
+		pc, err = capnpclient.NewProvisioningCapnpClient(ctx, conn)
+	}
+	pc.CapManageProvisioning()
+	if err != nil {
+		return err
+	}
+	manage := pc.CapManageProvisioning()
+	provStatus, err := manage.GetPendingRequests(ctx)
+	fmt.Printf("Client ID              Request Time\n")
+	fmt.Printf("--------------------   ------------\n")
+	for _, provStatus := range provStatus {
+		// a certificate is assigned when generated
+		fmt.Printf("%20s  %s\n",
+			provStatus.DeviceID, provStatus.RequestTime)
+	}
+
 	return err
 }

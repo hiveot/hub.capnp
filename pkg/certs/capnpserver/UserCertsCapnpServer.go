@@ -22,7 +22,7 @@ func (capsrv *UserCertsCapnpServer) CreateUserCert(
 	pubKeyPEM, _ := call.Args().PubKeyPEM()
 	validityDays := call.Args().ValidityDays()
 	if validityDays == 0 {
-		validityDays = hubapi.DefaultClientCertValidityDays
+		validityDays = hubapi.DefaultUserCertValidityDays
 	}
 	certPEM, caCertPEM, err := capsrv.srv.CreateUserCert(ctx, clientID, pubKeyPEM, int(validityDays))
 	if err == nil {

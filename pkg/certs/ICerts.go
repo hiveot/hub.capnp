@@ -11,8 +11,8 @@ import (
 // DefaultServiceCertValidityDays with validity of generated service certificates
 const DefaultServiceCertValidityDays = int(hubapi.DefaultServiceCertValidityDays)
 
-// DefaultClientCertValidityDays with validity of generated client certificates
-const DefaultClientCertValidityDays = int(hubapi.DefaultClientCertValidityDays)
+// DefaultUserCertValidityDays with validity of generated client certificates
+const DefaultUserCertValidityDays = int(hubapi.DefaultUserCertValidityDays)
 
 // DefaultDeviceCertValidityDays with validity of generated device certificates
 const DefaultDeviceCertValidityDays = int(hubapi.DefaultDeviceCertValidityDays)

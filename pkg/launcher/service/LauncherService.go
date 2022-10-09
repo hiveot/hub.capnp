@@ -5,15 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
 	"path"
 	"sort"
-	"strings"
 	"sync"
 	"syscall"
 	"time"
 
-	"github.com/go-cmd/cmd"
 	"github.com/sirupsen/logrus"
+	"github.com/struCoder/pidusage"
 
 	"github.com/hiveot/hub/pkg/launcher"
 )
@@ -24,7 +24,7 @@ type LauncherService struct {
 	// map of service name to running status
 	services map[string]*launcher.ServiceInfo
 	// map of started commands
-	cmds map[string]*cmd.Cmd
+	cmds map[string]*exec.Cmd
 	// mutex to keep things safe
 	mux sync.Mutex
 }
@@ -108,37 +108,60 @@ func (ls *LauncherService) Start(
 	}
 	svcCmd, hasCmd := ls.cmds[name]
 	if hasCmd {
-		err = fmt.Errorf("command for service '%s' is exists. This is unexpected. Last error: %s", name, svcCmd.Status().Error)
+		err = fmt.Errorf("process for service '%s' already exists using PID %d. This is unexpected.", name, svcCmd.Process.Pid)
 		logrus.Error(err)
 		return *serviceInfo, err
 	}
 
 	//svcCmd := exec.Command(serviceInfo.Path)
 	// how to pass process stderr to launcher stderr using go-cmd?
-	svcCmd = cmd.NewCmd(serviceInfo.Path)
+	svcCmd = exec.Command(serviceInfo.Path)
 
+	err = svcCmd.Start()
+	if err != nil {
+		serviceInfo.Error = fmt.Sprintf("failed starting '%s': %s", name, err.Error())
+		logrus.Error(serviceInfo.Error)
+		err = errors.New(serviceInfo.Error)
+		return *serviceInfo, err
+	}
 	ls.cmds[name] = svcCmd
+	logrus.Infof("Service '%s' has started", name)
+
 	// TODO: should stdout/stderr be routed to the launcher?
-	statusChan := svcCmd.Start()
+	serviceInfo.StartTime = time.Now().Format(time.RFC3339)
+	serviceInfo.PID = svcCmd.Process.Pid
+	serviceInfo.Error = ""
 	serviceInfo.StartCount++
 	serviceInfo.Running = true
 
 	go func() {
 		// cleanup after the process ends
-		status := <-statusChan
+		status := svcCmd.Wait()
 		_ = status
 		ls.mux.Lock()
 		defer ls.mux.Unlock()
+
 		// TODO: send event when started and stopped
+		serviceInfo.StopTime = time.Now().Format(time.RFC3339)
+		serviceInfo.Running = false
+		// processState holds exit info
+		procState := svcCmd.ProcessState
+		if status != nil {
+			serviceInfo.Error = fmt.Sprintf("Service '%s' has stopped with: %s", name, status.Error())
+		} else if procState != nil {
+			serviceInfo.Error = fmt.Sprintf("Service '%s' has stopped with exit code %d: sys='%v'", name, procState.ExitCode(), procState.Sys())
+		} else {
+			serviceInfo.Error = fmt.Sprintf("Service '%s' has stopped without info", name)
+		}
+		logrus.Infof(serviceInfo.Error)
 		ls.updateStatus(serviceInfo)
-		logrus.Infof("Service '%s' exited with exit code %d \n%s", name, status.Exit, serviceInfo.Error)
 		delete(ls.cmds, name)
 	}()
 
 	// FIXME: wait until started
 	time.Sleep(time.Millisecond * 10)
 
-	startTime := time.Unix(0, svcCmd.Status().StartTs)
+	startTime := time.Now()
 	serviceInfo.StartTime = startTime.Format(time.RFC3339)
 
 	ls.updateStatus(serviceInfo)
@@ -164,7 +187,7 @@ func (ls *LauncherService) Stop(_ context.Context, name string) (info launcher.S
 		logrus.Error(err)
 		return *serviceInfo, err
 	}
-	err = svcCmd.Stop()
+	err = svcCmd.Process.Signal(syscall.SIGTERM)
 	// FIXME: wait until stopped?
 	time.Sleep(time.Millisecond * 10)
 	serviceInfo.Error = "stopped by user"
@@ -177,7 +200,9 @@ func (ls *LauncherService) Stop(_ context.Context, name string) (info launcher.S
 		if err == nil {
 			// unexpected
 			err = proc.Kill()
-			logrus.Errorf("Stop of service '%s' with PID %d failed. Attempt a kill", name, serviceInfo.PID)
+			errmsg := fmt.Sprintf("Stop of service '%s' with PID %d failed. Attempt a kill", name, serviceInfo.PID)
+			serviceInfo.Error = errmsg
+			logrus.Error(errmsg)
 		}
 	}
 	err = nil
@@ -189,7 +214,7 @@ func (ls *LauncherService) Stop(_ context.Context, name string) (info launcher.S
 }
 
 // StopAll stops all running services
-func (ls *LauncherService) StopAll(_ context.Context) (err error) {
+func (ls *LauncherService) StopAll(ctx context.Context) (err error) {
 	logrus.Infof("Stopping all (%d) services", len(ls.cmds))
 
 	ls.mux.Lock()
@@ -201,35 +226,21 @@ func (ls *LauncherService) StopAll(_ context.Context) (err error) {
 	}
 	// stop each service
 	for _, name := range names {
-		cmd := ls.cmds[name]
-		cmd.Stop()
+		ls.Stop(ctx, name)
 		delete(ls.cmds, name)
 	}
 	return err
 }
 
-// updateStatus updates the service status
+// updateStatus updates the service  status
 func (ls *LauncherService) updateStatus(svcInfo *launcher.ServiceInfo) {
-	svcCmd, found := ls.cmds[svcInfo.Name]
-	if !found {
-		svcInfo.Running = false
-		svcInfo.PID = 0
+	pidStats, _ := pidusage.GetStat(svcInfo.PID)
+	if pidStats != nil {
+		svcInfo.RSS = int(pidStats.Memory) // RSS is in KB
+		svcInfo.CPU = int(pidStats.CPU)
+	} else {
 		svcInfo.CPU = 0
-		svcInfo.MEM = 0
-		return
-	}
-	svcStatus := svcCmd.Status()
-	if svcStatus.Error != nil {
-		svcInfo.Error = svcStatus.Error.Error()
-	} else if len(svcStatus.Stderr) > 0 {
-		lastErr := strings.Join(svcStatus.Stderr[(len(svcStatus.Stderr)-1):], "")
-		svcInfo.Error = lastErr
-	}
-	svcInfo.PID = svcStatus.PID
-	svcInfo.Running = (svcStatus.StopTs == 0) && (svcStatus.PID != 0)
-	// StartTS is 0 if service hasn't started
-	if svcStatus.StartTs == 0 && svcStatus.Error == nil {
-		svcInfo.Error = fmt.Sprintf("'%s' failed to start. Exit code %d", svcCmd.Name, svcStatus.Exit)
+		svcInfo.RSS = 0
 	}
 }
 
@@ -239,7 +250,7 @@ func NewLauncherService(serviceFolder string) *LauncherService {
 	logrus.Infof("creating new launcher service with serviceFolder %s", serviceFolder)
 	ls := &LauncherService{
 		services: make(map[string]*launcher.ServiceInfo),
-		cmds:     make(map[string]*cmd.Cmd),
+		cmds:     make(map[string]*exec.Cmd),
 	}
 	err := ls.findServices(serviceFolder)
 	if err != nil {

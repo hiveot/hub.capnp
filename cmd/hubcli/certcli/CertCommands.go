@@ -1,231 +1,358 @@
 // Package certcli with certificate commandline definitions
 package certcli
 
+import (
+	"bytes"
+	"context"
+	"crypto/ecdsa"
+	"fmt"
+	"io/ioutil"
+	"os"
+	"os/exec"
+
+	"github.com/sirupsen/logrus"
+	"github.com/urfave/cli/v2"
+
+	"github.com/hiveot/hub.go/pkg/certsclient"
+	"github.com/hiveot/hub/internal/folders"
+	"github.com/hiveot/hub/internal/listener"
+	"github.com/hiveot/hub/pkg/certs"
+	"github.com/hiveot/hub/pkg/certs/capnpclient"
+)
+
+// CertCommands returns the certificate handling commands
+func CertCommands(ctx context.Context, f folders.AppFolders) *cli.Command {
+
+	cmd := &cli.Command{
+		// certs ca | client | device --certs=folder --pubkey=path ID
+
+		Name:  "cert",
+		Usage: "Create certificates",
+		Subcommands: []*cli.Command{
+			CertCreateDeviceCommand(ctx, f),
+			CertCreateServiceCommand(ctx, f),
+			CertCreateUserCommand(ctx, f),
+			CertShowInfoCommand(ctx, f),
+		},
+	}
+	return cmd
+}
+
+// CertCreateUserCommand - requires the certs service to run
+// hubcli certs client [--certs=CertFolder --pubkey=pubkeyfile] <loginID>
+func CertCreateUserCommand(ctx context.Context, f folders.AppFolders) *cli.Command {
+	validityDays := certs.DefaultUserCertValidityDays
+
+	return &cli.Command{
+		Name:      "user",
+		Usage:     "Create a user certificate",
+		ArgsUsage: "<loginID>",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:  "pubkey",
+				Usage: "`file` with user public or private key in PEM format. When omitted a public/private key pair will be generated.",
+			},
+			&cli.IntFlag{
+				Name:        "days",
+				Usage:       "Number of days the certificate is valid.",
+				Value:       validityDays,
+				Destination: &validityDays,
+			},
+		},
+		Action: func(cCtx *cli.Context) error {
+			if cCtx.NArg() == 0 {
+				return fmt.Errorf("Missing client login ID")
+			}
+			loginID := cCtx.Args().Get(0)
+			pubKeyFile := cCtx.String("pubkey")
+			err := HandleCreateUserCert(ctx, f, loginID, pubKeyFile, validityDays)
+			return err
+		},
+	}
+}
+
+// CertCreateDeviceCommand
+// hubcli certs device [--certs=CertFolder] --pubkey=pubkeyfile <deviceID>
+func CertCreateDeviceCommand(ctx context.Context, f folders.AppFolders) *cli.Command {
+	validityDays := certs.DefaultDeviceCertValidityDays
+
+	return &cli.Command{
+		Name:      "device",
+		Usage:     "Create an IoT device certificate",
+		ArgsUsage: "<deviceID>",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:  "pubkey",
+				Usage: "`file` with device public or private key in PEM format. When omitted a public/private key pair will be generated.",
+			},
+			&cli.IntFlag{
+				Name:        "days",
+				Usage:       "Number of days the certificate is valid.",
+				Value:       validityDays,
+				Destination: &validityDays,
+			},
+		},
+		Action: func(cCtx *cli.Context) error {
+			if cCtx.NArg() == 0 {
+				return fmt.Errorf("Missing device ID")
+			}
+			deviceID := cCtx.Args().Get(0)
+			pubKeyFile := cCtx.String("pubkey")
+			err := HandleCreateDeviceCert(ctx, f, deviceID, pubKeyFile, validityDays)
+			return err
+		},
+	}
+}
+
+// CertCreateServiceCommand
+// hubcli certs service [--certs=CertFolder --pubkey=pubkeyfile] <serviceID>
+func CertCreateServiceCommand(ctx context.Context, f folders.AppFolders) *cli.Command {
+	validityDays := certs.DefaultServiceCertValidityDays
+	ipAddr := ""
+
+	return &cli.Command{
+		Name:      "service",
+		Usage:     "Create a service certificate",
+		ArgsUsage: "<serviceID>",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:  "pubkey",
+				Usage: "`file` with service public or private key in PEM format. When omitted a public/private key pair will be generated.",
+			},
+			&cli.StringFlag{
+				Name:        "ipAddr",
+				Usage:       "Optional service IP address in addition to localhost.",
+				Destination: &ipAddr,
+			},
+			&cli.IntFlag{
+				Name:        "days",
+				Usage:       "Number of days the certificate is valid.",
+				Value:       validityDays,
+				Destination: &validityDays,
+			},
+		},
+		Action: func(cCtx *cli.Context) error {
+			if cCtx.NArg() == 0 {
+				return fmt.Errorf("Missing service ID")
+			}
+			serviceID := cCtx.Args().Get(0)
+			pubKeyFile := cCtx.String("pubkey")
+			err := HandleCreateServiceCert(ctx, f, serviceID, ipAddr, pubKeyFile, validityDays)
+			return err
+		},
+	}
+}
+func CertShowInfoCommand(ctx context.Context, f folders.AppFolders) *cli.Command {
+	return &cli.Command{
+		Name:      "info",
+		Usage:     "Show certificate info",
+		ArgsUsage: "<certFile>",
+		Action: func(cCtx *cli.Context) error {
+			if cCtx.NArg() != 1 {
+				return fmt.Errorf("expected 1 argument. Got %d instead", cCtx.NArg())
+			}
+			return HandleShowCertInfo(ctx, cCtx.Args().First())
+		},
+	}
+}
+
+// HandleCreateDeviceCert creates an IoT device certificate and optionally private/public keypair
+// This prints the certificate to stdout.
 //
-//import (
-//	"fmt"
+//  certFolder where to find the CA certificate and key used to sign the client certificate.
+//  deviceID for the CN of the certificate. Used to identify the device.
+//  keyFile with path to the client's public or private key
+//  validity in days. 0 to use certconfig.DefaultClientCertDurationDays
+func HandleCreateDeviceCert(ctx context.Context, f folders.AppFolders, deviceID string, keyFile string, validityDays int) error {
+	var pubKeyPEM string
+	var generatedPrivKey *ecdsa.PrivateKey
+	var certPEM string
+	var cc certs.ICerts
+	var dc certs.IDeviceCerts
+
+	conn, err := listener.CreateClientConnection(f.Run, certs.ServiceName)
+	if err == nil {
+		cc, err = capnpclient.NewCertServiceCapnpClient(ctx, conn)
+	}
+	if err == nil {
+		dc = cc.CapDeviceCerts()
+	}
+	if err != nil {
+		return err
+	}
+	if err == nil {
+		pubKeyPEM, generatedPrivKey, err = loadOrCreateKey(keyFile)
+	}
+	// finally, create the user certificate
+	if err == nil {
+		certPEM, _, err = dc.CreateDeviceCert(ctx, deviceID, pubKeyPEM, validityDays)
+	}
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Certificate for %s, valid for %d days:\n", deviceID, validityDays)
+	fmt.Println(certPEM)
+	if generatedPrivKey != nil {
+		keyPem, _ := certsclient.PrivateKeyToPEM(generatedPrivKey)
+		fmt.Println()
+		fmt.Printf("Generated pub/private key pair:\n")
+		fmt.Println(keyPem)
+	}
+	return err
+}
+
+// HandleCreateServiceCert creates a Hub service certificate and optionally private/public keypair
+// This prints the certificate to stdout. The certificate is valid for localhost.
 //
-//	"github.com/urfave/cli/v2"
+//  f.Certs where to find the CA certificate and key used to sign the certificate.
+//  serviceID for the CN of the certificate. Used to identify the service.
+//  ipAddr optional IP address in addition to localhost
+//  keyFile with path to the client's public or private key
+//  validity in days. 0 to use certconfig.DefaultClientCertDurationDays
+func HandleCreateServiceCert(ctx context.Context, f folders.AppFolders,
+	serviceID string, ipAddr string, keyFile string, validityDays int) error {
+
+	var names = []string{"localhost"}
+	var pubKeyPEM string
+	var generatedPrivKey *ecdsa.PrivateKey
+	var certPEM string
+	var cc certs.ICerts
+	var sc certs.IServiceCerts
+
+	conn, err := listener.CreateClientConnection(f.Run, certs.ServiceName)
+	if err == nil {
+		cc, err = capnpclient.NewCertServiceCapnpClient(ctx, conn)
+	}
+	if err == nil {
+		sc = cc.CapServiceCerts()
+	}
+	if err != nil {
+		return err
+	}
+	if err == nil {
+		pubKeyPEM, generatedPrivKey, err = loadOrCreateKey(keyFile)
+	}
+	// finally, create the user certificate
+	if err == nil {
+		certPEM, _, err = sc.CreateServiceCert(ctx, serviceID, pubKeyPEM, names, validityDays)
+	}
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Certificate for %s, valid for %d days:\n", serviceID, validityDays)
+	fmt.Println(certPEM)
+	if generatedPrivKey != nil {
+		keyPem, _ := certsclient.PrivateKeyToPEM(generatedPrivKey)
+		fmt.Println()
+		fmt.Printf("Generated pub/private key pair:\n")
+		fmt.Println(keyPem)
+	}
+	return err
+}
+
+// HandleCreateUserCert creates a consumer client certificate and optionally private/public keypair
+// This prints the certificate to stdout.
 //
-//	"github.com/hiveot/hub/internal/folders"
-//	"github.com/hiveot/hub/pkg/certs"
-//)
+//  certFolder where to find the CA certificate and key used to sign the client certificate.
+//  clientID for the CN of the client certificate. Used to identify the consumer.
+//  keyFile with path to the client's public or private key
+//  validity in days. 0 to use certconfig.DefaultClientCertDurationDays
+func HandleCreateUserCert(ctx context.Context, f folders.AppFolders, clientID string, keyFile string, validityDays int) error {
+	var pubKeyPEM string
+	var generatedPrivKey *ecdsa.PrivateKey
+	var certPEM string
+	var cc certs.ICerts
+	var uc certs.IUserCerts
+
+	conn, err := listener.CreateClientConnection(f.Run, certs.ServiceName)
+	if err == nil {
+		cc, err = capnpclient.NewCertServiceCapnpClient(ctx, conn)
+	}
+	if err == nil {
+		uc = cc.CapUserCerts()
+	}
+	if err != nil {
+		return err
+	}
+	if err == nil {
+		pubKeyPEM, generatedPrivKey, err = loadOrCreateKey(keyFile)
+	}
+	// finally, create the user certificate
+	if err == nil {
+		certPEM, _, err = uc.CreateUserCert(ctx, clientID, pubKeyPEM, validityDays)
+	}
+	if err != nil {
+		return err
+	}
+	fmt.Printf("Certificate for %s, valid for %d days:\n", clientID, validityDays)
+	fmt.Println(certPEM)
+	if generatedPrivKey != nil {
+		keyPem, _ := certsclient.PrivateKeyToPEM(generatedPrivKey)
+		fmt.Println()
+		fmt.Printf("Generated pub/private key pair:\n")
+		fmt.Println(keyPem)
+	}
+	return err
+}
+
+// HandleShowCertInfo shows certificate details
+// Simplified version of openssl x509 -in cert -noout -text
 //
-//// GetCertCommands returns the certificate handling commands
-//func GetCertCommands(homeFolder string) *cli.Command {
-//	certFolder := folders.GetFolders(homeFolder, false).Certs
-//
-//	cmd := &cli.Command{
-//		// certs ca | client | device --certs=folder --pubkey=path ID
-//
-//		Name:  "cert",
-//		Usage: "Create certificates",
-//		Subcommands: []*cli.Command{
-//			GetCertCreateCACommand(certFolder),
-//			GetCertCreateServiceCommand(certFolder),
-//			GetCertCreateClientCommand(certFolder),
-//			GetCertCreateDeviceCommand(certFolder),
-//			GetCertShowInfoCommand(),
-//		},
-//	}
-//	return cmd
-//}
-//
-//// GetCertCreateCACommand create the Hub self-signed CA, valid for 5 years
-//// This does not require any services to run.
-//// After creating a new CA, services have to be restarted.
-////
-////  hubcli certs ca [--certs=CertFolder]  [--hostname=hostname]
-//func GetCertCreateCACommand(certFolder string) *cli.Command {
-//	var hostname = "localhost"
-//	var force = false
-//	var validityDays = 365 * 5
-//	return &cli.Command{
-//		Name:      "ca",
-//		Usage:     "Create Hub CA certificate and key",
-//		ArgsUsage: "(no args)",
-//		//Category: "create",
-//		//ArgsUsage: "--certs=folder --hostname=name  --force",
-//		//UsageText: "--certs=folder --hostname=name  --force",
-//
-//		Flags: []cli.Flag{
-//			&cli.StringFlag{
-//				Name:        "certs",
-//				Usage:       "Path to certificate `folder`.",
-//				Value:       certFolder,
-//				Destination: &certFolder,
-//			},
-//			&cli.StringFlag{
-//				Name:        "hostname",
-//				Usage:       "host `name` or IP the certificate is valid for.",
-//				Value:       hostname,
-//				Destination: &hostname,
-//			},
-//			&cli.IntFlag{
-//				Name:        "days",
-//				Usage:       "Number of `days` the certificate is valid.",
-//				Value:       validityDays,
-//				Destination: &validityDays,
-//			},
-//			&cli.BoolFlag{
-//				Name:        "force",
-//				Usage:       "Force overwrites an existing certificate and key.",
-//				Aliases:     []string{"f"},
-//				Destination: &force,
-//			},
-//		},
-//		Action: func(cCtx *cli.Context) error {
-//			if cCtx.NArg() > 0 {
-//				return fmt.Errorf("unexpected argument(s) '%s'", cCtx.Args().First())
-//			}
-//			err := HandleCreateCACert(
-//				cCtx.String("certs"),
-//				cCtx.String("hostname"),
-//				cCtx.Int("days"),
-//				cCtx.Bool("force"),
-//			)
-//			//logrus.Infof("CreatingCA certificate in '%s' for host '%s'",
-//			//cCtx.String("certs"), cCtx.String("hostname"))
-//			return err
-//		},
-//	}
-//}
-//
-//// GetCertCreateClientCommand - requires the certs service to run
-//// hubcli certs client [--certs=CertFolder --pubkey=pubkeyfile] <loginID>
-//func GetCertCreateClientCommand(certFolder string) *cli.Command {
-//	validityDays := certs.DefaultClientCertValidityDays
-//
-//	return &cli.Command{
-//		Name:      "client",
-//		Usage:     "Create a client certificate",
-//		ArgsUsage: "<loginID>",
-//		Flags: []cli.Flag{
-//			&cli.StringFlag{
-//				Name:        "certs",
-//				Usage:       "Path to certificate `folder`.",
-//				Value:       certFolder,
-//				Destination: &certFolder,
-//			},
-//			&cli.StringFlag{
-//				Name:  "pubkey",
-//				Usage: "`file` with client public or private key in PEM format. When omitted a public/private key pair will be generated.",
-//			},
-//			&cli.IntFlag{
-//				Name:        "days",
-//				Usage:       "Number of days the certificate is valid.",
-//				Value:       validityDays,
-//				Destination: &validityDays,
-//			},
-//		},
-//		Action: func(cCtx *cli.Context) error {
-//			if cCtx.NArg() == 0 {
-//				return fmt.Errorf("Missing client login ID")
-//			}
-//			loginID := cCtx.Args().Get(0)
-//			pubKeyFile := cCtx.String("pubkey")
-//			// err := HandleCreateClientCert(certFolder, loginID, pubKeyFile, validityDays)
-//			// err := HandleCreateClientCertGRPC(loginID, pubKeyFile, validityDays)
-//			err := HandleCreateClientCertCapnp(loginID, pubKeyFile, validityDays)
-//			return err
-//		},
-//	}
-//}
-//
-//// GetCertCreateDeviceCommand
-//// hubcli certs device [--certs=CertFolder] --pubkey=pubkeyfile <deviceID>
-//func GetCertCreateDeviceCommand(certFolder string) *cli.Command {
-//	validityDays := service.DefaultDeviceCertDurationDays
-//
-//	return &cli.Command{
-//		Name:      "device",
-//		Usage:     "Create an IoT device certificate",
-//		ArgsUsage: "<deviceID>",
-//		Flags: []cli.Flag{
-//			&cli.StringFlag{
-//				Name:        "certs",
-//				Usage:       "Path to certificates `folder`.",
-//				Value:       certFolder,
-//				Destination: &certFolder,
-//			},
-//			&cli.StringFlag{
-//				Name:  "pubkey",
-//				Usage: "`file` with device public or private key in PEM format. When omitted a public/private key pair will be generated.",
-//			},
-//			&cli.IntFlag{
-//				Name:        "days",
-//				Usage:       "Number of days the certificate is valid.",
-//				Value:       validityDays,
-//				Destination: &validityDays,
-//			},
-//		},
-//		Action: func(cCtx *cli.Context) error {
-//			if cCtx.NArg() == 0 {
-//				return fmt.Errorf("Missing device ID")
-//			}
-//			deviceID := cCtx.Args().Get(0)
-//			pubKeyFile := cCtx.String("pubkey")
-//			err := HandleCreateDeviceCert(certFolder, deviceID, pubKeyFile, validityDays)
-//			return err
-//		},
-//	}
-//}
-//
-//// GetCertCreateServiceCommand
-//// hubcli certs service [--certs=CertFolder --pubkey=pubkeyfile] <serviceID>
-//func GetCertCreateServiceCommand(certFolder string) *cli.Command {
-//	validityDays := service.DefaultServiceCertDurationDays
-//	ipAddr := ""
-//
-//	return &cli.Command{
-//		Name:      "service",
-//		Usage:     "Create a service certificate",
-//		ArgsUsage: "<serviceID>",
-//		Flags: []cli.Flag{
-//			&cli.StringFlag{
-//				Name:        "certs",
-//				Usage:       "Path to certificate `folder` containing CA certificate and keys.",
-//				Value:       certFolder,
-//				Destination: &certFolder,
-//			},
-//			&cli.StringFlag{
-//				Name:  "pubkey",
-//				Usage: "`file` with service public or private key in PEM format. When omitted a public/private key pair will be generated.",
-//			},
-//			&cli.StringFlag{
-//				Name:        "ipAddr",
-//				Usage:       "Optional service IP address in addition to localhost.",
-//				Destination: &ipAddr,
-//			},
-//			&cli.IntFlag{
-//				Name:        "days",
-//				Usage:       "Number of days the certificate is valid.",
-//				Value:       validityDays,
-//				Destination: &validityDays,
-//			},
-//		},
-//		Action: func(cCtx *cli.Context) error {
-//			if cCtx.NArg() == 0 {
-//				return fmt.Errorf("Missing service ID")
-//			}
-//			serviceID := cCtx.Args().Get(0)
-//			pubKeyFile := cCtx.String("pubkey")
-//			err := HandleCreateServiceCert(certFolder, serviceID, ipAddr, pubKeyFile, validityDays)
-//			return err
-//		},
-//	}
-//}
-//func GetCertShowInfoCommand() *cli.Command {
-//	return &cli.Command{
-//		Name:      "info",
-//		Usage:     "Show certificate info",
-//		ArgsUsage: "<certFile>",
-//		Action: func(cCtx *cli.Context) error {
-//			if cCtx.NArg() != 1 {
-//				return fmt.Errorf("expected 1 argument. Got %d instead", cCtx.NArg())
-//			}
-//			HandleShowCertInfo(cCtx.Args().First())
-//			return nil
-//		},
-//	}
-//}
+//  certFile certificate to get info for
+func HandleShowCertInfo(ctx context.Context, certFile string) error {
+	cmd := exec.Command("openssl", "x509", "-in", certFile, "-noout", "-text")
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	out, err := cmd.Output()
+	if err != nil {
+		fmt.Printf("ERROR: %s.\n", err)
+		fmt.Fprintf(os.Stderr, "%s", stderr.String())
+	} else {
+		fmt.Printf("%s\n", out)
+	}
+	return err
+}
+
+// Load public key or create a public/private key pair if not given.
+// If the path is a private key, then extract the public key from it
+func loadOrCreateKey(keyFile string) (
+	pubKeyPEM string, generatedPrivKey *ecdsa.PrivateKey, err error) {
+	var keyAsBytes []byte
+	var pubKey *ecdsa.PublicKey
+
+	// If a key file is given, use it, otherwise generate a pair
+	if keyFile != "" {
+		logrus.Infof("Using key file: %s\n", keyFile)
+		keyAsBytes, err = ioutil.ReadFile(keyFile)
+		if err != nil {
+			logrus.Errorf("Failed loading Keyfile '%s': %s", keyFile, err)
+			return "", nil, err
+		}
+		pubKeyPEM = string(keyAsBytes)
+
+		// verify that this isn't a private key
+		pubKey, err = certsclient.PublicKeyFromPEM(pubKeyPEM)
+		if err != nil {
+			logrus.Warningf("not a public key, try loading as private key...")
+			privKey, err2 := certsclient.PrivateKeyFromPEM(pubKeyPEM)
+			err = err2
+			if err2 != nil {
+				logrus.Errorf("Keyfile '%s' is a also not a private key: %s", keyFile, err2)
+			} else {
+				logrus.Infof("Keyfile '%s' is a private key", keyFile)
+				pubKey = &privKey.PublicKey
+				pubKeyPEM, err = certsclient.PublicKeyToPEM(pubKey)
+			}
+		}
+		// error out if this is neither a public nor a private key
+		if err != nil {
+			return "", nil, err
+		}
+	} else {
+		logrus.Info("No public key file was provided. Creating a new key pair.")
+		generatedPrivKey = certsclient.CreateECDSAKeys()
+		pubKey = &generatedPrivKey.PublicKey
+		pubKeyPEM, err = certsclient.PublicKeyToPEM(pubKey)
+	}
+	return pubKeyPEM, generatedPrivKey, err
+}

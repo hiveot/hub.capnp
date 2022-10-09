@@ -10,6 +10,7 @@ import (
 
 	"github.com/hiveot/hub/cmd/hubcli/certcli"
 	"github.com/hiveot/hub/cmd/hubcli/launchercli"
+	"github.com/hiveot/hub/cmd/hubcli/provcli"
 	"github.com/hiveot/hub/internal/folders"
 )
 
@@ -45,12 +46,18 @@ func main() {
 				Value:       f.Services,
 				Destination: &f.Services,
 			},
+			&cli.StringFlag{
+				Name:        "certs",
+				Usage:       "Path to certificate `folder`.",
+				Value:       f.Certs,
+				Destination: &f.Certs,
+			},
 		},
 		Commands: []*cli.Command{
 			certcli.CACommands(ctx, f),
+			certcli.CertCommands(ctx, f),
 			launchercli.LauncherCommands(ctx, f),
-			//certcli.GetCertCommands(homeFolder),
-			//provcli.GetProvCommands(homeFolder),
+			provcli.ProvisioningCommands(ctx, f),
 			//svccli.GetSvcCommands(homeFolder),
 		},
 	}

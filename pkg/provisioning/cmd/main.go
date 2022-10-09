@@ -12,12 +12,10 @@ import (
 	"github.com/hiveot/hub/internal/listener"
 	"github.com/hiveot/hub/pkg/certs"
 	certsclient "github.com/hiveot/hub/pkg/certs/capnpclient"
+	"github.com/hiveot/hub/pkg/provisioning"
 	"github.com/hiveot/hub/pkg/provisioning/capnpserver"
 	"github.com/hiveot/hub/pkg/provisioning/service"
 )
-
-// ServiceName is the name of the store for logging
-const ServiceName = "provisioning"
 
 // FIXME: don't use hard coded socket address for certs service
 const CertsSvcAddress = "/tmp/certs.socket"
@@ -48,10 +46,10 @@ func main() {
 	// now we have the capability to create certificates, create the service and start listening for capnp clients
 	if err == nil {
 		svc = service.NewProvisioningService(deviceCap, verifyCap)
-		srvListener := listener.CreateServiceListener(f.Run, ServiceName)
+		srvListener := listener.CreateServiceListener(f.Run, provisioning.ServiceName)
 		err = capnpserver.StartProvisioningCapnpServer(context.Background(), srvListener, svc)
 	}
 	if err != nil {
-		log.Fatalf("Service '%s' failed to start: %s", ServiceName, err)
+		log.Fatalf("Service '%s' failed to start: %s", provisioning.ServiceName, err)
 	}
 }

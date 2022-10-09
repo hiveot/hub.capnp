@@ -105,51 +105,14 @@ package certcli
 //	return err
 //}
 //
-//// HandleCreateClientCert creates a consumer client certificate and optionally private/public keypair
-//// This prints the certificate to stdout.
-////
-////  certFolder where to find the CA certificate and key used to sign the client certificate.
-////  clientID for the CN of the client certificate. Used to identify the consumer.
-////  keyFile with path to the client's public or private key
-////  validity in days. 0 to use certconfig.DefaultClientCertDurationDays
-////func HandleCreateClientCert(certFolder string, clientID string, keyFile string, validityDays int) error {
-////	var pubKey *ecdsa.PublicKey
-////	var generatedPrivKey *ecdsa.PrivateKey
-////	var cert *x509.Certificate
-////
-////	if validityDays == 0 {
-////		validityDays = service.DefaultClientCertDurationDays
-////	}
-////	caCert, caKey, err := loadCA(certFolder)
-////	if err == nil {
-////		pubKey, generatedPrivKey, err = loadOrCreateKey(keyFile)
-////	}
-////	if err == nil {
-////		cert, err = selfsigned.CreateClientCert(clientID, certsclient.OUClient, pubKey, caCert, caKey, validityDays)
-////	}
-////	if err != nil {
-////		return err
-////	}
-////	certPem := certsclient.X509CertToPEM(cert)
-////	fmt.Printf("Certificate for %s, valid for %d days:\n", clientID, validityDays)
-////	fmt.Println(certPem)
-////	if generatedPrivKey != nil {
-////		keyPem, _ := certsclient.PrivateKeyToPEM(generatedPrivKey)
-////		fmt.Println()
-////		fmt.Printf("Generated pub/private key pair:\n")
-////		fmt.Println(keyPem)
-////	}
-////	return err
-////}
-//
-//// HandleCreateClientCert creates a consumer client certificate and optionally private/public
+//// HandleCreateUserCert creates a consumer client certificate and optionally private/public
 //// keypair through the service via Capnp protocol.
 //// This prints the certificate to stdout.
 ////
 ////  clientID for the CN of the client certificate. Used to identify the consumer.
 ////  keyFile with path to the client's public or private key
 ////  validity in days. 0 to use certconfig.DefaultClientCertDurationDays
-//func HandleCreateClientCert(clientID string, keyFile string, validityDays int) error {
+//func HandleCreateUserCert(clientID string, keyFile string, validityDays int) error {
 //	network := "unix"
 //	address := "/tmp/certsvc.socket"
 //	clientSideConn, err := net.Dial(network, address)

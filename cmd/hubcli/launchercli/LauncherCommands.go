@@ -14,7 +14,7 @@ import (
 
 func LauncherCommands(ctx context.Context, f folders.AppFolders) *cli.Command {
 	cmd := &cli.Command{
-		Name:  "launcher",
+		Name:  "launch",
 		Usage: "Start stop Hub services",
 		Subcommands: []*cli.Command{
 			LauncherListCommand(ctx, f),
@@ -95,12 +95,11 @@ func HandleListServices(ctx context.Context, f folders.AppFolders) error {
 		status := "stopped"
 		cpu := ""
 		memory := ""
-		pid := ""
+		pid := fmt.Sprintf("%d", entry.PID)
+		cpu = fmt.Sprintf("%d%%", entry.CPU)
+		memory = fmt.Sprintf("%d MB", entry.RSS/1024/1024)
 		if entry.Running {
 			status = "running"
-			pid = fmt.Sprintf("%d", entry.PID)
-			cpu = fmt.Sprintf("%d%%", entry.CPU)
-			memory = fmt.Sprintf("%d MB", entry.MEM)
 		}
 		fmt.Printf("%-25s %4d MB   %6d   %6s   %4s   %6s   %6s   %s\n",
 			entry.Name,

@@ -13,8 +13,9 @@ import (
 	"capnproto.org/go/capnp/v3/rpc"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/hiveot/hub/cmd/hubcli/certcli"
 	"github.com/hiveot/hub/pkg/certservice/selfsigned"
+
+	"github.com/hiveot/hub/cmd/hubcli/certcli"
 
 	"github.com/hiveot/hub.go/pkg/certsclient"
 )
@@ -82,11 +83,11 @@ func TestCreateClientCert(t *testing.T) {
 	// create the cert
 	t1 := time.Now()
 	for i := 0; i < count; i++ {
-		err = certcli.HandleCreateClientCert(tempFolder, clientID, keyFile, 0)
+		err = certcli.HandleCreateUserCert(tempFolder, clientID, keyFile, 0)
 		assert.NoError(t, err)
 	}
 	d1 := time.Since(t1)
-	fmt.Printf("HandleCreateClientCert duration of %d calls: %d msec\n", count, d1.Milliseconds())
+	fmt.Printf("HandleCreateUserCert duration of %d calls: %d msec\n", count, d1.Milliseconds())
 
 	// direct call without cli to measure perfrmance
 	caCert, caKey, err := selfsigned.CreateHubCA(1)
@@ -105,7 +106,7 @@ func TestCreateClientCert(t *testing.T) {
 
 	// missing key file
 	// keyFile = "missingkeyfile.pem"
-	// err = certcli.HandleCreateClientCert(tempFolder, clientID, keyFile, 0)
+	// err = certcli.HandleCreateUserCert(tempFolder, clientID, keyFile, 0)
 	// assert.Error(t, err)
 
 	_ = os.RemoveAll(tempFolder)

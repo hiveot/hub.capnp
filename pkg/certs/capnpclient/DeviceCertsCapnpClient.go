@@ -1,4 +1,4 @@
-// Package client that wraps the capnp generated client with a POGS API
+// Package capnpclient that wraps the capnp generated client with a POGS API
 package capnpclient
 
 import (

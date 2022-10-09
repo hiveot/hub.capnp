@@ -10,10 +10,10 @@ type ServiceInfo struct {
 	// CPU usage in %. 0 when not running
 	CPU int
 
-	// Memory usage in MB. 0 when not running
-	MEM int
+	// RSS (Resident Set Size) Memory usage in Bytes. 0 when not running.
+	RSS int
 
-	// The last error status when running
+	// The last error message, if any, when running
 	Error string
 
 	// Service modified time ISO8601

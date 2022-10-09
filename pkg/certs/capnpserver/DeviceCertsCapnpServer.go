@@ -25,7 +25,7 @@ func (capsrv *DeviceCertsCapnpServer) CreateDeviceCert(
 	pubKeyPEM, _ := call.Args().PubKeyPEM()
 	validityDays := call.Args().ValidityDays()
 	if validityDays == 0 {
-		validityDays = hubapi.DefaultClientCertValidityDays
+		validityDays = hubapi.DefaultDeviceCertValidityDays
 	}
 	certPEM, caCertPEM, err := capsrv.srv.CreateDeviceCert(ctx, deviceID, pubKeyPEM, int(validityDays))
 	if err == nil {
