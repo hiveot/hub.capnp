@@ -17,7 +17,7 @@ const defaultCaKeyFile :Text = "caKey.pem";
 const defaultServiceCertValidityDays :Int32 = 30;
 # Default validity of generated service certificates
 
-const defaultClientCertValidityDays :Int32 = 30;
+const defaultUserCertValidityDays :Int32 = 30;
 # Default validity of generated client certificates
 
 const defaultDeviceCertValidityDays :Int32 = 30;

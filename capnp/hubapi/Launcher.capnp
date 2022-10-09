@@ -9,8 +9,8 @@ struct ServiceInfo {
 	cpu @0 :Int32;
 	# CPU usage in %. 0 when not running
 
-	mem @1 :Int32;
-	# Memory usage in MB. 0 when not running
+	rss @1 :Int64;
+	# RSS (Real) Memory usage in bytes. 0 when not running
 
 	error @2 :Text;
 	# The last error status when running
