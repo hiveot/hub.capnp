@@ -73,76 +73,58 @@ func (s ServiceInfo) SetRss(v int64) {
 	capnp.Struct(s).SetUint64(8, uint64(v))
 }
 
-func (s ServiceInfo) Error() (string, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.Text(), err
-}
-
-func (s ServiceInfo) HasError() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s ServiceInfo) ErrorBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.TextBytes(), err
-}
-
-func (s ServiceInfo) SetError(v string) error {
-	return capnp.Struct(s).SetText(0, v)
-}
-
 func (s ServiceInfo) ModifiedTime() (string, error) {
-	p, err := capnp.Struct(s).Ptr(1)
+	p, err := capnp.Struct(s).Ptr(0)
 	return p.Text(), err
 }
 
 func (s ServiceInfo) HasModifiedTime() bool {
-	return capnp.Struct(s).HasPtr(1)
+	return capnp.Struct(s).HasPtr(0)
 }
 
 func (s ServiceInfo) ModifiedTimeBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(1)
+	p, err := capnp.Struct(s).Ptr(0)
 	return p.TextBytes(), err
 }
 
 func (s ServiceInfo) SetModifiedTime(v string) error {
-	return capnp.Struct(s).SetText(1, v)
+	return capnp.Struct(s).SetText(0, v)
 }
 
 func (s ServiceInfo) Name() (string, error) {
-	p, err := capnp.Struct(s).Ptr(2)
+	p, err := capnp.Struct(s).Ptr(1)
 	return p.Text(), err
 }
 
 func (s ServiceInfo) HasName() bool {
-	return capnp.Struct(s).HasPtr(2)
+	return capnp.Struct(s).HasPtr(1)
 }
 
 func (s ServiceInfo) NameBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(2)
+	p, err := capnp.Struct(s).Ptr(1)
 	return p.TextBytes(), err
 }
 
 func (s ServiceInfo) SetName(v string) error {
-	return capnp.Struct(s).SetText(2, v)
+	return capnp.Struct(s).SetText(1, v)
 }
 
 func (s ServiceInfo) Path() (string, error) {
-	p, err := capnp.Struct(s).Ptr(3)
+	p, err := capnp.Struct(s).Ptr(2)
 	return p.Text(), err
 }
 
 func (s ServiceInfo) HasPath() bool {
-	return capnp.Struct(s).HasPtr(3)
+	return capnp.Struct(s).HasPtr(2)
 }
 
 func (s ServiceInfo) PathBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(3)
+	p, err := capnp.Struct(s).Ptr(2)
 	return p.TextBytes(), err
 }
 
 func (s ServiceInfo) SetPath(v string) error {
-	return capnp.Struct(s).SetText(3, v)
+	return capnp.Struct(s).SetText(2, v)
 }
 
 func (s ServiceInfo) Pid() int32 {
@@ -153,12 +135,46 @@ func (s ServiceInfo) SetPid(v int32) {
 	capnp.Struct(s).SetUint32(4, uint32(v))
 }
 
+func (s ServiceInfo) Running() bool {
+	return capnp.Struct(s).Bit(128)
+}
+
+func (s ServiceInfo) SetRunning(v bool) {
+	capnp.Struct(s).SetBit(128, v)
+}
+
+func (s ServiceInfo) Size() int64 {
+	return int64(capnp.Struct(s).Uint64(24))
+}
+
+func (s ServiceInfo) SetSize(v int64) {
+	capnp.Struct(s).SetUint64(24, uint64(v))
+}
+
+func (s ServiceInfo) Status() (string, error) {
+	p, err := capnp.Struct(s).Ptr(3)
+	return p.Text(), err
+}
+
+func (s ServiceInfo) HasStatus() bool {
+	return capnp.Struct(s).HasPtr(3)
+}
+
+func (s ServiceInfo) StatusBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(3)
+	return p.TextBytes(), err
+}
+
+func (s ServiceInfo) SetStatus(v string) error {
+	return capnp.Struct(s).SetText(3, v)
+}
+
 func (s ServiceInfo) StartCount() int32 {
-	return int32(capnp.Struct(s).Uint32(16))
+	return int32(capnp.Struct(s).Uint32(20))
 }
 
 func (s ServiceInfo) SetStartCount(v int32) {
-	capnp.Struct(s).SetUint32(16, uint32(v))
+	capnp.Struct(s).SetUint32(20, uint32(v))
 }
 
 func (s ServiceInfo) StartTime() (string, error) {
@@ -195,22 +211,6 @@ func (s ServiceInfo) StopTimeBytes() ([]byte, error) {
 
 func (s ServiceInfo) SetStopTime(v string) error {
 	return capnp.Struct(s).SetText(5, v)
-}
-
-func (s ServiceInfo) Running() bool {
-	return capnp.Struct(s).Bit(160)
-}
-
-func (s ServiceInfo) SetRunning(v bool) {
-	capnp.Struct(s).SetBit(160, v)
-}
-
-func (s ServiceInfo) Size() int64 {
-	return int64(capnp.Struct(s).Uint64(24))
-}
-
-func (s ServiceInfo) SetSize(v int64) {
-	capnp.Struct(s).SetUint64(24, uint64(v))
 }
 
 func (s ServiceInfo) Uptime() int32 {
@@ -253,7 +253,7 @@ func (c CapLauncher) List(ctx context.Context, params func(CapLauncher_list_Para
 		},
 	}
 	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
+		s.ArgsSize = capnp.ObjectSize{DataSize: 8, PointerCount: 0}
 		s.PlaceArgs = func(s capnp.Struct) error { return params(CapLauncher_list_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
@@ -492,12 +492,12 @@ type CapLauncher_list_Params capnp.Struct
 const CapLauncher_list_Params_TypeID = 0xd43c617d04683d01
 
 func NewCapLauncher_list_Params(s *capnp.Segment) (CapLauncher_list_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0})
 	return CapLauncher_list_Params(st), err
 }
 
 func NewRootCapLauncher_list_Params(s *capnp.Segment) (CapLauncher_list_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0})
 	return CapLauncher_list_Params(st), err
 }
 
@@ -533,13 +533,20 @@ func (s CapLauncher_list_Params) Message() *capnp.Message {
 func (s CapLauncher_list_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
+func (s CapLauncher_list_Params) OnlyRunning() bool {
+	return capnp.Struct(s).Bit(0)
+}
+
+func (s CapLauncher_list_Params) SetOnlyRunning(v bool) {
+	capnp.Struct(s).SetBit(0, v)
+}
 
 // CapLauncher_list_Params_List is a list of CapLauncher_list_Params.
 type CapLauncher_list_Params_List = capnp.StructList[CapLauncher_list_Params]
 
 // NewCapLauncher_list_Params creates a new list of CapLauncher_list_Params.
 func NewCapLauncher_list_Params_List(s *capnp.Segment, sz int32) (CapLauncher_list_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0}, sz)
 	return capnp.StructList[CapLauncher_list_Params](l), err
 }
 
@@ -1117,60 +1124,62 @@ func (p CapLauncher_stopAll_Results_Future) Struct() (CapLauncher_stopAll_Result
 	return CapLauncher_stopAll_Results(s), err
 }
 
-const schema_e42f87955bd521e9 = "x\xda\xac\x94Mh\x1ce\x1c\xc6\x9f\xe7\x9d\xaf|\xd5" +
-	"d:C\x0fb\x0d\x96\x08m\xc0\xa6M\x14\xa4T\x92" +
-	"4\x07M\x88\xb8\xbbS\xd1\xaa\x01\xc7\xcd\xc4\x1d\xd9\x8f" +
-	"\xc9\xccl\xb1\xa5\xa5Z\x14\xb5Xm\xc5J\x8b\x16r" +
-	"(V\xf0\xe8\xa1*\x8a\x82W\x0f\"~\x80=\x88\xd0" +
-	"\x8b\x07\x11\xf5\xe2EF\xfe\xb3\xcef#VR\xe8i" +
-	"w~\xef\xf3\x7f\xde\xff3\xef\xff\x9d=w\xaa\x19}" +
-	"\xef\x96\xefu\xa8\xf2\xbd\x86\x99\xbd\xff\xf1\xd4\xadW>" +
-	"_;\x85\xf26\x1a\xd9\xcfw|\xfb\xf8\xb9\x97&\xae" +
-	"\xc10-`\xaa\xac\xb6\xd2\xf1\x95\xfc]R?*0" +
-	"\xfb\xfa\xd0\xdb\x1fU\xe6*o\xc1\xde\xa6\xad\xab\xc1\xa9" +
-	"%c+\x9d\x86!\xd2\xd0\xb0\xe8\xf4\x8bA\xf6\x83?" +
-	"\xf0\xba?\xf9\xd5E\xd8;\x08\x18\x94\xe5\xdf\x8c\xa3\x04" +
-	"\x9d\xbf\x8ci0{`\xe2\xcf\x0b\xe1\xe1\xdf/\xf5\x0a" +
-	"\xb6\x9b\xb1\x08v\x99\"x\xef\x83\x85O\x06o\xfb\xf0" +
-	"r\xaf`\xde\xcc\x1d\x1e\xce\x05\xb7\xcf\x7f\xf6\xc8\xfdW" +
-	"\xaf^\xe9\x08tY\x7f\xc5|\x83\xd03\xdeW\xd3\x8f" +
-	"\xfb\xfb\xbf\xe9Y9\"\xd6z\xf6P\xf5\xa7\xc9={" +
-	"\xcd\xefzM\x83\x8e\xe9jnz\xf9\xdd\x93_\xf8\xfb" +
-	"\xff\xb8\xd6Sz\xd6<%\xa5\xbf|\xfa\xda\xce/\xcf" +
-	"\x06\xbf\xf6\x96>o\x9e\x94\xd2\xd3\xe64\xee\xcaj\xed" +
-	"\xa7\xfc(\x9cX\xd4\xfcv\xb3Z\x0b\xe2\xddU?j" +
-	"F\xfb\xbc >\x1cV\x83\xf9\xe6\x0a[%\xb2|\xb7" +
-	"\xa6\x03:\x01g\x89;\x00\xefQj\xf4\x96\xa9h\x93" +
-	".\x85\xfb9\x7fBx\x8d\x8aT.\x15\xe0\x04\x9c\x04" +
-	"\xbc'\x05\xd7E\xae\xd1\xa5\x068!\x9f\x01\xbc\x9a\xf0" +
-	"T\xb8\xae\\\xea\x80\xb3\xcaq\xc0\xab\x0b\x7fV\xb8\xa1" +
-	"\xb94\x00\xa7\x9d\xf3H\xf81\xe1&]\x9a\x80s$" +
-	"\xdf6\x15\xfe\x9cpKw%\xa4s\x9c\x8f\x01\xde1" +
-	"\xe1/\x0b\xef\xd3]\xf6\x01\xce\x8b\xac\x00\xde\x0b\xc2\xcf" +
-	"\x08\xef7\\\xf6\x03\xcei.\x00\xde\xab\xc2\xcf\x0b\x1f" +
-	"Xs9\x008\xe7x\x00\xf0\xce\x08\x7fG\xf8\xa0\xe6" +
-	"r\x10p.\xe4\xfd\xbc)|M\xf8P\x9f\xcb!\xc0" +
-	"\xb9\xc8}\x80w^\xf8%*Z\xd5\xa8M\x1d\x8a:" +
-	"h\xc5IB\x03\x8a\x068\x1a\xc4q+\xe6\x10\x14\x87" +
-	"\xc0\xac\xd1Z\x0eW\xc2`\x19\xc3\x07\xc3FP\xe0\xe1" +
-	"\xa6\xdf\xf3\x10\xf9i\xadx\xb0\xa2p\xb9\xb0\xcd\x92\xd4" +
-	"\x8f\xd3\xb9V\x1bZ3\xdd\x08\x0f\x86\x0d\xb0\xeb\x90%" +
-	"i+\x12\x7f\x00\x05;\x11\xb7\x9b\xcd\xb0\xf94\x09E" +
-	"\x82\xc3Ix4(\x9a\x9cnG\xa9\xb4Sx^g" +
-	"V\xe6\xfch\xb1C\x18\xcb\xac\x8ch\x06\xd0\x1dg\x16" +
-	"W\xc2^\x1d\x87\xb2\x03\x8b\xec\xde3\x16\xe3i\x1f\x9a" +
-	"\x84\xb2\x1f\xb4\xa8\xbaW\x8c\xc5\xd4\xdb\xb3Rw\x8fE" +
-	"\xad;\xe7,n\x91\xbd\xeb\x00\x94\xbd\xdd\x1a\xae\x87I" +
-	":\xc3\xd1<\xf5\x0c\x87%\xe9\x0cO\xc8\xcfl\xbd>" +
-	"\xc3\x12\xd7\xbb\xd7\xaf\xd7}\xbc;/\x1f\x9b.\xf9\xb1" +
-	"\xdfH\xcaz1\xf3\xf6\x96q\xa0\xdc\xa7\xb1\xec\xaa\x8d" +
-	"\x87\xb29\xd3V4V\x1a\xbd\xa9\x9e\x12w\xac2\x1d" +
-	"$\xedz\xba\xc1t\x01(\x0fi,\xefT\xcc\xc2\xe6" +
-	"Jk1LR9\xee[\xc0\x92F\x8e\xac\x7f@A" +
-	"\x81\xdd\xcd\x8c\xff\x0f0[\xaf\x8fU\xf2\xed\x98l\xba" +
-	"\xc1\x7fBo\xfa%\xfdW\xa0\xde\xb7$\x81\xfe\x15a" +
-	"\xe4\xc6\"tN\x16\xd8\\\x8d\x0cC't\x82\x1b\xeb" +
-	"\xe9\xef\x00\x00\x00\xff\xff\xd8\xce\xa8t"
+const schema_e42f87955bd521e9 = "x\xda\xac\x94Oh\x1c\xe5\x1f\xc6\x9f\xe7\x9d\x7f\xf9\xd7" +
+	"_2\x9d\xa1\xfc\x10k1\xe4\xd0\x06l\xdaDEJ" +
+	"e\x93\xe6\xa0\x09\x11\xb3;\x15\xad\x9a\xc34\x99\xb8#" +
+	"\xbb\xb3\xd3\x9d\x99\xd2\x94\x96\xd6\xd2\xa2\x16\xffc\xa5\"" +
+	"\x85\x1e\x8aU<\x8aTEQ\x10o\x1eT\xac\x82=" +
+	"\x88\xd0\x8b\x07\x11\xf5\xe2EF\xbe\xb3N\xb2\x95VR" +
+	"\xf0\xb4;\x9f\xf7\xf9>\xf3\xfd\xbe\xef\xf3\xce\x8e\xbb\xd5" +
+	"\xa4\xbes\xc3w:T\xf5\x1e\xc3\xcc\xdf\xf9p\xe2\x96" +
+	"K\x9f\x9e?\x8d\xea&\x1a\xf9O\xb7_~\xec\xcc\xd3" +
+	"cWa\x98\x160QU\x1b\xe9\xf8J\xfe.\xa8\x1f" +
+	"\x14\x98\x7f\xbd\xef\x8d\x0fj\xd3\xb5\xd7`o\xd2\xd6\xd4" +
+	"\xe0\xc4\x82\xb1\x91N\xd3\x10ihXtz\xc5 \xff" +
+	"\xde\xef{\xd1\x1f\xff\xf2\x1c\xeca\x02\x06e\xf9W\xe3" +
+	"0A\xe7O\xa3\x02\xe6\xf7\x8f\xfd\xf1zx\xf0\xb7\x0b" +
+	"\xdd\x82\xcdf[\x04\xdbL\x11\xbc\xf5\xee\xecG\xfd\xb7" +
+	"\xbe\x7f\xb1[0c\x16\x0e\x0f\x15\x82\xdbf>y\xf8" +
+	"\xbe+W.u\x04\xba\xac?k\xbeB\xe89\xef\xad" +
+	"\xebG\xfd\xdd\xdf\xa0:\xccri\xa5\xe3}\xaa(}" +
+	"p\xf1\xc7\xf1\x1d;\xcdo\xbb\xbd\xdf\xeex\xbfW\x08" +
+	".\xbey\xe23\x7f\xf7\xefW\xbb\xbc/\x9b\xa7\xc5\xfb" +
+	"\xe7\x8f_\xd8\xfa\xc5\xcb\xc1/\xdd\xa5\x9f\x9b'\xa4\xf4" +
+	"+\xb3\x82;\xf2z\xb6\xdf\x8f\xc3\xb19\xcd\xcf\xa2\xc5" +
+	"z\xd0\xde\xbe\xe8\xc7Q\xbc\xcb\x0b\xda\x07\xc3\xc5`&" +
+	"Zfk\x9e\xac\xde\xa9\xe9\x80N\xc0Y\xe00\xe0=" +
+	"B\x8d\xde\x12\x15m\xd2\x95\xae\x1d\xbf\xe0\x8f\x0b\xafS" +
+	"\x91\xca\xa5\x02\x9c\x80O\x02\xde\x92\xe0X\xe4\x1a]j" +
+	"\x80\xd3\xe4(\xe0\xd5\x85\xa7\xc2u\xe5R\x07\x9c\x03\x05" +
+	"o\x08?$\xdc\xa0K\x03p\xb2\xc2>\x16~D\xb8" +
+	"y\xdc\xa5\x098+\xdc\x03x\xa9\xf0\xe3\xc2-\xcd\x95" +
+	"!\x9d\xa3\x85\xcf!\xe1'\x85\xf7h.{\x00\xe7)" +
+	"\xee\x02\xbc#\xc2\x9f\x11\xdek\xb8\xec\x05\x9cS|\x14" +
+	"\xf0N\x0a\x7fIx\x9f\xee\xb2\x0fp\x9eg\x0d\xf0\x9e" +
+	"\x13~Vx\xbf\xe1\xb2\x1fp\xcep\x16\xf0^\x15~" +
+	"^\xf8@\x8f\xcb\x01\xc09W\xf8\x9f\x15~\x81\x8a\xd6" +
+	"b\x9cQ\x87\xa2\x0eZ\xed$\xa1\x01E\x03\xcc\x9b\xad" +
+	"\xa5p9\x0c\x960\xb87l\x06\x1c\x80\xe2\x008\x18" +
+	"\xf9]\x0f\xb1\x9f\xd6\xcb\x07+\x0e\x97J\xa3c\xed," +
+	"\x8a\xc2\xe8\x09\x12\x8a\x04\x07\x93\xf0pP:W\x92\xd4" +
+	"O\xb3\xa4\xac\xcb\x93\xd4o\xa7\xd3\xad\x0cZ\x94\x96\x06" +
+	"\x1d\xb87l\x82A\x97\xb0\x15K/\x00JV\xc9\xe2" +
+	"T\xba+\xcbn\x10\x96i?\x9e\xeb\x10\xb6%,C" +
+	"\x9a\x01\xac\xc6\x9a\xe5\xd5\xb0\x0f\x8cB\xd9\x81E\xae\xde" +
+	"7\x96\xf9\xb4\xf7\x8dC\xd9\x0fXT\xabW\x8de\xec" +
+	"\xed)\xa9\xbb\xcb\xa2\xb6\x1at\x96\xb7\xc9\xde\xb6\x07\xca" +
+	"\xdel\x0d6\xc2$\x9d\xe4\x96b\xb0I\x0e\xca0\x93" +
+	"<&?S\x8d\xc6$\xe7\xb9\xd6\xbd~\xa3\xee\xdb\xdb" +
+	"\x8b\xf2\x91\xca\xbc\xdf\xf6\x9bIU/Coo\x18\x05" +
+	"\xaa=\x1a\xab\xae\xba\xf6\x8c\xd6g\xda\x8aG\xe6\xb7\xfc" +
+	"\xa7\x9e2\xeeH\xad\x12$Y#\xbd\xc6t\x16\xa8\x0e" +
+	"h\xacnU\xcc\xc3h\xb95\x17&\xa9\x9c\xe8\xff\xc0" +
+	"y\x8d\x1cZ\xfb\x90\x82\x02W_f\xfc\xfb\x00S\x8d" +
+	"\xc6H\xadx\x1d\x93u7x\x9d\xa1\xf7\xff\xdd\xdf\xff" +
+	"\x15\xf3V\xd4X\xa9eQ\x04\xab+\xcc\xeb\xde\xd1\xeb" +
+	"M\xdf\xbd\xa52\xfd?\xe6\x1d\xba\xb9y;1\x00\xd6" +
+	"W#\xc9\xe9\xecP\x82\x9b\xeb\xe9\xaf\x00\x00\x00\xff\xff" +
+	"o3\xb2\x9a"
 
 func init() {
 	schemas.Register(schema_e42f87955bd521e9,

@@ -12,35 +12,35 @@ struct ServiceInfo {
 	rss @1 :Int64;
 	# RSS (Real) Memory usage in bytes. 0 when not running
 
-	error @2 :Text;
-	# The last error status when running
-
-	modifiedTime @3 :Text;
+	modifiedTime @2 :Text;
 	# Service modified time ISO8601
 
-	name @4 :Text;
+	name @3 :Text;
 	# name of the service
 
-	path @5 :Text;
+	path @4 :Text;
 	# path to service executable
 
-	pid @6 :Int32;
+	pid @5 :Int32;
 	# Program PID when started. This remains after stopping.
 
-	startCount @7 :Int32;
-	# Number of times service was (re)started
-
-	startTime @8 :Text;
-	# Starting time of the service in ISO8601
-
-	stopTime @9 :Text;
-	# Stopped time of the service in ISO8601
-
-	running @10 :Bool;
+	running @6 :Bool;
 	# Service is currently running
 
-	size @11 :Int64;
+	size @7 :Int64;
 	# binary size of the service in bytes
+
+	status @8 :Text;
+	# The last received status message
+
+	startCount @9 :Int32;
+	# Number of times service was restarted
+
+	startTime @10 :Text;
+	# Starting time of the service in ISO8601
+
+	stopTime @11 :Text;
+	# Stopped time of the service in ISO8601
 
 	uptime @12 :Int32;
 	# uptime time the service is running in seconds.
@@ -49,8 +49,8 @@ struct ServiceInfo {
 interface CapLauncher {
   # Service launching capabilities
 
-  list @0 () -> (infoList :List(ServiceInfo));
-  # List the available services and their status
+  list @0 (onlyRunning :Bool) -> (infoList :List(ServiceInfo));
+  # List all available or only the running services and their status
 
   start @1 (name :Text) -> (info :ServiceInfo);
   # Start the service with the given name. The service must exist in the result of List.
