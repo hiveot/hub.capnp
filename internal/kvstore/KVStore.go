@@ -78,7 +78,7 @@ func getKeys(m map[string]string) []string {
 }
 
 // openStoreFile loads the store JSON content into a map.
-// If the store file doesn't exist or is corrupt it will be re-created.
+// If the store doesn't exist it is created
 func openStoreFile(storePath string) (docs map[string]string, err error) {
 	docs, err = readStoreFile(storePath)
 	if err != nil {
@@ -114,25 +114,28 @@ func writeStoreFile(storePath string, docs map[string]string) error {
 	storeFolder := path.Dir(storePath)
 	_, err := os.Stat(storeFolder)
 	if os.IsNotExist(err) {
-		err = os.Mkdir(storeFolder, os.ModeDir)
+		// folder doesn't exist. Attempt to create it
+		logrus.Warningf("Store folder '%s' does not exist. Creating it now.", storeFolder)
+		err = os.Mkdir(storeFolder, 0700)
 	}
+	// If the folder can't be created we're dead in the water
 	if err != nil {
-		logrus.Errorf("createStoreFolder. Error %s", err)
+		logrus.Fatalf("Unable to create the store folder at '%s'. Error %s", storeFolder, err)
 	}
 
 	// serialize the data to json for writing. Use indent for testing and debugging
 	//rawData, err := oj.Marshal(docs)
 	rawData, err := json.MarshalIndent(docs, "  ", "  ")
 	if err != nil {
-		err := fmt.Errorf("writeStoreFile: Error while saving store to %s: %s", storePath, err)
-		logrus.Error(err)
-		return err
+		// yeah this is pretty fatal too
+		logrus.Fatalf("Unable to marshal documents while saving store to %s: %s", storePath, err)
 	}
 	// First write content to temp file
 	// The temp file is opened with 0600 permissions
 	tmpName := storePath + ".tmp"
 	err = ioutil.WriteFile(tmpName, rawData, 0600)
 	if err != nil {
+		// ouch, wth?
 		err := fmt.Errorf("writeStoreFile: Error while creating tempfile for jsonstore: %s", err)
 		logrus.Error(err)
 		return err

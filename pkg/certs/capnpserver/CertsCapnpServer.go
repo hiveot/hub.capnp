@@ -106,7 +106,7 @@ func StartCertsCapnpServer(ctx context.Context, lis net.Listener, srv certs.ICer
 	})
 
 	// serve the requests by creating client instances of main (I think)
-	err := caphelp.CapServe(ctx, lis, capnp.Client(main))
+	err := caphelp.CapServe(ctx, certs.ServiceName, lis, capnp.Client(main))
 
 	log.Printf("Certs service capnp server stopped")
 

@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/hiveot/hub.go/pkg/logging"
 	"github.com/hiveot/hub.go/pkg/thing"
 	"github.com/hiveot/hub/pkg/directory"
 	"github.com/hiveot/hub/pkg/directory/capnpclient"
@@ -26,12 +27,12 @@ const testUseCapnp = true
 
 // createNewStore returns an API to the directory store, optionally using capnp RPC
 func createNewStore(useCapnp bool) (directory.IDirectory, error) {
+	ctx := context.Background()
 	_ = os.Remove(dirStoreFile)
-	store, _ := directorykvstore.NewDirectoryKVStoreServer(dirStoreFile)
+	store, _ := directorykvstore.NewDirectoryKVStoreServer(ctx, dirStoreFile)
 
 	// optionally test with capnp RPC
 	if useCapnp {
-		ctx := context.Background()
 		_ = syscall.Unlink(testAddress)
 		srvListener, _ := net.Listen("unix", testAddress)
 		go capnpserver.StartDirectoryCapnpServer(ctx, srvListener, store)
@@ -50,6 +51,13 @@ func createTDDoc(thingID string, title string) string {
 	}
 	tdDoc, _ := json.Marshal(td)
 	return string(tdDoc)
+}
+
+func TestMain(m *testing.M) {
+	logging.SetLogging("info", "")
+
+	res := m.Run()
+	os.Exit(res)
 }
 
 func TestStartStop(t *testing.T) {

@@ -51,5 +51,5 @@ func StartHistoryCapnpServer(ctx context.Context, listener net.Listener, srv his
 	// Create the capnp client to receive requests
 	main := hubapi.CapHistory_ServerToClient(adpt)
 
-	return caphelp.CapServe(ctx, listener, capnp.Client(main))
+	return caphelp.CapServe(ctx, history.ServiceName, listener, capnp.Client(main))
 }

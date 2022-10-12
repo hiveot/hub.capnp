@@ -51,6 +51,6 @@ func StartStateCapnpServer(ctx context.Context, lis net.Listener, srv state.ISta
 		pogo: srv,
 	})
 
-	err := caphelp.CapServe(ctx, lis, capnp.Client(main))
+	err := caphelp.CapServe(ctx, state.ServiceName, lis, capnp.Client(main))
 	return err
 }

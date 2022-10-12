@@ -68,7 +68,7 @@ func (srv *MongoHistoryServer) getHistory(ctx context.Context,
 }
 
 // getLatestValuesFromTimeSeries using aggregate pipeline
-// NOTE: MONGODB DOESN'T SCALE. 1 million records, 100 things, 10 sensor names
+// NOTE: THIS DOESN'T SCALE. 1 million records, 100 things, 10 sensor names
 // takes a whopping 10 seconds to complete.
 func (srv *MongoHistoryServer) getLatestValuesFromTimeSeries(
 	ctx context.Context, thingID string) (map[string]thing.ThingValue, error) {

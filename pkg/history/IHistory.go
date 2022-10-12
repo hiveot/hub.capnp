@@ -75,6 +75,7 @@ type IUpdateHistory interface {
 	AddAction(ctx context.Context, actionValue thing.ThingValue) error
 
 	// AddEvent adds an event to the event history
+	// If the event has no created time, it will be set to 'now'
 	AddEvent(ctx context.Context, eventValue thing.ThingValue) error
 
 	// AddEvents provides a bulk-add of events to the event history

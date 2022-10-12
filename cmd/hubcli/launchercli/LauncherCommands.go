@@ -109,7 +109,7 @@ func HandleListServices(ctx context.Context, f folders.AppFolders) error {
 			cpu,
 			memory,
 			status,
-			entry.Error,
+			entry.Status,
 		)
 	}
 	return nil

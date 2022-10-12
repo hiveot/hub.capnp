@@ -120,26 +120,31 @@ mkdir -p ~/bin/hiveot/bin/services
 mkdir -p ~/bin/hiveot/config
 mkdir -p ~/bin/hiveot/logs 
 mkdir -p ~/bin/hiveot/certs 
+mkdir -p ~/bin/hiveot/stores 
 ```
 
-3. Copy the application binaries into the ~/bin/hiveot/bin folder and default configuration in the ~/bin/hiveot/config folder
+3. Copy the application binaries into the ~/bin/hiveot/bin and bin/services folder.
 
 ```sh
 cp -a bin/* ~/bin/hiveot/bin
 cp config/* ~/bin/hiveot/config
 ```
 
-4. Generate the certificates using the certs CLI
+4. Generate the CA certificate using the CLI
 
 ```sh
 cd ~/bin/hiveot
-bin/certs certbundle   
+bin/hubcli ca create   
 ```
 
-5. Run
+5. Run the launcher
+
+check the launcher config and run the launcher 
+> vi config/launcher.yaml
+
 
 ```sh
-bin/launcher start
+bin/launcher 
 ```
 
 If desired, this can be started using systemd. Use the init/hiveot.service file.
@@ -155,12 +160,13 @@ sudo mkdir -P /opt/hiveot/services
 sudo mkdir -P /etc/hiveot/conf.d/ 
 sudo mkdir -P /etc/hiveot/certs/ 
 sudo mkdir /var/log/hiveot/   
-sudo mkdir /run/hiveot/   
+sudo mkdir /var/lib/hiveot   
+sudo mkdir /run/hiveot/
 
 # Install HiveOT configuration and systemd
 # download and extract the binaries tarfile in a temp for and copy the files:
 tar -xf hiveot.tgz
-sudo cp config/* /etc/hiveot
+sudo cp config/* /etc/hiveot/conf.d
 sudo vi /etc/hiveot/hub.yaml    - and edit the config, log, plugin folders
 sudo cp init/hiveot.service /etc/systemd/system
 sudo cp -a bin/* /opt/hiveot
@@ -205,7 +211,7 @@ The Hub can be launched manually by invoking the 'launcher' app in the Hub bin f
 ~/bin/hiveot/bin/launcher
 ```
 
-The services to start are defined in the config/launcher.yaml configuration file. When adding services, this file needs to be updated with the new service executable name.
+The launcher automatically scans the plugin/services in the services folder. In order to autostart services on start of the launcher, add them to the 'autostart' section of the config/launcher.yaml configuration file. 
 
 A systemd launcher is provided that can be configured to launch on startup for systemd compatible Linux systems. See 'init/hiveot.service'
 

@@ -8,9 +8,12 @@ The main objective is to manage Hub services and monitor their status.
 
 ## Roadmap
 
-1. Add watchdog
-2. Add service resource usage monitoring 
-3. Send notifications when resource usage exceeds limits
+1. Set logging output to log files for each service
+2. Support service autostart on startup. Use launcher.yaml config file.
+3. Auto restart service if exit with error
+4. Restart service if resources (CPU, Memory) exceed configured thresholds
+5. Send event when services are started and stopped
+6. Send event when resource usage exceeds limits
  
 
 ## Summary
@@ -32,19 +35,13 @@ If a service is already running, the launcher does not know about this. Most ser
 
 ## Launcher Configuration
 
-
 The launcher uses the following configuration for launching services:
 ```
 {app}/config/launcher.yaml  contains the launcher settings, including the folders to use.
 ```
+
 See the example file for details.
 
-The following default folders are used:
-```
-{app}/services              contains the services that can be launched
-{app}/services/autostart    contain symlinks to services to automatically start on startup
-{app}/services/run          contains the service unix domain sockets to communicate with the services over capnp
-```
 
 ## Usage
 
@@ -58,4 +55,4 @@ Stop a service
 > launcher stop {serviceName}
 
 Option to use a specific folder with services  
-> -s path/to/services
+> --services path/to/services

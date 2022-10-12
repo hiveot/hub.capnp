@@ -82,5 +82,5 @@ func StartProvisioningCapnpServer(
 		pogo: srv,
 	})
 
-	return caphelp.CapServe(ctx, lis, capnp.Client(main))
+	return caphelp.CapServe(ctx, provisioning.ServiceName, lis, capnp.Client(main))
 }

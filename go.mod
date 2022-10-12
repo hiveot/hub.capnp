@@ -21,6 +21,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/klauspost/compress v1.15.9 // indirect
+	github.com/mackerelio/go-osstat v0.2.3 // indirect
 	github.com/montanaflynn/stats v0.6.6 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect

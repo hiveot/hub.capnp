@@ -2,21 +2,19 @@ package listener
 
 import (
 	"context"
-	"fmt"
-	"net"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/sirupsen/logrus"
 )
 
-// ExitOnSignal starts a background process that invokes the shutdown callback,
-// closes the context and listener and exits the service when a signal is received.
-//  release is an optional application release function invoked before the shutdown.
-//
-func ExitOnSignal(ctx context.Context, listener net.Listener, release func()) {
-
+// ExitOnSignal starts a background process and closes the context when a SIGINT or SIGTERM is received.
+// if a release function is provided, it is invoked first.
+// This returns a child context which is cancelled on receiving a signal
+func ExitOnSignal(ctx context.Context, serviceName string, release func()) context.Context {
+	exitCtx, cancelFn := context.WithCancel(ctx)
 	go func() {
 		// catch all signals since not explicitly listing
 		exitChannel := make(chan os.Signal, 1)
@@ -25,14 +23,15 @@ func ExitOnSignal(ctx context.Context, listener net.Listener, release func()) {
 		signal.Notify(exitChannel, syscall.SIGINT, syscall.SIGTERM)
 
 		sig := <-exitChannel
-		logrus.Warningf("RECEIVED SIGNAL: %s", sig)
+		logrus.Warningf("RECEIVED SIGNAL for service '%s': %s", serviceName, sig)
 
 		if release != nil {
 			release()
 		}
-		fmt.Println("Closing listening socket")
-		listener.Close()
-		ctx.Done()
-		os.Exit(-1)
+		// cancel the context. This should invoke Done()
+		cancelFn()
+		time.Sleep(time.Second)
+
 	}()
+	return exitCtx
 }

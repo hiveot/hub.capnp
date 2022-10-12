@@ -30,16 +30,16 @@ const thingIDPrefix = "thing-"
 
 // when testing using the capnp RPC
 const testAddress = "/tmp/histstore_test.socket"
-const useTestCapnp = true
+const useTestCapnp = false
 
-var svcConfig = config.HistoryStoreConfig{
-	DatabaseType:    "mongodb",
-	DatabaseName:    "test",
-	DatabaseURL:     config.DefaultDBURL,
-	LoginID:         "",
-	Password:        "",
-	CertificateFile: "",
-}
+//var svcConfig = config.HistoryStoreConfig{
+//	DatabaseType:    "mongodb",
+//	DatabaseName:    "test",
+//	DatabaseURL:     config.DefaultDBURL,
+//	LoginID:         "",
+//	Password:        "",
+//	CertificateFile: "",
+//}
 
 var names = []string{"temperature", "humidity", "pressure", "wind", "speed", "switch", "location", "sensor-A", "sensor-B", "sensor-C"}
 
@@ -48,6 +48,9 @@ var highestName = make(map[string]thing.ThingValue)
 
 // Create a new store, delete if it already exists
 func newStore(useCapnp bool) history.IHistory {
+	svcConfig := config.NewHistoryStoreConfig()
+	svcConfig.DatabaseName = "test"
+
 	store := mongohs.NewMongoHistoryServer(svcConfig)
 	ctx := context.Background()
 	// start to delete the store
@@ -125,13 +128,39 @@ func TestMain(m *testing.M) {
 
 // Test creating and deleting the history database
 // This requires a local unsecured MongoDB instance
-func TestCreateDelete(t *testing.T) {
-	store := newStore(useTestCapnp)
-	if assert.NotNil(t, store) {
-		//err := stopStore(store)
-		//assert.NoError(t, err)
-		store = newStore(useTestCapnp)
-	}
+func TestStartStop(t *testing.T) {
+	cfg := config.NewHistoryStoreConfig()
+	cfg.DatabaseName = "test"
+	store := mongohs.NewMongoHistoryServer(cfg)
+	require.NotNil(t, store)
+	err := store.Start()
+	assert.NoError(t, err)
+	// start twice should return an error
+	err = store.Start()
+	assert.Error(t, err)
+	err = store.Stop()
+	assert.NotNil(t, store)
+}
+
+// should use default name
+func TestStartNoDBName(t *testing.T) {
+	cfg := config.NewHistoryStoreConfig()
+	cfg.DatabaseName = ""
+	store := mongohs.NewMongoHistoryServer(cfg)
+	err := store.Start()
+	assert.NoError(t, err)
+	err = store.Stop()
+	assert.NotNil(t, store)
+}
+
+func TestStartNoDBServer(t *testing.T) {
+	cfg := config.NewHistoryStoreConfig()
+	cfg.DatabaseName = "test"
+	cfg.DatabaseURL = "mongodb://doesnotexist/"
+	store := mongohs.NewMongoHistoryServer(cfg)
+	err := store.Start()
+	assert.Error(t, err)
+	err = store.Stop()
 	assert.NotNil(t, store)
 }
 
@@ -140,6 +169,9 @@ func TestAddGetEvent(t *testing.T) {
 	const id2 = "thing2"
 	const evName1 = "temperature"
 	const evName2 = "humidity"
+	var timebefore = ""
+	var timeafter = ""
+
 	store := newStore(useTestCapnp)
 	ctx := context.Background()
 	// add events for thing 1
@@ -162,16 +194,19 @@ func TestAddGetEvent(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	// query all events of thing 1
+	// get all events of thing 1
+	timebefore = time.Now().Add(time.Second).Format(time.RFC3339)
+	//timeafter = time.Now().Add(-time.Hour * 24 * 50).Format(time.RFC3339)
 	readHistory := store.CapReadHistory()
-	res, err := readHistory.GetEventHistory(ctx, id1, "", "", "", 0)
+	res, err := readHistory.GetEventHistory(ctx, id1,
+		"", timeafter, timebefore, 100)
 	require.NoError(t, err)
 	require.Equal(t, 2, len(res))
 	assert.Equal(t, id1, res[0].ThingID)
 	assert.Equal(t, evName1, res[0].Name)
 
 	// query temperatures of thing 2
-	res, err = readHistory.GetEventHistory(ctx, id2, evName1, "", "", 0)
+	res, err = readHistory.GetEventHistory(ctx, id2, evName1, "", "", 100)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(res))
 
@@ -224,14 +259,16 @@ func TestEventPerf(t *testing.T) {
 }
 
 func TestGetLatest(t *testing.T) {
+	const count = 10000
 	const id1 = thingIDPrefix + "0" // matches a percentage of the random things
 	store := newStore(useTestCapnp)
 
 	// 10 sensors -> 1 sample per minute, 60 per hour -> 600
-	addHistory(store, 10000, 1, 3600*24*30)
+	addHistory(store, count, 1, 3600*24*30)
 
 	ctx := context.Background()
 	t1 := time.Now()
+
 	values, err := store.CapReadHistory().GetLatestEvents(ctx, id1)
 	d1 := time.Now().Sub(t1)
 	logrus.Infof("Duration: %d msec", d1.Milliseconds())

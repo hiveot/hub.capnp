@@ -1,3 +1,4 @@
+// Package launcher with the launcher interface
 package launcher
 
 import "context"
@@ -13,9 +14,6 @@ type ServiceInfo struct {
 	// RSS (Resident Set Size) Memory usage in Bytes. 0 when not running.
 	RSS int
 
-	// The last error message, if any, when running
-	Error string
-
 	// Service modified time ISO8601
 	ModifiedTime string
 
@@ -28,7 +26,16 @@ type ServiceInfo struct {
 	// Program PID when started. This remains after stopping.
 	PID int
 
-	// Number of times the service was started (but might have stopped)
+	// Service is currently running
+	Running bool
+
+	// binary size of the service in bytes
+	Size int64
+
+	// The last status message received from the process
+	Status string
+
+	// Number of times the service was restarted
 	StartCount int
 
 	// Starting time of the service in ISO8601
@@ -36,12 +43,6 @@ type ServiceInfo struct {
 
 	// Stopped time of the service in ISO8601
 	StopTime string
-
-	// Service is currently running
-	Running bool
-
-	// binary size of the service in bytes
-	Size int64
 
 	// uptime time the service is running in seconds.
 	Uptime int
@@ -51,7 +52,7 @@ type ServiceInfo struct {
 type ILauncher interface {
 
 	// List services
-	List(ctx context.Context) ([]ServiceInfo, error)
+	List(ctx context.Context, onlyRunning bool) ([]ServiceInfo, error)
 
 	// Start a service
 	Start(ctx context.Context, name string) (ServiceInfo, error)

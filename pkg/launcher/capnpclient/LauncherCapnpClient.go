@@ -20,9 +20,14 @@ type LauncherCapnpClient struct {
 }
 
 // List services
-func (cl *LauncherCapnpClient) List(ctx context.Context) (infoList []launcher.ServiceInfo, err error) {
+func (cl *LauncherCapnpClient) List(ctx context.Context, onlyRunning bool) (infoList []launcher.ServiceInfo, err error) {
 
-	method, release := cl.capability.List(ctx, nil)
+	method, release := cl.capability.List(ctx,
+		func(params hubapi.CapLauncher_list_Params) error {
+			params.SetOnlyRunning(onlyRunning)
+			return nil
+		})
+
 	defer release()
 	resp, err := method.Struct()
 	if err == nil {

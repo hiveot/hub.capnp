@@ -2,7 +2,10 @@ package directorykvstore
 
 import (
 	"context"
+	"encoding/json"
 
+	"github.com/hiveot/hub.go/pkg/thing"
+	"github.com/hiveot/hub.go/pkg/vocab"
 	"github.com/hiveot/hub/internal/kvstore"
 	"github.com/hiveot/hub/pkg/directory"
 )
@@ -11,6 +14,16 @@ import (
 // This implements the IDirectory, IReadDirectory and IUpdateDirectory interfaces
 type DirectoryKVStoreServer struct {
 	store *kvstore.KVStore
+}
+
+// Create a new Thing TD document describing this service
+func (srv *DirectoryKVStoreServer) createServiceTD() *thing.ThingDescription {
+	thingID := thing.CreateThingID("", directory.ServiceName, vocab.DeviceTypeService)
+	title := "Directory KV Store Server"
+	deviceType := vocab.DeviceTypeService
+	td := thing.CreateTD(thingID, title, deviceType)
+
+	return td
 }
 
 // CapReadDirectory provides the service to read the directory
@@ -73,19 +86,32 @@ func (srv *DirectoryKVStoreServer) UpdateTD(_ context.Context, id string, td str
 	return err
 }
 
+// Start creates the store and updates the service own TD
+func (srv *DirectoryKVStoreServer) Start(ctx context.Context) error {
+	err := srv.store.Start()
+	if err == nil {
+		myTD := srv.createServiceTD()
+		myTDJson, _ := json.Marshal(myTD)
+		err = srv.UpdateTD(ctx, myTD.ID, string(myTDJson))
+	}
+	return err
+}
+
 // Stop the storage server and flush changes to disk
 func (srv *DirectoryKVStoreServer) Stop() {
-	srv.store.Stop()
+	_ = srv.store.Stop()
 }
 
 // NewDirectoryKVStoreServer creates a service to access TDs in the state store
 //  thingStorePath is the file holding the directory data.
-func NewDirectoryKVStoreServer(thingStorePath string) (*DirectoryKVStoreServer, error) {
+func NewDirectoryKVStoreServer(ctx context.Context, thingStorePath string) (*DirectoryKVStoreServer, error) {
 
 	kvStore, err := kvstore.NewKVStore(thingStorePath)
-	err = kvStore.Start()
 	srv := &DirectoryKVStoreServer{
 		store: kvStore,
+	}
+	if err == nil {
+		err = srv.Start(ctx)
 	}
 	return srv, err
 }

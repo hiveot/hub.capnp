@@ -58,6 +58,6 @@ func StartDirectoryCapnpServer(ctx context.Context, lis net.Listener, srv direct
 		srv: srv,
 	})
 
-	err := caphelp.CapServe(ctx, lis, capnp.Client(main))
+	err := caphelp.CapServe(ctx, directory.ServiceName, lis, capnp.Client(main))
 	return err
 }

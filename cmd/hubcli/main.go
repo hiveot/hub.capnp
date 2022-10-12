@@ -9,6 +9,7 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/hiveot/hub/cmd/hubcli/certcli"
+	"github.com/hiveot/hub/cmd/hubcli/directorycli"
 	"github.com/hiveot/hub/cmd/hubcli/launchercli"
 	"github.com/hiveot/hub/cmd/hubcli/provcli"
 	"github.com/hiveot/hub/internal/folders"
@@ -58,7 +59,8 @@ func main() {
 			certcli.CertCommands(ctx, f),
 			launchercli.LauncherCommands(ctx, f),
 			provcli.ProvisioningCommands(ctx, f),
-			//svccli.GetSvcCommands(homeFolder),
+			directorycli.DirectoryCommands(ctx, f),
+			//historycli.HistoryCommands(ctx, f),
 		},
 	}
 

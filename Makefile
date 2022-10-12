@@ -51,6 +51,7 @@ install:  all ## build and install the services
 	mkdir -p $(INSTALL_HOME)/$(SERVICES_FOLDER)
 	mkdir -p $(INSTALL_HOME)/config
 	mkdir -p $(INSTALL_HOME)/certs
+	mkdir -p $(INSTALL_HOME)/stores
 	cp $(BIN_FOLDER)/bin/* $(INSTALL_HOME)/$(BIN_FOLDER)
 	cp -n $(DIST_FOLDER)/config/* $(INSTALL_HOME)/config/
 

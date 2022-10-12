@@ -4,6 +4,7 @@ package mongohs
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -79,10 +80,8 @@ func (srv *MongoHistoryServer) Delete() error {
 	if err != nil {
 		logrus.Error(err)
 	}
-	err = srv.store.Disconnect(ctx)
-	if err != nil {
-		logrus.Error(err)
-	}
+	_ = srv.store.Disconnect(ctx)
+	srv.store = nil
 	return err
 }
 
@@ -101,12 +100,10 @@ func (srv *MongoHistoryServer) GetEventHistory(ctx context.Context,
 }
 
 // setup creates missing collections in the database
+// srv.storeDB must exist and be usable.
 func (srv *MongoHistoryServer) setup(ctx context.Context) error {
 
-	// create the database and add time series collections
-	if srv.storeDB == nil {
-		srv.storeDB = srv.store.Database(srv.config.DatabaseName)
-	}
+	// create the time series collections
 	// prepare options
 	tso := &options.TimeSeriesOptions{
 		TimeField: "timestamp",
@@ -191,19 +188,27 @@ func (srv *MongoHistoryServer) setup(ctx context.Context) error {
 // Start must be called before any other method, including Setup or Delete
 func (srv *MongoHistoryServer) Start() (err error) {
 	logrus.Infof("Connecting to the database")
+	if srv.store != nil {
+		return fmt.Errorf("Store already started")
+	}
 	srv.startTime = time.Now()
 	srv.store, err = mongo.NewClient(options.Client().ApplyURI(srv.config.DatabaseURL))
 	if err == nil {
 		err = srv.store.Connect(nil)
 	}
+	ctx, cf := context.WithTimeout(context.Background(), time.Second*10)
+	if err == nil {
+		err = srv.store.Ping(ctx, nil)
+	}
 	if err != nil {
 		logrus.Errorf("failed to connect to history DB on %s: %s", srv.config.DatabaseURL, err)
+		cf()
 		return err
 	}
 	srv.storeDB = srv.store.Database(srv.config.DatabaseName)
 
 	// create the collections if they don't exist
-	ctx, cf := context.WithTimeout(context.Background(), time.Second*300)
+	//ctx, cf := context.WithTimeout(context.Background(), time.Second*10)
 	err = srv.setup(ctx)
 	if err != nil {
 		cf()
@@ -229,6 +234,7 @@ func (srv *MongoHistoryServer) Stop() error {
 	logrus.Infof("Disconnecting from the database")
 	ctx, cf := context.WithTimeout(context.Background(), 10*time.Second)
 	err := srv.store.Disconnect(ctx)
+	srv.store = nil
 	cf()
 	return err
 }

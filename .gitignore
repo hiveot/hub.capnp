@@ -27,6 +27,4 @@ node_modules/
 # Dependency directories
 .history
 vendor/
-**/dist/bin/*
-!**/dist/config/*
-!**/dist/config/*.acl
+dist/

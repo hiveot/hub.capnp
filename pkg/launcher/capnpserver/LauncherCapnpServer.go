@@ -22,7 +22,9 @@ type LauncherCapnpServer struct {
 }
 
 func (capsrv *LauncherCapnpServer) List(ctx context.Context, call hubapi.CapLauncher_list) error {
-	infoList, err := capsrv.pogo.List(ctx)
+	args := call.Args()
+	onlyRunning := args.OnlyRunning()
+	infoList, err := capsrv.pogo.List(ctx, onlyRunning)
 	if err == nil {
 		res, _ := call.AllocResults()
 		svcInfoListCapnp := capnp4POGS.InfoListPOGS2Capnp(infoList)
@@ -58,6 +60,8 @@ func (capsrv *LauncherCapnpServer) StopAll(ctx context.Context, call hubapi.CapL
 // StartLauncherCapnpServer starts the capnp server for the launcher service
 //  ctx is the context for serving capabilities
 //  lis is the socket server from whom to accept connections
+//  srv is the instance of the launcher service
+//  lc holds the launcher configuration
 func StartLauncherCapnpServer(
 	ctx context.Context, lis net.Listener, srv launcher.ILauncher) error {
 
@@ -66,5 +70,5 @@ func StartLauncherCapnpServer(
 	main := hubapi.CapLauncher_ServerToClient(&LauncherCapnpServer{
 		pogo: srv,
 	})
-	return caphelp.CapServe(ctx, lis, capnp.Client(main))
+	return caphelp.CapServe(ctx, launcher.ServiceName, lis, capnp.Client(main))
 }

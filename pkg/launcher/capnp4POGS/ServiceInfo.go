@@ -8,7 +8,7 @@ import (
 )
 
 func ServiceInfoCapnp2POGS(serviceInfoCapnp hubapi.ServiceInfo) launcher.ServiceInfo {
-	errorText, _ := serviceInfoCapnp.Error()
+	status, _ := serviceInfoCapnp.Status()
 	modifiedTime, _ := serviceInfoCapnp.ModifiedTime()
 	serviceName, _ := serviceInfoCapnp.Name()
 	servicePath, _ := serviceInfoCapnp.Path()
@@ -18,7 +18,7 @@ func ServiceInfoCapnp2POGS(serviceInfoCapnp hubapi.ServiceInfo) launcher.Service
 	serviceInfoPOGS := launcher.ServiceInfo{
 		CPU:          int(serviceInfoCapnp.Cpu()),
 		RSS:          int(serviceInfoCapnp.Rss()),
-		Error:        errorText,
+		Status:       status,
 		ModifiedTime: modifiedTime,
 		Name:         serviceName,
 		Path:         servicePath,
@@ -38,7 +38,7 @@ func ServiceInfoPOGS2Capnp(serviceInfoPOGS launcher.ServiceInfo) hubapi.ServiceI
 	siCapnp, _ := hubapi.NewServiceInfo(seg)
 	siCapnp.SetCpu(int32(serviceInfoPOGS.CPU))
 	siCapnp.SetRss(int64(serviceInfoPOGS.RSS))
-	_ = siCapnp.SetError(serviceInfoPOGS.Error)
+	_ = siCapnp.SetStatus(serviceInfoPOGS.Status)
 	_ = siCapnp.SetModifiedTime(serviceInfoPOGS.ModifiedTime)
 	_ = siCapnp.SetName(serviceInfoPOGS.Name)
 	_ = siCapnp.SetPath(serviceInfoPOGS.Path)
