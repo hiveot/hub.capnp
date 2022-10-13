@@ -1,0 +1,19 @@
+# history.yaml - configuration file for the state storage.
+
+
+# backend storage to use. Options are: 'mongodb'
+# backend: mongodb
+
+# the name of the backend database. Default 'thinghistory'
+# Can be changed if two hubs share the same backend
+#databaseName: thinghistory
+
+# location of backend server or file. Default is mongodb's URL
+#databaseURL: mongodb://localhost:27017
+
+# login and password to the database server if applicable
+#loginID:
+#password:
+
+# optional client certificate instead of login
+#clientCertificate: config/mongodb-clientcert.pem

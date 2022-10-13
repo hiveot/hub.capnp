@@ -17,7 +17,7 @@ import (
 
 	"github.com/hiveot/hub.go/pkg/logging"
 	proc2 "github.com/hiveot/hub.go/pkg/proc"
-	"github.com/hiveot/hub/internal/folders"
+	"github.com/hiveot/hub/internal/svcconfig"
 	"github.com/hiveot/hub/pkg/launcher"
 	"github.com/hiveot/hub/pkg/launcher/config"
 )
@@ -27,7 +27,7 @@ import (
 type LauncherService struct {
 	// service configuration
 	cfg config.LauncherConfig
-	f   folders.AppFolders
+	f   svcconfig.AppFolders
 
 	// map of service name to running status
 	services map[string]*launcher.ServiceInfo
@@ -170,7 +170,7 @@ func (ls *LauncherService) Start(
 		return *serviceInfo, err
 	}
 	ls.cmds[name] = svcCmd
-	logrus.Infof("Service '%s' has started", name)
+	logrus.Warningf("Service '%s' has started", name)
 
 	serviceInfo.StartTime = time.Now().Format(time.RFC3339)
 	serviceInfo.PID = svcCmd.Process.Pid
@@ -199,7 +199,7 @@ func (ls *LauncherService) Start(
 		} else {
 			serviceInfo.Status = fmt.Sprintf("Service '%s' has stopped without info", name)
 		}
-		logrus.Infof(serviceInfo.Status)
+		logrus.Warningf(serviceInfo.Status)
 		ls.updateStatus(serviceInfo)
 		delete(ls.cmds, name)
 	}()
@@ -302,7 +302,7 @@ func (ls *LauncherService) updateStatus(svcInfo *launcher.ServiceInfo) {
 // This scans the folder for executables and adds these to the list of available services
 // Logging will be enabled based on LauncherConfig.
 func NewLauncherService(
-	ctx context.Context, f folders.AppFolders, cfg config.LauncherConfig) (*LauncherService, error) {
+	ctx context.Context, f svcconfig.AppFolders, cfg config.LauncherConfig) (*LauncherService, error) {
 
 	logFile := path.Join(f.Logs, launcher.ServiceName+".log")
 	logging.SetLogging(cfg.LogLevel, logFile)

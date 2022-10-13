@@ -1,4 +1,4 @@
-package certcli
+package certscli
 
 import (
 	"context"
@@ -12,12 +12,12 @@ import (
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub.go/pkg/certsclient"
-	"github.com/hiveot/hub/internal/folders"
+	"github.com/hiveot/hub/internal/svcconfig"
 	"github.com/hiveot/hub/pkg/certs/service/selfsigned"
 )
 
 // CACommands returns the list of CA commands
-func CACommands(ctx context.Context, f folders.AppFolders) *cli.Command {
+func CACommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 
 	cmd := &cli.Command{
 		// ca view | ca create | ca renew

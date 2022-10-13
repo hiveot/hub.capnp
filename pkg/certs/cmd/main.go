@@ -4,21 +4,19 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"crypto/x509"
-	"flag"
-	"os"
 	"path"
-	"path/filepath"
 
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub.go/pkg/certsclient"
 	"github.com/hiveot/hub.go/pkg/logging"
+	"github.com/hiveot/hub/internal/svcconfig"
 	"github.com/hiveot/hub/pkg/certs"
 	"github.com/hiveot/hub/pkg/certs/capnpserver"
 	"github.com/hiveot/hub/pkg/certs/service/selfsigned"
+	"github.com/hiveot/hub/pkg/launcher"
 
-	"github.com/hiveot/hub/internal/folders"
 	"github.com/hiveot/hub/internal/listener"
 )
 
@@ -32,12 +30,8 @@ func main() {
 
 	logging.SetLogging("info", "")
 
-	// this is a service so go 2 levels up
-	// FIXME: import the folder structure instead of hard coding it
-	homeFolder := filepath.Join(filepath.Dir(os.Args[0]), "../..")
-	f := folders.GetFolders(homeFolder, false)
-	flag.StringVar(&f.Certs, "certs", f.Certs, "Certificate folder.")
-	flag.Parse()
+	// Determine the folder layout and handle commandline options
+	f := svcconfig.LoadServiceConfig(launcher.ServiceName, false, nil)
 
 	// This service needs the CA certificate and key to operate
 	caCertPath := path.Join(f.Certs, hubapi.DefaultCaCertFile)

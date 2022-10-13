@@ -3,22 +3,17 @@ package main
 
 import (
 	"context"
-	"flag"
 	"log"
-	"os"
-	"path/filepath"
 
-	"github.com/hiveot/hub/internal/folders"
 	"github.com/hiveot/hub/internal/listener"
+	"github.com/hiveot/hub/internal/svcconfig"
 	"github.com/hiveot/hub/pkg/certs"
 	certsclient "github.com/hiveot/hub/pkg/certs/capnpclient"
+	"github.com/hiveot/hub/pkg/launcher"
 	"github.com/hiveot/hub/pkg/provisioning"
 	"github.com/hiveot/hub/pkg/provisioning/capnpserver"
 	"github.com/hiveot/hub/pkg/provisioning/service"
 )
-
-// FIXME: don't use hard coded socket address for certs service
-const CertsSvcAddress = "/tmp/certs.socket"
 
 // Start the provisioning service
 // This must be run from a properly setup environment. See GetFolders for details.
@@ -29,10 +24,8 @@ func main() {
 	var certsClient certs.ICerts
 	ctx, _ := context.WithCancel(context.Background())
 
-	// Determine the folder layout.
-	homeFolder := filepath.Join(filepath.Dir(os.Args[0]), "../..")
-	f := folders.GetFolders(homeFolder, false)
-	flag.Parse()
+	// Determine the folder layout and handle commandline options
+	f := svcconfig.LoadServiceConfig(launcher.ServiceName, false, nil)
 
 	// connect to the certificate service to get its capability for issuing device certificates
 	certConn, err := listener.CreateClientConnection(f.Run, certs.ServiceName)

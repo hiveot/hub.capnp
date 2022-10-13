@@ -8,11 +8,11 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 
-	"github.com/hiveot/hub/cmd/hubcli/certcli"
+	"github.com/hiveot/hub/cmd/hubcli/certscli"
 	"github.com/hiveot/hub/cmd/hubcli/directorycli"
 	"github.com/hiveot/hub/cmd/hubcli/launchercli"
 	"github.com/hiveot/hub/cmd/hubcli/provcli"
-	"github.com/hiveot/hub/internal/folders"
+	"github.com/hiveot/hub/internal/svcconfig"
 )
 
 const Version = `0.5-alpha`
@@ -25,9 +25,9 @@ func main() {
 	logrus.SetLevel(logrus.InfoLevel)
 	binFolder = path.Dir(os.Args[0])
 	homeFolder = path.Dir(binFolder)
-	f := folders.GetFolders(homeFolder, false)
 	ctx := context.Background()
-
+	f := svcconfig.LoadServiceConfig("hubcli", false, nil)
+	//logrus.Infof("folders is %v", f)
 	app := &cli.App{
 		EnableBashCompletion: true,
 		Name:                 "hubcli",
@@ -38,29 +38,17 @@ func main() {
 			&cli.StringFlag{
 				Name:        "home",
 				Usage:       "Path to home `folder`.",
-				Value:       f.Home,
-				Destination: &f.Home,
-			},
-			&cli.StringFlag{
-				Name:        "services",
-				Usage:       "Path to services directory",
-				Value:       f.Services,
-				Destination: &f.Services,
-			},
-			&cli.StringFlag{
-				Name:        "certs",
-				Usage:       "Path to certificate `folder`.",
-				Value:       f.Certs,
-				Destination: &f.Certs,
+				Value:       homeFolder,
+				Destination: &homeFolder,
 			},
 		},
 		Commands: []*cli.Command{
-			certcli.CACommands(ctx, f),
-			certcli.CertCommands(ctx, f),
+			certscli.CACommands(ctx, f),
+			certscli.CertCommands(ctx, f),
 			launchercli.LauncherCommands(ctx, f),
-			provcli.ProvisioningCommands(ctx, f),
 			directorycli.DirectoryCommands(ctx, f),
 			//historycli.HistoryCommands(ctx, f),
+			provcli.ProvisioningCommands(ctx, f),
 		},
 	}
 

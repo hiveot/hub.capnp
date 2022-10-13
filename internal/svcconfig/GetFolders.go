@@ -1,8 +1,11 @@
-package folders
+package svcconfig
 
 import (
 	"os"
 	"path/filepath"
+	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 type AppFolders struct {
@@ -30,23 +33,31 @@ type AppFolders struct {
 //         |- {service}      Store for service
 //
 // The system based folder structure is:
-//   /opt/hiveot               Application binaries, cli and launcher
-//         |-- services        Service and plugin binaries
-//   /etc/hiveot/conf.d        Service configuration yaml files
-//   /etc/hiveot/certs         CA and service certificates
-//   /var/log/hiveot           Logging output
-//   /run/hiveot               PID files and sockets
-//   /var/lib/hiveot/{service} Storage of service
+//   /opt/hiveot/bin            Application binaries, cli and launcher
+//                |-- services  Service and plugin binaries
+//   /etc/hiveot/conf.d         Service configuration yaml files
+//   /etc/hiveot/certs          CA and service certificates
+//   /var/log/hiveot            Logging output
+//   /run/hiveot                PID files and sockets
+//   /var/lib/hiveot/{service}  Storage of service
 //
-// This uses os.Args[0] application path to determine the bin folder, and home as parentFolder
-// The services folder is a subdirectory of bin
-//  homeFolder is optional in order to override the paths. Use "" for defaults
+// This uses os.Args[0] application path to determine the services folder. The home folder is two
+// levels up from the services folder.
+//  homeFolder is optional in order to override the auto detected paths. Use "" for defaults.
 func GetFolders(homeFolder string, useSystem bool) AppFolders {
 	// note that filepath should support windows
 	if homeFolder == "" {
-		// by default, home is the parent of bin
-		homeFolder = filepath.Join(filepath.Dir(os.Args[0]), "..")
+		cwd := filepath.Dir(os.Args[0])
+		if strings.HasSuffix(cwd, "services") {
+			homeFolder = filepath.Join(cwd, "..", "..")
+		} else if strings.HasSuffix(cwd, "bin") {
+			homeFolder = filepath.Join(cwd, "..")
+		} else {
+			// not sure where home is. For now use the parent
+			homeFolder = filepath.Join(cwd, "..")
+		}
 	}
+	logrus.Infof("homeFolder is '%s", homeFolder)
 	binFolder := filepath.Join(homeFolder, "bin")
 	servicesFolder := filepath.Join(binFolder, "services")
 	configFolder := filepath.Join(homeFolder, "config")

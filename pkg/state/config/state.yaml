@@ -3,6 +3,12 @@
 # backend storage to use. Options are: 'kvstore'
 # backend: kvstore
 
+# Name of the database in the backend database. Default 'hubstate'
+# Can be changed if two hubs share the same backend
+# databaseName: "hubstate"
+# databaseURL: "stores/state.json"  # in the stores folder
+
+
 # limits for services
 services:
 #  maxKeys:      100        # maximum nr of keys per service, default is 100

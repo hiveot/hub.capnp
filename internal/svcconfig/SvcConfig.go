@@ -7,12 +7,12 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
-
-	"github.com/hiveot/hub/internal/folders"
 )
 
-// LoadServiceConfig Load a configuration file from the config folder and apply commandline options.
-// Flag commandline options added are:
+// LoadServiceConfig Load a configuration file from the config folder and applies commandline options.
+// This invokes Fatal if the configuration file is invalid, or required but not found.
+//
+// This invokes flag.Parse(). Flag commandline options added are:
 //   -c configFile
 //   --home directory
 //   --certs directory
@@ -20,34 +20,69 @@ import (
 //   --logs directory
 //   --run directory
 //
-//  After the configuration is loaded from file, the commandline options are parsed.
-//  Services can set a flag on the provided cfg to override the defaults or the loaded config.
+//  If a 'cfg' interface is provided, the configuration is loaded from file and parsed as yaml.
 //
-//  f default folders. Can be overridden with commandline options.
 //  serviceName is used for the configuration file with the '.yaml' extension
 //  required returns an error if the configuration file doesn't exist
-//  cfg is the interface to the configuration object, overridden by commandline options
-// This returns an error if the yaml file has a typo in it
-func LoadServiceConfig(f folders.AppFolders, serviceName string, required bool, cfg interface{}) (folders.AppFolders, error) {
+//  cfg is the interface to the configuration object. nil to ignore configuration and just load the folders.
+func LoadServiceConfig(serviceName string, required bool, cfg interface{}) AppFolders {
 	// run the commandline options
+	var err error
+	var cfgData []byte
+	var homeFolder = ""
+	var certsFolder = ""
+	var runFolder = ""
+	var servicesFolder = ""
+	var logsFolder = ""
+	var storesFolder = ""
+
+	f := GetFolders(homeFolder, false)
 	cfgFile := path.Join(f.Config, serviceName+".yaml")
-	flag.StringVar(&cfgFile, "c", cfgFile, "Service config file")
-	flag.StringVar(&f.Home, "home", f.Home, "Application home directory")
-	flag.StringVar(&f.Certs, "certs", f.Certs, "Certificates directory")
-	flag.StringVar(&f.Services, "services", f.Services, "Application services directory")
-	flag.StringVar(&f.Logs, "logs", f.Logs, "Service log files directory")
-	flag.StringVar(&f.Run, "run", f.Run, "Runtime directory for sockets and pid files")
+	if cfg != nil {
+		flag.StringVar(&cfgFile, "c", cfgFile, "Service config file")
+	}
+	flag.StringVar(&homeFolder, "home", f.Home, "Application home directory")
+	flag.StringVar(&certsFolder, "certs", f.Certs, "Certificates directory")
+	flag.StringVar(&servicesFolder, "services", f.Services, "Application services directory")
+	flag.StringVar(&logsFolder, "logs", f.Logs, "Service log files directory")
+	flag.StringVar(&runFolder, "run", f.Run, "Runtime directory for sockets and pid files")
+	flag.StringVar(&storesFolder, "stores", f.Stores, "Storage directory")
 	flag.Parse()
 
-	cfgData, err := ioutil.ReadFile(cfgFile)
-	if err == nil {
-		logrus.Infof("Loaded configuration file: %s", cfgFile)
-		err = yaml.Unmarshal(cfgData, cfg)
-	} else if !required {
-		logrus.Infof("Configuration file '%s' not found. Ignored.", cfgFile)
-		err = nil
-	} else {
-		logrus.Errorf("Configuration file '%s' not found but required.", cfgFile)
+	// homefolder is special as it overrides all other folders
+	// detect the override by comparing original folder with assigned folder
+	f2 := GetFolders(homeFolder, false)
+	if certsFolder != f.Certs {
+		f2.Certs = certsFolder
 	}
-	return f, err
+	if servicesFolder != f.Services {
+		f2.Services = servicesFolder
+	}
+	if logsFolder != f.Logs {
+		f2.Logs = logsFolder
+	}
+	if runFolder != f.Run {
+		f2.Run = runFolder
+	}
+	if storesFolder != f.Stores {
+		f2.Stores = storesFolder
+	}
+
+	// ignore configuration file if no destination interface is given
+	if cfg != nil {
+		cfgData, err = ioutil.ReadFile(cfgFile)
+		if err == nil {
+			logrus.Infof("Loaded configuration file: %s", cfgFile)
+			err = yaml.Unmarshal(cfgData, cfg)
+			if err != nil {
+				logrus.Fatalf("Loading configuration file '%s' failed with: %s", cfgFile, err)
+			}
+		} else if !required {
+			logrus.Infof("Configuration file '%s' not found. Ignored.", cfgFile)
+			err = nil
+		} else {
+			logrus.Fatalf("Configuration file '%s' not found but required.", cfgFile)
+		}
+	}
+	return f2
 }

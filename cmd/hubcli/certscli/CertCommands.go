@@ -1,5 +1,5 @@
 // Package certcli with certificate commandline definitions
-package certcli
+package certscli
 
 import (
 	"bytes"
@@ -14,33 +14,33 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/hiveot/hub.go/pkg/certsclient"
-	"github.com/hiveot/hub/internal/folders"
 	"github.com/hiveot/hub/internal/listener"
+	"github.com/hiveot/hub/internal/svcconfig"
 	"github.com/hiveot/hub/pkg/certs"
 	"github.com/hiveot/hub/pkg/certs/capnpclient"
 )
 
 // CertCommands returns the certificate handling commands
-func CertCommands(ctx context.Context, f folders.AppFolders) *cli.Command {
+func CertCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 
 	cmd := &cli.Command{
 		// certs ca | client | device --certs=folder --pubkey=path ID
 
-		Name:  "cert",
+		Name:  "certs",
 		Usage: "Create certificates",
 		Subcommands: []*cli.Command{
-			CertCreateDeviceCommand(ctx, f),
-			CertCreateServiceCommand(ctx, f),
-			CertCreateUserCommand(ctx, f),
-			CertShowInfoCommand(ctx, f),
+			CertCreateDeviceCommands(ctx, f),
+			CertsCreateServiceCommand(ctx, f),
+			CertsCreateUserCommand(ctx, f),
+			CertsShowInfoCommand(ctx, f),
 		},
 	}
 	return cmd
 }
 
-// CertCreateUserCommand - requires the certs service to run
+// CertsCreateUserCommand - requires the certs service to run
 // hubcli certs client [--certs=CertFolder --pubkey=pubkeyfile] <loginID>
-func CertCreateUserCommand(ctx context.Context, f folders.AppFolders) *cli.Command {
+func CertsCreateUserCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	validityDays := certs.DefaultUserCertValidityDays
 
 	return &cli.Command{
@@ -71,9 +71,9 @@ func CertCreateUserCommand(ctx context.Context, f folders.AppFolders) *cli.Comma
 	}
 }
 
-// CertCreateDeviceCommand
+// CertCreateDeviceCommands
 // hubcli certs device [--certs=CertFolder] --pubkey=pubkeyfile <deviceID>
-func CertCreateDeviceCommand(ctx context.Context, f folders.AppFolders) *cli.Command {
+func CertCreateDeviceCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	validityDays := certs.DefaultDeviceCertValidityDays
 
 	return &cli.Command{
@@ -104,9 +104,9 @@ func CertCreateDeviceCommand(ctx context.Context, f folders.AppFolders) *cli.Com
 	}
 }
 
-// CertCreateServiceCommand
+// CertsCreateServiceCommand
 // hubcli certs service [--certs=CertFolder --pubkey=pubkeyfile] <serviceID>
-func CertCreateServiceCommand(ctx context.Context, f folders.AppFolders) *cli.Command {
+func CertsCreateServiceCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	validityDays := certs.DefaultServiceCertValidityDays
 	ipAddr := ""
 
@@ -142,7 +142,7 @@ func CertCreateServiceCommand(ctx context.Context, f folders.AppFolders) *cli.Co
 		},
 	}
 }
-func CertShowInfoCommand(ctx context.Context, f folders.AppFolders) *cli.Command {
+func CertsShowInfoCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	return &cli.Command{
 		Name:      "info",
 		Usage:     "Show certificate info",
@@ -163,7 +163,7 @@ func CertShowInfoCommand(ctx context.Context, f folders.AppFolders) *cli.Command
 //  deviceID for the CN of the certificate. Used to identify the device.
 //  keyFile with path to the client's public or private key
 //  validity in days. 0 to use certconfig.DefaultClientCertDurationDays
-func HandleCreateDeviceCert(ctx context.Context, f folders.AppFolders, deviceID string, keyFile string, validityDays int) error {
+func HandleCreateDeviceCert(ctx context.Context, f svcconfig.AppFolders, deviceID string, keyFile string, validityDays int) error {
 	var pubKeyPEM string
 	var generatedPrivKey *ecdsa.PrivateKey
 	var certPEM string
@@ -209,7 +209,7 @@ func HandleCreateDeviceCert(ctx context.Context, f folders.AppFolders, deviceID 
 //  ipAddr optional IP address in addition to localhost
 //  keyFile with path to the client's public or private key
 //  validity in days. 0 to use certconfig.DefaultClientCertDurationDays
-func HandleCreateServiceCert(ctx context.Context, f folders.AppFolders,
+func HandleCreateServiceCert(ctx context.Context, f svcconfig.AppFolders,
 	serviceID string, ipAddr string, keyFile string, validityDays int) error {
 
 	var names = []string{"localhost"}
@@ -257,7 +257,7 @@ func HandleCreateServiceCert(ctx context.Context, f folders.AppFolders,
 //  clientID for the CN of the client certificate. Used to identify the consumer.
 //  keyFile with path to the client's public or private key
 //  validity in days. 0 to use certconfig.DefaultClientCertDurationDays
-func HandleCreateUserCert(ctx context.Context, f folders.AppFolders, clientID string, keyFile string, validityDays int) error {
+func HandleCreateUserCert(ctx context.Context, f svcconfig.AppFolders, clientID string, keyFile string, validityDays int) error {
 	var pubKeyPEM string
 	var generatedPrivKey *ecdsa.PrivateKey
 	var certPEM string

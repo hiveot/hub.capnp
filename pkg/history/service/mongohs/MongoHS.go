@@ -26,7 +26,7 @@ const DefaultLatestCollectionName = "latest"
 // MongoHistoryServer store uses MongoDB to store events, actions, and properties in time-series collections.
 // This implements the client.IHistory interface
 type MongoHistoryServer struct {
-	config config.HistoryStoreConfig
+	config config.HistoryConfig
 
 	// Client connection to the data store
 	store *mongo.Client
@@ -187,7 +187,7 @@ func (srv *MongoHistoryServer) setup(ctx context.Context) error {
 // This will setup the database if the collections haven't been created yet.
 // Start must be called before any other method, including Setup or Delete
 func (srv *MongoHistoryServer) Start() (err error) {
-	logrus.Infof("Connecting to the database")
+	logrus.Infof("Connecting to the mongodb database on '%s'", srv.config.DatabaseURL)
 	if srv.store != nil {
 		return fmt.Errorf("Store already started")
 	}
@@ -242,8 +242,7 @@ func (srv *MongoHistoryServer) Stop() error {
 // NewMongoHistoryServer creates a service to access events, actions and properties in the store
 // Call Start() when ready to use the store.
 //  dbConfig contains the database connection settings
-func NewMongoHistoryServer(svcConfig config.HistoryStoreConfig) *MongoHistoryServer {
-
+func NewMongoHistoryServer(svcConfig config.HistoryConfig) *MongoHistoryServer {
 	if svcConfig.DatabaseName == "" {
 		svcConfig.DatabaseName = DefaultStoreName
 	}

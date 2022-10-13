@@ -6,7 +6,6 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/hiveot/hub/internal/folders"
 	"github.com/hiveot/hub/internal/listener"
 	"github.com/hiveot/hub/internal/svcconfig"
 	"github.com/hiveot/hub/pkg/launcher"
@@ -22,21 +21,12 @@ func main() {
 	var lc config.LauncherConfig
 	var ctx = context.Background()
 
-	f := folders.GetFolders("", false)
 	lc = config.NewLauncherConfig()
-	f, err = svcconfig.LoadServiceConfig(f, launcher.ServiceName, false, &lc)
-
-	// exit if config is invalid
-	if err != nil {
-		logrus.Errorf("ERROR: invalid yaml configuration: " + err.Error() + "\n")
-		os.Exit(-1)
-	}
+	f := svcconfig.LoadServiceConfig(launcher.ServiceName, false, &lc)
 
 	srvListener := listener.CreateServiceListener(f.Run, launcher.ServiceName)
 
-	if err == nil {
-		svc, err = service.NewLauncherService(ctx, f, lc)
-	}
+	svc, err = service.NewLauncherService(ctx, f, lc)
 	if err == nil {
 		err = capnpserver.StartLauncherCapnpServer(ctx, srvListener, svc)
 	}

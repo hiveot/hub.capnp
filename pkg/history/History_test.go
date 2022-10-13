@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/hiveot/hub.go/pkg/vocab"
 	"github.com/hiveot/hub/pkg/history"
 	"github.com/hiveot/hub/pkg/history/capnpclient"
 	"github.com/hiveot/hub/pkg/history/capnpserver"
@@ -38,7 +39,7 @@ const useTestCapnp = false
 //	DatabaseURL:     config.DefaultDBURL,
 //	LoginID:         "",
 //	Password:        "",
-//	CertificateFile: "",
+//	ClientCertificate: "",
 //}
 
 var names = []string{"temperature", "humidity", "pressure", "wind", "speed", "switch", "location", "sensor-A", "sensor-B", "sensor-C"}
@@ -48,7 +49,7 @@ var highestName = make(map[string]thing.ThingValue)
 
 // Create a new store, delete if it already exists
 func newStore(useCapnp bool) history.IHistory {
-	svcConfig := config.NewHistoryStoreConfig()
+	svcConfig := config.NewHistoryConfig()
 	svcConfig.DatabaseName = "test"
 
 	store := mongohs.NewMongoHistoryServer(svcConfig)
@@ -129,7 +130,7 @@ func TestMain(m *testing.M) {
 // Test creating and deleting the history database
 // This requires a local unsecured MongoDB instance
 func TestStartStop(t *testing.T) {
-	cfg := config.NewHistoryStoreConfig()
+	cfg := config.NewHistoryConfig()
 	cfg.DatabaseName = "test"
 	store := mongohs.NewMongoHistoryServer(cfg)
 	require.NotNil(t, store)
@@ -144,7 +145,7 @@ func TestStartStop(t *testing.T) {
 
 // should use default name
 func TestStartNoDBName(t *testing.T) {
-	cfg := config.NewHistoryStoreConfig()
+	cfg := config.NewHistoryConfig()
 	cfg.DatabaseName = ""
 	store := mongohs.NewMongoHistoryServer(cfg)
 	err := store.Start()
@@ -154,7 +155,7 @@ func TestStartNoDBName(t *testing.T) {
 }
 
 func TestStartNoDBServer(t *testing.T) {
-	cfg := config.NewHistoryStoreConfig()
+	cfg := config.NewHistoryConfig()
 	cfg.DatabaseName = "test"
 	cfg.DatabaseURL = "mongodb://doesnotexist/"
 	store := mongohs.NewMongoHistoryServer(cfg)
@@ -195,12 +196,13 @@ func TestAddGetEvent(t *testing.T) {
 	assert.NoError(t, err)
 
 	// get all events of thing 1
-	timebefore = time.Now().Add(time.Second).Format(time.RFC3339)
-	//timeafter = time.Now().Add(-time.Hour * 24 * 50).Format(time.RFC3339)
+	timebefore = time.Now().Add(time.Second).Format(vocab.ISO8601Format)
+	//timeafter = time.Now().Add(-time.Hour * 24 * 50).Format(ISO8601Format)
 	readHistory := store.CapReadHistory()
 	res, err := readHistory.GetEventHistory(ctx, id1,
 		"", timeafter, timebefore, 100)
 	require.NoError(t, err)
+	// FIXME: query with timebefore and timeafter fails
 	require.Equal(t, 2, len(res))
 	assert.Equal(t, id1, res[0].ThingID)
 	assert.Equal(t, evName1, res[0].Name)

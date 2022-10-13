@@ -1,12 +1,36 @@
 # Hive-Of-Things Hub
 
-The Hub for the *Hive of Things* is an intermediary between IoT devices 'Things', IoT services, and consumers using a hub-and-spokes architecture. Consumers interact with Things via the Hub without connecting directly to the IoT devices or services. The Hub uses the [cap'n proto](https://capnproto.org/) for Capabilities based secure communication.
+The Hub for the *Hive of Things* is an intermediary between IoT devices 'Things', IoT services, and consumers using a hub-and-spokes architecture. Consumers interact with Things via the Hub without connecting directly to the IoT devices or services. The Hub is based on the [W3C WoT TD 1.1 specification](https://www.w3.org/TR/wot-thing-description11/) and uses the [cap'n proto](https://capnproto.org/) for Capabilities based secure communication.
 
 ## Project Status
 
 Status: The status of the Hub is In Development. It is undergoing a rewrite to Capabilities based design using **capnp** for infrastructure.
 
-The first release is aimed at Linux systems. 
+2022-10-12 completed initial version of:
+```
+- certificate management  manage CA, IoT device, service and user certificates 
+- thing directory store   store TD - thing description - documents. Uses file backed KV store.
+- thing history store     store and query thing events and actions. Uses mongodb.
+- provisioning service    issue auth certificates to IoT devices. 
+- state store             enable services to easily persist state. Uses file backed KV store.
+- launcher service        manage starting and stopping of services
+```
+
+Todo in order to reach Alpha:
+```
+- authn service           user authentication management
+- authz service           user authorization of capabilities
+- gateway service         provide https access to services
+- pubsub service          publish and subscribe to events and actions
+```
+
+Stretch goal:
+```
+- directory store         add support for SQLite
+- state store             add support for SQLite
+- history store           add support for SQLite
+```
+
 
 ## Audience
 
@@ -52,19 +76,20 @@ The communication infrastructure for the services is provided by 'Cap'n Proto', 
 
 Since the Hub acts as the intermediary, it is responsible for features such as authentication, logging, resiliency, pub/sub and other protocol integration. The Hub can dynamically delegate some of these services to devices that are capable of doing so, potentially creating a decentralized solution that can scale as needed and recover from device failure. As a minimum the Hub manages service discovery acts as a proxy for capabilities. 
 
-Last but not least, the 'hive' can be expanded by connecting hubs to each other through the bridge service. The bridge lets the Hub owner share select IoT information with other hubs.
+Last but not least, the 'hive' can be expanded by connecting hubs to each other through a 'bridge'. The bridge lets the Hub owner share select IoT information with other hubs.
 
 
 ## Build
 
-### Build From Source
+### Quick Build And Install From Source
 
 To build the core and bundled plugins from source, a Linux system with golang and make tools must be available on the target system. 3rd party plugins are out of scope for these instructions and can require nodejs, python and golang.
 
 Prerequisites:
 
-1. Golang 1.18 or newer
-2. GCC Make
+1. A Linux based system (sorry, Windows is currently not supported)
+2. Golang 1.18 or newer
+3. GCC Make
 
 Build from source (tentative):
 
@@ -74,15 +99,14 @@ $ cd hub
 $ make all
 ```
 
-After the build is complete, the distribution binaries can be found in the 'dist/bin' folder and configuration files in dist/config.
-
+After the build is complete, the distribution files can be found in the 'dist' folder.
 The makefile also support a quick install for the current user:
 
 ```sh
 make install
 ```
 
-This copies the binaries and config to the ~/bin/hiveot location as described in the manual install section below. Executables are always replaced but only new configuration files are installed. Existing configuration remains untouched.
+This copies the distribution files to ~/bin/hiveot. The method can also be used to upgrade an existing installation. Executables are always replaced but only new configuration files are installed. Existing configuration remains untouched to prevent wrecking your working setup.
 
 Additional plugins are built similarly:
 
@@ -101,55 +125,38 @@ The Hub is designed to run on Linux based computers. It might be able to work on
 
 The Hub can run on most small to large Intel and Arm based systems.
 
-The minimal requirement for the Hub is 100MB of RAM and an Intel Celeron, or ARMv7 CPU. Additional resources might be required for some add-on services. 
+The minimal requirement for the Hub is 100MB of RAM and an Intel Celeron, or ARMv7 CPU. Additional resources might be required for some add-on services such as a MongoDB database. 
 
 ### Install From Package Manager
 
-Installation from package managers is currently not available.
+Installation from package managers is currently not available. Ubuntu and raspberry packages will be made available once the system reaches version 1 stable.  
 
-### Manual Install As User
+### Install From Binaries
+
+Binaries are currently not available. They will be made available once the system reaches full Beta.
+
+### Install from Source
+
+
+#### Manual Install As User
+
+Prerequisites:
+1. A linux based system like Ubuntu or Raspberry pi
+2. golang 1.18+
+3. git
+4. make
 
 The Hub can be installed and run as a dedicated user or system user. This section describes to install the Hub in a dedicated user home directory.
 
-0. Download or build the binaries. See the build section for more info.
 1. Create a user, for example a 'hiveot' user. Login as that user.
-2. Create the hub folder structure
+2. Download the source, eg git clone http://github.com/hiveot/hub
+3. make all
+4. make install
 
-```sh
-mkdir -p ~/bin/hiveot/bin/services
-mkdir -p ~/bin/hiveot/config
-mkdir -p ~/bin/hiveot/logs 
-mkdir -p ~/bin/hiveot/certs 
-mkdir -p ~/bin/hiveot/stores 
-```
-
-3. Copy the application binaries into the ~/bin/hiveot/bin and bin/services folder.
-
-```sh
-cp -a bin/* ~/bin/hiveot/bin
-cp config/* ~/bin/hiveot/config
-```
-
-4. Generate the CA certificate using the CLI
-
-```sh
-cd ~/bin/hiveot
-bin/hubcli ca create   
-```
-
-5. Run the launcher
-
-check the launcher config and run the launcher 
-> vi config/launcher.yaml
+This installs the Hub into the ~/bin/hiveot directory.
 
 
-```sh
-bin/launcher 
-```
-
-If desired, this can be started using systemd. Use the init/hiveot.service file.
-
-### Install To System (tenative)
+#### Install To System (tenative)
 
 For systemd installation to run as user 'hiveot'. When changing the user and folders make sure to edit the init/hiveot.service file accordingly. From the dist folder run:
 
@@ -163,14 +170,15 @@ sudo mkdir /var/log/hiveot/
 sudo mkdir /var/lib/hiveot   
 sudo mkdir /run/hiveot/
 
-# Install HiveOT configuration and systemd
+# Install HiveOT 
 # download and extract the binaries tarfile in a temp for and copy the files:
 tar -xf hiveot.tgz
 sudo cp config/* /etc/hiveot/conf.d
 sudo vi /etc/hiveot/hub.yaml    - and edit the config, log, plugin folders
-sudo cp init/hiveot.service /etc/systemd/system
 sudo cp -a bin/* /opt/hiveot
 ```
+
+Add /opt/hiveot/bin to the path
 
 2. Setup the system user and permissions
 
@@ -179,48 +187,53 @@ sudo adduser --system --no-create-home --home /opt/hiveot --shell /usr/sbin/nolo
 sudo chown -R hiveot:hiveot /etc/hiveot
 sudo chown -R hiveot:hiveot /var/log/hiveot
 sudo chown -R hiveot:hiveot /var/lib/hiveot
-
-sudo systemctl daemon-reload
 ```
 
-3. Start the hub
-
-```sh
-sudo service hiveot start
-```
-
-4Autostart the hub after startup
-
-```sh
-sudo systemctl enable hiveot
-```
 
 ## Configuration
 
-All Hub services will run out of the box with their default configuration. To change the default network and folder locations edit the 'config/hub.yaml' configuration file (or /etc/hiveot/conf.d/hub.yaml).
+All Hub services will run out of the box with their default configuration. Each service has an optional yaml based configuration file in the config folder.
 
-Hub services load their common configuration from the hub.yaml file in the config folder. This file MUST exist as it contains the message bus connection information for use by plugins. If no address is configured, the host outbound IP address is determined during startup. For hosts with multiple addresses, the address to use can be configured in hub.yaml
+Before starting the hub, a CA certificate must be created. By default the hub uses a self-signed CA certificate. It is possible to use a CA certificate from a 3rd party source, but this isn't needed as the certificates are used for client authentication, not for domain verification.
 
-Services and plugins can have their own plugin specific configuration file in the config folder. Plugins must be able to run without a configuration file.
+Generate the CA certificate using the CLI:
+
+```sh
+cd ~/bin/hiveot
+bin/hubcli ca create   
+```
+
+To configure autostart of services edit the provided launcher.yaml and add the services to the autostart section.
+> vi config/launcher.yaml
 
 ## Launching
 
-The Hub can be launched manually by invoking the 'launcher' app in the Hub bin folder. eg:
+To start manually when installed as a user, run:
 
 ```shell
-~/bin/hiveot/bin/launcher
+~/bin/hiveot/bin/launcher&
 ```
 
 The launcher automatically scans the plugin/services in the services folder. In order to autostart services on start of the launcher, add them to the 'autostart' section of the config/launcher.yaml configuration file. 
 
-A systemd launcher is provided that can be configured to launch on startup for systemd compatible Linux systems. See 'init/hiveot.service'
+
+Automatic startup after boot is supported through a system.d service:
 
 ```shell
 sudo cp init/hiveot.service /etc/systemd/system
-sudo vi /etc/systmd/system/hiveot.service      (edit user and working directory)
+sudo vi /etc/systmd/system/hiveot.service      (edit user, group and working directories)
+sudo systemctl daemon-reload
 sudo systemctl enable hiveot
 sudo systemctl start hiveot
 ```
+
+Once running, the running services can be viewed using the hub cli:
+> hubcli launcher list
+
+To stop or start a service:
+> hubcli launcher stop {serviceName}
+
+> hubcli launcher start {serviceName}
 
 # Contributing
 

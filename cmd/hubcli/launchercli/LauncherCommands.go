@@ -6,15 +6,15 @@ import (
 
 	"github.com/urfave/cli/v2"
 
-	"github.com/hiveot/hub/internal/folders"
 	"github.com/hiveot/hub/internal/listener"
+	"github.com/hiveot/hub/internal/svcconfig"
 	"github.com/hiveot/hub/pkg/launcher"
 	"github.com/hiveot/hub/pkg/launcher/capnpclient"
 )
 
-func LauncherCommands(ctx context.Context, f folders.AppFolders) *cli.Command {
+func LauncherCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	cmd := &cli.Command{
-		Name:  "launch",
+		Name:  "launcher",
 		Usage: "Start stop Hub services",
 		Subcommands: []*cli.Command{
 			LauncherListCommand(ctx, f),
@@ -26,7 +26,7 @@ func LauncherCommands(ctx context.Context, f folders.AppFolders) *cli.Command {
 }
 
 // LauncherListCommand
-func LauncherListCommand(ctx context.Context, f folders.AppFolders) *cli.Command {
+func LauncherListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 
 	return &cli.Command{
 		Name:      "list",
@@ -43,7 +43,7 @@ func LauncherListCommand(ctx context.Context, f folders.AppFolders) *cli.Command
 }
 
 // LauncherStartCommand
-func LauncherStartCommand(ctx context.Context, f folders.AppFolders) *cli.Command {
+func LauncherStartCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 
 	return &cli.Command{
 		Name:      "start",
@@ -60,7 +60,7 @@ func LauncherStartCommand(ctx context.Context, f folders.AppFolders) *cli.Comman
 }
 
 // LauncherStopCommand
-func LauncherStopCommand(ctx context.Context, f folders.AppFolders) *cli.Command {
+func LauncherStopCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 
 	return &cli.Command{
 		Name:      "stop",
@@ -77,7 +77,7 @@ func LauncherStopCommand(ctx context.Context, f folders.AppFolders) *cli.Command
 }
 
 // HandleListServices prints a list of available services
-func HandleListServices(ctx context.Context, f folders.AppFolders) error {
+func HandleListServices(ctx context.Context, f svcconfig.AppFolders) error {
 	var ls launcher.ILauncher
 
 	conn, err := listener.CreateClientConnection(f.Run, launcher.ServiceName)
@@ -90,7 +90,7 @@ func HandleListServices(ctx context.Context, f folders.AppFolders) error {
 
 	fmt.Println("Service                      Size   Starts      PID    CPU   Memory   Status    Last Error")
 	fmt.Println("-------                      ----   ------   ------   ----   ------   -------   -----------")
-	entries, _ := ls.List(ctx)
+	entries, _ := ls.List(ctx, false)
 	for _, entry := range entries {
 		status := "stopped"
 		cpu := ""
@@ -116,7 +116,7 @@ func HandleListServices(ctx context.Context, f folders.AppFolders) error {
 }
 
 // HandleStartService starts a service
-func HandleStartService(ctx context.Context, f folders.AppFolders, serviceName string) error {
+func HandleStartService(ctx context.Context, f svcconfig.AppFolders, serviceName string) error {
 	var ls launcher.ILauncher
 	conn, err := listener.CreateClientConnection(f.Run, launcher.ServiceName)
 	if err == nil {
@@ -138,7 +138,7 @@ func HandleStartService(ctx context.Context, f folders.AppFolders, serviceName s
 }
 
 // HandleStopService stops a service
-func HandleStopService(ctx context.Context, f folders.AppFolders, serviceName string) error {
+func HandleStopService(ctx context.Context, f svcconfig.AppFolders, serviceName string) error {
 	var ls launcher.ILauncher
 	conn, err := listener.CreateClientConnection(f.Run, launcher.ServiceName)
 	if err == nil {

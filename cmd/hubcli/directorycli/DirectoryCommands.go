@@ -4,17 +4,20 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 
 	"github.com/hiveot/hub.go/pkg/thing"
-	"github.com/hiveot/hub/internal/folders"
+	"github.com/hiveot/hub.go/pkg/vocab"
 	"github.com/hiveot/hub/internal/listener"
+	"github.com/hiveot/hub/internal/svcconfig"
 	"github.com/hiveot/hub/pkg/directory"
 	"github.com/hiveot/hub/pkg/directory/capnpclient"
 )
 
-func DirectoryCommands(ctx context.Context, f folders.AppFolders) *cli.Command {
+func DirectoryCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	cmd := &cli.Command{
 		Name:  "dir",
 		Usage: "List and query directory content",
@@ -26,7 +29,7 @@ func DirectoryCommands(ctx context.Context, f folders.AppFolders) *cli.Command {
 }
 
 // DirectoryListCommand
-func DirectoryListCommand(ctx context.Context, f folders.AppFolders) *cli.Command {
+func DirectoryListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	var limit = 100
 	var offset = 0
 	return &cli.Command{
@@ -44,7 +47,7 @@ func DirectoryListCommand(ctx context.Context, f folders.AppFolders) *cli.Comman
 }
 
 // HandleListDirectory lists the directoryc content
-func HandleListDirectory(ctx context.Context, f folders.AppFolders, limit int, offset int) error {
+func HandleListDirectory(ctx context.Context, f svcconfig.AppFolders, limit int, offset int) error {
 	var dir directory.IDirectory
 	var rd directory.IReadDirectory
 	var tdDoc thing.ThingDescription
@@ -61,13 +64,22 @@ func HandleListDirectory(ctx context.Context, f folders.AppFolders, limit int, o
 	}
 
 	jsonEntries, _ := rd.ListTDs(ctx, limit, offset)
-	fmt.Println("Thing ID              Updated         type      props  events  actions")
-	fmt.Println("--------              -------------   ----      -----  ------  -------")
+	fmt.Println("Thing ID                            Updated                        type       props  events  actions")
+	fmt.Println("--------                            -------                        ----       -----  ------  -------")
 	for _, entry := range jsonEntries {
 		err = json.Unmarshal([]byte(entry), &tdDoc)
-		fmt.Printf("%-25s %20s   %10s   \n",
+
+		utime, err := time.Parse(vocab.ISO8601Format, tdDoc.Modified)
+		if err != nil {
+			logrus.Infof("Parsing time failed '%s': %s", tdDoc.Modified, err)
+		}
+
+		fmt.Printf("%-35s %-30s %-10s %5d\n",
 			tdDoc.ID,
-			tdDoc.Modified,
+			//tdDoc.Modified,
+			utime.Format("02 Jan 2006 15:04:05 -0700"),
+			tdDoc.AtType,
+			len(tdDoc.Properties),
 		)
 	}
 	return nil

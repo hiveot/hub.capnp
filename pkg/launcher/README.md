@@ -29,8 +29,7 @@ To stop a service the launcher simply terminates the process the service runs in
 While running, the launcher keeps track of the CPU and memory usage of the service. This is available upon request.
 
 
-Limitations:
-If a service is already running, the launcher does not know about this. Most services might fail if started twice. 
+> Note: The launcher will not recognize services started on their own. Services will not function properly when started twice. 
 
 
 ## Launcher Configuration
@@ -46,13 +45,15 @@ See the example file for details.
 ## Usage
 
 List available services
-> launcher list 
-
+```sh
+launcher list 
+```
 Start a service
-> launcher start {serviceName}
+```sh
+launcher start {serviceName}
+```
 
 Stop a service
-> launcher stop {serviceName}
-
-Option to use a specific folder with services  
-> --services path/to/services
+```sh
+launcher stop {serviceName}
+```

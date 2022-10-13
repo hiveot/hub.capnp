@@ -13,6 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/hiveot/hub.go/pkg/thing"
+	"github.com/hiveot/hub.go/pkg/vocab"
 )
 
 // AddAction adds a new action to the history store
@@ -26,12 +27,16 @@ func (srv *MongoHistoryServer) AddAction(ctx context.Context,
 		return err
 	}
 	if actionValue.Created == "" {
-		actionValue.Created = time.Now().UTC().Format(time.RFC3339)
+		actionValue.Created = time.Now().UTC().Format(vocab.ISO8601Format)
 	}
 
 	// It would be nice to simply use bson marshal, but that isn't possible as the
 	// required timestamp needs to be added in BSON format.
-	createdTime, err := time.Parse(time.RFC3339, actionValue.Created)
+	// FIXME: this doesn't work as parsing with -0700 timezone in RFC 3339 fails
+	createdTime, err := time.Parse(vocab.ISO8601Format, actionValue.Created)
+	if err != nil {
+		logrus.Warning("Parsing created time '%s' failed: %s", actionValue.Created, err)
+	}
 	timestamp := primitive.NewDateTimeFromTime(createdTime)
 	evBson := bson.M{
 		TimeStampField: timestamp,
@@ -58,13 +63,20 @@ func (srv *MongoHistoryServer) AddEvent(
 		return err
 	}
 	if eventValue.Created == "" {
-		eventValue.Created = time.Now().UTC().Format(time.RFC3339)
+		//eventValue.Created = time.Now().UTC().Format(time.RFC3339)
+		eventValue.Created = time.Now().UTC().Format(vocab.ISO8601Format)
 	}
 
 	// It would be nice to simply use bson marshal, but that isn't possible as the
 	// required timestamp needs to be added in BSON format.
 	//createdTime, err := time.Parse("2006-01-02T15:04:05-07:00", event.Created)
-	createdTime, err := time.Parse(time.RFC3339, eventValue.Created)
+	//createdTime, err := time.Parse(time.RFC3339, eventValue.Created)
+	// FIXME: this doesn't work as parsing with -0700 timezone in RFC 3339 fails
+	createdTime, err := time.Parse(vocab.ISO8601Format, eventValue.Created)
+	if err != nil {
+		logrus.Warning("Parsing created time '%s' failed: %s", eventValue.Created, err)
+	}
+
 	timestamp := primitive.NewDateTimeFromTime(createdTime)
 	evBson := bson.M{
 		TimeStampField: timestamp,

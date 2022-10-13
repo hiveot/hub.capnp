@@ -6,15 +6,15 @@ import (
 
 	"github.com/urfave/cli/v2"
 
-	"github.com/hiveot/hub/internal/folders"
 	"github.com/hiveot/hub/internal/listener"
+	"github.com/hiveot/hub/internal/svcconfig"
 	"github.com/hiveot/hub/pkg/provisioning"
 	"github.com/hiveot/hub/pkg/provisioning/capnpclient"
 )
 
 // ProvisioningCommands returns the provisioning handling commands
 // This requires the provisioning service to run.
-func ProvisioningCommands(ctx context.Context, f folders.AppFolders) *cli.Command {
+func ProvisioningCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 
 	cmd := &cli.Command{
 		//hub prov add|list  <deviceID> <secret>
@@ -34,7 +34,7 @@ func ProvisioningCommands(ctx context.Context, f folders.AppFolders) *cli.Comman
 
 // ProvisionAddOOBSecretsCommand
 // prov add  <deviceID> <oobsecret>
-func ProvisionAddOOBSecretsCommand(ctx context.Context, f folders.AppFolders) *cli.Command {
+func ProvisionAddOOBSecretsCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	return &cli.Command{
 		Name:      "add",
 		Usage:     "Add an out-of-band device provisioning secret for automatic provisioning",
@@ -54,7 +54,7 @@ func ProvisionAddOOBSecretsCommand(ctx context.Context, f folders.AppFolders) *c
 
 // ProvisionApproveRequestCommand
 // prov approve <deviceID>
-func ProvisionApproveRequestCommand(ctx context.Context, f folders.AppFolders) *cli.Command {
+func ProvisionApproveRequestCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	return &cli.Command{
 		Name:      "approve",
 		Usage:     "Approve a pending provisioning request",
@@ -72,7 +72,7 @@ func ProvisionApproveRequestCommand(ctx context.Context, f folders.AppFolders) *
 
 // ProvisionGetApprovedRequestsCommand
 // prov approved
-func ProvisionGetApprovedRequestsCommand(ctx context.Context, f folders.AppFolders) *cli.Command {
+func ProvisionGetApprovedRequestsCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	return &cli.Command{
 		Name:      "approved",
 		Usage:     "Get a list of approved provisioning requests",
@@ -86,7 +86,7 @@ func ProvisionGetApprovedRequestsCommand(ctx context.Context, f folders.AppFolde
 
 // ProvisionGetPendingRequestsCommand
 // prov approved
-func ProvisionGetPendingRequestsCommand(ctx context.Context, f folders.AppFolders) *cli.Command {
+func ProvisionGetPendingRequestsCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	return &cli.Command{
 		Name:      "pending",
 		Usage:     "Get a list of pending provisioning requests",
@@ -101,7 +101,7 @@ func ProvisionGetPendingRequestsCommand(ctx context.Context, f folders.AppFolder
 // HandleAddOobSecret invokes the out-of-band provisioning service to add a provisioning secret
 //  deviceID is the ID of the device whose secret to set
 //  secret to set
-func HandleAddOobSecret(ctx context.Context, f folders.AppFolders, deviceID string, secret string) error {
+func HandleAddOobSecret(ctx context.Context, f svcconfig.AppFolders, deviceID string, secret string) error {
 	var pc provisioning.IProvisioning
 	var secrets []provisioning.OOBSecret
 
@@ -127,7 +127,7 @@ func HandleAddOobSecret(ctx context.Context, f folders.AppFolders, deviceID stri
 
 // HandleApproveRequest
 //  deviceID is the ID of the device to approve
-func HandleApproveRequest(ctx context.Context, f folders.AppFolders, deviceID string) error {
+func HandleApproveRequest(ctx context.Context, f svcconfig.AppFolders, deviceID string) error {
 	var pc provisioning.IProvisioning
 
 	conn, err := listener.CreateClientConnection(f.Run, provisioning.ServiceName)
@@ -145,14 +145,13 @@ func HandleApproveRequest(ctx context.Context, f folders.AppFolders, deviceID st
 }
 
 // HandleGetApprovedRequests
-func HandleGetApprovedRequests(ctx context.Context, f folders.AppFolders) error {
+func HandleGetApprovedRequests(ctx context.Context, f svcconfig.AppFolders) error {
 	var pc provisioning.IProvisioning
 
 	conn, err := listener.CreateClientConnection(f.Run, provisioning.ServiceName)
 	if err == nil {
 		pc, err = capnpclient.NewProvisioningCapnpClient(ctx, conn)
 	}
-	pc.CapManageProvisioning()
 	if err != nil {
 		return err
 	}
@@ -171,14 +170,13 @@ func HandleGetApprovedRequests(ctx context.Context, f folders.AppFolders) error 
 }
 
 // HandleGetPendingRequests
-func HandleGetPendingRequests(ctx context.Context, f folders.AppFolders) error {
+func HandleGetPendingRequests(ctx context.Context, f svcconfig.AppFolders) error {
 	var pc provisioning.IProvisioning
 
 	conn, err := listener.CreateClientConnection(f.Run, provisioning.ServiceName)
 	if err == nil {
 		pc, err = capnpclient.NewProvisioningCapnpClient(ctx, conn)
 	}
-	pc.CapManageProvisioning()
 	if err != nil {
 		return err
 	}
