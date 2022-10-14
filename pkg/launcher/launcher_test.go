@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/hiveot/hub.go/pkg/logging"
-	"github.com/hiveot/hub/internal/folders"
+	"github.com/hiveot/hub/internal/svcconfig"
 	"github.com/hiveot/hub/pkg/launcher"
 	"github.com/hiveot/hub/pkg/launcher/capnpclient"
 	"github.com/hiveot/hub/pkg/launcher/capnpserver"
@@ -36,7 +36,7 @@ func newServer(useCapnp bool) (launcher.ILauncher, func()) {
 	launcherConfig.AttachStderr = true
 	launcherConfig.AttachStdout = false
 	launcherConfig.LogServices = true
-	var f = folders.GetFolders(homeFolder, false)
+	var f = svcconfig.GetFolders(homeFolder, false)
 	f.Services = "/bin" // for /bin/yes
 	f.Logs = logFolder
 

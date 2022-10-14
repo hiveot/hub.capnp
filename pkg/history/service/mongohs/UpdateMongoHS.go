@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/araddon/dateparse"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -32,8 +33,7 @@ func (srv *MongoHistoryServer) AddAction(ctx context.Context,
 
 	// It would be nice to simply use bson marshal, but that isn't possible as the
 	// required timestamp needs to be added in BSON format.
-	// FIXME: this doesn't work as parsing with -0700 timezone in RFC 3339 fails
-	createdTime, err := time.Parse(vocab.ISO8601Format, actionValue.Created)
+	createdTime, err := dateparse.ParseAny(actionValue.Created)
 	if err != nil {
 		logrus.Warning("Parsing created time '%s' failed: %s", actionValue.Created, err)
 	}
@@ -52,7 +52,6 @@ func (srv *MongoHistoryServer) AddAction(ctx context.Context,
 }
 
 // AddEvent adds a new event to the history store
-// The event 'created' field will be used as timestamp after parsing it using time.RFC3339
 func (srv *MongoHistoryServer) AddEvent(
 	ctx context.Context, eventValue thing.ThingValue) error {
 
@@ -63,18 +62,16 @@ func (srv *MongoHistoryServer) AddEvent(
 		return err
 	}
 	if eventValue.Created == "" {
-		//eventValue.Created = time.Now().UTC().Format(time.RFC3339)
 		eventValue.Created = time.Now().UTC().Format(vocab.ISO8601Format)
 	}
 
 	// It would be nice to simply use bson marshal, but that isn't possible as the
 	// required timestamp needs to be added in BSON format.
-	//createdTime, err := time.Parse("2006-01-02T15:04:05-07:00", event.Created)
-	//createdTime, err := time.Parse(time.RFC3339, eventValue.Created)
-	// FIXME: this doesn't work as parsing with -0700 timezone in RFC 3339 fails
-	createdTime, err := time.Parse(vocab.ISO8601Format, eventValue.Created)
+	// ParseAny is very fast :)
+	createdTime, err := dateparse.ParseAny(eventValue.Created)
 	if err != nil {
-		logrus.Warning("Parsing created time '%s' failed: %s", eventValue.Created, err)
+		logrus.Warningf("Parsing created time failed: %s", err)
+		return err
 	}
 
 	timestamp := primitive.NewDateTimeFromTime(createdTime)
@@ -114,7 +111,6 @@ func (srv *MongoHistoryServer) AddEvent(
 
 // AddEvents performs a bulk update of events
 // This provides a significant performance increase over adding multiple single events
-// The event 'created' field will be used as timestamp after parsing it using time.RFC3339
 func (srv *MongoHistoryServer) AddEvents(ctx context.Context,
 	events []thing.ThingValue) error {
 	evList := make([]interface{}, 0)
@@ -129,13 +125,12 @@ func (srv *MongoHistoryServer) AddEvents(ctx context.Context,
 			return err
 		}
 		if event.Created == "" {
-			event.Created = time.Now().UTC().Format(time.RFC3339)
+			event.Created = time.Now().UTC().Format(vocab.ISO8601Format)
 		}
 
 		// It would be nice to simply use bson marshal, but that isn't possible as the
 		// required timestamp needs to be added in BSON format.
-		//createdTime, err := time.Parse("2006-01-02T15:04:05-07:00", event.Created)
-		createdTime, _ := time.Parse(time.RFC3339, event.Created)
+		createdTime, _ := dateparse.ParseAny(event.Created)
 		timestamp := primitive.NewDateTimeFromTime(createdTime)
 		evBson := bson.M{
 			TimeStampField: timestamp,

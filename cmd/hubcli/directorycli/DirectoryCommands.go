@@ -4,13 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"time"
 
+	"github.com/araddon/dateparse"
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 
 	"github.com/hiveot/hub.go/pkg/thing"
-	"github.com/hiveot/hub.go/pkg/vocab"
 	"github.com/hiveot/hub/internal/listener"
 	"github.com/hiveot/hub/internal/svcconfig"
 	"github.com/hiveot/hub/pkg/directory"
@@ -64,12 +63,12 @@ func HandleListDirectory(ctx context.Context, f svcconfig.AppFolders, limit int,
 	}
 
 	jsonEntries, _ := rd.ListTDs(ctx, limit, offset)
-	fmt.Println("Thing ID                            Updated                        type       props  events  actions")
+	fmt.Println("Thing ID                            Modified                       type       props  events  actions")
 	fmt.Println("--------                            -------                        ----       -----  ------  -------")
 	for _, entry := range jsonEntries {
 		err = json.Unmarshal([]byte(entry), &tdDoc)
 
-		utime, err := time.Parse(vocab.ISO8601Format, tdDoc.Modified)
+		utime, err := dateparse.ParseAny(tdDoc.Modified)
 		if err != nil {
 			logrus.Infof("Parsing time failed '%s': %s", tdDoc.Modified, err)
 		}

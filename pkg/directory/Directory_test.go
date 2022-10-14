@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -26,22 +27,31 @@ const testAddress = "/tmp/dirstore_test.socket"
 const testUseCapnp = true
 
 // createNewStore returns an API to the directory store, optionally using capnp RPC
-func createNewStore(useCapnp bool) (directory.IDirectory, error) {
-	ctx := context.Background()
+func createNewStore(useCapnp bool) (directory.IDirectory, func(), error) {
+	ctx, cancelFunc := context.WithCancel(context.Background())
+	time.Sleep(time.Millisecond * 10)
+	logrus.Infof("createNewStore start")
+	defer logrus.Infof("createNewStore ended")
+	// Allow 1 millisecond to let any previous test context cleanup
 	_ = os.Remove(dirStoreFile)
 	store, _ := directorykvstore.NewDirectoryKVStoreServer(ctx, dirStoreFile)
 
 	// optionally test with capnp RPC
 	if useCapnp {
 		_ = syscall.Unlink(testAddress)
-		srvListener, _ := net.Listen("unix", testAddress)
+		srvListener, err := net.Listen("unix", testAddress)
+		if err != nil {
+			logrus.Panic("Unable to create a listener, can't run test")
+		}
 		go capnpserver.StartDirectoryCapnpServer(ctx, srvListener, store)
 		// connect the client to the server above
 		clConn, _ := net.Dial("unix", testAddress)
 		capClient, err := capnpclient.NewDirectoryCapnpClient(ctx, clConn)
-		return capClient, err
+		time.Sleep(time.Millisecond * 10)
+		return capClient, cancelFunc, err
 	}
-	return store, nil
+	time.Sleep(time.Millisecond * 10)
+	return store, cancelFunc, nil
 }
 
 func createTDDoc(thingID string, title string) string {
@@ -61,17 +71,22 @@ func TestMain(m *testing.M) {
 }
 
 func TestStartStop(t *testing.T) {
+	logrus.Infof("--- TestStartStop start ---")
 	_ = os.Remove(dirStoreFile)
-	store, err := createNewStore(testUseCapnp)
+	store, cancelFunc, err := createNewStore(testUseCapnp)
+	defer cancelFunc()
 	require.NoError(t, err)
 	assert.NotNil(t, store)
+	logrus.Infof("--- TestStartStop end ---")
 }
 
 func TestAddRemoveTD(t *testing.T) {
+	logrus.Infof("--- TestRemoveTD start ---")
 	_ = os.Remove(dirStoreFile)
 	const thing1ID = "thing1"
 	const title1 = "title1"
-	store, err := createNewStore(testUseCapnp)
+	store, cancelFunc, err := createNewStore(testUseCapnp)
+	defer cancelFunc()
 	require.NoError(t, err)
 	readCap := store.CapReadDirectory()
 	updateCap := store.CapUpdateDirectory()
@@ -92,13 +107,16 @@ func TestAddRemoveTD(t *testing.T) {
 	td3, err := readCap.GetTD(ctx, thing1ID)
 	require.Error(t, err)
 	assert.Equal(t, "", td3)
+	logrus.Infof("--- TestRemoveTD end ---")
 }
 
 func TestListTDs(t *testing.T) {
+	logrus.Infof("--- TestListTDs start ---")
 	_ = os.Remove(dirStoreFile)
 	const thing1ID = "thing1"
 	const title1 = "title1"
-	store, err := createNewStore(testUseCapnp)
+	store, cancelFunc, err := createNewStore(testUseCapnp)
+	defer cancelFunc()
 	require.NoError(t, err)
 	readCap := store.CapReadDirectory()
 	updateCap := store.CapUpdateDirectory()
@@ -112,13 +130,16 @@ func TestListTDs(t *testing.T) {
 	require.NoError(t, err)
 	assert.NotNil(t, tdList)
 	assert.True(t, len(tdList) > 0)
+	logrus.Infof("--- TestListTDs end ---")
 }
 
 func TestQueryTDs(t *testing.T) {
+	logrus.Infof("--- TestQueryTDs start ---")
 	_ = os.Remove(dirStoreFile)
 	const thing1ID = "thing1"
 	const title1 = "title1"
-	store, err := createNewStore(testUseCapnp)
+	store, cancelFunc, err := createNewStore(testUseCapnp)
+	defer cancelFunc()
 	require.NoError(t, err)
 	readCap := store.CapReadDirectory()
 	updateCap := store.CapUpdateDirectory()
@@ -137,21 +158,23 @@ func TestQueryTDs(t *testing.T) {
 	json.Unmarshal([]byte(tdList[0]), &el0)
 	assert.Equal(t, thing1ID, el0.ID)
 	assert.Equal(t, title1, el0.Title)
+	logrus.Infof("--- TestQueryTDs end ---")
 }
 
 // simple performance test update/read, comparing direct vs capnp access
 func TestPerf(t *testing.T) {
+	logrus.Infof("--- start TestPerf ---")
 	_ = os.Remove(dirStoreFile)
 	const thing1ID = "thing1"
 	const title1 = "title1"
 	const count = 1000
 
-	store, err := createNewStore(true)
+	store, cancelFunc, err := createNewStore(true)
+	defer cancelFunc()
 	require.NoError(t, err)
 	readCap := store.CapReadDirectory()
 	updateCap := store.CapUpdateDirectory()
 	ctx := context.Background()
-
 	// test update
 	t1 := time.Now()
 	for i := 0; i < count; i++ {
@@ -172,5 +195,5 @@ func TestPerf(t *testing.T) {
 	}
 	d2 := time.Now().Sub(t2)
 	fmt.Printf("Duration for read %d iterations: %d msec\n", count, int(d2.Milliseconds()))
-
+	logrus.Infof("--- end TestPerf ---")
 }

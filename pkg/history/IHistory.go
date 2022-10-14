@@ -53,11 +53,13 @@ type IHistory interface {
 type IReadHistory interface {
 
 	// GetActionHistory returns the history of a Thing action
-	// before and after are timestamps in iso8601 format (YYYY-MM-DDTHH:MM:SS-TZ)
+	// before and after are timestamps in iso8601 format (YYYY-MM-DDTHH:MM:SS.sss-TZ)
+	// See also vocab.ISO8601Format
 	GetActionHistory(ctx context.Context, thingID string, actionName string, after string, before string, limit int) (values []thing.ThingValue, err error)
 
 	// GetEventHistory returns the history of a Thing event
-	// before and after are timestamps in iso8601 format (YYYY-MM-DDTHH:MM:SS-TZ)
+	// before and after are timestamps in iso8601 format (YYYY-MM-DDTHH:MM:SS.sss-TZ)
+	// if before is provided, after must be provided as well
 	GetEventHistory(ctx context.Context, thingID string, eventName string, after string, before string, limit int) (values []thing.ThingValue, err error)
 
 	// GetLatestEvents returns a map of the latest event values of a Thing

@@ -31,23 +31,23 @@ const testAddress = "/tmp/certservice_test.socket"
 //}
 
 // Factory for creating service instance. Currently the only implementation is selfsigned.
-func NewService() certs.ICerts {
+func NewService() (svc certs.ICerts, cancel func()) {
 	// use selfsigned to create a new CA for these tests
-	ctx, _ := context.WithCancel(context.Background())
+	ctx, cancelFunc := context.WithCancel(context.Background())
 	caCert, caKey, _ := selfsigned.CreateHubCA(1)
-	svc := selfsigned.NewSelfSignedCertsService(caCert, caKey)
+	svc = selfsigned.NewSelfSignedCertsService(caCert, caKey)
 	// when using capnp, return a client instance instead the svc
 	if useCapnp {
 		// remove stale handle
 		_ = syscall.Unlink(testAddress)
 		srvListener, _ := net.Listen("unix", testAddress)
-		go capnpserver.StartCertsCapnpServer(context.Background(), srvListener, svc)
+		go capnpserver.StartCertsCapnpServer(ctx, srvListener, svc)
 		// connect the client to the server above
 		clConn, _ := net.Dial("unix", testAddress)
 		capClient, _ := capnpclient.NewCertServiceCapnpClient(ctx, clConn)
-		return capClient
+		return capClient, cancelFunc
 	}
-	return svc
+	return svc, cancelFunc
 }
 
 // TestMain clears the certs folder for clean testing
@@ -69,7 +69,8 @@ func TestMain(m *testing.M) {
 }
 
 func TestCreateService(t *testing.T) {
-	svc := NewService()
+	svc, cancelFunc := NewService()
+	defer cancelFunc()
 	require.NotNil(t, svc)
 }
 
@@ -77,7 +78,8 @@ func TestCreateDeviceCert(t *testing.T) {
 	deviceID := "device1"
 	ctx := context.Background()
 
-	svc := NewService()
+	svc, cancelFunc := NewService()
+	defer cancelFunc()
 	keys := certsclient.CreateECDSAKeys()
 	pubKeyPEM, _ := certsclient.PublicKeyToPEM(&keys.PublicKey)
 
@@ -117,7 +119,8 @@ func TestDeviceCertBadParms(t *testing.T) {
 	ctx := context.Background()
 
 	// test creating hub certificate
-	svc := NewService()
+	svc, cancelFunc := NewService()
+	defer cancelFunc()
 	deviceCertsSvc := svc.CapDeviceCerts()
 	keys := certsclient.CreateECDSAKeys()
 	pubKeyPEM, _ := certsclient.PublicKeyToPEM(&keys.PublicKey)
@@ -140,7 +143,8 @@ func TestCreateServiceCert(t *testing.T) {
 	names := []string{"127.0.0.1", "localhost"}
 	ctx := context.Background()
 
-	svc := NewService()
+	svc, cancelFunc := NewService()
+	defer cancelFunc()
 	keys := certsclient.CreateECDSAKeys()
 	pubKeyPEM, _ := certsclient.PublicKeyToPEM(&keys.PublicKey)
 	serviceCertsSvc := svc.CapServiceCerts()
@@ -207,7 +211,8 @@ func TestCreateUserCert(t *testing.T) {
 	ctx := context.Background()
 	userID := "bob"
 	// test creating hub certificate
-	svc := NewService()
+	svc, cancelFunc := NewService()
+	defer cancelFunc()
 	keys := certsclient.CreateECDSAKeys()
 	pubKeyPEM, _ := certsclient.PublicKeyToPEM(&keys.PublicKey)
 

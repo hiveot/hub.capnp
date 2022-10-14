@@ -120,7 +120,7 @@ func writeStoreFile(storePath string, docs map[string]string) error {
 	}
 	// If the folder can't be created we're dead in the water
 	if err != nil {
-		logrus.Fatalf("Unable to create the store folder at '%s'. Error %s", storeFolder, err)
+		logrus.Panicf("Unable to create the store folder at '%s'. Error %s", storeFolder, err)
 	}
 
 	// serialize the data to json for writing. Use indent for testing and debugging
@@ -128,7 +128,7 @@ func writeStoreFile(storePath string, docs map[string]string) error {
 	rawData, err := json.MarshalIndent(docs, "  ", "  ")
 	if err != nil {
 		// yeah this is pretty fatal too
-		logrus.Fatalf("Unable to marshal documents while saving store to %s: %s", storePath, err)
+		logrus.Panicf("Unable to marshal documents while saving store to %s: %s", storePath, err)
 	}
 	// First write content to temp file
 	// The temp file is opened with 0600 permissions
@@ -371,7 +371,7 @@ func (store *KVStore) SetWriteDelay(delay time.Duration) {
 
 // Start the store background loop for saving changes
 func (store *KVStore) Start() error {
-	logrus.Infof("KVStore.Open: Opening store from '%s'", store.storePath)
+	logrus.Infof("KVStore.Start: Opening store from '%s'", store.storePath)
 	var err error
 	store.mutex.Lock()
 	defer store.mutex.Unlock()
@@ -384,7 +384,7 @@ func (store *KVStore) Start() error {
 // If any changes are remaining then write to disk now.
 func (store *KVStore) Stop() error {
 	var err error
-	logrus.Infof("Ending background loop")
+	logrus.Infof("KVStore.Stop")
 	store.backgroundLoopEnding <- true
 
 	// wait for the background loop to end
@@ -397,6 +397,7 @@ func (store *KVStore) Stop() error {
 	if store.updateCount > 0 {
 		err = writeStoreFile(store.storePath, store.docs)
 	}
+	logrus.Infof("KVStore.Stop completed. Background loop ended")
 	return err
 }
 

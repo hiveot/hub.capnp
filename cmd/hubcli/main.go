@@ -10,6 +10,7 @@ import (
 
 	"github.com/hiveot/hub/cmd/hubcli/certscli"
 	"github.com/hiveot/hub/cmd/hubcli/directorycli"
+	"github.com/hiveot/hub/cmd/hubcli/historycli"
 	"github.com/hiveot/hub/cmd/hubcli/launchercli"
 	"github.com/hiveot/hub/cmd/hubcli/provcli"
 	"github.com/hiveot/hub/internal/svcconfig"
@@ -47,7 +48,7 @@ func main() {
 			certscli.CertCommands(ctx, f),
 			launchercli.LauncherCommands(ctx, f),
 			directorycli.DirectoryCommands(ctx, f),
-			//historycli.HistoryCommands(ctx, f),
+			historycli.HistoryCommands(ctx, f),
 			provcli.ProvisioningCommands(ctx, f),
 		},
 	}

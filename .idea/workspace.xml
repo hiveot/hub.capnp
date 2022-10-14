@@ -4,54 +4,28 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a8355b86-cb16-4dbc-90ec-9852fdfe1e16" name="Changes" comment="Launcher: improve error handling and logging  &#10;Launcher: adds logging of service stderr/stdout to file&#10;Launcher: Improve code coverage in tests&#10;KVStore: fix bug in store folder mode">
-      <change afterPath="$PROJECT_DIR$/pkg/state/config/StateConfig.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../hub.go/pkg/thing/ThingDescription.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.go/pkg/thing/ThingDescription.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../hub.go/pkg/thing/ThingDescription_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.go/pkg/thing/ThingDescription_test.go" afterDir="false" />
+    <list default="true" id="a8355b86-cb16-4dbc-90ec-9852fdfe1e16" name="Changes" comment="Cleanup launching &amp; bug fixes">
+      <change afterPath="$PROJECT_DIR$/cmd/hubcli/historycli/HistoryCommands.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/History.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/History.capnp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/History.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/History.capnp.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.go/pkg/logging/SetLogging.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.go/pkg/logging/SetLogging.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../hub.go/pkg/vocab/IoTVocabulary.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.go/pkg/vocab/IoTVocabulary.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/hubcli/certcli/CACommands.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/certscli/CACommands.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/hubcli/certcli/CertCommands.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/certscli/CertCommands.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/hubcli/certcli/certcli.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/hubcli/certcli/certcli_test.go" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/cmd/hubcli/directorycli/DirectoryCommands.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/directorycli/DirectoryCommands.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/hubcli/launchercli/LauncherCommands.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/launchercli/LauncherCommands.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmd/hubcli/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/main.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmd/hubcli/provcli/ProvCommands.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/provcli/ProvCommands.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/config.old/.keep" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/config.old/authservice.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/config.old/authz.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/config.old/certs.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/config.old/hub.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/config.old/idprov.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/config.old/launcher.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/config.old/logger.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/config.old/mosquitto.conf.template" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/config.old/mosquittomgr.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/dist/config.old/thingdir.yaml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/folders/GetFolders.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/svcconfig/GetFolders.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/svcconfig/SvcConfig.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/svcconfig/SvcConfig.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/certs/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/certs/cmd/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/directory/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/directory/cmd/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/kvstore/KVStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/kvstore/KVStore.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/kvstore/KVStore_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/kvstore/KVStore_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/certs/Certs_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/certs/Certs_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/directory/Directory_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/directory/Directory_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/history/History_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/History_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/history/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/cmd/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/history/config/HistoryStoreConfig.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/config/HistoryConfig.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/history/config/historystore.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/config/history.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/history/IHistory.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/IHistory.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/history/service/mongohs/MongoHS.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/service/mongohs/MongoHS.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/history/service/mongohs/ReadMongoHS.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/service/mongohs/ReadMongoHS.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/history/service/mongohs/UpdateMongoHS.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/service/mongohs/UpdateMongoHS.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/launcher/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/launcher/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/launcher/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/launcher/cmd/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/launcher/service/LauncherService.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/launcher/service/LauncherService.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/provisioning/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/provisioning/cmd/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/state/State_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/State_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/state/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/cmd/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/state/config/state.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/config/state.yaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/state/service/statekvstore/ClientStateKVStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/service/statekvstore/ClientState.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/state/service/statekvstore/StateKVStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/service/statekvstore/StateKVStore.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/launcher/launcher_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/launcher/launcher_test.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -101,7 +75,7 @@
     "WebServerToolWindowFactoryState": "false",
     "go.import.settings.migrated": "true",
     "go.sdk.automatically.set": "true",
-    "last_opened_file_path": "/home/henk/dev/hiveot/hub/cmd/hubcli/directorycli",
+    "last_opened_file_path": "/home/henk/dev/hiveot/hub",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -117,11 +91,11 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/cmd/hubcli/historycli" />
       <recent name="$PROJECT_DIR$/cmd/hubcli/directorycli" />
       <recent name="$PROJECT_DIR$/pkg/launcher/cmd/cli" />
       <recent name="$PROJECT_DIR$/pkg/state/cmd" />
       <recent name="$PROJECT_DIR$/../hub.capnp/capnp/hubapi" />
-      <recent name="$PROJECT_DIR$/pkg/launcher/capnpclient" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/internal/svcconfig" />
@@ -131,34 +105,49 @@
       <recent name="$PROJECT_DIR$/pkg/directory/capnpserver" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Test.TestCreateTD in github.com/hiveot/hub.go/pkg/thing">
-    <configuration name="go build github.com/hiveot/hub/cmd/hubcli" type="GoApplicationRunConfiguration" factoryName="Go Application" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Go Test.TestListTDs in github.com/hiveot/hub/pkg/directory">
+    <configuration name="TestCreateStoreBadFolder in github.com/hiveot/hub/internal/kvstore" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="hub" />
-      <working_directory value="$PROJECT_DIR$" />
+      <working_directory value="$PROJECT_DIR$/internal/kvstore" />
+      <root_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <package value="github.com/hiveot/hub/cmd/hubcli" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$/cmd/hubcli/main.go" />
-      <method v="2" />
-    </configuration>
-    <configuration name="TestCreateTD in github.com/hiveot/hub.go/pkg/thing" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="hub.go" />
-      <working_directory value="$PROJECT_DIR$/../hub.go/pkg/thing" />
-      <root_directory value="$PROJECT_DIR$/../hub.go" />
-      <kind value="PACKAGE" />
-      <package value="github.com/hiveot/hub.go/pkg/thing" />
+      <package value="github.com/hiveot/hub/internal/kvstore" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestCreateTD\E$" />
+      <pattern value="^\QTestCreateStoreBadFolder\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="go test github.com/hiveot/hub.go/pkg/thing" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="hub.go" />
-      <working_directory value="$PROJECT_DIR$/../hub.go/pkg/thing" />
-      <root_directory value="$PROJECT_DIR$/../hub.go" />
+    <configuration name="TestListTDs in github.com/hiveot/hub/pkg/directory" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="hub" />
+      <working_directory value="$PROJECT_DIR$/pkg/directory" />
+      <root_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <package value="github.com/hiveot/hub.go/pkg/thing" />
+      <package value="github.com/hiveot/hub/pkg/directory" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestListTDs\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TestStartStop in github.com/hiveot/hub/pkg/directory" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="hub" />
+      <working_directory value="$PROJECT_DIR$/pkg/directory" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/hiveot/hub/pkg/directory" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <pattern value="^\QTestStartStop\E$" />
+      <method v="2" />
+    </configuration>
+    <configuration name="go test github.com/hiveot/hub/internal/kvstore" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="hub" />
+      <working_directory value="$PROJECT_DIR$/internal/kvstore" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/hiveot/hub/internal/kvstore" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
@@ -175,24 +164,13 @@
       <framework value="gotest" />
       <method v="2" />
     </configuration>
-    <configuration name="go test github.com/hiveot/hub/pkg/provisioning" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="hub" />
-      <working_directory value="$PROJECT_DIR$/pkg/provisioning" />
-      <root_directory value="$PROJECT_DIR$" />
-      <kind value="PACKAGE" />
-      <package value="github.com/hiveot/hub/pkg/provisioning" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <method v="2" />
-    </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Go Test.TestCreateTD in github.com/hiveot/hub.go/pkg/thing" />
-        <item itemvalue="Go Test.go test github.com/hiveot/hub.go/pkg/thing" />
-        <item itemvalue="Go Build.go build github.com/hiveot/hub/cmd/hubcli" />
-        <item itemvalue="Go Test.go test github.com/hiveot/hub/pkg/provisioning" />
+        <item itemvalue="Go Test.TestListTDs in github.com/hiveot/hub/pkg/directory" />
+        <item itemvalue="Go Test.TestStartStop in github.com/hiveot/hub/pkg/directory" />
         <item itemvalue="Go Test.go test github.com/hiveot/hub/pkg/launcher" />
+        <item itemvalue="Go Test.go test github.com/hiveot/hub/internal/kvstore" />
+        <item itemvalue="Go Test.TestCreateStoreBadFolder in github.com/hiveot/hub/internal/kvstore" />
       </list>
     </recent_temporary>
   </component>
@@ -249,7 +227,8 @@
     <MESSAGE value="Add launcher&#10;Update cli to work with certs and launcher services via capnp. &#10;capnp clients now accept a connection istead of connecting themselves.&#10;Cleanup." />
     <MESSAGE value="Launcher switch to exec.Cmd &#10;- terminate services when launcher terminates&#10;- improve reporting&#10;Update CLI for launcher, certs and provisioning&#10;Cleanup" />
     <MESSAGE value="Launcher: improve error handling and logging  &#10;Launcher: adds logging of service stderr/stdout to file&#10;Launcher: Improve code coverage in tests&#10;KVStore: fix bug in store folder mode" />
-    <option name="LAST_COMMIT_MESSAGE" value="Launcher: improve error handling and logging  &#10;Launcher: adds logging of service stderr/stdout to file&#10;Launcher: Improve code coverage in tests&#10;KVStore: fix bug in store folder mode" />
+    <MESSAGE value="Cleanup launching &amp; bug fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="Cleanup launching &amp; bug fixes" />
   </component>
   <component name="VgoProject">
     <settings-migrated>true</settings-migrated>
@@ -298,11 +277,6 @@
           <option name="timeStamp" value="45" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/pkg/history/service/mongohs/ReadMongoHS.go</url>
-          <line>30</line>
-          <option name="timeStamp" value="74" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/pkg/history/capnpserver/UpdateHistoryCapnpServer.go</url>
           <line>40</line>
           <option name="timeStamp" value="76" />
@@ -314,8 +288,13 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/cmd/hubcli/main.go</url>
-          <line>28</line>
+          <line>29</line>
           <option name="timeStamp" value="81" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/pkg/directory/capnpserver/DirectoryCapnpServer.go</url>
+          <line>54</line>
+          <option name="timeStamp" value="82" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

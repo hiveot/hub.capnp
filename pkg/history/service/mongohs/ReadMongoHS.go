@@ -5,8 +5,10 @@ package mongohs
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"time"
 
+	"github.com/araddon/dateparse"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -18,34 +20,46 @@ import (
 )
 
 // getHistory returns the request history from a collection
+// if before is used, after must be set as well
 func (srv *MongoHistoryServer) getHistory(ctx context.Context,
 	collection *mongo.Collection,
 	thingID string, valueName string, after string, before string, limit int) ([]thing.ThingValue, error) {
 
 	var hist = make([]thing.ThingValue, 0)
+	var timeFilter bson.D
 
 	filter := bson.M{
 		"thingID": thingID,
 	}
-
+	// filter on a time range. Require at least an 'after' time.
+	if before != "" && after == "" {
+		err := fmt.Errorf("in a time range query before time requires after time to be provided")
+		logrus.Warning(err)
+		return nil, err
+	}
 	if after != "" {
-		timeAfter, err := time.Parse(time.RFC3339, after)
+		timeAfter, err := dateparse.ParseAny(after)
 		if err != nil {
 			logrus.Infof("Invalid 'After' time: %s", err)
 			return nil, err
 		}
 		timeAfterBson := primitive.NewDateTimeFromTime(timeAfter)
-		filter["after"] = timeAfterBson
-	}
-	if before != "" {
-		timeBefore, err := time.Parse(time.RFC3339, before)
-		if err != nil {
-			logrus.Infof("Invalid 'Before' time: %s", err)
-			return nil, err
+		if before == "" {
+			// not a range, just time after
+			timeFilter = bson.D{{"$gte", timeAfterBson}}
+		} else {
+			// make it a range
+			timeBefore, err := dateparse.ParseAny(before)
+			if err != nil {
+				logrus.Infof("Invalid 'Before' time: %s", err)
+				return nil, err
+			}
+			timeBeforeBson := primitive.NewDateTimeFromTime(timeBefore)
+			timeFilter = bson.D{{"$gte", timeAfterBson}, {"$lte", timeBeforeBson}}
 		}
-		timeBeforeBson := primitive.NewDateTimeFromTime(timeBefore)
-		filter["before"] = timeBeforeBson
+		filter[TimeStampField] = timeFilter
 	}
+
 	if valueName != "" {
 		filter["name"] = valueName
 	}
@@ -54,6 +68,10 @@ func (srv *MongoHistoryServer) getHistory(ctx context.Context,
 	//}
 
 	cursor, err := collection.Find(ctx, filter, options.Find().SetLimit(int64(limit)))
+	if err != nil {
+		logrus.Warning(err)
+		return nil, err
+	}
 
 	defer cursor.Close(ctx)
 	//res := make([]thing.ThingValue,0) &thing.ThingValueList{

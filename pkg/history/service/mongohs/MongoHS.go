@@ -13,6 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/hiveot/hub.go/pkg/thing"
+	"github.com/hiveot/hub.go/pkg/vocab"
 	"github.com/hiveot/hub/pkg/history"
 	"github.com/hiveot/hub/pkg/history/config"
 )
@@ -106,7 +107,7 @@ func (srv *MongoHistoryServer) setup(ctx context.Context) error {
 	// create the time series collections
 	// prepare options
 	tso := &options.TimeSeriesOptions{
-		TimeField: "timestamp",
+		TimeField: TimeStampField,
 	}
 	tso.SetMetaField("metadata")
 
@@ -196,13 +197,13 @@ func (srv *MongoHistoryServer) Start() (err error) {
 	if err == nil {
 		err = srv.store.Connect(nil)
 	}
-	ctx, cf := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancelFunc()
 	if err == nil {
 		err = srv.store.Ping(ctx, nil)
 	}
 	if err != nil {
 		logrus.Errorf("failed to connect to history DB on %s: %s", srv.config.DatabaseURL, err)
-		cf()
 		return err
 	}
 	srv.storeDB = srv.store.Database(srv.config.DatabaseName)
@@ -211,7 +212,6 @@ func (srv *MongoHistoryServer) Start() (err error) {
 	//ctx, cf := context.WithTimeout(context.Background(), time.Second*10)
 	err = srv.setup(ctx)
 	if err != nil {
-		cf()
 		return err
 	}
 
@@ -219,12 +219,15 @@ func (srv *MongoHistoryServer) Start() (err error) {
 	srv.actionCollection = srv.storeDB.Collection(DefaultActionCollectionName)
 	srv.latestEvents = srv.storeDB.Collection(DefaultLatestCollectionName)
 
-	// last, populate the most recent property values
-	//pipeline := `["$group": {"thingID": ]`
-	//cursor, err := srv.eventCollection.Aggregate(ctx, pipeline)
-	//
+	// last, add an event that this service started
+	startedEvent := thing.ThingValue{
+		ThingID:   history.ServiceName,
+		Name:      "started", // todo, add to vocab
+		ValueJSON: "",        // no value
+		Created:   time.Now().Format(vocab.ISO8601Format),
+	}
+	srv.AddEvent(ctx, startedEvent)
 
-	cf()
 	return err
 }
 

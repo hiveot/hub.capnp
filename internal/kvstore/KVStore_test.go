@@ -144,8 +144,7 @@ func TestStartStop(t *testing.T) {
 
 func TestCreateStoreBadFolder(t *testing.T) {
 	filename := "/folder/does/not/exist/store.json"
-	_, err := kvstore.NewKVStore(filename)
-	assert.Error(t, err)
+	assert.Panics(t, func() { kvstore.NewKVStore(filename) })
 }
 
 func TestCreateStoreReadOnlyFolder(t *testing.T) {

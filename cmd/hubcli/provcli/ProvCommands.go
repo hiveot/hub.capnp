@@ -162,7 +162,7 @@ func HandleGetApprovedRequests(ctx context.Context, f svcconfig.AppFolders) erro
 	for _, provStatus := range provStatus {
 		// a certificate is assigned when generated
 		assigned := provStatus.ClientCertPEM != ""
-		fmt.Printf("%20s  %s, %s\n",
+		fmt.Printf("%20s  %s, %v\n",
 			provStatus.DeviceID, provStatus.RequestTime, assigned)
 	}
 

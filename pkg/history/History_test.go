@@ -100,7 +100,7 @@ func addHistory(store history.IHistory,
 			randomName := rand.Intn(10)
 			randomValue := rand.Float64() * 100
 			randomSeconds := time.Duration(rand.Intn(timespanSec)) * time.Second
-			randomTime := time.Now().Add(-randomSeconds).Format(time.RFC3339)
+			randomTime := time.Now().Add(-randomSeconds).Format(vocab.ISO8601Format)
 			ev := thing.ThingValue{
 				ThingID:   thingIDPrefix + strconv.Itoa(randomID),
 				Name:      names[randomName],
@@ -168,53 +168,67 @@ func TestStartNoDBServer(t *testing.T) {
 func TestAddGetEvent(t *testing.T) {
 	const id1 = "thing1"
 	const id2 = "thing2"
-	const evName1 = "temperature"
-	const evName2 = "humidity"
+	const evTemperature = "temperature"
+	const evHumidity = "humidity"
 	var timebefore = ""
 	var timeafter = ""
 
 	store := newStore(useTestCapnp)
 	ctx := context.Background()
+	fivemago := time.Now().Add(-time.Minute * 5)
+	fiftyfivemago := time.Now().Add(-time.Minute * 55)
+
 	// add events for thing 1
 	updateHistory := store.CapUpdateHistory()
-	err := updateHistory.AddEvent(ctx,
-		thing.ThingValue{ThingID: id1, Name: evName1, ValueJSON: "12.5"},
-	)
-	assert.NoError(t, err)
-	err = updateHistory.AddEvent(ctx,
-		thing.ThingValue{ThingID: id1, Name: evName2, ValueJSON: "70"},
-	)
-	assert.NoError(t, err)
-	// add events for thing 2
-	err = updateHistory.AddEvent(ctx,
-		thing.ThingValue{ThingID: id2, Name: evName2, ValueJSON: "50"},
-	)
-	assert.NoError(t, err)
-	err = updateHistory.AddEvent(ctx,
-		thing.ThingValue{ThingID: id2, Name: evName1, ValueJSON: "17.5"},
-	)
+	//
+	ev1_1 := thing.ThingValue{ThingID: id1, Name: evTemperature, ValueJSON: "12.5", Created: fivemago.Format(vocab.ISO8601Format)}
+	err := updateHistory.AddEvent(ctx, ev1_1)
 	assert.NoError(t, err)
 
-	// get all events of thing 1
-	timebefore = time.Now().Add(time.Second).Format(vocab.ISO8601Format)
-	//timeafter = time.Now().Add(-time.Hour * 24 * 50).Format(ISO8601Format)
+	ev1_2 := thing.ThingValue{ThingID: id1, Name: evHumidity, ValueJSON: "70", Created: fiftyfivemago.Format(vocab.ISO8601Format)}
+	err = updateHistory.AddEvent(ctx, ev1_2)
+	assert.NoError(t, err)
+
+	// add events for thing 2, temperature and humidity
+	ev2_1 := thing.ThingValue{ThingID: id2, Name: evHumidity, ValueJSON: "50", Created: fivemago.Format(vocab.ISO8601Format)}
+	err = updateHistory.AddEvent(ctx, ev2_1)
+	assert.NoError(t, err)
+
+	ev2_2 := thing.ThingValue{ThingID: id2, Name: evTemperature, ValueJSON: "17.5", Created: fiftyfivemago.Format(vocab.ISO8601Format)}
+	err = updateHistory.AddEvent(ctx, ev2_2)
+	assert.NoError(t, err)
+
+	// Test 1: get events of thing 1 older than 30 minutes ago - expect 1 humidity
+	timeafter = time.Now().Add(-time.Minute * 300).Format(vocab.ISO8601Format)
+	timebefore = time.Now().Add(-time.Minute * 30).Format(vocab.ISO8601Format)
 	readHistory := store.CapReadHistory()
-	res, err := readHistory.GetEventHistory(ctx, id1,
-		"", timeafter, timebefore, 100)
+	res, err := readHistory.GetEventHistory(ctx, id1, "", timeafter, timebefore, 100)
 	require.NoError(t, err)
-	// FIXME: query with timebefore and timeafter fails
-	require.Equal(t, 2, len(res))
-	assert.Equal(t, id1, res[0].ThingID)
-	assert.Equal(t, evName1, res[0].Name)
+	require.Equal(t, 1, len(res))
+	assert.Equal(t, id1, res[0].ThingID)     // must match the filtered id1
+	assert.Equal(t, evHumidity, res[0].Name) // must match evTemperature from the date range
+	assert.Equal(t, fiftyfivemago.Format(vocab.ISO8601Format), res[0].Created)
 
-	// query temperatures of thing 2
-	res, err = readHistory.GetEventHistory(ctx, id2, evName1, "", "", 100)
+	// Test 2: get events of thing 1 newer than 30 minutes ago - expect 1 temperature
+	timeafter = time.Now().Add(-time.Minute * 30).Format(vocab.ISO8601Format)
+	timebefore = time.Now().Add(-time.Minute * 1).Format(vocab.ISO8601Format)
+	readHistory = store.CapReadHistory()
+	res, err = readHistory.GetEventHistory(ctx, id1, "", timeafter, timebefore, 100)
+	require.NoError(t, err)
+	require.Equal(t, 1, len(res))
+	assert.Equal(t, id1, res[0].ThingID)        // must match the filtered id1
+	assert.Equal(t, evTemperature, res[0].Name) // must match evTemperature from 5 minutes ago
+	assert.Equal(t, fivemago.Format(vocab.ISO8601Format), res[0].Created)
+
+	// Test 3: get temperatures of thing 2 - expect 1 result
+	res, err = readHistory.GetEventHistory(ctx, id2, evTemperature, "", "", 100)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(res))
 
+	// Test 4: get all events of thing id1 - expect 2 results
 	latestEvents, err := readHistory.GetLatestEvents(ctx, id1)
 	assert.NoError(t, err)
-	assert.True(t, len(latestEvents) > 0)
+	assert.True(t, len(latestEvents) == 2)
 }
 
 func TestEventPerf(t *testing.T) {
@@ -236,7 +250,7 @@ func TestEventPerf(t *testing.T) {
 		randomName := rand.Intn(10)
 		ev := thing.ThingValue{
 			ThingID: id1,
-			Created: time.Now().Format(time.RFC3339),
+			Created: time.Now().Format(vocab.ISO8601Format),
 			//Created:   randomTime,
 			Name:      names[randomName],
 			ValueJSON: evData}
@@ -324,5 +338,5 @@ func TestGetInfo(t *testing.T) {
 
 	info, err := store.CapReadHistory().Info(ctx)
 	assert.NoError(t, err)
-	assert.Equal(t, 20, info.NrEvents)
+	assert.Greater(t, info.NrEvents, 20)
 }
