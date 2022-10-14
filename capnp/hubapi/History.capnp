@@ -5,6 +5,10 @@ using Go = import "/go.capnp";
 $Go.package("hubapi");
 $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
 
+# Date format madness at work here.
+# Event timestamps must be formatted as YYYY-MM-DDTHH:MM:SS.sss-0700 where 0700 is the timezone.
+# in golang:
+const goISO8601Format :Text = "2006-01-02T15:04:05.000-0700";
 
 struct ThingValue {
     # Data containing an event or action value of a thing
@@ -69,6 +73,7 @@ interface CapReadHistory {
   getEventHistory @1 (thingID :Text, eventName :Text, after:Text, before:Text, limit:Int32) -> (values :List(ThingValue));
   # Return the history of a Thing event
   # before and after are timestamps in iso8601 format (YYYY-MM-DDTHH:MM:SS-TZ)
+  # if before is provided, after must be provided as well
 
   getLatestEvents @2 (thingID :Text) -> (thingValueMap :ThingValueMap);
   # Return a map with the most recent event values of a Thing
