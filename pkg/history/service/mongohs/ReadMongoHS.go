@@ -27,9 +27,15 @@ func (srv *MongoHistoryServer) getHistory(ctx context.Context,
 
 	var hist = make([]thing.ThingValue, 0)
 	var timeFilter bson.D
+	if collection == nil {
+		err := fmt.Errorf("parameter error. Collection is nil")
+		logrus.Error(err)
+		return hist, err
+	}
 
-	filter := bson.M{
-		"thingID": thingID,
+	filter := bson.M{}
+	if thingID != "" {
+		filter["thingID"] = thingID
 	}
 	// filter on a time range. Require at least an 'after' time.
 	if before != "" && after == "" {

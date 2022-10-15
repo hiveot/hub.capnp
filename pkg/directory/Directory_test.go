@@ -29,10 +29,8 @@ const testUseCapnp = true
 // createNewStore returns an API to the directory store, optionally using capnp RPC
 func createNewStore(useCapnp bool) (directory.IDirectory, func(), error) {
 	ctx, cancelFunc := context.WithCancel(context.Background())
-	time.Sleep(time.Millisecond * 10)
 	logrus.Infof("createNewStore start")
 	defer logrus.Infof("createNewStore ended")
-	// Allow 1 millisecond to let any previous test context cleanup
 	_ = os.Remove(dirStoreFile)
 	store, _ := directorykvstore.NewDirectoryKVStoreServer(ctx, dirStoreFile)
 
@@ -47,10 +45,8 @@ func createNewStore(useCapnp bool) (directory.IDirectory, func(), error) {
 		// connect the client to the server above
 		clConn, _ := net.Dial("unix", testAddress)
 		capClient, err := capnpclient.NewDirectoryCapnpClient(ctx, clConn)
-		time.Sleep(time.Millisecond * 10)
 		return capClient, cancelFunc, err
 	}
-	time.Sleep(time.Millisecond * 10)
 	return store, cancelFunc, nil
 }
 

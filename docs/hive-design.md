@@ -1,6 +1,6 @@
 # Hive Of Things Design
 
-![Design Overview](./hub-overview.jpg)
+![Design Overview](./hub-overview.png)
 
 ## Overview
 

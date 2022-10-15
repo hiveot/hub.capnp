@@ -6,6 +6,7 @@ import (
 	"os"
 	"syscall"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -35,7 +36,10 @@ func createStateStore(useCapnp bool) (store state.IState, stopFn func() error, e
 
 		_ = syscall.Unlink(testAddress)
 		srvListener, _ := net.Listen("unix", testAddress)
-		go capnpserver.StartStateCapnpServer(ctx, srvListener, stateStore)
+		go func() {
+			capnpserver.StartStateCapnpServer(ctx, srvListener, stateStore)
+		}()
+		time.Sleep(time.Second)
 		// connect the client to the server above
 		clConn, _ := net.Dial("unix", testAddress)
 		capClient, err := capnpclient.NewStateCapnpClient(ctx, clConn)

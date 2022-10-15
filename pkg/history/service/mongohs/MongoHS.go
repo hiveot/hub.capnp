@@ -197,7 +197,7 @@ func (srv *MongoHistoryServer) Start() (err error) {
 	if err == nil {
 		err = srv.store.Connect(nil)
 	}
-	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*10)
+	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*100)
 	defer cancelFunc()
 	if err == nil {
 		err = srv.store.Ping(ctx, nil)
@@ -221,9 +221,9 @@ func (srv *MongoHistoryServer) Start() (err error) {
 
 	// last, add an event that this service started
 	startedEvent := thing.ThingValue{
-		ThingID:   history.ServiceName,
-		Name:      "started", // todo, add to vocab
-		ValueJSON: "",        // no value
+		ThingID:   history.ServiceName, // FIXME: a proper thing ID
+		Name:      "started",           // todo, add to vocab
+		ValueJSON: "service",           // no value
 		Created:   time.Now().Format(vocab.ISO8601Format),
 	}
 	srv.AddEvent(ctx, startedEvent)

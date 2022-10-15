@@ -35,7 +35,7 @@ func (srv *MongoHistoryServer) AddAction(ctx context.Context,
 	// required timestamp needs to be added in BSON format.
 	createdTime, err := dateparse.ParseAny(actionValue.Created)
 	if err != nil {
-		logrus.Warning("Parsing created time '%s' failed: %s", actionValue.Created, err)
+		logrus.Warningf("Parsing created time '%s' failed: %s", actionValue.Created, err)
 	}
 	timestamp := primitive.NewDateTimeFromTime(createdTime)
 	evBson := bson.M{

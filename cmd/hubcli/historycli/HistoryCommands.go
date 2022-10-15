@@ -63,8 +63,8 @@ func HandleListEvents(ctx context.Context, f svcconfig.AppFolders, limit int, of
 	after := ""
 	before := ""
 	events, _ := rd.GetEventHistory(ctx, thingID, eventName, after, before, limit)
-	fmt.Println("Thing ID                            Timestamp                      Event      ")
-	fmt.Println("--------                            -------                        ----       -----  ------  -------")
+	fmt.Println("Thing ID                            Timestamp                      Event      Value (truncated)")
+	fmt.Println("--------                            -------                        ----       ---------------- ")
 	for _, event := range events {
 		utime, err := dateparse.ParseAny(event.Created)
 
@@ -72,10 +72,11 @@ func HandleListEvents(ctx context.Context, f svcconfig.AppFolders, limit int, of
 			logrus.Infof("Parsing time failed '%s': %s", event.Created, err)
 		}
 
-		fmt.Printf("%-35s %-30s %-10s \n",
+		fmt.Printf("%-35s %-30s %-10s %-30s\n",
 			event.ThingID,
 			utime.Format("02 Jan 2006 15:04:05 -0700"),
 			event.Name,
+			event.ValueJSON,
 		)
 	}
 	return nil

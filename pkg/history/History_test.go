@@ -31,7 +31,7 @@ const thingIDPrefix = "thing-"
 
 // when testing using the capnp RPC
 const testAddress = "/tmp/histstore_test.socket"
-const useTestCapnp = false
+const useTestCapnp = true
 
 //var svcConfig = config.HistoryStoreConfig{
 //	DatabaseType:    "mongodb",

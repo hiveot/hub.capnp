@@ -4,28 +4,27 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a8355b86-cb16-4dbc-90ec-9852fdfe1e16" name="Changes" comment="Cleanup launching &amp; bug fixes">
-      <change afterPath="$PROJECT_DIR$/cmd/hubcli/historycli/HistoryCommands.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/History.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/History.capnp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/History.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/History.capnp.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../hub.go/pkg/logging/SetLogging.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.go/pkg/logging/SetLogging.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../hub.go/pkg/vocab/IoTVocabulary.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.go/pkg/vocab/IoTVocabulary.go" afterDir="false" />
+    <list default="true" id="a8355b86-cb16-4dbc-90ec-9852fdfe1e16" name="Changes" comment="Cleanup launching &amp; bug fixes&#10;Investigating a capnp rpc data race in some testcases">
+      <change afterPath="$PROJECT_DIR$/docs/.$hub-overview.drawio.bkp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/.$hub-overview.drawio.dtmp" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/hub-overview.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/hubcli/directorycli/DirectoryCommands.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/directorycli/DirectoryCommands.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/hubcli/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/hubcli/provcli/ProvCommands.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/provcli/ProvCommands.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/hubcli/historycli/HistoryCommands.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/historycli/HistoryCommands.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/hive-design.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/hive-design.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/hub-overview.drawio" beforeDir="false" afterPath="$PROJECT_DIR$/docs/hub-overview.drawio" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/hub-overview.jpg" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/kvstore/KVStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/kvstore/KVStore.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/kvstore/KVStore_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/kvstore/KVStore_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/certs/Certs_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/certs/Certs_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/directory/Directory_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/directory/Directory_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/directory/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/directory/cmd/main.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/history/History_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/History_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/history/IHistory.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/IHistory.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/history/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/cmd/main.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/history/service/mongohs/MongoHS.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/service/mongohs/MongoHS.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/history/service/mongohs/ReadMongoHS.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/service/mongohs/ReadMongoHS.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/history/service/mongohs/UpdateMongoHS.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/service/mongohs/UpdateMongoHS.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/launcher/launcher_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/launcher/launcher_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/launcher/launcher_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/launcher/Launcher_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/state/State_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/State_test.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -81,7 +80,7 @@
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "reference.settingsdialog.IDE.editor.colors.General"
+    "settings.editor.selected.configurable": "FeaturesTrainerSettingsPanel"
   },
   "keyToStringList": {
     "DatabaseDriversLRU": [
@@ -105,17 +104,17 @@
       <recent name="$PROJECT_DIR$/pkg/directory/capnpserver" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Test.TestListTDs in github.com/hiveot/hub/pkg/directory">
-    <configuration name="TestCreateStoreBadFolder in github.com/hiveot/hub/internal/kvstore" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Go Test.go test github.com/hiveot/hub/pkg/history">
+    <configuration name="TestAddGetEvent in github.com/hiveot/hub/pkg/history" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="hub" />
-      <working_directory value="$PROJECT_DIR$/internal/kvstore" />
+      <working_directory value="$PROJECT_DIR$/pkg/history" />
       <root_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <package value="github.com/hiveot/hub/internal/kvstore" />
+      <package value="github.com/hiveot/hub/pkg/history" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestCreateStoreBadFolder\E$" />
+      <pattern value="^\QTestAddGetEvent\E$" />
       <method v="2" />
     </configuration>
     <configuration name="TestListTDs in github.com/hiveot/hub/pkg/directory" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
@@ -142,12 +141,12 @@
       <pattern value="^\QTestStartStop\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="go test github.com/hiveot/hub/internal/kvstore" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="go test github.com/hiveot/hub/pkg/history" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="hub" />
-      <working_directory value="$PROJECT_DIR$/internal/kvstore" />
+      <working_directory value="$PROJECT_DIR$/pkg/history" />
       <root_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <package value="github.com/hiveot/hub/internal/kvstore" />
+      <package value="github.com/hiveot/hub/pkg/history" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
@@ -166,11 +165,11 @@
     </configuration>
     <recent_temporary>
       <list>
+        <item itemvalue="Go Test.go test github.com/hiveot/hub/pkg/history" />
+        <item itemvalue="Go Test.TestAddGetEvent in github.com/hiveot/hub/pkg/history" />
         <item itemvalue="Go Test.TestListTDs in github.com/hiveot/hub/pkg/directory" />
         <item itemvalue="Go Test.TestStartStop in github.com/hiveot/hub/pkg/directory" />
         <item itemvalue="Go Test.go test github.com/hiveot/hub/pkg/launcher" />
-        <item itemvalue="Go Test.go test github.com/hiveot/hub/internal/kvstore" />
-        <item itemvalue="Go Test.TestCreateStoreBadFolder in github.com/hiveot/hub/internal/kvstore" />
       </list>
     </recent_temporary>
   </component>
@@ -228,7 +227,8 @@
     <MESSAGE value="Launcher switch to exec.Cmd &#10;- terminate services when launcher terminates&#10;- improve reporting&#10;Update CLI for launcher, certs and provisioning&#10;Cleanup" />
     <MESSAGE value="Launcher: improve error handling and logging  &#10;Launcher: adds logging of service stderr/stdout to file&#10;Launcher: Improve code coverage in tests&#10;KVStore: fix bug in store folder mode" />
     <MESSAGE value="Cleanup launching &amp; bug fixes" />
-    <option name="LAST_COMMIT_MESSAGE" value="Cleanup launching &amp; bug fixes" />
+    <MESSAGE value="Cleanup launching &amp; bug fixes&#10;Investigating a capnp rpc data race in some testcases" />
+    <option name="LAST_COMMIT_MESSAGE" value="Cleanup launching &amp; bug fixes&#10;Investigating a capnp rpc data race in some testcases" />
   </component>
   <component name="VgoProject">
     <settings-migrated>true</settings-migrated>
@@ -277,11 +277,6 @@
           <option name="timeStamp" value="45" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/pkg/history/capnpserver/UpdateHistoryCapnpServer.go</url>
-          <line>40</line>
-          <option name="timeStamp" value="76" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/internal/kvstore/KVStore.go</url>
           <line>148</line>
           <option name="timeStamp" value="79" />
@@ -296,6 +291,11 @@
           <line>54</line>
           <option name="timeStamp" value="82" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/pkg/history/service/mongohs/MongoHS.go</url>
+          <line>228</line>
+          <option name="timeStamp" value="85" />
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
   </component>
@@ -308,7 +308,7 @@
     <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_historystore.out" NAME="go test github.com/hiveot/hub/pkg/historystore Coverage Results" MODIFIED="1663989968436" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$TestCreateDelete_in_github_com_hiveot_hub_pkg_history.out" NAME="TestCreateDelete in github.com/hiveot/hub/pkg/history Coverage Results" MODIFIED="1665545158437" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_directory.out" NAME="go test github.com/hiveot/hub/pkg/directory Coverage Results" MODIFIED="1665629782436" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
-    <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_history.out" NAME="go test github.com/hiveot/hub/pkg/history Coverage Results" MODIFIED="1665546871680" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_history.out" NAME="go test github.com/hiveot/hub/pkg/history Coverage Results" MODIFIED="1665792334561" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$TestAutomaticProvisioningBadParameters_in_github_com_hiveot_hub_pkg_provisioning.out" NAME="TestAutomaticProvisioningBadParameters in github.com/hiveot/hub/pkg/provisioning Coverage Results" MODIFIED="1664736166374" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$gobench_github_com_hiveot_hub_pkg_launcher.out" NAME="gobench github.com/hiveot/hub/pkg/launcher Coverage Results" MODIFIED="1665027775771" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$TestAddGetEvent_in_github_com_hiveot_hub_pkg_history.out" NAME="TestAddGetEvent in github.com/hiveot/hub/pkg/history Coverage Results" MODIFIED="1665547199033" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />

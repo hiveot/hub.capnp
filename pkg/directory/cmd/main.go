@@ -32,6 +32,9 @@ func main() {
 	ctx := context.Background()
 
 	svc, err := directorykvstore.NewDirectoryKVStoreServer(ctx, storePath)
+	svc.Start(ctx)
+	defer svc.Stop()
+
 	if err == nil {
 		logrus.Infof("DirectoryCapnpServer starting on: %s", srvListener.Addr())
 		err = capnpserver.StartDirectoryCapnpServer(ctx, srvListener, svc)

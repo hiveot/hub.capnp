@@ -4,6 +4,7 @@ package main
 import (
 	"context"
 
+	"github.com/hiveot/hub.go/pkg/logging"
 	"github.com/hiveot/hub/internal/listener"
 	"github.com/hiveot/hub/internal/svcconfig"
 	"github.com/hiveot/hub/pkg/history"
@@ -15,6 +16,7 @@ import (
 
 // Start the history store service
 func main() {
+	logging.SetLogging("info", "")
 	cfg := config.NewHistoryConfig()
 	f := svcconfig.LoadServiceConfig(launcher.ServiceName, false, &cfg)
 
@@ -22,6 +24,9 @@ func main() {
 
 	// For now only mongodb is supported
 	svc := mongohs.NewMongoHistoryServer(cfg)
+	svc.Start()
+	defer svc.Stop()
 
 	_ = capnpserver.StartHistoryCapnpServer(context.Background(), srvListener, svc)
+
 }
