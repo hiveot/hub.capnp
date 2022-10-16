@@ -25,56 +25,102 @@ Even though a distributed architecture might seem overkill for a simple solution
 
 The Hub infrastructure is build on [Cap'n Proto](https://capnproto.org/) and leverages [capabily based security](https://en.wikipedia.org/wiki/Capability-based_security). Cap'n proto can use various types of transport, like a simple pipe, Unix domain sockets, and TCP sockets. Communication is encrypted using TLS.
 
-### Hive Gateway
+Internally, Hub services communicate using capnp over Unix Domain sockets. Externally, the Hub Gateways provide capnp APIs using TCP sockets.  
 
-The Hive Gateway is the entry point to the capabilities of services in the Hive. Each Hive computing device runs a gateway that acts as a proxy to its services. Direct access to services and IoT devices is blocked. Only gateway access is possible.
-
-Hive gateways communicate using the capnp protocol as their purpose is to provide capabilities, which is unique to capnp.
-
-Hive gateways can discover each other through DNS-SD and offer capabilities from these discovered gateways. 
-
-While the extra hop to a different gateway might add extra latency, the (planned) use of [level 3 protocol](https://capnproto.org/rpc.html) will allow the capability to be transferred using a direct connect to the offering service. Level 3 is in development for the go-capnp implementation as of mid 2022. 
+A gateway services provides capabilities to the services that are available on the Hub itself or via the gateway of a participating device. While the extra hop to a different gateway might add extra latency, the (planned) use of [level 3 protocol](https://capnproto.org/rpc.html) will allow the capability to be transferred using a direct connect to the offering service. Level 3 is in development for the go-capnp implementation in 2022.
 
 If identical capabilities are available from multiple gateways then the connected gateway automatically selects the most efficient option. This allows for automatic failover in case a gateway is no longer available.
 
-Access to capabilities via non-capability protocols, such as HTTP, MQTT, gRPC, is provided through so-called protocol bindings, which are services running on a Hive device. These service provide a bridge between the external facing protocol and the internal capnp protocol. In order to access these services a authorization token is required, which is provided by an (planned) authorization protocol binding using BASIC, DIGIST, or OAUTH2.
+Access to capabilities via non-capability protocols, such as HTTP, MQTT, gRPC, is provided through so-called protocol gateway services. These services provide a bridge between the external facing protocol and the internal capnp protocol. In order to access these services authorization is required, based on the gateway protocol. For example BASIC, DIGEST, or OAUTH2 authentication.
 
-While the Gateway provides the ability to obtain capabilities, the available capabilities are constrained by authorization of the client. Client authorization can be obtained by using a client certificate or login credentials for authentication. 
+While a Gateway provides the ability to access capabilities, the available capabilities are constrained by authorization of the client. Client authorization can be obtained by using a client certificate or login credentials for authentication.
 
-To determine which capability an authorized user has access to, the gateway uses the authorization service. The rules are based on the type of client, eg IoT device, service, consumer, and its role, viewer, operator or administrator. Not all capabilities are immediately available, as some can require additional end-user input.
-
-Some examples of capability constraints:
-1. IoT devices can only use the publish/subscribe capability for Things of which they are the publisher.  
-2. Consumers can only use the subscribe/read/query capabilities for Things that are in the same group as they are.
-3. Consumers can only use the publish/write capability for Things that are in the group they have the 'operator' or 'admin' role.   
-
-These constraints are embedded in the capability that is provided by the service. The gateway is unaware of these constraints and simply passes the capability on to the client.
+To determine which capability an authenticated client has access to, the gateway uses the authorization service. The rules are based on the type of client, eg IoT device, service, or user, and the role in groups the client shares with Things.
 
 
-### IoT Protocol Binding Communication
 
-Communication with IoT devices or services take place through IoT protocol binding services. PB services connect using the 3rd party IoT device protocol and converts this to Hub messages with WoT prescribed documents. This enables the Hub to communicate with any IoT device or service for which a protocol is available.
 
-Protocol bindings are responsible for:
-* Create a 'TD' Thing Description document for available Things
-* Send events when Thing properties or outputs change value.
-* Pass on actions requested via the Hub to the Thing's IoT device
+## IoT Gateway
 
-### IoT Device Communication
+The HiveOT includes various gateways to facilitate communication between the Hub and the world around it. The IoT Gateway is intended for interaction with IoT devices and protocol adapters.
 
-IoT devices or services that are HiveOT compatible can directly communicate with the Hub gateway without the need of for a protocol binding. The gateway provides a set of services to work with these devices/services.
+The IoT Gateway service is a capnp based service that provides capabilities for IoT devices to:
+1. Discover the IoT Gateway endpoint(s) to use.
+2. Provision an IoT device with a valid certificate.
+3. Publish the TD documents of Things it is responsible for.
+4. Publish Thing events.
+5. Subscribe to Thing action requests.
 
-1. Provisioning process
-    1. The administrator provides a list of pre-approved devices and their secrets
-    2. An IoT device can submit a provisioning request with or without an OOB (out of band) secret
-    3. The administrator can view a list of provisioning requests for approval
-    4. The administrator can approve a request
-    5. An IoT device receives provisioning approval along with a signed certificate used for secure machine-to-machine communication.
-2. IoT device publishes one or more TDs of Things available through the device
-3. IoT device publishes an event when Thing properties or output values change
-4. IoT device receives a request for action
+IoT devices that support this API can use it directly. The capabilities API provide inherit security through built-in constraints. Only capabilities that the client is allowed to use are provided from the IoT Gateway. 
 
-There is little difference between IoT device communication and protocol binding communication to the Hub. They both perform the actions described above. 
+See the IoT gateway service README for more details on using its API.
+
+### IoT Gateway Protocol Bindings
+
+IoT Protocol bindings are services that translate between a 3rd party IoT protocol and the IoT Gateway API. The following bindings are on the short to intermediate roadmap:
+
+1. HTTPS 'idprov' binding that implements the idprov discovery and provisioning protocol.
+2. HTTPS binding for publishing TD documents and events.
+3. HTTPS Websocket binding for subscribing to thing actions.
+4. ZWave binding that connects to a zwave USB controller and is a publisher for its ZWave devices.
+5. OwServer one-wire binding that connects to a OWServer gateway is a publisher for its 1-wire devices.
+6. Openweathermap binding that connects to the OWM server and is a publisher for weather information.
+7. IPCam binding that is a publisher for IP Cameras snapshots.
+8. ISY99x binding that is a publisher for ISY99x connected Insteon devices.
+9. SNMP binding that is a publisher for SNMP discovered network devices.
+10. Location tracking bindings:
+    a. Bluetooth location binding that discovers nearby bluetooth devices.
+    b. Wifi location binding that discovers nearby wifi mobile devices.
+    c. Android location tracking service that tracks Android user location.
+    d. iPhone location tracking service that tracks iPhone user location.
+    e. Bindings for integration with location tracking services.
+    f. Image recognition to identify people and animals.
+11. ZigBee binding that is a publisher for ZigBee network devices.
+12. Hue binding that connects to Philips Hue lights.
+13. LoRa binding connects to a LoRa gateway and is a publisher for LoRa devices.
+14. CoAP binding that connects to a CoAP gateway is a publisher for CoAP devices.
+15. Health and Activity tracking bindings that determine what is going on:
+    a. Fitbit integration binding.
+    b. Emergency button binding for detecting an alarm. - senior living safety, lone worker safety, ...
+
+There are hundreds more potential bindings to develop. In order to simplify development a library supporting the WoT scripting API is (will be) available in golang, javascript, python and other programming languages.
+
+## User Gateway
+
+The user gateway is intended for interacting with end-users of information collected by the HiveOT Hub.
+
+The user gateway service is a capnp based service that provides capabilities for end users to:
+1. Discover the User Gateway endpoint(s) to use.
+2. Authenticate a user.
+3. Retrieve available Things from the directory. 
+4. Read historical Thing values from the history store.
+5. Subscribe to Thing value updates.
+6. Publish Thing actions.
+
+See the User gateway service README for more details on using its API.
+
+### User Gateway Protocol Bindings
+
+User gateway protocol bindings are services that translate between the Hub's capnp protocol and end-user protocols. The following bindings are on the short to intermediate roadmap:
+
+1. DNS-SD to discover gateway addresses
+2. HTTPS Authentication using BASIC, DIGEST, OAUTH2
+3. HTTPS REST API to query Thing directory and values
+4. MQTT binding to pub/sub over MQTT
+
+
+### Admin Gateway
+
+The admin gateway is intended for allowing administrators to manage the HiveOT Hub.
+
+The admin gateway is a capnp based service that provides capabilities to:
+1. List provisioning requests.
+2. Approve or revoke a provisioning request.
+3. Manage users (CRUD)
+4. Manage groups of Things and Users
+5. Manage certificates
+
+See the Admin gateway service README for more details on using its API.
 
 ### Pub/Sub Communication
 
@@ -103,13 +149,13 @@ IoT devices that support the [idprov protocol](https://github.com/hiveot/idprov-
 
 The device certificate supports machine to machine authentication between IoT device and Hub. See [idprov service](https://github.com/hiveot/hub/tree/main/idprov) for more information.
 
-### Authentication
+### Authentication (authn)
 
 The authentication service manages users and issues access and refresh tokens.
 It provides a CLI to add/remove users and a service to handle authentication request and issue tokens. See [authn service](https://github.com/hiveot/hub/tree/main/authn) for more information.
 
 
-### Authorization
+### Authorization (authz)
 
 The authorization service manages groups that contain consumers and Things.
 Consumers that are in the same group as a Thing are authorized to access the Thing based on their role as viewer, operator, manager, administrator or thing. See the [authorization service](https://github.com/hiveot/hub/tree/main/authz) for more information.
@@ -124,7 +170,7 @@ The Mosquitto manager configures the Mosquitto MQTT broker (server) including au
 
 IoT devices must be able to connect to the message bus through TLS and use client certificate authentication. The Hub library provides protocol bindings to accomplish this.
 
-### thingdir: Directory Service
+### directory: Directory Service
 
 The directory service captures TD document publications and lets consumer list and query for known Things. It uses the Authorization service to filter the TD's that a consumer is allowed to see. See the [directory service](https://github.com/hiveot/hub/tree/main/thingdir) for more information.
 

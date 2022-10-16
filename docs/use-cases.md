@@ -21,7 +21,7 @@ If the certificate is no longer valid then the request will be stored and await 
 
 An IoT gateway service can also be a bridge to another Hub that shares select 'Things'. The bridge is the publisher for Things from the other Hub. This follows the same process as IoT devices and IoT services.
 
-## IoT Devices Provide 'Thing Description' (TD) Documents 
+## IoT Devices Publish 'Thing Description' (TD) Documents 
 
 The Hub keeps a directory of 'Things' that have been published by IoT devices and services. A 'Thing' is described using the [W3C WoT Thing Description](https://www.w3.org/TR/wot-thing-description11/) standard.
 
