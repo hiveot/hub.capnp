@@ -6,6 +6,8 @@ CAPNP_GO=capnp compile "-I$(GOPATH)/src/capnproto.org/go/capnp/std" -ogo:./go/ -
 
 # Capnproto RPC. This needs go-capnproto2 installed
 go: .FORCE ## Compile cap'n proto to go (testing capnp)
+	$(CAPNP_GO)  ./capnp/hubapi/Authn.capnp
+	$(CAPNP_GO)  ./capnp/hubapi/Authz.capnp
 	$(CAPNP_GO)  ./capnp/hubapi/Certs.capnp
 	$(CAPNP_GO)  ./capnp/hubapi/Directory.capnp
 	$(CAPNP_GO)  ./capnp/hubapi/Gateway.capnp
