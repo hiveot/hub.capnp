@@ -10,7 +10,7 @@ import (
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/internal/caphelp"
 	"github.com/hiveot/hub/pkg/launcher"
-	"github.com/hiveot/hub/pkg/launcher/capnp4POGS"
+	"github.com/hiveot/hub/pkg/launcher/capserializer"
 )
 
 // LauncherCapnpServer provides the capnproto RPC server for the service launcher
@@ -27,7 +27,7 @@ func (capsrv *LauncherCapnpServer) List(ctx context.Context, call hubapi.CapLaun
 	infoList, err := capsrv.pogo.List(ctx, onlyRunning)
 	if err == nil {
 		res, _ := call.AllocResults()
-		svcInfoListCapnp := capnp4POGS.InfoListPOGS2Capnp(infoList)
+		svcInfoListCapnp := capserializer.MarshalServiceInfoList(infoList)
 		_ = res.SetInfoList(svcInfoListCapnp)
 	}
 	return err
@@ -37,7 +37,7 @@ func (capsrv *LauncherCapnpServer) Start(ctx context.Context, call hubapi.CapLau
 	serviceName, _ := args.Name()
 	serviceInfo, err := capsrv.pogo.Start(ctx, serviceName)
 	res, _ := call.AllocResults()
-	svcInfoCapnp := capnp4POGS.ServiceInfoPOGS2Capnp(serviceInfo)
+	svcInfoCapnp := capserializer.MarshalServiceInfo(serviceInfo)
 	_ = res.SetInfo(svcInfoCapnp)
 	return err
 }
@@ -46,7 +46,7 @@ func (capsrv *LauncherCapnpServer) Stop(ctx context.Context, call hubapi.CapLaun
 	serviceName, _ := args.Name()
 	serviceInfo, err := capsrv.pogo.Stop(ctx, serviceName)
 	res, _ := call.AllocResults()
-	svcInfoCapnp := capnp4POGS.ServiceInfoPOGS2Capnp(serviceInfo)
+	svcInfoCapnp := capserializer.MarshalServiceInfo(serviceInfo)
 	_ = res.SetInfo(svcInfoCapnp)
 	return err
 }

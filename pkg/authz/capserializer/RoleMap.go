@@ -1,4 +1,4 @@
-package capnp4POGS
+package capserializer
 
 import (
 	"capnproto.org/go/capnp/v3"
@@ -8,8 +8,8 @@ import (
 	"github.com/hiveot/hub/pkg/authz"
 )
 
-// RoleMapPOGS2Capnp convert role map from POGS to capnp format
-func RoleMapPOGS2Capnp(roles authz.RoleMap) hubapi.RoleMap {
+// MarshalRoleMap convert role map from POGS to capnp format
+func MarshalRoleMap(roles authz.RoleMap) hubapi.RoleMap {
 	// rolemap is a list of K:V entries
 	_, seg, _ := capnp.NewMessage(capnp.SingleSegment(nil))
 	roleMapCapnp, _ := hubapi.NewRoleMap(seg) //, int32(len(roles)))
@@ -33,7 +33,7 @@ func RoleMapPOGS2Capnp(roles authz.RoleMap) hubapi.RoleMap {
 	return roleMapCapnp
 }
 
-func RoleMapCapnp2POGS(roleMapCapnp hubapi.RoleMap) authz.RoleMap {
+func UnmarshalRoleMap(roleMapCapnp hubapi.RoleMap) authz.RoleMap {
 	var roleKey string
 	var roleID string
 	var err error
@@ -54,25 +54,3 @@ func RoleMapCapnp2POGS(roleMapCapnp hubapi.RoleMap) authz.RoleMap {
 	}
 	return roleMapPOGS
 }
-
-// func ClientRoleCapnp2POGS(clientRoleCapnp hubapi.ClientRole) authz.ClientRole {
-// 	clientID, _ := clientRoleCapnp.ClientID()
-// 	groupID, _ := clientRoleCapnp.GroupID()
-// 	role, _ := clientRoleCapnp.Role()
-
-// 	clientRole := authz.ClientRole{
-// 		ClientID: clientID,
-// 		GroupID:  groupID,
-// 		Role:     role,
-// 	}
-// 	return clientRole
-// }
-
-// func ClientRolePOGS2Capnp(clientRole authz.ClientRole) hubapi.ClientRole {
-// 	_, seg, _ := capnp.NewMessage(capnp.SingleSegment(nil))
-// 	clientRoleCapnp, _ := hubapi.NewClientRole(seg)
-// 	clientRoleCapnp.SetClientID(clientRole.ClientID)
-// 	clientRoleCapnp.SetGroupID(clientRole.GroupID)
-// 	clientRoleCapnp.SetRole(clientRole.Role)
-// 	return clientRoleCapnp
-// }

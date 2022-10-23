@@ -5,7 +5,7 @@ import (
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/pkg/provisioning"
-	"github.com/hiveot/hub/pkg/provisioning/capnp4POGS"
+	"github.com/hiveot/hub/pkg/provisioning/capserializer"
 )
 
 // RefreshProvisioningCapnpClient provides the POGS interface with the capability to send provisioning requests
@@ -30,7 +30,7 @@ func (cl *RefreshProvisioningCapnpClient) RefreshDeviceCert(
 	if err == nil {
 		statusCapnp, err2 := method.Status()
 		err = err2
-		provStatus = capnp4POGS.ProvStatusCapnp2POGS(statusCapnp)
+		provStatus = capserializer.UnmarshalProvStatus(statusCapnp)
 	}
 	return provStatus, err
 }

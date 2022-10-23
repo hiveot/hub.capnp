@@ -22,7 +22,7 @@ func (cl *UpdateHistoryCapnpClient) AddAction(ctx context.Context, actionValue t
 	// next add the action
 	method, release := cl.capability.AddAction(ctx,
 		func(params hubapi.CapUpdateHistory_addAction_Params) error {
-			capValue := caphelp.ThingValuePOGS2Capnp(actionValue)
+			capValue := caphelp.MarshalThingValue(actionValue)
 			err2 := params.SetActionValue(capValue)
 			return err2
 		})
@@ -37,7 +37,7 @@ func (cl *UpdateHistoryCapnpClient) AddEvent(
 
 	method, release := cl.capability.AddEvent(ctx,
 		func(params hubapi.CapUpdateHistory_addEvent_Params) error {
-			capValue := caphelp.ThingValuePOGS2Capnp(eventValue)
+			capValue := caphelp.MarshalThingValue(eventValue)
 			err2 := params.SetEventValue(capValue)
 			return err2
 		})
@@ -52,7 +52,7 @@ func (cl *UpdateHistoryCapnpClient) AddEvents(
 	method, release := cl.capability.AddEvents(ctx,
 		func(params hubapi.CapUpdateHistory_addEvents_Params) error {
 			// suspect that this conversion is slow
-			capValues := caphelp.ThingValueListPOGS2Capnp(events)
+			capValues := caphelp.MarshalThingValueList(events)
 			err2 := params.SetEventValues(capValues)
 			return err2
 		})

@@ -46,7 +46,7 @@ func (authz *VerifyAuthzCapnpClient) GetPermissions(
 	resp, err := method.Struct()
 	if err == nil {
 		permsCapnp, _ := resp.Permissions()
-		permissions = caphelp.CapnpToStrings(permsCapnp)
+		permissions = caphelp.UnmarshalStringList(permsCapnp)
 	}
 	return permissions, err
 }

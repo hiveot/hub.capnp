@@ -24,7 +24,7 @@ func (capsrv *ReadHistoryCapnpServer) GetActionHistory(
 	hist, err := capsrv.srv.GetActionHistory(ctx, thingID, name, after, before, int(limit))
 	if err == nil {
 		res, _ := call.AllocResults()
-		valList := caphelp.ThingValueListPOGS2Capnp(hist)
+		valList := caphelp.MarshalThingValueList(hist)
 		res.SetValues(valList)
 	}
 	return err
@@ -42,7 +42,7 @@ func (capsrv *ReadHistoryCapnpServer) GetEventHistory(
 	hist, err := capsrv.srv.GetEventHistory(ctx, thingID, name, after, before, int(limit))
 	if err == nil {
 		res, _ := call.AllocResults()
-		valList := caphelp.ThingValueListPOGS2Capnp(hist)
+		valList := caphelp.MarshalThingValueList(hist)
 		res.SetValues(valList)
 	}
 	return err
@@ -57,7 +57,7 @@ func (capsrv *ReadHistoryCapnpServer) GetLatestEvents(
 	hist, err := capsrv.srv.GetLatestEvents(ctx, thingID)
 	if err == nil {
 		res, _ := call.AllocResults()
-		capMap := caphelp.ThingValueMapPOGS2ToCapnp(hist)
+		capMap := caphelp.MarshalThingValueMap(hist)
 		res.SetThingValueMap(capMap)
 	}
 	return err

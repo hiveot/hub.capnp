@@ -5,8 +5,8 @@ import (
 	"capnproto.org/go/capnp/v3"
 )
 
-// StringsToCapnp convert a string array to a capnp TextList
-func StringsToCapnp(arr []string) capnp.TextList {
+// MarshalStringList convert a string array to a capnp TextList
+func MarshalStringList(arr []string) capnp.TextList {
 
 	_, seg, _ := capnp.NewMessage(capnp.SingleSegment(nil))
 	tlist, _ := capnp.NewTextList(seg, int32(len(arr)))
@@ -18,9 +18,9 @@ func StringsToCapnp(arr []string) capnp.TextList {
 	return tlist
 }
 
-// CapnpToStrings convert a capnp TextList to a string array
+// UnmarshalStringList convert a capnp TextList to a string array
 // errors are ignored
-func CapnpToStrings(tlist capnp.TextList) []string {
+func UnmarshalStringList(tlist capnp.TextList) []string {
 	arr := make([]string, tlist.Len())
 	for i := 0; i < tlist.Len(); i++ {
 		text, _ := tlist.At(i)

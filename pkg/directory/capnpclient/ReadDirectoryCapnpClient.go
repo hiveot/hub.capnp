@@ -46,7 +46,7 @@ func (cl *ReadDirectoryCapnpClient) ListTDs(ctx context.Context, limit int, offs
 	resp, err := method.Struct()
 	if err == nil {
 		capnpTDs, _ := resp.Tds()
-		tds = caphelp.CapnpToStrings(capnpTDs)
+		tds = caphelp.UnmarshalStringList(capnpTDs)
 	}
 	return tds, err
 }
@@ -65,7 +65,7 @@ func (cl *ReadDirectoryCapnpClient) QueryTDs(ctx context.Context, jsonPath strin
 	resp, err := method.Struct()
 	if err == nil {
 		capnpTDs, _ := resp.Tds()
-		tds = caphelp.CapnpToStrings(capnpTDs)
+		tds = caphelp.UnmarshalStringList(capnpTDs)
 	}
 	return tds, err
 }

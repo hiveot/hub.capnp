@@ -5,7 +5,7 @@ import (
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/pkg/provisioning"
-	"github.com/hiveot/hub/pkg/provisioning/capnp4POGS"
+	"github.com/hiveot/hub/pkg/provisioning/capserializer"
 )
 
 // ManageProvisioningCapnpServer provides the capnproto RPC server for IOT device provisioning.
@@ -19,7 +19,7 @@ func (capsrv *ManageProvisioningCapnpServer) AddOOBSecrets(
 
 	args := call.Args()
 	secretsCapnp, _ := args.OobSecrets()
-	secretsPOGS := capnp4POGS.OobSecretsCapnp2POGS(secretsCapnp)
+	secretsPOGS := capserializer.UnmarshalOobSecrets(secretsCapnp)
 	err := capsrv.pogosrv.AddOOBSecrets(ctx, secretsPOGS)
 	return err
 }
@@ -41,7 +41,7 @@ func (capsrv *ManageProvisioningCapnpServer) GetApprovedRequests(
 		res, err2 := call.AllocResults()
 		err = err2
 		if err2 == nil {
-			statusListCapnp := capnp4POGS.ProvStatusListPOGS2Capnp(statusList)
+			statusListCapnp := capserializer.MarshalProvStatusList(statusList)
 			res.SetRequests(statusListCapnp)
 		}
 	}
@@ -56,7 +56,7 @@ func (capsrv *ManageProvisioningCapnpServer) GetPendingRequests(
 		res, err2 := call.AllocResults()
 		err = err2
 		if err2 == nil {
-			statusListCapnp := capnp4POGS.ProvStatusListPOGS2Capnp(statusList)
+			statusListCapnp := capserializer.MarshalProvStatusList(statusList)
 			res.SetRequests(statusListCapnp)
 		}
 	}

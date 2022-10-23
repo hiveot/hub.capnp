@@ -35,7 +35,7 @@ func (cl *ReadHistoryCapnpClient) GetActionHistory(ctx context.Context,
 	resp, err := method.Struct()
 	if err == nil {
 		capValues, _ := resp.Values()
-		values = caphelp.ThingValueListCapnp2POGS(capValues)
+		values = caphelp.UnmarshalThingValueList(capValues)
 	}
 	return values, err
 }
@@ -59,7 +59,7 @@ func (cl *ReadHistoryCapnpClient) GetEventHistory(ctx context.Context,
 	resp, err := method.Struct()
 	if err == nil {
 		capValues, _ := resp.Values()
-		values = caphelp.ThingValueListCapnp2POGS(capValues)
+		values = caphelp.UnmarshalThingValueList(capValues)
 	}
 	return values, err
 }
@@ -78,7 +78,7 @@ func (cl *ReadHistoryCapnpClient) GetLatestEvents(
 	resp, err := method.Struct()
 	if err == nil {
 		capValueMap, _ := resp.ThingValueMap()
-		latest = caphelp.ThingValueMapCapnp2POGS(capValueMap)
+		latest = caphelp.UnmarshalThingValueMap(capValueMap)
 	}
 	return latest, err
 }

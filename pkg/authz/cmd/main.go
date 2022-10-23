@@ -12,9 +12,8 @@ import (
 	"github.com/hiveot/hub/internal/listener"
 	"github.com/hiveot/hub/internal/svcconfig"
 	"github.com/hiveot/hub/pkg/authz"
+	"github.com/hiveot/hub/pkg/authz/capnpserver"
 	"github.com/hiveot/hub/pkg/authz/service"
-	"github.com/hiveot/hub/pkg/directory"
-	"github.com/hiveot/hub/pkg/directory/capnpserver"
 )
 
 const aclStoreFile = "authz.acl"
@@ -23,7 +22,7 @@ func main() {
 	logging.SetLogging("info", "")
 
 	f := svcconfig.LoadServiceConfig(authz.ServiceName, false, nil)
-	aclStorePath := filepath.Join(f.Stores, directory.ServiceName, aclStoreFile)
+	aclStorePath := filepath.Join(f.Stores, authz.ServiceName, aclStoreFile)
 
 	// parse commandline and create server listening socket
 	srvListener := listener.CreateServiceListener(f.Run, authz.ServiceName)

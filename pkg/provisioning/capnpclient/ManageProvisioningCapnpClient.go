@@ -5,7 +5,7 @@ import (
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/pkg/provisioning"
-	"github.com/hiveot/hub/pkg/provisioning/capnp4POGS"
+	"github.com/hiveot/hub/pkg/provisioning/capserializer"
 )
 
 // ManageProvisioningCapnpClient provides the POGS interface with the capability to manage provisioning requests
@@ -20,7 +20,7 @@ func (cl *ManageProvisioningCapnpClient) AddOOBSecrets(
 
 	method, release := cl.capability.AddOOBSecrets(ctx,
 		func(params hubapi.CapManageProvisioning_addOOBSecrets_Params) error {
-			secretsListCapnp := capnp4POGS.OobSecretsPOGS2Capnp(oobSecrets)
+			secretsListCapnp := capserializer.MarshalOobSecrets(oobSecrets)
 			err2 := params.SetOobSecrets(secretsListCapnp)
 			return err2
 		})
@@ -53,7 +53,7 @@ func (cl *ManageProvisioningCapnpClient) GetApprovedRequests(
 	resp, err := method.Struct()
 	if err == nil {
 		provStatusListCapnp, _ := resp.Requests()
-		statusList = capnp4POGS.ProvStatusListCapnp2POGS(provStatusListCapnp)
+		statusList = capserializer.UnmarshalProvStatusList(provStatusListCapnp)
 	}
 	return statusList, err
 }
@@ -68,7 +68,7 @@ func (cl *ManageProvisioningCapnpClient) GetPendingRequests(
 	resp, err := method.Struct()
 	if err == nil {
 		provStatusListCapnp, _ := resp.Requests()
-		statusList = capnp4POGS.ProvStatusListCapnp2POGS(provStatusListCapnp)
+		statusList = capserializer.UnmarshalProvStatusList(provStatusListCapnp)
 	}
 	return statusList, err
 }

@@ -5,7 +5,7 @@ import (
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/pkg/authz"
-	"github.com/hiveot/hub/pkg/authz/capnp4POGS"
+	"github.com/hiveot/hub/pkg/authz/capserializer"
 )
 
 // ManageAuthzCapnpClient implements the IManageAuthorization interface client side
@@ -47,7 +47,7 @@ func (authz *ManageAuthzCapnpClient) GetGroup(
 
 		group.Name, _ = capGroup.Name()
 		rolesCapnp, _ := capGroup.MemberRoles()
-		group.MemberRoles = capnp4POGS.RoleMapCapnp2POGS(rolesCapnp)
+		group.MemberRoles = capserializer.UnmarshalRoleMap(rolesCapnp)
 	}
 	return group, err
 }
@@ -66,7 +66,7 @@ func (authz *ManageAuthzCapnpClient) GetGroupRoles(
 	resp, err := method.Struct()
 	if err == nil {
 		rolesCapnp, _ := resp.Roles()
-		roles = capnp4POGS.RoleMapCapnp2POGS(rolesCapnp)
+		roles = capserializer.UnmarshalRoleMap(rolesCapnp)
 	}
 	return roles, err
 }
@@ -86,7 +86,7 @@ func (authz *ManageAuthzCapnpClient) ListGroups(
 	resp, err := method.Struct()
 	if err == nil {
 		groupsCapnp, _ := resp.Groups()
-		groups = capnp4POGS.GroupListCapnp2POGS(groupsCapnp)
+		groups = capserializer.UnmarshalGroupList(groupsCapnp)
 	}
 	return groups, err
 }

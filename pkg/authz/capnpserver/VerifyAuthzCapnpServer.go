@@ -23,7 +23,7 @@ func (capsrv *VerifyAuthzCapnpServer) GetPermissions(
 	if err == nil {
 		res, err2 := call.AllocResults()
 		err = err2
-		_ = res.SetPermissions(caphelp.StringsToCapnp(permissions))
+		_ = res.SetPermissions(caphelp.MarshalStringList(permissions))
 	}
 	return err
 }

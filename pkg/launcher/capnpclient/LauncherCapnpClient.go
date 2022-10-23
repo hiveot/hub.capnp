@@ -8,7 +8,7 @@ import (
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/pkg/launcher"
-	"github.com/hiveot/hub/pkg/launcher/capnp4POGS"
+	"github.com/hiveot/hub/pkg/launcher/capserializer"
 )
 
 // LauncherCapnpClient provides a POGS wrapper around the launcher capnp client
@@ -32,7 +32,7 @@ func (cl *LauncherCapnpClient) List(ctx context.Context, onlyRunning bool) (info
 	resp, err := method.Struct()
 	if err == nil {
 		infoListCapnp, _ := resp.InfoList()
-		infoList = capnp4POGS.InfoListCapnp2POGS(infoListCapnp)
+		infoList = capserializer.UnmarshalServiceInfoList(infoListCapnp)
 	}
 	return infoList, err
 }
@@ -49,7 +49,7 @@ func (cl *LauncherCapnpClient) Start(
 	defer release()
 	resp, err := method.Struct()
 	serviceInfoCapnp, _ := resp.Info()
-	serviceInfo = capnp4POGS.ServiceInfoCapnp2POGS(serviceInfoCapnp)
+	serviceInfo = capserializer.UnmarshalServiceInfo(serviceInfoCapnp)
 	return serviceInfo, err
 }
 
@@ -65,7 +65,7 @@ func (cl *LauncherCapnpClient) Stop(
 	defer release()
 	resp, err := method.Struct()
 	serviceInfoCapnp, _ := resp.Info()
-	serviceInfo = capnp4POGS.ServiceInfoCapnp2POGS(serviceInfoCapnp)
+	serviceInfo = capserializer.UnmarshalServiceInfo(serviceInfoCapnp)
 	return serviceInfo, err
 }
 

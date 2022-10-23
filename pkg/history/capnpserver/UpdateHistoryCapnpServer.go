@@ -59,7 +59,7 @@ func (capsrv *UpdateHistoryCapnpServer) AddEvents(
 
 	args := call.Args()
 	capValues, _ := args.EventValues()
-	eventValues := caphelp.ThingValueListCapnp2POGS(capValues)
+	eventValues := caphelp.UnmarshalThingValueList(capValues)
 	err := capsrv.srv.AddEvents(ctx, eventValues)
 	return err
 }

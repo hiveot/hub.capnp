@@ -8,8 +8,8 @@ import (
 	"github.com/hiveot/hub.go/pkg/thing"
 )
 
-// ThingValueCapnp2POGS converts a capnp thing value to a POGO thing.ThingValue
-func ThingValueCapnp2POGS(capValue hubapi.ThingValue) (thingValue thing.ThingValue) {
+// UnmarshalThingValue deserializes a ThingValue object from capnp
+func UnmarshalThingValue(capValue hubapi.ThingValue) (thingValue thing.ThingValue) {
 
 	// errors are ignored. If these fails then there are bigger problems
 	thingValue.ThingID, _ = capValue.ThingID()
@@ -19,20 +19,20 @@ func ThingValueCapnp2POGS(capValue hubapi.ThingValue) (thingValue thing.ThingVal
 	return thingValue
 }
 
-// ThingValueListCapnp2POGS convert a capnp ValueList to a POGO value array
+// UnmarshalThingValueList deserializes a ThingValue array from capnp
 // errors are ignored
-func ThingValueListCapnp2POGS(tlist hubapi.ThingValue_List) []thing.ThingValue {
+func UnmarshalThingValueList(tlist hubapi.ThingValue_List) []thing.ThingValue {
 	arr := make([]thing.ThingValue, tlist.Len())
 	for i := 0; i < tlist.Len(); i++ {
 		capValue := tlist.At(i)
-		arr[i] = ThingValueCapnp2POGS(capValue)
+		arr[i] = UnmarshalThingValue(capValue)
 	}
 	return arr
 }
 
-// ThingValueMapCapnp2POGS convert a capnp map to a POGO map with ThingValue objects
+// UnmarshalThingValueMap deserializes a map of [key]ThingValue from a capnp message
 // errors are ignored
-func ThingValueMapCapnp2POGS(capMap hubapi.ThingValueMap) (valueMap map[string]thing.ThingValue) {
+func UnmarshalThingValueMap(capMap hubapi.ThingValueMap) (valueMap map[string]thing.ThingValue) {
 	entries, _ := capMap.Entries()
 	valueMap = make(map[string]thing.ThingValue)
 
@@ -40,29 +40,29 @@ func ThingValueMapCapnp2POGS(capMap hubapi.ThingValueMap) (valueMap map[string]t
 		capEntry := entries.At(i)
 		capKey, _ := capEntry.Key()
 		capValue, _ := capEntry.Value()
-		thingValue := ThingValueCapnp2POGS(capValue)
+		thingValue := UnmarshalThingValue(capValue)
 		valueMap[capKey] = thingValue
 	}
 	return valueMap
 }
 
-// ThingValueListPOGS2Capnp convert an array from pog type to a capnp value type list
-func ThingValueListPOGS2Capnp(arr []thing.ThingValue) hubapi.ThingValue_List {
+// MarshalThingValueList serializes a ThingValue array to a capnp list
+func MarshalThingValueList(arr []thing.ThingValue) hubapi.ThingValue_List {
 
 	_, seg, _ := capnp.NewMessage(capnp.SingleSegment(nil))
 	capList, _ := hubapi.NewThingValue_List(seg, int32(len(arr)))
 
 	for i := 0; i < len(arr); i++ {
 		thingValue := arr[i]
-		capValue := ThingValuePOGS2Capnp(thingValue)
+		capValue := MarshalThingValue(thingValue)
 		capList.Set(i, capValue)
 	}
 
 	return capList
 }
 
-// ThingValueMapPOGS2ToCapnp converts a map of thing.ThingValue to capnp equivalent
-func ThingValueMapPOGS2ToCapnp(valueMap map[string]thing.ThingValue) hubapi.ThingValueMap {
+// MarshalThingValueMap serializes a map of thing.ThingValue to a capnp message
+func MarshalThingValueMap(valueMap map[string]thing.ThingValue) hubapi.ThingValueMap {
 
 	// errors are ignored. If these fails then there are bigger problems
 	_, seg, _ := capnp.NewMessage(capnp.SingleSegment(nil))
@@ -72,7 +72,7 @@ func ThingValueMapPOGS2ToCapnp(valueMap map[string]thing.ThingValue) hubapi.Thin
 	capEntries, _ := hubapi.NewThingValueMap_Entry_List(seg2, int32(len(valueMap)))
 	i := 0
 	for name, thingValue := range valueMap {
-		capValue := ThingValuePOGS2Capnp(thingValue)
+		capValue := MarshalThingValue(thingValue)
 
 		_, seg3, _ := capnp.NewMessage(capnp.SingleSegment(nil))
 		capEntry, _ := hubapi.NewThingValueMap_Entry(seg3)
@@ -86,9 +86,9 @@ func ThingValueMapPOGS2ToCapnp(valueMap map[string]thing.ThingValue) hubapi.Thin
 	return capMap
 }
 
-// ThingValuePOGS2Capnp convert a POGO thing.ThingValue type to capnp defined thing value
+// MarshalThingValue serializes a thing.ThingValue object to a capnp message
 // errors are ignored
-func ThingValuePOGS2Capnp(thingValue thing.ThingValue) hubapi.ThingValue {
+func MarshalThingValue(thingValue thing.ThingValue) hubapi.ThingValue {
 
 	// errors are ignored. If these fails then there are bigger problems
 	_, seg, _ := capnp.NewMessage(capnp.SingleSegment(nil))

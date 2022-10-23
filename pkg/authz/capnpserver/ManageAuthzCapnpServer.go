@@ -7,7 +7,7 @@ import (
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/pkg/authz"
-	"github.com/hiveot/hub/pkg/authz/capnp4POGS"
+	"github.com/hiveot/hub/pkg/authz/capserializer"
 )
 
 // ManageAuthzCapnpServer provides the capnp RPC server for Client authorization
@@ -32,7 +32,7 @@ func (capsrv *ManageAuthzCapnpServer) GetGroup(
 	groupName, _ := args.GroupName()
 	grp, err := capsrv.srv.GetGroup(ctx, groupName)
 	if err == nil {
-		grpCap := capnp4POGS.GroupPOGS2Capnp(grp)
+		grpCap := capserializer.MarshalGroup(grp)
 		res, _ := call.AllocResults()
 		err = res.SetGroup(grpCap)
 	} else {
@@ -48,7 +48,7 @@ func (capsrv *ManageAuthzCapnpServer) GetGroupRoles(
 	clientID, _ := args.ClientID()
 	roleMap, err := capsrv.srv.GetGroupRoles(ctx, clientID)
 	if err == nil {
-		roleMapCap := capnp4POGS.RoleMapPOGS2Capnp(roleMap)
+		roleMapCap := capserializer.MarshalRoleMap(roleMap)
 		res, _ := call.AllocResults()
 		err = res.SetRoles(roleMapCap)
 	}
@@ -63,7 +63,7 @@ func (capsrv *ManageAuthzCapnpServer) ListGroups(
 	offset := args.Offset()
 	grpList, err := capsrv.srv.ListGroups(ctx, int(limit), int(offset))
 	if err == nil {
-		grpListCap := capnp4POGS.GroupListPOGS2Capnp(grpList)
+		grpListCap := capserializer.MarshalGroupList(grpList)
 		res, _ := call.AllocResults()
 		err = res.SetGroups(grpListCap)
 	}

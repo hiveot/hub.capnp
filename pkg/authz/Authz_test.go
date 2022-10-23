@@ -14,9 +14,9 @@ import (
 
 	"github.com/hiveot/hub.go/pkg/logging"
 	"github.com/hiveot/hub/pkg/authz"
-	"github.com/hiveot/hub/pkg/authz/capnp4POGS"
 	"github.com/hiveot/hub/pkg/authz/capnpclient"
 	"github.com/hiveot/hub/pkg/authz/capnpserver"
+	"github.com/hiveot/hub/pkg/authz/capserializer"
 	"github.com/hiveot/hub/pkg/authz/service"
 )
 
@@ -332,9 +332,9 @@ func TestRoleMap4Capnp(t *testing.T) {
 	roles := make(authz.RoleMap)
 	roles[user1ID] = role1
 	roles[user2ID] = role2
-	roleMapCapnp := capnp4POGS.RoleMapPOGS2Capnp(roles)
+	roleMapCapnp := capserializer.MarshalRoleMap(roles)
 	// and back
-	roles2 := capnp4POGS.RoleMapCapnp2POGS(roleMapCapnp)
+	roles2 := capserializer.UnmarshalRoleMap(roleMapCapnp)
 	assert.Len(t, roles2, len(roles))
 	assert.Equal(t, role1, roles[user1ID])
 	assert.Equal(t, role2, roles[user2ID])

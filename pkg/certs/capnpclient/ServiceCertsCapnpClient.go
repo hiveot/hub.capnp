@@ -23,7 +23,7 @@ func (cl *ServiceCertsCapnpClient) CreateServiceCert(
 			err2 := params.SetServiceID(serviceID)
 			_ = params.SetPubKeyPEM(pubKeyPEM)
 			if names != nil {
-				_ = params.SetNames(caphelp.StringsToCapnp(names))
+				_ = params.SetNames(caphelp.MarshalStringList(names))
 			}
 			params.SetValidityDays(int32(validityDays))
 			return err2

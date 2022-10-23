@@ -1,5 +1,4 @@
-// Package capnp4POGS with conversion of ProvisionStatus between canpnp and POGS
-package capnp4POGS
+package capserializer
 
 import (
 	"capnproto.org/go/capnp/v3"
@@ -8,8 +7,8 @@ import (
 	"github.com/hiveot/hub/pkg/provisioning"
 )
 
-// ProvStatusCapnp2POGS converts provisioning status from capnp struct to POGS
-func ProvStatusCapnp2POGS(statusCapnp hubapi.ProvisionStatus) provisioning.ProvisionStatus {
+// UnmarshalProvStatus deserializes ProvisionStatus object from a capnp message
+func UnmarshalProvStatus(statusCapnp hubapi.ProvisionStatus) provisioning.ProvisionStatus {
 	// errors are ignored. If these fails then there are bigger problems
 	statusPOGS := provisioning.ProvisionStatus{}
 	statusPOGS.DeviceID, _ = statusCapnp.DeviceID()
@@ -21,8 +20,8 @@ func ProvStatusCapnp2POGS(statusCapnp hubapi.ProvisionStatus) provisioning.Provi
 	return statusPOGS
 }
 
-// ProvStatusPOGS2Capnp converts provisioning status from POGS to capnp struct
-func ProvStatusPOGS2Capnp(statusPOGS provisioning.ProvisionStatus) hubapi.ProvisionStatus {
+// MarshalProvStatus serializes ProvisionStatus object to a capnp message
+func MarshalProvStatus(statusPOGS provisioning.ProvisionStatus) hubapi.ProvisionStatus {
 	// errors are ignored. If these fail then there are bigger problems
 	_, seg, _ := capnp.NewMessage(capnp.SingleSegment(nil))
 	statusCapnp, _ := hubapi.NewProvisionStatus(seg)
@@ -36,25 +35,25 @@ func ProvStatusPOGS2Capnp(statusPOGS provisioning.ProvisionStatus) hubapi.Provis
 	return statusCapnp
 }
 
-// ProvStatusListCapnp2POGS converts provisioning status list from capnp struct to POGS
-func ProvStatusListCapnp2POGS(statusListCapnp hubapi.ProvisionStatus_List) []provisioning.ProvisionStatus {
+// UnmarshalProvStatusList deserializes ProvisionStatus list from a capnp message
+func UnmarshalProvStatusList(statusListCapnp hubapi.ProvisionStatus_List) []provisioning.ProvisionStatus {
 	// errors are ignored. If these fails then there are bigger problems
 	statusListPOGS := make([]provisioning.ProvisionStatus, statusListCapnp.Len())
 	for i := 0; i < statusListCapnp.Len(); i++ {
 		statusCapnp := statusListCapnp.At(i)
-		statusPOGS := ProvStatusCapnp2POGS(statusCapnp)
+		statusPOGS := UnmarshalProvStatus(statusCapnp)
 		statusListPOGS[i] = statusPOGS
 	}
 	return statusListPOGS
 }
 
-// ProvStatusListPOGS2Capnp converts a list of provisioning statuses from POGS to capnp struct
-func ProvStatusListPOGS2Capnp(statusListPOGS []provisioning.ProvisionStatus) hubapi.ProvisionStatus_List {
+// MarshalProvStatusList serializes a ProvisionStatus list to a capnp message
+func MarshalProvStatusList(statusListPOGS []provisioning.ProvisionStatus) hubapi.ProvisionStatus_List {
 	// errors are ignored. If these fail then there are bigger problems
 	_, seg, _ := capnp.NewMessage(capnp.SingleSegment(nil))
 	statusListCapnp, _ := hubapi.NewProvisionStatus_List(seg, int32(len(statusListPOGS)))
 	for i, statusPOGS := range statusListPOGS {
-		statusCapnp := ProvStatusPOGS2Capnp(statusPOGS)
+		statusCapnp := MarshalProvStatus(statusPOGS)
 		statusListCapnp.Set(i, statusCapnp)
 	}
 	return statusListCapnp

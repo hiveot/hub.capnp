@@ -1,4 +1,4 @@
-package capnp4POGS
+package capserializer
 
 import (
 	"capnproto.org/go/capnp/v3"
@@ -7,43 +7,43 @@ import (
 	"github.com/hiveot/hub/pkg/authz"
 )
 
-// GroupListPOGS2Capnp convert from POGS to capnp format
-func GroupListPOGS2Capnp(groups []authz.Group) (groupListCapnp hubapi.Group_List) {
+// MarshalGroupList serializes a group list to a capnp message
+func MarshalGroupList(groups []authz.Group) (groupListCapnp hubapi.Group_List) {
 
 	_, seg, _ := capnp.NewMessage(capnp.SingleSegment(nil))
 	groupListCapnp, _ = hubapi.NewGroup_List(seg, int32(len(groups)))
 	for i, group := range groups {
-		groupCapnp := GroupPOGS2Capnp(group)
+		groupCapnp := MarshalGroup(group)
 		_ = groupListCapnp.Set(i, groupCapnp)
 	}
 	return groupListCapnp
 }
 
-// GroupListCapnp2POGS convert from capnp 2 POGS format
-func GroupListCapnp2POGS(groupListCapnp hubapi.Group_List) (groups []authz.Group) {
+// UnmarshalGroupList deserializes a group list from a capnp message
+func UnmarshalGroupList(groupListCapnp hubapi.Group_List) (groups []authz.Group) {
 	groups = make([]authz.Group, groupListCapnp.Len())
 	for i := 0; i < groupListCapnp.Len(); i++ {
 		groupCapnp := groupListCapnp.At(i)
-		group := GroupCapnp2POGS(groupCapnp)
+		group := UnmarshalGroup(groupCapnp)
 		groups[i] = group
 	}
 	return groups
 }
 
-func GroupPOGS2Capnp(group authz.Group) (groupCapnp hubapi.Group) {
+func MarshalGroup(group authz.Group) (groupCapnp hubapi.Group) {
 
 	_, seg, _ := capnp.NewMessage(capnp.SingleSegment(nil))
 	groupCapnp, _ = hubapi.NewGroup(seg)
-	rolesCapnp := RoleMapPOGS2Capnp(group.MemberRoles)
+	rolesCapnp := MarshalRoleMap(group.MemberRoles)
 	_ = groupCapnp.SetName(group.Name)
 	_ = groupCapnp.SetMemberRoles(rolesCapnp)
 	return groupCapnp
 }
 
-func GroupCapnp2POGS(groupCapnp hubapi.Group) (group authz.Group) {
+func UnmarshalGroup(groupCapnp hubapi.Group) (group authz.Group) {
 	rolesCapnp, _ := groupCapnp.MemberRoles()
 	name, _ := groupCapnp.Name()
-	group.MemberRoles = RoleMapCapnp2POGS(rolesCapnp)
+	group.MemberRoles = UnmarshalRoleMap(rolesCapnp)
 	group.Name = name
 	return group
 }

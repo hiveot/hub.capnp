@@ -5,7 +5,7 @@ import (
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/pkg/provisioning"
-	"github.com/hiveot/hub/pkg/provisioning/capnp4POGS"
+	"github.com/hiveot/hub/pkg/provisioning/capserializer"
 )
 
 // RequestProvisioningCapnpServer provides the capnproto RPC server to request device provisioning
@@ -22,7 +22,7 @@ func (capsrv *RequestProvisioningCapnpServer) SubmitProvisioningRequest(
 	status, err := capsrv.pogosrv.SubmitProvisioningRequest(ctx, deviceID, secretMd5, pubKeyPEM)
 	if err == nil {
 		res, _ := call.AllocResults()
-		provStatusCapnp := capnp4POGS.ProvStatusPOGS2Capnp(status)
+		provStatusCapnp := capserializer.MarshalProvStatus(status)
 		_ = res.SetStatus(provStatusCapnp)
 	}
 	return err
