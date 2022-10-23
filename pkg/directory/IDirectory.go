@@ -10,10 +10,10 @@ const ServiceName = "directory"
 // IDirectory defines a POGS based capability API of the thing directory
 type IDirectory interface {
 	// CapReadDirectory provides the capability to read and query the thing directory
-	CapReadDirectory() IReadDirectory
+	CapReadDirectory(ctx context.Context) IReadDirectory
 
 	// CapUpdateDirectory provides the capability to update the thing directory
-	CapUpdateDirectory() IUpdateDirectory
+	CapUpdateDirectory(ctx context.Context) IUpdateDirectory
 }
 
 // IReadDirectory defines a POGS based capability of reading the Thing directory

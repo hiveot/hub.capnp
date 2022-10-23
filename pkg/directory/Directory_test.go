@@ -28,6 +28,7 @@ const testUseCapnp = true
 
 // createNewStore returns an API to the directory store, optionally using capnp RPC
 func createNewStore(useCapnp bool) (directory.IDirectory, func(), error) {
+
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	logrus.Infof("createNewStore start")
 	defer logrus.Infof("createNewStore ended")
@@ -36,12 +37,14 @@ func createNewStore(useCapnp bool) (directory.IDirectory, func(), error) {
 
 	// optionally test with capnp RPC
 	if useCapnp {
+		// start the server
 		_ = syscall.Unlink(testAddress)
 		srvListener, err := net.Listen("unix", testAddress)
 		if err != nil {
 			logrus.Panic("Unable to create a listener, can't run test")
 		}
 		go capnpserver.StartDirectoryCapnpServer(ctx, srvListener, store)
+
 		// connect the client to the server above
 		clConn, _ := net.Dial("unix", testAddress)
 		capClient, err := capnpclient.NewDirectoryCapnpClient(ctx, clConn)
@@ -81,13 +84,13 @@ func TestAddRemoveTD(t *testing.T) {
 	_ = os.Remove(dirStoreFile)
 	const thing1ID = "thing1"
 	const title1 = "title1"
+	ctx := context.Background()
 	store, cancelFunc, err := createNewStore(testUseCapnp)
 	defer cancelFunc()
 	require.NoError(t, err)
-	readCap := store.CapReadDirectory()
-	updateCap := store.CapUpdateDirectory()
+	readCap := store.CapReadDirectory(ctx)
+	updateCap := store.CapUpdateDirectory(ctx)
 
-	ctx := context.Background()
 	tdDoc1 := createTDDoc(thing1ID, title1)
 	err = updateCap.UpdateTD(ctx, thing1ID, string(tdDoc1))
 	require.NoError(t, err)
@@ -111,14 +114,16 @@ func TestListTDs(t *testing.T) {
 	_ = os.Remove(dirStoreFile)
 	const thing1ID = "thing1"
 	const title1 = "title1"
+
+	ctx := context.Background()
 	store, cancelFunc, err := createNewStore(testUseCapnp)
 	defer cancelFunc()
 	require.NoError(t, err)
-	readCap := store.CapReadDirectory()
-	updateCap := store.CapUpdateDirectory()
+
+	readCap := store.CapReadDirectory(ctx)
+	updateCap := store.CapUpdateDirectory(ctx)
 	tdDoc1 := createTDDoc(thing1ID, title1)
 
-	ctx := context.Background()
 	err = updateCap.UpdateTD(ctx, thing1ID, tdDoc1)
 	require.NoError(t, err)
 
@@ -134,14 +139,15 @@ func TestQueryTDs(t *testing.T) {
 	_ = os.Remove(dirStoreFile)
 	const thing1ID = "thing1"
 	const title1 = "title1"
+
+	ctx := context.Background()
 	store, cancelFunc, err := createNewStore(testUseCapnp)
 	defer cancelFunc()
 	require.NoError(t, err)
-	readCap := store.CapReadDirectory()
-	updateCap := store.CapUpdateDirectory()
+	readCap := store.CapReadDirectory(ctx)
+	updateCap := store.CapUpdateDirectory(ctx)
 
 	tdDoc1 := createTDDoc(thing1ID, title1)
-	ctx := context.Background()
 	err = updateCap.UpdateTD(ctx, thing1ID, tdDoc1)
 	require.NoError(t, err)
 
@@ -165,12 +171,13 @@ func TestPerf(t *testing.T) {
 	const title1 = "title1"
 	const count = 1000
 
+	ctx := context.Background()
 	store, cancelFunc, err := createNewStore(true)
 	defer cancelFunc()
 	require.NoError(t, err)
-	readCap := store.CapReadDirectory()
-	updateCap := store.CapUpdateDirectory()
-	ctx := context.Background()
+	readCap := store.CapReadDirectory(ctx)
+	updateCap := store.CapUpdateDirectory(ctx)
+
 	// test update
 	t1 := time.Now()
 	for i := 0; i < count; i++ {

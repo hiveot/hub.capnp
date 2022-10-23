@@ -9,7 +9,13 @@ INSTALL_HOME=~/bin/hiveot
 
 all: hubcli launcher services   ## Build all
 
-services: certs directory history provisioning state ## Build all services
+services: authn authz certs directory history provisioning state ## Build all services
+
+authz: .FORCE ## Build the authorization service
+	go build -o $(SERVICE_FOLDER)/$@ ./pkg/$@/cmd/main.go
+
+authn: .FORCE ## Build the authentication service
+	go build -o $(SERVICE_FOLDER)/$@ ./pkg/$@/cmd/main.go
 
 certs: .FORCE ## Build the certificate management service
 	go build -o $(SERVICE_FOLDER)/$@ ./pkg/$@/cmd/main.go

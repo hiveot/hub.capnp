@@ -27,12 +27,12 @@ func (srv *DirectoryKVStoreServer) createServiceTD() *thing.ThingDescription {
 }
 
 // CapReadDirectory provides the service to read the directory
-func (srv *DirectoryKVStoreServer) CapReadDirectory() directory.IReadDirectory {
+func (srv *DirectoryKVStoreServer) CapReadDirectory(ctx context.Context) directory.IReadDirectory {
 	return srv
 }
 
 // CapUpdateDirectory provides the service to update the directory
-func (srv *DirectoryKVStoreServer) CapUpdateDirectory() directory.IUpdateDirectory {
+func (srv *DirectoryKVStoreServer) CapUpdateDirectory(ctx context.Context) directory.IUpdateDirectory {
 	return srv
 }
 

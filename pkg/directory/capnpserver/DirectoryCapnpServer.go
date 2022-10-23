@@ -23,7 +23,7 @@ func (capsrv *DirectoryCapnpServer) CapReadDirectory(
 	ctx context.Context, call hubapi.CapDirectory_capReadDirectory) error {
 
 	readCapSrv := &ReadDirectoryCapnpServer{
-		srv: capsrv.srv.CapReadDirectory(),
+		srv: capsrv.srv.CapReadDirectory(ctx),
 	}
 
 	capability := hubapi.CapReadDirectory_ServerToClient(readCapSrv)
@@ -38,7 +38,7 @@ func (capsrv *DirectoryCapnpServer) CapUpdateDirectory(
 	ctx context.Context, call hubapi.CapDirectory_capUpdateDirectory) error {
 
 	updateCapSrv := &UpdateDirectoryCapnpServer{
-		srv: capsrv.srv.CapUpdateDirectory(),
+		srv: capsrv.srv.CapUpdateDirectory(ctx),
 	}
 
 	capability := hubapi.CapUpdateDirectory_ServerToClient(updateCapSrv)

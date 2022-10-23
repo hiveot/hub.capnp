@@ -74,8 +74,8 @@ func ThingValueMapPOGS2ToCapnp(valueMap map[string]thing.ThingValue) hubapi.Thin
 	for name, thingValue := range valueMap {
 		capValue := ThingValuePOGS2Capnp(thingValue)
 
-		_, seg, _ := capnp.NewMessage(capnp.SingleSegment(nil))
-		capEntry, _ := hubapi.NewThingValueMap_Entry(seg)
+		_, seg3, _ := capnp.NewMessage(capnp.SingleSegment(nil))
+		capEntry, _ := hubapi.NewThingValueMap_Entry(seg3)
 		_ = capEntry.SetKey(name)
 		_ = capEntry.SetValue(capValue)
 		_ = capEntries.Set(i, capEntry)

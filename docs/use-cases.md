@@ -1,4 +1,54 @@
-# Hub Use-cases And Services
+# Hub Usage 
+
+Short description of usage and bindings where HiveOT can be useful.
+
+## IoT Data Collection
+1. ZWave binding
+2. OWServer binding
+3. ISY99x Insteon binding
+4. IPCam binding. Snapshots from IP cameras.
+5. SNMP network binding. Identify network devices and status.
+7. Philips HUE binding
+8. Zigbee binding
+
+## External services integration
+1. Weathernet binding. Forecast and warnings.
+2. Canada weather integration. Forecast and warnings.
+2. pihole integration. Identify destinations using DNS outgoing connections by whom. Identify block, privacy concerns. Alerts.
+3. Android GPS location service.
+4. Email integration for notifications
+5. SMS integration for notifications
+6. Sharing data with other Hubs
+7. Twitter integration, listen for keywords on specific channels, eg HWY 1 closed.
+8. Denon AVR control: ON,OFF,Channel,Volume
+9. Roku integration, watch channel and select show. 
+
+## Analysis & Aggregation
+
+1. Wallpaper combines multiple IPCam snapshots into a screen background.
+2. Security camera motion detection
+3. Image identification using ML
+4. Voice command recognition using ML
+5. Security analysis using motion detection and IP cameras
+
+## Notifications
+
+1. Security alert
+2. Weather alert
+3. Freezing alert
+
+## Automation
+
+1. ITTT type automation, If 'event' and 'condition' then 'action'
+2. Auto shutoff water after X minutes
+3. Auto on/off front door lights based on time of day and sunset time 
+4. If motion detected, trigger PTZ camera to preset location and record for X minutes 
+
+
+
+# OLD
+
+
 
 Short description of generalized use-cases the Hub aims to serve along with the use of capabilities.
 

@@ -1,0 +1,265 @@
+package jwtissuer
+
+import (
+	"crypto/ecdsa"
+	"encoding/json"
+	"fmt"
+	"github.com/wostzone/wost-go/pkg/tlsclient"
+	"github.com/wostzone/wost-go/pkg/tlsserver"
+	"net/http"
+	"time"
+
+	"github.com/golang-jwt/jwt"
+	"github.com/sirupsen/logrus"
+	"github.com/wostzone/wost-go/pkg/hubnet"
+)
+
+const JwtRefreshCookieName = "refreshtoken"
+
+// JWTIssuer creates JWT access and refresh tokens when a valid login/pw is provided.
+// The access token is intended to verify the user identity with a resource server while the refresh token is
+// intended to refresh the access and refresh token pair.
+//
+// The login step verifies the given credentials using an external credentials handler and issues the token pair.
+// The refresh token is also stored in a secure cookie in the client web browser to avoid the need to store it
+// elsewhere on the client. Secure cookies are not accessible by javascript which avoids exposure in cross
+// scripting attacks.
+//
+// Token signing and verification use an asymmetric private/public key pair. The Hub uses the service
+// private key for certificate generation and public key from the certificate for verification.
+//
+// In order to use JWT authentication, the client must do the following:
+// 1. On first use, login through the login endpoint of the authentication service. This returns the
+//    access and refresh tokens.
+// 2. Place 'bearer {access token}' in the authorization header of the service request. The service
+//    will use the token to verify the user identity using the shared public key of the server.
+// 3. Before the access token expires the client must invoke the refresh endpoint and receive a new set of tokens.
+// 4. Replace the access token in the authorization header again. Same as pt 2.
+// 5. If access or refresh fails, prompt the user to log in again with credentials
+// 6. If the user logs out, invoke the logout endpoint to remove/invalidate the refresh token.
+//
+// The API endpoints to login, refresh and logout are established by the auth service.
+type JWTIssuer struct {
+	issuerName string
+
+	// the credentials verification handler
+	verifyUsernamePassword func(username, password string) bool
+
+	signingKey      *ecdsa.PrivateKey
+	verificationKey *ecdsa.PublicKey
+
+	// These can be modified at will
+	AccessTokenValidity  time.Duration
+	RefreshTokenValidity time.Duration
+
+	// optional callback when an expired token is used
+	// expiredTokenAlert func(claims *JwtClaims)
+}
+
+// CreateJWTTokens creates a new access and refresh token pair containing the userID.
+// The result is written to the response and a refresh token is set securely in a client cookie.
+//  userID is the login ID of the user to whom the token is assigned and will be included in the claims
+func (issuer *JWTIssuer) CreateJWTTokens(userID string) (accessToken string, refreshToken string, err error) {
+	logrus.Infof("CreateJWTTokens for user '%s'. Access token valid for %d seconds, refresh for %d seconds",
+		userID, issuer.AccessTokenValidity/time.Second, issuer.RefreshTokenValidity/time.Second)
+	accessExpTime := time.Now().Add(issuer.AccessTokenValidity)
+	refreshExpTime := time.Now().Add(issuer.RefreshTokenValidity)
+	if userID == "" {
+		err = fmt.Errorf("CreateJWTTokens: Missing userID")
+		return
+	}
+
+	// Create the JWT claims, which includes the username and expiry time
+	accessClaims := &tlsserver.JwtClaims{
+		Username: userID,
+		StandardClaims: jwt.StandardClaims{
+			Id:     userID,
+			Issuer: issuer.issuerName,
+			//Audience: "Hub services",
+			Subject: "accessToken",
+			// In JWT, the expiry time is expressed as unix milliseconds
+			ExpiresAt: accessExpTime.Unix(),
+			IssuedAt:  time.Now().Unix(),
+		},
+	}
+	// Declare the token with the algorithm used for signing, and the claims
+	jwtAccessToken := jwt.NewWithClaims(jwt.SigningMethodES256, accessClaims)
+	accessToken, err = jwtAccessToken.SignedString(issuer.signingKey)
+	if err != nil {
+		return
+	}
+
+	// same for refresh token
+	refreshClaims := &tlsserver.JwtClaims{
+		Username: userID,
+		StandardClaims: jwt.StandardClaims{
+			Id:      userID,
+			Issuer:  issuer.issuerName,
+			Subject: "refreshToken",
+			// In JWT, the expiry time is expressed as unix milliseconds
+			ExpiresAt: refreshExpTime.Unix(),
+			IssuedAt:  time.Now().Unix(),
+		},
+	}
+	// Create the JWT string
+	jwtRefreshToken := jwt.NewWithClaims(jwt.SigningMethodES256, refreshClaims)
+	refreshToken, err = jwtRefreshToken.SignedString(issuer.signingKey)
+	return accessToken, refreshToken, err
+}
+
+// HandleJWTLogin handles a JWT login POST request.
+// Attach this method to the router with the login route. For example:
+//  > router.HandleFunc("/login", HandleJWTLogin)
+//
+// The body contains a tlsclient.JwtAuthLogin message providing the userID and password
+// This:
+//  1. returns a JWT access and refresh token pair
+//  2. sets a secure, httpOnly, sameSite refresh cookie with the name 'JwtRefreshCookieName'
+func (issuer *JWTIssuer) HandleJWTLogin(resp http.ResponseWriter, req *http.Request) {
+	logrus.Infof("HttpAuthenticator.HandleJWTLogin. Method=%s", req.Method)
+	loginCred := tlsclient.JwtAuthLogin{}
+	err := json.NewDecoder(req.Body).Decode(&loginCred)
+	if err != nil {
+		resp.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	// this is not an authentication provider. Use a callback for actual authentication
+	match := issuer.verifyUsernamePassword(loginCred.LoginID, loginCred.Password)
+	if !match {
+		resp.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	refreshExpTime := time.Now().Add(issuer.RefreshTokenValidity)
+	accessToken, refreshToken, err := issuer.CreateJWTTokens(loginCred.LoginID)
+	// this can't really go wrong
+	if err != nil {
+		// If there is an error in creating the JWT return an internal server error
+		logrus.Errorf("HttpAuthenticator.HandleJWTLogin: error %s", err)
+		resp.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// Store the tokens in a cookie if rememberMe is set
+	if loginCred.RememberMe {
+		issuer.StoreJWTTokens(refreshToken, refreshExpTime, resp)
+	}
+	_ = issuer.WriteJWTTokens(accessToken, refreshToken, resp)
+}
+
+// HandleJWTRefresh refreshes the access/refresh token pair
+// Attach this method to the router with the refresh route. For example:
+//  > router.HandleFunc("/refresh", HandleJWTRefresh)
+//
+// A valid refresh token must be provided in the client cookie or set in the authorization header
+//
+// This:
+//  1. Return unauthorized if no valid refresh token was found
+//  2. returns a JWT access and refresh token pair if the refresh token was valid
+//  3. sets a secure, httpOnly, sameSite refresh cookie with the name 'JwtRefreshCookieName'
+func (issuer *JWTIssuer) HandleJWTRefresh(resp http.ResponseWriter, req *http.Request) {
+	var useCookie bool = false
+
+	// validate the provided refresh token.
+	// If no bearer token is provided then fall back to cookie.
+	refreshTokenString, err := hubnet.GetBearerToken(req)
+	if err != nil {
+		cookie, err := req.Cookie(JwtRefreshCookieName)
+		if err == nil && (cookie.Value != "") {
+			logrus.Infof("JWTIssuer.HandleJWTRefresh using cookie token")
+			refreshTokenString = cookie.Value
+			useCookie = true
+		} else {
+			logrus.Infof("JWTIssuer.HandleJWTRefresh Unauthorized. Missing cookie/refresh token. Err: '%s'", err)
+			resp.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+	} else {
+		logrus.Infof("JWTIssuer.HandleJWTRefresh bearer token provided")
+	}
+
+	// is the token valid?
+	authenticator := tlsserver.NewJWTAuthenticator(issuer.verificationKey)
+	_, claims, err := authenticator.DecodeToken(refreshTokenString)
+	if err != nil || claims.Id == "" {
+		// refresh token is invalid. Authorization refused
+		logrus.Warningf("JWTIssuer.HandleJWTRefresh DecodeToken failed with: %s. Claims=%v", err, claims)
+		resp.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	refreshExpTime := time.Now().Add(issuer.RefreshTokenValidity)
+	accessToken, refreshToken, err := issuer.CreateJWTTokens(claims.Id)
+	if err != nil {
+		// If there is an error in creating the JWT return an internal server error
+		logrus.Errorf("JWTIssuer.HandleJWTRefresh: error %s", err)
+		resp.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if useCookie {
+		issuer.StoreJWTTokens(refreshToken, refreshExpTime, resp)
+	}
+	_ = issuer.WriteJWTTokens(accessToken, refreshToken, resp)
+
+}
+
+// StoreJWTTokens stores the refresh token in a secure client cookie. The cookieExpTime should
+// be set to the refresh token expiration time.
+// This must be called before WriteJWTTokens which completes the response.
+func (issuer *JWTIssuer) StoreJWTTokens(
+	refreshToken string, cookieExpTime time.Time, resp http.ResponseWriter) {
+	logrus.Infof("JWTIssuer.StoreJWTTokens in cookie %s", JwtRefreshCookieName)
+	// Set a client cookie for refresh "token" as the JWT we just generated
+	// we also set an expiry time which is the same as the token itself
+	http.SetCookie(resp, &http.Cookie{
+		Name:     JwtRefreshCookieName,
+		Value:    refreshToken,
+		Expires:  cookieExpTime,
+		HttpOnly: true, // prevent XSS attack (javascript cant read value)
+		Secure:   true, // only transmit cookie over https
+		// Use SameSiteLaxMode to allow refresh token to be stored in secure cookie when authservice listens on a
+		// different port.
+		//SameSite: http.SameSiteStrictMode,
+		//SameSite: http.SameSiteLaxMode,
+		SameSite: http.SameSiteNoneMode,
+	})
+}
+
+// WriteJWTTokens writes the access and refresh tokens as response message and store them in a
+// secure client cookie. The cookieExpTime should be set to the refresh token expiration time.
+func (issuer *JWTIssuer) WriteJWTTokens(
+	accessToken string, refreshToken string, resp http.ResponseWriter) error {
+
+	resp.Header().Set("Content-Type", "application/json")
+	response := tlsclient.JwtAuthResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		RefreshURL:   ""} // todo
+	responseMsg, _ := json.Marshal(response)
+	_, err := resp.Write(responseMsg)
+	return err
+}
+
+// NewJWTIssuer create a new issuer of JWT authentication tokens using asymmetric keys.
+//  issuerName of the service issuing the token
+//  signingKey for generating tokens, or nil to generate a random 64 byte secret
+//  verifyUsernamePassword is the handler that validates the login credentials
+func NewJWTIssuer(
+	issuerName string,
+	signingKey *ecdsa.PrivateKey,
+	accessTokenValiditySec int,
+	refreshTokenValiditySec int,
+	verifyUsernamePassword func(loginID, secret string) bool,
+) *JWTIssuer {
+	if signingKey == nil {
+		logrus.Panic("Missing signing key")
+	}
+	issuer := &JWTIssuer{
+		verifyUsernamePassword: verifyUsernamePassword,
+		signingKey:             signingKey,
+		verificationKey:        &signingKey.PublicKey,
+		issuerName:             issuerName,
+		AccessTokenValidity:    time.Duration(accessTokenValiditySec) * time.Second,
+		RefreshTokenValidity:   time.Duration(refreshTokenValiditySec) * time.Second,
+	}
+	return issuer
+}

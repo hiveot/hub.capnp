@@ -56,7 +56,7 @@ func HandleListDirectory(ctx context.Context, f svcconfig.AppFolders, limit int,
 		dir, err = capnpclient.NewDirectoryCapnpClient(ctx, conn)
 	}
 	if err == nil {
-		rd = dir.CapReadDirectory()
+		rd = dir.CapReadDirectory(ctx)
 	}
 	if err != nil {
 		return err

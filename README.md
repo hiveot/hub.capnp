@@ -90,13 +90,17 @@ Prerequisites:
 1. A Linux based system (sorry, Windows is currently not supported)
 2. Golang 1.18 or newer
 3. GCC Make
+4. Cap'n proto tools
 
 Build from source (tentative):
 
 ```sh
-$ git clone https://github.com/hiveot/hub
-$ cd hub
-$ make all
+# install capnproto tools for go
+go install capnproto.org/go/capnp/v3/capnpc-go@latest
+GO111MODULE=off go get -u capnproto.org/go/capnp/v3/
+git clone https://github.com/hiveot/hub
+cd hub
+make all
 ```
 
 After the build is complete, the distribution files can be found in the 'dist' folder.

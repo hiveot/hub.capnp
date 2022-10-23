@@ -16,21 +16,20 @@ import (
 type DirectoryCapnpClient struct {
 	connection *rpc.Conn           // connection to capnp server
 	capability hubapi.CapDirectory // capnp client of the directory
-	ctx        context.Context
 }
 
 // CapReadDirectory returns the capability to read the directory
-func (cl *DirectoryCapnpClient) CapReadDirectory() directory.IReadDirectory {
+func (cl *DirectoryCapnpClient) CapReadDirectory(ctx context.Context) directory.IReadDirectory {
 	// The use of a result 'future' avoids a round trip, making this more efficient
-	getCap, _ := cl.capability.CapReadDirectory(cl.ctx, nil)
+	getCap, _ := cl.capability.CapReadDirectory(ctx, nil)
 	capability := getCap.Cap()
 	return NewReadDirectoryCapnpClient(capability)
 }
 
 // CapUpdateDirectory returns the capability to update the directory
-func (cl *DirectoryCapnpClient) CapUpdateDirectory() directory.IUpdateDirectory {
+func (cl *DirectoryCapnpClient) CapUpdateDirectory(ctx context.Context) directory.IUpdateDirectory {
 	// The use of a result 'future' avoids a round trip, making this more efficient
-	getCap, _ := cl.capability.CapUpdateDirectory(cl.ctx, nil)
+	getCap, _ := cl.capability.CapUpdateDirectory(ctx, nil)
 	capability := getCap.Cap()
 	return NewUpdateDirectoryCapnpClient(capability)
 }
@@ -47,7 +46,6 @@ func NewDirectoryCapnpClient(ctx context.Context, connection net.Conn) (*Directo
 	cl = &DirectoryCapnpClient{
 		connection: rpcConn,
 		capability: capability,
-		ctx:        ctx,
 	}
 	return cl, nil
 }

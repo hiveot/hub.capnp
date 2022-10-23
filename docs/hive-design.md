@@ -38,11 +38,9 @@ While a Gateway provides the ability to access capabilities, the available capab
 To determine which capability an authenticated client has access to, the gateway uses the authorization service. The rules are based on the type of client, eg IoT device, service, or user, and the role in groups the client shares with Things.
 
 
-
-
 ## IoT Gateway
 
-The HiveOT includes various gateways to facilitate communication between the Hub and the world around it. The IoT Gateway is intended for interaction with IoT devices and protocol adapters.
+The HiveOT includes various gateways to facilitate communication between the Hub and the world around it. The IoT Gateway is intended for interaction with supporting IoT devices and protocol adapters.
 
 The IoT Gateway service is a capnp based service that provides capabilities for IoT devices to:
 1. Discover the IoT Gateway endpoint(s) to use.
@@ -55,9 +53,9 @@ IoT devices that support this API can use it directly. The capabilities API prov
 
 See the IoT gateway service README for more details on using its API.
 
-### IoT Gateway Protocol Bindings
+### IoT Gateway Bindings
 
-IoT Protocol bindings are services that translate between a 3rd party IoT protocol and the IoT Gateway API. The following bindings are on the short to intermediate roadmap:
+IoT Gateway bindings are services that translate between a 3rd party IoT protocol and the IoT Gateway API. The following bindings are on the short to intermediate roadmap:
 
 1. HTTPS 'idprov' binding that implements the idprov discovery and provisioning protocol.
 2. HTTPS binding for publishing TD documents and events.
@@ -90,24 +88,23 @@ There are hundreds more potential bindings to develop. In order to simplify deve
 The user gateway is intended for interacting with end-users of information collected by the HiveOT Hub.
 
 The user gateway service is a capnp based service that provides capabilities for end users to:
-1. Discover the User Gateway endpoint(s) to use.
-2. Authenticate a user.
-3. Retrieve available Things from the directory. 
-4. Read historical Thing values from the history store.
-5. Subscribe to Thing value updates.
-6. Publish Thing actions.
+1. Authenticate a user.
+2. Retrieve available Things from the directory. 
+3. Read historical Thing values from the history store.
+4. Subscribe to Thing value updates.
+5. Publish Thing actions.
 
 See the User gateway service README for more details on using its API.
 
 ### User Gateway Protocol Bindings
 
-User gateway protocol bindings are services that translate between the Hub's capnp protocol and end-user protocols. The following bindings are on the short to intermediate roadmap:
+User gateway protocol bindings are services that translate between the 3rd party user protocol and the User Gateway API. The following bindings are on the short to intermediate roadmap:
 
-1. DNS-SD to discover gateway addresses
+1. DNS-SD to discover the Hub gateway
 2. HTTPS Authentication using BASIC, DIGEST, OAUTH2
-3. HTTPS REST API to query Thing directory and values
-4. MQTT binding to pub/sub over MQTT
-
+3. HTTPS REST API to query Thing directory, query events and publish actions
+4. HTTPS Websocket API to subscribe to events
+5. MQTT binding to pub/sub over MQTT
 
 ### Admin Gateway
 
@@ -116,30 +113,43 @@ The admin gateway is intended for allowing administrators to manage the HiveOT H
 The admin gateway is a capnp based service that provides capabilities to:
 1. List provisioning requests.
 2. Approve or revoke a provisioning request.
-3. Manage users (CRUD)
-4. Manage groups of Things and Users
-5. Manage certificates
+3. Manage users (CRUD).
+4. Manage groups of Things and Users.
+5. Manage certificates.
 
 See the Admin gateway service README for more details on using its API.
 
 ### Pub/Sub Communication
 
-Consumers subscribe to events and can publish actions, while IoT devices or services publish events and subscribe to actions. For compatible clients this takes place using capnproto streams.
+Consumers subscribe to events and can publish actions, while IoT devices or services publish events and subscribe to actions. The internal pubsub service uses capnproto streams for publish subscribe.
 
-Consumers that do not support the capnp protocol have the alternative of using one of the available protocol adapters. Planned are MQTT and Websockets. 
+The pubsub service supports bridging to various pub-sub protocols. Quite a few automation systems and devices support the MQTT protocol along with STOMP, AMQP, Redis pubsub and others. 
 
+The pubsub service itself offers a simple publish and subscribe API. Clients of the API get respective capabilities that are constrained based on the user:
+- all clients must provide authentication in order to receive pub/sub capabilities 
+- end-users are constrained to groups they are a member of
+- IoT bindings are constrained to publishing events and subscribing to actions for their publisher
+- Gateway bindings are constrained to subscribe to events and publishing of actions
+- Storage bindings are constrained to subscribing to events and actions
+- Services can publish events of which they are the publisher.
+ 
+Binding services MUST handle authentication and authorization of the client.
 
-### Intermittent Connectivity
+* MQTT binding (first) supports both IoT devices and End-users.
+* STOMP binding (second)
+* AMQP binding (future)
+
+### Intermittent Connectivity In Battery Operated Devices
 
 A limitation of network devices is that they only communicate when awake and connected. Battery operated devices might spend most of their time asleep while remote devices might suffer from intermittent connectivity.
 
 The Hive detects device connectivity and updates the status accordingly. On reconnect the device will receive queued any actions. IoT devices will have to queue their outgoing messages when disconnected, and send them when connection is reestablished.
 
-TBD: who tracks, directory service or history service? Where is this persisted?
+TBD: who tracks Thing status? Where is this persisted?
 
 ## Core Services
 
-Core services provide necessary capabilities to be able to function as a Hub. Access to these capabilities is provided by the 'gateway' service described above. 
+Core services provide necessary capabilities to be able to function as a Hub. 
 
 ### Provisioning
 
@@ -147,22 +157,21 @@ Provisioning is the process of pairing an IoT device to the Hub.
 
 IoT devices that support the [idprov protocol](https://github.com/hiveot/idprov-standard) can automatically discover the Hub on the local network using the DNS-SD protocol and initiate the provisioning process. When accepted, a CA signed device (client) certificate is issued.
 
-The device certificate supports machine to machine authentication between IoT device and Hub. See [idprov service](https://github.com/hiveot/hub/tree/main/idprov) for more information.
+The device certificate supports machine to machine authentication between IoT device and Hub. See [idprov service](https://github.com/hiveot/hub/tree/main/pkg/provisioning) for more information.
 
 ### Authentication (authn)
 
-The authentication service manages users and issues access and refresh tokens.
-It provides a CLI to add/remove users and a service to handle authentication request and issue tokens. See [authn service](https://github.com/hiveot/hub/tree/main/authn) for more information.
+The authentication service manages users and issues access and refresh tokens. See [authn service](https://github.com/hiveot/hub/tree/main/pkg/authn) for more information.
 
 
 ### Authorization (authz)
 
 The authorization service manages groups that contain consumers and Things.
-Consumers that are in the same group as a Thing are authorized to access the Thing based on their role as viewer, operator, manager, administrator or thing. See the [authorization service](https://github.com/hiveot/hub/tree/main/authz) for more information.
+Consumers that are in the same group as a Thing are authorized to access the Thing based on their role as viewer, operator, manager, administrator or thing. See the [authorization service](https://github.com/hiveot/hub/tree/main/pkg/authz) for more information.
 
-### mosquittomgr: Message Bus Manager and Mosquitto auth plugin (deprecated)
+### Mosquitto: MQTT Protocol Binding and Mosquitto auth plugin 
 
-Deprecated: This mosquittomgr service will turn into an optional protocol adapter
+IoT devices and users that support the MQTT message bus can access the hub using the MQTT protocol binding. 
 
 Interaction with Things takes place via a message bus. [Exposed Things](https://www.w3.org/TR/wot-architecture/#exposed-thing-and-consumed-thing-abstractions) publish their TD document and events onto the bus and subscribe to action messages. Consumers can subscribe to these messages and publish actions to the Thing.
 

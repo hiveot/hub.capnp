@@ -21,8 +21,9 @@ func (capsrv *ReadDirectoryCapnpServer) GetTD(ctx context.Context, call hubapi.C
 	thingID, _ = args.ThingID()
 	td, err = capsrv.srv.GetTD(ctx, thingID)
 	if err == nil {
-		res, _ := call.AllocResults()
-		err = res.SetTdJson(td)
+		res, err2 := call.AllocResults()
+		err = err2
+		_ = res.SetTdJson(td)
 	}
 	return err
 }

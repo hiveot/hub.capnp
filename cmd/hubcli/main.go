@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 
+	"github.com/hiveot/hub/cmd/hubcli/authz"
 	"github.com/hiveot/hub/cmd/hubcli/certscli"
 	"github.com/hiveot/hub/cmd/hubcli/directorycli"
 	"github.com/hiveot/hub/cmd/hubcli/historycli"
@@ -45,8 +46,9 @@ func main() {
 		},
 		Commands: []*cli.Command{
 			certscli.CACommands(ctx, f),
-			certscli.CertCommands(ctx, f),
 			launchercli.LauncherCommands(ctx, f),
+			authz.AuthzCommands(ctx, f),
+			certscli.CertCommands(ctx, f),
 			directorycli.DirectoryCommands(ctx, f),
 			historycli.HistoryCommands(ctx, f),
 			provcli.ProvisioningCommands(ctx, f),
