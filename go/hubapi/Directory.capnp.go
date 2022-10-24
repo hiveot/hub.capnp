@@ -10,6 +10,274 @@ import (
 	context "context"
 )
 
+type CapListCallback capnp.Client
+
+// CapListCallback_TypeID is the unique identifier for the type CapListCallback.
+const CapListCallback_TypeID = 0x9a3256ece4ea2b40
+
+func (c CapListCallback) Handler(ctx context.Context, params func(CapListCallback_handler_Params) error) (CapListCallback_handler_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0x9a3256ece4ea2b40,
+			MethodID:      0,
+			InterfaceName: "hubapi/Directory.capnp:CapListCallback",
+			MethodName:    "handler",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 8, PointerCount: 1}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapListCallback_handler_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapListCallback_handler_Results_Future{Future: ans.Future()}, release
+}
+
+func (c CapListCallback) AddRef() CapListCallback {
+	return CapListCallback(capnp.Client(c).AddRef())
+}
+
+func (c CapListCallback) Release() {
+	capnp.Client(c).Release()
+}
+
+func (c CapListCallback) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Client(c).EncodeAsPtr(seg)
+}
+
+func (CapListCallback) DecodeFromPtr(p capnp.Ptr) CapListCallback {
+	return CapListCallback(capnp.Client{}.DecodeFromPtr(p))
+}
+
+func (c CapListCallback) IsValid() bool {
+	return capnp.Client(c).IsValid()
+}
+
+// A CapListCallback_Server is a CapListCallback with a local implementation.
+type CapListCallback_Server interface {
+	Handler(context.Context, CapListCallback_handler) error
+}
+
+// CapListCallback_NewServer creates a new Server from an implementation of CapListCallback_Server.
+func CapListCallback_NewServer(s CapListCallback_Server) *server.Server {
+	c, _ := s.(server.Shutdowner)
+	return server.New(CapListCallback_Methods(nil, s), s, c)
+}
+
+// CapListCallback_ServerToClient creates a new Client from an implementation of CapListCallback_Server.
+// The caller is responsible for calling Release on the returned Client.
+func CapListCallback_ServerToClient(s CapListCallback_Server) CapListCallback {
+	return CapListCallback(capnp.NewClient(CapListCallback_NewServer(s)))
+}
+
+// CapListCallback_Methods appends Methods to a slice that invoke the methods on s.
+// This can be used to create a more complicated Server.
+func CapListCallback_Methods(methods []server.Method, s CapListCallback_Server) []server.Method {
+	if cap(methods) == 0 {
+		methods = make([]server.Method, 0, 1)
+	}
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0x9a3256ece4ea2b40,
+			MethodID:      0,
+			InterfaceName: "hubapi/Directory.capnp:CapListCallback",
+			MethodName:    "handler",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.Handler(ctx, CapListCallback_handler{call})
+		},
+	})
+
+	return methods
+}
+
+// CapListCallback_handler holds the state for a server call to CapListCallback.handler.
+// See server.Call for documentation.
+type CapListCallback_handler struct {
+	*server.Call
+}
+
+// Args returns the call's arguments.
+func (c CapListCallback_handler) Args() CapListCallback_handler_Params {
+	return CapListCallback_handler_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c CapListCallback_handler) AllocResults() (CapListCallback_handler_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapListCallback_handler_Results(r), err
+}
+
+// CapListCallback_List is a list of CapListCallback.
+type CapListCallback_List = capnp.CapList[CapListCallback]
+
+// NewCapListCallback creates a new list of CapListCallback.
+func NewCapListCallback_List(s *capnp.Segment, sz int32) (CapListCallback_List, error) {
+	l, err := capnp.NewPointerList(s, sz)
+	return capnp.CapList[CapListCallback](l), err
+}
+
+type CapListCallback_handler_Params capnp.Struct
+
+// CapListCallback_handler_Params_TypeID is the unique identifier for the type CapListCallback_handler_Params.
+const CapListCallback_handler_Params_TypeID = 0xf0c65eded57feb4f
+
+func NewCapListCallback_handler_Params(s *capnp.Segment) (CapListCallback_handler_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapListCallback_handler_Params(st), err
+}
+
+func NewRootCapListCallback_handler_Params(s *capnp.Segment) (CapListCallback_handler_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapListCallback_handler_Params(st), err
+}
+
+func ReadRootCapListCallback_handler_Params(msg *capnp.Message) (CapListCallback_handler_Params, error) {
+	root, err := msg.Root()
+	return CapListCallback_handler_Params(root.Struct()), err
+}
+
+func (s CapListCallback_handler_Params) String() string {
+	str, _ := text.Marshal(0xf0c65eded57feb4f, capnp.Struct(s))
+	return str
+}
+
+func (s CapListCallback_handler_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapListCallback_handler_Params) DecodeFromPtr(p capnp.Ptr) CapListCallback_handler_Params {
+	return CapListCallback_handler_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapListCallback_handler_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapListCallback_handler_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapListCallback_handler_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapListCallback_handler_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapListCallback_handler_Params) Tds() (capnp.TextList, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return capnp.TextList(p.List()), err
+}
+
+func (s CapListCallback_handler_Params) HasTds() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapListCallback_handler_Params) SetTds(v capnp.TextList) error {
+	return capnp.Struct(s).SetPtr(0, v.ToPtr())
+}
+
+// NewTds sets the tds field to a newly
+// allocated capnp.TextList, preferring placement in s's segment.
+func (s CapListCallback_handler_Params) NewTds(n int32) (capnp.TextList, error) {
+	l, err := capnp.NewTextList(capnp.Struct(s).Segment(), n)
+	if err != nil {
+		return capnp.TextList{}, err
+	}
+	err = capnp.Struct(s).SetPtr(0, l.ToPtr())
+	return l, err
+}
+
+func (s CapListCallback_handler_Params) IsLast() bool {
+	return capnp.Struct(s).Bit(0)
+}
+
+func (s CapListCallback_handler_Params) SetIsLast(v bool) {
+	capnp.Struct(s).SetBit(0, v)
+}
+
+// CapListCallback_handler_Params_List is a list of CapListCallback_handler_Params.
+type CapListCallback_handler_Params_List = capnp.StructList[CapListCallback_handler_Params]
+
+// NewCapListCallback_handler_Params creates a new list of CapListCallback_handler_Params.
+func NewCapListCallback_handler_Params_List(s *capnp.Segment, sz int32) (CapListCallback_handler_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1}, sz)
+	return capnp.StructList[CapListCallback_handler_Params](l), err
+}
+
+// CapListCallback_handler_Params_Future is a wrapper for a CapListCallback_handler_Params promised by a client call.
+type CapListCallback_handler_Params_Future struct{ *capnp.Future }
+
+func (p CapListCallback_handler_Params_Future) Struct() (CapListCallback_handler_Params, error) {
+	s, err := p.Future.Struct()
+	return CapListCallback_handler_Params(s), err
+}
+
+type CapListCallback_handler_Results capnp.Struct
+
+// CapListCallback_handler_Results_TypeID is the unique identifier for the type CapListCallback_handler_Results.
+const CapListCallback_handler_Results_TypeID = 0x94aee562eddcdc9a
+
+func NewCapListCallback_handler_Results(s *capnp.Segment) (CapListCallback_handler_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapListCallback_handler_Results(st), err
+}
+
+func NewRootCapListCallback_handler_Results(s *capnp.Segment) (CapListCallback_handler_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapListCallback_handler_Results(st), err
+}
+
+func ReadRootCapListCallback_handler_Results(msg *capnp.Message) (CapListCallback_handler_Results, error) {
+	root, err := msg.Root()
+	return CapListCallback_handler_Results(root.Struct()), err
+}
+
+func (s CapListCallback_handler_Results) String() string {
+	str, _ := text.Marshal(0x94aee562eddcdc9a, capnp.Struct(s))
+	return str
+}
+
+func (s CapListCallback_handler_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapListCallback_handler_Results) DecodeFromPtr(p capnp.Ptr) CapListCallback_handler_Results {
+	return CapListCallback_handler_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapListCallback_handler_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapListCallback_handler_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapListCallback_handler_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapListCallback_handler_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+
+// CapListCallback_handler_Results_List is a list of CapListCallback_handler_Results.
+type CapListCallback_handler_Results_List = capnp.StructList[CapListCallback_handler_Results]
+
+// NewCapListCallback_handler_Results creates a new list of CapListCallback_handler_Results.
+func NewCapListCallback_handler_Results_List(s *capnp.Segment, sz int32) (CapListCallback_handler_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
+	return capnp.StructList[CapListCallback_handler_Results](l), err
+}
+
+// CapListCallback_handler_Results_Future is a wrapper for a CapListCallback_handler_Results promised by a client call.
+type CapListCallback_handler_Results_Future struct{ *capnp.Future }
+
+func (p CapListCallback_handler_Results_Future) Struct() (CapListCallback_handler_Results, error) {
+	s, err := p.Future.Struct()
+	return CapListCallback_handler_Results(s), err
+}
+
 type CapDirectory capnp.Client
 
 // CapDirectory_TypeID is the unique identifier for the type CapDirectory.
@@ -519,6 +787,22 @@ func (c CapReadDirectory) ListTDs(ctx context.Context, params func(CapReadDirect
 	ans, release := capnp.Client(c).SendCall(ctx, s)
 	return CapReadDirectory_listTDs_Results_Future{Future: ans.Future()}, release
 }
+func (c CapReadDirectory) ListTDcb(ctx context.Context, params func(CapReadDirectory_listTDcb_Params) error) (CapReadDirectory_listTDcb_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xa19ac9e4c3ae910e,
+			MethodID:      3,
+			InterfaceName: "hubapi/Directory.capnp:CapReadDirectory",
+			MethodName:    "listTDcb",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapReadDirectory_listTDcb_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapReadDirectory_listTDcb_Results_Future{Future: ans.Future()}, release
+}
 
 func (c CapReadDirectory) AddRef() CapReadDirectory {
 	return CapReadDirectory(capnp.Client(c).AddRef())
@@ -547,6 +831,8 @@ type CapReadDirectory_Server interface {
 	QueryTDs(context.Context, CapReadDirectory_queryTDs) error
 
 	ListTDs(context.Context, CapReadDirectory_listTDs) error
+
+	ListTDcb(context.Context, CapReadDirectory_listTDcb) error
 }
 
 // CapReadDirectory_NewServer creates a new Server from an implementation of CapReadDirectory_Server.
@@ -565,7 +851,7 @@ func CapReadDirectory_ServerToClient(s CapReadDirectory_Server) CapReadDirectory
 // This can be used to create a more complicated Server.
 func CapReadDirectory_Methods(methods []server.Method, s CapReadDirectory_Server) []server.Method {
 	if cap(methods) == 0 {
-		methods = make([]server.Method, 0, 3)
+		methods = make([]server.Method, 0, 4)
 	}
 
 	methods = append(methods, server.Method{
@@ -601,6 +887,18 @@ func CapReadDirectory_Methods(methods []server.Method, s CapReadDirectory_Server
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
 			return s.ListTDs(ctx, CapReadDirectory_listTDs{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xa19ac9e4c3ae910e,
+			MethodID:      3,
+			InterfaceName: "hubapi/Directory.capnp:CapReadDirectory",
+			MethodName:    "listTDcb",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.ListTDcb(ctx, CapReadDirectory_listTDcb{call})
 		},
 	})
 
@@ -656,6 +954,23 @@ func (c CapReadDirectory_listTDs) Args() CapReadDirectory_listTDs_Params {
 func (c CapReadDirectory_listTDs) AllocResults() (CapReadDirectory_listTDs_Results, error) {
 	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
 	return CapReadDirectory_listTDs_Results(r), err
+}
+
+// CapReadDirectory_listTDcb holds the state for a server call to CapReadDirectory.listTDcb.
+// See server.Call for documentation.
+type CapReadDirectory_listTDcb struct {
+	*server.Call
+}
+
+// Args returns the call's arguments.
+func (c CapReadDirectory_listTDcb) Args() CapReadDirectory_listTDcb_Params {
+	return CapReadDirectory_listTDcb_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c CapReadDirectory_listTDcb) AllocResults() (CapReadDirectory_listTDcb_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapReadDirectory_listTDcb_Results(r), err
 }
 
 // CapReadDirectory_List is a list of CapReadDirectory.
@@ -1185,6 +1500,157 @@ func (p CapReadDirectory_listTDs_Results_Future) Struct() (CapReadDirectory_list
 	return CapReadDirectory_listTDs_Results(s), err
 }
 
+type CapReadDirectory_listTDcb_Params capnp.Struct
+
+// CapReadDirectory_listTDcb_Params_TypeID is the unique identifier for the type CapReadDirectory_listTDcb_Params.
+const CapReadDirectory_listTDcb_Params_TypeID = 0xd11d7a58ad4e91e2
+
+func NewCapReadDirectory_listTDcb_Params(s *capnp.Segment) (CapReadDirectory_listTDcb_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapReadDirectory_listTDcb_Params(st), err
+}
+
+func NewRootCapReadDirectory_listTDcb_Params(s *capnp.Segment) (CapReadDirectory_listTDcb_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapReadDirectory_listTDcb_Params(st), err
+}
+
+func ReadRootCapReadDirectory_listTDcb_Params(msg *capnp.Message) (CapReadDirectory_listTDcb_Params, error) {
+	root, err := msg.Root()
+	return CapReadDirectory_listTDcb_Params(root.Struct()), err
+}
+
+func (s CapReadDirectory_listTDcb_Params) String() string {
+	str, _ := text.Marshal(0xd11d7a58ad4e91e2, capnp.Struct(s))
+	return str
+}
+
+func (s CapReadDirectory_listTDcb_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapReadDirectory_listTDcb_Params) DecodeFromPtr(p capnp.Ptr) CapReadDirectory_listTDcb_Params {
+	return CapReadDirectory_listTDcb_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapReadDirectory_listTDcb_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapReadDirectory_listTDcb_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapReadDirectory_listTDcb_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapReadDirectory_listTDcb_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapReadDirectory_listTDcb_Params) Cb() CapListCallback {
+	p, _ := capnp.Struct(s).Ptr(0)
+	return CapListCallback(p.Interface().Client())
+}
+
+func (s CapReadDirectory_listTDcb_Params) HasCb() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapReadDirectory_listTDcb_Params) SetCb(v CapListCallback) error {
+	if !v.IsValid() {
+		return capnp.Struct(s).SetPtr(0, capnp.Ptr{})
+	}
+	seg := s.Segment()
+	in := capnp.NewInterface(seg, seg.Message().AddCap(capnp.Client(v)))
+	return capnp.Struct(s).SetPtr(0, in.ToPtr())
+}
+
+// CapReadDirectory_listTDcb_Params_List is a list of CapReadDirectory_listTDcb_Params.
+type CapReadDirectory_listTDcb_Params_List = capnp.StructList[CapReadDirectory_listTDcb_Params]
+
+// NewCapReadDirectory_listTDcb_Params creates a new list of CapReadDirectory_listTDcb_Params.
+func NewCapReadDirectory_listTDcb_Params_List(s *capnp.Segment, sz int32) (CapReadDirectory_listTDcb_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[CapReadDirectory_listTDcb_Params](l), err
+}
+
+// CapReadDirectory_listTDcb_Params_Future is a wrapper for a CapReadDirectory_listTDcb_Params promised by a client call.
+type CapReadDirectory_listTDcb_Params_Future struct{ *capnp.Future }
+
+func (p CapReadDirectory_listTDcb_Params_Future) Struct() (CapReadDirectory_listTDcb_Params, error) {
+	s, err := p.Future.Struct()
+	return CapReadDirectory_listTDcb_Params(s), err
+}
+
+func (p CapReadDirectory_listTDcb_Params_Future) Cb() CapListCallback {
+	return CapListCallback(p.Future.Field(0, nil).Client())
+}
+
+type CapReadDirectory_listTDcb_Results capnp.Struct
+
+// CapReadDirectory_listTDcb_Results_TypeID is the unique identifier for the type CapReadDirectory_listTDcb_Results.
+const CapReadDirectory_listTDcb_Results_TypeID = 0xb2f30317de058cff
+
+func NewCapReadDirectory_listTDcb_Results(s *capnp.Segment) (CapReadDirectory_listTDcb_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapReadDirectory_listTDcb_Results(st), err
+}
+
+func NewRootCapReadDirectory_listTDcb_Results(s *capnp.Segment) (CapReadDirectory_listTDcb_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapReadDirectory_listTDcb_Results(st), err
+}
+
+func ReadRootCapReadDirectory_listTDcb_Results(msg *capnp.Message) (CapReadDirectory_listTDcb_Results, error) {
+	root, err := msg.Root()
+	return CapReadDirectory_listTDcb_Results(root.Struct()), err
+}
+
+func (s CapReadDirectory_listTDcb_Results) String() string {
+	str, _ := text.Marshal(0xb2f30317de058cff, capnp.Struct(s))
+	return str
+}
+
+func (s CapReadDirectory_listTDcb_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapReadDirectory_listTDcb_Results) DecodeFromPtr(p capnp.Ptr) CapReadDirectory_listTDcb_Results {
+	return CapReadDirectory_listTDcb_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapReadDirectory_listTDcb_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapReadDirectory_listTDcb_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapReadDirectory_listTDcb_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapReadDirectory_listTDcb_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+
+// CapReadDirectory_listTDcb_Results_List is a list of CapReadDirectory_listTDcb_Results.
+type CapReadDirectory_listTDcb_Results_List = capnp.StructList[CapReadDirectory_listTDcb_Results]
+
+// NewCapReadDirectory_listTDcb_Results creates a new list of CapReadDirectory_listTDcb_Results.
+func NewCapReadDirectory_listTDcb_Results_List(s *capnp.Segment, sz int32) (CapReadDirectory_listTDcb_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
+	return capnp.StructList[CapReadDirectory_listTDcb_Results](l), err
+}
+
+// CapReadDirectory_listTDcb_Results_Future is a wrapper for a CapReadDirectory_listTDcb_Results promised by a client call.
+type CapReadDirectory_listTDcb_Results_Future struct{ *capnp.Future }
+
+func (p CapReadDirectory_listTDcb_Results_Future) Struct() (CapReadDirectory_listTDcb_Results, error) {
+	s, err := p.Future.Struct()
+	return CapReadDirectory_listTDcb_Results(s), err
+}
+
 type CapUpdateDirectory capnp.Client
 
 // CapUpdateDirectory_TypeID is the unique identifier for the type CapUpdateDirectory.
@@ -1651,87 +2117,106 @@ func (p CapUpdateDirectory_updateTD_Results_Future) Struct() (CapUpdateDirectory
 	return CapUpdateDirectory_updateTD_Results(s), err
 }
 
-const schema_c8da54a8b024bd49 = "x\xda\xa4U_h\x1c\xd5\x17>\xe7\xde\x99\x9d\xc0/" +
-	"I{\x7f\x9bT}\xa8K\xe3\x06\xb2b\xda&\xb1\x0f" +
-	"\x09\xc8n\xe2\x14l\xb0\xb8w\xbb->\x09\xd3\xddi" +
-	"\xb2e\x93]wfS\xf7\xc5\"m)\xfei1`" +
-	"\x0b\x86J\x11\x11\x8d`\x95\x8a\x0fV|h\x9aX\xeb" +
-	"K\xa1V\xa1\x05}\x90\x14\xc9B\x91\xea[\xc5\x8e\xdc" +
-	"\xbb\xb9\xb3\x93ll\xfe\xf8\xb63\xf3\x9d\xf3}\xe7|" +
-	"\xe7\x9c\xdd\xf9\x01Ih=-q\x03\x08O\xeb!o" +
-	"\xef\x91\x83\x85\xea\xe6\xce\xe3\xc0\x1e\xa1\xde\x9eo\xa2\x9f" +
-	"\x7f\x9c\xbe\xfd\x1d\x00\xf6\x9d\xa0\x1d\x18>C\x0d\x80\xf0" +
-	"$=\x19\xbe'~y\x17\xc2\xe7\x7f\xe9}g\xeaD" +
-	"\x03\xfa\x16Ma\xf8\xaeD/\xd0\x93\xe1AM\xa0g" +
-	"v\xdc9U}\x10{\x13\xd8\x93\x08\xa0\x13\x03\xa0/" +
-	"\xa6\xdd@\xc0\xf03\xda\x11@\xefX\x7f\xf6\xf4\xff\x0e" +
-	"\\?\x07\xbc\x0b\x11@\x04\xf5\xbd\xab]\x12\x80i\x09" +
-	"h\x9d\xbcpe\xfe\xda\xd4\xfb\x0d|\xba>\x84\xe1v" +
-	"]\xf01\xfdj\xf8\x94\xf8\xe5=8\x10\xea\xfez\xf0" +
-	"\xec%`Q\xc1\x87\"]Y\xaf\x8at\xaf\xebq@" +
-	"\xef\xee\xfe\xff\xbf\xf2[\xec\xfaL\x0d \xe9\xa6\xf5_" +
-	"\x114\xcf9\xdb4\xf3\xc2\x95\x91\xd9\x9aT\xf9\xe5=" +
-	"\xfd\xb6\xf8\xd2\xe6\xec\xf3\xee\\\xfet.\x98tR\xbf" +
-	"/\x92~(\x93n\xbe\xf8x\xfb\x97\xfd\x1f]\x0d$" +
-	"\x9d\xd3\xff\x10\xa1O\xfc0y\xfex\xb5\xe3&\xb0." +
-	"?\xf4+\xfd\x13\x11zM\x86\xce\xee:\\m\x19}" +
-	"\xe9V\x80u\xa1\xc6\xfa\xd3`~\xfe\xfe\xa3O\xcd/" +
-	"\xb6N\x86\xfe\xac\xcb\xd6\xdd\x93\xa1\xaf\xcev\xb6\x7fq" +
-	"z\xdfB07\x0b\xcd\x08\xc0\xb6\x90\x00\xbcUM\xfc" +
-	"\xfe\xed\xdb\xe7\xfe\x0c\x02x\xe8\xa2\x00X\x12\xd0wy" +
-	"\xd7\xf4Dq\xcb_A\xc0k\xa1\xef\x05\xe0\x8c\x04L" +
-	"\xdc\xb8\x99\xdbrl\xe4\xefEwj\x88\xb9\x1a\xc7\x8f" +
-	"\xa1\xcf\xa0\xdb\x1b-\x1f\xb4\x8a\xb9\x1d&\xcd\x95\xec\x8c" +
-	"[(U\xb6g\xac\xe2xq\xe0Y\xabh\xcaWF" +
-	"\xa1TI\"\xf2&\xaa\x03\xf8\xedGe\x14\xeby\x03" +
-	"\x08\xeb6\xb0\xdeET\xfdf\xdb\xa6\x80\xb0\xad\x86\x97" +
-	"\xb1\x8a)\xdb\xca\x9a\xa8H\x00\x12(\xde\xee/f-" +
-	"\x17\xed\x1aS\x81\x96*\x09L\"\xfa\xa2\xb4FQ2" +
-	"B\x05\x940 M\xf5\x1b\x95%\xacg\x18\x08\x8b\x09" +
-	"ij\x8cQ\x0d\x09\xdb*\xbe\xb5\x1b^\xc9\x1e+L" +
-	"\xd8i\x13\xa4\xa4\xb2\xcc\xbe\xf8\x14T\x12ZMIe" +
-	"\xbb\x8a\x8d&\xad\x925\x86\x0eo\xa2\x1a\x80\x86\x00," +
-	"6\x04\xc0\xa3\x14\xf9N\x82\x0c\xb1Mx\xc1\xba{\x01" +
-	"x\x17E\xfe4\xc1\xa3\xeehn|d\x8f\x89\xcd@" +
-	"\xb0\x190\xe2f\xcdBF=\xf9*\xf4F\x15\xb2\xaf" +
-	"\xfe\xeb|\xceq\xd3\xa6\x13\x8dK\x0dK$\xf4\xae$" +
-	"a\xa0.!\x92\xcf\x8d\xe5\\\xd4\x80\xa0\x06\x18/\x1c" +
-	":\xe4\xd8\xfe\xe3\xc3\x1cY\xa2\x00\x84\x1f\xcd\xd2\x0f\xb5" +
-	":\xa8\xc6\x98\xf1^ l\xb7\xf0C\xcd%\xaa\x09f" +
-	"\xfd\xc2\x8f\x1e\x03\x89\x7fQP\xed\x07\xeb\x1c\x02\xc2\x1e" +
-	"3\"#\xb6\x9b6\x13\xe8\xbd\\\xb6K\x95\xb4\xe9H" +
-	"\x97\x8e.\xd6\xbc\xaa_f\xf0\xd5\x12\xd1\xd1\x94\xedl" +
-	"*\xe7]\x87k~\xbfZ:\x00x\x13E\xdeF\xd0" +
-	"\xc8XEd\xf5K\x06\x88\x0c6\xca\x95\xb4J\x865" +
-	"\xe6lh\xb2R\xb6S\xceS\xd7Y3\xf5\xb2L\xd1" +
-	"T\\dX\xadP\xff/b\x9d\x85.gKF\xe4" +
-	"\x14\xae}|\xa5\xc1\xd1\xa4\xb5I\x0eo@\xe3P]" +
-	"\xe3\xf2UYO#\xd5\xb2\xaf\xa9\x91\xff\x1a\xac\xf6\xfb" +
-	"\xbf\xeb[yyS5\x8f`%\x93\xa2\x04\x0d7\xeb" +
-	"`+`\x92\xa2\xe4h]\xcf\x81\xa8u8eG\x1a" +
-	"\xc6`\xa0^B\xdc\xcd\x0e;\x85\xf1\xf5W\xa0\x16\xd3" +
-	"/a#5\xac\x9d\xa5v\xe4\x807\xfb\x1c\xbb\x87\x01" +
-	"\xb8I\x91'\x09\xaa#\xb7W\\\xbe\xe7(\xf24A" +
-	"F\xb0\x0d\x09\x00\xe3\xa2\xdc\xe7)\xf2\x17\x09z\x87\x9d" +
-	"\xc2x\xd2rG\x01\xc0?\xc0\x0f\xbb\x86\xff\x04\x00\x00" +
-	"\xff\xff6}\xc3f"
+const schema_c8da54a8b024bd49 = "x\xda\xa4U[h\x14\xe7\x17?g\xae\x0b\x7fo\xdf" +
+	"\x7f\x12m\x0bi0]\xd1\xb4\x8d\x97\xa4B\x0d\x94]" +
+	"\xe3\x88\x8dh\xdd\x89\xab\xe8\x8b0\xbb;f\xd7n\xb2" +
+	"\x9b\x9dY\xed\x16\xdaP\xb4\x88\xad\x95\x06D0\x08\xe2" +
+	"C\xe9\x05\xb4\xad\xc5\x17K\x1f\x12\xa3\xad\x82\x88\xd6\x16" +
+	"*\x92\x07I(\xdd6\xf4\xe2C\xa9E\xa7|\xdf\xee" +
+	"7;\xc9nc\x92\xbe\xcd\xe5\xfc~\xe7\xf7\x9d\xdf9" +
+	"\xe7[\xbdI\x0cKk\xe6\xff\x19\x00\xc1H\xca\x8a\xbb" +
+	"\xf5@,S\\\xb4\xec\x10\x90%\xa2\xdb\xf9U\xf0\xb3" +
+	"\x8f\xa2w\xbe\x01\xc06SjB\xadOR\x01\xb4\x1e" +
+	"\xe9\xb0v\x9d>\xb9\xe7\xb4\xd3\xa3\xad\xc7\x07\xdf\xae\x8a" +
+	"\xbe u\xa1v\x95E_\x96\x0ek\x0d2\x8d\x1e^" +
+	"5\xfe^\xf1Q\xf3\xbb@\x9eE\x00YP\x01\xdad" +
+	"\xf9\x16\x02jO\xca\x07\x00\xdd\xc1\xbbw'b\xe3\xe7" +
+	"\x8e\x03Y\x8e\x00\x14\xdd\x96\x97/\"Hn\xf8\xb9\xe2" +
+	"\xd8/;[\x07\xab\x12Yr;jyJ\xaf\xf5\xc9" +
+	"\x9b\xb4\x93,\xd1\xc1u\x89c\xff\xdby\xe3\x14\x18+" +
+	"\x90\x13\xbdE\x89P\x1b`\x89\x16\x0c\x9c\xbb4vu" +
+	"\xf0L\x15\xdd\x84\xdc\x81\xdaCJ\xd2\xf6\x97\xac\xa2v" +
+	"F\xa1|\xeeQyt\x89x\xff<\x90\x15\x9c\xee\x88" +
+	"r\x8d\xeaz\xb4Si\xf9r\xfd\x89\x8b@\x82\xf4H" +
+	"H\x7f\xbd\xa1\x14Y&%\x04\xe8N\xec\xf8\xffk?" +
+	"6\xdf\x18.\x050\xe8\xe7\xca=\x0a\xb5O\x04\x86\xb7" +
+	"]\xea\x1e)U\x83\xfd\xf9@\xb9C\xff\xd4\xd9\xdb\xdd" +
+	"\xf1\xa1\xb3\x97\xfd\xa4'\x95\x07\x94\xf4,#]t\xfe" +
+	"\xe9\xfa\x0b\xeb>\xfc\xdaGz]\xf9\x83B\xef\x0d\xbc" +
+	"rv\xd7\xeb\x0d7KJK\xd0!e\x98Bo2" +
+	"\xe83\xdf\x0e\x9c>Tl\xba\xed\x0f\xf8]\xf9\x84\x06" +
+	"\xa0J\x03F\xd6\xee+\xceO\xee\xf9\xc1'k\xa9\xca" +
+	"d}\xbf>=\xf6\xe0\x89\xe7\xc7\xca\xf61h\xbd\xca" +
+	"\xeckf\xd07G\x96\xd5\x7fql\xfbO~\xeeN" +
+	"\x95%\xdf\xcd\x02\xb6\xfd\xdc\xff\xdd\xe8\x9e+\xbf\x81\xb1" +
+	"\x1c\xbd\x88#\xeay\x1aqR\xa5\xc6\x1c-\x86\x7f\xbd" +
+	"\xf2\xfe\xa9\xfb~\x0a9\xc0\x02\xea\x03\x94\xa2mh\xed" +
+	"\xc7\xfb\xb3\x8b\xff\xf6\x07\xac\x0d\\\xa3\x01\x9d,`\xff" +
+	"\xad\xdb\xa9\xc5\x07\xbb\x1f\x96\xbd/E\x14\x02L\xc5\x91" +
+	"\xc0\xa7\xd0\xe2&\xf313\x9bZ\xa5\x8b\xa9\x9c\x15w" +
+	"2\xb9\xc2\xca\xb8\x99\xed\xcd\xb6o0\xb3:\xfb\xa4f" +
+	"r\x85\x08\xa2\x11\x10e\x00\xcfA\xe4^\x935\xef\x80" +
+	"@ZT\xac\x18\x81\xdc2\xb2t\x10\x04\xd2\xa0\xbaq" +
+	"3\xdbe\x99\x09\x1dy\x12\x800\xd2\xaf;\xb2\x09\xd3" +
+	"A\xab\x94)#\xe6\x0aa\x8c z\xa2\xa4jQ\x0c" +
+	"\xc1\x019\xf4I\xe3\x8e 7\x8d\xac\xd9\x0c\x02i\xa6" +
+	"\xd2\xf8\xb0!\xef3\xd2@\xff\xd5\xabn\xce\xea\xc9\xec" +
+	"\xb7\xa2:0Iy\xc6^~\xf3+Q\x1e\xa7\xa4\xb0" +
+	"\x92c\x83\x113g\xf6\xa0m\x04D\x09@B\x00\xd2" +
+	"\xdc\x01`\x04E4V\x0bH\x10\xeb\xa8\x17\xa4\xa5\x15" +
+	"\xc0X!\xa2\xf1\x82\x80\xfdN2\xd5\xdb\xdd\xa9\xe3<" +
+	"\x10p\x1e`\xa3\x93\xd03q\xfe\xe6\xa9\x90\xabUl" +
+	"I\xd9\xce\x063\x9d\x8e\x99\xf1WW&\xcd\xdeD\xda" +
+	"\xca\x05\xbbB\x96\x9dO;\xf6t\xee\x96\x80\xa1\x12\x92" +
+	"VQbU\xe4]\x89|\xfd\x10\xd2\x01\x02\x91\xd5\xfe" +
+	"2\xf9\xe4\xba\xd4P\xc4\x9c\xf6>\xa7S\xb6\x13\xd5\xed" +
+	"`\x88UeRQZk\x15\xa5\xbdR\x94\xc6t\xaa" +
+	"'\xe5\xa0\x04\x02J\x80\xa1\xcc\xde\xbd\xb6\xe5\xbdN\xd7" +
+	"#\x93\x14\x00=\xdb\"v6>\xee\xc8\x07\x8b\xf4\xb5" +
+	"\x82@,\xda!|R\x90\xcf\x14\xd9M;\xc4PQ" +
+	"\xf06(\xf2\x99&\x1biM\xd6\xa9(z;\x06\xf9" +
+	"Z$-\x14\xb7Lm\xec\xb6\x9c\xa8\x1eF\xb7/o" +
+	"\xe5\x0aQ\xddf=\xd5_\xaeG\x18\xdd\xd2S<6" +
+	"\x93^\xabU\xd3x,\xd8U\xb2\x19`:\xac\xee\xff" +
+	"4\x89\x88\xe2\x17R\x02C\xf2\\\x99\xdf\x04`\x04D" +
+	"4\xea\x04T\xe3f\x16I\xe5~\x00D\x028\xc7\\" +
+	"\x113\xa7\x9a=\xf6\x9c&\x8a\x9dSt\xec\x19\xa7\x9e" +
+	"\xc2\xe4\x0d\xc4\xf4\x07\xf5.\xf0Y\x1etj\xb6H#" +
+	"\xeb\xf59\x18Z\x1a\x12\xf0\xcb|\xaa\"S\x8c\xc7\x90" +
+	"Tn\xff)*\x1f;\x8a\xac!\x83\x11s!\x1bD" +
+	"_\x8a\x8eJ\x8a\xa9\x8bh6v\xf1U:#\xbb\xfe" +
+	"\x15\xcc\xb7\xe7\x7f\xd7W{\x11\xf1\x99\xa9\xd5\x0aA\x01" +
+	"U'a\xe3\x02\xc0\x88\x88,\xc7\x829\xac\xdf\xb2\xff" +
+	"\xfe]\xd7T\xdeua\x01\xf9\xaa{\x89\xae\xba\x17E" +
+	"4\xf4\x9aYC){\x8bi;\x88  \xce\xde\xe6" +
+	".\xab\xb1\xaa\xe3\xdb+u\x0c9\x89\xcdv\xa6w\xf6" +
+	"e\xe4\xdb\xac\xb2{\xe6P\xc8\x99g\xe1\x031\xcf\xcb" +
+	"\xb1q3\x80\xa1\x8bhD*\xa5\xdcJ\xaf\x92\x97E" +
+	"4\xa2\x02\x12\x01\xebP\x00 \x06=\xee\x16\x11\x8d]" +
+	"\x02\xba\xfb\xecLo\xc4t\x92\x00\xe0\xdd\xb1\xd3]/" +
+	"\xff\x04\x00\x00\xff\xff\x8cS\x87\xdd"
 
 func init() {
 	schemas.Register(schema_c8da54a8b024bd49,
 		0x842510ea6f62774d,
 		0x859a9432de9f13ae,
 		0x8b29feea8de52fc2,
+		0x94aee562eddcdc9a,
+		0x9a3256ece4ea2b40,
 		0x9ccf560b8e643983,
 		0xa19ac9e4c3ae910e,
+		0xb2f30317de058cff,
 		0xba9641bb2d0656fe,
 		0xc2cf29e7781255ed,
 		0xc467c34fc2089673,
 		0xc5adc1e5ff537314,
 		0xc7a739b5151eb210,
+		0xd11d7a58ad4e91e2,
 		0xd422ea849f91d323,
 		0xd95e680dea6a35c4,
 		0xe42c18fae46c41d6,
 		0xe9538eb31525c47e,
+		0xf0c65eded57feb4f,
 		0xf39c90c6ef40ea8c,
 		0xfb167076a935c133,
 		0xfd67831669d4d276)

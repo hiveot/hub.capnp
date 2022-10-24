@@ -5,6 +5,15 @@ using Go = import "/go.capnp";
 $Go.package("hubapi");
 $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
 
+interface CapListCallback {
+# callback interface  to be implemented by callers of ListTDcb
+
+   handler @0 (tds :List(Text), isLast :Bool) -> ();
+   # handler is a method that receives a batch of TD documents
+   #  tds is a list of TD documents in JSON format
+   #  isLast is true if this is the last batch to be received
+}
+
 
 interface CapDirectory {
   # Available Thing directory capabilities
@@ -28,6 +37,11 @@ interface CapReadDirectory {
 
   listTDs @2 (limit:Int32, offset:Int32) -> (tds :List(Text));
   # List all TD's
+
+  listTDcb @3 (cb :CapListCallback) -> ();
+  # ListTDcb provides batches of TD documents to a handler.
+  # The callback handler will be invoked until isLast is true or the callback returns an error.
+
 }
 
 
