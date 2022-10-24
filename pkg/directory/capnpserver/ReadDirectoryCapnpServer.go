@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/internal/caphelp"
 	"github.com/hiveot/hub/pkg/directory"
 )
 
@@ -42,6 +43,30 @@ func (capsrv *ReadDirectoryCapnpServer) ListTDs(ctx context.Context, call hubapi
 			textList.Set(i, tdList[i])
 		}
 	}
+	return err
+}
+
+// ListTDcb uses the capnp ability to pass callback interfaces. Great for sending streams of data.
+func (capsrv *ReadDirectoryCapnpServer) ListTDcb(ctx context.Context, call hubapi.CapReadDirectory_listTDcb) (err error) {
+	args := call.Args()
+	cb := args.Cb()
+
+	// the provided function implements the callback interface
+	err = capsrv.srv.ListTDcb(ctx, func(batch []string, isLast bool) error {
+		// send batches of TDs to the caller
+		// TODO: Do we need to create a new method for each batch? Can the callback be invoked repeatedly?
+		method, release := cb.Handler(ctx,
+			func(params hubapi.CapListCallback_handler_Params) error {
+				tdsCapnp := caphelp.MarshalStringList(batch)
+				err2 := params.SetTds(tdsCapnp)
+				params.SetIsLast(isLast)
+				return err2
+			})
+		defer release()
+		// the callback has no response
+		_, err3 := method.Struct()
+		return err3
+	})
 	return err
 }
 

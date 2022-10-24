@@ -134,6 +134,37 @@ func TestListTDs(t *testing.T) {
 	logrus.Infof("--- TestListTDs end ---")
 }
 
+func TestListTDcb(t *testing.T) {
+	logrus.Infof("--- TestListTDcb start ---")
+	_ = os.Remove(dirStoreFile)
+	const thing1ID = "thing1"
+	const title1 = "title1"
+	const count = 100
+	tdList := make([]string, 0)
+
+	ctx := context.Background()
+	store, cancelFunc, err := createNewStore(testUseCapnp)
+	defer cancelFunc()
+	require.NoError(t, err)
+
+	readCap := store.CapReadDirectory(ctx)
+	updateCap := store.CapUpdateDirectory(ctx)
+	tdDoc1 := createTDDoc(thing1ID, title1)
+
+	err = updateCap.UpdateTD(ctx, thing1ID, tdDoc1)
+	require.NoError(t, err)
+	for i := 0; i < count && err == nil; i++ {
+		err = readCap.ListTDcb(ctx, func(batch []string, isLast bool) error {
+			tdList = append(tdList, batch...)
+			return nil
+		})
+	}
+	require.NoError(t, err)
+	assert.NotNil(t, tdList)
+	assert.True(t, len(tdList) > 0)
+	logrus.Infof("--- TestListTDcb end ---")
+}
+
 func TestQueryTDs(t *testing.T) {
 	logrus.Infof("--- TestQueryTDs start ---")
 	_ = os.Remove(dirStoreFile)

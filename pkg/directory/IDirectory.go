@@ -25,6 +25,10 @@ type IReadDirectory interface {
 	// ListTDs returns all TD documents in JSON format
 	ListTDs(ctx context.Context, limit int, offset int) (tds []string, err error)
 
+	// ListTDcb provides batches of TD documents in JSON format via a callback
+	// The callback handler will be invoked until isLast is true or the callback returns an error
+	ListTDcb(ctx context.Context, cb func(batch []string, isLast bool) error) (err error)
+
 	// QueryTDs returns the TD's filtered using JSONpath on the TD content
 	// See 'docs/query-tds.md' for examples
 	QueryTDs(ctx context.Context, jsonPath string, limit int, offset int) (tds []string, err error)

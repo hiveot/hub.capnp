@@ -47,7 +47,6 @@ func (srv *DirectoryKVStoreServer) GetTD(_ context.Context, thingID string) (str
 }
 
 // ListTDs returns an array of TD documents in JSON text
-//  thingIDs optionally restricts the result to the given IDs
 func (srv *DirectoryKVStoreServer) ListTDs(_ context.Context, limit int, offset int) ([]string, error) {
 	res := make([]string, 0)
 	docs, err := srv.store.List(limit, offset, nil)
@@ -57,6 +56,28 @@ func (srv *DirectoryKVStoreServer) ListTDs(_ context.Context, limit int, offset 
 		}
 	}
 	return res, err
+}
+
+// ListTDcb provides a callback with an array of TD documents in JSON text
+func (srv *DirectoryKVStoreServer) ListTDcb(
+	ctx context.Context, handler func(batch []string, isLast bool) error) error {
+	_ = ctx
+	batch := make([]string, 0)
+	docs, err := srv.store.List(0, 0, nil)
+	if err == nil {
+		// convert map to array
+		for _, doc := range docs {
+			batch = append(batch, doc)
+		}
+		// for testing, callback one at a time
+		//err = handler(batch, true)
+		for i, tddoc := range batch {
+			docList := []string{tddoc}
+			isLast := i == len(batch)-1
+			err = handler(docList, isLast)
+		}
+	}
+	return err
 }
 
 // QueryTDs returns an array of TD documents that match the jsonPath query
