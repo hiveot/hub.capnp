@@ -1,5 +1,5 @@
-capnproto.org/go/capnp/v3 v3.0.0-alpha.5 h1:vpb0XdrXsIckOxtNWPdAlWDoekgH1YGQkvQYmZcdzCI=
-capnproto.org/go/capnp/v3 v3.0.0-alpha.5/go.mod h1:Dynqh9/LE2Wy7jYd2wIoYgqFwh3hZHCmG7j6/uCWX6c=
+capnproto.org/go/capnp/v3 v3.0.0-alpha.8 h1:rTN8jzSLBBBFWPhRHfrwdfGLiUpL6mtE/fUGfIxujb0=
+capnproto.org/go/capnp/v3 v3.0.0-alpha.8/go.mod h1:Dynqh9/LE2Wy7jYd2wIoYgqFwh3hZHCmG7j6/uCWX6c=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/philhofer/fwd v1.1.1 h1:GdGcTjf5RNAxwS4QLsiMzJYj5KEvPJD3Abr261yRQXQ=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
