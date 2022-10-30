@@ -100,6 +100,13 @@ func (srv *MongoHistoryServer) GetEventHistory(ctx context.Context,
 	return srv.getHistory(ctx, srv.eventCollection, thingID, eventName, after, before, limit)
 }
 
+// Release the capability instance and release resources
+// For use by IReadHistory and IUpdateHistory as this is a single instance
+// TODO: split Read and Update capability and release separately
+func (srv *MongoHistoryServer) Release() {
+
+}
+
 // setup creates missing collections in the database
 // srv.storeDB must exist and be usable.
 func (srv *MongoHistoryServer) setup(ctx context.Context) error {
@@ -187,7 +194,7 @@ func (srv *MongoHistoryServer) setup(ctx context.Context) error {
 // Start connect to the DB server.
 // This will setup the database if the collections haven't been created yet.
 // Start must be called before any other method, including Setup or Delete
-func (srv *MongoHistoryServer) Start() (err error) {
+func (srv *MongoHistoryServer) Start(ctx context.Context) (err error) {
 	logrus.Infof("Connecting to the mongodb database on '%s'", srv.config.DatabaseURL)
 	if srv.store != nil {
 		return fmt.Errorf("Store already started")
@@ -197,8 +204,8 @@ func (srv *MongoHistoryServer) Start() (err error) {
 	if err == nil {
 		err = srv.store.Connect(nil)
 	}
-	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*100)
-	defer cancelFunc()
+	//ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*100)
+	//defer cancelFunc()
 	if err == nil {
 		err = srv.store.Ping(ctx, nil)
 	}
@@ -233,12 +240,12 @@ func (srv *MongoHistoryServer) Start() (err error) {
 
 // Stop disconnects from the DB server
 // Call Start to reconnect.
-func (srv *MongoHistoryServer) Stop() error {
+func (srv *MongoHistoryServer) Stop(ctx context.Context) error {
 	logrus.Infof("Disconnecting from the database")
-	ctx, cf := context.WithTimeout(context.Background(), 10*time.Second)
+	//ctx, cf := context.WithTimeout(context.Background(), 10*time.Second)
 	err := srv.store.Disconnect(ctx)
 	srv.store = nil
-	cf()
+	//cf()
 	return err
 }
 

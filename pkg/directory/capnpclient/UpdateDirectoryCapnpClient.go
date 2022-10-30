@@ -13,6 +13,11 @@ type UpdateDirectoryCapnpClient struct {
 	capability hubapi.CapUpdateDirectory
 }
 
+// Release the capability and allocated resources
+func (cl *UpdateDirectoryCapnpClient) Release() {
+	cl.capability.Release()
+}
+
 // RemoveTD removes a TD document from the store
 func (cl *UpdateDirectoryCapnpClient) RemoveTD(ctx context.Context, thingID string) (err error) {
 	method, release := cl.capability.RemoveTD(ctx,

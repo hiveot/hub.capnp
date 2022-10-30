@@ -19,19 +19,23 @@ type DirectoryCapnpClient struct {
 }
 
 // CapReadDirectory returns the capability to read the directory
-func (cl *DirectoryCapnpClient) CapReadDirectory(ctx context.Context) directory.IReadDirectory {
+// The returned release function must be called after the capability is no longer needed.
+func (cl *DirectoryCapnpClient) CapReadDirectory(ctx context.Context) (cap directory.IReadDirectory) {
+
 	// The use of a result 'future' avoids a round trip, making this more efficient
-	getCap, _ := cl.capability.CapReadDirectory(ctx, nil)
-	capability := getCap.Cap()
-	return NewReadDirectoryCapnpClient(capability)
+	getCapMethod, getCapRelease := cl.capability.CapReadDirectory(ctx, nil)
+	capability := getCapMethod.Cap()
+	defer getCapRelease()
+	return NewReadDirectoryCapnpClient(capability.AddRef())
 }
 
 // CapUpdateDirectory returns the capability to update the directory
 func (cl *DirectoryCapnpClient) CapUpdateDirectory(ctx context.Context) directory.IUpdateDirectory {
 	// The use of a result 'future' avoids a round trip, making this more efficient
-	getCap, _ := cl.capability.CapUpdateDirectory(ctx, nil)
-	capability := getCap.Cap()
-	return NewUpdateDirectoryCapnpClient(capability)
+	getCapMethod, getCapRelease := cl.capability.CapUpdateDirectory(ctx, nil)
+	defer getCapRelease()
+	capability := getCapMethod.Cap()
+	return NewUpdateDirectoryCapnpClient(capability.AddRef())
 }
 
 // NewDirectoryCapnpClient returns a directory store client using the capnp protocol

@@ -41,6 +41,11 @@ func (srv *VerifyCertsService) VerifyCert(
 	return err
 }
 
+// Release the provided capability and release resources
+func (srv *VerifyCertsService) Release() {
+	// nothing to do here
+}
+
 // NewVerifyCertsService returns a new instance of the certificate verification service
 //  caCert is the CA certificate to verify against
 func NewVerifyCertsService(caCert *x509.Certificate) *VerifyCertsService {

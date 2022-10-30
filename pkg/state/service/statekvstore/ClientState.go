@@ -7,7 +7,7 @@ import (
 	"github.com/hiveot/hub/internal/kvstore"
 )
 
-// ClientState is a store instance for a specific client application
+// ClientState is a store capability for a specific client application
 type ClientState struct {
 	// The underlying persistence store that is concurrent safe
 	store *kvstore.KVStore
@@ -15,6 +15,10 @@ type ClientState struct {
 	clientID string
 	// The application ID whose state to store
 	appID string
+}
+
+// Close capability and release resources, if any
+func (svc *ClientState) Release() {
 }
 
 // Get returns the document for the given key

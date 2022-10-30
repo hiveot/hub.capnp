@@ -14,6 +14,11 @@ type RequestProvisioningCapnpClient struct {
 	capability hubapi.CapRequestProvisioning
 }
 
+// Release the client and release its resources
+func (cl *RequestProvisioningCapnpClient) Release() {
+	cl.capability.Release()
+}
+
 // SubmitProvisioningRequest passes the provisioning request to the server via the capnp protocol
 func (cl *RequestProvisioningCapnpClient) SubmitProvisioningRequest(
 	ctx context.Context, deviceID string, md5Secret string, pubKeyPEM string) (

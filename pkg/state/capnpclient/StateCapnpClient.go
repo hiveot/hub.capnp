@@ -20,14 +20,15 @@ type StateCapnpClient struct {
 }
 
 func (cl *StateCapnpClient) CapClientState(ctx context.Context, clientID string, appID string) state.IClientState {
-	getCap, _ := cl.capability.CapClientState(ctx,
+	getCap, release := cl.capability.CapClientState(ctx,
 		func(params hubapi.CapState_capClientState_Params) error {
 			err2 := params.SetClientID(clientID)
 			_ = params.SetAppID(appID)
 			return err2
 		})
+	defer release()
 	capability := getCap.Cap()
-	return NewClientStateCapnpClient(capability)
+	return NewClientStateCapnpClient(capability.AddRef())
 }
 
 // NewStateCapnpClient returns a state store client using the capnp protocol

@@ -16,7 +16,7 @@ import (
 func AuthzCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	cmd := &cli.Command{
 		Name:      "authz",
-		Usage:     "Manage authentication",
+		Usage:     "Manage authorization",
 		ArgsUsage: ";", // no args
 		Subcommands: []*cli.Command{
 			AuthzListGroupsCommand(ctx, f),
@@ -56,25 +56,24 @@ func HandleListGroups(ctx context.Context, f svcconfig.AppFolders, clientID stri
 
 	conn, err := listener.CreateClientConnection(f.Run, authz.ServiceName)
 	if err == nil {
-		authzClient, err = capnpclient.NewAutzCapnpClient(ctx, conn)
+		authzClient, err = capnpclient.NewAuthzCapnpClient(ctx, conn)
 	}
 	if err == nil {
-		manageAuthz = authzClient.CapManageAuthorization(ctx)
+		manageAuthz = authzClient.CapManageAuthz(ctx)
 	}
 	if err != nil {
 		return err
 	}
-	groups := manageAuthz.GetGroups(ctx, clientID)
+	groupRoles, err := manageAuthz.GetGroupRoles(ctx, clientID)
 
 	fmt.Println("Group Name                          role")
 	fmt.Println("----------                          role")
-	for _, entry := range groups {
-		name := entry
+	for groupName, role := range groupRoles {
 
 		fmt.Printf("%-35s %10s\n",
-			name,
-			"tbd",
+			groupName,
+			role,
 		)
 	}
-	return nil
+	return err
 }

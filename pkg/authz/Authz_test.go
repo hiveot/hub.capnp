@@ -7,7 +7,6 @@ import (
 	"path"
 	"syscall"
 	"testing"
-	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -28,8 +27,8 @@ var aclFilePath string
 
 var tempFolder string
 
-// Create a new auth service with empty acl list
-func startTestAuthzService(useCapnp bool) (svc authz.IAuthz, release func()) {
+// Create a new authz service with empty acl list
+func startTestAuthzService(useCapnp bool) (svc authz.IAuthz, closeFn func()) {
 
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	_ = cancelFunc
@@ -51,9 +50,9 @@ func startTestAuthzService(useCapnp bool) (svc authz.IAuthz, release func()) {
 		// connect the client to the server above
 		clConn, _ := net.Dial("unix", testAddress)
 		capClient, _ := capnpclient.NewAuthzCapnpClient(ctx, clConn)
-		return capClient, cancelFunc
+		return capClient, func() { cancelFunc(); authSvc.Stop() }
 	}
-	return authSvc, authSvc.Stop
+	return authSvc, func() { cancelFunc(); authSvc.Stop() }
 }
 
 // TestMain for all authn tests, setup of default folders and filenames
@@ -64,9 +63,6 @@ func TestMain(m *testing.M) {
 
 	aclFilePath = path.Join(tempFolder, aclFileName)
 
-	// creating these files takes a bit of time,
-	time.Sleep(time.Second)
-
 	res := m.Run()
 	if res == 0 {
 		_ = os.RemoveAll(tempFolder)
@@ -76,10 +72,9 @@ func TestMain(m *testing.M) {
 
 func TestAuthzServiceStartStop(t *testing.T) {
 	logrus.Infof("---TestAuthzServiceStartStop---")
-	svc, stopFn := startTestAuthzService(testUseCapnp)
-	defer stopFn()
+	svc, closeFn := startTestAuthzService(testUseCapnp)
+	closeFn()
 
-	time.Sleep(time.Second * 1)
 	assert.NotNil(t, svc)
 }
 
@@ -112,6 +107,7 @@ func TestIsPublisher(t *testing.T) {
 	svc, stopFn := startTestAuthzService(testUseCapnp)
 	defer stopFn()
 	verifyAuthz := svc.CapVerifyAuthz(ctx)
+	defer verifyAuthz.Release()
 
 	isPublisher, _ := verifyAuthz.IsPublisher(ctx, testDevice1, thingID1)
 	assert.True(t, isPublisher)
@@ -134,7 +130,9 @@ func TestDeviceAuthorization(t *testing.T) {
 	svc, stopFn := startTestAuthzService(testUseCapnp)
 	defer stopFn()
 	verifyAuthz := svc.CapVerifyAuthz(ctx)
+	defer verifyAuthz.Release()
 	manageAuthz := svc.CapManageAuthz(ctx)
+	defer manageAuthz.Release()
 
 	// FIXME: the device ID is normally not a member of the group
 	err := manageAuthz.SetClientRole(ctx, device1ID, group1ID, authz.ClientRoleIotDevice)
@@ -166,7 +164,9 @@ func TestManagerAuthorization(t *testing.T) {
 	defer stopFn()
 
 	verifyAuthz := svc.CapVerifyAuthz(ctx)
+	defer verifyAuthz.Release()
 	manageAuthz := svc.CapManageAuthz(ctx)
+	defer manageAuthz.Release()
 	_ = manageAuthz.SetClientRole(ctx, thingID1, group1ID, authz.ClientRoleIotDevice)
 	_ = manageAuthz.SetClientRole(ctx, thingID2, group1ID, authz.ClientRoleIotDevice)
 
@@ -198,8 +198,10 @@ func TestOperatorAuthorization(t *testing.T) {
 	svc, stopFn := startTestAuthzService(testUseCapnp)
 	defer stopFn()
 
-	manageAuthz := svc.CapManageAuthz(ctx)
 	verifyAuthz := svc.CapVerifyAuthz(ctx)
+	defer verifyAuthz.Release()
+	manageAuthz := svc.CapManageAuthz(ctx)
+	defer manageAuthz.Release()
 	err := manageAuthz.SetClientRole(ctx, thingID1, group1ID, authz.ClientRoleIotDevice)
 	assert.NoError(t, err)
 	_ = manageAuthz.SetClientRole(ctx, thingID2, group1ID, authz.ClientRoleIotDevice)
@@ -233,7 +235,10 @@ func TestViewerAuthorization(t *testing.T) {
 	defer stopFn()
 
 	verifyAuthz := svc.CapVerifyAuthz(ctx)
+	defer verifyAuthz.Release()
 	manageAuthz := svc.CapManageAuthz(ctx)
+	defer manageAuthz.Release()
+
 	err := manageAuthz.SetClientRole(ctx, thingID1, group1ID, authz.ClientRoleIotDevice)
 	assert.NoError(t, err)
 	_ = manageAuthz.SetClientRole(ctx, thingID2, group1ID, authz.ClientRoleIotDevice)
@@ -263,7 +268,9 @@ func TestNoAuthorization(t *testing.T) {
 	defer stopFn()
 
 	verifyAuthz := svc.CapVerifyAuthz(ctx)
+	defer verifyAuthz.Release()
 	manageAuthz := svc.CapManageAuthz(ctx)
+	defer manageAuthz.Release()
 	err := manageAuthz.AddThing(ctx, thingID1, group1ID)
 	assert.NoError(t, err)
 	_ = manageAuthz.AddThing(ctx, thingID2, group1ID)
@@ -289,6 +296,7 @@ func TestListGroups(t *testing.T) {
 	defer stopFn()
 
 	manageAuthz := svc.CapManageAuthz(ctx)
+	defer manageAuthz.Release()
 	err := manageAuthz.AddThing(ctx, thingID1, group1ID)
 	assert.NoError(t, err)
 	_ = manageAuthz.AddThing(ctx, thingID1, group2ID)
@@ -353,6 +361,7 @@ func TestAddRemoveRoles(t *testing.T) {
 	svc, stopFn := startTestAuthzService(testUseCapnp)
 	defer stopFn()
 	manageAuthz := svc.CapManageAuthz(ctx)
+	defer manageAuthz.Release()
 
 	// user1 is a member of 3 groups
 	err := manageAuthz.SetClientRole(ctx, user1ID, group1ID, authz.ClientRoleOperator)
@@ -413,7 +422,9 @@ func TestClientPermissions(t *testing.T) {
 	defer stopFn()
 
 	clientAuthz := svc.CapClientAuthz(ctx, user1ID)
+	defer clientAuthz.Release()
 	manageAuthz := svc.CapManageAuthz(ctx)
+	defer manageAuthz.Release()
 	_ = manageAuthz.AddThing(ctx, thing1ID, group1ID)
 	_ = manageAuthz.AddThing(ctx, thing1ID, group2ID)
 	_ = manageAuthz.AddThing(ctx, thing1ID, group3ID)

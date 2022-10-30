@@ -8,6 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub.go/pkg/certsclient"
+	"github.com/hiveot/hub/pkg/certs"
 )
 
 // UserCertsService creates certificates for use by end-users
@@ -22,6 +23,9 @@ type UserCertsService struct {
 // _createUserCert internal function to create a client certificate for end-users
 func (srv *UserCertsService) _createUserCert(userID string, pubKey *ecdsa.PublicKey, validityDays int) (
 	cert *x509.Certificate, err error) {
+	if validityDays == 0 {
+		validityDays = certs.DefaultUserCertValidityDays
+	}
 
 	cert, err = createClientCert(
 		userID,
@@ -55,6 +59,11 @@ func (srv *UserCertsService) CreateUserCert(
 
 	// TODO: send Thing event (services are things too)
 	return certPEM, srv.caCertPEM, err
+}
+
+// Release the provided capability and release resources
+func (srv *UserCertsService) Release() {
+	// nothing to do here
 }
 
 // NewUserCertsService returns a new instance of the selfsigned user certificate management service

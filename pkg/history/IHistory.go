@@ -40,7 +40,7 @@ type StoreInfo struct {
 	Uptime int
 }
 
-// IHistory defines a POGS based capability API of the thing history
+// IHistory defines the  capability to access the thing history service
 type IHistory interface {
 	// CapReadHistory provides the capability to read history
 	CapReadHistory() IReadHistory
@@ -49,9 +49,8 @@ type IHistory interface {
 	CapUpdateHistory() IUpdateHistory
 }
 
-// IReadHistory defines the POGS based capability to read Thing history
+// IReadHistory defines the capability to read Thing history
 type IReadHistory interface {
-
 	// GetActionHistory returns the history of a Thing action
 	// before and after are timestamps in iso8601 format (YYYY-MM-DDTHH:MM:SS.sss-TZ)
 	// See also vocab.ISO8601Format
@@ -67,9 +66,12 @@ type IReadHistory interface {
 
 	// Info return storage information
 	Info(ctx context.Context) (info StoreInfo, err error)
+
+	// Release the capability and its resources
+	Release()
 }
 
-// IUpdateHistory defines the POGS based capability to update the Thing history
+// IUpdateHistory defines the capability to update the Thing history
 type IUpdateHistory interface {
 
 	// AddAction adds a Thing action with the given name and value to the action history
@@ -82,4 +84,7 @@ type IUpdateHistory interface {
 
 	// AddEvents provides a bulk-add of events to the event history
 	AddEvents(ctx context.Context, eventValues []thing.ThingValue) error
+
+	// Release the capability and its resources
+	Release()
 }

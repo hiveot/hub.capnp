@@ -25,7 +25,6 @@ const ServiceName = "certs"
 // This approach is experimental and intended to improve security by providing capabilities based on
 // user credentials, enforced by the capnp protocol.
 type ICerts interface {
-
 	// CapDeviceCerts provides the capability to manage device certificates
 	CapDeviceCerts() IDeviceCerts
 
@@ -37,9 +36,6 @@ type ICerts interface {
 
 	// CapVerifyCerts provides the capability to verify certificates
 	CapVerifyCerts() IVerifyCerts
-
-	// Release the provided capabilities
-	Release()
 }
 
 // IDeviceCerts defines the POGS based capability to create device certificates
@@ -51,6 +47,9 @@ type IDeviceCerts interface {
 	CreateDeviceCert(
 		ctx context.Context, deviceID string, pubKeyPEM string, validityDays int) (
 		certPEM string, caCertPEM string, err error)
+
+	// Release the capability and its resources after use
+	Release()
 }
 
 // IServiceCerts defines the POGS based capability to create service certificates
@@ -62,11 +61,13 @@ type IServiceCerts interface {
 	CreateServiceCert(
 		ctx context.Context, serviceID string, pubKeyPEM string, names []string, validityDays int) (
 		certPEM string, caCertPEM string, err error)
+
+	// Release the capability and its resources after use
+	Release()
 }
 
 // IUserCerts defines the POGS based capability to create user certificates
 type IUserCerts interface {
-
 	// CreateUserCert generates an end-user certificate for access hub gateway services
 	// Intended for users that use certificates instead of regular login.
 	//  userID is the unique user's ID, for example an email address
@@ -75,10 +76,16 @@ type IUserCerts interface {
 	CreateUserCert(
 		ctx context.Context, userID string, pubKeyPEM string, validityDays int) (
 		certPEM string, caCertPEM string, err error)
+
+	// Release the capability and its resources after use
+	Release()
 }
 
 // IVerifyCerts defines the POGS based capability to verify an issued certificate
 type IVerifyCerts interface {
 	// VerifyCert verifies if the certificate is valid for the Hub
 	VerifyCert(ctx context.Context, clientID string, certPEM string) error
+
+	// Release the capability and its resources after use
+	Release()
 }

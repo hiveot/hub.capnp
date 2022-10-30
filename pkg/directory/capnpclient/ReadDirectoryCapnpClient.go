@@ -9,11 +9,15 @@ import (
 	"github.com/hiveot/hub/pkg/directory"
 )
 
-// ReadDirectoryCapnpClient is the POGO client to reading a directory
+// ReadDirectoryCapnpClient is the POGS client to reading a directory
 // It can only be obtained from the DirectoryCapnpClient
 // This implements the IReadDirectory interface
 type ReadDirectoryCapnpClient struct {
 	capability hubapi.CapReadDirectory
+}
+
+func (cl *ReadDirectoryCapnpClient) Release() {
+	cl.capability.Release()
 }
 
 // GetTD returns the TD document for the given Thing ID in JSON format

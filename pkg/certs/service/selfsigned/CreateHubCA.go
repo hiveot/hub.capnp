@@ -36,7 +36,7 @@ func CreateHubCA(validityDays int) (cert *x509.Certificate, key *ecdsa.PrivateKe
 			Organization: []string{CertOrgName},
 			CommonName:   "Hub CA",
 		},
-		NotBefore: time.Now().Add(-10 * time.Second),
+		NotBefore: time.Now().Add(-3 * time.Second),
 		NotAfter:  time.Now().AddDate(0, 0, validityDays),
 		// CA cert can be used to sign certificate and revocation lists
 		KeyUsage: x509.KeyUsageCertSign | x509.KeyUsageDigitalSignature | x509.KeyUsageCRLSign | x509.KeyUsageDataEncipherment | x509.KeyUsageKeyEncipherment,

@@ -12,10 +12,15 @@ type ClientAuthzCapnpClient struct {
 	capability hubapi.CapClientAuthz
 }
 
-func (authz *ClientAuthzCapnpClient) GetPermissions(
+// Release this capability. To be invoked after use has completed.
+func (clAuthz *ClientAuthzCapnpClient) Release() {
+	clAuthz.capability.Release()
+}
+
+func (clAuthz *ClientAuthzCapnpClient) GetPermissions(
 	ctx context.Context, thingID string) (permissions []string, err error) {
 
-	method, release := authz.capability.GetPermissions(ctx,
+	method, release := clAuthz.capability.GetPermissions(ctx,
 		func(params hubapi.CapClientAuthz_getPermissions_Params) error {
 			params.SetThingID(thingID)
 			return nil

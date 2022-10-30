@@ -12,6 +12,11 @@ type VerifyAuthzCapnpClient struct {
 	capability hubapi.CapVerifyAuthz // capnp client of the authorization service
 }
 
+// Release this capability. To be invoked after use has completed.
+func (authz *VerifyAuthzCapnpClient) Release() {
+	authz.capability.Release()
+}
+
 // Verify if the client is authorized to access thingID for the operation
 //func (verifyAuthz *VerifyAuthzCapnpClient) Verify(
 //	ctx context.Context, clientID string, thingID string, authType string) (authorized bool) {

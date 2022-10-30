@@ -29,7 +29,7 @@ const useTestCapnp = true
 var homeFolder string = "/tmp"
 var logFolder string = "/tmp"
 
-func newServer(useCapnp bool) (launcher.ILauncher, func()) {
+func newServer(useCapnp bool) (l launcher.ILauncher, stopFn func()) {
 	//cwd, _ := os.Getwd()
 	//homeFolder = path.Join(cwd, "../../dist")
 	var launcherConfig = config.NewLauncherConfig()
@@ -57,9 +57,10 @@ func newServer(useCapnp bool) (launcher.ILauncher, func()) {
 		if err != nil {
 			logrus.Fatalf("Failed starting capnp client: %s", err)
 		}
-		return cl, cancelFunc
+		// FIXME: time.second needed to prevent race with next test init logging and service logging during shutdown.
+		return cl, func() { cancelFunc(); svc.StopAll(ctx) }
 	}
-	return svc, cancelFunc
+	return svc, func() { cancelFunc(); svc.StopAll(ctx) }
 }
 
 func TestMain(m *testing.M) {
@@ -71,19 +72,18 @@ func TestMain(m *testing.M) {
 
 func TestStartStop(t *testing.T) {
 	svc, cancelFunc := newServer(useTestCapnp)
+	defer cancelFunc()
 	assert.NotNil(t, svc)
-
-	cancelFunc()
 }
 
 func TestList(t *testing.T) {
 	ctx := context.Background()
 	svc, cancelFunc := newServer(useTestCapnp)
+	defer cancelFunc()
 	require.NotNil(t, svc)
 	info, err := svc.List(ctx, false)
 	assert.NoError(t, err)
 	assert.NotNil(t, info)
-	cancelFunc()
 }
 
 func TestStartYes(t *testing.T) {
@@ -94,6 +94,8 @@ func TestStartYes(t *testing.T) {
 	//
 	ctx := context.Background()
 	svc, cancelFunc := newServer(useTestCapnp)
+	defer cancelFunc()
+
 	assert.NotNil(t, svc)
 	info, err := svc.Start(ctx, "yes")
 	require.NoError(t, err)
@@ -107,13 +109,12 @@ func TestStartYes(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, info2.Running)
 	assert.True(t, info2.StopTime != "")
-
-	cancelFunc()
 }
 
 func TestStartBadName(t *testing.T) {
 	ctx := context.Background()
 	svc, cancelFunc := newServer(useTestCapnp)
+	defer cancelFunc()
 	assert.NotNil(t, svc)
 
 	_, err := svc.Start(ctx, "notaservicename")
@@ -121,13 +122,12 @@ func TestStartBadName(t *testing.T) {
 	//
 	_, err = svc.Stop(ctx, "notaservicename")
 	require.Error(t, err)
-	//
-	cancelFunc()
 }
 
 func TestStartStopTwice(t *testing.T) {
 	ctx := context.Background()
 	svc, cancelFunc := newServer(useTestCapnp)
+	defer cancelFunc()
 	assert.NotNil(t, svc)
 
 	info, err := svc.Start(ctx, "yes")
@@ -148,13 +148,12 @@ func TestStartStopTwice(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, info3.Running)
 	assert.Equal(t, info.PID, info4.PID)
-
-	cancelFunc()
 }
 
 func TestStartStopAll(t *testing.T) {
 	ctx, _ := context.WithTimeout(context.Background(), time.Second*3)
 	svc, cancelFunc := newServer(useTestCapnp)
+	defer cancelFunc()
 	assert.NotNil(t, svc)
 
 	_, err := svc.Start(ctx, "yes")
@@ -174,5 +173,4 @@ func TestStartStopAll(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(info))
 
-	cancelFunc()
 }

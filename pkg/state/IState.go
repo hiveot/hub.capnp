@@ -23,4 +23,7 @@ type IClientState interface {
 
 	// Set sets a document with the given key
 	Set(ctx context.Context, key string, value string) error
+
+	// Release the ClientState capability and release its resources
+	Release()
 }

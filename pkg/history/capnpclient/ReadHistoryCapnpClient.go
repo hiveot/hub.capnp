@@ -16,6 +16,10 @@ type ReadHistoryCapnpClient struct {
 	capability hubapi.CapReadHistory // capnp client
 }
 
+func (cl *ReadHistoryCapnpClient) Release() {
+	cl.capability.Release()
+}
+
 // GetActionHistory returns the history of a Thing action
 // before and after are timestamps in iso8601 format (YYYY-MM-DDTHH:MM:SS-TZ)
 func (cl *ReadHistoryCapnpClient) GetActionHistory(ctx context.Context,

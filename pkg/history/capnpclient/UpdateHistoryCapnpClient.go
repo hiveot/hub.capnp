@@ -15,6 +15,10 @@ type UpdateHistoryCapnpClient struct {
 	capability hubapi.CapUpdateHistory // capnp client
 }
 
+func (cl *UpdateHistoryCapnpClient) Release() {
+	cl.capability.Release()
+}
+
 // AddAction adds a Thing action with the given name and value to the action history
 // TODO: split this into get capability and add action
 func (cl *UpdateHistoryCapnpClient) AddAction(ctx context.Context, actionValue thing.ThingValue) error {

@@ -92,7 +92,6 @@ func NewGroup(groupName string) Group {
 
 // IAuthz defines the interface of the authorization service
 type IAuthz interface {
-
 	// CapClientAuthz provides the capability to verify a client's authorization
 	CapClientAuthz(ctx context.Context, clientID string) IClientAuthz
 
@@ -105,6 +104,8 @@ type IAuthz interface {
 
 // IClientAuthz defines the capability for verifying authorization of a client.
 type IClientAuthz interface {
+	// Release this client capability after its use.
+	Release()
 
 	// GetPermissions returns the permissions the client has for a Thing
 	// Returns an array of permissions, eg PermEmitAction, etc
@@ -116,6 +117,9 @@ type IClientAuthz interface {
 type IManageAuthz interface {
 	// AddThing adds a Thing to a group
 	AddThing(ctx context.Context, thingID string, groupName string) error
+
+	// Release this client capability after its use.
+	Release()
 
 	// GetGroup returns the group with the given name, or an error if group is not found.
 	// GroupName must not be empty and must be an existing group
@@ -147,6 +151,8 @@ type IManageAuthz interface {
 // IVerifyAuthz defines the capability for verifying authorization.
 // Intended for services that provide access to Thing information.
 type IVerifyAuthz interface {
+	// Release this client capability after its use.
+	Release()
 
 	// Verify verifies the client's authorization to access a Thing
 	//  clientID to authorize

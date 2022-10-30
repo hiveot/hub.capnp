@@ -48,9 +48,9 @@ func createNewStore(useCapnp bool) (directory.IDirectory, func(), error) {
 		// connect the client to the server above
 		clConn, _ := net.Dial("unix", testAddress)
 		capClient, err := capnpclient.NewDirectoryCapnpClient(ctx, clConn)
-		return capClient, cancelFunc, err
+		return capClient, func() { cancelFunc(); store.Stop() }, err
 	}
-	return store, cancelFunc, nil
+	return store, func() { cancelFunc(); store.Stop() }, nil
 }
 
 func createTDDoc(thingID string, title string) string {
@@ -89,7 +89,9 @@ func TestAddRemoveTD(t *testing.T) {
 	defer cancelFunc()
 	require.NoError(t, err)
 	readCap := store.CapReadDirectory(ctx)
+	defer readCap.Release()
 	updateCap := store.CapUpdateDirectory(ctx)
+	defer updateCap.Release()
 
 	tdDoc1 := createTDDoc(thing1ID, title1)
 	err = updateCap.UpdateTD(ctx, thing1ID, string(tdDoc1))
@@ -121,7 +123,9 @@ func TestListTDs(t *testing.T) {
 	require.NoError(t, err)
 
 	readCap := store.CapReadDirectory(ctx)
+	defer readCap.Release()
 	updateCap := store.CapUpdateDirectory(ctx)
+	defer updateCap.Release()
 	tdDoc1 := createTDDoc(thing1ID, title1)
 
 	err = updateCap.UpdateTD(ctx, thing1ID, tdDoc1)
@@ -139,7 +143,7 @@ func TestListTDcb(t *testing.T) {
 	_ = os.Remove(dirStoreFile)
 	const thing1ID = "thing1"
 	const title1 = "title1"
-	const count = 100
+	const count = 1000
 	tdList := make([]string, 0)
 
 	ctx := context.Background()
@@ -148,10 +152,13 @@ func TestListTDcb(t *testing.T) {
 	require.NoError(t, err)
 
 	readCap := store.CapReadDirectory(ctx)
+	defer readCap.Release()
 	updateCap := store.CapUpdateDirectory(ctx)
+	defer updateCap.Release()
 	tdDoc1 := createTDDoc(thing1ID, title1)
 
 	err = updateCap.UpdateTD(ctx, thing1ID, tdDoc1)
+	t1 := time.Now()
 	require.NoError(t, err)
 	for i := 0; i < count && err == nil; i++ {
 		err = readCap.ListTDcb(ctx, func(batch []string, isLast bool) error {
@@ -159,6 +166,8 @@ func TestListTDcb(t *testing.T) {
 			return nil
 		})
 	}
+	d1 := time.Now().Sub(t1)
+	logrus.Infof("%d calls to ListTDcb: %d msec", count, d1.Milliseconds())
 	require.NoError(t, err)
 	assert.NotNil(t, tdList)
 	assert.True(t, len(tdList) > 0)
@@ -176,7 +185,9 @@ func TestQueryTDs(t *testing.T) {
 	defer cancelFunc()
 	require.NoError(t, err)
 	readCap := store.CapReadDirectory(ctx)
+	defer readCap.Release()
 	updateCap := store.CapUpdateDirectory(ctx)
+	defer updateCap.Release()
 
 	tdDoc1 := createTDDoc(thing1ID, title1)
 	err = updateCap.UpdateTD(ctx, thing1ID, tdDoc1)
@@ -207,7 +218,9 @@ func TestPerf(t *testing.T) {
 	defer cancelFunc()
 	require.NoError(t, err)
 	readCap := store.CapReadDirectory(ctx)
+	defer readCap.Release()
 	updateCap := store.CapUpdateDirectory(ctx)
+	defer updateCap.Release()
 
 	// test update
 	t1 := time.Now()

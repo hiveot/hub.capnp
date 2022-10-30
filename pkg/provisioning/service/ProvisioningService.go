@@ -1,7 +1,10 @@
 package service
 
 import (
+	"context"
 	"sync"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub/pkg/certs"
 	"github.com/hiveot/hub/pkg/provisioning"
@@ -36,23 +39,37 @@ type ProvisioningService struct {
 }
 
 // CapManageProvisioning provides the capability to manage provisioning
-func (svc *ProvisioningService) CapManageProvisioning() provisioning.IManageProvisioning {
+func (svc *ProvisioningService) CapManageProvisioning(ctx context.Context) provisioning.IManageProvisioning {
+	// TODO: separate instances of each capability
 	return svc
 }
 
 // CapRefreshProvisioning provides the capability to refresh device provisioning
-func (svc *ProvisioningService) CapRefreshProvisioning() provisioning.IRefreshProvisioning {
+func (svc *ProvisioningService) CapRefreshProvisioning(ctx context.Context) provisioning.IRefreshProvisioning {
+	// TODO: separate instances of each capability
 	return svc
 }
 
 // CapRequestProvisioning provides the capability to request device provisioning
-func (svc *ProvisioningService) CapRequestProvisioning() provisioning.IRequestProvisioning {
+func (svc *ProvisioningService) CapRequestProvisioning(ctx context.Context) provisioning.IRequestProvisioning {
+	// TODO: separate instances of each capability and lifecycle
 	return svc
+}
+
+// Stop the provisioning service and release the provided capabilities
+// Users should use context to close the service
+func (svc *ProvisioningService) waitstop(ctx context.Context) {
+	// Stop the service when the context is done
+	<-ctx.Done()
+	logrus.Infof("Stopping Provisioning service")
+	svc.certCapability.Release()
+	svc.verifyCapability.Release()
 }
 
 // NewProvisioningService creates a new provisioning service instance
 // This requires the capability to obtain and verify device certificates
-func NewProvisioningService(certCap certs.IDeviceCerts, verifyCap certs.IVerifyCerts) *ProvisioningService {
+// Invoke 'Stop' when done to close the provided certCap and verifyCap capabilities
+func NewProvisioningService(ctx context.Context, certCap certs.IDeviceCerts, verifyCap certs.IVerifyCerts) *ProvisioningService {
 	ps := &ProvisioningService{
 		certCapability:   certCap,
 		verifyCapability: verifyCap,
@@ -60,5 +77,8 @@ func NewProvisioningService(certCap certs.IDeviceCerts, verifyCap certs.IVerifyC
 		pending:          make(map[string]provisioning.ProvisionStatus),
 		approved:         make(map[string]provisioning.ProvisionStatus),
 	}
+
+	// Stop when the context is cancelled
+	go ps.waitstop(ctx)
 	return ps
 }

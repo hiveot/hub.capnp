@@ -41,7 +41,7 @@ type AclFileStore struct {
 
 // Close the store
 func (aclStore *AclFileStore) Close() {
-	logrus.Infof("AclFileStore.Close: serviceID='%s'", aclStore.serviceID)
+	logrus.Infof("AclFileStore.Release: serviceID='%s'", aclStore.serviceID)
 	aclStore.mutex.Lock()
 	defer aclStore.mutex.Unlock()
 	if aclStore.watcher != nil {
@@ -176,7 +176,7 @@ func (aclStore *AclFileStore) Open(ctx context.Context) error {
 		return err
 	}
 	// watcher handles debounce of too many events
-	aclStore.watcher, err = watcher.WatchFile(ctx, aclStore.storePath, aclStore.Reload, aclStore.serviceID)
+	aclStore.watcher, err = watcher.WatchFile(ctx, aclStore.storePath, aclStore.Reload)
 	return err
 }
 

@@ -36,6 +36,11 @@ func (cl *DeviceCertsCapnpClient) CreateDeviceCert(
 	return certPEM, caCertPEM, err
 }
 
+// Release the provided capabilities after use and release resources
+func (cl *DeviceCertsCapnpClient) Release() {
+	cl.capability.Release()
+}
+
 // NewDeviceCertsCapnpClient returns the device certificate client using the capnp protocol
 // This is for internal use. The capability has to be obtained using CertsCapnpClient.
 func NewDeviceCertsCapnpClient(cap hubapi.CapDeviceCerts) *DeviceCertsCapnpClient {

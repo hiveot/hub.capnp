@@ -34,6 +34,11 @@ func (cl *UserCertsCapnpClient) CreateUserCert(
 	return certPEM, caCertPEM, err
 }
 
+// Release the provided capabilities after use and release resources
+func (cl *UserCertsCapnpClient) Release() {
+	cl.capability.Release()
+}
+
 // NewUserCertsCapnpClient returns a POGO wrapper for the capnp protocol
 // This is for internal use. The capability has to be obtained using CertsCapnpClient.
 func NewUserCertsCapnpClient(cap hubapi.CapUserCerts) *UserCertsCapnpClient {

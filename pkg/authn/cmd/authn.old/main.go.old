@@ -6,15 +6,6 @@ import (
 	"os"
 	"path"
 	"strings"
-
-	"github.com/docopt/docopt-go"
-
-	"github.com/wostzone/hub/authn/pkg/jwtissuer"
-	"github.com/wostzone/hub/authn/pkg/unpwauth"
-	"github.com/wostzone/hub/authn/pkg/unpwstore"
-	"github.com/wostzone/wost-go/pkg/certsclient"
-	"github.com/wostzone/wost-go/pkg/config"
-	"github.com/wostzone/wost-go/pkg/logging"
 )
 
 const Version = `0.3-alpha`

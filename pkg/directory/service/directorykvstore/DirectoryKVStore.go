@@ -28,11 +28,13 @@ func (srv *DirectoryKVStoreServer) createServiceTD() *thing.ThingDescription {
 
 // CapReadDirectory provides the service to read the directory
 func (srv *DirectoryKVStoreServer) CapReadDirectory(ctx context.Context) directory.IReadDirectory {
+	// fixme, create a separate capability instance.
 	return srv
 }
 
 // CapUpdateDirectory provides the service to update the directory
 func (srv *DirectoryKVStoreServer) CapUpdateDirectory(ctx context.Context) directory.IUpdateDirectory {
+	// fixme, create a separate capability instance.
 	return srv
 }
 
@@ -97,6 +99,14 @@ func (srv *DirectoryKVStoreServer) QueryTDs(_ context.Context, jsonPathQuery str
 	//return res, err
 }
 
+// Release the capability and allocated resources
+// Needed by the IReadDirectory and IUpdateDirectory interfaces
+// TODO: separate instances of read and update capabilities and release separately
+func (srv *DirectoryKVStoreServer) Release() {
+	// nothing to release as no extra resources were used in creating the capabilities
+	// note that each of the capabilities should have their own client instance. todo
+}
+
 func (srv *DirectoryKVStoreServer) RemoveTD(_ context.Context, thingID string) error {
 	srv.store.Remove(thingID)
 	return nil
@@ -119,7 +129,8 @@ func (srv *DirectoryKVStoreServer) Start(ctx context.Context) error {
 }
 
 // Stop the storage server and flush changes to disk
-func (srv *DirectoryKVStoreServer) Stop() {
+func (srv *DirectoryKVStoreServer) Stop(ctx context.Context) {
+	_ = ctx
 	_ = srv.store.Stop()
 }
 

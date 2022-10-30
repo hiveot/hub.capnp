@@ -9,6 +9,9 @@ const DefaultDBName = "thinghistory"
 // DefaultDBURL holds the URL of the mongodb store
 const DefaultDBURL = "mongodb://localhost:27017"
 
+// DefaultDBTimeout to connect to the mongodb server
+const DefaultDBTimeout = 3
+
 // HistoryConfig with history store database configuration
 type HistoryConfig struct {
 	// Name of the database to store
@@ -18,17 +21,19 @@ type HistoryConfig struct {
 	LoginID           string
 	Password          string
 	ClientCertificate string // client auth cert
+	Timeout           int    // Timeout in seconds to connect to the db
 }
 
 // NewHistoryConfig creates a new config with default values
 func NewHistoryConfig() HistoryConfig {
 	cfg := HistoryConfig{
 		Backend:           DefaultBackend,
+		ClientCertificate: "",
 		DatabaseName:      DefaultDBName,
 		DatabaseURL:       DefaultDBURL,
 		LoginID:           "",
 		Password:          "",
-		ClientCertificate: "",
+		Timeout:           DefaultDBTimeout,
 	}
 	return cfg
 }

@@ -37,6 +37,11 @@ func (cl *ServiceCertsCapnpClient) CreateServiceCert(
 	return certPEM, caCertPEM, err
 }
 
+// Release the provided capabilities after use and release resources
+func (cl *ServiceCertsCapnpClient) Release() {
+	cl.capability.Release()
+}
+
 // NewServiceCertsCapnpClient returns a capability to create certificates using the capnp protocol
 // This is for internal use. The capability has to be obtained using CertsCapnpClient.
 func NewServiceCertsCapnpClient(cap hubapi.CapServiceCerts) *ServiceCertsCapnpClient {

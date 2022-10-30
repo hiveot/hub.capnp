@@ -9,6 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub.go/pkg/certsclient"
+	"github.com/hiveot/hub/pkg/certs"
 )
 
 // DeviceCertsService creates device certificates for use by IoT devices.
@@ -25,6 +26,9 @@ type DeviceCertsService struct {
 func (srv *DeviceCertsService) _createDeviceCert(
 	deviceID string, pubKey *ecdsa.PublicKey, validityDays int) (
 	cert *x509.Certificate, err error) {
+	if validityDays == 0 {
+		validityDays = certs.DefaultDeviceCertValidityDays
+	}
 
 	cert, err = createClientCert(
 		deviceID,
@@ -55,6 +59,11 @@ func (srv *DeviceCertsService) CreateDeviceCert(
 		certPEM = certsclient.X509CertToPEM(cert)
 	}
 	return certPEM, srv.caCertPEM, err
+}
+
+// Release the provided capability and release resources
+func (srv *DeviceCertsService) Release() {
+	// nothing to do here
 }
 
 // NewDeviceCertsService returns a new instance of the selfsigned device certificate service

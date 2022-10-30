@@ -54,3 +54,8 @@ func (svc *ProvisioningService) GetPendingRequests(_ context.Context) (
 	}
 	return result, nil
 }
+
+// Release the provided capabilities
+// nothing to do here as they are centralized by the service
+func (svc *ProvisioningService) Release() {
+}

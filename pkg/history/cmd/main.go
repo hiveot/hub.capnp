@@ -3,6 +3,10 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"os"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub.go/pkg/logging"
 	"github.com/hiveot/hub/internal/listener"
@@ -17,6 +21,8 @@ import (
 // Start the history store service
 func main() {
 	logging.SetLogging("info", "")
+	ctx := context.Background()
+
 	cfg := config.NewHistoryConfig()
 	f := svcconfig.LoadServiceConfig(launcher.ServiceName, false, &cfg)
 
@@ -24,9 +30,17 @@ func main() {
 
 	// For now only mongodb is supported
 	svc := mongohs.NewMongoHistoryServer(cfg)
-	svc.Start()
-	defer svc.Stop()
+	err := svc.Start(ctx)
+	defer svc.Stop(ctx)
 
-	_ = capnpserver.StartHistoryCapnpServer(context.Background(), srvListener, svc)
-
+	if err == nil {
+		logrus.Infof("HistoryCapnpServer starting on: %s", srvListener.Addr())
+		_ = capnpserver.StartHistoryCapnpServer(context.Background(), srvListener, svc)
+	}
+	if err != nil {
+		msg := fmt.Sprintf("ERROR: Service '%s' failed to start: %s\n", history.ServiceName, err)
+		logrus.Fatal(msg)
+	}
+	logrus.Infof("History service ended gracefully")
+	os.Exit(0)
 }

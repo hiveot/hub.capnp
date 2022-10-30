@@ -1,17 +1,18 @@
-package jwtissuer
+package jwtauthn
 
 import (
 	"crypto/ecdsa"
 	"encoding/json"
 	"fmt"
-	"github.com/wostzone/wost-go/pkg/tlsclient"
-	"github.com/wostzone/wost-go/pkg/tlsserver"
 	"net/http"
 	"time"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/sirupsen/logrus"
-	"github.com/wostzone/wost-go/pkg/hubnet"
+
+	"github.com/hiveot/hub.go/pkg/hubnet"
+	"github.com/hiveot/hub.go/pkg/tlsclient"
+	"github.com/hiveot/hub.go/pkg/tlsserver"
 )
 
 const JwtRefreshCookieName = "refreshtoken"

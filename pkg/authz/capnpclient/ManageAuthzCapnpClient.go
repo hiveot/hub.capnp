@@ -29,6 +29,11 @@ func (authz *ManageAuthzCapnpClient) AddThing(
 	return err
 }
 
+// Release this capability. To be invoked after use has completed.
+func (authz *ManageAuthzCapnpClient) Release() {
+	authz.capability.Release()
+}
+
 // GetGroup returns a list of roles for clients in the group
 // GroupName must not be empty
 func (authz *ManageAuthzCapnpClient) GetGroup(
@@ -157,7 +162,6 @@ func (authz *ManageAuthzCapnpClient) SetClientRole(
 
 	_, err := method.Struct()
 	return err
-
 }
 
 // NewManageAuthzCapnpClient returns the capnp client for managing authz

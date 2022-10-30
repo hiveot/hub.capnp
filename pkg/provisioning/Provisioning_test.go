@@ -35,25 +35,26 @@ func getCertCap() certs.ICerts {
 	return certCap
 }
 
-func newServer(useCapnp bool) provisioning.IProvisioning {
+func newServer(useCapnp bool) (svc provisioning.IProvisioning, closeFn func()) {
 	certCap := getCertCap()
-	svc := service.NewProvisioningService(certCap.CapDeviceCerts(), certCap.CapVerifyCerts())
-	ctx, _ := context.WithCancel(context.Background())
+	ctx, cancelFunc := context.WithCancel(context.Background())
+
+	provSvc := service.NewProvisioningService(ctx, certCap.CapDeviceCerts(), certCap.CapVerifyCerts())
 
 	// optionally test with capnp RPC
 	if useCapnp {
 		_ = syscall.Unlink(testAddress)
 		lis, _ := net.Listen("unix", testAddress)
-		go capnpserver.StartProvisioningCapnpServer(ctx, lis, svc)
+		go capnpserver.StartProvisioningCapnpServer(ctx, lis, provSvc)
 		// connect the client to the server above
 		clConn, _ := net.Dial("unix", testAddress)
 		cl, err := capnpclient.NewProvisioningCapnpClient(ctx, clConn)
 		if err != nil {
 			logrus.Fatalf("Failed starting capnp client: %s", err)
 		}
-		return cl
+		return cl, cancelFunc
 	}
-	return svc
+	return provSvc, cancelFunc
 }
 
 func TestMain(m *testing.M) {
@@ -66,7 +67,8 @@ func TestMain(m *testing.M) {
 // Test starting the provisioning service
 func TestStartStop(t *testing.T) {
 	// this needs a certificate service capability
-	provServer := newServer(useTestCapnp)
+	provServer, closeFn := newServer(useTestCapnp)
+	defer closeFn()
 	assert.NotNil(t, provServer)
 }
 
@@ -79,14 +81,19 @@ func TestAutomaticProvisioning(t *testing.T) {
 	secrets := make([]provisioning.OOBSecret, 2)
 	secrets[0] = provisioning.OOBSecret{DeviceID: device1ID, OobSecret: secret1}
 	secrets[1] = provisioning.OOBSecret{DeviceID: "device2", OobSecret: "secret2"}
-	provServer := newServer(useTestCapnp)
-	capManage := provServer.CapManageProvisioning()
+	provServer, closeFn := newServer(useTestCapnp)
+	defer closeFn()
+
+	capManage := provServer.CapManageProvisioning(ctx)
+	defer capManage.Release()
+	capProv := provServer.CapRequestProvisioning(ctx)
+	defer capProv.Release()
+
 	err := capManage.AddOOBSecrets(ctx, secrets)
 	assert.NoError(t, err)
 
 	// next, provisioning should succeed
 	secret1md5 := fmt.Sprint(md5.Sum([]byte(secret1)))
-	capProv := provServer.CapRequestProvisioning()
 	pubKeyPEM, err := certsclient.PublicKeyToPEM(&device1Keys.PublicKey)
 	assert.NoError(t, err)
 	status, err := capProv.SubmitProvisioningRequest(
@@ -114,9 +121,12 @@ func TestAutomaticProvisioningBadParameters(t *testing.T) {
 	secrets := make([]provisioning.OOBSecret, 1)
 	secrets[0] = provisioning.OOBSecret{DeviceID: device1ID, OobSecret: secret1}
 
-	provServer := newServer(useTestCapnp)
-	capProv := provServer.CapRequestProvisioning()
-	capManage := provServer.CapManageProvisioning()
+	provServer, closeFn := newServer(useTestCapnp)
+	defer closeFn()
+	capProv := provServer.CapRequestProvisioning(ctx)
+	defer capProv.Release()
+	capManage := provServer.CapManageProvisioning(ctx)
+	defer capManage.Release()
 
 	// add a secret for testing
 	err := capManage.AddOOBSecrets(context.Background(), secrets)
@@ -150,9 +160,12 @@ func TestManualProvisioning(t *testing.T) {
 	// setup
 	device1Keys := certsclient.CreateECDSAKeys()
 	ctx := context.Background()
-	provServer := newServer(useTestCapnp)
-	capProv := provServer.CapRequestProvisioning()
-	capManage := provServer.CapManageProvisioning()
+	provServer, closeFn := newServer(useTestCapnp)
+	defer closeFn()
+	capProv := provServer.CapRequestProvisioning(ctx)
+	defer capProv.Release()
+	capManage := provServer.CapManageProvisioning(ctx)
+	defer capManage.Release()
 
 	// Stage 1: request provisioning without a secret.
 	pubKeyPEM, _ := certsclient.PublicKeyToPEM(&device1Keys.PublicKey)
@@ -206,12 +219,17 @@ func TestRefreshProvisioning(t *testing.T) {
 	pubKeyPEM, _ := certsclient.PublicKeyToPEM(&device1Keys.PublicKey)
 	secrets := make([]provisioning.OOBSecret, 1)
 	secrets[0] = provisioning.OOBSecret{DeviceID: device1ID, OobSecret: secret1}
+	ctx := context.Background()
 
 	// request provisioning with a valid secret.
-	provServer := newServer(useTestCapnp)
-	capProv := provServer.CapRequestProvisioning()
-	capRefresh := provServer.CapRefreshProvisioning()
-	capManage := provServer.CapManageProvisioning()
+	provServer, closeFn := newServer(useTestCapnp)
+	defer closeFn()
+	capProv := provServer.CapRequestProvisioning(ctx)
+	defer capProv.Release()
+	capRefresh := provServer.CapRefreshProvisioning(ctx)
+	defer capRefresh.Release()
+	capManage := provServer.CapManageProvisioning(ctx)
+	defer capManage.Release()
 
 	// obtain a certificate
 	err := capManage.AddOOBSecrets(context.Background(), secrets)

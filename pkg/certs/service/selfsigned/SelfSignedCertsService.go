@@ -43,9 +43,15 @@ func (srv *SelfSignedCertsService) CapVerifyCerts() certs.IVerifyCerts {
 	return srv.verifyCertsService
 }
 
-// Release the provided capabilities
-// nothing to do here
-func (srv *SelfSignedCertsService) Release() {
+// Start the service
+func (srv *SelfSignedCertsService) Start() error {
+	// nothing to do here
+	return nil
+}
+
+// Stop the service
+func (srv *SelfSignedCertsService) Stop() {
+	// nothing to do here
 }
 
 // NewSelfSignedCertsService returns a new instance of the selfsigned certificate service
@@ -57,7 +63,7 @@ func NewSelfSignedCertsService(caCert *x509.Certificate, caKey *ecdsa.PrivateKey
 
 	// Use one service instance per capability.
 	// This does open the door to creating an instance per client session with embedded constraints,
-	// although this is not used at the moment.
+	// although this is not needed at the moment.
 	service := &SelfSignedCertsService{
 		deviceCertsService:  NewDeviceCertsService(caCert, caKey),
 		serviceCertsService: NewServiceCertsService(caCert, caKey),

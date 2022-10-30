@@ -13,6 +13,11 @@ type VerifyCertsCapnpClient struct {
 	capability hubapi.CapVerifyCerts
 }
 
+// Release the provided capabilities after use and release resources
+func (cl *VerifyCertsCapnpClient) Release() {
+	cl.capability.Release()
+}
+
 // VerifyCert verifies is the given certificate is valid
 func (cl *VerifyCertsCapnpClient) VerifyCert(
 	ctx context.Context, clientID string, certPEM string) (err error) {

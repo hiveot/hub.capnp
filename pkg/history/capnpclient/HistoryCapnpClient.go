@@ -21,16 +21,18 @@ type HistoryCapnpClient struct {
 
 // CapReadHistory the capability to read the history
 func (cl *HistoryCapnpClient) CapReadHistory() history.IReadHistory {
-	getCap, _ := cl.capability.CapReadHistory(cl.ctx, nil)
-	capability := getCap.Cap()
+	getCap, release := cl.capability.CapReadHistory(cl.ctx, nil)
+	defer release()
+	capability := getCap.Cap().AddRef()
 	return NewReadHistoryCapnpClient(capability)
 }
 
 // CapUpdateHistory provides the capability to update the history
 func (cl *HistoryCapnpClient) CapUpdateHistory() history.IUpdateHistory {
 	// The use of a result 'future' avoids a round trip, making this more efficient
-	getCap, _ := cl.capability.CapUpdateHistory(cl.ctx, nil)
-	capability := getCap.Cap()
+	getCap, release := cl.capability.CapUpdateHistory(cl.ctx, nil)
+	defer release()
+	capability := getCap.Cap().AddRef()
 
 	return NewUpdateHistoryCapnpClient(capability)
 }

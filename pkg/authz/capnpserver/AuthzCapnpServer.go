@@ -23,10 +23,11 @@ func (capsrv *AuthzCapnpServer) CapClientAuthz(
 	ctx context.Context, call hubapi.CapAuthz_capClientAuthz) error {
 
 	clientID, _ := call.Args().ClientID()
-	clientAuthzCapSrv := &ClientAuthzCapnpServer{
-		srv: capsrv.srv.CapClientAuthz(ctx, clientID),
+	capClientAuthz := capsrv.srv.CapClientAuthz(ctx, clientID)
+	capClientAuthzCapnp := &ClientAuthzCapnpServer{
+		srv: capClientAuthz,
 	}
-	capability := hubapi.CapClientAuthz_ServerToClient(clientAuthzCapSrv)
+	capability := hubapi.CapClientAuthz_ServerToClient(capClientAuthzCapnp)
 
 	res, err := call.AllocResults()
 	if err == nil {

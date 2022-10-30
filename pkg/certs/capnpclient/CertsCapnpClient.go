@@ -26,8 +26,9 @@ type CertsCapnpClient struct {
 func (cl *CertsCapnpClient) CapDeviceCerts() certs.IDeviceCerts {
 
 	// Get the capability for creating a device certificate for the given device
-	getCap, _ := cl.capability.CapDeviceCerts(cl.ctx, nil)
-	capability := getCap.Cap()
+	getCap, release := cl.capability.CapDeviceCerts(cl.ctx, nil)
+	defer release()
+	capability := getCap.Cap().AddRef()
 	return NewDeviceCertsCapnpClient(capability)
 }
 
@@ -35,8 +36,9 @@ func (cl *CertsCapnpClient) CapDeviceCerts() certs.IDeviceCerts {
 func (cl *CertsCapnpClient) CapServiceCerts() certs.IServiceCerts {
 
 	// Get the capability for creating a device certificate for the given device
-	getCap, _ := cl.capability.CapServiceCerts(cl.ctx, nil)
-	capability := getCap.Cap()
+	getCap, release := cl.capability.CapServiceCerts(cl.ctx, nil)
+	defer release()
+	capability := getCap.Cap().AddRef()
 	return NewServiceCertsCapnpClient(capability)
 }
 
@@ -44,8 +46,9 @@ func (cl *CertsCapnpClient) CapServiceCerts() certs.IServiceCerts {
 func (cl *CertsCapnpClient) CapUserCerts() certs.IUserCerts {
 
 	// Get the capability for creating a device certificate for the given device
-	getCap, _ := cl.capability.CapUserCerts(cl.ctx, nil)
-	capability := getCap.Cap()
+	getCap, release := cl.capability.CapUserCerts(cl.ctx, nil)
+	defer release()
+	capability := getCap.Cap().AddRef()
 	return NewUserCertsCapnpClient(capability)
 }
 
@@ -53,14 +56,13 @@ func (cl *CertsCapnpClient) CapUserCerts() certs.IUserCerts {
 func (cl *CertsCapnpClient) CapVerifyCerts() certs.IVerifyCerts {
 
 	// Get the capability for creating a device certificate for the given device
-	getCap, _ := cl.capability.CapVerifyCerts(cl.ctx, nil)
-	capability := getCap.Cap()
+	getCap, release := cl.capability.CapVerifyCerts(cl.ctx, nil)
+	defer release()
+	capability := getCap.Cap().AddRef()
 	return NewVerifyCertsCapnpClient(capability)
 }
 
-// Release the provided capabilities after use
-// FIXME: Is this required, optional, or not useful at all?
-// What is managing this lifecycle aspect?
+// Release the provided capabilities after use and release resources
 func (cl *CertsCapnpClient) Release() {
 	cl.capability.Release()
 }

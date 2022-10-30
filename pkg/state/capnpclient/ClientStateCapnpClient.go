@@ -13,6 +13,10 @@ type ClientStateCapnpClient struct {
 	capability hubapi.CapClientState // capnp client of the state store
 }
 
+func (cl *ClientStateCapnpClient) Release() {
+	cl.capability.Release()
+}
+
 // Get reads the state
 func (cl *ClientStateCapnpClient) Get(ctx context.Context, key string) (string, error) {
 	var err error

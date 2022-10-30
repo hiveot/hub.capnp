@@ -44,13 +44,13 @@ type ProvisionStatus struct {
 type IProvisioning interface {
 
 	// CapManageProvisioning provides the capability to manage provisioning requests
-	CapManageProvisioning() IManageProvisioning
+	CapManageProvisioning(ctx context.Context) IManageProvisioning
 
 	// CapRequestProvisioning provides the capability to provision IoT devices
-	CapRequestProvisioning() IRequestProvisioning
+	CapRequestProvisioning(ctx context.Context) IRequestProvisioning
 
 	// CapRefreshProvisioning provides the capability for IoT devices to refresh
-	CapRefreshProvisioning() IRefreshProvisioning
+	CapRefreshProvisioning(ctx context.Context) IRefreshProvisioning
 }
 
 // IManageProvisioning provides the capability to manage provisioning requests and OOB secrets
@@ -67,6 +67,9 @@ type IManageProvisioning interface {
 
 	// GetPendingRequests returns a list of pending requests
 	GetPendingRequests(ctx context.Context) ([]ProvisionStatus, error)
+
+	// Release the capability and its resources after use
+	Release()
 }
 
 // IRequestProvisioning defines the capability to request or refresh a provisioning certificate
@@ -79,6 +82,9 @@ type IRequestProvisioning interface {
 	// This returns an error if the request is invalid
 	SubmitProvisioningRequest(ctx context.Context,
 		deviceID string, md5Secret string, pubKeyPEM string) (ProvisionStatus, error)
+
+	// Release the capability and its resources after use
+	Release()
 }
 
 // IRefreshProvisioning defines the capability to refresh an existing certificate
@@ -92,4 +98,7 @@ type IRefreshProvisioning interface {
 	//
 	// Returns the provisioning status containing the new certificate.
 	RefreshDeviceCert(ctx context.Context, certPEM string) (ProvisionStatus, error)
+
+	// Release the capability and its resources after use
+	Release()
 }

@@ -12,6 +12,11 @@ type ClientAuthz struct {
 	verifyAuthz authz.IVerifyAuthz
 }
 
+// Release the capability and release resources
+func (clauthz *ClientAuthz) Release() {
+	clauthz.verifyAuthz.Release()
+}
+
 // GetPermissions returns a list of permissions a client has for a Thing
 func (clauthz *ClientAuthz) GetPermissions(
 	ctx context.Context, thingID string) (permissions []string, err error) {

@@ -15,6 +15,11 @@ type RefreshProvisioningCapnpClient struct {
 	capability hubapi.CapRefreshProvisioning
 }
 
+// Release the client and release its resources
+func (cl *RefreshProvisioningCapnpClient) Release() {
+	cl.capability.Release()
+}
+
 // RefreshDeviceCert passes the certificate refresh request to the server via the capnp protocol
 func (cl *RefreshProvisioningCapnpClient) RefreshDeviceCert(
 	ctx context.Context, certPEM string) (

@@ -32,6 +32,9 @@ type IReadDirectory interface {
 	// QueryTDs returns the TD's filtered using JSONpath on the TD content
 	// See 'docs/query-tds.md' for examples
 	QueryTDs(ctx context.Context, jsonPath string, limit int, offset int) (tds []string, err error)
+
+	// Release this capability and allocated resources after its use
+	Release()
 }
 
 // IUpdateDirectory defines a POGS based capability of updating the Thing directory
@@ -43,4 +46,7 @@ type IUpdateDirectory interface {
 	// UpdateTD updates the TD document in the directory
 	// If the TD with the given ID doesn't exist it will be added.
 	UpdateTD(ctx context.Context, thingID string, tdDoc string) (err error)
+
+	// Release this capability and allocated resources after its use
+	Release()
 }

@@ -6,7 +6,6 @@ import (
 	"os"
 	"syscall"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -26,20 +25,21 @@ const testUseCapnp = true
 // return an API to the state store, optionally using capnp RPC
 func createStateStore(useCapnp bool) (store state.IState, stopFn func() error, err error) {
 	_ = os.Remove(stateStoreFile)
+
+	ctx, cancelCtx := context.WithCancel(context.Background())
+
 	cfg := config.NewStateConfig("/tmp")
 	cfg.DatabaseURL = stateStoreFile
 	stateStore, err := statekvstore.NewStateKVStore(cfg)
 
 	// optionally test with capnp RPC
 	if err == nil && useCapnp {
-		ctx, cancelCtx := context.WithCancel(context.Background())
 
 		_ = syscall.Unlink(testAddress)
 		srvListener, _ := net.Listen("unix", testAddress)
 		go func() {
 			capnpserver.StartStateCapnpServer(ctx, srvListener, stateStore)
 		}()
-		time.Sleep(time.Second)
 		// connect the client to the server above
 		clConn, _ := net.Dial("unix", testAddress)
 		capClient, err := capnpclient.NewStateCapnpClient(ctx, clConn)
@@ -79,6 +79,7 @@ func TestGetSet(t *testing.T) {
 	store, stopFn, err := createStateStore(testUseCapnp)
 	assert.NoError(t, err)
 	clientStore := store.CapClientState(ctx, clientID1, appID)
+	defer clientStore.Release()
 
 	err = clientStore.Set(ctx, key1, val1)
 	assert.NoError(t, err)
@@ -110,8 +111,10 @@ func TestGetDifferentClient(t *testing.T) {
 
 	err = clientStore.Set(ctx, key1, val1)
 	assert.NoError(t, err)
+	clientStore.Release()
 
 	clientStore2 := store.CapClientState(ctx, clientID2, appID)
+	defer clientStore2.Release()
 	val2, err := clientStore2.Get(ctx, key1)
 	assert.Error(t, err)
 	assert.NotEqual(t, val1, val2)

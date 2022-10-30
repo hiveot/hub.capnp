@@ -31,9 +31,9 @@ const testAddress = "/tmp/certservice_test.socket"
 //}
 
 // Factory for creating service instance. Currently the only implementation is selfsigned.
-func NewService() (svc certs.ICerts, cancel func()) {
+func NewService() (svc certs.ICerts, closeFunc func()) {
 	// use selfsigned to create a new CA for these tests
-	ctx, cancelFunc := context.WithCancel(context.Background())
+	ctx, closeFunc := context.WithCancel(context.Background())
 	caCert, caKey, _ := selfsigned.CreateHubCA(1)
 	svc = selfsigned.NewSelfSignedCertsService(caCert, caKey)
 	// when using capnp, return a client instance instead the svc
@@ -45,9 +45,9 @@ func NewService() (svc certs.ICerts, cancel func()) {
 		// connect the client to the server above
 		clConn, _ := net.Dial("unix", testAddress)
 		capClient, _ := capnpclient.NewCertServiceCapnpClient(ctx, clConn)
-		return capClient, cancelFunc
+		return capClient, closeFunc
 	}
-	return svc, cancelFunc
+	return svc, closeFunc
 }
 
 // TestMain clears the certs folder for clean testing
@@ -84,6 +84,7 @@ func TestCreateDeviceCert(t *testing.T) {
 	pubKeyPEM, _ := certsclient.PublicKeyToPEM(&keys.PublicKey)
 
 	deviceCertsSvc := svc.CapDeviceCerts()
+	defer deviceCertsSvc.Release()
 	deviceCertPEM, caCertPEM, err := deviceCertsSvc.CreateDeviceCert(
 		ctx, deviceID, pubKeyPEM, 1)
 	require.NoError(t, err)
@@ -97,6 +98,7 @@ func TestCreateDeviceCert(t *testing.T) {
 
 	// verify certificate
 	verifyCertsSvc := svc.CapVerifyCerts()
+	defer verifyCertsSvc.Release()
 	err = verifyCertsSvc.VerifyCert(ctx, deviceID, deviceCertPEM)
 	assert.NoError(t, err)
 	err = verifyCertsSvc.VerifyCert(ctx, "notanid", deviceCertPEM)
@@ -122,6 +124,8 @@ func TestDeviceCertBadParms(t *testing.T) {
 	svc, cancelFunc := NewService()
 	defer cancelFunc()
 	deviceCertsSvc := svc.CapDeviceCerts()
+	defer deviceCertsSvc.Release()
+
 	keys := certsclient.CreateECDSAKeys()
 	pubKeyPEM, _ := certsclient.PublicKeyToPEM(&keys.PublicKey)
 
@@ -148,6 +152,8 @@ func TestCreateServiceCert(t *testing.T) {
 	keys := certsclient.CreateECDSAKeys()
 	pubKeyPEM, _ := certsclient.PublicKeyToPEM(&keys.PublicKey)
 	serviceCertsSvc := svc.CapServiceCerts()
+	defer serviceCertsSvc.Release()
+
 	serviceCertPEM, caCertPEM, err := serviceCertsSvc.CreateServiceCert(
 		ctx, serviceID, pubKeyPEM, names, 0)
 	require.NoError(t, err)
@@ -158,6 +164,8 @@ func TestCreateServiceCert(t *testing.T) {
 
 	// verify service certificate against CA
 	verifyCertsSvc := svc.CapVerifyCerts()
+	defer verifyCertsSvc.Release()
+
 	err = verifyCertsSvc.VerifyCert(ctx, serviceID, serviceCertPEM)
 	assert.NoError(t, err)
 
@@ -194,13 +202,16 @@ func TestServiceCertBadParms(t *testing.T) {
 
 	// missing service ID
 	svc := selfsigned.NewSelfSignedCertsService(caCert, caKey)
-	serviceCertPEM, _, err := svc.CapServiceCerts().CreateServiceCert(
+	capServiceCerts := svc.CapServiceCerts()
+	defer capServiceCerts.Release()
+	serviceCertPEM, _, err := capServiceCerts.CreateServiceCert(
 		ctx, "", pubKeyPEM, hostnames, 1)
+
 	require.Error(t, err)
 	require.Empty(t, serviceCertPEM)
 
 	// missing public key
-	serviceCertPEM, _, err = svc.CapServiceCerts().CreateServiceCert(
+	serviceCertPEM, _, err = capServiceCerts.CreateServiceCert(
 		ctx, serviceID, "", hostnames, 1)
 	require.Error(t, err)
 	require.Empty(t, serviceCertPEM)
@@ -216,6 +227,8 @@ func TestCreateUserCert(t *testing.T) {
 	keys := certsclient.CreateECDSAKeys()
 	pubKeyPEM, _ := certsclient.PublicKeyToPEM(&keys.PublicKey)
 
+	capUserCert := svc.CapUserCerts()
+	defer capUserCert.Release()
 	userCertPEM, caCertPEM, err := svc.CapUserCerts().CreateUserCert(
 		ctx, userID, pubKeyPEM, 0)
 	require.NoError(t, err)
@@ -228,7 +241,9 @@ func TestCreateUserCert(t *testing.T) {
 	require.NotNil(t, caCert2)
 
 	// verify service certificate against CA
-	err = svc.CapVerifyCerts().VerifyCert(ctx, userID, userCertPEM)
+	capVerifyCerts := svc.CapVerifyCerts()
+	defer capVerifyCerts.Release()
+	err = capVerifyCerts.VerifyCert(ctx, userID, userCertPEM)
 	assert.NoError(t, err)
 
 	// verify client certificate against CA

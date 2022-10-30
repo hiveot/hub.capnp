@@ -14,6 +14,11 @@ type ManageProvisioningCapnpClient struct {
 	capability hubapi.CapManageProvisioning
 }
 
+// Release the client and release its resources
+func (cl *ManageProvisioningCapnpClient) Release() {
+	cl.capability.Release()
+}
+
 // AddOOBSecrets adds a list of OOB secrets for automated provisioning
 func (cl *ManageProvisioningCapnpClient) AddOOBSecrets(
 	ctx context.Context, oobSecrets []provisioning.OOBSecret) error {

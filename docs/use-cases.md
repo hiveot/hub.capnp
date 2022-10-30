@@ -12,16 +12,25 @@ Short description of usage and bindings where HiveOT can be useful.
 8. Zigbee binding
 
 ## External services integration
-1. Weathernet binding. Forecast and warnings.
-2. Canada weather integration. Forecast and warnings.
-2. pihole integration. Identify destinations using DNS outgoing connections by whom. Identify block, privacy concerns. Alerts.
-3. Android GPS location service.
+1. Openweathermap binding
+   * Obtain weather forecasts and warnings by location; Weather radar.
+2. Canada weather forecast binding
+   * Obtain weather forecasts and warnings by location; Weather radar.
+3. pihole integration. 
+   * Identify destinations using DNS outgoing connections. 
+   * Determine privacy concerns.
+   * Easy configuration of pihole via hiveot; Block certain destinations.
+4. Android GPS location service.
+   * User location tracking
 4. Email integration for notifications
 5. SMS integration for notifications
-6. Sharing data with other Hubs
-7. Twitter integration, listen for keywords on specific channels, eg HWY 1 closed.
+6. Bridge to share information with other Hubs
+7. Twitter integration
+   * listen for keywords on official channels, eg HWY 1 closed.
 8. Denon AVR control: ON,OFF,Channel,Volume
 9. Roku integration, watch channel and select show. 
+10. Search engine integration for querying data
+    * Sonic: https://github.com/valeriansaliou/sonic
 
 ## Analysis & Aggregation
 
@@ -31,18 +40,21 @@ Short description of usage and bindings where HiveOT can be useful.
 4. Voice command recognition using ML
 5. Security analysis using motion detection and IP cameras
 
-## Notifications
+## Notifications Outputs
 
-1. Security alert
-2. Weather alert
-3. Freezing alert
+1. Send email 
+2. Send SMS message
+3. Publish twitter message
+4. 'hiveot' mobile app
+5. TV output (display alert) 
 
 ## Automation
 
 1. ITTT type automation, If 'event' and 'condition' then 'action'
-2. Auto shutoff water after X minutes
+2. Auto shutoff water valve after X minutes
 3. Auto on/off front door lights based on time of day and sunset time 
-4. If motion detected, trigger PTZ camera to preset location and record for X minutes 
+4. If motion detected, trigger PTZ camera to preset location and record for X minutes
+5. When pumphouse/wet area temperature drops below threshold send an alert.
 
 
 

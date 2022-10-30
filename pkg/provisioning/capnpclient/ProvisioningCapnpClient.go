@@ -15,32 +15,34 @@ import (
 type ProvisioningCapnpClient struct {
 	connection *rpc.Conn              // connection to the capnp server
 	capability hubapi.CapProvisioning // capnp client
-	ctx        context.Context
 }
 
 // CapManageProvisioning provides the capability to manage provisioning requests
-func (cl *ProvisioningCapnpClient) CapManageProvisioning() provisioning.IManageProvisioning {
-	getCap, _ := cl.capability.CapManageProvisioning(cl.ctx, nil)
+func (cl *ProvisioningCapnpClient) CapManageProvisioning(ctx context.Context) provisioning.IManageProvisioning {
+	getCap, release := cl.capability.CapManageProvisioning(ctx, nil)
+	defer release()
 	capability := getCap.Cap()
-	return NewManageProvisioningCapnpClient(capability)
+	return NewManageProvisioningCapnpClient(capability.AddRef())
 }
 
 // CapRequestProvisioning provides the capability to provision IoT devices
-func (cl *ProvisioningCapnpClient) CapRequestProvisioning() provisioning.IRequestProvisioning {
-	getCap, _ := cl.capability.CapRequestProvisioning(cl.ctx, nil)
+func (cl *ProvisioningCapnpClient) CapRequestProvisioning(ctx context.Context) provisioning.IRequestProvisioning {
+	getCap, release := cl.capability.CapRequestProvisioning(ctx, nil)
+	defer release()
 	capability := getCap.Cap()
-	return NewRequestProvisioningCapnpClient(capability)
+	return NewRequestProvisioningCapnpClient(capability.AddRef())
 }
 
 // CapRefreshProvisioning provides the capability for IoT devices to refresh
-func (cl *ProvisioningCapnpClient) CapRefreshProvisioning() provisioning.IRefreshProvisioning {
-	getCap, _ := cl.capability.CapRefreshProvisioning(cl.ctx, nil)
+func (cl *ProvisioningCapnpClient) CapRefreshProvisioning(ctx context.Context) provisioning.IRefreshProvisioning {
+	getCap, release := cl.capability.CapRefreshProvisioning(ctx, nil)
+	defer release()
 	capability := getCap.Cap()
-	return NewRefreshProvisioningCapnpClient(capability)
+	return NewRefreshProvisioningCapnpClient(capability.AddRef())
 }
 
 // NewProvisioningCapnpClient returns a provisioning service client using the capnp protocol
-//  ctx is the context for retrieving capabilities
+//  ctx is the context for this client's connection. Release it to release the client.
 //  conn is the connection with the provisioning capnp RPC server
 func NewProvisioningCapnpClient(ctx context.Context, connection net.Conn) (*ProvisioningCapnpClient, error) {
 	var cl *ProvisioningCapnpClient
@@ -52,7 +54,6 @@ func NewProvisioningCapnpClient(ctx context.Context, connection net.Conn) (*Prov
 	cl = &ProvisioningCapnpClient{
 		connection: rpcConn,
 		capability: capability,
-		ctx:        ctx,
 	}
 	return cl, nil
 }

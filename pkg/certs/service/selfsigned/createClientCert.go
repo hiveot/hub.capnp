@@ -52,7 +52,7 @@ func createClientCert(
 			CommonName:         clientID,
 			Names:              make([]pkix.AttributeTypeAndValue, 0),
 		},
-		NotBefore: time.Now(),
+		NotBefore: time.Now().Add(-time.Second),
 		NotAfter:  time.Now().AddDate(0, 0, validityDays),
 
 		//KeyUsage: x509.KeyUsageDigitalSignature | x509.KeyUsageDataEncipherment | x509.KeyUsageKeyEncipherment,

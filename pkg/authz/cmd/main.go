@@ -18,6 +18,7 @@ import (
 
 const aclStoreFile = "authz.acl"
 
+// main entry point to start the authorization service
 func main() {
 	logging.SetLogging("info", "")
 
@@ -41,7 +42,7 @@ func main() {
 		msg := fmt.Sprintf("ERROR: Service '%s' failed to start: %s\n", authz.ServiceName, err)
 		logrus.Fatal(msg)
 	}
-	logrus.Warningf("Directory ended gracefully")
+	logrus.Warningf("Authz service ended gracefully")
 
 	os.Exit(0)
 }

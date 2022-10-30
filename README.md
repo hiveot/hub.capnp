@@ -1,12 +1,14 @@
 # Hive-Of-Things Hub
 
-The Hub for the *Hive of Things* is an intermediary between IoT devices 'Things', IoT services, and consumers using a hub-and-spokes architecture. Consumers interact with Things via the Hub without connecting directly to the IoT devices or services. The Hub is based on the [W3C WoT TD 1.1 specification](https://www.w3.org/TR/wot-thing-description11/) and uses the [cap'n proto](https://capnproto.org/) for Capabilities based secure communication.
+The Hub for the *Hive of Things* provides a simple and secure way to view and operate IoT devices. The Hub securely mediates between consumers and IoT device 'Things' using a hub-and-spokes architecture. Consumers interact with Things via the Hub without connecting directly to the IoT devices or services. The Hub is based on the [W3C WoT TD 1.1 specification](https://www.w3.org/TR/wot-thing-description11/) and uses the [cap'n proto](https://capnproto.org/) for Capabilities based 
+secure communication.
+
 
 ## Project Status
 
 Status: The status of the Hub is In Development. It is undergoing a rewrite to Capabilities based design using **capnp** for infrastructure.
 
-2022-10-12 completed initial version of:
+Updated 2022-10-12: completed initial version of:
 ```
 - certificate management  manage CA, IoT device, service and user certificates 
 - thing directory store   store TD - thing description - documents. Uses file backed KV store.
@@ -14,12 +16,12 @@ Status: The status of the Hub is In Development. It is undergoing a rewrite to C
 - provisioning service    issue auth certificates to IoT devices. 
 - state store             enable services to easily persist state. Uses file backed KV store.
 - launcher service        manage starting and stopping of services
+- authz service           user authorization of capabilities
 ```
 
 Todo in order to reach Alpha:
 ```
 - authn service           user authentication management
-- authz service           user authorization of capabilities
 - gateway service         provide https access to services
 - pubsub service          publish and subscribe to events and actions
 ```
@@ -34,7 +36,7 @@ Stretch goal:
 
 ## Audience
 
-This project is aimed at software developers and system implementors that are working on secure IoT devices. Users choose to not run servers on Things and instead use a hub and spokes model which greatly reduces the security risk posted by traditional IoT devices.
+This project is aimed at software developers and system implementors that are working on secure IoT solutions. HiveOT users subscribe to the security mandate that IoT devices should be isolated from the internet and end-users should not have direct access to IoT devices. Instead all access operates via the Hub.
 
 ## Objectives
 

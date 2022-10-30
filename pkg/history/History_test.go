@@ -48,17 +48,17 @@ var names = []string{"temperature", "humidity", "pressure", "wind", "speed", "sw
 var highestName = make(map[string]thing.ThingValue)
 
 // Create a new store, delete if it already exists
-func newStore(useCapnp bool) history.IHistory {
+func newStore(useCapnp bool) (history.IHistory, func()) {
 	svcConfig := config.NewHistoryConfig()
 	svcConfig.DatabaseName = "test"
 
 	store := mongohs.NewMongoHistoryServer(svcConfig)
-	ctx := context.Background()
+	ctx, cancelFn := context.WithCancel(context.Background())
 	// start to delete the store
-	_ = store.Start()
+	_ = store.Start(ctx)
 	_ = store.Delete()
 	// start to recreate the store
-	err := store.Start()
+	err := store.Start(ctx)
 	if err != nil {
 		logrus.Fatalf("Failed starting the store server: %s", err)
 	}
@@ -67,17 +67,17 @@ func newStore(useCapnp bool) history.IHistory {
 	if useCapnp {
 		_ = syscall.Unlink(testAddress)
 		srvListener, _ := net.Listen("unix", testAddress)
-		go capnpserver.StartHistoryCapnpServer(context.Background(), srvListener, store)
+		go capnpserver.StartHistoryCapnpServer(ctx, srvListener, store)
 		// connect the client to the server above
 		clConn, _ := net.Dial("unix", testAddress)
 		cl, err := capnpclient.NewHistoryCapnpClient(ctx, clConn)
 		if err != nil {
 			logrus.Fatalf("Failed starting capnp client: %s", err)
 		}
-		return cl
+		return cl, func() { store.Stop(ctx); cancelFn() }
 	}
 
-	return store
+	return store, func() { store.Stop(ctx); cancelFn() }
 }
 
 //func stopStore(store client.IHistory) error {
@@ -93,6 +93,7 @@ func addHistory(store history.IHistory,
 	}
 
 	// use add multiple in 100's
+	capUpdateHistory := store.CapUpdateHistory()
 	for i := 0; i < count/batchSize; i++ {
 		evList := make([]thing.ThingValue, 0)
 		for j := 0; j < batchSize; j++ {
@@ -116,8 +117,9 @@ func addHistory(store history.IHistory,
 			}
 			evList = append(evList, ev)
 		}
-		_ = store.CapUpdateHistory().AddEvents(context.Background(), evList)
+		_ = capUpdateHistory.AddEvents(context.Background(), evList)
 	}
+	capUpdateHistory.Release()
 }
 
 func TestMain(m *testing.M) {
@@ -130,38 +132,43 @@ func TestMain(m *testing.M) {
 // Test creating and deleting the history database
 // This requires a local unsecured MongoDB instance
 func TestStartStop(t *testing.T) {
+	ctx := context.Background()
 	cfg := config.NewHistoryConfig()
 	cfg.DatabaseName = "test"
 	store := mongohs.NewMongoHistoryServer(cfg)
+
 	require.NotNil(t, store)
-	err := store.Start()
+	err := store.Start(ctx)
+
 	assert.NoError(t, err)
 	// start twice should return an error
-	err = store.Start()
+	err = store.Start(ctx)
 	assert.Error(t, err)
-	err = store.Stop()
+	err = store.Stop(ctx)
 	assert.NotNil(t, store)
 }
 
 // should use default name
 func TestStartNoDBName(t *testing.T) {
+	ctx := context.Background()
 	cfg := config.NewHistoryConfig()
 	cfg.DatabaseName = ""
 	store := mongohs.NewMongoHistoryServer(cfg)
-	err := store.Start()
+	err := store.Start(ctx)
 	assert.NoError(t, err)
-	err = store.Stop()
+	err = store.Stop(ctx)
 	assert.NotNil(t, store)
 }
 
 func TestStartNoDBServer(t *testing.T) {
+	ctx := context.Background()
 	cfg := config.NewHistoryConfig()
 	cfg.DatabaseName = "test"
 	cfg.DatabaseURL = "mongodb://doesnotexist/"
 	store := mongohs.NewMongoHistoryServer(cfg)
-	err := store.Start()
+	err := store.Start(ctx)
 	assert.Error(t, err)
-	err = store.Stop()
+	err = store.Stop(ctx)
 	assert.NotNil(t, store)
 }
 
@@ -173,13 +180,17 @@ func TestAddGetEvent(t *testing.T) {
 	var timebefore = ""
 	var timeafter = ""
 
-	store := newStore(useTestCapnp)
+	store, cancelFn := newStore(useTestCapnp)
+	defer cancelFn()
 	ctx := context.Background()
 	fivemago := time.Now().Add(-time.Minute * 5)
 	fiftyfivemago := time.Now().Add(-time.Minute * 55)
 
 	// add events for thing 1
 	updateHistory := store.CapUpdateHistory()
+	defer updateHistory.Release()
+	readHistory := store.CapReadHistory()
+	defer readHistory.Release()
 	//
 	ev1_1 := thing.ThingValue{ThingID: id1, Name: evTemperature, ValueJSON: "12.5", Created: fivemago.Format(vocab.ISO8601Format)}
 	err := updateHistory.AddEvent(ctx, ev1_1)
@@ -201,7 +212,7 @@ func TestAddGetEvent(t *testing.T) {
 	// Test 1: get events of thing 1 older than 30 minutes ago - expect 1 humidity
 	timeafter = time.Now().Add(-time.Minute * 300).Format(vocab.ISO8601Format)
 	timebefore = time.Now().Add(-time.Minute * 30).Format(vocab.ISO8601Format)
-	readHistory := store.CapReadHistory()
+
 	res, err := readHistory.GetEventHistory(ctx, id1, "", timeafter, timebefore, 100)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res))
@@ -212,7 +223,7 @@ func TestAddGetEvent(t *testing.T) {
 	// Test 2: get events of thing 1 newer than 30 minutes ago - expect 1 temperature
 	timeafter = time.Now().Add(-time.Minute * 30).Format(vocab.ISO8601Format)
 	timebefore = time.Now().Add(-time.Minute * 1).Format(vocab.ISO8601Format)
-	readHistory = store.CapReadHistory()
+	//readHistory = store.CapReadHistory()
 	res, err = readHistory.GetEventHistory(ctx, id1, "", timeafter, timebefore, 100)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res))
@@ -234,12 +245,16 @@ func TestAddGetEvent(t *testing.T) {
 func TestEventPerf(t *testing.T) {
 	const id1 = "thing-1"
 	const nrRecords = 1000 // 10000 recs: 8sec to write, 6.3sec to read
-	store := newStore(true)
+	store, closeFn := newStore(true)
+	defer closeFn()
 
 	//addHistory(store, 10000, 1000)
 
 	ctx := context.Background()
 	updateHistory := store.CapUpdateHistory()
+	defer updateHistory.Release()
+	readHistory := store.CapReadHistory()
+	defer readHistory.Release()
 
 	// test adding records
 	evData := `{"temperature":"12.5"}`
@@ -255,7 +270,6 @@ func TestEventPerf(t *testing.T) {
 			Name:      names[randomName],
 			ValueJSON: evData}
 
-		//err := store.CapUpdateHistory().AddEvent(ctx, ev)
 		err := updateHistory.AddEvent(ctx, ev)
 		require.NoError(t, err)
 	}
@@ -264,8 +278,6 @@ func TestEventPerf(t *testing.T) {
 
 	// test reading records
 	t2 := time.Now()
-	//afterTime := time.Now().Add(-time.Hour * 600).Format(time.RFC3339)
-	readHistory := store.CapReadHistory()
 	for i := 0; i < nrRecords; i++ {
 		_, err := readHistory.GetEventHistory(ctx, id1, "", "", "", 10)
 		require.NoError(t, err)
@@ -277,7 +289,8 @@ func TestEventPerf(t *testing.T) {
 func TestGetLatest(t *testing.T) {
 	const count = 10000
 	const id1 = thingIDPrefix + "0" // matches a percentage of the random things
-	store := newStore(useTestCapnp)
+	store, closeFn := newStore(useTestCapnp)
+	defer closeFn()
 
 	// 10 sensors -> 1 sample per minute, 60 per hour -> 600
 	addHistory(store, count, 1, 3600*24*30)
@@ -285,7 +298,9 @@ func TestGetLatest(t *testing.T) {
 	ctx := context.Background()
 	t1 := time.Now()
 
-	values, err := store.CapReadHistory().GetLatestEvents(ctx, id1)
+	readHistory := store.CapReadHistory()
+	defer readHistory.Release()
+	values, err := readHistory.GetLatestEvents(ctx, id1)
 	d1 := time.Now().Sub(t1)
 	logrus.Infof("Duration: %d msec", d1.Milliseconds())
 	assert.NotNil(t, values)
@@ -309,7 +324,8 @@ func TestGetLatest(t *testing.T) {
 func TestAddGetAction(t *testing.T) {
 	const id1 = "thing1"
 	const name = "action1"
-	store := newStore(useTestCapnp)
+	store, closeFn := newStore(useTestCapnp)
+	defer closeFn()
 	ctx := context.Background()
 	actionData := `{"switch":"on"}`
 	action := thing.ThingValue{
@@ -319,12 +335,15 @@ func TestAddGetAction(t *testing.T) {
 		ValueJSON: actionData}
 
 	updateHistory := store.CapUpdateHistory()
+	defer updateHistory.Release()
+	readHistory := store.CapReadHistory()
+	defer readHistory.Release()
+
 	err := updateHistory.AddAction(ctx, action)
 	assert.NoError(t, err)
 	err = updateHistory.AddAction(ctx, action)
 	assert.NoError(t, err)
 
-	readHistory := store.CapReadHistory()
 	actions, err := readHistory.GetActionHistory(ctx, id1, "", "", "", 0)
 	assert.NoError(t, err)
 	assert.NotNil(t, actions)
@@ -332,11 +351,15 @@ func TestAddGetAction(t *testing.T) {
 }
 
 func TestGetInfo(t *testing.T) {
-	store := newStore(useTestCapnp)
+	store, closeFn := newStore(useTestCapnp)
+	defer closeFn()
 	addHistory(store, 20, 5, 1000)
 	ctx := context.Background()
 
-	info, err := store.CapReadHistory().Info(ctx)
+	readHistory := store.CapReadHistory()
+	defer readHistory.Release()
+
+	info, err := readHistory.Info(ctx)
 	assert.NoError(t, err)
 	assert.Greater(t, info.NrEvents, 20)
 }

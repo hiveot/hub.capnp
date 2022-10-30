@@ -17,7 +17,7 @@ import (
 // See hub.capnp/go/hubapi/Provisioning.capnp.go for the interface.
 type ProvisioningCapnpServer struct {
 	// the plain-old-go-object provisioning server
-	pogo provisioning.IProvisioning
+	srv provisioning.IProvisioning
 }
 
 func (capsrv *ProvisioningCapnpServer) CapManageProvisioning(
@@ -25,7 +25,7 @@ func (capsrv *ProvisioningCapnpServer) CapManageProvisioning(
 
 	// create the service instance for this request
 	mngCapSrv := &ManageProvisioningCapnpServer{
-		pogosrv: capsrv.pogo.CapManageProvisioning(),
+		pogosrv: capsrv.srv.CapManageProvisioning(ctx),
 	}
 
 	// wrap it with a capnp proxy
@@ -44,7 +44,7 @@ func (capsrv *ProvisioningCapnpServer) CapRefreshProvisioning(
 	// create the service instance for this request
 	// TODO: restrict it to the deviceID of the caller
 	refreshCapSrv := &RefreshProvisioningCapnpServer{
-		pogosrv: capsrv.pogo.CapRefreshProvisioning(),
+		pogosrv: capsrv.srv.CapRefreshProvisioning(ctx),
 	}
 
 	// wrap it with a capnp proxy
@@ -60,7 +60,7 @@ func (capsrv *ProvisioningCapnpServer) CapRequestProvisioning(
 	ctx context.Context, call hubapi.CapProvisioning_capRequestProvisioning) error {
 	// create the service instance for this request
 	reqCapSrv := &RequestProvisioningCapnpServer{
-		pogosrv: capsrv.pogo.CapRequestProvisioning(),
+		pogosrv: capsrv.srv.CapRequestProvisioning(ctx),
 	}
 
 	// wrap it with a capnp proxy
@@ -79,7 +79,7 @@ func StartProvisioningCapnpServer(
 	logrus.Infof("Starting provisioning service capnp adapter on: %s", lis.Addr())
 
 	main := hubapi.CapProvisioning_ServerToClient(&ProvisioningCapnpServer{
-		pogo: srv,
+		srv: srv,
 	})
 
 	return caphelp.CapServe(ctx, provisioning.ServiceName, lis, capnp.Client(main))

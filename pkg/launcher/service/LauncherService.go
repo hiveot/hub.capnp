@@ -250,6 +250,7 @@ func (ls *LauncherService) StopAll(ctx context.Context) (err error) {
 		_, _ = ls.Stop(ctx, name)
 		delete(ls.cmds, name)
 	}
+	time.Sleep(time.Millisecond)
 	return err
 }
 
@@ -299,7 +300,7 @@ func (ls *LauncherService) updateStatus(svcInfo *launcher.ServiceInfo) {
 }
 
 // NewLauncherService returns a new launcher instance for the services in the given services folder.
-// This scans the folder for executables and adds these to the list of available services
+// This scans the folder for executables, adds these to the list of available services and autostarts services
 // Logging will be enabled based on LauncherConfig.
 func NewLauncherService(
 	ctx context.Context, f svcconfig.AppFolders, cfg config.LauncherConfig) (*LauncherService, error) {

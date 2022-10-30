@@ -14,6 +14,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub.go/pkg/certsclient"
+	"github.com/hiveot/hub/pkg/certs"
 )
 
 // ServiceCertsService creates certificates for use by services.
@@ -36,6 +37,9 @@ func (srv *ServiceCertsService) _createServiceCert(
 		logrus.Error(err)
 		return nil, err
 	}
+	if validityDays == 0 {
+		validityDays = certs.DefaultServiceCertValidityDays
+	}
 
 	logrus.Infof("Create service certificate for IP/name: %s", names)
 	// firefox complains if serial is the same as that of the CA. So generate a unique one based on timestamp.
@@ -50,7 +54,7 @@ func (srv *ServiceCertsService) _createServiceCert(
 			OrganizationalUnit: []string{certsclient.OUService},
 			CommonName:         serviceID,
 		},
-		NotBefore: time.Now(),
+		NotBefore: time.Now().Add(-time.Second),
 		NotAfter:  time.Now().AddDate(0, 0, validityDays),
 		//NotBefore: time.Now(),
 		//NotAfter:  time.Now().AddDate(0, 0, config.DefaultServiceCertDurationDays),
@@ -106,6 +110,11 @@ func (srv *ServiceCertsService) CreateServiceCert(
 	}
 	// TODO: send Thing event (services are things too)
 	return certPEM, srv.caCertPEM, err
+}
+
+// Release the provided capability and release resources
+func (srv *ServiceCertsService) Release() {
+	// nothing to do here
 }
 
 // NewServiceCertsService returns a new instance of the selfsigned service certificate service
