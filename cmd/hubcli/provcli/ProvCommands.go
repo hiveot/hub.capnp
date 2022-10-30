@@ -112,7 +112,7 @@ func HandleAddOobSecret(ctx context.Context, f svcconfig.AppFolders, deviceID st
 	if err != nil {
 		return err
 	}
-	manage := pc.CapManageProvisioning()
+	manage := pc.CapManageProvisioning(ctx)
 
 	secrets = []provisioning.OOBSecret{
 		{
@@ -134,11 +134,11 @@ func HandleApproveRequest(ctx context.Context, f svcconfig.AppFolders, deviceID 
 	if err == nil {
 		pc, err = capnpclient.NewProvisioningCapnpClient(ctx, conn)
 	}
-	pc.CapManageProvisioning()
+	pc.CapManageProvisioning(ctx)
 	if err != nil {
 		return err
 	}
-	manage := pc.CapManageProvisioning()
+	manage := pc.CapManageProvisioning(ctx)
 	err = manage.ApproveRequest(ctx, deviceID)
 
 	return err
@@ -155,7 +155,7 @@ func HandleGetApprovedRequests(ctx context.Context, f svcconfig.AppFolders) erro
 	if err != nil {
 		return err
 	}
-	manage := pc.CapManageProvisioning()
+	manage := pc.CapManageProvisioning(ctx)
 	provStatus, err := manage.GetApprovedRequests(ctx)
 	fmt.Printf("Client ID              Request Time      Assigned\n")
 	fmt.Printf("--------------------   ------------      --------\n")
@@ -180,7 +180,7 @@ func HandleGetPendingRequests(ctx context.Context, f svcconfig.AppFolders) error
 	if err != nil {
 		return err
 	}
-	manage := pc.CapManageProvisioning()
+	manage := pc.CapManageProvisioning(ctx)
 	provStatus, err := manage.GetPendingRequests(ctx)
 	fmt.Printf("Client ID              Request Time\n")
 	fmt.Printf("--------------------   ------------\n")

@@ -12,7 +12,7 @@ import (
 	"github.com/hiveot/hub/pkg/authz/capnpclient"
 )
 
-// AuthzCommands returns the list of Authentication service commands
+// AuthzCommands returns the list of Authorization commands
 func AuthzCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	cmd := &cli.Command{
 		Name:      "authz",

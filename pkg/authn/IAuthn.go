@@ -30,6 +30,27 @@ type IAuthn interface {
 	CapManageAuthn(ctx context.Context) IManageAuthn
 }
 
+// IManageAuthn defines the interface for managing the authentication service
+// Intended for administrators only.
+type IManageAuthn interface {
+
+	// AddUser adds a new user and generates a temporary password
+	AddUser(ctx context.Context, loginID string, name string) (password string, err error)
+
+	// ListUsers provide a list of users and their info
+	ListUsers(ctx context.Context) (profiles []UserProfile, err error)
+
+	// RemoveUser removes a user and disables login
+	// Existing tokens are immediately expired (tbd)
+	RemoveUser(ctx context.Context, loginID string) error
+
+	// ResetPassword reset the user's password and returns a new password
+	ResetPassword(ctx context.Context, loginID string) (newPassword string, err error)
+
+	// Release the provided capability after use
+	Release()
+}
+
 // IUserAuthn defines the capabilities to handle user authentication
 // Intended for end-users to login, logout, or obtain their profile
 type IUserAuthn interface {
@@ -61,43 +82,6 @@ type IUserAuthn interface {
 	SetProfile(ctx context.Context, profile UserProfile) error
 
 	// TBD add OAuth2 login support
-
-	// Release the provided capability after use
-	Release()
-}
-
-// IManageAuthn defines the interface for managing the authentication service
-// Intended for administrators only.
-type IManageAuthn interface {
-
-	// AddUser adds a new user and generates a temporary password
-	AddUser(ctx context.Context, loginID string, name string) (password string, err error)
-
-	// ListUsers provide a list of users and their info
-	ListUsers(ctx context.Context) (profiles []UserProfile, err error)
-
-	// RemoveUser removes a user and disables login
-	// Existing tokens are immediately expired (tbd)
-	RemoveUser(ctx context.Context, loginID string) error
-
-	// ResetPassword reset the user's password and returns a new password
-	ResetPassword(ctx context.Context, loginID string) (newPassword string, err error)
-
-	// Release the provided capability after use
-	Release()
-}
-
-// IUserProfileAuthn defines the capabilities to manage a user's account.
-// Intended for authenticated users.
-type IUserProfileAuthn interface {
-	// GetProfile returns the user's profile
-	GetProfile(ctx context.Context) (profile UserProfile, err error)
-
-	// SetPassword changes the client password
-	SetPassword(ctx context.Context, newPassword string) error
-
-	// UpdateProfile updates the user profile
-	UpdateProfile(ctx context.Context, profile UserProfile) error
 
 	// Release the provided capability after use
 	Release()
