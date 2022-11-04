@@ -31,7 +31,7 @@ type IReadDirectory interface {
 
 	// QueryTDs returns the TD's filtered using JSONpath on the TD content
 	// See 'docs/query-tds.md' for examples
-	QueryTDs(ctx context.Context, jsonPath string, limit int, offset int) (tds []string, err error)
+	//QueryTDs(ctx context.Context, jsonPath string, limit int, offset int) (tds []string, err error)
 
 	// Release this capability and allocated resources after its use
 	Release()

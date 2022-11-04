@@ -34,11 +34,12 @@ Short description of usage and bindings where HiveOT can be useful.
 
 ## Analysis & Aggregation
 
-1. Wallpaper combines multiple IPCam snapshots into a screen background.
-2. Security camera motion detection
-3. Image identification using ML
-4. Voice command recognition using ML
-5. Security analysis using motion detection and IP cameras
+1. IPCam snapshot with augmented info such as temperature, history, ..
+2. Wallpaper combines multiple IPCam snapshots into a screen background.
+3. Security camera motion detection
+4. Image identification using ML
+5. Voice command recognition using ML
+6. Security analysis using motion detection and IP cameras
 
 ## Notifications Outputs
 

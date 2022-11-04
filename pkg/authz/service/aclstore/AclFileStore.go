@@ -8,35 +8,30 @@ import (
 	"path"
 	"sync"
 
-	"github.com/fsnotify/fsnotify"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 
-	"github.com/hiveot/hub.go/pkg/watcher"
 	"github.com/hiveot/hub/pkg/authz"
+	"github.com/hiveot/hub/pkg/state"
 )
 
-// AclFileStore is an in-memory ACL store with file backup.
-// It includes a file watcher to automatically reload on update.
+// AclFileStore is an in-memory ACL store based on the state store
 type AclFileStore struct {
 	serviceID string
 
-	// Groups is a map of groups by their name. Stored
+	// Groups is an index of ACL groups by their name. Stored
 	// map[groupName]Group
 	groups map[string]authz.Group `yaml:"groups"`
 
-	// group storage file path
+	// state store
+	store     state.IClientState
 	storePath string
 
-	// watcher of the group storage file
-	watcher *fsnotify.Watcher
-
-	mutex sync.RWMutex
-
-	// map of clients with groups and their roles for that group. Updated on load.
+	// index of clients and their group roles. Updated on load.
 	// intended for fast lookup of roles
-	// map[clientID] map[groupName]role
+	//map[clientID]map[groupName]role
 	clientGroupRoles map[string]authz.RoleMap
+	mutex            sync.RWMutex
 }
 
 // Close the store
@@ -44,10 +39,10 @@ func (aclStore *AclFileStore) Close() {
 	logrus.Infof("AclFileStore.Release: serviceID='%s'", aclStore.serviceID)
 	aclStore.mutex.Lock()
 	defer aclStore.mutex.Unlock()
-	if aclStore.watcher != nil {
-		_ = aclStore.watcher.Close()
-		aclStore.watcher = nil
-	}
+	//if aclStore.watcher != nil {
+	//	_ = aclStore.watcher.Close()
+	//	aclStore.watcher = nil
+	//}
 }
 
 // GetGroup returns the group of the given name
@@ -163,6 +158,13 @@ func (aclStore *AclFileStore) ListGroups(ctx context.Context, limit int, offset 
 func (aclStore *AclFileStore) Open(ctx context.Context) error {
 	logrus.Infof("AclFileStore.Open: serviceID='%s'", aclStore.serviceID)
 
+	// create the acl store folder if it doesn't exist
+	storeFolder := path.Base(aclStore.storePath)
+	if _, err := os.Stat(storeFolder); os.IsNotExist(err) {
+		logrus.Infof("Creating store folder %s", storeFolder)
+		os.MkdirAll(storeFolder, 0700)
+	}
+
 	// create a new file if it doesn't exist
 	if _, err := os.Stat(aclStore.storePath); os.IsNotExist(err) {
 		file, err := os.OpenFile(aclStore.storePath, os.O_RDWR|os.O_CREATE, 0600)
@@ -176,7 +178,7 @@ func (aclStore *AclFileStore) Open(ctx context.Context) error {
 		return err
 	}
 	// watcher handles debounce of too many events
-	aclStore.watcher, err = watcher.WatchFile(ctx, aclStore.storePath, aclStore.Reload)
+	//aclStore.watcher, err = watcher.WatchFile(ctx, aclStore.storePath, aclStore.Reload)
 	return err
 }
 

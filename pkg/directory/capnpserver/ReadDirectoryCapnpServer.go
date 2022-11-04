@@ -70,23 +70,23 @@ func (capsrv *ReadDirectoryCapnpServer) ListTDcb(ctx context.Context, call hubap
 	return err
 }
 
-func (capsrv *ReadDirectoryCapnpServer) QueryTDs(ctx context.Context, call hubapi.CapReadDirectory_queryTDs) (err error) {
-	var jsonPath string
-	var tdList []string
-
-	args := call.Args()
-	limit := args.Limit()
-	offset := args.Offset()
-	jsonPath, err = args.JsonPath()
-	if err == nil {
-		tdList, err = capsrv.srv.QueryTDs(ctx, jsonPath, int(limit), int(offset))
-	}
-	if err == nil {
-		res, _ := call.AllocResults()
-		textList, _ := res.NewTds(int32(len(tdList)))
-		for i := 0; i < len(tdList); i++ {
-			textList.Set(i, tdList[i])
-		}
-	}
-	return err
-}
+//func (capsrv *ReadDirectoryCapnpServer) QueryTDs(ctx context.Context, call hubapi.CapReadDirectory_queryTDs) (err error) {
+//	var jsonPath string
+//	var tdList []string
+//
+//	args := call.Args()
+//	limit := args.Limit()
+//	offset := args.Offset()
+//	jsonPath, err = args.JsonPath()
+//	if err == nil {
+//		tdList, err = capsrv.srv.QueryTDs(ctx, jsonPath, int(limit), int(offset))
+//	}
+//	if err == nil {
+//		res, _ := call.AllocResults()
+//		textList, _ := res.NewTds(int32(len(tdList)))
+//		for i := 0; i < len(tdList); i++ {
+//			textList.Set(i, tdList[i])
+//		}
+//	}
+//	return err
+//}

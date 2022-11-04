@@ -48,9 +48,9 @@ func createNewStore(useCapnp bool) (directory.IDirectory, func(), error) {
 		// connect the client to the server above
 		clConn, _ := net.Dial("unix", testAddress)
 		capClient, err := capnpclient.NewDirectoryCapnpClient(ctx, clConn)
-		return capClient, func() { cancelFunc(); store.Stop() }, err
+		return capClient, func() { cancelFunc(); store.Stop(ctx) }, err
 	}
-	return store, func() { cancelFunc(); store.Stop() }, nil
+	return store, func() { cancelFunc(); store.Stop(ctx) }, nil
 }
 
 func createTDDoc(thingID string, title string) string {
@@ -174,36 +174,36 @@ func TestListTDcb(t *testing.T) {
 	logrus.Infof("--- TestListTDcb end ---")
 }
 
-func TestQueryTDs(t *testing.T) {
-	logrus.Infof("--- TestQueryTDs start ---")
-	_ = os.Remove(dirStoreFile)
-	const thing1ID = "thing1"
-	const title1 = "title1"
-
-	ctx := context.Background()
-	store, cancelFunc, err := createNewStore(testUseCapnp)
-	defer cancelFunc()
-	require.NoError(t, err)
-	readCap := store.CapReadDirectory(ctx)
-	defer readCap.Release()
-	updateCap := store.CapUpdateDirectory(ctx)
-	defer updateCap.Release()
-
-	tdDoc1 := createTDDoc(thing1ID, title1)
-	err = updateCap.UpdateTD(ctx, thing1ID, tdDoc1)
-	require.NoError(t, err)
-
-	jsonPathQuery := `$[?(@.id=="thing1")]`
-	tdList, err := readCap.QueryTDs(ctx, jsonPathQuery, 0, 0)
-	require.NoError(t, err)
-	assert.NotNil(t, tdList)
-	assert.True(t, len(tdList) > 0)
-	el0 := thing.ThingDescription{}
-	json.Unmarshal([]byte(tdList[0]), &el0)
-	assert.Equal(t, thing1ID, el0.ID)
-	assert.Equal(t, title1, el0.Title)
-	logrus.Infof("--- TestQueryTDs end ---")
-}
+//func TestQueryTDs(t *testing.T) {
+//	logrus.Infof("--- TestQueryTDs start ---")
+//	_ = os.Remove(dirStoreFile)
+//	const thing1ID = "thing1"
+//	const title1 = "title1"
+//
+//	ctx := context.Background()
+//	store, cancelFunc, err := createNewStore(testUseCapnp)
+//	defer cancelFunc()
+//	require.NoError(t, err)
+//	readCap := store.CapReadDirectory(ctx)
+//	defer readCap.Release()
+//	updateCap := store.CapUpdateDirectory(ctx)
+//	defer updateCap.Release()
+//
+//	tdDoc1 := createTDDoc(thing1ID, title1)
+//	err = updateCap.UpdateTD(ctx, thing1ID, tdDoc1)
+//	require.NoError(t, err)
+//
+//	jsonPathQuery := `$[?(@.id=="thing1")]`
+//	tdList, err := readCap.QueryTDs(ctx, jsonPathQuery, 0, 0)
+//	require.NoError(t, err)
+//	assert.NotNil(t, tdList)
+//	assert.True(t, len(tdList) > 0)
+//	el0 := thing.ThingDescription{}
+//	json.Unmarshal([]byte(tdList[0]), &el0)
+//	assert.Equal(t, thing1ID, el0.ID)
+//	assert.Equal(t, title1, el0.Title)
+//	logrus.Infof("--- TestQueryTDs end ---")
+//}
 
 // simple performance test update/read, comparing direct vs capnp access
 func TestPerf(t *testing.T) {

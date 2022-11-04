@@ -1,19 +1,18 @@
 package config
 
-import (
-	"path"
-
-	"github.com/hiveot/hub/pkg/state"
-)
+const StateBackendKVStore = "kvstore"
+const StateBackendBBolt = "bbolt"
 
 // StateConfig holds the configuration of the state service
 type StateConfig struct {
-	// Store backend: options are 'kvstore'
+	// Store backend: options are 'kvstore' | 'bbolt'
 	Backend string `yaml:"backend"`
-	// Database name if applicable
-	DatabaseName string `yaml:"databaseName"`
-	// Database URL or store file. Default is state.json
-	DatabaseURL string `yaml:"databaseURL"`
+	//// Database name if applicable
+	//DatabaseName string `yaml:"databaseName"`
+	//// Database URL or store file. Default is state.json
+	//DatabaseURL    string `yaml:"databaseURL"`
+	// Directory where DB files are stored
+	StoreDirectory string `yaml:"storeDirectory"`
 
 	// Constraints on storing state for services
 	Services struct {
@@ -29,11 +28,13 @@ type StateConfig struct {
 }
 
 // NewStateConfig returns a new configuration with defaults
-func NewStateConfig(storesFolder string) StateConfig {
+func NewStateConfig(StoreDirectory string) StateConfig {
 	sc := StateConfig{}
-	sc.Backend = "kvstore"
-	sc.DatabaseName = "hubstate"
-	sc.DatabaseURL = path.Join(storesFolder, state.ServiceName+".json") // in the stores folder
+	//sc.Backend = "kvstore"
+	sc.Backend = "bbolt"
+	sc.StoreDirectory = StoreDirectory
+	//sc.DatabaseName = "hubstate"
+	//sc.DatabaseURL = path.Join(storesFolder, state.ServiceName+".json") // in the stores folder
 	sc.Services.MaxKeys = 100
 	sc.Services.MaxValueSize = 100000
 	sc.Users.MaxKeys = 100

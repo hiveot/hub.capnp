@@ -23,7 +23,9 @@ func main() {
 	logging.SetLogging("info", "")
 
 	f := svcconfig.LoadServiceConfig(authz.ServiceName, false, nil)
-	aclStorePath := filepath.Join(f.Stores, authz.ServiceName, aclStoreFile)
+	aclStoreFolder := filepath.Join(f.Stores, authz.ServiceName)
+	aclStorePath := filepath.Join(aclStoreFolder, aclStoreFile)
+	os.Mkdir(aclStoreFolder, 0700)
 
 	// parse commandline and create server listening socket
 	srvListener := listener.CreateServiceListener(f.Run, authz.ServiceName)

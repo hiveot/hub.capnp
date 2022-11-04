@@ -6,14 +6,14 @@ import (
 
 	"github.com/hiveot/hub.go/pkg/thing"
 	"github.com/hiveot/hub.go/pkg/vocab"
-	"github.com/hiveot/hub/internal/kvstore"
 	"github.com/hiveot/hub/pkg/directory"
 )
 
-// DirectoryKVStoreServer is a thing wrapper around the internal KVStore
+// DirectoryKVStoreServer is a thing wrapper around the internal bucket store
 // This implements the IDirectory, IReadDirectory and IUpdateDirectory interfaces
 type DirectoryKVStoreServer struct {
-	store *kvstore.KVStore
+	store         *kvmem.KVStore
+	defaultBucket string
 }
 
 // Create a new Thing TD document describing this service
@@ -40,7 +40,7 @@ func (srv *DirectoryKVStoreServer) CapUpdateDirectory(ctx context.Context) direc
 
 // GetTD returns the TD document with the given ID
 func (srv *DirectoryKVStoreServer) GetTD(_ context.Context, thingID string) (string, error) {
-	return srv.store.Read(thingID)
+	return srv.store.Get(srv.defaultBucket, thingID)
 	//resp, err := srv.store.Read(thingID)
 	//if err == nil {
 	//	err = json.Unmarshal([]byte(resp), &res)
@@ -51,7 +51,7 @@ func (srv *DirectoryKVStoreServer) GetTD(_ context.Context, thingID string) (str
 // ListTDs returns an array of TD documents in JSON text
 func (srv *DirectoryKVStoreServer) ListTDs(_ context.Context, limit int, offset int) ([]string, error) {
 	res := make([]string, 0)
-	docs, err := srv.store.List(limit, offset, nil)
+	docs, err := srv.store.List(srv.defaultBucket, limit, offset, nil)
 	if err == nil {
 		for _, doc := range docs {
 			res = append(res, doc)
@@ -65,7 +65,7 @@ func (srv *DirectoryKVStoreServer) ListTDcb(
 	ctx context.Context, handler func(batch []string, isLast bool) error) error {
 	_ = ctx
 	batch := make([]string, 0)
-	docs, err := srv.store.List(0, 0, nil)
+	docs, err := srv.store.List(srv.defaultBucket, 0, 0, nil)
 	if err == nil {
 		// convert map to array
 		for _, doc := range docs {
@@ -84,20 +84,20 @@ func (srv *DirectoryKVStoreServer) ListTDcb(
 
 // QueryTDs returns an array of TD documents that match the jsonPath query
 //  thingIDs optionally restricts the result to the given IDs
-func (srv *DirectoryKVStoreServer) QueryTDs(_ context.Context, jsonPathQuery string, limit int, offset int) ([]string, error) {
-
-	resp, err := srv.store.Query(jsonPathQuery, limit, offset, nil)
-	return resp, err
-	//res := make([]string, 0)
-	//if err == nil {
-	//	for _, docText := range resp {
-	//		var td thing.ThingDescription
-	//		err = json.Unmarshal([]byte(docText), &td)
-	//		res.Things = append(res.Things, &td)
-	//	}
-	//}
-	//return res, err
-}
+//func (srv *DirectoryKVStoreServer) QueryTDs(_ context.Context, jsonPathQuery string, limit int, offset int) ([]string, error) {
+//
+//	resp, err := srv.store.Query(jsonPathQuery, limit, offset, nil)
+//	return resp, err
+//	//res := make([]string, 0)
+//	//if err == nil {
+//	//	for _, docText := range resp {
+//	//		var td thing.ThingDescription
+//	//		err = json.Unmarshal([]byte(docText), &td)
+//	//		res.Things = append(res.Things, &td)
+//	//	}
+//	//}
+//	//return res, err
+//}
 
 // Release the capability and allocated resources
 // Needed by the IReadDirectory and IUpdateDirectory interfaces
@@ -108,18 +108,18 @@ func (srv *DirectoryKVStoreServer) Release() {
 }
 
 func (srv *DirectoryKVStoreServer) RemoveTD(_ context.Context, thingID string) error {
-	srv.store.Remove(thingID)
+	srv.store.Delete(directory.ServiceName, thingID)
 	return nil
 }
 
 func (srv *DirectoryKVStoreServer) UpdateTD(_ context.Context, id string, td string) error {
-	err := srv.store.Write(id, td)
+	err := srv.store.Set(srv.defaultBucket, id, td)
 	return err
 }
 
 // Start creates the store and updates the service own TD
 func (srv *DirectoryKVStoreServer) Start(ctx context.Context) error {
-	err := srv.store.Start()
+	err := srv.store.Open()
 	if err == nil {
 		myTD := srv.createServiceTD()
 		myTDJson, _ := json.Marshal(myTD)
@@ -131,19 +131,18 @@ func (srv *DirectoryKVStoreServer) Start(ctx context.Context) error {
 // Stop the storage server and flush changes to disk
 func (srv *DirectoryKVStoreServer) Stop(ctx context.Context) {
 	_ = ctx
-	_ = srv.store.Stop()
+	_ = srv.store.Close()
 }
 
 // NewDirectoryKVStoreServer creates a service to access TDs in the state store
 //  thingStorePath is the file holding the directory data.
 func NewDirectoryKVStoreServer(ctx context.Context, thingStorePath string) (*DirectoryKVStoreServer, error) {
 
-	kvStore, err := kvstore.NewKVStore(thingStorePath)
+	kvStore := kvmem.NewKVStore(directory.ServiceName, thingStorePath)
 	srv := &DirectoryKVStoreServer{
-		store: kvStore,
+		store:         kvStore,
+		defaultBucket: "directory",
 	}
-	if err == nil {
-		err = srv.Start(ctx)
-	}
+	err := srv.Start(ctx)
 	return srv, err
 }

@@ -67,6 +67,7 @@ install:  all ## build and install the services
 	mkdir -p $(INSTALL_HOME)/stores
 	mkdir -p $(INSTALL_HOME)/run
 	cp -a $(BIN_FOLDER)/* $(INSTALL_HOME)/bin
+	cp -a $(SERVICE_FOLDER)/* $(INSTALL_HOME)/bin/services
 	cp -n $(DIST_FOLDER)/config/* $(INSTALL_HOME)/config/
 
 test: all  ## Run tests (stop on first error, don't run parallel)

@@ -99,22 +99,22 @@ func (cl *ReadDirectoryCapnpClient) ListTDcb(
 
 // QueryTDs returns the TD's filtered using JSONpath on the TD content
 // See 'docs/query-tds.md' for examples
-func (cl *ReadDirectoryCapnpClient) QueryTDs(ctx context.Context, jsonPath string, limit int, offset int) (tds []string, err error) {
-	method, release := cl.capability.QueryTDs(ctx,
-		func(params hubapi.CapReadDirectory_queryTDs_Params) error {
-			params.SetJsonPath(jsonPath)
-			params.SetLimit(int32(limit))
-			params.SetOffset(int32(offset))
-			return nil
-		})
-	defer release()
-	resp, err := method.Struct()
-	if err == nil {
-		capnpTDs, _ := resp.Tds()
-		tds = caphelp.UnmarshalStringList(capnpTDs)
-	}
-	return tds, err
-}
+//func (cl *ReadDirectoryCapnpClient) QueryTDs(ctx context.Context, jsonPath string, limit int, offset int) (tds []string, err error) {
+//	method, release := cl.capability.QueryTDs(ctx,
+//		func(params hubapi.CapReadDirectory_queryTDs_Params) error {
+//			params.SetJsonPath(jsonPath)
+//			params.SetLimit(int32(limit))
+//			params.SetOffset(int32(offset))
+//			return nil
+//		})
+//	defer release()
+//	resp, err := method.Struct()
+//	if err == nil {
+//		capnpTDs, _ := resp.Tds()
+//		tds = caphelp.UnmarshalStringList(capnpTDs)
+//	}
+//	return tds, err
+//}
 
 func NewReadDirectoryCapnpClient(cap hubapi.CapReadDirectory) directory.IReadDirectory {
 	return &ReadDirectoryCapnpClient{

@@ -11,15 +11,17 @@ import (
 	"github.com/hiveot/hub/pkg/state"
 )
 
-// StateCapnpClient provides the POGS wrapper around the capnp client API
+// StateStoreCapnpClient provides the POGS wrapper around the capnp client API
 // This implements the IState interface
-type StateCapnpClient struct {
+type StateStoreCapnpClient struct {
 	connection *rpc.Conn       // connection to capnp server
 	capability hubapi.CapState // capnp client of the state store
 	ctx        context.Context
 }
 
-func (cl *StateCapnpClient) CapClientState(ctx context.Context, clientID string, appID string) state.IClientState {
+func (cl *StateStoreCapnpClient) CapClientState(
+	ctx context.Context, clientID string, appID string) (state.IClientState, error) {
+
 	getCap, release := cl.capability.CapClientState(ctx,
 		func(params hubapi.CapState_capClientState_Params) error {
 			err2 := params.SetClientID(clientID)
@@ -28,19 +30,19 @@ func (cl *StateCapnpClient) CapClientState(ctx context.Context, clientID string,
 		})
 	defer release()
 	capability := getCap.Cap()
-	return NewClientStateCapnpClient(capability.AddRef())
+	return NewClientStateCapnpClient(capability.AddRef()), nil
 }
 
 // NewStateCapnpClient returns a state store client using the capnp protocol
 //  ctx is the context for retrieving capabilities
 //  connection is the client connection to the capnp RPC server
-func NewStateCapnpClient(ctx context.Context, connection net.Conn) (*StateCapnpClient, error) {
-	var cl *StateCapnpClient
+func NewStateCapnpClient(ctx context.Context, connection net.Conn) (*StateStoreCapnpClient, error) {
+	var cl *StateStoreCapnpClient
 	transport := rpc.NewStreamTransport(connection)
 	rpcConn := rpc.NewConn(transport, nil)
 	capability := hubapi.CapState(rpcConn.Bootstrap(ctx))
 
-	cl = &StateCapnpClient{
+	cl = &StateStoreCapnpClient{
 		connection: rpcConn,
 		capability: capability,
 		ctx:        ctx,
