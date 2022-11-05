@@ -3,6 +3,7 @@ package bucketstore_test
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"os"
 	"testing"
 	"time"
@@ -15,16 +16,17 @@ import (
 	"github.com/hiveot/hub.go/pkg/thing"
 	"github.com/hiveot/hub.go/pkg/vocab"
 	"github.com/hiveot/hub/internal/bucketstore"
+	"github.com/hiveot/hub/internal/bucketstore/bolts"
 	"github.com/hiveot/hub/internal/bucketstore/kvmem"
 )
 
 var testBucketID = "default"
 
-var testBackendType = bucketstore.BackendKVStore
-var testBackendPath = "/tmp/test-kvstore.json"
+//var testBackendType = bucketstore.BackendKVStore
+//var testBackendPath = "/tmp/test-kvstore.json"
 
-//var testBackendType = bucketstore.BackendBBolt
-//var testBackendPath = "/tmp/test-bolt.db"
+var testBackendType = bucketstore.BackendBBolt
+var testBackendPath = "/tmp/test-bolt.db"
 
 //var testBackendType = bucketstore.BackendPebble
 //var testBackendPath = "/tmp/test-pebble/"
@@ -53,15 +55,16 @@ var doc2 = []byte(`{
 }`)
 
 // Create the bucket store using the backend
-func createNewStore(backend string, storePath string) (store bucketstore.IBucketStore, err error) {
+func openNewStore(backend string, storePath string) (store bucketstore.IBucketStore, err error) {
 	_ = os.Remove(storePath)
 	if backend == bucketstore.BackendKVStore {
 		store = kvmem.NewKVStore("testclientkv", storePath)
-		//} else if backend == bucketstore.BackendBBolt {
-		//	store = bolts.NewBoltBucketStore("testclientbbolt", storePath)
+	} else if backend == bucketstore.BackendBBolt {
+		store = bolts.NewBoltStore("testclientbbolt", storePath)
 		//} else if backend == bucketstore.BackendPebble {
 		//	store = pebbles.NewPebbleBucketStore("testclientpebble", storePath)
 	}
+	err = store.Open()
 	return store, err
 }
 
@@ -112,29 +115,50 @@ func createTD(id string) *thing.ThingDescription {
 }
 
 // AddDocs adds documents doc1, doc2 and given nr additional docs
-func addDocs(store bucketstore.IBucketStore, count int) error {
+func addDocs(store bucketstore.IBucketStore, bucketID string, count int) error {
+	const batchSize = 50000
+	bucket := store.GetWriteBucket(bucketID)
+
 	// these docs have values used for testing
-	err := store.Set(testBucketID, doc1ID, doc1)
-	err = store.Set(testBucketID, doc2ID, doc2)
+	err := bucket.Set(doc1ID, doc1)
+	err = bucket.Set(doc2ID, doc2)
 	if err != nil {
 		return err
 	}
-	docs := make(map[string][]byte)
-	// TODO: use SetMultiple for performance
+
+	// breakup in batches to limit the transaction size
 	// fill remainder with generated docs
 	// don't sort order of id
+	iBatch := 0
+	docs := make(map[string][]byte)
 	for i := count; i > 2; i-- {
-		id := fmt.Sprintf("addDocs-%6d", i)
+		rn := rand.Intn(count * 33) // enough spread to avoid duplicates
+		id := fmt.Sprintf("addDocs-%6d", rn)
 		td := createTD(id)
 		_ = td
 		jsonDoc := []byte("hello world")
 		jsonDoc, _ = json.Marshal(td) // 900msec
 		docs[id] = jsonDoc
-		if err != nil {
-			panic(fmt.Sprintf("Unmarshal failed: %s", err))
+		// restart the batch
+		iBatch++
+		// close the bucket/transaction and reopen
+		if iBatch == batchSize {
+			err = bucket.SetMultiple(docs)
+			err = bucket.Close(true)
+			if err != nil {
+				panic(fmt.Sprintf("SetMultiple failed: %s", err))
+			}
+			// next batch
+			docs = make(map[string][]byte)
+			bucket = store.GetWriteBucket(bucketID)
+			iBatch = 0
 		}
+
 	}
-	err = store.SetMultiple(testBucketID, docs)
+	// finish the remainder
+	err = bucket.SetMultiple(docs)
+	bucket.Close(true)
+	logrus.Infof("Added '%d' records to the store", count)
 	return nil
 }
 
@@ -147,20 +171,14 @@ func TestMain(m *testing.M) {
 
 // Generic directory store testcases
 func TestStartStop(t *testing.T) {
-	store, err := createNewStore(testBackendType, testBackendPath)
+	store, err := openNewStore(testBackendType, testBackendPath)
 	require.NoError(t, err)
-
-	err = store.Open()
-	assert.NoError(t, err)
 	err = store.Close()
 	assert.NoError(t, err)
 
 	//// store should now exist and reopen succeed
 	//assert.FileExists(t, bucketstoreFile)
-	store, err = createNewStore(testBackendType, testBackendPath)
-	//store, err = kvstore.NewKVStore(jsonStoreFile)
-	err = store.Open()
-	//time.Sleep(time.Millisecond * 20)
+	store, err = openNewStore(testBackendType, testBackendPath)
 	assert.NoError(t, err)
 	err = store.Close()
 	assert.NoError(t, err)
@@ -173,23 +191,19 @@ func TestStartStop(t *testing.T) {
 
 func TestCreateStoreBadFolder(t *testing.T) {
 	filename := "/folder/does/not/exist/store.json"
-	store, err := createNewStore(testBackendType, filename)
-	assert.NoError(t, err)
-	err = store.Open()
+	_, err := openNewStore(testBackendType, filename)
 	assert.Error(t, err)
 }
 
 func TestCreateStoreReadOnlyFolder(t *testing.T) {
 	filename := "/var/jsonstore.json"
-	store, err := createNewStore(testBackendType, filename)
-	err = store.Open()
+	_, err := openNewStore(testBackendType, filename)
 	assert.Error(t, err)
 }
 
 func TestCreateStoreCantReadFile(t *testing.T) {
 	filename := "/var"
-	store, err := createNewStore(testBackendType, filename)
-	err = store.Open()
+	_, err := openNewStore(testBackendType, filename)
 	assert.Error(t, err)
 }
 
@@ -198,53 +212,66 @@ func TestWriteRead(t *testing.T) {
 	const id5 = "id5"
 	const id22 = "id22"
 
-	store, err := createNewStore(testBackendType, testBackendPath)
+	store, err := openNewStore(testBackendType, testBackendPath)
 	assert.NoError(t, err)
-	err = store.Open()
-	require.NoError(t, err)
-	err = addDocs(store, 3)
+	err = addDocs(store, testBucketID, 3)
+
+	bucket := store.GetWriteBucket(testBucketID)
+	assert.NotNil(t, bucket)
+
 	require.NoError(t, err)
 
 	// write docs
 	td1 := createTD(id1)
 	td1json, _ := json.Marshal(td1)
-	err = store.Set(testBucketID, id1, td1json)
+	err = bucket.Set(id1, td1json)
 	assert.NoError(t, err)
 	td22 := createTD(id22)
 	td22json, _ := json.Marshal(td22)
-	err = store.Set(testBucketID, id22, td22json)
+	err = bucket.Set(id22, td22json)
 	assert.NoError(t, err)
 	td5 := createTD(id5)
 	td5json, _ := json.Marshal(td5)
-	err = store.Set(testBucketID, id5, td5json)
+	err = bucket.Set(id5, td5json)
 	assert.NoError(t, err)
 
-	// kvstore writes to backend in autosave loop
+	// kvstore flushes to file in autosave loop every 3 seconds
 	// needs to be tested
 	time.Sleep(time.Second * 4)
 
-	// close and reopen
+	err = bucket.Close(true)
+	assert.NoError(t, err)
 	err = store.Close()
 	assert.NoError(t, err)
 	time.Sleep(time.Second)
-	err = store.Open()
+
+	// --- reopen ---
+	err = store.Open() // reopen
 	require.NoError(t, err)
+	bucket = store.GetWriteBucket(testBucketID)
+	assert.NotNil(t, bucket)
 
 	// Read and compare
-	resp, found, err := store.Get(testBucketID, id22)
-	if assert.True(t, found) {
+	resp, err := bucket.Get(id22)
+	if assert.NotNil(t, resp) {
 		assert.Equal(t, td22json, resp)
 	}
-	resp, found, err = store.Get(testBucketID, id1)
-	if assert.True(t, found) {
+	resp, err = bucket.Get(id1)
+	if assert.NotNil(t, resp) {
 		assert.Equal(t, td1json, resp)
 	}
-	resp, found, err = store.Get(testBucketID, id5)
-	if assert.True(t, found) {
+	resp, err = bucket.Get(id5)
+	if assert.NotNil(t, resp) {
 		assert.Equal(t, td5json, resp)
 	}
 	// Delete
-	err = store.Delete(testBucketID, id1)
+	err = bucket.Delete(id1)
+	assert.NoError(t, err)
+	resp, err = bucket.Get(id1)
+	assert.NoError(t, err)
+	assert.Nil(t, resp)
+
+	err = bucket.Close(true)
 	assert.NoError(t, err)
 	err = store.Close()
 	assert.NoError(t, err)
@@ -256,15 +283,16 @@ func TestWriteRead(t *testing.T) {
 }
 
 func TestWriteBadData(t *testing.T) {
-	store, err := createNewStore(testBackendType, testBackendPath)
+	store, err := openNewStore(testBackendType, testBackendPath)
 	require.NoError(t, err)
-	err = store.Open()
 	defer store.Close()
+	bucket := store.GetWriteBucket(testBucketID)
+	defer bucket.Close(true)
 	// not json
-	err = store.Set(testBucketID, doc1ID, []byte("not-json"))
+	err = bucket.Set(doc1ID, []byte("not-json"))
 	assert.NoError(t, err)
 	// missing key
-	err = store.Set(testBucketID, "", []byte("{}"))
+	err = bucket.Set("", []byte("{}"))
 	assert.Error(t, err)
 
 }
@@ -275,99 +303,94 @@ func TestWriteReadMultiple(t *testing.T) {
 	const id22 = "id22"
 	docs := make(map[string][]byte)
 
-	store, err := createNewStore(testBackendType, testBackendPath)
-	assert.NoError(t, err)
-	err = store.Open()
+	store, err := openNewStore(testBackendType, testBackendPath)
 	require.NoError(t, err)
-	err = addDocs(store, 3)
+	err = addDocs(store, testBucketID, 3)
 	require.NoError(t, err)
+
+	bucket := store.GetWriteBucket(testBucketID)
+	assert.NotNil(t, bucket)
+	defer store.Close()
+	defer bucket.Close(true) // last defer completes first
 
 	// write docs
 	docs[id1], _ = json.Marshal(createTD(id1))
 	docs[id22], _ = json.Marshal(createTD(id22))
 	docs[id5], _ = json.Marshal(createTD(id5))
-	err = store.SetMultiple(testBucketID, docs)
+	err = bucket.SetMultiple(docs)
 	assert.NoError(t, err)
 
 	// Read and compare
 
-	resp, err := store.GetMultiple(testBucketID, []string{id22, id1, id5})
+	resp, err := bucket.GetMultiple([]string{id22, id1, id5})
 	assert.NoError(t, err)
 	assert.Equal(t, docs[id1], resp[id1])
 	assert.Equal(t, docs[id5], resp[id5])
 	assert.Equal(t, docs[id22], resp[id22])
 
 	// Delete
-	err = store.Delete(testBucketID, id1)
+	err = bucket.Delete(id1)
 	assert.NoError(t, err)
-	resp2, err := store.GetMultiple(testBucketID, []string{id22, id1, id5})
+	resp2, err := bucket.GetMultiple([]string{id22, id1, id5})
 	assert.NoError(t, err)
 	assert.Equal(t, 2, len(resp2))
-
-	err = store.Close()
-	assert.NoError(t, err)
-
-	// Read again should fail
-	// (pebble throws a panic :(
-	//_, err = store.Get(testBucketID, doc1ID)
-	//assert.Error(t, err)
 }
 
 func TestSeek(t *testing.T) {
-	const count = 10000
-	const seekCount = 3000
-	const base = 4200
+	const count = 1000
+	const seekCount = 200
+	const base = 500
 
-	store, err := createNewStore(testBackendType, testBackendPath)
+	store, err := openNewStore(testBackendType, testBackendPath)
 	require.NoError(t, err)
-	err = store.Open()
+	err = addDocs(store, testBucketID, count)
 	require.NoError(t, err)
+	bucket := store.GetWriteBucket(testBucketID)
+	require.NotNil(t, bucket)
 	defer store.Close()
+	defer bucket.Close(true)
 
-	err = addDocs(store, count)
-	require.NoError(t, err)
+	// set cursor 'base' records forward
+	cursor := bucket.Cursor()
+	k1, v1 := cursor.First()
+	for i := 0; i < base; i++ {
+		k1, v1 = cursor.Next()
+	}
+	// k1 now holds the key at the base N'th record
 
-	// This format must match that of addDocs
-	id := fmt.Sprintf("addDocs-%6d", base)
+	// seek of the current key should bring us back here, at the base Nth record
+	k2, v2 := cursor.Seek(k1)
+	assert.Equal(t, k1, k2)
+	assert.Equal(t, v1, v2)
 
-	t1 := time.Now()
-	// seek forward
-	cursor, err := store.Seek(testBucketID, id)
-	require.NoError(t, err)
-	assert.Equal(t, id, cursor.Key())
-	assert.NotEmpty(t, cursor.Value())
-
+	// test that keys increment
 	for i := 0; i < seekCount; i++ {
 		k, v := cursor.Next()
-
-		id := fmt.Sprintf("addDocs-%6d", base+i+1)
-		require.Equal(t, id, k)
-		assert.NotEmpty(t, v)
+		require.GreaterOrEqual(t, k, k2)
+		if !assert.NotEmpty(t, v) {
+			logrus.Infof("unexpected")
+		}
+		k2 = k
 	}
-	d1 := time.Now().Sub(t1)
 
-	// seek beyond should succeed
-	for cursor.Key() != "" {
-		cursor.Next()
+	// seek till the end should succeed
+	var indexCount = seekCount
+	for ; k2 != ""; k2, v2 = cursor.Next() {
+		indexCount++
 	}
-	cursor.Close()
 
-	// seek backwards
-	id = fmt.Sprintf("addDocs-%6d", base)
-	cursor, err = store.Seek(testBucketID, id)
-	require.NoError(t, err)
-	assert.Equal(t, id, cursor.Key())
-
-	for i := 0; i < seekCount; i++ {
+	// step indexCount nr backwards should lead us right back to k1
+	k2, v2 = cursor.Prev()
+	for i := 1; i < indexCount; i++ {
 		k, v := cursor.Prev()
-
-		id := fmt.Sprintf("addDocs-%6d", base-i-1)
-		require.Equal(t, id, k)
-		assert.NotEmpty(t, v)
+		require.LessOrEqual(t, k, k2)
+		if !assert.NotEmpty(t, v) {
+			logrus.Infof("unexpected")
+		}
+		k2 = k
 	}
+	assert.Equal(t, k1, k2)
 	cursor.Close()
-	logrus.Infof("1 seek and %d iterations with %d documents: %dmsec", seekCount, count, d1.Milliseconds())
-
 }
 
 //func TestList(t *testing.T) {
@@ -574,84 +597,106 @@ func TestSeek(t *testing.T) {
 
 // crude read/write performance test
 func TestReadWritePerf(t *testing.T) {
-	const iterations = 1000
-	store, err := createNewStore(testBackendType, testBackendPath)
+	const iterations = 10
+	const batchSize = 100
+	const totalCount = iterations * batchSize
+	store, err := openNewStore(testBackendType, testBackendPath)
 	require.NoError(t, err)
-	_ = store.Open()
+
 	t0 := time.Now()
-	err = addDocs(store, iterations)
+	//err = addDocs(store, testBucketID, totalCount)
+	err = addDocs(store, testBucketID, 1000000)
 	require.NoError(t, err)
 	d0 := time.Now().Sub(t0)
 
 	tdDoc := createTD("id")
 	doc3, _ := json.Marshal(tdDoc)
-	docData := make(map[string][]byte)
 
+	logrus.Infof("Adding additional %d records", totalCount)
 	t1 := time.Now()
 	var i int
+
 	for i = 0; i < iterations; i++ {
-		// write
-		docID := fmt.Sprintf("doc-%d", i)
-		tdDoc.ID = docID
-		//doc3, _ := json.Marshal(tdDoc)
-		//doc3 := fmt.Sprintf(`{"id":"%s","title":"%s-%d"}`, docID, "Hello ", i)
-		err = store.Set(testBucketID, docID, doc3)
-		docData[docID] = doc3
-		assert.NoError(t, err)
+		bucket := store.GetWriteBucket(testBucketID)
+		for j := 0; j < batchSize; j++ {
+			// write
+			rn := rand.Intn(totalCount)
+			docID := fmt.Sprintf("doc-%d", rn)
+			tdDoc.ID = docID
+			//doc3, _ := json.Marshal(tdDoc)
+			err = bucket.Set(docID, doc3)
+			// these checks can take more time than the get itself
+			//docData[docID] = doc3
+			//assert.NoError(t, err)
+		}
+		bucket.Close(true)
 	}
 	d1 := time.Since(t1)
+	logrus.Infof("adding done, start reading %d records", totalCount)
 	t2 := time.Now()
-	for i = 0; i < iterations; i++ {
-		// Read
-		docID := fmt.Sprintf("doc-%d", i)
-		resp, found, err := store.Get(testBucketID, docID)
-		if assert.True(t, found) {
-			assert.NoError(t, err)
-			require.NotEmpty(t, resp)
-			require.Equal(t, docData[docID], resp)
+	nrFound := 0
+	bucket := store.GetReadBucket(testBucketID)
+	for i = 0; i < totalCount; i++ {
+		// Read as these are random, they might not exist
+		rn := rand.Intn(totalCount)
+		docID := fmt.Sprintf("doc-%d", rn)
+		doc, _ := bucket.Get(docID)
+		if doc != nil {
+			nrFound++
 		}
 	}
 	d2 := time.Since(t2)
-	//t3 := time.Now()
-	//resp, err := store.List(1000, 0, nil)
-	//assert.NoError(t, err)
-	//require.NotEmpty(t, resp)
-	//d3 := time.Since(t3)
-	_ = store.Close()
-	// 100K writes: 93 msec, 100K reads 77msec, List first 1K: 31msec
-	// 1M writes 1.1 sec, 1M reads 0.8 sec. list first 1K: 0.5 sec
-	// 2M writes 2.2 sec, 1M reads 2.8 sec. list first 1K: 1.1 sec
-	//logrus.Infof("TestQuery, %d write: %d msec; %d reads: %d msec. List first 1K: %d msec",
-	//	iterations, d1.Milliseconds(), iterations, d2.Milliseconds(), d3.Milliseconds())
-	logrus.Infof("'%d' addDocs (incl marshal): %d msec", iterations, d0.Milliseconds())
-	logrus.Infof("%d write: %d msec; %d reads: %d msec",
-		iterations, d1.Milliseconds(), iterations, d2.Milliseconds())
+	// most should be found
+	assert.True(t, nrFound > iterations/3)
+
+	// shutting down
+	err = bucket.Close(false)
+	assert.NoError(t, err)
+	err = store.Close()
+	assert.NoError(t, err)
+
+	logrus.Infof("'%d' addDocs (incl marshal): %d usec", totalCount, d0.Microseconds())
+	logrus.Infof("%d write: %d usec; %d reads: %d usec",
+		totalCount, d1.Microseconds(), totalCount, d2.Microseconds())
 }
 
-// crude list performance test
-//func TestPerfList(t *testing.T) {
-//	const iterations = 1000
-//	const dataSize = 1000
-//	const listLimit = 1000
-//
-//	store, err := createNewStore()
-//	require.NoError(t, err)
-//	_ = store.Start()
-//	err = addDocs(store, dataSize)
-//	require.NoError(t, err)
-//
-//	t1 := time.Now()
-//	var i int
-//	for i = 0; i < iterations; i++ {
-//		// List
-//		resp2, err := store.List(listLimit, 0, nil)
-//		assert.NoError(t, err)
-//		require.NotEmpty(t, resp2)
-//	}
-//	d1 := time.Since(t1)
-//	_ = store.Stop()
-//	logrus.Infof("TestList, %d runs: %d msec.", i, d1.Milliseconds())
-//}
+// crude seek performance test
+func TestCrudePerfSeek(t *testing.T) {
+	const dataSize = 10000
+	const iterations = 10000
+
+	store, err := openNewStore(testBackendType, testBackendPath)
+	require.NoError(t, err)
+
+	err = addDocs(store, testBucketID, dataSize)
+	require.NoError(t, err)
+
+	bucket := store.GetWriteBucket(testBucketID)
+	assert.NotNil(t, bucket)
+
+	t1 := time.Now()
+	cursor := bucket.Cursor()
+	cursor.First()
+	d1 := time.Now().Sub(t1)
+
+	t2 := time.Now()
+	var i int
+	for i = 0; i < iterations; i++ {
+		// List
+		k, v := cursor.Next()
+		_ = k
+		_ = v
+	}
+	d2 := time.Since(t2)
+	err = cursor.Close()
+	err = bucket.Close(true)
+	err = store.Close()
+
+	logrus.Infof("TestSeek, create cursor with %d records: %d usec.", dataSize, d1.Microseconds())
+	logrus.Infof("TestSeek, %d iterations: %d usec.", i, d2.Microseconds())
+	logrus.Infof("TestSeek, create cursor with %d records: %.1f msec.", dataSize, float32(d1.Microseconds())/1000)
+	logrus.Infof("TestSeek, %d iterations: %.1f msec.", i, float32(d2.Microseconds())/1000)
+}
 
 // crude query performance test
 //func TestPerfQuery(t *testing.T) {

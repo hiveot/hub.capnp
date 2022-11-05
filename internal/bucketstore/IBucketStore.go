@@ -21,67 +21,98 @@ type BucketStoreStatus struct {
 	MemSize int64
 }
 
-// IBucketCursor provides the prev/next cursor on a range
-type IBucketCursor interface {
-	// Key provides the current cursor key
-	Key() string
-	// Value provides the current cursor value
-	Value() []byte
-
-	// Close the iterator
-	Close()
-	// Prev iterations to the previous key from the current cursor
-	Prev() (key string, value []byte)
-	// Next iterates to the next key from the current cursor
-	Next() (key string, value []byte)
-}
-
 // IBucketStore defines the interface to a simple to use key-value embedded bucket stores.
+// Based on the bbolt API.
 // - organize data in buckets
 // - get/set single or multiple key/value pairs
 // - delete key/value
-// - key range scan (todo)
-// - forward iteration from key (todo)
-// - reverse iteration from key (todo)
-// Various implementations are available to the services to use.
-// Pipelining
-//
+// - cursor based seek and iteration
+//  Various implementations are available to the services to use.
+//  Pipelining is not yet supported
+//  Transactions are used when available
 type IBucketStore interface {
+	// GetReadBucket returns a read-only bucket to use.
+	// bucket.Close() must be called when done.
+	// Returns the bucket, or nil if the bucket does not exist
+	GetReadBucket(bucketID string) (bucket IBucket)
+
+	// GetWriteBucket returns the bucket to use. It is created if it doesn't exist.
+	// bucket.Close() must be called when done.
+	// Returns the bucket, or nil in case of an internal database error
+	GetWriteBucket(bucketID string) (bucket IBucket)
+
 	// Close the store and release its resources
 	Close() error
-
-	// Delete removes the key-value pair from the bucket store
-	// Returns nil if the key is deleted or doesn't exist.
-	// Returns an error if the key cannot be deleted.
-	Delete(bucketID string, key string) (err error)
-
-	// Get returns the document for the given key
-	// Returns 'found' if the key exists in the bucket
-	// Returns an error if the database cannot be read
-	Get(bucketID string, key string) (doc []byte, found bool, err error)
-
-	// GetMultiple returns a batch of documents with existing keys
-	// if a key does not exist it will not be included in the result.
-	// An error is return if the database cannot be read.
-	GetMultiple(bucketID string, keys []string) (docs map[string][]byte, err error)
-
-	// Keys returns a list of document keys in the store
-	//Keys(ctx context.Context) (keys []string, err error)
 
 	// Open the store
 	Open() error
 
-	// Seek provides an iterator starting at a key
-	Seek(bucketID, key string) (cursor IBucketCursor, err error)
+	// Status returns the application state status
+	//Status() BucketStoreStatus
+}
+
+// IBucketCursor provides the prev/next cursor on a range
+type IBucketCursor interface {
+	// Close the cursor and release its resources.
+	// This invalidates all values obtained from the cursor
+	Close() error
+
+	// First positions the cursor at the first key in the ordered list
+	First() (key string, value []byte)
+
+	// Last positions the cursor at the last key in the ordered list
+	Last() (key string, value []byte)
+
+	// Next moves the cursor to the next key from the current cursor
+	Next() (key string, value []byte)
+
+	// Prev moves the cursor to the previous key from the current cursor
+	Prev() (key string, value []byte)
+
+	// Seek positions the cursor at the given searchKey and corresponding value.
+	// If the key is not found, the next key is returned.
+	// cursor.Close must be invoked after use in order to close any read transactions.
+	Seek(searchKey string) (key string, value []byte)
+}
+
+// IBucket defines the interface to a store key-value bucket
+type IBucket interface {
+
+	// Close the bucket and release its resources
+	// If commit is true and transactions are support then this commits the transaction.
+	// use false to rollback the transaction. For readonly buckets commit returns an error
+	Close(commit bool) error
+
+	// Cursor creates a new bucket cursor for iterating the bucket
+	// cursor.Close must be called after use to release any read transactions
+	Cursor() IBucketCursor
+
+	// Delete removes the key-value pair from the bucket store
+	// Returns nil if the key is deleted or doesn't exist.
+	// Returns an error if the key cannot be deleted.
+	Delete(key string) (err error)
+
+	// Get returns the document for the given key
+	// Returns nil if the key isn't found in the bucket
+	// Returns an error if the database cannot be read
+	Get(key string) (doc []byte, err error)
+
+	// GetMultiple returns a batch of documents with existing keys
+	// if a key does not exist it will not be included in the result.
+	// An error is return if the database cannot be read.
+	GetMultiple(keys []string) (docs map[string][]byte, err error)
+
+	// ID returns the bucket's ID
+	ID() string
 
 	// Set sets a document with the given key
 	// An error is returned if either the bucketID or the key is empty
-	Set(bucketID string, key string, doc []byte) error
+	Set(key string, doc []byte) error
 
 	// SetMultiple sets multiple documents in a batch update
 	// If the transaction fails an error is returned and no changes are made.
-	SetMultiple(bucketID string, docs map[string][]byte) (err error)
+	SetMultiple(docs map[string][]byte) (err error)
 
-	// Status returns the application state status
+	// Status returns the bucket status
 	//Status() BucketStoreStatus
 }

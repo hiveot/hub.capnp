@@ -2,7 +2,7 @@ package kvmem
 
 import "sort"
 
-// Map2SortedKeys returns the map keys as a list sorted by key
+// Map2SortedKeys returns the map orderedKeys as a list sorted by key
 func Map2SortedKeys[V any](mapInput map[string]V) []string {
 	keys := make([]string, 0, len(mapInput))
 	for key := range mapInput {
@@ -14,13 +14,13 @@ func Map2SortedKeys[V any](mapInput map[string]V) []string {
 
 // Map2SortedValues returns the map values as a list sorted by key
 //func Map2SortedValues[V any](mapInput map[string]V) []V {
-//	keys := make([]string, 0, len(mapInput))
+//	orderedKeys := make([]string, 0, len(mapInput))
 //	for key := range mapInput {
-//		keys = append(keys, key)
+//		orderedKeys = append(orderedKeys, key)
 //	}
-//	sort.Strings(keys)
-//	listOutput := make([]V, 0, len(keys))
-//	for _, key := range keys {
+//	sort.Strings(orderedKeys)
+//	listOutput := make([]V, 0, len(orderedKeys))
+//	for _, key := range orderedKeys {
 //		listOutput = append(listOutput, mapInput[key])
 //	}
 //	return listOutput
