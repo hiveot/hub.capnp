@@ -18,6 +18,7 @@ import (
 	"github.com/hiveot/hub/internal/bucketstore"
 	"github.com/hiveot/hub/internal/bucketstore/bolts"
 	"github.com/hiveot/hub/internal/bucketstore/kvmem"
+	"github.com/hiveot/hub/internal/bucketstore/pebble"
 )
 
 var testBucketID = "default"
@@ -25,11 +26,11 @@ var testBucketID = "default"
 //var testBackendType = bucketstore.BackendKVStore
 //var testBackendPath = "/tmp/test-kvstore.json"
 
-var testBackendType = bucketstore.BackendBBolt
-var testBackendPath = "/tmp/test-bolt.db"
+//var testBackendType = bucketstore.BackendBBolt
+//var testBackendPath = "/tmp/test-bolt.db"
 
-//var testBackendType = bucketstore.BackendPebble
-//var testBackendPath = "/tmp/test-pebble/"
+var testBackendType = bucketstore.BackendPebble
+var testBackendPath = "/tmp/test-pebble/"
 
 const (
 	doc1ID = "doc1"
@@ -61,8 +62,8 @@ func openNewStore(backend string, storePath string) (store bucketstore.IBucketSt
 		store = kvmem.NewKVStore("testclientkv", storePath)
 	} else if backend == bucketstore.BackendBBolt {
 		store = bolts.NewBoltStore("testclientbbolt", storePath)
-		//} else if backend == bucketstore.BackendPebble {
-		//	store = pebbles.NewPebbleBucketStore("testclientpebble", storePath)
+	} else if backend == bucketstore.BackendPebble {
+		store = pebble.NewPebbleStore("testclientpebble", storePath)
 	}
 	err = store.Open()
 	return store, err
@@ -373,15 +374,9 @@ func TestSeek(t *testing.T) {
 		k2 = k
 	}
 
-	// seek till the end should succeed
-	var indexCount = seekCount
-	for ; k2 != ""; k2, v2 = cursor.Next() {
-		indexCount++
-	}
-
-	// step indexCount nr backwards should lead us right back to k1
+	// step seekCount nr backwards should lead us right back to k1
 	k2, v2 = cursor.Prev()
-	for i := 1; i < indexCount; i++ {
+	for i := 1; i < seekCount; i++ {
 		k, v := cursor.Prev()
 		require.LessOrEqual(t, k, k2)
 		if !assert.NotEmpty(t, v) {
@@ -392,42 +387,6 @@ func TestSeek(t *testing.T) {
 	assert.Equal(t, k1, k2)
 	cursor.Close()
 }
-
-//func TestList(t *testing.T) {
-//	var total = 100
-//	store, err := createNewStore(testBackendType, testBackendFile)
-//	require.NoError(t, err)
-//	err = addDocs(store, total)
-//	require.NoError(t, err)
-//
-//	resp, err := store.List(0, 0, nil)
-//	require.NoError(t, err)
-//	assert.Equal(t, total, len(resp))
-//}
-//
-//func TestListWithLimit(t *testing.T) {
-//	var docs []interface{}
-//	const total = 100
-//
-//	store, err := createNewStore(testBackendType, testBackendFile)
-//	require.NoError(t, err)
-//	err = addDocs(store, total)
-//	require.NoError(t, err)
-//
-//	resp, err := store.List(10, 20, nil)
-//	require.NoError(t, err)
-//	assert.Equal(t, 10, len(resp))
-//
-//	// based on count of 100
-//	resp, err = store.List(20, total-10, nil)
-//	require.NoError(t, err)
-//	assert.Equal(t, 10, len(resp))
-//
-//	// based on count of 100
-//	resp, err = store.List(0, 105, nil)
-//	require.NoError(t, err)
-//	assert.Equal(t, 0, len(docs))
-//}
 
 //func TestQuery(t *testing.T) {
 //	store, err := createNewStore()
@@ -593,140 +552,4 @@ func TestSeek(t *testing.T) {
 //	resp, err := store.Query(queryString, 0, 0, nil)
 //	require.NoError(t, err)
 //	assert.Equal(t, 10, len(resp))
-//}
-
-// crude read/write performance test
-func TestReadWritePerf(t *testing.T) {
-	const iterations = 10
-	const batchSize = 100
-	const totalCount = iterations * batchSize
-	store, err := openNewStore(testBackendType, testBackendPath)
-	require.NoError(t, err)
-
-	t0 := time.Now()
-	//err = addDocs(store, testBucketID, totalCount)
-	err = addDocs(store, testBucketID, 1000000)
-	require.NoError(t, err)
-	d0 := time.Now().Sub(t0)
-
-	tdDoc := createTD("id")
-	doc3, _ := json.Marshal(tdDoc)
-
-	logrus.Infof("Adding additional %d records", totalCount)
-	t1 := time.Now()
-	var i int
-
-	for i = 0; i < iterations; i++ {
-		bucket := store.GetWriteBucket(testBucketID)
-		for j := 0; j < batchSize; j++ {
-			// write
-			rn := rand.Intn(totalCount)
-			docID := fmt.Sprintf("doc-%d", rn)
-			tdDoc.ID = docID
-			//doc3, _ := json.Marshal(tdDoc)
-			err = bucket.Set(docID, doc3)
-			// these checks can take more time than the get itself
-			//docData[docID] = doc3
-			//assert.NoError(t, err)
-		}
-		bucket.Close(true)
-	}
-	d1 := time.Since(t1)
-	logrus.Infof("adding done, start reading %d records", totalCount)
-	t2 := time.Now()
-	nrFound := 0
-	bucket := store.GetReadBucket(testBucketID)
-	for i = 0; i < totalCount; i++ {
-		// Read as these are random, they might not exist
-		rn := rand.Intn(totalCount)
-		docID := fmt.Sprintf("doc-%d", rn)
-		doc, _ := bucket.Get(docID)
-		if doc != nil {
-			nrFound++
-		}
-	}
-	d2 := time.Since(t2)
-	// most should be found
-	assert.True(t, nrFound > iterations/3)
-
-	// shutting down
-	err = bucket.Close(false)
-	assert.NoError(t, err)
-	err = store.Close()
-	assert.NoError(t, err)
-
-	logrus.Infof("'%d' addDocs (incl marshal): %d usec", totalCount, d0.Microseconds())
-	logrus.Infof("%d write: %d usec; %d reads: %d usec",
-		totalCount, d1.Microseconds(), totalCount, d2.Microseconds())
-}
-
-// crude seek performance test
-func TestCrudePerfSeek(t *testing.T) {
-	const dataSize = 10000
-	const iterations = 10000
-
-	store, err := openNewStore(testBackendType, testBackendPath)
-	require.NoError(t, err)
-
-	err = addDocs(store, testBucketID, dataSize)
-	require.NoError(t, err)
-
-	bucket := store.GetWriteBucket(testBucketID)
-	assert.NotNil(t, bucket)
-
-	t1 := time.Now()
-	cursor := bucket.Cursor()
-	cursor.First()
-	d1 := time.Now().Sub(t1)
-
-	t2 := time.Now()
-	var i int
-	for i = 0; i < iterations; i++ {
-		// List
-		k, v := cursor.Next()
-		_ = k
-		_ = v
-	}
-	d2 := time.Since(t2)
-	err = cursor.Close()
-	err = bucket.Close(true)
-	err = store.Close()
-
-	logrus.Infof("TestSeek, create cursor with %d records: %d usec.", dataSize, d1.Microseconds())
-	logrus.Infof("TestSeek, %d iterations: %d usec.", i, d2.Microseconds())
-	logrus.Infof("TestSeek, create cursor with %d records: %.1f msec.", dataSize, float32(d1.Microseconds())/1000)
-	logrus.Infof("TestSeek, %d iterations: %.1f msec.", i, float32(d2.Microseconds())/1000)
-}
-
-// crude query performance test
-//func TestPerfQuery(t *testing.T) {
-//	const iterations = 1000
-//	const dataSize = 1000
-//	jsonPath := `$[?(@.properties.title.name=="title1")]`
-//
-//	store, err := createNewStore()
-//	require.NoError(t, err)
-//	_ = store.Open()
-//	err = addDocs(store, dataSize)
-//	require.NoError(t, err)
-//
-//	// skip first run as it caches docs
-//	_, _ = store.Query(jsonPath, 0, 0, nil)
-//	t1 := time.Now()
-//	var i int
-//	for i = 0; i < iterations; i++ {
-//		// filter on key 'id' == doc1
-//		//jsonPath := `$[?(@.id=="doc1")]`,
-//		//JsonPathQuery: `$..id`,
-//		resp, err := store.Query(jsonPath, 0, 0, nil)
-//		require.NoError(t, err)
-//		assert.NotEmpty(t, resp)
-//	}
-//	d1 := time.Since(t1)
-//	_ = store.OpenClose()
-//	// 1000 runs on 1K records: 1.4 sec
-//	// 100 runs on 10K records: 2.0 sec
-//	// 10 runs on 100K records: 2.5 sec
-//	// 1 run on 1M records: 3.6 sec
-//	logrus.Infof("TestQuery, %d runs: %d msec.", i, d1.Milliseconds())
 //}

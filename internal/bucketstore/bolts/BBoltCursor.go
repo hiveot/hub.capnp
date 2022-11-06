@@ -12,39 +12,39 @@ type BBoltCursor struct {
 
 // Close the cursor
 // This does not release the transaction that created the bucket
-func (bbc *BBoltCursor) Close() error {
-	bbc.cursor = nil
-	bbc.bucket = nil
+func (cursor *BBoltCursor) Close() error {
+	cursor.cursor = nil
+	cursor.bucket = nil
 	return nil
 }
 
 // First moves the cursor to the first item
-func (bbc *BBoltCursor) First() (key string, value []byte) {
-	k, v := bbc.cursor.First()
+func (cursor *BBoltCursor) First() (key string, value []byte) {
+	k, v := cursor.cursor.First()
 	return string(k), v
 }
 
 // Last moves the cursor to the last item
-func (bbc *BBoltCursor) Last() (key string, value []byte) {
-	k, v := bbc.cursor.Last()
+func (cursor *BBoltCursor) Last() (key string, value []byte) {
+	k, v := cursor.cursor.Last()
 	return string(k), v
 }
 
 // Next iterates to the next key from the current cursor
-func (bbc *BBoltCursor) Next() (key string, value []byte) {
-	k, v := bbc.cursor.Next()
+func (cursor *BBoltCursor) Next() (key string, value []byte) {
+	k, v := cursor.cursor.Next()
 	return string(k), v
 }
 
 // Prev iterations to the previous key from the current cursor
-func (bbc *BBoltCursor) Prev() (key string, value []byte) {
-	k, v := bbc.cursor.Prev()
+func (cursor *BBoltCursor) Prev() (key string, value []byte) {
+	k, v := cursor.cursor.Prev()
 	return string(k), v
 }
 
 // Seek returns a cursor with Next() and Prev() iterators
-func (bbc *BBoltCursor) Seek(searchKey string) (key string, value []byte) {
-	k, v := bbc.cursor.Seek([]byte(searchKey))
+func (cursor *BBoltCursor) Seek(searchKey string) (key string, value []byte) {
+	k, v := cursor.cursor.Seek([]byte(searchKey))
 	return string(k), v
 }
 

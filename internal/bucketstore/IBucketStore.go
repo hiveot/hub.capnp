@@ -32,12 +32,15 @@ type BucketStoreStatus struct {
 //  Transactions are used when available
 type IBucketStore interface {
 	// GetReadBucket returns a read-only bucket to use.
-	// bucket.Close() must be called when done.
-	// Returns the bucket, or nil if the bucket does not exist
+	// This creates a transaction for reading bucket data from the database.
+	// Use bucket.Close() to close the transaction.
+	// Returns the bucket, or nil if the bucket does not exist. The Pebble implementation
+	// returns an empty bucket if one doesn't exist.
 	GetReadBucket(bucketID string) (bucket IBucket)
 
 	// GetWriteBucket returns the bucket to use. It is created if it doesn't exist.
-	// bucket.Close() must be called when done.
+	// This creates a transaction for reading bucket data from the database.
+	// Use bucket.Close() to close the transaction.
 	// Returns the bucket, or nil in case of an internal database error
 	GetWriteBucket(bucketID string) (bucket IBucket)
 

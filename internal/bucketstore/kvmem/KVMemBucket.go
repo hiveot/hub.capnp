@@ -31,7 +31,6 @@ type KVMemBucket struct {
 // This decreases the refCount and detects an error if below 0
 func (bucket *KVMemBucket) Close(commit bool) (err error) {
 	// there are no transactions to commit
-	_ = commit
 	if commit && !bucket.writable {
 		// this is just for error detection
 		return fmt.Errorf("cant commit as bucket '%s' of client '%s' is not writable",

@@ -9,32 +9,41 @@ import (
 
 // BoltStore implements the IBucketStore API using the embedded bolt database
 // This uses the BBolt package which is a derivative of BoltDB
-// Estimates using a data items of 1KB each, using a i5-4570S @2.90GHz cpu.
-// note that these times are more than 10x faster than what a marshaller would take to serialize this data.
+// Estimates using a i5-4570S @2.90GHz cpu.
 //
-// Dataset size: 1K, read 1K
-//   Write 1K records: 5.5 msec,     5500   usec/op   (one transaction per write)
-//   Read 1K records: 0.8 msec,         0.8 usec/op
-//   Create cursor: 0.006 msec,         6   usec/op
-//   Iterate 1K records: 0.22 msec      0.2 usec/op
-// Dataset size: 10K records (
-//   Write 1 record: 5.7 msec        5700   usec/op (one transaction per write)
-//   Read 10K records: 8.8 msec         0.9 usec/op
-//   Create cursor: 0.01 msec          10   usec/op
-//   Iterate 10K records: 2.2 msec      0.2 usec/op
-// Dataset size: 100K records
-//   Write 1 record: 11.9 msec      11900   usec/op (one transaction per write)
-//   Read 100K records: 114 msec        1.1 usec/op
-//   Create cursor: 0.01 msec          10   usec/op
-//   Iterate 100K records: 17 msec     0.17 usec/op
-// Dataset size: 1M records
-//   Write 1 record: 38 msec (batch=1)          38000 usec/op   (* - very slow .. disk access?)
-//   Write 1 record: 0.6 msec (batch=100)         600 usec/op
-//   Write 1M records: 178 sec (batch=10000)      180 usec/op
-//   Write 1M records: 116 sec (batch=50000)      116 usec/op
-//   Read 1M records: 1400msec         1.4 usec/op
-//   Create cursor: 0.01 msec            10 usec/op
-//   Iterate 1M records: 144 msec      0.14 usec/op
+// Create&commit write bucket, no data changes
+//   Dataset 1K,        3.7 ms/op
+//   Dataset 10K,       3.7 ms/op
+//   Dataset 100K      12   ms/op
+//   Dataset 1M        45   ms/op
+//
+// Create&close read-only bucket
+//   Dataset 1K,        0.8 us/op
+//   Dataset 10K,       0.8 us/op
+//   Dataset 100K       0.8 us/op
+//   Dataset 1M         0.7 us/op
+//
+// Get read-bucket 1 record
+//   Dataset 1K,        1.3 us/op
+//   Dataset 10K,       1.3 us/op
+//   Dataset 100K       1.4 us/op
+//   Dataset 1M         1.2 us/op
+//
+// Set write-bucket 1 record, 100 byte records
+//   Dataset 1K,          4.7 ms/op
+//   Dataset 10K,         5.2 ms/op
+//   Dataset 100K        12   ms/op
+//   Dataset 1M          41   ms/op
+//   Dataset 10M         62   ms/op
+//
+// Seek               read-only bucket      writable bucket/rollback
+//   Dataset 1K,        1.3 us/op                 2 us/op
+//   Dataset 10K,       1.3 us/op                 2 us/op
+//   Dataset 100K       1.4 us/op               120 us/op
+//   Dataset 1M         1.3 us/op              1161 us/op
+//
+
+//
 type BoltStore struct {
 	// the underlying database
 	boltDB *bbolt.DB
@@ -45,18 +54,18 @@ type BoltStore struct {
 }
 
 // Close the store and flush changes to disk
-func (bs *BoltStore) Close() error {
-	logrus.Infof("closing store for client '%s'", bs.clientID)
-	err := bs.boltDB.Close()
+func (store *BoltStore) Close() error {
+	logrus.Infof("closing store for client '%s'", store.clientID)
+	err := store.boltDB.Close()
 	return err
 }
 
 // GetReadBucket returns a bucket to use for storage
 //  returns a bucket or nil if it doesn't exist
-func (bs *BoltStore) GetReadBucket(bucketID string) (bucket bucketstore.IBucket) {
+func (store *BoltStore) GetReadBucket(bucketID string) (bucket bucketstore.IBucket) {
 
 	var boltBucket *bbolt.Bucket
-	tx, err := bs.boltDB.Begin(false)
+	tx, err := store.boltDB.Begin(false)
 	if err != nil {
 		// what to do here?
 		panic("unable to start transaction. unable to recover")
@@ -66,8 +75,8 @@ func (bs *BoltStore) GetReadBucket(bucketID string) (bucket bucketstore.IBucket)
 		tx.Rollback()
 		return nil
 	}
-	logrus.Infof("Opening bucket '%s' of client '%s", bucketID, bs.clientID)
-	bucket = NewBoltBucket(bs.clientID, bucketID, boltBucket)
+	logrus.Infof("Opening bucket '%s' of client '%s", bucketID, store.clientID)
+	bucket = NewBoltBucket(store.clientID, bucketID, boltBucket)
 	return bucket
 }
 
@@ -75,27 +84,27 @@ func (bs *BoltStore) GetReadBucket(bucketID string) (bucket bucketstore.IBucket)
 // If the bucket doesn't exist it is created.
 //  only a single writable bucket can be used at the same time. See bbolt doc for detail
 //  returns a bucket or nil if it doesn't exist and can't be created
-func (bs *BoltStore) GetWriteBucket(bucketID string) (bucket bucketstore.IBucket) {
+func (store *BoltStore) GetWriteBucket(bucketID string) (bucket bucketstore.IBucket) {
 
 	var boltBucket *bbolt.Bucket
-	tx, err := bs.boltDB.Begin(true)
+	tx, err := store.boltDB.Begin(true)
 	if err != nil {
 		// what to do here?
 		panic("unable to start transaction. unable to recover")
 	}
 	boltBucket, err = tx.CreateBucketIfNotExists([]byte(bucketID))
 	if err != nil {
-		logrus.Errorf("unexpected error creating bucket '%s' for client '%s': %s", bucketID, bs.clientID, err)
+		logrus.Errorf("unexpected error creating bucket '%s' for client '%s': %s", bucketID, store.clientID, err)
 		return nil
 	}
-	//logrus.Infof("Opening bucket '%s' of client '%s", bucketID, bs.clientID)
-	bucket = NewBoltBucket(bs.clientID, bucketID, boltBucket)
+	//logrus.Infof("Opening bucket '%s' of client '%s", bucketID, store.clientID)
+	bucket = NewBoltBucket(store.clientID, bucketID, boltBucket)
 	return bucket
 }
 
 // Open the store
-func (bs *BoltStore) Open() (err error) {
-	logrus.Infof("Opening bboltDB store for client %s", bs.clientID)
+func (store *BoltStore) Open() (err error) {
+	logrus.Infof("Opening bboltDB store for client %s", store.clientID)
 
 	options := &bbolt.Options{
 		Timeout:        10,                    // wait max 1 sec for a file lock
@@ -103,10 +112,10 @@ func (bs *BoltStore) Open() (err error) {
 		FreelistType:   bbolt.FreelistMapType, // performant even for large DB
 		//InitialMmapSize: 0,  // when is this useful to set?
 	}
-	bs.boltDB, err = bbolt.Open(bs.storePath, 0600, options)
+	store.boltDB, err = bbolt.Open(store.storePath, 0600, options)
 
 	if err != nil {
-		logrus.Errorf("Error opening bboltDB for client %s: %s", bs.clientID, err)
+		logrus.Errorf("Error opening bboltDB for client %s: %s", store.clientID, err)
 	}
 	return err
 }

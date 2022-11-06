@@ -57,6 +57,37 @@ import (
 //   Create cursor: 540 msec        540    msec/op     (* - gets slow due to key sort)
 //   Iterate 1M records: 200msec       0.20 usec/op
 //
+// Create&commit write bucket, no data changes
+//   Dataset 1K,        0.2 us/op
+//   Dataset 10K,       0.2 us/op
+//   Dataset 100K       0.2 us/op
+//   Dataset 1M         0.2 us/op
+//
+// Create&close read-only bucket
+//   Dataset 1K,        0.2 us/op
+//   Dataset 10K,       0.2 us/op
+//   Dataset 100K       0.2 us/op
+//   Dataset 1M         0.2 us/op
+//
+// Get read-bucket 1 record
+//   Dataset 1K,        0.2 us/op
+//   Dataset 10K,       0.2 us/op
+//   Dataset 100K       0.2 us/op
+//   Dataset 1M         0.2 us/op
+//
+// Set write-bucket 1 record
+//   Dataset 1K,        0.3 us/op
+//   Dataset 10K,       0.3 us/op
+//   Dataset 100K       0.3 us/op
+//   Dataset 1M         0.3 us/op
+//
+// Seek                  bucket
+//   Dataset 1K,        0.1 ms/op
+//   Dataset 10K,       2.1 ms/op
+//   Dataset 100K      30   ms/op
+//   Dataset 1M        561  ms/op
+//
+//
 // --- about jsonpath ---
 // This was experimental because of the W3C WoT recommendation, and seems to work well.
 // However this is shelved as the Hub has no use-case for it and the other stores don't support it.
@@ -71,7 +102,6 @@ import (
 // Two good options for jsonpath queries:
 //  > github.com/ohler55/ojg/jp
 //  > github.com/PaesslerAG/jsonpath
-//
 // Note that future implementations of this service can change the storage media used while
 // maintaining API compatibility.
 type KVMemStore struct {
