@@ -57,7 +57,7 @@ var doc2 = []byte(`{
 
 // Create the bucket store using the backend
 func openNewStore(backend string, storePath string) (store bucketstore.IBucketStore, err error) {
-	_ = os.Remove(storePath)
+	_ = os.RemoveAll(storePath)
 	if backend == bucketstore.BackendKVStore {
 		store = kvmem.NewKVStore("testclientkv", storePath)
 	} else if backend == bucketstore.BackendBBolt {
@@ -118,7 +118,7 @@ func createTD(id string) *thing.ThingDescription {
 // AddDocs adds documents doc1, doc2 and given nr additional docs
 func addDocs(store bucketstore.IBucketStore, bucketID string, count int) error {
 	const batchSize = 50000
-	bucket := store.GetWriteBucket(bucketID)
+	bucket := store.GetBucket(bucketID)
 
 	// these docs have values used for testing
 	err := bucket.Set(doc1ID, doc1)
@@ -145,22 +145,22 @@ func addDocs(store bucketstore.IBucketStore, bucketID string, count int) error {
 		// close the bucket/transaction and reopen
 		if iBatch == batchSize {
 			err = bucket.SetMultiple(docs)
-			err = bucket.Close(true)
+			err = bucket.Close()
 			if err != nil {
 				panic(fmt.Sprintf("SetMultiple failed: %s", err))
 			}
 			// next batch
 			docs = make(map[string][]byte)
-			bucket = store.GetWriteBucket(bucketID)
+			bucket = store.GetBucket(bucketID)
 			iBatch = 0
 		}
 
 	}
 	// finish the remainder
-	err = bucket.SetMultiple(docs)
-	bucket.Close(true)
+	_ = bucket.SetMultiple(docs)
+	err = bucket.Close()
 	logrus.Infof("Added '%d' records to the store", count)
-	return nil
+	return err
 }
 
 func TestMain(m *testing.M) {
@@ -217,7 +217,7 @@ func TestWriteRead(t *testing.T) {
 	assert.NoError(t, err)
 	err = addDocs(store, testBucketID, 3)
 
-	bucket := store.GetWriteBucket(testBucketID)
+	bucket := store.GetBucket(testBucketID)
 	assert.NotNil(t, bucket)
 
 	require.NoError(t, err)
@@ -240,7 +240,7 @@ func TestWriteRead(t *testing.T) {
 	// needs to be tested
 	time.Sleep(time.Second * 4)
 
-	err = bucket.Close(true)
+	err = bucket.Close()
 	assert.NoError(t, err)
 	err = store.Close()
 	assert.NoError(t, err)
@@ -249,7 +249,7 @@ func TestWriteRead(t *testing.T) {
 	// --- reopen ---
 	err = store.Open() // reopen
 	require.NoError(t, err)
-	bucket = store.GetWriteBucket(testBucketID)
+	bucket = store.GetBucket(testBucketID)
 	assert.NotNil(t, bucket)
 
 	// Read and compare
@@ -272,7 +272,7 @@ func TestWriteRead(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Nil(t, resp)
 
-	err = bucket.Close(true)
+	err = bucket.Close()
 	assert.NoError(t, err)
 	err = store.Close()
 	assert.NoError(t, err)
@@ -287,8 +287,8 @@ func TestWriteBadData(t *testing.T) {
 	store, err := openNewStore(testBackendType, testBackendPath)
 	require.NoError(t, err)
 	defer store.Close()
-	bucket := store.GetWriteBucket(testBucketID)
-	defer bucket.Close(true)
+	bucket := store.GetBucket(testBucketID)
+	defer bucket.Close()
 	// not json
 	err = bucket.Set(doc1ID, []byte("not-json"))
 	assert.NoError(t, err)
@@ -309,10 +309,10 @@ func TestWriteReadMultiple(t *testing.T) {
 	err = addDocs(store, testBucketID, 3)
 	require.NoError(t, err)
 
-	bucket := store.GetWriteBucket(testBucketID)
+	bucket := store.GetBucket(testBucketID)
 	assert.NotNil(t, bucket)
 	defer store.Close()
-	defer bucket.Close(true) // last defer completes first
+	defer bucket.Close() // last defer completes first
 
 	// write docs
 	docs[id1], _ = json.Marshal(createTD(id1))
@@ -346,13 +346,14 @@ func TestSeek(t *testing.T) {
 	require.NoError(t, err)
 	err = addDocs(store, testBucketID, count)
 	require.NoError(t, err)
-	bucket := store.GetWriteBucket(testBucketID)
+	bucket := store.GetBucket(testBucketID)
 	require.NotNil(t, bucket)
 	defer store.Close()
-	defer bucket.Close(true)
+	defer bucket.Close()
 
 	// set cursor 'base' records forward
-	cursor := bucket.Cursor()
+	cursor, err := bucket.Cursor()
+	assert.NoError(t, err)
 	k1, v1 := cursor.First()
 	for i := 0; i < base; i++ {
 		k1, v1 = cursor.Next()
@@ -385,7 +386,7 @@ func TestSeek(t *testing.T) {
 		k2 = k
 	}
 	assert.Equal(t, k1, k2)
-	cursor.Close()
+	cursor.Release()
 }
 
 //func TestQuery(t *testing.T) {

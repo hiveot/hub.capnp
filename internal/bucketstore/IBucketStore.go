@@ -21,28 +21,20 @@ type BucketStoreStatus struct {
 	MemSize int64
 }
 
-// IBucketStore defines the interface to a simple to use key-value embedded bucket stores.
-// Based on the bbolt API.
-// - organize data in buckets
+// IBucketStore defines the interface to a simple key-value embedded bucket store.
+// Based on the boltDB API, this:
+// - organizes data into buckets
+// - open/close buckets as a transaction, if transactions are available
 // - get/set single or multiple key/value pairs
 // - delete key/value
 // - cursor based seek and iteration
+//  Streaming data into a bucket is not supported
 //  Various implementations are available to the services to use.
-//  Pipelining is not yet supported
-//  Transactions are used when available
 type IBucketStore interface {
-	// GetReadBucket returns a read-only bucket to use.
-	// This creates a transaction for reading bucket data from the database.
-	// Use bucket.Close() to close the transaction.
-	// Returns the bucket, or nil if the bucket does not exist. The Pebble implementation
-	// returns an empty bucket if one doesn't exist.
-	GetReadBucket(bucketID string) (bucket IBucket)
-
-	// GetWriteBucket returns the bucket to use. It is created if it doesn't exist.
-	// This creates a transaction for reading bucket data from the database.
-	// Use bucket.Close() to close the transaction.
-	// Returns the bucket, or nil in case of an internal database error
-	GetWriteBucket(bucketID string) (bucket IBucket)
+	// GetBucket returns a bucket to use.
+	// This creates the bucket if it doesn't exist.
+	// Use bucket.Close() to close the bucket and release its resources.
+	GetBucket(bucketID string) (bucket IBucket)
 
 	// Close the store and release its resources
 	Close() error
@@ -54,41 +46,18 @@ type IBucketStore interface {
 	//Status() BucketStoreStatus
 }
 
-// IBucketCursor provides the prev/next cursor on a range
-type IBucketCursor interface {
-	// Close the cursor and release its resources.
-	// This invalidates all values obtained from the cursor
-	Close() error
-
-	// First positions the cursor at the first key in the ordered list
-	First() (key string, value []byte)
-
-	// Last positions the cursor at the last key in the ordered list
-	Last() (key string, value []byte)
-
-	// Next moves the cursor to the next key from the current cursor
-	Next() (key string, value []byte)
-
-	// Prev moves the cursor to the previous key from the current cursor
-	Prev() (key string, value []byte)
-
-	// Seek positions the cursor at the given searchKey and corresponding value.
-	// If the key is not found, the next key is returned.
-	// cursor.Close must be invoked after use in order to close any read transactions.
-	Seek(searchKey string) (key string, value []byte)
-}
-
 // IBucket defines the interface to a store key-value bucket
 type IBucket interface {
 
 	// Close the bucket and release its resources
 	// If commit is true and transactions are support then this commits the transaction.
 	// use false to rollback the transaction. For readonly buckets commit returns an error
-	Close(commit bool) error
+	Close() error
 
 	// Cursor creates a new bucket cursor for iterating the bucket
 	// cursor.Close must be called after use to release any read transactions
-	Cursor() IBucketCursor
+	// returns an error the cursor cannot be created
+	Cursor() (IBucketCursor, error)
 
 	// Delete removes the key-value pair from the bucket store
 	// Returns nil if the key is deleted or doesn't exist.
@@ -118,4 +87,29 @@ type IBucket interface {
 
 	// Status returns the bucket status
 	//Status() BucketStoreStatus
+}
+
+// IBucketCursor provides the prev/next cursor on a range
+type IBucketCursor interface {
+
+	// First positions the cursor at the first key in the ordered list
+	First() (key string, value []byte)
+
+	// Last positions the cursor at the last key in the ordered list
+	Last() (key string, value []byte)
+
+	// Next moves the cursor to the next key from the current cursor
+	Next() (key string, value []byte)
+
+	// Prev moves the cursor to the previous key from the current cursor
+	Prev() (key string, value []byte)
+
+	// Release close the cursor and release its resources.
+	// This invalidates all values obtained from the cursor
+	Release()
+
+	// Seek positions the cursor at the given searchKey and corresponding value.
+	// If the key is not found, the next key is returned.
+	// cursor.Close must be invoked after use in order to close any read transactions.
+	Seek(searchKey string) (key string, value []byte)
 }

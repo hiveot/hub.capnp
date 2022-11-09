@@ -1,4 +1,4 @@
-package statekvstore
+package service
 
 import (
 	"context"
@@ -8,9 +8,12 @@ import (
 	"sync"
 
 	"github.com/sirupsen/logrus"
+	"golang.org/x/sys/unix"
 
 	"github.com/hiveot/hub/internal/bucketstore"
 	"github.com/hiveot/hub/internal/bucketstore/bolts"
+	"github.com/hiveot/hub/internal/bucketstore/kvmem"
+	"github.com/hiveot/hub/internal/bucketstore/pebble"
 	"github.com/hiveot/hub/pkg/state"
 	"github.com/hiveot/hub/pkg/state/config"
 )
@@ -22,48 +25,61 @@ type StateStoreService struct {
 	cfg config.StateConfig
 	// The underlying persistence store for each client that is concurrent safe.
 	// Released stores have a nil entry
+	//  map[clientID]BucketStore
 	clientStores map[string]bucketstore.IBucketStore
 	// reference count of issued capabilities by serviceID
 	// released stores have a 0 value
 	clientRefs map[string]int
 	//
-	mux sync.Mutex
+	running bool
+	mux     sync.Mutex
 }
 
-// CapClientState returns a new instance of the capability to store client state.
-// This uses one store instance per clientID.
-func (srv *StateStoreService) CapClientState(
+// CapClientBucket returns a new instance of the capability to store client state in a bucket.
+// This opens a store for the client if one doesn't yet exist.
+func (srv *StateStoreService) CapClientBucket(
 	ctx context.Context, clientID string, bucketID string) (cap state.IClientState, err error) {
 
 	srv.mux.Lock()
 	defer srv.mux.Unlock()
+	if !srv.running {
+		err = fmt.Errorf("state store service has stopped. No new clients allowed.")
+		logrus.Error(err)
+		return nil, err
+	}
 	clientStore := srv.clientStores[clientID]
 	// create the store instance for the client if one doesn't yet exist
 	if clientStore == nil {
-		// TODO: backend depend on config
 		if srv.cfg.Backend == config.StateBackendKVStore {
 			logrus.Infof("opening kv store for client '%s' bucket '%s", clientID, bucketID)
 			storePath := path.Join(srv.cfg.StoreDirectory, clientID+".json")
 			clientStore = kvmem.NewKVStore(clientID, storePath)
-		} else {
+		} else if srv.cfg.Backend == config.StateBackendBBolt {
 			logrus.Infof("opening boltDB store for client '%s' bucket '%s", clientID, bucketID)
 			storePath := path.Join(srv.cfg.StoreDirectory, clientID+".boltdb")
-			clientStore = bolts.NewBoltBucketStore(clientID, storePath)
+			clientStore = bolts.NewBoltStore(clientID, storePath)
+		} else {
+			logrus.Infof("opening Pebble store for client '%s' bucket '%s", clientID, bucketID)
+			storePath := path.Join(srv.cfg.StoreDirectory, clientID) // this is a folder
+			clientStore = pebble.NewPebbleStore(clientID, storePath)
 		}
 		err = clientStore.Open()
 		if err == nil {
 			srv.clientStores[clientID] = clientStore
 		}
 	}
-	// multiple client instances use the same store
+	// multiple bucket instances use the same store
+	// refCount keeps track how many buckets are outstanding for this client.
 	refCount := srv.clientRefs[clientID]
 	refCount++
 	srv.clientRefs[clientID] = refCount
-	capability := NewClientState(clientStore, clientID, bucketID, srv.onClientReleased)
+	bucket := clientStore.GetBucket(bucketID)
+	capability := NewClientState(clientID, bucketID, bucket, srv.onClientReleased)
 	return capability, err
 }
 
-// callback to remove the client store when all its clients are removed
+// callback to close the client store when all its clients are removed
+// An error is reported if not all buckets are running
 func (srv *StateStoreService) onClientReleased(clientID string) {
 	srv.mux.Lock()
 	defer srv.mux.Unlock()
@@ -86,8 +102,8 @@ func (srv *StateStoreService) onClientReleased(clientID string) {
 	}
 }
 
-// Start the store
-// Ensure the store location exists and is writable
+// Start the state service
+// Ensure the stores location exists and is writable
 func (srv *StateStoreService) Start() error {
 	logrus.Infof("starting state store service")
 	info, err := os.Stat(srv.cfg.StoreDirectory)
@@ -106,36 +122,50 @@ func (srv *StateStoreService) Start() error {
 	} else if !info.IsDir() {
 		err = fmt.Errorf("'%s' is not a directory", srv.cfg.StoreDirectory)
 		return err
+	} else if err = unix.Access(srv.cfg.StoreDirectory, unix.W_OK); err != nil {
+		err = fmt.Errorf("directory '%s' is not writable", srv.cfg.StoreDirectory)
+		logrus.Error(err)
+		return err
 	}
-
+	srv.running = true
 	return err
 }
 
-// Stop releases each of the client capabilities
+// Stop prevents new client capabilities from opening.
+// Existing clients might need time to finish.
 func (srv *StateStoreService) Stop() error {
 	logrus.Infof("stopping state store service")
 	// build the list of stores to close to allow list update while closing
 	srv.mux.Lock()
+	if !srv.running {
+		return fmt.Errorf("service already stopped")
+	}
+	srv.running = true
 	clientList := make([]string, 0, len(srv.clientStores))
 	for clientID, store := range srv.clientStores {
 		if store != nil {
 			clientList = append(clientList, clientID)
 		}
 	}
+	if len(clientList) > 0 {
+		logrus.Warningf("state store has stopped. %d client buckets are still running", len(clientList))
+	} else {
+		logrus.Infof("state store service has stopped properly. No clients remaining.")
+	}
 	srv.mux.Unlock()
 
 	// Note that closing the store without releasing its clients can result in calls after
-	// its store is closed. The store should be able to handle this.
-	for _, clientID := range clientList {
-		srv.mux.Lock()
-		clientStore := srv.clientStores[clientID]
-		srv.clientStores[clientID] = nil
-		srv.mux.Unlock()
-		if clientStore != nil {
-			logrus.Infof("Stopping store for '%s'", clientID)
-			clientStore.Close()
-		}
-	}
+	// its store is running. The store should be able to handle this.
+	//for _, clientID := range clientList {
+	//	srv.mux.Lock()
+	//	clientStore := srv.clientStores[clientID]
+	//	srv.clientStores[clientID] = nil
+	//	srv.mux.Unlock()
+	//	if clientStore != nil {
+	//		logrus.Infof("Stopping store for '%s'", clientID)
+	//		clientStore.Close()
+	//	}
+	//}
 	return nil
 }
 

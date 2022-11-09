@@ -15,6 +15,27 @@ type ClientStateCapnpServer struct {
 	srv state.IClientState
 }
 
+// Cursor returns the capability to iterate the bucket
+func (capsrv *ClientStateCapnpServer) Cursor(
+	ctx context.Context, call hubapi.CapClientState_cursor) error {
+
+	// first create the instance of the POGS server for this client application
+	pogoCursor, err := capsrv.srv.Cursor(ctx)
+	if err == nil {
+		// second, wrap it in a capnp binding which implements the capnp generated cursor API
+		bucketCursorCapnpServer := &BucketCursorCapnpServer{cursor: pogoCursor}
+		// create the capnp RPC server for this capability
+		capability := hubapi.CapBucketCursor_ServerToClient(bucketCursorCapnpServer)
+		// and return the result to the caller
+		res, err2 := call.AllocResults()
+		err = err2
+		if err == nil {
+			err = res.SetCap(capability)
+		}
+	}
+	return err
+}
+
 func (capsrv *ClientStateCapnpServer) Delete(
 	ctx context.Context, call hubapi.CapClientState_delete) error {
 	args := call.Args()
@@ -71,4 +92,10 @@ func (capsrv *ClientStateCapnpServer) SetMultiple(
 		err = capsrv.srv.SetMultiple(ctx, docs)
 	}
 	return err
+}
+
+func (capsrv *ClientStateCapnpServer) Shutdown() {
+	// Release on the client calls capnp Shutdown.
+	// Pass this to the server to cleanup
+	capsrv.srv.Release()
 }

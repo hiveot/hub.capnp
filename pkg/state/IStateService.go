@@ -1,7 +1,11 @@
 // Package state with capability to persist application state in a KV store.
 package state
 
-import "context"
+import (
+	"context"
+
+	"github.com/hiveot/hub/internal/bucketstore"
+)
 
 const ServiceName = "state"
 
@@ -16,7 +20,7 @@ const ServiceName = "state"
 //	Size            int    // Estimated memory size in bytes is by the collection
 //}
 
-// IStateStore defines the capability API of the general purpose state store for service storage needs.
+// IStateService defines the capability API of the general purpose state store for service storage needs.
 // This store is backed by the embedded BBolt KV store.
 //
 // While the store limitations depend on the platform resources, the following limitations should work
@@ -27,22 +31,28 @@ const ServiceName = "state"
 // * Document size: less than 100KB per document (tbd)
 // * Number of documents per client: 10000 (tbd)
 //
-type IStateStore interface {
+type IStateService interface {
 
 	// GetStores the names of available stores for use in application state
 	//GetStores(ctx context.Context) []string
 
+	// CapBucketStore provides the capability to access storage for a client
+	//CapBucketStore(ctx context.Context, clientID string) bucketstore.IBucketStore
+
 	// CapClientState provides the capability to store and retrieve application state.
 	// The caller must verify that the clientID is properly authenticated to ensure the
 	// capability is handed out to a valid client.
-	// Support for buckets is akin to multiple tables to store different types of data.
+	// Buckets allow clients to have multiple stores with different types of data.
 	//
 	//  clientID is the service that represents the application. Each client uses a separate DB.
 	//  bucketID is the name of the bucket in the store. Eg a separate table.
-	CapClientState(ctx context.Context, clientID string, bucketID string) (IClientState, error)
+	CapClientBucket(ctx context.Context, clientID string, bucketID string) (cap IClientState, err error)
 
 	// CapManageStateStore provides the capability to manage the state store
 	//CapManageStateStore(ctx context.Context) IManageStateStore
+
+	// Stop the service and free its resources
+	Stop() error
 }
 
 // IManageStateStore defines a capability to manage the state store
@@ -59,28 +69,38 @@ type IManageStateStore interface {
 
 // IClientState defines the capability for reading and writing state values in a storage bucket
 type IClientState interface {
+
+	// Cursor creates a new cursor for iterating the content of the client bucket
+	// cursor.Close must be called after use to release any read transactions
+	// returns an error the cursor cannot be created
+	Cursor(ctx context.Context) (cap IClientCursor, err error)
+
 	// Delete removes the key-value pair from the state store
 	Delete(ctx context.Context, key string) (err error)
 
 	// Get returns the document for the given key
 	// Returns an error if the key doesn't exist
-	Get(ctx context.Context, key string) (value string, err error)
+	Get(ctx context.Context, key string) (value []byte, err error)
 
 	// GetMultiple returns a batch of documents with the given keys
-	GetMultiple(ctx context.Context, keys []string) (docs map[string]string, err error)
+	GetMultiple(ctx context.Context, keys []string) (docs map[string][]byte, err error)
 
 	// Keys returns a list of document keys in the store
 	//Keys(ctx context.Context) (keys []string, err error)
 
 	// Set sets a document with the given key
-	Set(ctx context.Context, key string, value string) error
+	Set(ctx context.Context, key string, value []byte) error
 
 	// SetMultiple sets multiple documents in a batch update
-	SetMultiple(ctx context.Context, docs map[string]string) (err error)
+	SetMultiple(ctx context.Context, docs map[string][]byte) (err error)
 
 	// Status returns the application state status
 	//Status(ctx context.Context) CollectionStatus
 
-	// Release the ApplicationState capability and its resources
+	// Release the ClientState capability and free its resources
 	Release()
+}
+
+type IClientCursor interface {
+	bucketstore.IBucketCursor
 }

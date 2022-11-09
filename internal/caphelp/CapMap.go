@@ -10,9 +10,9 @@ import (
 
 // UnmarshalKeyValueMap deserializes a map of [key]value from a capnp message
 // errors are ignored
-func UnmarshalKeyValueMap(capMap hubapi.KeyValueMap) (valueMap map[string]string) {
+func UnmarshalKeyValueMap(capMap hubapi.KeyValueMap) (valueMap map[string][]byte) {
 	entries, _ := capMap.Entries()
-	valueMap = make(map[string]string)
+	valueMap = make(map[string][]byte)
 
 	for i := 0; i < entries.Len(); i++ {
 		capEntry := entries.At(i)
@@ -24,7 +24,7 @@ func UnmarshalKeyValueMap(capMap hubapi.KeyValueMap) (valueMap map[string]string
 }
 
 // MarshalKeyValueMap serializes a key-value map to a capnp KeyValueMap
-func MarshalKeyValueMap(valueMap map[string]string) hubapi.KeyValueMap {
+func MarshalKeyValueMap(valueMap map[string][]byte) hubapi.KeyValueMap {
 
 	_, seg, _ := capnp.NewMessage(capnp.SingleSegment(nil))
 	capMap, _ := hubapi.NewKeyValueMap(seg)
@@ -40,6 +40,7 @@ func MarshalKeyValueMap(valueMap map[string]string) hubapi.KeyValueMap {
 		_ = capEntries.Set(i, capEntry)
 		i++
 	}
+	capMap.SetEntries(capEntries)
 
 	return capMap
 }

@@ -17,46 +17,34 @@ import (
 // Performance is stellar! Fast, efficient data storage and low memory usage compared to the others.
 // Estimates are made using a i5-4570S @2.90GHz cpu. Document size is 100 bytes.
 //
-// Create&commit write bucket, no data changes  (fast since pebbles doesn't use transactions for this)
+// Create&commit bucket, no data changes  (fast since pebbles doesn't use transactions for this)
 //   Dataset 1K,        0.1 us/op
 //   Dataset 10K,       0.1 us/op
 //   Dataset 100K       0.1 us/op
 //   Dataset 1M         0.1 us/op
 //
-// Create&close read-only bucket  (fast since pebbles doesn't use transactions for this)
-//   Dataset 1K,        0.1 us/op
-//   Dataset 10K,       0.1 us/op
-//   Dataset 100K       0.1 us/op
-//   Dataset 1M         0.1 us/op
+// Get bucket 1 record
+//   Dataset 1K,        1.0 us/op
+//   Dataset 10K,       1.6 us/op
+//   Dataset 100K       1.6 us/op
+//   Dataset 1M         3.2 us/op
 //
-// Get read-bucket 1 record
-//   Dataset 1K,       14 us/op
-//   Dataset 10K,       7 us/op
-//   Dataset 100K       5 us/op
-//   Dataset 1M        20 us/op
-//
-// Set write-bucket 1 record
-//   Dataset 1K,         3.6 us/op
-//   Dataset 10K,        2.8 us/op
-//   Dataset 100K        2.8 us/op
-//   Dataset 1M          5.5 us/op
-//   Dataset 10M        27   us/op
+// Set bucket 1 record
+//   Dataset 1K,         2.2 us/op
+//   Dataset 10K,        2.2 us/op
+//   Dataset 100K        2.5 us/op
+//   Dataset 1M          3.0 us/op
+//   Dataset 10M        40   us/op
 //
 // Seek, 1 record
-//   Dataset 1K,        20 us/op
-//   Dataset 10K,       76 us/op
-//   Dataset 100K      123 us/op
-//   Dataset 1M        175 us/op
+//   Dataset 1K,         5 us/op
+//   Dataset 10K,        3 us/op
+//   Dataset 100K        3 us/op
+//   Dataset 1M         14 us/op
 //   Dataset 10M       144 us/op
 //
 // See https://pkg.go.dev/github.com/cockroachdb/pebble for Pebble's documentation.
 //
-// TODO: as this is a very crude implementation, it is lacking in many ways:
-// 1. Add transaction support using batch for buckets. bucket.Close(false) should rollback.
-// 2. Better error checking
-// 3. Better test cases that really test proper values and edge cases
-// 4. Does seek and range iteration behave correctly at boundaries?
-// 5. ...
 type PebbleStore struct {
 	clientID       string
 	storeDirectory string
@@ -68,17 +56,10 @@ func (store *PebbleStore) Close() error {
 	return err
 }
 
-// GetReadBucket returns a read-only bucket
-// Pebble doesn't support buckets so just use key prefixe. This implies a bucket always exists.
-//  returns a bucket or nil if it doesn't exist
-func (store *PebbleStore) GetReadBucket(bucketID string) (bucket bucketstore.IBucket) {
-	bucket = NewPebbleBucket(store.clientID, bucketID, store.db, false)
-	return bucket
-}
-
-// GetWriteBucket returns a writable bucket. A bucket is created if it doesn't exist.
-func (store *PebbleStore) GetWriteBucket(bucketID string) (bucket bucketstore.IBucket) {
-	pb := NewPebbleBucket(store.clientID, bucketID, store.db, true)
+// GetBucket returns a bucket with the given ID.
+// If the bucket doesn't yet exist it will be created.
+func (store *PebbleStore) GetBucket(bucketID string) (bucket bucketstore.IBucket) {
+	pb := NewPebbleBucket(store.clientID, bucketID, store.db)
 	return pb
 }
 

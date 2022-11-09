@@ -14,12 +14,6 @@ type KVBucketCursor struct {
 	index       int
 }
 
-// Close the cursor
-func (cursor *KVBucketCursor) Close() error {
-	// tbd should we add detection of usage after close?
-	return nil
-}
-
 // First moves the cursor to the first item
 func (cursor *KVBucketCursor) First() (key string, value []byte) {
 	cursor.index = 0
@@ -68,6 +62,11 @@ func (cursor *KVBucketCursor) Prev() (key string, value []byte) {
 		value, _ = cursor.bucket.Get(key)
 	}
 	return key, value
+}
+
+// Release the cursor capability
+func (cursor *KVBucketCursor) Release() {
+	cursor.orderedKeys = nil
 }
 
 // Seek positions the cursor at the given searchKey.

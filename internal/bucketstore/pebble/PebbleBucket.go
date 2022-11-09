@@ -19,18 +19,11 @@ type PebbleBucket struct {
 	bucketPrefix string // the prefix to apply to all keys of this bucket
 	bucketID     string
 	clientID     string
-	writable     bool
 	closed       bool
 }
 
 // Close the bucket
-func (bucket *PebbleBucket) Close(commit bool) (err error) {
-	// there are no transactions to commit
-	// this is just for error detection
-	if commit && !bucket.writable {
-		err = fmt.Errorf("cant commit as bucket '%s' of client '%s' is not writable",
-			bucket.bucketID, bucket.clientID)
-	}
+func (bucket *PebbleBucket) Close() (err error) {
 	if bucket.closed {
 		err = fmt.Errorf("bucket '%s' of client '%s' is already closed", bucket.bucketID, bucket.clientID)
 	}
@@ -38,8 +31,21 @@ func (bucket *PebbleBucket) Close(commit bool) (err error) {
 	return err
 }
 
+// Commit changes to the bucket
+//func (bucket *PebbleBucket) Commit() (err error) {
+//	// this is just for error detection
+//	if !bucket.writable {
+//		err = fmt.Errorf("cant commit as bucket '%s' of client '%s' is not writable",
+//			bucket.bucketID, bucket.clientID)
+//	}
+//	if bucket.closed {
+//		err = fmt.Errorf("bucket '%s' of client '%s' is already closed", bucket.bucketID, bucket.clientID)
+//	}
+//	return err
+//}
+
 // Cursor provides an iterator for the bucket using a pebble iterator with prefix bounds
-func (bucket *PebbleBucket) Cursor() bucketstore.IBucketCursor {
+func (bucket *PebbleBucket) Cursor() (bucketstore.IBucketCursor, error) {
 	// bucket prefix is {bucketID}$
 	// range bounds end at {bucketID}@
 	opts := &pebble.IterOptions{
@@ -58,7 +64,7 @@ func (bucket *PebbleBucket) Cursor() bucketstore.IBucketCursor {
 	}
 	bucketIterator := bucket.db.NewIter(opts)
 	cursor := NewPebbleCursor(bucket.clientID, bucket.bucketID, bucket.bucketPrefix, bucketIterator)
-	return cursor
+	return cursor, nil
 }
 
 // Delete removes the key-value pair from the bucket store
@@ -140,12 +146,11 @@ func (bucket *PebbleBucket) SetMultiple(docs map[string][]byte) (err error) {
 }
 
 // NewPebbleBucket creates a new bucket
-func NewPebbleBucket(clientID, bucketID string, pebbleDB *pebble.DB, writable bool) *PebbleBucket {
+func NewPebbleBucket(clientID, bucketID string, pebbleDB *pebble.DB) *PebbleBucket {
 	srv := &PebbleBucket{
 		clientID:     clientID,
 		bucketID:     bucketID,
 		db:           pebbleDB,
-		writable:     writable,
 		bucketPrefix: bucketID + "$",
 	}
 	return srv

@@ -36,56 +36,29 @@ import (
 // Estimates using a data items of 1KB each, using a i5-4570S @2.90GHz cpu.
 // note that these times are more than 10x faster than what a marshaller would take to serialize this data.
 //
-// Dataset size: 1K, read 1K
-//   Write 1K records: 0.4 msec,       0.4 usec/op
-//   Read 1K records: 0.2 msec,        0.2 usec/op
-//   Create cursor: 0.2 msec,        200   usec/op
-//   Iterate 1K records: 0.06 msec     0.0 usec/op
-// Dataset size: 10K records
-//   Write 10K records: 3.0 msec       0.30 usec/op
-//   Read 10K records: 2.1 msec        0.21 usec/op
-//   Create cursor: 2.1 msec        2000    usec/op
-//   Iterate 10K records: 0.8 msec     0.08 usec/op
-// Dataset size: 100K records
-//   Write 100K records: 41 msec       0.42 usec/op
-//   Read 100K records: 27 msec        0.28 usec/op
-//   Create cursor: 34 msec          34     msec/op
-//   Iterate 100K records: 14 msec     0.14 usec/op
-// Dataset size: 1M records (1.9GB file size)
-//   Write 1M records: 0.48 sec        0.48 usec/op
-//   Read 1M records: 0.33 sec         0.33 usec/op
-//   Create cursor: 540 msec        540    msec/op     (* - gets slow due to key sort)
-//   Iterate 1M records: 200msec       0.20 usec/op
-//
-// Create&commit write bucket, no data changes
+// Create&commit bucket, no data changes  (basically all overhead)
 //   Dataset 1K,        0.2 us/op
 //   Dataset 10K,       0.2 us/op
 //   Dataset 100K       0.2 us/op
 //   Dataset 1M         0.2 us/op
 //
-// Create&close read-only bucket
-//   Dataset 1K,        0.2 us/op
-//   Dataset 10K,       0.2 us/op
-//   Dataset 100K       0.2 us/op
-//   Dataset 1M         0.2 us/op
-//
-// Get read-bucket 1 record
-//   Dataset 1K,        0.2 us/op
-//   Dataset 10K,       0.2 us/op
-//   Dataset 100K       0.2 us/op
-//   Dataset 1M         0.2 us/op
-//
-// Set write-bucket 1 record
+// Get bucket 1 record
 //   Dataset 1K,        0.3 us/op
 //   Dataset 10K,       0.3 us/op
 //   Dataset 100K       0.3 us/op
 //   Dataset 1M         0.3 us/op
 //
-// Seek                  bucket
-//   Dataset 1K,        0.1 ms/op
-//   Dataset 10K,       2.1 ms/op
-//   Dataset 100K      30   ms/op
-//   Dataset 1M        561  ms/op
+// Set bucket 1 record
+//   Dataset 1K,         0.3 us/op
+//   Dataset 10K,        0.3 us/op
+//   Dataset 100K        0.3 us/op
+//   Dataset 1M          0.3 us/op
+//
+// Seek, 1 record
+//   Dataset 1K,         163 us/op
+//   Dataset 10K,          2 ms/op
+//   Dataset 100K         28 ms/op  (*! cursor sort is slow.)
+//   Dataset 1M          519 ms/op  (*! cursor sort is slow.)
 //
 //
 // --- about jsonpath ---
@@ -271,21 +244,8 @@ func (store *KVMemStore) Close() error {
 	return err
 }
 
-// GetReadBucket returns a bucket if it exists
-func (store *KVMemStore) GetReadBucket(bucketID string) (bucket bucketstore.IBucket) {
-
-	if store.buckets == nil {
-		panic("store is not open")
-	}
-	kvBucket, _ := store.buckets[bucketID]
-	if kvBucket != nil {
-		kvBucket.incrRefCounter()
-	}
-	return kvBucket
-}
-
-// GetWriteBucket returns a bucket and creates it if it doesn't exist
-func (store *KVMemStore) GetWriteBucket(bucketID string) (bucket bucketstore.IBucket) {
+// GetBucket returns a bucket and creates it if it doesn't exist
+func (store *KVMemStore) GetBucket(bucketID string) (bucket bucketstore.IBucket) {
 
 	if store.buckets == nil {
 		panic("store is not open")

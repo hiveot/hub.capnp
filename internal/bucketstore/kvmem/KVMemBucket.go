@@ -29,13 +29,7 @@ type KVMemBucket struct {
 // Close the bucket and release its resources
 // commit is not used as this store doesn't handle transactions.
 // This decreases the refCount and detects an error if below 0
-func (bucket *KVMemBucket) Close(commit bool) (err error) {
-	// there are no transactions to commit
-	if commit && !bucket.writable {
-		// this is just for error detection
-		return fmt.Errorf("cant commit as bucket '%s' of client '%s' is not writable",
-			bucket.BucketID, bucket.ClientID)
-	}
+func (bucket *KVMemBucket) Close() (err error) {
 
 	logrus.Infof("closing bucket '%s' of client '%s'", bucket.BucketID, bucket.ClientID)
 	// this just lowers the refCount to detect leaks
@@ -59,7 +53,7 @@ func (bucket *KVMemBucket) Close(commit bool) (err error) {
 // This should be fast enough for many use-cases. 100K records takes around 27msec on an i5@2.9GHz
 //
 // This returns a cursor with Next() and Prev() iterators
-func (bucket *KVMemBucket) Cursor() (cursor bucketstore.IBucketCursor) {
+func (bucket *KVMemBucket) Cursor() (cursor bucketstore.IBucketCursor, err error) {
 
 	bucket.mutex.RLock()
 	defer bucket.mutex.RUnlock()
@@ -67,7 +61,7 @@ func (bucket *KVMemBucket) Cursor() (cursor bucketstore.IBucketCursor) {
 	// build an ordered key list and shallow copy of the store
 	sortedKeys := Map2SortedKeys(bucket.KVMap)
 	cursor = NewKVCursor(bucket, sortedKeys)
-	return cursor
+	return cursor, nil
 }
 
 // Delete a document from the bucket

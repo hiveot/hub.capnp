@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/cockroachdb/pebble"
+	"github.com/sirupsen/logrus"
 )
 
 type PebbleCursor struct {
@@ -14,12 +15,6 @@ type PebbleCursor struct {
 	bucketID     string
 	clientID     string
 	iterator     *pebble.Iterator
-}
-
-// Close the cursor
-// This does not release the transaction that created the bucket
-func (cursor *PebbleCursor) Close() error {
-	return nil
 }
 
 // First moves the cursor to the first item
@@ -60,6 +55,14 @@ func (cursor *PebbleCursor) Next() (key string, value []byte) {
 func (cursor *PebbleCursor) Prev() (key string, value []byte) {
 	cursor.iterator.Prev()
 	return cursor.getKV()
+}
+
+// Release the cursor
+func (cursor *PebbleCursor) Release() {
+	err := cursor.iterator.Close()
+	if err != nil {
+		logrus.Errorf("unexpected error releasing cursor: %v", err)
+	}
 }
 
 // Seek returns a cursor with Next() and Prev() iterators

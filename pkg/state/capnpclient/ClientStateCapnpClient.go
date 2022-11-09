@@ -6,6 +6,7 @@ import (
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/internal/caphelp"
+	"github.com/hiveot/hub/pkg/state"
 )
 
 // ClientStateCapnpClient provides the POGS wrapper around the capnp client API
@@ -14,9 +15,26 @@ type ClientStateCapnpClient struct {
 	capability hubapi.CapClientState // capnp client of the state store
 }
 
-func (cl *ClientStateCapnpClient) Release() {
-	cl.capability.Release()
+// Cursor returns an iterator for the bucket
+func (cl *ClientStateCapnpClient) Cursor(
+	ctx context.Context) (cursor state.IClientCursor, err error) {
+
+	method, release := cl.capability.Cursor(ctx, nil)
+	defer release()
+	res, err := method.Struct()
+	if err == nil {
+		capability := res.Cap().AddRef()
+		cursor = NewBucketCursorCapnpClient(capability)
+	}
+	return cursor, err
 }
+
+//func (cl *ClientStateCapnpClient) Commit(ctx context.Context) (err error) {
+//	method, release := cl.capability.Commit(ctx, nil)
+//	defer release()
+//	_, err = method.Struct()
+//	return err
+//}
 
 func (cl *ClientStateCapnpClient) Delete(ctx context.Context, key string) (err error) {
 	method, release := cl.capability.Delete(ctx,
@@ -30,9 +48,9 @@ func (cl *ClientStateCapnpClient) Delete(ctx context.Context, key string) (err e
 }
 
 // Get reads the state
-func (cl *ClientStateCapnpClient) Get(ctx context.Context, key string) (string, error) {
+func (cl *ClientStateCapnpClient) Get(ctx context.Context, key string) ([]byte, error) {
 	var err error
-	var val string
+	var val []byte
 
 	method, release := cl.capability.Get(ctx,
 		func(params hubapi.CapClientState_get_Params) error {
@@ -48,7 +66,7 @@ func (cl *ClientStateCapnpClient) Get(ctx context.Context, key string) (string, 
 }
 
 func (cl *ClientStateCapnpClient) GetMultiple(
-	ctx context.Context, keys []string) (docs map[string]string, err error) {
+	ctx context.Context, keys []string) (docs map[string][]byte, err error) {
 
 	method, release := cl.capability.GetMultiple(ctx,
 		func(params hubapi.CapClientState_getMultiple_Params) error {
@@ -68,8 +86,13 @@ func (cl *ClientStateCapnpClient) GetMultiple(
 	return docs, err
 }
 
+// Release the capability and commit changes
+func (cl *ClientStateCapnpClient) Release() {
+	cl.capability.Release()
+}
+
 // Set reads the state
-func (cl *ClientStateCapnpClient) Set(ctx context.Context, key string, value string) error {
+func (cl *ClientStateCapnpClient) Set(ctx context.Context, key string, value []byte) error {
 	var err error
 	method, release := cl.capability.Set(ctx,
 		func(params hubapi.CapClientState_set_Params) error {
@@ -83,7 +106,7 @@ func (cl *ClientStateCapnpClient) Set(ctx context.Context, key string, value str
 }
 
 // SetMultiple sets a batch of key-value state
-func (cl *ClientStateCapnpClient) SetMultiple(ctx context.Context, docs map[string]string) error {
+func (cl *ClientStateCapnpClient) SetMultiple(ctx context.Context, docs map[string][]byte) error {
 	var err error
 	method, release := cl.capability.SetMultiple(ctx,
 		func(params hubapi.CapClientState_setMultiple_Params) error {

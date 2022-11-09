@@ -4,47 +4,44 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a8355b86-cb16-4dbc-90ec-9852fdfe1e16" name="Changes" comment="Added authn to hubcli&#10;Added missing files">
-      <change afterPath="$PROJECT_DIR$/internal/bucketstore/IBucketStore.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/internal/bucketstore/bolts/BoltBucketStore.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/internal/bucketstore/kvmem/KVCursor.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/internal/bucketstore/pebbles/PebblesBucketStore.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/state/IStateStore.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/state/service/ClientState.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/state/service/StateStoreService.go" afterDir="false" />
+    <list default="true" id="a8355b86-cb16-4dbc-90ec-9852fdfe1e16" name="Changes" comment="Completed first iteration of the bucket store.&#10;Added the pebble storage option.">
+      <change afterPath="$PROJECT_DIR$/pkg/state/StateBench_test.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/state/capnpclient/BucketCursorCapnpClient.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/state/capnpserver/BucketCursorCapnpServer.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Directory.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Directory.capnp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/State.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/State.capnp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/capnp/hubapi/Authn.capnp.go" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Directory.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Directory.capnp.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Gateway.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Gateway.capnp.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/State.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/State.capnp.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../hub.go/pkg/mqttclient/MqttClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.go/pkg/mqttclient/MqttClient.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../hub.go/pkg/watcher/WatchFile.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.go/pkg/watcher/WatchFile.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docs/use-cases.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/use-cases.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/bucketstore/BucketBench_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/bucketstore/BucketBench_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/bucketstore/BucketStore_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/bucketstore/BucketStore_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/bucketstore/IBucketStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/bucketstore/IBucketStore.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/bucketstore/bolts/BBoltCursor.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/bucketstore/bolts/BBoltCursor.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/bucketstore/bolts/BoltBucket.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/bucketstore/bolts/BoltBucket.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/bucketstore/bolts/BoltStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/bucketstore/bolts/BoltStore.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/bucketstore/kvmem/KVCursor.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/bucketstore/kvmem/KVCursor.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/bucketstore/kvmem/KVMemBucket.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/bucketstore/kvmem/KVMemBucket.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/bucketstore/kvmem/KVMemStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/bucketstore/kvmem/KVMemStore.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/bucketstore/pebble/PebbleBucket.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/bucketstore/pebble/PebbleBucket.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/bucketstore/pebble/PebbleCursor.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/bucketstore/pebble/PebbleCursor.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/bucketstore/pebble/PebbleStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/bucketstore/pebble/PebbleStore.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/internal/caphelp/CapMap.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/caphelp/CapMap.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/kvstore/KVStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/bucketstore/kvmem/KVMemStore.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/kvstore/KVStore_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/bucketstore/BucketStore_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/kvstore/Map2SortedList.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/bucketstore/kvmem/Map2SortedList.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/authz/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/authz/cmd/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/authz/service/aclstore/AclFileStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/authz/service/aclstore/AclFileStore.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/directory/Directory_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/directory/Directory_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/directory/IDirectory.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/directory/IDirectory.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/directory/capnpclient/ReadDirectoryCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/directory/capnpclient/ReadDirectoryCapnpClient.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/directory/capnpserver/ReadDirectoryCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/directory/capnpserver/ReadDirectoryCapnpServer.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/directory/service/directorykvstore/DirectoryKVStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/directory/service/directorykvstore/DirectoryKVStore.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/state/IState.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/caphelp/CapServe.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/caphelp/CapServe.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/state/IStateStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/IStateService.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/state/State_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/State_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/state/capnpclient/ClientStateCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/capnpclient/ClientStateCapnpClient.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/state/capnpclient/StateCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/capnpclient/StateStoreCapnpClient.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/state/capnpclient/StateStoreCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/capnpclient/StateStoreCapnpClient.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/state/capnpserver/ClientStateCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/capnpserver/ClientStateCapnpServer.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/state/capnpserver/StateCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/capnpserver/StateCapnpServer.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/state/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/cmd/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/state/capnpserver/StateCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/capnpserver/StateStoreCapnpServer.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/state/config/StateConfig.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/config/StateConfig.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/state/service/statekvstore/ClientState.go" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/state/service/statekvstore/StateKVStore.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/state/service/ClientState.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/service/ClientState.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/state/service/StateStoreService.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/service/StateStoreService.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -98,7 +95,7 @@
     "WebServerToolWindowFactoryState": "false",
     "go.import.settings.migrated": "true",
     "go.sdk.automatically.set": "true",
-    "last_opened_file_path": "/home/henk/dev/hiveot/hub/internal/bucketstore/kvstore",
+    "last_opened_file_path": "/home/henk/dev/hiveot/hub/pkg/state/capnpclient",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
@@ -114,11 +111,11 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/pkg/state/capnpclient" />
+      <recent name="$PROJECT_DIR$/internal/bucketstore/pebbles" />
+      <recent name="$PROJECT_DIR$/internal/bucketstore/bolts" />
+      <recent name="$PROJECT_DIR$/internal/bucketstore/kvmem" />
       <recent name="$PROJECT_DIR$/internal/bucketstore/kvstore" />
-      <recent name="$PROJECT_DIR$/internal/store" />
-      <recent name="$PROJECT_DIR$/pkg/state/service" />
-      <recent name="$PROJECT_DIR$/pkg/state/service/bboltstore" />
-      <recent name="$PROJECT_DIR$/cmd/hubcli/authn" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/internal/store" />
@@ -128,32 +125,32 @@
       <recent name="$PROJECT_DIR$/pkg/authz/cmd" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Test.go test github.com/hiveot/hub/internal/bucketstore">
-    <configuration name="TestSeek in github.com/hiveot/hub/internal/bucketstore" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+  <component name="RunManager" selected="Go Test.Benchmark_bucketSet in github.com/hiveot/hub/internal/bucketstore">
+    <configuration name="BenchmarkSetMultiple in github.com/hiveot/hub/pkg/state" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="hub" />
-      <working_directory value="$PROJECT_DIR$/internal/bucketstore" />
+      <working_directory value="$PROJECT_DIR$/pkg/state" />
       <root_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <package value="github.com/hiveot/hub/internal/bucketstore" />
+      <package value="github.com/hiveot/hub/pkg/state" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <pattern value="^\QTestSeek\E$" />
+      <framework value="gobench" />
+      <pattern value="^\QBenchmarkSetMultiple\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestWriteBadData in github.com/hiveot/hub/internal/bucketstore" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="BenchmarkSetState in github.com/hiveot/hub/pkg/state" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="hub" />
-      <working_directory value="$PROJECT_DIR$/internal/bucketstore" />
+      <working_directory value="$PROJECT_DIR$/pkg/state" />
       <root_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <package value="github.com/hiveot/hub/internal/bucketstore" />
+      <package value="github.com/hiveot/hub/pkg/state" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <pattern value="^\QTestWriteBadData\E$" />
+      <framework value="gobench" />
+      <pattern value="^\QBenchmarkSetState\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestWriteRead in github.com/hiveot/hub/internal/bucketstore" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="Benchmark_bucketSet in github.com/hiveot/hub/internal/bucketstore" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="hub" />
       <working_directory value="$PROJECT_DIR$/internal/bucketstore" />
       <root_directory value="$PROJECT_DIR$" />
@@ -161,11 +158,11 @@
       <package value="github.com/hiveot/hub/internal/bucketstore" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <pattern value="^\QTestWriteRead\E$" />
+      <framework value="gobench" />
+      <pattern value="^\QBenchmark_bucketSet\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestWriteReadMultiple in github.com/hiveot/hub/internal/bucketstore" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="Benchmark_createBucket in github.com/hiveot/hub/internal/bucketstore" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="hub" />
       <working_directory value="$PROJECT_DIR$/internal/bucketstore" />
       <root_directory value="$PROJECT_DIR$" />
@@ -173,11 +170,11 @@
       <package value="github.com/hiveot/hub/internal/bucketstore" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <pattern value="^\QTestWriteReadMultiple\E$" />
+      <framework value="gobench" />
+      <pattern value="^\QBenchmark_createBucket\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="go test github.com/hiveot/hub/internal/bucketstore" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="Benchmark_seekReadBucket in github.com/hiveot/hub/internal/bucketstore" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="hub" />
       <working_directory value="$PROJECT_DIR$/internal/bucketstore" />
       <root_directory value="$PROJECT_DIR$" />
@@ -185,16 +182,17 @@
       <package value="github.com/hiveot/hub/internal/bucketstore" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
+      <framework value="gobench" />
+      <pattern value="^\QBenchmark_seekReadBucket\E$" />
       <method v="2" />
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Go Test.go test github.com/hiveot/hub/internal/bucketstore" />
-        <item itemvalue="Go Test.TestWriteRead in github.com/hiveot/hub/internal/bucketstore" />
-        <item itemvalue="Go Test.TestSeek in github.com/hiveot/hub/internal/bucketstore" />
-        <item itemvalue="Go Test.TestWriteReadMultiple in github.com/hiveot/hub/internal/bucketstore" />
-        <item itemvalue="Go Test.TestWriteBadData in github.com/hiveot/hub/internal/bucketstore" />
+        <item itemvalue="Go Test.Benchmark_bucketSet in github.com/hiveot/hub/internal/bucketstore" />
+        <item itemvalue="Go Test.Benchmark_seekReadBucket in github.com/hiveot/hub/internal/bucketstore" />
+        <item itemvalue="Go Test.BenchmarkSetState in github.com/hiveot/hub/pkg/state" />
+        <item itemvalue="Go Test.BenchmarkSetMultiple in github.com/hiveot/hub/pkg/state" />
+        <item itemvalue="Go Test.Benchmark_createBucket in github.com/hiveot/hub/internal/bucketstore" />
       </list>
     </recent_temporary>
   </component>
@@ -236,7 +234,6 @@
       <path value="$PROJECT_DIR$/../hub.grpc" />
       <path value="$PROJECT_DIR$/../owserver-pb" />
     </ignored-roots>
-    <MESSAGE value="dev iteration. Slowly migrating to use capnp" />
     <MESSAGE value="dev iteration. Update documentation with design ideas." />
     <MESSAGE value="dev iteration. conversion of services to using a capnproto wrapper." />
     <MESSAGE value="dev iteration. conversion of services to using a capnproto wrapper for both client and server." />
@@ -259,7 +256,10 @@
     <MESSAGE value="Added an RPC callback method to List directory.&#10;Cleanup" />
     <MESSAGE value="Added authn authentication service with capnp file&#10;Update documentation&#10;Cleanup" />
     <MESSAGE value="Added authn to hubcli&#10;Added missing files" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added authn to hubcli&#10;Added missing files" />
+    <MESSAGE value="dev iteration - don't use&#10;- refactor bucket storage into generic interface&#10;- add boltdb&#10;- add pebbles&#10;kvstore:&#10;- use map with buckets instead of combining them into a key so seek has a real key &#10;- add seek to kvstore" />
+    <MESSAGE value="dev iteration - don't use&#10;Updated cursor for bucketstore &#10;BBolt store functional. (getting slow on write)" />
+    <MESSAGE value="Completed first iteration of the bucket store.&#10;Added the pebble storage option." />
+    <option name="LAST_COMMIT_MESSAGE" value="Completed first iteration of the bucket store.&#10;Added the pebble storage option." />
   </component>
   <component name="VgoProject">
     <settings-migrated>true</settings-migrated>
@@ -297,6 +297,86 @@
           <line>228</line>
           <option name="timeStamp" value="85" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/internal/bucketstore/pebble/PebbleCursor.go</url>
+          <line>34</line>
+          <option name="timeStamp" value="166" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/internal/bucketstore/kvmem/KVMemBucket.go</url>
+          <line>40</line>
+          <option name="timeStamp" value="198" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/internal/bucketstore/pebble/PebbleBucket.go</url>
+          <line>27</line>
+          <option name="timeStamp" value="199" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/pkg/state/service/StateStoreService.go</url>
+          <line>96</line>
+          <option name="timeStamp" value="253" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/pkg/state/capnpserver/StateStoreCapnpServer.go</url>
+          <line>49</line>
+          <option name="timeStamp" value="268" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/pkg/state/capnpclient/StateStoreCapnpClient.go</url>
+          <line>38</line>
+          <option name="timeStamp" value="273" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/internal/bucketstore/bolts/BoltBucket.go</url>
+          <line>34</line>
+          <option name="timeStamp" value="274" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/internal/bucketstore/bolts/BoltStore.go</url>
+          <line>105</line>
+          <option name="timeStamp" value="281" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$USER_HOME$/go/pkg/mod/go.etcd.io/bbolt@v1.3.6/db.go</url>
+          <line>217</line>
+          <option name="timeStamp" value="282" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$USER_HOME$/go/pkg/mod/go.etcd.io/bbolt@v1.3.6/db.go</url>
+          <line>244</line>
+          <option name="timeStamp" value="284" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$USER_HOME$/go/pkg/mod/go.etcd.io/bbolt@v1.3.6/db.go</url>
+          <line>250</line>
+          <option name="timeStamp" value="285" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$USER_HOME$/go/pkg/mod/go.etcd.io/bbolt@v1.3.6/db.go</url>
+          <line>270</line>
+          <option name="timeStamp" value="286" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$USER_HOME$/go/pkg/mod/go.etcd.io/bbolt@v1.3.6/db.go</url>
+          <line>284</line>
+          <option name="timeStamp" value="287" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$USER_HOME$/go/pkg/mod/go.etcd.io/bbolt@v1.3.6/db.go</url>
+          <line>302</line>
+          <option name="timeStamp" value="288" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$USER_HOME$/go/pkg/mod/go.etcd.io/bbolt@v1.3.6/db.go</url>
+          <line>230</line>
+          <option name="timeStamp" value="289" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/pkg/state/State_test.go</url>
+          <line>254</line>
+          <option name="timeStamp" value="290" />
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
   </component>
@@ -315,8 +395,9 @@
     <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_authz_service_aclstore.out" NAME="go test github.com/hiveot/hub/pkg/authz/service/aclstore Coverage Results" MODIFIED="1666455587550" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_internal_bucketstore.out" NAME="go test github.com/hiveot/hub/internal/bucketstore Coverage Results" MODIFIED="1667540733779" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$TestStartStopTwice_in_github_com_hiveot_hub_pkg_launcher.out" NAME="TestStartStopTwice in github.com/hiveot/hub/pkg/launcher Coverage Results" MODIFIED="1665028808661" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
-    <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_state.out" NAME="go test github.com/hiveot/hub/pkg/state Coverage Results" MODIFIED="1665636363502" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_state.out" NAME="go test github.com/hiveot/hub/pkg/state Coverage Results" MODIFIED="1667929126238" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$TestAddRemoveRoles_in_github_com_hiveot_hub_pkg_authz.out" NAME="TestAddRemoveRoles in github.com/hiveot/hub/pkg/authz Coverage Results" MODIFIED="1666460077057" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/hub$TestStartStopBadLocation_in_github_com_hiveot_hub_pkg_state.out" NAME="TestStartStopBadLocation in github.com/hiveot/hub/pkg/state Coverage Results" MODIFIED="1667929445775" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$TestNoAuthorization_in_github_com_hiveot_hub_pkg_authz.out" NAME="TestNoAuthorization in github.com/hiveot/hub/pkg/authz Coverage Results" MODIFIED="1666453577665" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$TestManualProvisioning_in_github_com_hiveot_hub_pkg_provisioning.out" NAME="TestManualProvisioning in github.com/hiveot/hub/pkg/provisioning Coverage Results" MODIFIED="1664738724782" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_historystore.out" NAME="go test github.com/hiveot/hub/pkg/historystore Coverage Results" MODIFIED="1663989968436" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
@@ -328,6 +409,8 @@
     <SUITE FILE_PATH="coverage/hub$gobench_github_com_hiveot_hub_pkg_launcher.out" NAME="gobench github.com/hiveot/hub/pkg/launcher Coverage Results" MODIFIED="1665027775771" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_authn.out" NAME="go test github.com/hiveot/hub/pkg/authn Coverage Results" MODIFIED="1667100093116" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$TestList_in_github_com_hiveot_hub_pkg_launcher.out" NAME="TestList in github.com/hiveot/hub/pkg/launcher Coverage Results" MODIFIED="1665536113183" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/hub$TestSeek_in_github_com_hiveot_hub_pkg_state.out" NAME="TestSeek in github.com/hiveot/hub/pkg/state Coverage Results" MODIFIED="1667859152920" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/hub$TestCursor_in_github_com_hiveot_hub_pkg_state.out" NAME="TestCursor in github.com/hiveot/hub/pkg/state Coverage Results" MODIFIED="1667859464808" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$TestCreateUserCert_in_github_com_hiveot_hub_pkg_certservice.out" NAME="TestCreateUserCert in github.com/hiveot/hub/pkg/certservice Coverage Results" MODIFIED="1663895834448" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$TestRemoveRole_in_github_com_hiveot_hub_pkg_authz_service_aclstore.out" NAME="TestRemoveRole in github.com/hiveot/hub/pkg/authz/service/aclstore Coverage Results" MODIFIED="1666454026469" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_certservice.out" NAME="go test github.com/hiveot/hub/pkg/certservice Coverage Results" MODIFIED="1663899705475" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />

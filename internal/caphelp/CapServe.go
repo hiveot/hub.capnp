@@ -23,13 +23,13 @@ func CapServe(parentCtx context.Context, serviceName string, lis net.Listener, c
 	go func() {
 		select {
 		case <-ctx.Done():
-			logrus.Warningf("%s: Context of exitonsignal cancelled. Closing connection.", serviceName)
+			logrus.Infof("%s: Context of exitonsignal cancelled. Closing connection.", serviceName)
 			_ = lis.Close()
 		}
 
 	}()
 
-	// Listen for calls
+	// Listen for new connections
 	for {
 		rwc, err := lis.Accept()
 		if ctx.Err() != nil {
@@ -60,7 +60,7 @@ func CapServe(parentCtx context.Context, serviceName string, lis net.Listener, c
 				logrus.Infof("%s: Remote client connection closed. ID=%s", serviceName, connID)
 				return
 			case <-ctx.Done():
-				logrus.Warningf("%s: Service context cancelled. Closing client connection '%s'", serviceName, connID)
+				logrus.Infof("%s: Service context cancelled. Closing client connection '%s'", serviceName, connID)
 				_ = conn.Close()
 				return
 			}
