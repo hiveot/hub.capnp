@@ -5,6 +5,8 @@ using Go = import "/go.capnp";
 $Go.package("hubapi");
 $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
 
+using Bucket = import "./Bucket.capnp";
+
 interface CapListCallback {
 # callback interface  to be implemented by callers of ListTDcb
 
@@ -28,17 +30,20 @@ interface CapDirectory {
 interface CapReadDirectory {
 # Capability to read from the directory
 
-  getTD @0 (thingID :Text) -> (tdJson :Text);
+  cursor @0 () -> (cursor :Bucket.CapBucketCursor);
+  # Cursor returns an iterator for TD documents
+
+  getTD @1 (thingID :Text) -> (tdJson :Text);
   # Return the TD with the given Thing ID in JSON format
 
-  queryTDs @1 (jsonPath :Text, limit:Int32, offset:Int32) -> (tds :List(Text));
+  #queryTDs @2 (jsonPath :Text, limit:Int32, offset:Int32) -> (tds :List(Text));
   # Query for TD's using JSONpath on the TD content
   # See 'docs/query-tds.md' for examples
 
-  listTDs @2 (limit:Int32, offset:Int32) -> (tds :List(Text));
+  #listTDs @2 (limit:Int32, offset:Int32) -> (tds :List(Text));
   # List all TD's
 
-  listTDcb @3 (cb :CapListCallback) -> ();
+  #listTDcb @2 (cb :CapListCallback) -> ();
   # ListTDcb provides batches of TD documents to a handler.
   # The callback handler will be invoked until isLast is true or the callback returns an error.
 
