@@ -24,9 +24,9 @@ func (cl *DirectoryCapnpClient) CapReadDirectory(ctx context.Context) (cap direc
 
 	// The use of a result 'future' avoids a round trip, making this more efficient
 	getCapMethod, getCapRelease := cl.capability.CapReadDirectory(ctx, nil)
-	capability := getCapMethod.Cap()
+	capRead := getCapMethod.Cap()
 	defer getCapRelease()
-	return NewReadDirectoryCapnpClient(capability.AddRef())
+	return NewReadDirectoryCapnpClient(capRead.AddRef())
 }
 
 // CapUpdateDirectory returns the capability to update the directory
@@ -38,9 +38,17 @@ func (cl *DirectoryCapnpClient) CapUpdateDirectory(ctx context.Context) director
 	return NewUpdateDirectoryCapnpClient(capability.AddRef())
 }
 
+// Stop the storage server and flush changes to disk
+func (cl *DirectoryCapnpClient) Stop(ctx context.Context) error {
+	_ = ctx
+	cl.capability.Release()
+	return nil
+}
+
 // NewDirectoryCapnpClient returns a directory store client using the capnp protocol
-//  ctx is the context for retrieving capabilities
-//  connection is the client connection to the capnp server
+//
+//	ctx is the context for retrieving capabilities
+//	connection is the client connection to the capnp server
 func NewDirectoryCapnpClient(ctx context.Context, connection net.Conn) (*DirectoryCapnpClient, error) {
 	var cl *DirectoryCapnpClient
 	transport := rpc.NewStreamTransport(connection)

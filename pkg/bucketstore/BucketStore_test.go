@@ -15,22 +15,22 @@ import (
 	"github.com/hiveot/hub.go/pkg/logging"
 	"github.com/hiveot/hub.go/pkg/thing"
 	"github.com/hiveot/hub.go/pkg/vocab"
-	"github.com/hiveot/hub/internal/bucketstore"
-	"github.com/hiveot/hub/internal/bucketstore/bolts"
-	"github.com/hiveot/hub/internal/bucketstore/kvmem"
-	"github.com/hiveot/hub/internal/bucketstore/pebble"
+	"github.com/hiveot/hub/pkg/bucketstore"
+	"github.com/hiveot/hub/pkg/bucketstore/bolts"
+	"github.com/hiveot/hub/pkg/bucketstore/kvbtree"
+	"github.com/hiveot/hub/pkg/bucketstore/pebble"
 )
 
 var testBucketID = "default"
 
-//var testBackendType = bucketstore.BackendKVStore
-//var testBackendPath = "/tmp/test-kvstore.json"
+var testBackendType = bucketstore.BackendKVStore
+var testBackendPath = "/tmp/test-kvstore.json"
 
 //var testBackendType = bucketstore.BackendBBolt
 //var testBackendPath = "/tmp/test-bolt.db"
 
-var testBackendType = bucketstore.BackendPebble
-var testBackendPath = "/tmp/test-pebble/"
+//var testBackendType = bucketstore.BackendPebble
+//var testBackendPath = "/tmp/test-pebble/"
 
 const (
 	doc1ID = "doc1"
@@ -59,7 +59,7 @@ var doc2 = []byte(`{
 func openNewStore(backend string, storePath string) (store bucketstore.IBucketStore, err error) {
 	_ = os.RemoveAll(storePath)
 	if backend == bucketstore.BackendKVStore {
-		store = kvmem.NewKVStore("testclientkv", storePath)
+		store = kvbtree.NewKVStore("testclientkv", storePath)
 	} else if backend == bucketstore.BackendBBolt {
 		store = bolts.NewBoltStore("testclientbbolt", storePath)
 	} else if backend == bucketstore.BackendPebble {
@@ -176,18 +176,6 @@ func TestStartStop(t *testing.T) {
 	require.NoError(t, err)
 	err = store.Close()
 	assert.NoError(t, err)
-
-	//// store should now exist and reopen succeed
-	//assert.FileExists(t, bucketstoreFile)
-	store, err = openNewStore(testBackendType, testBackendPath)
-	assert.NoError(t, err)
-	err = store.Close()
-	assert.NoError(t, err)
-
-	// corrupted file should not stop the service (or should it?)
-	//_ = ioutil.WriteFile(jsonStoreFile, []byte("-invalid json"), 0600)
-	//store, err = kvstore.NewKVStore(jsonStoreFile)
-	//assert.NoError(t, err)
 }
 
 func TestCreateStoreBadFolder(t *testing.T) {
@@ -385,7 +373,44 @@ func TestSeek(t *testing.T) {
 		}
 		k2 = k
 	}
+	// how to test Last?
+	_, _ = cursor.Last()
 	assert.Equal(t, k1, k2)
+	cursor.Release()
+}
+
+func TestPrevNextN(t *testing.T) {
+	const count = 1000
+	const seekCount = 200
+	const base = 500
+
+	// setup
+	store, err := openNewStore(testBackendType, testBackendPath)
+	require.NoError(t, err)
+	err = addDocs(store, testBucketID, count)
+	require.NoError(t, err)
+	bucket := store.GetBucket(testBucketID)
+	require.NotNil(t, bucket)
+	defer store.Close()
+	defer bucket.Close()
+
+	// test NextN
+	cursor, err := bucket.Cursor()
+	assert.NoError(t, err)
+	k1, v1 := cursor.First()
+	docs, atEnd := cursor.NextN(seekCount)
+	assert.False(t, atEnd)
+	assert.Equal(t, seekCount, len(docs))
+
+	docs2, atBegin := cursor.PrevN(seekCount - 1)
+	assert.False(t, atBegin)
+	assert.Equal(t, seekCount-1, len(docs2))
+
+	// one step further we're at the begin again
+	k2, v2 := cursor.Prev()
+	assert.Equal(t, k1, k2)
+	assert.Equal(t, v1, v2)
+
 	cursor.Release()
 }
 

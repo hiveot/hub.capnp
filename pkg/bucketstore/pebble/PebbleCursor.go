@@ -47,14 +47,48 @@ func (cursor *PebbleCursor) Last() (key string, value []byte) {
 
 // Next iterates to the next key from the current cursor
 func (cursor *PebbleCursor) Next() (key string, value []byte) {
-	cursor.iterator.Next()
+	isValid := cursor.iterator.Next()
+	if !isValid {
+		return "", nil
+	}
 	return cursor.getKV()
+}
+
+// NextN increases the cursor position N times and return the encountered key-value pairs
+func (cursor *PebbleCursor) NextN(steps uint) (docs map[string][]byte, endReached bool) {
+	docs = make(map[string][]byte)
+	for i := uint(0); i < steps; i++ {
+		endReached = !cursor.iterator.Next()
+		if endReached {
+			break
+		}
+		key, value := cursor.getKV()
+		docs[key] = value
+	}
+	return docs, endReached
 }
 
 // Prev iterations to the previous key from the current cursor
 func (cursor *PebbleCursor) Prev() (key string, value []byte) {
-	cursor.iterator.Prev()
+	isValid := cursor.iterator.Prev()
+	if !isValid {
+		return "", nil
+	}
 	return cursor.getKV()
+}
+
+// PrevN decreases the cursor position N times and return the encountered key-value pairs
+func (cursor *PebbleCursor) PrevN(steps uint) (docs map[string][]byte, startReached bool) {
+	docs = make(map[string][]byte)
+	for i := uint(0); i < steps; i++ {
+		startReached = !cursor.iterator.Prev()
+		if startReached {
+			break
+		}
+		key, value := cursor.getKV()
+		docs[key] = value
+	}
+	return docs, startReached
 }
 
 // Release the cursor

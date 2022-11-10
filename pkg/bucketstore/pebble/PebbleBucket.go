@@ -8,7 +8,7 @@ import (
 	"github.com/cockroachdb/pebble"
 	"github.com/sirupsen/logrus"
 
-	"github.com/hiveot/hub/internal/bucketstore"
+	"github.com/hiveot/hub/pkg/bucketstore"
 )
 
 // PebbleBucket represents a transactional bucket using Pebble

@@ -1,16 +1,15 @@
-package kvmem
-
-import "sort"
+package kvbtree
 
 // Map2SortedKeys returns the map orderedKeys as a list sorted by key
-func Map2SortedKeys[V any](mapInput map[string]V) []string {
-	keys := make([]string, 0, len(mapInput))
-	for key := range mapInput {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-	return keys
-}
+//func Map2SortedKeys[V any](mapInput map[string]V) []string {
+//	keys := make([]string, 0, len(mapInput))
+//	for key := range mapInput {
+//		keys = append(keys, key)
+//	}
+//
+//	sort.Strings(keys)
+//	return keys
+//}
 
 // Map2SortedValues returns the map values as a list sorted by key
 //func Map2SortedValues[V any](mapInput map[string]V) []V {

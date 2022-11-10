@@ -1,4 +1,4 @@
-// Package capnpclient that wraps the capnp generated client with a POGS API
+// Package capnpclient that for using the bucket store cursor over capnp
 package capnpclient
 
 import (
@@ -7,10 +7,11 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/internal/caphelp"
 )
 
-// BucketCursorCapnpClient provides the POGS wrapper around the capnp client API
-// This implements the IClientCursor interface
+// BucketCursorCapnpClient provides a capnp RPC client of the bucket cursor
+// This implements the IBucketCursor interface
 type BucketCursorCapnpClient struct {
 	capability hubapi.CapBucketCursor // capnp cursor
 }
@@ -54,6 +55,25 @@ func (cl *BucketCursorCapnpClient) Next() (key string, value []byte) {
 	return key, value
 }
 
+// NextN moves the cursor to the next N steps from the current cursor
+func (cl *BucketCursorCapnpClient) NextN(steps uint) (docs map[string][]byte, endReached bool) {
+	ctx := context.Background()
+
+	method, release := cl.capability.NextN(ctx,
+		func(params hubapi.CapBucketCursor_nextN_Params) error {
+			params.SetSteps(uint32(steps))
+			return nil
+		})
+	defer release()
+	resp, err := method.Struct()
+	if err == nil {
+		capMap, _ := resp.Docs()
+		docs = caphelp.UnmarshalKeyValueMap(capMap)
+		endReached = resp.EndReached()
+	}
+	return docs, endReached
+}
+
 // Prev moves the cursor to the previous key from the current cursor
 func (cl *BucketCursorCapnpClient) Prev() (key string, value []byte) {
 	ctx := context.Background()
@@ -65,6 +85,24 @@ func (cl *BucketCursorCapnpClient) Prev() (key string, value []byte) {
 		value, _ = resp.Value()
 	}
 	return key, value
+}
+
+// PrevN moves the cursor back N steps from the current cursor
+func (cl *BucketCursorCapnpClient) PrevN(steps uint) (docs map[string][]byte, startReached bool) {
+	ctx := context.Background()
+	method, release := cl.capability.PrevN(ctx,
+		func(params hubapi.CapBucketCursor_prevN_Params) error {
+			params.SetSteps(uint32(steps))
+			return nil
+		})
+	defer release()
+	resp, err := method.Struct()
+	if err == nil {
+		capMap, _ := resp.Docs()
+		docs = caphelp.UnmarshalKeyValueMap(capMap)
+		startReached = resp.StartReached()
+	}
+	return docs, startReached
 }
 
 // Release the cursor capability

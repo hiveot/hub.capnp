@@ -10,10 +10,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
 
-	"github.com/hiveot/hub/internal/bucketstore"
-	"github.com/hiveot/hub/internal/bucketstore/bolts"
-	"github.com/hiveot/hub/internal/bucketstore/kvmem"
-	"github.com/hiveot/hub/internal/bucketstore/pebble"
+	"github.com/hiveot/hub/pkg/bucketstore"
+	"github.com/hiveot/hub/pkg/bucketstore/bolts"
+	"github.com/hiveot/hub/pkg/bucketstore/pebble"
 	"github.com/hiveot/hub/pkg/state"
 	"github.com/hiveot/hub/pkg/state/config"
 )
@@ -53,7 +52,7 @@ func (srv *StateStoreService) CapClientBucket(
 		if srv.cfg.Backend == config.StateBackendKVStore {
 			logrus.Infof("opening kv store for client '%s' bucket '%s", clientID, bucketID)
 			storePath := path.Join(srv.cfg.StoreDirectory, clientID+".json")
-			clientStore = kvmem.NewKVStore(clientID, storePath)
+			clientStore = kvbtree.NewKVStore(clientID, storePath)
 		} else if srv.cfg.Backend == config.StateBackendBBolt {
 			logrus.Infof("opening boltDB store for client '%s' bucket '%s", clientID, bucketID)
 			storePath := path.Join(srv.cfg.StoreDirectory, clientID+".boltdb")
@@ -171,7 +170,8 @@ func (srv *StateStoreService) Stop() error {
 
 // NewStateStoreService creates a state storage server instance.
 // Intended for use by the launcher.
-//  storeDirectory is the location to store client state files
+//
+//	storeDirectory is the location to store client state files
 func NewStateStoreService(stateConfig config.StateConfig) *StateStoreService {
 	// TODO: use configuration to determine backend and load limits
 	//kvStore := kvstore.NewKVStore(stateConfig.DatabaseURL)

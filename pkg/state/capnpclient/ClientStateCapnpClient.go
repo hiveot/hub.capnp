@@ -6,7 +6,8 @@ import (
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/internal/caphelp"
-	"github.com/hiveot/hub/pkg/state"
+	"github.com/hiveot/hub/pkg/bucketstore"
+	"github.com/hiveot/hub/pkg/bucketstore/capnpclient"
 )
 
 // ClientStateCapnpClient provides the POGS wrapper around the capnp client API
@@ -17,14 +18,14 @@ type ClientStateCapnpClient struct {
 
 // Cursor returns an iterator for the bucket
 func (cl *ClientStateCapnpClient) Cursor(
-	ctx context.Context) (cursor state.IClientCursor, err error) {
+	ctx context.Context) (cursor bucketstore.IBucketCursor, err error) {
 
 	method, release := cl.capability.Cursor(ctx, nil)
 	defer release()
 	res, err := method.Struct()
 	if err == nil {
 		capability := res.Cap().AddRef()
-		cursor = NewBucketCursorCapnpClient(capability)
+		cursor = capnpclient.NewBucketCursorCapnpClient(capability)
 	}
 	return cursor, err
 }

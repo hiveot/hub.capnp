@@ -19,7 +19,7 @@ import (
 	"github.com/hiveot/hub/pkg/directory"
 	"github.com/hiveot/hub/pkg/directory/capnpclient"
 	"github.com/hiveot/hub/pkg/directory/capnpserver"
-	"github.com/hiveot/hub/pkg/directory/service/directorykvstore"
+	"github.com/hiveot/hub/pkg/directory/service"
 )
 
 const dirStoreFile = "/tmp/directorystore_test.json"
@@ -33,7 +33,7 @@ func createNewStore(useCapnp bool) (directory.IDirectory, func(), error) {
 	logrus.Infof("createNewStore start")
 	defer logrus.Infof("createNewStore ended")
 	_ = os.Remove(dirStoreFile)
-	store, _ := directorykvstore.NewDirectoryKVStoreServer(ctx, dirStoreFile)
+	svc := service.NewDirectoryService(ctx, dirStoreFile)
 
 	// optionally test with capnp RPC
 	if useCapnp {
@@ -43,14 +43,14 @@ func createNewStore(useCapnp bool) (directory.IDirectory, func(), error) {
 		if err != nil {
 			logrus.Panic("Unable to create a listener, can't run test")
 		}
-		go capnpserver.StartDirectoryCapnpServer(ctx, srvListener, store)
+		go capnpserver.StartDirectoryCapnpServer(ctx, srvListener, svc)
 
 		// connect the client to the server above
 		clConn, _ := net.Dial("unix", testAddress)
 		capClient, err := capnpclient.NewDirectoryCapnpClient(ctx, clConn)
-		return capClient, func() { cancelFunc(); store.Stop(ctx) }, err
+		return capClient, func() { cancelFunc(); svc.Stop(ctx) }, err
 	}
-	return store, func() { cancelFunc(); store.Stop(ctx) }, nil
+	return svc, func() { cancelFunc(); svc.Stop(ctx) }, nil
 }
 
 func createTDDoc(thingID string, title string) string {
@@ -111,40 +111,39 @@ func TestAddRemoveTD(t *testing.T) {
 	logrus.Infof("--- TestRemoveTD end ---")
 }
 
-func TestListTDs(t *testing.T) {
-	logrus.Infof("--- TestListTDs start ---")
-	_ = os.Remove(dirStoreFile)
-	const thing1ID = "thing1"
-	const title1 = "title1"
-
-	ctx := context.Background()
-	store, cancelFunc, err := createNewStore(testUseCapnp)
-	defer cancelFunc()
-	require.NoError(t, err)
-
-	readCap := store.CapReadDirectory(ctx)
-	defer readCap.Release()
-	updateCap := store.CapUpdateDirectory(ctx)
-	defer updateCap.Release()
-	tdDoc1 := createTDDoc(thing1ID, title1)
-
-	err = updateCap.UpdateTD(ctx, thing1ID, tdDoc1)
-	require.NoError(t, err)
-
-	tdList, err := readCap.ListTDs(ctx, 0, 0)
-	require.NoError(t, err)
-	assert.NotNil(t, tdList)
-	assert.True(t, len(tdList) > 0)
-	logrus.Infof("--- TestListTDs end ---")
-}
+//func TestListTDs(t *testing.T) {
+//	logrus.Infof("--- TestListTDs start ---")
+//	_ = os.Remove(dirStoreFile)
+//	const thing1ID = "thing1"
+//	const title1 = "title1"
+//
+//	ctx := context.Background()
+//	store, cancelFunc, err := createNewStore(testUseCapnp)
+//	defer cancelFunc()
+//	require.NoError(t, err)
+//
+//	readCap := store.CapReadDirectory(ctx)
+//	defer readCap.Release()
+//	updateCap := store.CapUpdateDirectory(ctx)
+//	defer updateCap.Release()
+//	tdDoc1 := createTDDoc(thing1ID, title1)
+//
+//	err = updateCap.UpdateTD(ctx, thing1ID, tdDoc1)
+//	require.NoError(t, err)
+//
+//	tdList, err := readCap.ListTDs(ctx, 0, 0)
+//	require.NoError(t, err)
+//	assert.NotNil(t, tdList)
+//	assert.True(t, len(tdList) > 0)
+//	logrus.Infof("--- TestListTDs end ---")
+//}
 
 func TestListTDcb(t *testing.T) {
-	logrus.Infof("--- TestListTDcb start ---")
+	logrus.Infof("--- TestCursor start ---")
 	_ = os.Remove(dirStoreFile)
 	const thing1ID = "thing1"
 	const title1 = "title1"
 	const count = 1000
-	tdList := make([]string, 0)
 
 	ctx := context.Background()
 	store, cancelFunc, err := createNewStore(testUseCapnp)
@@ -155,23 +154,30 @@ func TestListTDcb(t *testing.T) {
 	defer readCap.Release()
 	updateCap := store.CapUpdateDirectory(ctx)
 	defer updateCap.Release()
-	tdDoc1 := createTDDoc(thing1ID, title1)
 
+	// add 1 doc
+	tdDoc1 := createTDDoc(thing1ID, title1)
 	err = updateCap.UpdateTD(ctx, thing1ID, tdDoc1)
-	t1 := time.Now()
 	require.NoError(t, err)
-	for i := 0; i < count && err == nil; i++ {
-		err = readCap.ListTDcb(ctx, func(batch []string, isLast bool) error {
-			tdList = append(tdList, batch...)
-			return nil
-		})
-	}
-	d1 := time.Now().Sub(t1)
-	logrus.Infof("%d calls to ListTDcb: %d msec", count, d1.Milliseconds())
-	require.NoError(t, err)
-	assert.NotNil(t, tdList)
-	assert.True(t, len(tdList) > 0)
-	logrus.Infof("--- TestListTDcb end ---")
+
+	// iterate
+	cursor, err := readCap.Cursor(ctx)
+	assert.NoError(t, err)
+	defer cursor.Release()
+
+	k, v := cursor.First()
+	assert.Equal(t, thing1ID, k)
+	assert.Equal(t, tdDoc1, v)
+
+	k, v = cursor.Next()
+	assert.Empty(t, k)
+	assert.Empty(t, v)
+
+	k, v = cursor.Last()
+	assert.Equal(t, thing1ID, k)
+	assert.Equal(t, tdDoc1, v)
+
+	logrus.Infof("--- TestCursor end ---")
 }
 
 //func TestQueryTDs(t *testing.T) {

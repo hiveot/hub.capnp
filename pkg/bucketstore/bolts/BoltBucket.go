@@ -7,7 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.etcd.io/bbolt"
 
-	"github.com/hiveot/hub/internal/bucketstore"
+	"github.com/hiveot/hub/pkg/bucketstore"
 )
 
 // BoltBucket implements the IBucket API using the embedded bolt database
@@ -173,10 +173,11 @@ func (bb *BoltBucket) SetMultiple(docs map[string][]byte) (err error) {
 }
 
 // NewBoltBucket creates a new bucket
-//  clientID that owns the bucket. Used for logging
-//  bucketID used to create transactional buckets
-//  db bbolt database used to create transactions
-//  onRelease callback to track reference for detecting unreleased buckets on close
+//
+//	clientID that owns the bucket. Used for logging
+//	bucketID used to create transactional buckets
+//	db bbolt database used to create transactions
+//	onRelease callback to track reference for detecting unreleased buckets on close
 func NewBoltBucket(clientID, bucketID string, db *bbolt.DB, onRelease func(bucket bucketstore.IBucket)) *BoltBucket {
 	srv := &BoltBucket{
 		db:        db,

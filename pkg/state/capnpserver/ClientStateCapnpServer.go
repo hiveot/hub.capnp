@@ -5,6 +5,7 @@ import (
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/internal/caphelp"
+	"github.com/hiveot/hub/pkg/bucketstore/capnpserver"
 	"github.com/hiveot/hub/pkg/state"
 )
 
@@ -15,7 +16,7 @@ type ClientStateCapnpServer struct {
 	srv state.IClientState
 }
 
-// Cursor returns the capability to iterate the bucket
+// Cursor returns the capability to iterate the bucket to the client
 func (capsrv *ClientStateCapnpServer) Cursor(
 	ctx context.Context, call hubapi.CapClientState_cursor) error {
 
@@ -23,7 +24,7 @@ func (capsrv *ClientStateCapnpServer) Cursor(
 	pogoCursor, err := capsrv.srv.Cursor(ctx)
 	if err == nil {
 		// second, wrap it in a capnp binding which implements the capnp generated cursor API
-		bucketCursorCapnpServer := &BucketCursorCapnpServer{cursor: pogoCursor}
+		bucketCursorCapnpServer := capnpserver.NewBucketCursorCapnpServer(pogoCursor)
 		// create the capnp RPC server for this capability
 		capability := hubapi.CapBucketCursor_ServerToClient(bucketCursorCapnpServer)
 		// and return the result to the caller

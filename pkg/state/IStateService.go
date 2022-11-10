@@ -4,7 +4,7 @@ package state
 import (
 	"context"
 
-	"github.com/hiveot/hub/internal/bucketstore"
+	"github.com/hiveot/hub/pkg/bucketstore"
 )
 
 const ServiceName = "state"
@@ -30,7 +30,6 @@ const ServiceName = "state"
 // * Number of applications (tables/buckets) per client: 1000 (arbitrary )
 // * Document size: less than 100KB per document (tbd)
 // * Number of documents per client: 10000 (tbd)
-//
 type IStateService interface {
 
 	// GetStores the names of available stores for use in application state
@@ -39,7 +38,7 @@ type IStateService interface {
 	// CapBucketStore provides the capability to access storage for a client
 	//CapBucketStore(ctx context.Context, clientID string) bucketstore.IBucketStore
 
-	// CapClientState provides the capability to store and retrieve application state.
+	// CapClientBucket provides the capability to store and retrieve application state.
 	// The caller must verify that the clientID is properly authenticated to ensure the
 	// capability is handed out to a valid client.
 	// Buckets allow clients to have multiple stores with different types of data.
@@ -73,7 +72,7 @@ type IClientState interface {
 	// Cursor creates a new cursor for iterating the content of the client bucket
 	// cursor.Close must be called after use to release any read transactions
 	// returns an error the cursor cannot be created
-	Cursor(ctx context.Context) (cap IClientCursor, err error)
+	Cursor(ctx context.Context) (cursor bucketstore.IBucketCursor, err error)
 
 	// Delete removes the key-value pair from the state store
 	Delete(ctx context.Context, key string) (err error)
@@ -99,8 +98,4 @@ type IClientState interface {
 
 	// Release the ClientState capability and free its resources
 	Release()
-}
-
-type IClientCursor interface {
-	bucketstore.IBucketCursor
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/cockroachdb/pebble"
 	"golang.org/x/sys/unix"
 
-	"github.com/hiveot/hub/internal/bucketstore"
+	"github.com/hiveot/hub/pkg/bucketstore"
 )
 
 // PebbleStore implements the IBucketStore API using the embedded CockroachDB pebble database
@@ -18,33 +18,36 @@ import (
 // Estimates are made using a i5-4570S @2.90GHz cpu. Document size is 100 bytes.
 //
 // Create&commit bucket, no data changes  (fast since pebbles doesn't use transactions for this)
-//   Dataset 1K,        0.1 us/op
-//   Dataset 10K,       0.1 us/op
-//   Dataset 100K       0.1 us/op
-//   Dataset 1M         0.1 us/op
+//
+//	Dataset 1K,        0.1 us/op
+//	Dataset 10K,       0.1 us/op
+//	Dataset 100K       0.1 us/op
+//	Dataset 1M         0.1 us/op
 //
 // Get bucket 1 record
-//   Dataset 1K,        1.0 us/op
-//   Dataset 10K,       1.6 us/op
-//   Dataset 100K       1.6 us/op
-//   Dataset 1M         3.2 us/op
+//
+//	Dataset 1K,        1.0 us/op
+//	Dataset 10K,       1.6 us/op
+//	Dataset 100K       1.6 us/op
+//	Dataset 1M         3.2 us/op
 //
 // Set bucket 1 record
-//   Dataset 1K,         2.2 us/op
-//   Dataset 10K,        2.2 us/op
-//   Dataset 100K        2.5 us/op
-//   Dataset 1M          3.0 us/op
-//   Dataset 10M        40   us/op
+//
+//	Dataset 1K,         2.2 us/op
+//	Dataset 10K,        2.2 us/op
+//	Dataset 100K        2.5 us/op
+//	Dataset 1M          3.0 us/op
+//	Dataset 10M        40   us/op
 //
 // Seek, 1 record
-//   Dataset 1K,         5 us/op
-//   Dataset 10K,        3 us/op
-//   Dataset 100K        3 us/op
-//   Dataset 1M         14 us/op
-//   Dataset 10M       144 us/op
+//
+//	Dataset 1K,         5 us/op
+//	Dataset 10K,        3 us/op
+//	Dataset 100K        3 us/op
+//	Dataset 1M         14 us/op
+//	Dataset 10M       144 us/op
 //
 // See https://pkg.go.dev/github.com/cockroachdb/pebble for Pebble's documentation.
-//
 type PebbleStore struct {
 	clientID       string
 	storeDirectory string
@@ -88,8 +91,9 @@ func (store *PebbleStore) Open() (err error) {
 }
 
 // NewPebbleStore creates a storage database with bucket support.
-//  clientID that owns the database
-//  storeDirectory is the directory (not file) holding the database
+//
+//	clientID that owns the database
+//	storeDirectory is the directory (not file) holding the database
 func NewPebbleStore(clientID, storeDirectory string) *PebbleStore {
 	srv := &PebbleStore{
 		clientID:       clientID,

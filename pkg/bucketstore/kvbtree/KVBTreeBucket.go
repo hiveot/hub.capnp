@@ -1,35 +1,35 @@
 // Package kvmem
-package kvmem
+package kvbtree
 
 import (
 	"fmt"
 	"sync"
 
 	"github.com/sirupsen/logrus"
+	"github.com/tidwall/btree"
 
-	"github.com/hiveot/hub/internal/bucketstore"
+	"github.com/hiveot/hub/pkg/bucketstore"
 )
 
-// KVMemBucket is an in-memory bucket for the KVMemBucket
-type KVMemBucket struct {
-	BucketID string            `json:"bucketID"`
-	ClientID string            `json:"clientID"`
-	refCount int               // simple ref count for error detection
-	KVMap    map[string][]byte `json:"kvMap"`
-	mutex    sync.RWMutex
+// KVBTreeBucket is an in-memory bucket for the KVBTreeBucket
+type KVBTreeBucket struct {
+	BucketID string `json:"bucketID"`
+	ClientID string `json:"clientID"`
+	refCount int    // simple ref count for error detection
+	kvtree   btree.Map[string, []byte]
+
+	mutex sync.RWMutex
 	// cache for parsed json strings for faster query
 	//queryCache map[string]interface{}
 
 	// update handler callback to notify bucket owner
-	updated func(bucket *KVMemBucket)
-	// any SetXYZ method fails if writable is false
-	writable bool
+	updated func(bucket *KVBTreeBucket)
 }
 
 // Close the bucket and release its resources
 // commit is not used as this store doesn't handle transactions.
 // This decreases the refCount and detects an error if below 0
-func (bucket *KVMemBucket) Close() (err error) {
+func (bucket *KVBTreeBucket) Close() (err error) {
 
 	logrus.Infof("closing bucket '%s' of client '%s'", bucket.BucketID, bucket.ClientID)
 	// this just lowers the refCount to detect leaks
@@ -53,57 +53,69 @@ func (bucket *KVMemBucket) Close() (err error) {
 // This should be fast enough for many use-cases. 100K records takes around 27msec on an i5@2.9GHz
 //
 // This returns a cursor with Next() and Prev() iterators
-func (bucket *KVMemBucket) Cursor() (cursor bucketstore.IBucketCursor, err error) {
+func (bucket *KVBTreeBucket) Cursor() (cursor bucketstore.IBucketCursor, err error) {
 
 	bucket.mutex.RLock()
 	defer bucket.mutex.RUnlock()
 
-	// build an ordered key list and shallow copy of the store
-	sortedKeys := Map2SortedKeys(bucket.KVMap)
-	cursor = NewKVCursor(bucket, sortedKeys)
+	iter := bucket.kvtree.Iter()
+	cursor = NewKVCursor(bucket, iter)
 	return cursor, nil
+}
+
+// Export returns a shallow copy of the bucket content
+func (bucket *KVBTreeBucket) Export() map[string][]byte {
+	bucket.mutex.RLock()
+	defer bucket.mutex.RUnlock()
+
+	// shallow copy each bucket kv pairs as well
+	exportedCopy := make(map[string][]byte)
+	//exportedCopy := bucket.kvtree.Copy[string, []byte]()
+	iter := bucket.kvtree.Iter()
+	hasItem := iter.First()
+	for hasItem {
+		exportedCopy[iter.Key()] = iter.Value()
+		hasItem = iter.Next()
+	}
+	return exportedCopy
 }
 
 // Delete a document from the bucket
 // Also succeeds if the document doesn't exist
-func (bucket *KVMemBucket) Delete(key string) error {
-	if !bucket.writable {
-		return fmt.Errorf("bucket '%s' of client '%s' is not writable", bucket.BucketID, bucket.ClientID)
-	}
-
+func (bucket *KVBTreeBucket) Delete(key string) error {
 	bucket.mutex.Lock()
 	defer bucket.mutex.Unlock()
 
 	logrus.Infof("Deleting key '%s' from bucket '%s'", key, bucket.BucketID)
-	delete(bucket.KVMap, key)
+	bucket.kvtree.Delete(key)
 	bucket.updated(bucket)
 	return nil
 }
 
 // Get an object by its ID
 // returns an error if the key does not exist.
-func (bucket *KVMemBucket) Get(key string) (doc []byte, err error) {
+func (bucket *KVBTreeBucket) Get(key string) (val []byte, err error) {
 	var found bool
 	bucket.mutex.RLock()
 	defer bucket.mutex.RUnlock()
 
-	doc, found = bucket.KVMap[key]
+	val, found = bucket.kvtree.Get(key)
 	if !found {
 		logrus.Debugf("key '%s' not found in map", key)
 	}
-	return doc, nil
+	return val, nil
 }
 
 // GetMultiple returns a batch of documents for the given key
 // The document can be any text.
-func (bucket *KVMemBucket) GetMultiple(keys []string) (docs map[string][]byte, err error) {
+func (bucket *KVBTreeBucket) GetMultiple(keys []string) (docs map[string][]byte, err error) {
 
 	bucket.mutex.RLock()
 	defer bucket.mutex.RUnlock()
 	docs = make(map[string][]byte)
 
 	for _, key := range keys {
-		val, found := bucket.KVMap[key]
+		val, found := bucket.kvtree.Get(key)
 		if found {
 			docs[key] = val
 		}
@@ -125,7 +137,7 @@ func (bucket *KVMemBucket) GetMultiple(keys []string) (docs map[string][]byte, e
 //  offset contains the offset in the list of results, sorted by ID
 //  limit contains the maximum or of responses, 0 for the default 100
 //  orderedKeys can be used to limit the result to documents with the given orderedKeys. Use nil to ignore
-//func (bucket *KVMemBucket) Query(
+//func (bucket *KVBTreeBucket) Query(
 //	BucketID string, jsonPath string, orderedKeys []string) (cursor bucketstore.IBucketCursor, err error) {
 //
 //	//  "github.com/PaesslerAG/jsonpath" - just works, amazing!
@@ -201,7 +213,7 @@ func (bucket *KVMemBucket) GetMultiple(keys []string) (docs map[string][]byte, e
 //}
 
 //// Size returns the number of items in the store
-//func (bucket *KVMemBucket) Size(context.Context, *emptypb.Empty) (*svc.SizeResult, error) {
+//func (bucket *KVBTreeBucket) Size(context.Context, *emptypb.Empty) (*svc.SizeResult, error) {
 //	store.mutex.RLock()
 //	defer bucket.mutex.RUnlock()
 //	res := &svc.SizeResult{
@@ -210,12 +222,12 @@ func (bucket *KVMemBucket) GetMultiple(keys []string) (docs map[string][]byte, e
 //	return res, nil
 //}
 
-func (bucket *KVMemBucket) ID() string {
+func (bucket *KVBTreeBucket) ID() string {
 	return bucket.BucketID
 }
 
 // increment the ref counter when a new bucket is requested
-func (bucket *KVMemBucket) incrRefCounter() {
+func (bucket *KVBTreeBucket) incrRefCounter() {
 	bucket.mutex.Lock()
 	defer bucket.mutex.Unlock()
 	bucket.refCount++
@@ -223,63 +235,61 @@ func (bucket *KVMemBucket) incrRefCounter() {
 
 // Set writes a document to the store. If the document exists it is replaced.
 //
-//  A background process periodically checks the change count. When increased:
-//  1. Lock the store while copying the index. Unlock when done.
-//  2. Stream the in-memory json documents to a temp file.
-//  3. If success, move the temp file to the store file using the OS atomic move operation.
-//
-func (bucket *KVMemBucket) Set(key string, doc []byte) error {
+//	A background process periodically checks the change count. When increased:
+//	1. Lock the store while copying the index. Unlock when done.
+//	2. Stream the in-memory json documents to a temp file.
+//	3. If success, move the temp file to the store file using the OS atomic move operation.
+func (bucket *KVBTreeBucket) Set(key string, doc []byte) error {
 	if key == "" {
 		return fmt.Errorf("missing key")
-	} else if !bucket.writable {
-		return fmt.Errorf("bucket '%s' of client '%s' is not writable", bucket.BucketID, bucket.ClientID)
 	}
 
 	// store the document and object
 	bucket.mutex.Lock()
 	defer bucket.mutex.Unlock()
-
-	bucket.KVMap[key] = doc
+	bucket.kvtree.Set(key, doc)
 	bucket.updated(bucket)
 	return nil
 }
 
-func (bucket *KVMemBucket) setUpdateHandler(handler func(bucket *KVMemBucket)) {
+func (bucket *KVBTreeBucket) setUpdateHandler(handler func(bucket *KVBTreeBucket)) {
 	bucket.updated = handler
 }
 
 // SetMultiple writes a batch of key-values
-func (bucket *KVMemBucket) SetMultiple(docs map[string][]byte) (err error) {
-	if !bucket.writable {
-		return fmt.Errorf("bucket '%s' of client '%s' is not writable", bucket.BucketID, bucket.ClientID)
-	}
+func (bucket *KVBTreeBucket) SetMultiple(docs map[string][]byte) (err error) {
 	// store the document and object
 	bucket.mutex.Lock()
 	defer bucket.mutex.Unlock()
 	for k, v := range docs {
-		bucket.KVMap[k] = v
+		bucket.kvtree.Set(k, v)
 	}
 	bucket.updated(bucket)
 	return nil
 }
 
-// returns a shallow copy of the bucket
-func (bucket *KVMemBucket) makeShallowCopy() *KVMemBucket {
-	bucket.mutex.RLock()
-	defer bucket.mutex.RUnlock()
-	shallowCopy := &KVMemBucket{
-		BucketID: bucket.BucketID,
-		ClientID: bucket.ClientID,
+func NewKVMemBucket(clientID, bucketID string) *KVBTreeBucket {
+	kvbucket := &KVBTreeBucket{
+		BucketID: bucketID,
+		ClientID: clientID,
 		refCount: 0,
-		KVMap:    make(map[string][]byte),
 		mutex:    sync.RWMutex{},
-		updated:  nil, // not for production
-		writable: false,
+		updated:  nil,
 	}
-	// shallow copy each bucket kv pairs as well
-	for k, v := range bucket.KVMap {
-		shallowCopy.KVMap[k] = v
-	}
-	return shallowCopy
+	return kvbucket
+}
 
+// NewKVMemBucketFromMap creates a new KVBTreeBucket from a map with bucket data
+func NewKVMemBucketFromMap(clientID, bucketID string, data map[string][]byte) *KVBTreeBucket {
+	kvbucket := &KVBTreeBucket{
+		BucketID: bucketID,
+		ClientID: clientID,
+		refCount: 0,
+		mutex:    sync.RWMutex{},
+		updated:  nil,
+	}
+	for k, v := range data {
+		kvbucket.kvtree.Set(k, v)
+	}
+	return kvbucket
 }

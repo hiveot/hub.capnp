@@ -1,5 +1,5 @@
 // Package kvstore
-package kvmem
+package kvbtree
 
 import (
 	"encoding/json"
@@ -13,10 +13,10 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/hiveot/hub/internal/bucketstore"
+	"github.com/hiveot/hub/pkg/bucketstore"
 )
 
-// KVMemStore is an embedded, file backed, in-memory, lightweight, and very fast key-value bucket
+// KVBTreeStore is an embedded, file backed, in-memory, lightweight, and very fast key-value bucket
 // store.
 // This is intended for simple use-cases with up to 100K records.
 // Interestingly, this simple brute-force store using maps is faster than anything else I've tested and even
@@ -31,56 +31,29 @@ import (
 // Improvements for future considerations:
 //   - Append-only to reduce disk writes for larger databases
 //
-// Crude performance using random read/writes:
-// Todo: use proper benchmark
-// Estimates using a data items of 1KB each, using a i5-4570S @2.90GHz cpu.
-// note that these times are more than 10x faster than what a marshaller would take to serialize this data.
-//
-// Create&commit bucket, no data changes  (basically all overhead)
-//   Dataset 1K,        0.2 us/op
-//   Dataset 10K,       0.2 us/op
-//   Dataset 100K       0.2 us/op
-//   Dataset 1M         0.2 us/op
-//
-// Get bucket 1 record
-//   Dataset 1K,        0.3 us/op
-//   Dataset 10K,       0.3 us/op
-//   Dataset 100K       0.3 us/op
-//   Dataset 1M         0.3 us/op
-//
-// Set bucket 1 record
-//   Dataset 1K,         0.3 us/op
-//   Dataset 10K,        0.3 us/op
-//   Dataset 100K        0.3 us/op
-//   Dataset 1M          0.3 us/op
-//
-// Seek, 1 record
-//   Dataset 1K,         163 us/op
-//   Dataset 10K,          2 ms/op
-//   Dataset 100K         28 ms/op  (*! cursor sort is slow.)
-//   Dataset 1M          519 ms/op  (*! cursor sort is slow.)
-//
-//
 // --- about jsonpath ---
 // This was experimental because of the W3C WoT recommendation, and seems to work well.
 // However this is shelved as the Hub has no use-case for it and the other stores don't support it.
 //
 // Query: jsonPath: `$[?(@.properties.title.name=="title1")]`
-//    Approx 1.8 msec with a dataset of 1K records (1 result)
-//    Approx 23 msec with a dataset of 10K records (1 result)
-//    Approx 260 msec with a dataset of 100K records (1 result)
+//
+//	Approx 1.8 msec with a dataset of 1K records (1 result)
+//	Approx 23 msec with a dataset of 10K records (1 result)
+//	Approx 260 msec with a dataset of 100K records (1 result)
 //
 // A good overview of jsonpath implementations can be found here:
 // > https://cburgmer.github.io/json-path-comparison/
 // Two good options for jsonpath queries:
-//  > github.com/ohler55/ojg/jp
-//  > github.com/PaesslerAG/jsonpath
+//
+//	> github.com/ohler55/ojg/jp
+//	> github.com/PaesslerAG/jsonpath
+//
 // Note that future implementations of this service can change the storage media used while
 // maintaining API compatibility.
-type KVMemStore struct {
+type KVBTreeStore struct {
 	clientID string
 	// collection of buckets, each being a map.
-	buckets              map[string]*KVMemBucket
+	buckets              map[string]*KVBTreeBucket
 	storePath            string
 	mutex                sync.RWMutex // simple locking is still fast enough
 	updateCount          int32        // nr of updates since last save
@@ -88,39 +61,32 @@ type KVMemStore struct {
 	backgroundLoopEnding chan bool
 	writeDelay           time.Duration // delay before writing changes
 	// cache for parsed json strings for faster query
-	jsonCache map[string]interface{}
+	//jsonCache map[string]interface{}
 }
 
-// makeShallowCopy returns a shallow copy of the given bucket map
-// this copies the keys and values into a new map and bucket. Since keys are strings they
-// are a true copy. Values are (immutable) byte arrays so not duplicated.
-func makeShallowCopy(source map[string]*KVMemBucket) map[string]*KVMemBucket {
-
-	var shallowCopy = make(map[string]*KVMemBucket)
-
-	for bucketID, bucket := range source {
-		bucketCopy := bucket.makeShallowCopy()
-		shallowCopy[bucketID] = bucketCopy
-	}
-	return shallowCopy
-}
-
-// openStoreFile loads the store JSON content into a map.
-// If the store doesn't exist it is created
+// importStoreFile loads the store content into a map and converts it to a map of buckets
+// returns an error if the file does not exist
 // not concurrent safe
-func openStoreFile(storePath string) (docs map[string]*KVMemBucket, err error) {
-	docs, err = readStoreFile(storePath)
+func importStoreFile(clientID, storePath string) (docs map[string]*KVBTreeBucket, err error) {
+	imported, err := readStoreFile(storePath)
+	docs = make(map[string]*KVBTreeBucket)
 	if err != nil {
-		docs = make(map[string]*KVMemBucket)
-		err = writeStoreFile(storePath, docs)
+		return nil, err
 	}
+	for bucketID, bucketData := range imported {
+		bucket := NewKVMemBucketFromMap(clientID, bucketID, bucketData)
+		docs[bucketID] = bucket
+	}
+	// if the store didn't exist it must be writable successfully in order to continue
 	return docs, err
 }
 
 // readStoreFile loads the store JSON content into a map
+// Returns the OS error if loading fails
 // not concurrent safe
-func readStoreFile(storePath string) (docs map[string]*KVMemBucket, err error) {
-	docs = make(map[string]*KVMemBucket)
+func readStoreFile(storePath string) (docs map[string]map[string][]byte, err error) {
+	//docs = make(map[string]*KVBTreeBucket)
+	docs = make(map[string]map[string][]byte)
 	var rawData []byte
 	rawData, err = os.ReadFile(storePath)
 	if err == nil {
@@ -128,7 +94,7 @@ func readStoreFile(storePath string) (docs map[string]*KVMemBucket, err error) {
 
 		if err != nil {
 			// todo: chain errors
-			logrus.Errorf("failed read store '%s', error %s. Recover with an empty store. Sorry.", storePath, err)
+			logrus.Warningf("failed read store '%s', error %s. Recover with an empty store. Sorry.", storePath, err)
 		}
 	}
 	return docs, err
@@ -138,9 +104,9 @@ func readStoreFile(storePath string) (docs map[string]*KVMemBucket, err error) {
 // This creates the folder if it doesn't exist. (the parent must exist)
 // Note this is not concurrent safe. Callers must lock or create a shallow copy of the buckets.
 //
-//   storePath is the full path to the file
-//   docs contains an object map of the store objects
-func writeStoreFile(storePath string, docs map[string]*KVMemBucket) error {
+//	storePath is the full path to the file
+//	docs contains an object map of the store objects
+func writeStoreFile(storePath string, docs map[string]map[string][]byte) error {
 	logrus.Infof("writeStoreFile: Flush changes to json store at '%s'", storePath)
 
 	// create the folder if needed
@@ -189,7 +155,7 @@ func writeStoreFile(storePath string, docs map[string]*KVMemBucket) error {
 }
 
 // autoSaveLoop periodically saves changes to the store
-func (store *KVMemStore) autoSaveLoop() {
+func (store *KVBTreeStore) autoSaveLoop() {
 	logrus.Infof("auto-save loop started")
 
 	defer close(store.backgroundLoopEnded)
@@ -200,18 +166,18 @@ func (store *KVMemStore) autoSaveLoop() {
 			logrus.Infof("Autosave loop ended")
 			return
 		case <-time.After(store.writeDelay):
-			store.mutex.Lock()
+			//store.mutex.Lock()
 			if atomic.LoadInt32(&store.updateCount) > int32(0) {
 				// make a shallow copy for writing to avoid a lock during write to disk
-				shallowCopy := makeShallowCopy(store.buckets)
+				exportedCopy := store.Export()
 				atomic.StoreInt32(&store.updateCount, 0)
-				store.mutex.Unlock()
+				//store.mutex.Unlock()
 
 				// nothing we can do here. error is already logged
 				// FIXME: use separate write lock
-				_ = writeStoreFile(store.storePath, shallowCopy)
+				_ = writeStoreFile(store.storePath, exportedCopy)
 			} else {
-				store.mutex.Unlock()
+				//store.mutex.Unlock()
 			}
 		}
 	}
@@ -219,7 +185,7 @@ func (store *KVMemStore) autoSaveLoop() {
 
 // Close the store and stop the background update.
 // If any changes are remaining then write to disk now.
-func (store *KVMemStore) Close() error {
+func (store *KVBTreeStore) Close() error {
 	var err error
 	logrus.Infof("closing store for client '%s'", store.clientID)
 
@@ -232,34 +198,41 @@ func (store *KVMemStore) Close() error {
 	// wait for the background loop to end
 	<-store.backgroundLoopEnded
 
-	store.mutex.Lock()
-	defer store.mutex.Unlock()
-
 	// flush any remaining changes
-	if store.updateCount > 0 {
-		err = writeStoreFile(store.storePath, store.buckets)
+	if atomic.LoadInt32(&store.updateCount) > int32(0) {
+		// note Export does an rlock
+		exportedCopy := store.Export()
+		err = writeStoreFile(store.storePath, exportedCopy)
 	}
 	store.buckets = nil
 	logrus.Infof("Store '%s' close completed. Background loop ended", store.storePath)
 	return err
 }
 
+// export returns a map of the given bucket
+// this copies the keys and values into a new map
+func (store *KVBTreeStore) Export() map[string]map[string][]byte {
+	store.mutex.RLock()
+	defer store.mutex.RUnlock()
+	var exportedCopy = make(map[string]map[string][]byte)
+
+	for bucketID, bucket := range store.buckets {
+		bucketExport := bucket.Export()
+		exportedCopy[bucketID] = bucketExport
+	}
+	return exportedCopy
+}
+
 // GetBucket returns a bucket and creates it if it doesn't exist
-func (store *KVMemStore) GetBucket(bucketID string) (bucket bucketstore.IBucket) {
+func (store *KVBTreeStore) GetBucket(bucketID string) (bucket bucketstore.IBucket) {
 
 	if store.buckets == nil {
 		panic("store is not open")
 	}
+	store.mutex.Lock()
 	kvBucket, _ := store.buckets[bucketID]
 	if kvBucket == nil {
-		kvBucket = &KVMemBucket{
-			BucketID: bucketID,
-			ClientID: store.clientID,
-			refCount: 0,
-			KVMap:    make(map[string][]byte),
-			mutex:    sync.RWMutex{},
-			writable: true,
-		}
+		kvBucket = NewKVMemBucket(store.clientID, bucketID)
 		store.buckets[bucketID] = kvBucket
 		bucket = kvBucket
 	}
@@ -268,20 +241,18 @@ func (store *KVMemStore) GetBucket(bucketID string) (bucket bucketstore.IBucket)
 		// also, after loading the store all handlers are empty
 		kvBucket.setUpdateHandler(store.onBucketUpdated)
 		kvBucket.incrRefCounter()
-		// FIXME: this will make existing readonly buckets writable
-		// The capability to use the bucket should be separated from the bucket itself
-		kvBucket.writable = true
 	}
+	store.mutex.Unlock()
 	return kvBucket
 }
 
 // callback handler for notification that a bucket has been modified
-func (store *KVMemStore) onBucketUpdated(bucket *KVMemBucket) {
+func (store *KVBTreeStore) onBucketUpdated(bucket *KVBTreeBucket) {
 	atomic.AddInt32(&store.updateCount, 1)
 }
 
 // Open the store and start the background loop for saving changes
-func (store *KVMemStore) Open() error {
+func (store *KVBTreeStore) Open() error {
 	logrus.Infof("Opening store from '%s'", store.storePath)
 	var err error
 	store.mutex.Lock()
@@ -290,7 +261,24 @@ func (store *KVMemStore) Open() error {
 	if store.buckets != nil {
 		panic("store already open")
 	}
-	store.buckets, err = openStoreFile(store.storePath)
+	store.buckets, err = importStoreFile(store.clientID, store.storePath)
+	// recover from bad file. Missing file is okay.
+	if err != nil {
+		if os.IsNotExist(err) {
+			// store doesn't yet exist. This is okay
+		} else {
+			logrus.Warningf("Unknown error reading store: %s", store.storePath)
+		}
+		// write an empty store to make sure the location is writable
+		store.buckets = make(map[string]*KVBTreeBucket)
+		dummy := make(map[string]map[string][]byte)
+		err = writeStoreFile(store.storePath, dummy)
+		if err != nil {
+			// unable to recover. Hitting a dead end
+			logrus.Errorf("Store cannot be created: '%s'", err)
+			return err
+		}
+	}
 	store.backgroundLoopEnding = make(chan bool)
 	store.backgroundLoopEnded = make(chan bool)
 	if err == nil {
@@ -303,7 +291,7 @@ func (store *KVMemStore) Open() error {
 }
 
 //// Size returns the number of items in the store
-//func (store *KVMemStore) Size(context.Context, *emptypb.Empty) (*svc.SizeResult, error) {
+//func (store *KVBTreeStore) Size(context.Context, *emptypb.Empty) (*svc.SizeResult, error) {
 //	store.mutex.RLock()
 //	defer store.mutex.RUnlock()
 //	res := &svc.SizeResult{
@@ -313,17 +301,18 @@ func (store *KVMemStore) Open() error {
 //}
 
 // SetWriteDelay sets the delay for writing after a change
-func (store *KVMemStore) SetWriteDelay(delay time.Duration) {
+func (store *KVBTreeStore) SetWriteDelay(delay time.Duration) {
 	store.writeDelay = delay
 }
 
 // NewKVStore creates a store instance and load it with saved documents.
 // Run Start to start the background loop and Stop to end it.
-//  ClientID service or user for debugging and logging
-//  storeFile path to storage file
-func NewKVStore(clientID, storePath string) (store *KVMemStore) {
+//
+//	ClientID service or user for debugging and logging
+//	storeFile path to storage file
+func NewKVStore(clientID, storePath string) (store *KVBTreeStore) {
 	writeDelay := time.Duration(3000) * time.Millisecond
-	store = &KVMemStore{
+	store = &KVBTreeStore{
 		//jsonDocs:             make(map[string]string),
 		clientID:             clientID,
 		buckets:              nil, // will be set after open
@@ -332,7 +321,7 @@ func NewKVStore(clientID, storePath string) (store *KVMemStore) {
 		backgroundLoopEnded:  nil,
 		mutex:                sync.RWMutex{},
 		writeDelay:           writeDelay,
-		jsonCache:            make(map[string]interface{}),
+		//jsonCache:            make(map[string]interface{}),
 	}
 	return store
 }

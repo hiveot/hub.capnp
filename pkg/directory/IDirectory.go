@@ -2,42 +2,46 @@
 // Unfortunately capnp does generate POGS types so we need to duplicate them
 package directory
 
-import "context"
+import (
+	"context"
+
+	"github.com/hiveot/hub/internal/bucketstore"
+)
 
 // ServiceName is the name of the service to connect to
 const ServiceName = "directory"
+const TDBucketName = "td"
 
-// IDirectory defines a POGS based capability API of the thing directory
+// IDirectory defines the capability to use the thing directory
 type IDirectory interface {
 	// CapReadDirectory provides the capability to read and query the thing directory
 	CapReadDirectory(ctx context.Context) IReadDirectory
 
 	// CapUpdateDirectory provides the capability to update the thing directory
 	CapUpdateDirectory(ctx context.Context) IUpdateDirectory
+
+	// Stop the service and free its resources
+	Stop(ctx context.Context) error
 }
 
-// IReadDirectory defines a POGS based capability of reading the Thing directory
+// IReadDirectory defines the capability of reading the Thing directory
 type IReadDirectory interface {
+	// Cursor returns an iterator for TD documents
+	Cursor(ctx context.Context) (cursor IDirectoryCursor)
 
 	// GetTD returns the TD document for the given Thing ID in JSON format
 	GetTD(ctx context.Context, thingID string) (tdJson string, err error)
 
-	// ListTDs returns all TD documents in JSON format
-	ListTDs(ctx context.Context, limit int, offset int) (tds []string, err error)
-
-	// ListTDcb provides batches of TD documents in JSON format via a callback
-	// The callback handler will be invoked until isLast is true or the callback returns an error
-	ListTDcb(ctx context.Context, cb func(batch []string, isLast bool) error) (err error)
-
 	// QueryTDs returns the TD's filtered using JSONpath on the TD content
 	// See 'docs/query-tds.md' for examples
+	// disabled as this is not used
 	//QueryTDs(ctx context.Context, jsonPath string, limit int, offset int) (tds []string, err error)
 
 	// Release this capability and allocated resources after its use
 	Release()
 }
 
-// IUpdateDirectory defines a POGS based capability of updating the Thing directory
+// IUpdateDirectory defines the capability of updating the Thing directory
 type IUpdateDirectory interface {
 
 	// RemoveTD removes a TD document from the store
@@ -49,4 +53,9 @@ type IUpdateDirectory interface {
 
 	// Release this capability and allocated resources after its use
 	Release()
+}
+
+// IDirectoryCursor defines the directory iterator
+type IDirectoryCursor interface {
+	bucketstore.IBucketCursor
 }

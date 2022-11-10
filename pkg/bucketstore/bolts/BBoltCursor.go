@@ -31,10 +31,38 @@ func (bbc *BBoltCursor) Next() (key string, value []byte) {
 	return string(k), v
 }
 
+// NextN increases the cursor position N times and return the encountered key-value pairs
+func (bbc *BBoltCursor) NextN(steps uint) (docs map[string][]byte, endReached bool) {
+	docs = make(map[string][]byte)
+	for i := uint(0); i < steps; i++ {
+		key, value := bbc.cursor.Next()
+		if key == nil {
+			endReached = true
+			break
+		}
+		docs[string(key)] = value
+	}
+	return docs, endReached
+}
+
 // Prev iterations to the previous key from the current cursor
 func (bbc *BBoltCursor) Prev() (key string, value []byte) {
 	k, v := bbc.cursor.Prev()
 	return string(k), v
+}
+
+// PrevN decreases the cursor position N times and return the encountered key-value pairs
+func (bbc *BBoltCursor) PrevN(steps uint) (docs map[string][]byte, startReached bool) {
+	docs = make(map[string][]byte)
+	for i := uint(0); i < steps; i++ {
+		key, value := bbc.cursor.Prev()
+		if key == nil {
+			startReached = true
+			break
+		}
+		docs[string(key)] = value
+	}
+	return docs, startReached
 }
 
 // Release the cursor

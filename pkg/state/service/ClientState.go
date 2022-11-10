@@ -5,7 +5,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/hiveot/hub/internal/bucketstore"
+	"github.com/hiveot/hub/pkg/bucketstore"
 	"github.com/hiveot/hub/pkg/state"
 )
 
@@ -24,7 +24,7 @@ type ClientState struct {
 }
 
 // Cursor provides an iterator cursor for the bucket
-func (svc *ClientState) Cursor(ctx context.Context) (cursor state.IClientCursor, err error) {
+func (svc *ClientState) Cursor(ctx context.Context) (cursor bucketstore.IBucketCursor, err error) {
 	cursor, err = svc.bucket.Cursor()
 	return cursor, err
 }
@@ -77,10 +77,11 @@ func (svc *ClientState) SetMultiple(ctx context.Context, docs map[string][]byte)
 }
 
 // NewClientState creates a new instance for storing a client's application state
-//  clientID
-//  bucketID
-//  bucket to store data in
-//  onRelease callback to invoke when the client is released by its protocol binding
+//
+//	clientID
+//	bucketID
+//	bucket to store data in
+//	onRelease callback to invoke when the client is released by its protocol binding
 func NewClientState(
 	clientID string, bucketID string,
 	bucket bucketstore.IBucket,

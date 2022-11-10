@@ -4,13 +4,14 @@ import (
 	"context"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
-	"github.com/hiveot/hub/pkg/state"
+	"github.com/hiveot/hub/internal/caphelp"
+	"github.com/hiveot/hub/pkg/bucketstore"
 )
 
-// BucketCursorCapnpServer provides the capnp RPC server for the store iterator.
+// BucketCursorCapnpServer provides the capnp RPC server for a data cursor iterator.
 // This implements the capnproto generated interface CapBucketCursor_Server
 type BucketCursorCapnpServer struct {
-	cursor state.IClientCursor
+	cursor bucketstore.IBucketCursor
 }
 
 func (srv BucketCursorCapnpServer) First(
@@ -40,12 +41,39 @@ func (srv BucketCursorCapnpServer) Next(
 	return err
 }
 
+func (srv BucketCursorCapnpServer) NextN(
+	_ context.Context, call hubapi.CapBucketCursor_nextN) error {
+	args := call.Args()
+	steps := args.Steps()
+	docs, endReached := srv.cursor.NextN(uint(steps))
+	res, err := call.AllocResults()
+	if err != nil {
+		docsCap := caphelp.MarshalKeyValueMap(docs)
+		_ = res.SetDocs(docsCap)
+		res.SetEndReached(endReached)
+	}
+	return err
+}
+
 func (srv BucketCursorCapnpServer) Prev(
 	_ context.Context, call hubapi.CapBucketCursor_prev) error {
 	k, v := srv.cursor.Prev()
 	res, err := call.AllocResults()
 	_ = res.SetKey(k)
 	_ = res.SetValue(v)
+	return err
+}
+func (srv BucketCursorCapnpServer) PrevN(
+	_ context.Context, call hubapi.CapBucketCursor_prevN) error {
+	args := call.Args()
+	steps := args.Steps()
+	docs, startReached := srv.cursor.PrevN(uint(steps))
+	res, err := call.AllocResults()
+	if err == nil {
+		docsCap := caphelp.MarshalKeyValueMap(docs)
+		_ = res.SetDocs(docsCap)
+		res.SetStartReached(startReached)
+	}
 	return err
 }
 
@@ -64,4 +92,11 @@ func (capsrv *BucketCursorCapnpServer) Shutdown() {
 	// Release on the client calls capnp Shutdown.
 	// Pass this to the server to cleanup
 	capsrv.cursor.Release()
+}
+
+func NewBucketCursorCapnpServer(cursor bucketstore.IBucketCursor) *BucketCursorCapnpServer {
+	cursorCapnpServer := &BucketCursorCapnpServer{
+		cursor: cursor,
+	}
+	return cursorCapnpServer
 }

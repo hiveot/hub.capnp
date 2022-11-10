@@ -7,7 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"go.etcd.io/bbolt"
 
-	"github.com/hiveot/hub/internal/bucketstore"
+	"github.com/hiveot/hub/pkg/bucketstore"
 )
 
 // BoltStore implements the IBucketStore API using the embedded bolt database
@@ -40,7 +40,6 @@ import (
 //   Dataset 1M         1.7 us/op
 //
 
-//
 type BoltStore struct {
 	// the underlying database
 	boltDB *bbolt.DB
@@ -109,7 +108,8 @@ func (store *BoltStore) Open() (err error) {
 }
 
 // NewBoltStore creates a state storage server instance.
-//  storePath is the file holding the database
+//
+//	storePath is the file holding the database
 func NewBoltStore(clientID, storePath string) *BoltStore {
 	srv := &BoltStore{
 		clientID:  clientID,
