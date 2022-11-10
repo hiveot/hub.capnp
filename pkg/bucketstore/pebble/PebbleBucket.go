@@ -45,7 +45,7 @@ func (bucket *PebbleBucket) Close() (err error) {
 //}
 
 // Cursor provides an iterator for the bucket using a pebble iterator with prefix bounds
-func (bucket *PebbleBucket) Cursor() (bucketstore.IBucketCursor, error) {
+func (bucket *PebbleBucket) Cursor() bucketstore.IBucketCursor {
 	// bucket prefix is {bucketID}$
 	// range bounds end at {bucketID}@
 	opts := &pebble.IterOptions{
@@ -64,7 +64,7 @@ func (bucket *PebbleBucket) Cursor() (bucketstore.IBucketCursor, error) {
 	}
 	bucketIterator := bucket.db.NewIter(opts)
 	cursor := NewPebbleCursor(bucket.clientID, bucket.bucketID, bucket.bucketPrefix, bucketIterator)
-	return cursor, nil
+	return cursor
 }
 
 // Delete removes the key-value pair from the bucket store

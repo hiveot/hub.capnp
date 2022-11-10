@@ -59,8 +59,7 @@ type IBucket interface {
 
 	// Cursor creates a new bucket cursor for iterating the bucket
 	// cursor.Close must be called after use to release any read transactions
-	// returns an error the cursor cannot be created
-	Cursor() (IBucketCursor, error)
+	Cursor() (cursor IBucketCursor)
 
 	// Delete removes the key-value pair from the bucket store
 	// Returns nil if the key is deleted or doesn't exist.
@@ -119,7 +118,7 @@ type IBucketCursor interface {
 	// and return a map with the N key-value pairs.
 	// beginReached is true if the iterator has reached the beginning
 	// Intended to speed up with batch iterations over rpc.
-	PrevN(steps uint) (docs map[string][]byte, startReached bool)
+	PrevN(steps uint) (docs map[string][]byte, beginReached bool)
 
 	// Release close the cursor and release its resources.
 	// This invalidates all values obtained from the cursor

@@ -71,8 +71,8 @@ type IClientState interface {
 
 	// Cursor creates a new cursor for iterating the content of the client bucket
 	// cursor.Close must be called after use to release any read transactions
-	// returns an error the cursor cannot be created
-	Cursor(ctx context.Context) (cursor bucketstore.IBucketCursor, err error)
+	// returns nil if communication with the service fails
+	Cursor(ctx context.Context) (cursor bucketstore.IBucketCursor)
 
 	// Delete removes the key-value pair from the state store
 	Delete(ctx context.Context, key string) (err error)

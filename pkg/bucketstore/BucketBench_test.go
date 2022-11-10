@@ -5,13 +5,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/thanhpk/randstr"
 
 	"github.com/hiveot/hub.go/pkg/logging"
 )
 
-// $ go test -bench=./BucketBench_test.go -benchtime=3s -count=1 -run=^#   (skip unit tests)
+// $ go test -bench=Benchmark_bucket -benchtime=3s -run=^#    (skip unit tests)
 // cpu: Intel(R) Core(TM) i5-4570S CPU @ 2.90GHz
 //
 //	Database:                kvbtree (us)      pebble (us)               bbolt (us)
@@ -46,6 +45,7 @@ import (
 // Observations:
 //   - kvbtree, an in-memory btree, is the overall winner, although this is far from a complete picture
 //   - pebble has great real-life performance and scales much further than kvbtree
+//     the next1 oddball might be due to locking delays because of the testcase as next 1000x is faster.
 //   - bbolt does well on reading and iterating but is slow on write, especially with large datasets.
 //     Maybe this is caused by a problem in the bucket store implementation though.
 //   - an RPC call is around 100 usec on this machine, so except for bbolt this is much slower than single store operations
@@ -162,8 +162,7 @@ func Benchmark_bucket(b *testing.B) {
 			func(b *testing.B) {
 				for n := 0; n < b.N; n++ {
 					bucket := store.GetBucket(testBucketID)
-					cursor, err := bucket.Cursor()
-					require.NoError(b, err)
+					cursor := bucket.Cursor()
 
 					// cursor based seek (find nearest) instead of a get
 					for i := 0; i < v.nrSteps; i++ {
@@ -184,8 +183,7 @@ func Benchmark_bucket(b *testing.B) {
 			func(b *testing.B) {
 				for n := 0; n < b.N; n++ {
 					bucket := store.GetBucket(testBucketID)
-					cursor, err := bucket.Cursor()
-					require.NoError(b, err)
+					cursor := bucket.Cursor()
 					k0, v0 := cursor.First()
 					assert.NotEmpty(b, k0)
 					assert.NotEmpty(b, v0)

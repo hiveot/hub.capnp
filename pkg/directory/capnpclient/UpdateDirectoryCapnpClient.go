@@ -1,4 +1,4 @@
-// Package client that wraps the capnp generated client with a POGS API
+// Package capnpclient that wraps the capnp generated client with a POGS API
 package capnpclient
 
 import (
@@ -32,12 +32,12 @@ func (cl *UpdateDirectoryCapnpClient) RemoveTD(ctx context.Context, thingID stri
 
 // UpdateTD updates the TD document in the directory
 // If the TD with the given ID doesn't exist it will be added.
-func (cl *UpdateDirectoryCapnpClient) UpdateTD(ctx context.Context, thingID string, tdDoc string) (err error) {
+func (cl *UpdateDirectoryCapnpClient) UpdateTD(ctx context.Context, thingID string, tdDoc []byte) (err error) {
 	method, release := cl.capability.UpdateTD(ctx,
 		func(params hubapi.CapUpdateDirectory_updateTD_Params) error {
 			params.SetThingID(thingID)
-			params.SetTdDoc(tdDoc)
-			return nil
+			err = params.SetTdDoc(tdDoc)
+			return err
 		})
 	defer release()
 	_, err = method.Struct()

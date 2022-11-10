@@ -78,17 +78,17 @@ func (cursor *PebbleCursor) Prev() (key string, value []byte) {
 }
 
 // PrevN decreases the cursor position N times and return the encountered key-value pairs
-func (cursor *PebbleCursor) PrevN(steps uint) (docs map[string][]byte, startReached bool) {
+func (cursor *PebbleCursor) PrevN(steps uint) (docs map[string][]byte, beginReached bool) {
 	docs = make(map[string][]byte)
 	for i := uint(0); i < steps; i++ {
-		startReached = !cursor.iterator.Prev()
-		if startReached {
+		beginReached = !cursor.iterator.Prev()
+		if beginReached {
 			break
 		}
 		key, value := cursor.getKV()
 		docs[key] = value
 	}
-	return docs, startReached
+	return docs, beginReached
 }
 
 // Release the cursor

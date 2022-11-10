@@ -5,7 +5,7 @@ package directory
 import (
 	"context"
 
-	"github.com/hiveot/hub/internal/bucketstore"
+	"github.com/hiveot/hub/pkg/bucketstore"
 )
 
 // ServiceName is the name of the service to connect to
@@ -27,10 +27,11 @@ type IDirectory interface {
 // IReadDirectory defines the capability of reading the Thing directory
 type IReadDirectory interface {
 	// Cursor returns an iterator for TD documents
-	Cursor(ctx context.Context) (cursor IDirectoryCursor)
+	Cursor(ctx context.Context) (cursor bucketstore.IBucketCursor)
 
 	// GetTD returns the TD document for the given Thing ID in JSON format
-	GetTD(ctx context.Context, thingID string) (tdJson string, err error)
+	// Returns the JSON serialized TD, or nil if the thingID doesn't exist and an error if the store is not reachable.
+	GetTD(ctx context.Context, thingID string) (tdJson []byte, err error)
 
 	// QueryTDs returns the TD's filtered using JSONpath on the TD content
 	// See 'docs/query-tds.md' for examples
@@ -49,13 +50,10 @@ type IUpdateDirectory interface {
 
 	// UpdateTD updates the TD document in the directory
 	// If the TD with the given ID doesn't exist it will be added.
-	UpdateTD(ctx context.Context, thingID string, tdDoc string) (err error)
+	//  thingID is the full ID of the Thing whose TD to update
+	//  tdDoc is the JSON serialized TD document
+	UpdateTD(ctx context.Context, thingID string, tdDoc []byte) (err error)
 
 	// Release this capability and allocated resources after its use
 	Release()
-}
-
-// IDirectoryCursor defines the directory iterator
-type IDirectoryCursor interface {
-	bucketstore.IBucketCursor
 }

@@ -5,9 +5,9 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/hiveot/hub/internal/bucketstore"
 	"github.com/hiveot/hub/internal/listener"
 	"github.com/hiveot/hub/internal/svcconfig"
+	"github.com/hiveot/hub/pkg/bucketstore"
 	"github.com/hiveot/hub/pkg/certs"
 	"github.com/hiveot/hub/pkg/launcher"
 	"github.com/hiveot/hub/pkg/state"
@@ -19,7 +19,7 @@ import (
 // Start the launcher service
 func main() {
 	var err error
-	var svc state.IStateStore
+	var svc state.IStateService
 	var ctx = context.Background()
 
 	logrus.SetLevel(logrus.InfoLevel)

@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/hiveot/hub/internal/bucketstore"
+	"github.com/hiveot/hub/pkg/bucketstore"
 	"github.com/hiveot/hub/pkg/directory"
 )
 
@@ -15,15 +15,15 @@ type ReadDirectory struct {
 }
 
 // GetTD returns the TD document for the given Thing ID in JSON format
-func (svc *ReadDirectory) GetTD(ctx context.Context, thingID string) (tdJson string, err error) {
+func (svc *ReadDirectory) GetTD(ctx context.Context, thingID string) (tdJson []byte, err error) {
 	td, err := svc.bucket.Get(thingID)
-	return string(td), err
+	return td, err
 }
 
 // Cursor returns an iterator for TD documents
-func (svc *ReadDirectory) Cursor(ctx context.Context) (cursor directory.IDirectoryCursor, err error) {
-	bucketCursor, err := svc.bucket.Cursor()
-	return bucketCursor, err
+func (svc *ReadDirectory) Cursor(ctx context.Context) (cursor bucketstore.IBucketCursor) {
+	bucketCursor := svc.bucket.Cursor()
+	return bucketCursor
 
 }
 

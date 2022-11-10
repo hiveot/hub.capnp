@@ -70,13 +70,12 @@ func (bb *BoltBucket) Close() (err error) {
 // Do not write to the database while iterating.
 //
 // This returns a cursor with Next() and Prev() iterators or an error if the bucket doesn't exist
-func (bb *BoltBucket) Cursor() (cursor bucketstore.IBucketCursor, err error) {
+func (bb *BoltBucket) Cursor() (cursor bucketstore.IBucketCursor) {
 
 	tx, err := bb.db.Begin(false)
 	if err != nil {
 		logrus.Errorf("unable to create transaction for bucket '%s' for client '%s': %s",
 			bb.bucketID, bb.clientID, err)
-		return nil, err
 	}
 	bboltBucket := tx.Bucket([]byte(bb.bucketID))
 	if bboltBucket == nil {
@@ -84,12 +83,11 @@ func (bb *BoltBucket) Cursor() (cursor bucketstore.IBucketCursor, err error) {
 		_ = tx.Rollback()
 		err = fmt.Errorf("bucket '%s' no longer exist for client '%s'", bb.bucketID, bb.clientID)
 		logrus.Info(err)
-		return nil, err
 	}
-
+	// always return a cursor, although it might be empty without a boltbucket
 	// cursor MUST end the transaction when done
 	cursor = NewBBoltCursor(bboltBucket)
-	return cursor, nil
+	return cursor
 }
 
 // Delete a key in the bucket

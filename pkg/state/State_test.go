@@ -23,7 +23,7 @@ import (
 const storeDir = "/tmp/test-state"
 const stateStoreFile = "/tmp/statestore_test.json"
 const testAddress = "/tmp/statestore_test.socket"
-const testUseCapnp = false
+const testUseCapnp = true
 
 //var backend = config.StateBackendKVStore
 
@@ -252,8 +252,8 @@ func TestCursor(t *testing.T) {
 	assert.NoError(t, err)
 
 	// result must match
-	cursor, err := clientState.Cursor(ctx)
-	assert.NoError(t, err)
+	cursor := clientState.Cursor(ctx)
+	assert.NotNil(t, cursor)
 	k1, _ := cursor.First()
 	assert.NotNil(t, k1)
 	k0, _ := cursor.Prev()

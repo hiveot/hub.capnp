@@ -12,6 +12,7 @@ import (
 
 	"github.com/hiveot/hub/pkg/bucketstore"
 	"github.com/hiveot/hub/pkg/bucketstore/bolts"
+	"github.com/hiveot/hub/pkg/bucketstore/kvbtree"
 	"github.com/hiveot/hub/pkg/bucketstore/pebble"
 	"github.com/hiveot/hub/pkg/state"
 	"github.com/hiveot/hub/pkg/state/config"

@@ -21,19 +21,18 @@ func (capsrv *ClientStateCapnpServer) Cursor(
 	ctx context.Context, call hubapi.CapClientState_cursor) error {
 
 	// first create the instance of the POGS server for this client application
-	pogoCursor, err := capsrv.srv.Cursor(ctx)
+	pogoCursor := capsrv.srv.Cursor(ctx)
+
+	// second, wrap it in a capnp binding which implements the capnp generated cursor API
+	bucketCursorCapnpServer := capnpserver.NewBucketCursorCapnpServer(pogoCursor)
+	// create the capnp RPC server for this capability
+	capability := hubapi.CapBucketCursor_ServerToClient(bucketCursorCapnpServer)
+	// and return the result to the caller
+	res, err := call.AllocResults()
 	if err == nil {
-		// second, wrap it in a capnp binding which implements the capnp generated cursor API
-		bucketCursorCapnpServer := capnpserver.NewBucketCursorCapnpServer(pogoCursor)
-		// create the capnp RPC server for this capability
-		capability := hubapi.CapBucketCursor_ServerToClient(bucketCursorCapnpServer)
-		// and return the result to the caller
-		res, err2 := call.AllocResults()
-		err = err2
-		if err == nil {
-			err = res.SetCap(capability)
-		}
+		err = res.SetCap(capability)
 	}
+
 	return err
 }
 

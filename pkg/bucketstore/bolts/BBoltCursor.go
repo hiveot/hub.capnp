@@ -15,18 +15,27 @@ type BBoltCursor struct {
 
 // First moves the cursor to the first item
 func (bbc *BBoltCursor) First() (key string, value []byte) {
+	if bbc.cursor == nil {
+		return "", nil
+	}
 	k, v := bbc.cursor.First()
 	return string(k), v
 }
 
 // Last moves the cursor to the last item
 func (bbc *BBoltCursor) Last() (key string, value []byte) {
+	if bbc.cursor == nil {
+		return "", nil
+	}
 	k, v := bbc.cursor.Last()
 	return string(k), v
 }
 
 // Next iterates to the next key from the current cursor
 func (bbc *BBoltCursor) Next() (key string, value []byte) {
+	if bbc.cursor == nil {
+		return "", nil
+	}
 	k, v := bbc.cursor.Next()
 	return string(k), v
 }
@@ -34,6 +43,9 @@ func (bbc *BBoltCursor) Next() (key string, value []byte) {
 // NextN increases the cursor position N times and return the encountered key-value pairs
 func (bbc *BBoltCursor) NextN(steps uint) (docs map[string][]byte, endReached bool) {
 	docs = make(map[string][]byte)
+	if bbc.cursor == nil {
+		return nil, true
+	}
 	for i := uint(0); i < steps; i++ {
 		key, value := bbc.cursor.Next()
 		if key == nil {
@@ -47,44 +59,60 @@ func (bbc *BBoltCursor) NextN(steps uint) (docs map[string][]byte, endReached bo
 
 // Prev iterations to the previous key from the current cursor
 func (bbc *BBoltCursor) Prev() (key string, value []byte) {
+	if bbc.cursor == nil {
+		return "", nil
+	}
 	k, v := bbc.cursor.Prev()
 	return string(k), v
 }
 
 // PrevN decreases the cursor position N times and return the encountered key-value pairs
-func (bbc *BBoltCursor) PrevN(steps uint) (docs map[string][]byte, startReached bool) {
+func (bbc *BBoltCursor) PrevN(steps uint) (docs map[string][]byte, beginReached bool) {
 	docs = make(map[string][]byte)
+	if bbc.cursor == nil {
+		return nil, true
+	}
+
 	for i := uint(0); i < steps; i++ {
 		key, value := bbc.cursor.Prev()
 		if key == nil {
-			startReached = true
+			beginReached = true
 			break
 		}
 		docs[string(key)] = value
 	}
-	return docs, startReached
+	return docs, beginReached
 }
 
 // Release the cursor
 // This ends the bbolt bucket transaction
 func (bbc *BBoltCursor) Release() {
 	logrus.Infof("releasing bucket cursor")
-	bbc.bucket.Tx().Rollback()
-	bbc.cursor = nil
-	bbc.bucket = nil
+	if bbc.bucket != nil {
+		bbc.bucket.Tx().Rollback()
+		bbc.cursor = nil
+		bbc.bucket = nil
+	}
 }
 
 // Seek returns a cursor with Next() and Prev() iterators
 func (bbc *BBoltCursor) Seek(searchKey string) (key string, value []byte) {
+	if bbc.cursor == nil {
+		return "", nil
+	}
 	k, v := bbc.cursor.Seek([]byte(searchKey))
 	return string(k), v
 }
 
 func NewBBoltCursor(bucket *bbolt.Bucket) *BBoltCursor {
-	newCursor := bucket.Cursor()
+	var bbCursor *bbolt.Cursor = nil
+	if bucket != nil {
+		bbCursor = bucket.Cursor()
+	}
 	bbc := &BBoltCursor{
 		bucket: bucket,
-		cursor: newCursor,
+		cursor: bbCursor,
 	}
+
 	return bbc
 }

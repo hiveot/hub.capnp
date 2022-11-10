@@ -23,6 +23,12 @@ func (capsrv *UpdateDirectoryCapnpServer) RemoveTD(
 	return err
 }
 
+func (capsrv *UpdateDirectoryCapnpServer) Shutdown() {
+	// Release on the client calls capnp Shutdown.
+	// Pass this to the server to cleanup
+	capsrv.srv.Release()
+}
+
 func (capsrv *UpdateDirectoryCapnpServer) UpdateTD(
 	ctx context.Context, call hubapi.CapUpdateDirectory_updateTD) (err error) {
 

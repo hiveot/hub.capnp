@@ -67,18 +67,18 @@ func (cursor *KVBTreeCursor) Prev() (key string, value []byte) {
 }
 
 // PrevN decreases the cursor position N times and return the encountered key-value pairs
-func (cursor *KVBTreeCursor) PrevN(steps uint) (docs map[string][]byte, startReached bool) {
+func (cursor *KVBTreeCursor) PrevN(steps uint) (docs map[string][]byte, beginReached bool) {
 	docs = make(map[string][]byte)
 	for i := uint(0); i < steps; i++ {
-		startReached = !cursor.kviter.Prev()
-		if startReached {
+		beginReached = !cursor.kviter.Prev()
+		if beginReached {
 			break
 		}
 		key := cursor.kviter.Key()
 		value := cursor.kviter.Value()
 		docs[key] = value
 	}
-	return docs, startReached
+	return docs, beginReached
 }
 
 // Release the cursor capability

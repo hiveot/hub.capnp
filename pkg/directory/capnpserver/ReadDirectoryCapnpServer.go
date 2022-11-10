@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/pkg/bucketstore/capnpserver"
 	"github.com/hiveot/hub/pkg/directory"
-	"github.com/hiveot/hub/pkg/state/capnpserver"
 )
 
 // ReadDirectoryCapnpServer provides the capnp RPC server for reading the directory
@@ -18,9 +18,7 @@ func (capsrv *ReadDirectoryCapnpServer) Cursor(
 	ctx context.Context, call hubapi.CapReadDirectory_cursor) error {
 
 	cursor := capsrv.srv.Cursor(ctx)
-	cursorSrv := &capnpserver.BucketCursorCapnpServer{
-		cursor: cursor,
-	}
+	cursorSrv := capnpserver.NewBucketCursorCapnpServer(cursor)
 
 	capability := hubapi.CapBucketCursor_ServerToClient(cursorSrv)
 	res, err := call.AllocResults()
@@ -31,7 +29,7 @@ func (capsrv *ReadDirectoryCapnpServer) Cursor(
 }
 func (capsrv *ReadDirectoryCapnpServer) GetTD(ctx context.Context, call hubapi.CapReadDirectory_getTD) (err error) {
 	var thingID string
-	var td string
+	var td []byte
 
 	args := call.Args()
 	thingID, _ = args.ThingID()
@@ -105,3 +103,9 @@ func (capsrv *ReadDirectoryCapnpServer) GetTD(ctx context.Context, call hubapi.C
 //	}
 //	return err
 //}
+
+func (capsrv *ReadDirectoryCapnpServer) Shutdown() {
+	// Release on the client calls capnp Shutdown.
+	// Pass this to the server to cleanup
+	capsrv.srv.Release()
+}

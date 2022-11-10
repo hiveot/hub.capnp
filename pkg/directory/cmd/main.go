@@ -14,7 +14,7 @@ import (
 	"github.com/hiveot/hub/internal/svcconfig"
 	"github.com/hiveot/hub/pkg/directory"
 	"github.com/hiveot/hub/pkg/directory/capnpserver"
-	"github.com/hiveot/hub/pkg/directory/service/directorykvstore"
+	"github.com/hiveot/hub/pkg/directory/service"
 	"github.com/hiveot/hub/pkg/launcher"
 )
 
@@ -32,11 +32,9 @@ func main() {
 	// parse commandline and create server listening socket
 	srvListener := listener.CreateServiceListener(f.Run, directory.ServiceName)
 
-	svc, err := directorykvstore.NewDirectoryKVStoreServer(ctx, storePath)
-	if err == nil {
-		err = svc.Start(ctx)
-		defer svc.Stop(ctx)
-	}
+	svc := service.NewDirectoryService(ctx, storePath)
+	err := svc.Start(ctx)
+	defer svc.Stop(ctx)
 
 	if err == nil {
 		logrus.Infof("DirectoryCapnpServer starting on: %s", srvListener.Addr())

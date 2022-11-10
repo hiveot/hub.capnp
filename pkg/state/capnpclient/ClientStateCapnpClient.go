@@ -18,7 +18,7 @@ type ClientStateCapnpClient struct {
 
 // Cursor returns an iterator for the bucket
 func (cl *ClientStateCapnpClient) Cursor(
-	ctx context.Context) (cursor bucketstore.IBucketCursor, err error) {
+	ctx context.Context) (cursor bucketstore.IBucketCursor) {
 
 	method, release := cl.capability.Cursor(ctx, nil)
 	defer release()
@@ -27,7 +27,7 @@ func (cl *ClientStateCapnpClient) Cursor(
 		capability := res.Cap().AddRef()
 		cursor = capnpclient.NewBucketCursorCapnpClient(capability)
 	}
-	return cursor, err
+	return cursor
 }
 
 //func (cl *ClientStateCapnpClient) Commit(ctx context.Context) (err error) {

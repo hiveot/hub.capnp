@@ -24,9 +24,9 @@ type ClientState struct {
 }
 
 // Cursor provides an iterator cursor for the bucket
-func (svc *ClientState) Cursor(ctx context.Context) (cursor bucketstore.IBucketCursor, err error) {
-	cursor, err = svc.bucket.Cursor()
-	return cursor, err
+func (svc *ClientState) Cursor(ctx context.Context) (cursor bucketstore.IBucketCursor) {
+	cursor = svc.bucket.Cursor()
+	return cursor
 }
 
 // Delete a key from the bucket

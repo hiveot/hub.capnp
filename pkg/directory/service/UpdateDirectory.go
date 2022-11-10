@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/hiveot/hub/internal/bucketstore"
+	"github.com/hiveot/hub/pkg/bucketstore"
 	"github.com/hiveot/hub/pkg/directory"
 )
 
@@ -19,8 +19,8 @@ func (svc *UpdateDirectory) RemoveTD(_ context.Context, thingID string) error {
 	return err
 }
 
-func (svc *UpdateDirectory) UpdateTD(_ context.Context, id string, td string) error {
-	err := svc.bucket.Set(id, []byte(td))
+func (svc *UpdateDirectory) UpdateTD(_ context.Context, id string, td []byte) error {
+	err := svc.bucket.Set(id, td)
 	return err
 }
 

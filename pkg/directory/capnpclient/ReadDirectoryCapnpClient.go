@@ -5,9 +5,9 @@ import (
 	"context"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
-	"github.com/hiveot/hub/internal/caphelp"
+	"github.com/hiveot/hub/pkg/bucketstore"
+	"github.com/hiveot/hub/pkg/bucketstore/capnpclient"
 	"github.com/hiveot/hub/pkg/directory"
-	"github.com/hiveot/hub/pkg/state/capnpclient"
 )
 
 // ReadDirectoryCapnpClient is the POGS client to reading a directory
@@ -18,7 +18,7 @@ type ReadDirectoryCapnpClient struct {
 }
 
 func (cl *ReadDirectoryCapnpClient) Cursor(
-	ctx context.Context) (cursor directory.IDirectoryCursor) {
+	ctx context.Context) (cursor bucketstore.IBucketCursor) {
 
 	// The use of a result 'future' avoids a round trip, making this more efficient
 	getCapMethod, release := cl.capability.Cursor(ctx, nil)
@@ -30,7 +30,7 @@ func (cl *ReadDirectoryCapnpClient) Cursor(
 }
 
 // GetTD returns the TD document for the given Thing ID in JSON format
-func (cl *ReadDirectoryCapnpClient) GetTD(ctx context.Context, thingID string) (tdJson string, err error) {
+func (cl *ReadDirectoryCapnpClient) GetTD(ctx context.Context, thingID string) (tdJson []byte, err error) {
 
 	method, release := cl.capability.GetTD(ctx,
 		func(params hubapi.CapReadDirectory_getTD_Params) error {
@@ -73,16 +73,16 @@ type ListTDReceiver struct {
 
 // Handler is a capnp callback method invoked by the server to push the list of TD's in batches
 // This unmarshal's the arguments and pass it to the provided POGS handler.
-func (receiver *ListTDReceiver) Handler(
-	ctx context.Context, params hubapi.CapListCallback_handler) error {
-	args := params.Args()
-	tdsCapnp, _ := args.Tds()
-	tds := caphelp.UnmarshalStringList(tdsCapnp)
-	isLast := args.IsLast()
-	_ = ctx
-	receiver.pogsHandler(tds, isLast)
-	return nil
-}
+//func (receiver *ListTDReceiver) Handler(
+//	ctx context.Context, params hubapi.CapListCallback_handler) error {
+//	args := params.Args()
+//	tdsCapnp, _ := args.Tds()
+//	tds := caphelp.UnmarshalStringList(tdsCapnp)
+//	isLast := args.IsLast()
+//	_ = ctx
+//	receiver.pogsHandler(tds, isLast)
+//	return nil
+//}
 
 // ListTDcb provides all TD documents in JSON format
 //func (cl *ReadDirectoryCapnpClient) ListTDcb(

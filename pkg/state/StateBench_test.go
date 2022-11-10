@@ -40,50 +40,63 @@ func addRecords(store state.IStateService, clientID, bucketID string, count int)
 	client.Release()
 }
 
-// Table with data size to run the benchmark with
+// Benchmark with effects of database size
 //
-// KVStore write performance:
-// DB records     set 1       set1000x1   setMultiple/1  setMultiple/1000
-//     1K        0.3 usec      250 usec     0.1 usec         53 usec
-//   100K        0.3 usec      290 usec     0.1 usec         70 usec
+//              DB size   records        kv (us)       pebble (us)   bbolt (us)
+// SetState        1K,       1             0.6            4.0             4900
+//               100K,       1             0.7            4.2             7000
+//                 1M,       1                            9.1
+//                 1K      1000          600           4000            4800000 (4.8 sec!)
+//               100K      1000          700           5300            7000000 (7 sec!)
+//                 1M      1000                        5900
+// SetMultiple     1K,       1             0.1            1.8             4700
+//               100K,       1             0.2            2.2             6600
+//                 1M,       1                            1.9
+//                 1K      1000          170           1900              11000
+//               100K      1000          330           2800              31000
+//                 1M,     1000                        7470
+// GetState        1K,       1             0.5            0.9                1.6
+//               100K,       1             0.6            0.9                1.7
+//                 1K      1000          530            870               1500
+//               100K      1000          590            920               1700
+// GetMultiple     1K,       1
+//               100K,       1
+//                 1K      1000
+//               100K      1000
+
+// Benchmark with use of capnp. Note timing in msec
 //
-// BoltDB write performance:
-// DB records     set 1        set1000x1   setMultiple/1  setMultiple/1000
-//     1K        4.5 msec       4700 msec    4.6 msec         10.2
-//   100K        6.7 msec       6621 msec    6.5 msec         29.8
+//              DB size   records        kv (ms)       pebble (ms)     bbolt (ms)
+// SetState        1K,       1             0.1            0.1              5.0
+//               100K,       1             0.1            0.1              7.1
+//                 1K      1000          120            140             4900   (4.9 sec!)
+//               100K      1000          120            140             7000   (7 sec!)
+// SetMultiple     1K,       1             0.14           0.15             5.1
+//               100K,       1             0.13           0.15             6.9
+//                 1K      1000            4.3            6.6             16
+//               100K      1000            4.3            7.9             36
+// GetState        1K,       1             0.13           0.13             0.13
+//               100K,       1             0.13           0.13             0.13
+//                 1K      1000          130            130              130
+//               100K      1000          130            130              130
+// GetMultiple     1K,       1
+//               100K,       1
+//                 1K      1000
+//               100K      1000
 //
-// Pebble write performance:
-// DB records     set 1        set1000x1   setMultiple/1  setMultiple/1000
-//     1K        2.5 usec      2650 usec     1.8 usec        1970 usec
-//   100K        3.2 usec      3450 usec     2.2 usec        3110 usec
-//     1M        9.1 usec      5880 usec     1.9 usec        7470 usec
-//
-// --- via capnp ---
-//
-// KVStore via Capnp write performance:
-// DB records     set 1        set1000x1   setMultiple/1  setMultiple/1000
-//     1K        0.12 msec      118 msec      0.14 msec      4.3 msec
-//   100K        0.12 msec      123 msec      0.13 msec      4.3 msec
-//
-// BoltDB via Capnp write performance:
-// DB records     set 1        set1000x1   setMultiple/1  setMultiple/1000
-//     1K        5.1 msec      4927 msec      5.1 msec        16 msec
-//   100K        7.1 msec      6952 msec      6.9 msec        36 msec
-//
-// Pebble via Capnp write performance:
-// DB records     set 1        set1000x1   setMultiple/1  setMultiple/1000   get 1     get1000x1
-//     1K        0.13 msec      136 msec      0.15 msec       6.6 msec      0.13 msec   136 msec
-//   100K        0.13 msec      136 msec      0.15 msec       7.9 msec      0.14 msec   132 msec
-//
+// Observations:
+//  - transaction write of bbolt is very costly. Use setmultiple or performance will be insufficient
+//  - the capnp RPC over Unix Domain Sockets call overhead is around 0.13 msec.
+
 var DataSizeTable = []struct {
 	dataSize int
 	nrSets   int
 }{
 	{dataSize: 1000, nrSets: 1},
 	{dataSize: 100000, nrSets: 1},
-	//{dataSize: 1000000, nrSets: 1},
 	{dataSize: 1000, nrSets: 1000},
 	{dataSize: 100000, nrSets: 1000},
+	//{dataSize: 1000000, nrSets: 1},
 	//{dataSize: 1000000, nrSets: 1000},
 }
 

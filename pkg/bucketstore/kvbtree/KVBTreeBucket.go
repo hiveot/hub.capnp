@@ -53,14 +53,26 @@ func (bucket *KVBTreeBucket) Close() (err error) {
 // This should be fast enough for many use-cases. 100K records takes around 27msec on an i5@2.9GHz
 //
 // This returns a cursor with Next() and Prev() iterators
-func (bucket *KVBTreeBucket) Cursor() (cursor bucketstore.IBucketCursor, err error) {
+func (bucket *KVBTreeBucket) Cursor() (cursor bucketstore.IBucketCursor) {
 
 	bucket.mutex.RLock()
 	defer bucket.mutex.RUnlock()
 
 	iter := bucket.kvtree.Iter()
 	cursor = NewKVCursor(bucket, iter)
-	return cursor, nil
+	return cursor
+}
+
+// Delete a document from the bucket
+// Also succeeds if the document doesn't exist
+func (bucket *KVBTreeBucket) Delete(key string) error {
+	bucket.mutex.Lock()
+	defer bucket.mutex.Unlock()
+
+	logrus.Infof("Deleting key '%s' from bucket '%s'", key, bucket.BucketID)
+	bucket.kvtree.Delete(key)
+	bucket.updated(bucket)
+	return nil
 }
 
 // Export returns a shallow copy of the bucket content
@@ -78,18 +90,6 @@ func (bucket *KVBTreeBucket) Export() map[string][]byte {
 		hasItem = iter.Next()
 	}
 	return exportedCopy
-}
-
-// Delete a document from the bucket
-// Also succeeds if the document doesn't exist
-func (bucket *KVBTreeBucket) Delete(key string) error {
-	bucket.mutex.Lock()
-	defer bucket.mutex.Unlock()
-
-	logrus.Infof("Deleting key '%s' from bucket '%s'", key, bucket.BucketID)
-	bucket.kvtree.Delete(key)
-	bucket.updated(bucket)
-	return nil
 }
 
 // Get an object by its ID

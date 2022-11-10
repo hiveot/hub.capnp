@@ -6,14 +6,14 @@ import (
 
 	"github.com/hiveot/hub.go/pkg/thing"
 	"github.com/hiveot/hub.go/pkg/vocab"
-	"github.com/hiveot/hub/internal/bucketstore/kvmem"
+	"github.com/hiveot/hub/pkg/bucketstore/kvbtree"
 	"github.com/hiveot/hub/pkg/directory"
 )
 
 // DirectoryService is a wrapper around the internal bucket store
 // This implements the IDirectory interface
 type DirectoryService struct {
-	store        *kvmem.KVMemStore
+	store        *kvbtree.KVBTreeStore
 	tdBucketName string
 }
 
@@ -48,7 +48,7 @@ func (srv *DirectoryService) Start(ctx context.Context) error {
 		myTD := srv.createServiceTD()
 		myTDJson, _ := json.Marshal(myTD)
 		ud := srv.CapUpdateDirectory(ctx)
-		err = ud.UpdateTD(ctx, myTD.ID, string(myTDJson))
+		err = ud.UpdateTD(ctx, myTD.ID, myTDJson)
 		ud.Release()
 	}
 	return err
@@ -66,7 +66,7 @@ func (srv *DirectoryService) Stop(ctx context.Context) error {
 //	thingStorePath is the file holding the directory data.
 func NewDirectoryService(ctx context.Context, thingStorePath string) *DirectoryService {
 
-	kvStore := kvmem.NewKVStore(directory.ServiceName, thingStorePath)
+	kvStore := kvbtree.NewKVStore(directory.ServiceName, thingStorePath)
 	svc := &DirectoryService{
 		store:        kvStore,
 		tdBucketName: directory.TDBucketName,
