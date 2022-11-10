@@ -33,19 +33,8 @@ interface CapReadDirectory {
   cursor @0 () -> (cursor :Bucket.CapBucketCursor);
   # Cursor returns an iterator for TD documents
 
-  getTD @1 (thingID :Text) -> (tdJson :Text);
-  # Return the TD with the given Thing ID in JSON format
-
-  #queryTDs @2 (jsonPath :Text, limit:Int32, offset:Int32) -> (tds :List(Text));
-  # Query for TD's using JSONpath on the TD content
-  # See 'docs/query-tds.md' for examples
-
-  #listTDs @2 (limit:Int32, offset:Int32) -> (tds :List(Text));
-  # List all TD's
-
-  #listTDcb @2 (cb :CapListCallback) -> ();
-  # ListTDcb provides batches of TD documents to a handler.
-  # The callback handler will be invoked until isLast is true or the callback returns an error.
+  getTD @1 (thingID :Text) -> (tdJson :Data);
+  # Return the JSON serialized TD with the given Thing ID in JSON format
 
 }
 
@@ -56,7 +45,8 @@ interface CapUpdateDirectory {
   removeTD @0 (thingID :Text) -> ();
   # Remove the TD document in the directory
 
-  updateTD @1 (thingID :Text, tdDoc :Text) -> ();
+  updateTD @1 (thingID :Text, tdDoc :Data) -> ();
   # Update the TD document in the directory
   # If the TD with the given ID doesn't exist it will be added.
+  # tdDoc is the JSON serialized TD document
 }
