@@ -30,7 +30,7 @@ type BoltBucket struct {
 func (bb *BoltBucket) bucketTransaction(writable bool, cb func(bucket *bbolt.Bucket) error) error {
 	var bboltBucket *bbolt.Bucket
 	tx, err := bb.db.Begin(writable)
-	logrus.Infof("starting transaction for bucket '%s'. writable=%v", bb.bucketID, writable)
+	logrus.Debugf("starting transaction for bucket '%s'. writable=%v", bb.bucketID, writable)
 	if err != nil {
 		logrus.Errorf("unable to create transaction for bucket '%s' for client '%s': %s",
 			bb.bucketID, bb.clientID, err)
@@ -42,16 +42,16 @@ func (bb *BoltBucket) bucketTransaction(writable bool, cb func(bucket *bbolt.Buc
 		bboltBucket = tx.Bucket([]byte(bb.bucketID))
 	}
 	if bboltBucket == nil {
-		logrus.Infof("Nothing to read, bucket '%s' for client '%s' doesn't yet exist", bb.bucketID, bb.clientID)
+		logrus.Debugf("Nothing to read, bucket '%s' for client '%s' doesn't yet exist", bb.bucketID, bb.clientID)
 		// This bucket has never been written to so ignore the rest
 	} else {
 		err = cb(bboltBucket)
 	}
 	if writable && err == nil {
-		logrus.Infof("closing write transaction for bucket '%s'. commit", bb.bucketID)
+		logrus.Debugf("closing write transaction for bucket '%s'. commit", bb.bucketID)
 		err = tx.Commit()
 	} else {
-		logrus.Infof("closing readonly transaction for bucket '%s'. rollback", bb.bucketID)
+		logrus.Debugf("closing readonly transaction for bucket '%s'. rollback", bb.bucketID)
 		_ = tx.Rollback()
 	}
 	return err
@@ -139,6 +139,25 @@ func (bb *BoltBucket) GetMultiple(keys []string) (docs map[string][]byte, err er
 // ID returns the bucket's ID
 func (bb *BoltBucket) ID() string {
 	return bb.bucketID
+}
+
+// Info returns the bucket info
+func (bb *BoltBucket) Info() (info *bucketstore.BucketStoreInfo) {
+	info = &bucketstore.BucketStoreInfo{}
+	tx, err := bb.db.Begin(false)
+	info.Id = bb.bucketID
+	info.Engine = bucketstore.BackendBBolt
+	info.DataSize = -1
+	info.NrRecords = -1
+	if err == nil {
+		bucket := tx.Bucket([]byte(bb.bucketID))
+		bucketStats := bucket.Stats()
+		info.NrRecords = int64(bucketStats.KeyN)
+		// not sure if this is correct
+		info.DataSize = int64(bucketStats.LeafInuse)
+		_ = tx.Rollback()
+	}
+	return
 }
 
 // Set writes a document with the given key

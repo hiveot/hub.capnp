@@ -17,7 +17,7 @@ type BucketCursorCapnpClient struct {
 }
 
 // First positions the cursor at the first key in the ordered list
-func (cl *BucketCursorCapnpClient) First() (key string, value []byte) {
+func (cl *BucketCursorCapnpClient) First() (key string, value []byte, valid bool) {
 	ctx := context.Background()
 	method, release := cl.capability.First(ctx, nil)
 	defer release()
@@ -25,12 +25,13 @@ func (cl *BucketCursorCapnpClient) First() (key string, value []byte) {
 	if err == nil {
 		key, _ = resp.Key()
 		value, _ = resp.Value()
+		valid = resp.Valid()
 	}
-	return key, value
+	return
 }
 
 // Last positions the cursor at the last key in the ordered list
-func (cl *BucketCursorCapnpClient) Last() (key string, value []byte) {
+func (cl *BucketCursorCapnpClient) Last() (key string, value []byte, valid bool) {
 	ctx := context.Background()
 	method, release := cl.capability.Last(ctx, nil)
 	defer release()
@@ -38,12 +39,13 @@ func (cl *BucketCursorCapnpClient) Last() (key string, value []byte) {
 	if err == nil {
 		key, _ = resp.Key()
 		value, _ = resp.Value()
+		valid = resp.Valid()
 	}
-	return key, value
+	return
 }
 
 // Next moves the cursor to the next key from the current cursor
-func (cl *BucketCursorCapnpClient) Next() (key string, value []byte) {
+func (cl *BucketCursorCapnpClient) Next() (key string, value []byte, valid bool) {
 	ctx := context.Background()
 	method, release := cl.capability.Next(ctx, nil)
 	defer release()
@@ -51,12 +53,13 @@ func (cl *BucketCursorCapnpClient) Next() (key string, value []byte) {
 	if err == nil {
 		key, _ = resp.Key()
 		value, _ = resp.Value()
+		valid = resp.Valid()
 	}
-	return key, value
+	return
 }
 
 // NextN moves the cursor to the next N steps from the current cursor
-func (cl *BucketCursorCapnpClient) NextN(steps uint) (docs map[string][]byte, endReached bool) {
+func (cl *BucketCursorCapnpClient) NextN(steps uint) (docs map[string][]byte, itemsRemaining bool) {
 	ctx := context.Background()
 
 	method, release := cl.capability.NextN(ctx,
@@ -69,13 +72,13 @@ func (cl *BucketCursorCapnpClient) NextN(steps uint) (docs map[string][]byte, en
 	if err == nil {
 		capMap, _ := resp.Docs()
 		docs = caphelp.UnmarshalKeyValueMap(capMap)
-		endReached = resp.EndReached()
+		itemsRemaining = resp.ItemsRemaining()
 	}
-	return docs, endReached
+	return
 }
 
 // Prev moves the cursor to the previous key from the current cursor
-func (cl *BucketCursorCapnpClient) Prev() (key string, value []byte) {
+func (cl *BucketCursorCapnpClient) Prev() (key string, value []byte, valid bool) {
 	ctx := context.Background()
 	method, release := cl.capability.Prev(ctx, nil)
 	defer release()
@@ -83,12 +86,13 @@ func (cl *BucketCursorCapnpClient) Prev() (key string, value []byte) {
 	if err == nil {
 		key, _ = resp.Key()
 		value, _ = resp.Value()
+		valid = resp.Valid()
 	}
-	return key, value
+	return
 }
 
 // PrevN moves the cursor back N steps from the current cursor
-func (cl *BucketCursorCapnpClient) PrevN(steps uint) (docs map[string][]byte, startReached bool) {
+func (cl *BucketCursorCapnpClient) PrevN(steps uint) (docs map[string][]byte, itemsRemaining bool) {
 	ctx := context.Background()
 	method, release := cl.capability.PrevN(ctx,
 		func(params hubapi.CapBucketCursor_prevN_Params) error {
@@ -100,9 +104,9 @@ func (cl *BucketCursorCapnpClient) PrevN(steps uint) (docs map[string][]byte, st
 	if err == nil {
 		capMap, _ := resp.Docs()
 		docs = caphelp.UnmarshalKeyValueMap(capMap)
-		startReached = resp.StartReached()
+		itemsRemaining = resp.ItemsRemaining()
 	}
-	return docs, startReached
+	return
 }
 
 // Release the cursor capability
@@ -114,7 +118,7 @@ func (cl *BucketCursorCapnpClient) Release() {
 // Seek positions the cursor at the given searchKey and corresponding value.
 // If the key is not found, the next key is returned.
 // cursor.Close must be invoked after use in order to close any read transactions.
-func (cl *BucketCursorCapnpClient) Seek(searchKey string) (key string, value []byte) {
+func (cl *BucketCursorCapnpClient) Seek(searchKey string) (key string, value []byte, valid bool) {
 	ctx := context.Background()
 	method, release := cl.capability.Seek(ctx, func(params hubapi.CapBucketCursor_seek_Params) error {
 		err2 := params.SetSearchKey(searchKey)
@@ -125,8 +129,9 @@ func (cl *BucketCursorCapnpClient) Seek(searchKey string) (key string, value []b
 	if err == nil {
 		key, _ = resp.Key()
 		value, _ = resp.Value()
+		valid = resp.Valid()
 	}
-	return key, value
+	return
 
 }
 

@@ -21,7 +21,6 @@ import (
 )
 
 const storeDir = "/tmp/test-state"
-const stateStoreFile = "/tmp/statestore_test.json"
 const testAddress = "/tmp/statestore_test.socket"
 const testUseCapnp = true
 
@@ -33,7 +32,6 @@ var backend = config.StateBackendBBolt
 
 // return an API to the state service, optionally using capnp RPC
 func createStateService(useCapnp bool) (store state.IStateService, stopFn func() error, err error) {
-	_ = os.Remove(stateStoreFile)
 
 	os.RemoveAll(storeDir)
 	cfg := config.NewStateConfig(storeDir)
@@ -254,16 +252,21 @@ func TestCursor(t *testing.T) {
 	// result must match
 	cursor := clientState.Cursor(ctx)
 	assert.NotNil(t, cursor)
-	k1, _ := cursor.First()
+	k1, _, valid := cursor.First()
+	assert.True(t, valid)
 	assert.NotNil(t, k1)
-	k0, _ := cursor.Prev()
+	k0, _, valid := cursor.Prev()
+	assert.False(t, valid)
 	assert.Empty(t, k0)
-	k2, v := cursor.Seek(key1)
+	k2, v, valid := cursor.Seek(key1)
+	assert.True(t, valid)
 	assert.Equal(t, key1, k2)
 	assert.Equal(t, val1, v)
-	k3, _ := cursor.Next()
+	k3, _, valid := cursor.Next()
+	assert.True(t, valid)
 	assert.Equal(t, key2, k3)
-	k4, _ := cursor.Last()
+	k4, _, valid := cursor.Last()
+	assert.True(t, valid)
 	assert.Equal(t, key2, k4)
 	//
 	cursor.Release()

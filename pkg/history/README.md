@@ -10,58 +10,38 @@ History provides capture are restore of past events and actions.
 
 The main use-case is to view and analyze past values of things.  
 
-## Roadmap
-
-1. Use a secure connection to the mongodb database.
-2. TBD determine what other query features are needed, if any.
-3. TBD Add support for SQLite
 
 ## Backend Storage
 
-The history backend is best served with a time-series database that can handle:
+This service uses the bucketstore for the storage backend. The bucketstore supports several implementations including a mongodb time series database. The bucketstore API provides a cursor with key-ranged seek capability which can be used for time-based queries.
 
-* open-source
-* easy to setup and maintain
-* minimal memory requirement of < 100MB, 1 CPU
-* low maintenance, schemaless
-* ingress of up to 100 samples/sec (1000 sensors @ 10 second interval, 10M/day, 3B/year)
-* small document size, approx 300 characters/sample
-* long storage period, 5 years and up, given enough disk space
-* data import and export
-* time-to-live for short term high resolution data storage.
-* query support
-   * downsampling. Viewing time series over a year with a few hundred points at the most.
-   * filter on json data fields
+All bucket store implementations support this range query through cursors. Since the data volume will be high, the pebble or mongo timeseries stores are preferred choice. 
 
-Nice to have:
+More testing is needed to determine their limitations.
 
-* integration with reporting tools, grafana, prometheus, ?
-* SQL query support for further integration
-* Geo area query/filter
-* Additional query languages such as R, ...
-* cold storage option
-* use with dapr
-* golang adapter
+### Data Size
 
-Database candidates that match these requirements are InfluxDB, MongoDB, QuestDB, VictoriaMetrics. Embedded tsdb's that are considered are BuntDB or NutsDB.
+Data ingress of event samples depends strongly on the type of sensor, actuator or service that captures the data. Below some example cases and the estimated memory to get an idea of the required space.
 
-The use of MongoDB has the added benefit that it can be used as the state store, and Directory store as well. 
+Since the store uses a bucket per thingID, the thingID itself does not add significant size. The key is the msec timestamp since epoc, approx 15 characters.
 
-The concern with MongoDB is a hefty memory load. Min 256MB and 1GB RAM for 100K assets, although the time series usage significantly more efficient. Another concern is the horrific golang API that can stand in the way to optimize the usage. Write performance is okay with 50K samples/sec.  
+Typical samples are around 100 bytes (key:20, event name:10, value: 60, json: 10)
 
-The Hub's local usage is fairly basic. A small setup with 10 sensors that update every minute would add 14K samples a day and 5.3Million samples a year, approx 1GB/year. A large setup with 10K sensors 1TB a year. All reasonable numbers for a small to mid-sized system.
+Case 1: sensor with a 1 minute average sample interval. 
 
-Alternative storage engines will be considered for the future, including SQLite.
+* A single sensor -> 500K samples => 50MB/year
+* A small system with 10 sensors -> 5M samples => 500MB/year
+* A medium system with 100 sensors -> 50M samples => 5GB/year
+* A larger system with 1000 sensors -> 500M samples => 50GB/year
 
-## Data Structure
+Case 2: image snapshot with 10 minute event interval
+An image is 720i compressed, around 100K/image. 
 
-The history store works with a single data structure of type 'ThingValue'. This type is used to store Events and Actions:
+* A single image -> 50K snapshots/year => 5 GB/year
+* A system with 10 cameras -> 500K snapshots/year => 50 GB/year
+* A larger system with 100 cameras -> 5000K snapshots/year => 500 GB/year
 
-```
-type ThingValue struct {
-   ThingID    string `json:"thingID"`    // ID of the thing whose value is stored
-   Name       string `json:"name"`       // Name of the event or action whose value is stored
-   Created    string `json:"created"`    // Timestamp the value was created in ISO8601 format (YYYY-MM-DDTHH:MM:SS.sss-TZ)
-   ValueJSON  string `json:"valueJSON"`  // The JSON encoded value
-}
-```
+Case 3: a timelapse system with a snapshot at the same time each day over a year
+Image at 1080 resolution, around 400K/image.
+
+365 snapshots -> 150MB/year

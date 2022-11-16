@@ -14,74 +14,80 @@ type BBoltCursor struct {
 }
 
 // First moves the cursor to the first item
-func (bbc *BBoltCursor) First() (key string, value []byte) {
+func (bbc *BBoltCursor) First() (key string, value []byte, valid bool) {
 	if bbc.cursor == nil {
-		return "", nil
+		return "", nil, false
 	}
 	k, v := bbc.cursor.First()
-	return string(k), v
+	valid = k != nil
+	return string(k), v, valid
 }
 
 // Last moves the cursor to the last item
-func (bbc *BBoltCursor) Last() (key string, value []byte) {
+func (bbc *BBoltCursor) Last() (key string, value []byte, valid bool) {
 	if bbc.cursor == nil {
-		return "", nil
+		return "", nil, false
 	}
 	k, v := bbc.cursor.Last()
-	return string(k), v
+	valid = k != nil
+	return string(k), v, valid
 }
 
 // Next iterates to the next key from the current cursor
-func (bbc *BBoltCursor) Next() (key string, value []byte) {
+func (bbc *BBoltCursor) Next() (key string, value []byte, valid bool) {
 	if bbc.cursor == nil {
-		return "", nil
+		return "", nil, false
 	}
 	k, v := bbc.cursor.Next()
-	return string(k), v
+	valid = k != nil
+	return string(k), v, valid
 }
 
 // NextN increases the cursor position N times and return the encountered key-value pairs
-func (bbc *BBoltCursor) NextN(steps uint) (docs map[string][]byte, endReached bool) {
+func (bbc *BBoltCursor) NextN(steps uint) (docs map[string][]byte, itemsRemaining bool) {
 	docs = make(map[string][]byte)
 	if bbc.cursor == nil {
-		return nil, true
+		return nil, false
 	}
+	itemsRemaining = true
 	for i := uint(0); i < steps; i++ {
 		key, value := bbc.cursor.Next()
 		if key == nil {
-			endReached = true
+			itemsRemaining = false
 			break
 		}
 		docs[string(key)] = value
 	}
-	return docs, endReached
+	return
 }
 
 // Prev iterations to the previous key from the current cursor
-func (bbc *BBoltCursor) Prev() (key string, value []byte) {
+func (bbc *BBoltCursor) Prev() (key string, value []byte, valid bool) {
 	if bbc.cursor == nil {
-		return "", nil
+		return "", nil, false
 	}
 	k, v := bbc.cursor.Prev()
-	return string(k), v
+	valid = k != nil
+	return string(k), v, valid
 }
 
 // PrevN decreases the cursor position N times and return the encountered key-value pairs
-func (bbc *BBoltCursor) PrevN(steps uint) (docs map[string][]byte, beginReached bool) {
+func (bbc *BBoltCursor) PrevN(steps uint) (docs map[string][]byte, itemsRemaining bool) {
 	docs = make(map[string][]byte)
 	if bbc.cursor == nil {
-		return nil, true
+		return nil, false
 	}
+	itemsRemaining = true
 
 	for i := uint(0); i < steps; i++ {
 		key, value := bbc.cursor.Prev()
 		if key == nil {
-			beginReached = true
+			itemsRemaining = false
 			break
 		}
 		docs[string(key)] = value
 	}
-	return docs, beginReached
+	return
 }
 
 // Release the cursor
@@ -96,12 +102,13 @@ func (bbc *BBoltCursor) Release() {
 }
 
 // Seek returns a cursor with Next() and Prev() iterators
-func (bbc *BBoltCursor) Seek(searchKey string) (key string, value []byte) {
+func (bbc *BBoltCursor) Seek(searchKey string) (key string, value []byte, valid bool) {
 	if bbc.cursor == nil {
-		return "", nil
+		return "", nil, false
 	}
 	k, v := bbc.cursor.Seek([]byte(searchKey))
-	return string(k), v
+	valid = k != nil
+	return string(k), v, valid
 }
 
 func NewBBoltCursor(bucket *bbolt.Bucket) *BBoltCursor {

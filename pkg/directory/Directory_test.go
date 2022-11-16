@@ -51,11 +51,11 @@ func createNewStore(useCapnp bool) (directory.IDirectory, func(), error) {
 		capClient, err := capnpclient.NewDirectoryCapnpClient(ctx, clConn)
 		return capClient, func() {
 			cancelFunc()
-			capClient.Stop(ctx)
-			svc.Stop(ctx)
+			_ = capClient.Stop(ctx)
+			_ = svc.Stop(ctx)
 		}, err
 	}
-	return svc, func() { cancelFunc(); svc.Stop(ctx) }, nil
+	return svc, func() { cancelFunc(); _ = svc.Stop(ctx) }, nil
 }
 
 // generate a JSON serialized TD document
@@ -146,12 +146,11 @@ func TestAddRemoveTD(t *testing.T) {
 //	logrus.Infof("--- TestListTDs end ---")
 //}
 
-func TestListTDcb(t *testing.T) {
+func TestCursor(t *testing.T) {
 	logrus.Infof("--- TestCursor start ---")
 	_ = os.Remove(dirStoreFile)
 	const thing1ID = "thing1"
 	const title1 = "title1"
-	const count = 1000
 
 	ctx := context.Background()
 	store, cancelFunc, err := createNewStore(testUseCapnp)
@@ -173,15 +172,18 @@ func TestListTDcb(t *testing.T) {
 	assert.NoError(t, err)
 	defer cursor.Release()
 
-	k, v := cursor.First()
+	k, v, valid := cursor.First()
+	assert.True(t, valid)
 	assert.NotEmpty(t, k)
 	assert.NotEmpty(t, v)
 
-	k, v = cursor.Next()
+	k, v, valid = cursor.Next() // second
+	assert.True(t, valid)
 	assert.NotEmpty(t, k)
 	assert.NotEmpty(t, v)
 
-	k, v = cursor.Next()
+	k, v, valid = cursor.Next() // there is no third
+	assert.False(t, valid)
 	assert.Empty(t, k)
 	assert.Empty(t, v)
 

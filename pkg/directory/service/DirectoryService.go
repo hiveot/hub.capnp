@@ -62,6 +62,7 @@ func (srv *DirectoryService) Stop(ctx context.Context) error {
 }
 
 // NewDirectoryService creates a service to access TD documents
+// This is using the KV bucket store.
 //
 //	thingStorePath is the file holding the directory data.
 func NewDirectoryService(ctx context.Context, thingStorePath string) *DirectoryService {

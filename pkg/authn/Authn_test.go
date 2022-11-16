@@ -17,18 +17,18 @@ import (
 	"github.com/hiveot/hub/pkg/authn/service"
 )
 
-//var serverPort uint = 9881
-//var testCerts testenv.TestCerts
+// var serverPort uint = 9881
+// var testCerts testenv.TestCerts
 var passwordFile string // set in TestMain
 const testUseCapnp = true
 
 //var serverCertFolder string
-//var clientHostPort string
+//var clientHostPort strings
 
 var tempFolder string
 
 var testuser1 = "testuser1"
-var testpass1 = "secret1" // set at start
+var testpass1 = "secret11" // set at start
 
 // create a new authn service and set the password for testuser1
 // containing a password for testuser1

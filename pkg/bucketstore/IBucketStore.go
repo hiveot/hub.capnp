@@ -5,27 +5,33 @@ package bucketstore
 
 // Available embedded bucket store implementations with low memory overhead
 const (
-	BackendKVStore = "kvbtree" // fastest and best for small to medium amounts of data (dependent on available memory)
+	BackendKVBTree = "kvbtree" // fastest and best for small to medium amounts of data (dependent on available memory)
 	BackendBBolt   = "bbolt"   // slow on writes but otherwise a good choice
 	BackendPebble  = "pebble"  // a good middle ground between performance and memory
 	// for consideration
-	// badger: takes a lot of memory; some concerns about stability (based on comments)
+	// mongodb: for time seriers data
 	// encoding/gob encoder for serialization: interesting for kvmem serialization
 	// akrylysov/pogreb: abandoned?
 )
 
-// BucketStoreStatus of the store
-type BucketStoreStatus struct {
-	// Number of buckets in the store
-	NrBuckets int
-	// Number of keys in the store
-	NrKeys int64
-	//
-	MemSize int64
+// BucketStoreInfo information of the bucket or the store
+type BucketStoreInfo struct {
+	// DataSize contains the size of data in the store or bucket.
+	// -1 if not available.
+	DataSize int64
+
+	// Engine describes the storage engine of the store, eg kvbtree, bbolt, pebble
+	Engine string
+
+	// The store or bucket identifier, eg thingID, appID
+	Id string
+
+	// NrRecords holds the number of records in the store or bucket.
+	// -1 if not available.
+	NrRecords int64
 }
 
 // IBucketStore defines the interface to a simple key-value embedded bucket store.
-// Based on the boltDB API, this:
 //   - organizes data into buckets
 //   - open/close buckets as a transaction, if transactions are available
 //   - get/set single or multiple key/value pairs
@@ -33,6 +39,8 @@ type BucketStoreStatus struct {
 //   - cursor based seek and iteration
 //     Streaming data into a bucket is not supported
 //     Various implementations are available to the services to use.
+//
+// TODO: add refcount for multiple consumers of the store so it can be closed when done.
 type IBucketStore interface {
 	// GetBucket returns a bucket to use.
 	// This creates the bucket if it doesn't exist.
@@ -45,8 +53,8 @@ type IBucketStore interface {
 	// Open the store
 	Open() error
 
-	// Status returns the application state status
-	//Status() BucketStoreStatus
+	// Info returns bucket store information
+	//Info() *BucketStoreInfo
 }
 
 // IBucket defines the interface to a store key-value bucket
@@ -79,6 +87,9 @@ type IBucket interface {
 	// ID returns the bucket's ID
 	ID() string
 
+	// Info returns the bucket information, when available
+	Info() *BucketStoreInfo
+
 	// Set sets a document with the given key
 	// An error is returned if either the bucketID or the key is empty
 	Set(key string, value []byte) error
@@ -95,30 +106,36 @@ type IBucket interface {
 type IBucketCursor interface {
 
 	// First positions the cursor at the first key in the ordered list
-	First() (key string, value []byte)
+	// valid is false if the bucket is empty
+	First() (key string, value []byte, valid bool)
 
 	// Last positions the cursor at the last key in the ordered list
-	Last() (key string, value []byte)
+	// valid is false if the bucket is empty
+	Last() (key string, value []byte, valid bool)
 
 	// Next moves the cursor to the next key from the current cursor
 	// First() or Seek must have been called first.
-	Next() (key string, value []byte)
+	// valid is false if the iterator has reached the end and no valid value is returned.
+	Next() (key string, value []byte, valid bool)
 
 	// NextN moves the cursor to the next N places from the current cursor
 	// and return a map with the N key-value pairs.
-	// endReached is true if the iterator has reached the end.
+	// If the iterator reaches the end it returns the remaining items and itemsRemaining is false
+	// If the cursor is already at the end, the resulting map is empty and itemsRemaining is also false.
 	// Intended to speed up with batch iterations over rpc.
-	NextN(steps uint) (docs map[string][]byte, endReached bool)
+	NextN(steps uint) (docs map[string][]byte, itemsRemaining bool)
 
 	// Prev moves the cursor to the previous key from the current cursor
 	// Last() or Seek must have been called first.
-	Prev() (key string, value []byte)
+	// valid is false if the iterator has reached the beginning and no valid value is returned.
+	Prev() (key string, value []byte, valid bool)
 
-	// PrevN moves the cursor back N places from the current cursor
-	// and return a map with the N key-value pairs.
-	// beginReached is true if the iterator has reached the beginning
+	// PrevN moves the cursor back N places from the current cursor and returns a map with
+	// the N key-value pairs.
 	// Intended to speed up with batch iterations over rpc.
-	PrevN(steps uint) (docs map[string][]byte, beginReached bool)
+	// If the iterator reaches the beginning it returns the remaining items and itemsRemaining is false
+	// If the cursor is already at the beginning, the resulting map is empty and itemsRemaining is also false.
+	PrevN(steps uint) (docs map[string][]byte, itemsRemaining bool)
 
 	// Release close the cursor and release its resources.
 	// This invalidates all values obtained from the cursor
@@ -126,8 +143,8 @@ type IBucketCursor interface {
 
 	// Seek positions the cursor at the given searchKey and corresponding value.
 	// If the key is not found, the next key is returned.
-	// cursor.Close must be invoked after use in order to close any read transactions.
-	Seek(searchKey string) (key string, value []byte)
+	// valid is false if the iterator has reached the end and no valid value is returned.
+	Seek(searchKey string) (key string, value []byte, valid bool)
 
 	// Stream the content of the cursor to the provided function
 	//Stream(cb func(key string, value []byte, done bool) error)

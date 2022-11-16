@@ -60,7 +60,7 @@ func (srv *MongoHistoryServer) CapReadHistory() history.IReadHistory {
 }
 
 // CapUpdateHistory provides the capability to update history
-func (srv *MongoHistoryServer) CapUpdateHistory() history.IUpdateHistory {
+func (srv *MongoHistoryServer) CapUpdateHistory() history.IAddHistory {
 	return srv
 }
 
@@ -101,7 +101,7 @@ func (srv *MongoHistoryServer) GetEventHistory(ctx context.Context,
 }
 
 // Release the capability instance and release resources
-// For use by IReadHistory and IUpdateHistory as this is a single instance
+// For use by IReadHistory and IAddHistory as this is a single instance
 // TODO: split Read and Update capability and release separately
 func (srv *MongoHistoryServer) Release() {
 
@@ -251,7 +251,8 @@ func (srv *MongoHistoryServer) Stop(ctx context.Context) error {
 
 // NewMongoHistoryServer creates a service to access events, actions and properties in the store
 // Call Start() when ready to use the store.
-//  dbConfig contains the database connection settings
+//
+//	dbConfig contains the database connection settings
 func NewMongoHistoryServer(svcConfig config.HistoryConfig) *MongoHistoryServer {
 	if svcConfig.DatabaseName == "" {
 		svcConfig.DatabaseName = DefaultStoreName

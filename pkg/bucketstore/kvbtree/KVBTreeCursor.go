@@ -12,16 +12,22 @@ type KVBTreeCursor struct {
 }
 
 // First moves the cursor to the first item
-func (cursor *KVBTreeCursor) First() (key string, value []byte) {
-	cursor.kviter.First()
+func (cursor *KVBTreeCursor) First() (key string, value []byte, valid bool) {
+	valid = cursor.kviter.First()
+	if !valid {
+		return
+	}
 	key = cursor.kviter.Key()
 	value = cursor.kviter.Value()
 	return
 }
 
 // Last moves the cursor to the last item
-func (cursor *KVBTreeCursor) Last() (key string, value []byte) {
-	cursor.kviter.Last()
+func (cursor *KVBTreeCursor) Last() (key string, value []byte, valid bool) {
+	valid = cursor.kviter.Last()
+	if !valid {
+		return
+	}
 	key = cursor.kviter.Key()
 	value = cursor.kviter.Value()
 	return
@@ -29,56 +35,56 @@ func (cursor *KVBTreeCursor) Last() (key string, value []byte) {
 
 // Next increases the cursor position and return the next key and value
 // If the end is reached the returned key is empty
-func (cursor *KVBTreeCursor) Next() (key string, value []byte) {
-	endreached := !cursor.kviter.Next()
-	if endreached {
-		return "", nil
+func (cursor *KVBTreeCursor) Next() (key string, value []byte, valid bool) {
+	valid = cursor.kviter.Next()
+	if !valid {
+		return
 	}
 	key = cursor.kviter.Key()
 	value = cursor.kviter.Value()
-	return key, value
+	return
 }
 
 // NextN increases the cursor position N times and return the encountered key-value pairs
-func (cursor *KVBTreeCursor) NextN(steps uint) (docs map[string][]byte, endReached bool) {
+func (cursor *KVBTreeCursor) NextN(steps uint) (docs map[string][]byte, itemsRemaining bool) {
 	docs = make(map[string][]byte)
 	for i := uint(0); i < steps; i++ {
-		endReached = !cursor.kviter.Next()
-		if endReached {
+		itemsRemaining = cursor.kviter.Next()
+		if !itemsRemaining {
 			break
 		}
 		key := cursor.kviter.Key()
 		value := cursor.kviter.Value()
 		docs[key] = value
 	}
-	return docs, endReached
+	return
 }
 
 // Prev decreases the cursor position and return the previous key and value
 // If the head is reached the returned key is empty
-func (cursor *KVBTreeCursor) Prev() (key string, value []byte) {
-	startreached := !cursor.kviter.Prev()
-	if startreached {
-		return "", nil
+func (cursor *KVBTreeCursor) Prev() (key string, value []byte, valid bool) {
+	valid = cursor.kviter.Prev()
+	if !valid {
+		return
 	}
 	key = cursor.kviter.Key()
 	value = cursor.kviter.Value()
-	return key, value
+	return
 }
 
 // PrevN decreases the cursor position N times and return the encountered key-value pairs
-func (cursor *KVBTreeCursor) PrevN(steps uint) (docs map[string][]byte, beginReached bool) {
+func (cursor *KVBTreeCursor) PrevN(steps uint) (docs map[string][]byte, itemsRemaining bool) {
 	docs = make(map[string][]byte)
 	for i := uint(0); i < steps; i++ {
-		beginReached = !cursor.kviter.Prev()
-		if beginReached {
+		itemsRemaining = cursor.kviter.Prev()
+		if !itemsRemaining {
 			break
 		}
 		key := cursor.kviter.Key()
 		value := cursor.kviter.Value()
 		docs[key] = value
 	}
-	return docs, beginReached
+	return
 }
 
 // Release the cursor capability
@@ -93,12 +99,15 @@ func (cursor *KVBTreeCursor) Release() {
 //	key is the starting point. If key doesn't exist, the next closest key will be used.
 //
 // This returns a cursor with Next() and Prev() iterators
-func (cursor *KVBTreeCursor) Seek(searchKey string) (key string, value []byte) {
+func (cursor *KVBTreeCursor) Seek(searchKey string) (key string, value []byte, valid bool) {
 	//var err error
-	cursor.kviter.Seek(searchKey)
+	valid = cursor.kviter.Seek(searchKey)
+	if !valid {
+		return
+	}
 	key = cursor.kviter.Key()
 	value = cursor.kviter.Value()
-	return key, value
+	return
 }
 
 // NewKVCursor create a new bucket cursor for the KV store.

@@ -9,23 +9,19 @@ import (
 	"github.com/hiveot/hub/internal/caphelp"
 )
 
-// UpdateHistoryCapnpClient provides a POGS wrapper around the capnp client API
+// AddHistoryCapnpClient provides a POGS wrapper around the capnp client API
 // This implements the IUpdateHistory interface
-type UpdateHistoryCapnpClient struct {
-	capability hubapi.CapUpdateHistory // capnp client
-}
-
-func (cl *UpdateHistoryCapnpClient) Release() {
-	cl.capability.Release()
+type AddHistoryCapnpClient struct {
+	capability hubapi.CapAddHistory // capnp client
 }
 
 // AddAction adds a Thing action with the given name and value to the action history
 // TODO: split this into get capability and add action
-func (cl *UpdateHistoryCapnpClient) AddAction(ctx context.Context, actionValue thing.ThingValue) error {
+func (cl *AddHistoryCapnpClient) AddAction(ctx context.Context, actionValue *thing.ThingValue) error {
 
 	// next add the action
 	method, release := cl.capability.AddAction(ctx,
-		func(params hubapi.CapUpdateHistory_addAction_Params) error {
+		func(params hubapi.CapAddHistory_addAction_Params) error {
 			capValue := caphelp.MarshalThingValue(actionValue)
 			err2 := params.SetActionValue(capValue)
 			return err2
@@ -36,11 +32,11 @@ func (cl *UpdateHistoryCapnpClient) AddAction(ctx context.Context, actionValue t
 }
 
 // AddEvent adds an event to the event history
-func (cl *UpdateHistoryCapnpClient) AddEvent(
-	ctx context.Context, eventValue thing.ThingValue) error {
+func (cl *AddHistoryCapnpClient) AddEvent(
+	ctx context.Context, eventValue *thing.ThingValue) error {
 
 	method, release := cl.capability.AddEvent(ctx,
-		func(params hubapi.CapUpdateHistory_addEvent_Params) error {
+		func(params hubapi.CapAddHistory_addEvent_Params) error {
 			capValue := caphelp.MarshalThingValue(eventValue)
 			err2 := params.SetEventValue(capValue)
 			return err2
@@ -50,11 +46,11 @@ func (cl *UpdateHistoryCapnpClient) AddEvent(
 	return err
 }
 
-func (cl *UpdateHistoryCapnpClient) AddEvents(
-	ctx context.Context, events []thing.ThingValue) error {
+func (cl *AddHistoryCapnpClient) AddEvents(
+	ctx context.Context, events []*thing.ThingValue) error {
 
 	method, release := cl.capability.AddEvents(ctx,
-		func(params hubapi.CapUpdateHistory_addEvents_Params) error {
+		func(params hubapi.CapAddHistory_addEvents_Params) error {
 			// suspect that this conversion is slow
 			capValues := caphelp.MarshalThingValueList(events)
 			err2 := params.SetEventValues(capValues)
@@ -65,9 +61,13 @@ func (cl *UpdateHistoryCapnpClient) AddEvents(
 	return err
 }
 
-// NewUpdateHistoryCapnpClient returns an update-history client using the capnp protocol
+func (cl *AddHistoryCapnpClient) Release() {
+	cl.capability.Release()
+}
+
+// NewAddHistoryCapnpClient returns an update-history client using the capnp protocol
 // Intended for internal use.
-func NewUpdateHistoryCapnpClient(cap hubapi.CapUpdateHistory) *UpdateHistoryCapnpClient {
-	cl := &UpdateHistoryCapnpClient{capability: cap}
+func NewAddHistoryCapnpClient(cap hubapi.CapAddHistory) *AddHistoryCapnpClient {
+	cl := &AddHistoryCapnpClient{capability: cap}
 	return cl
 }

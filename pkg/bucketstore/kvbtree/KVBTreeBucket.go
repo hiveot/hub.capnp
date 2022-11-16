@@ -31,7 +31,7 @@ type KVBTreeBucket struct {
 // This decreases the refCount and detects an error if below 0
 func (bucket *KVBTreeBucket) Close() (err error) {
 
-	logrus.Infof("closing bucket '%s' of client '%s'", bucket.BucketID, bucket.ClientID)
+	logrus.Debugf("closing bucket '%s' of client '%s'", bucket.BucketID, bucket.ClientID)
 	// this just lowers the refCount to detect leaks
 	bucket.mutex.Lock()
 	defer bucket.mutex.Unlock()
@@ -233,6 +233,18 @@ func (bucket *KVBTreeBucket) incrRefCounter() {
 	bucket.refCount++
 }
 
+// Info returns the bucket info
+func (bucket *KVBTreeBucket) Info() (info *bucketstore.BucketStoreInfo) {
+	info = &bucketstore.BucketStoreInfo{}
+	// are these are full store sizes
+	info.NrRecords = int64(bucket.kvtree.Len())
+	info.DataSize = -1
+	//
+	info.Engine = bucketstore.BackendKVBTree
+	info.Id = bucket.BucketID
+	return
+}
+
 // Set writes a document to the store. If the document exists it is replaced.
 //
 //	A background process periodically checks the change count. When increased:
@@ -281,6 +293,7 @@ func NewKVMemBucket(clientID, bucketID string) *KVBTreeBucket {
 
 // NewKVMemBucketFromMap creates a new KVBTreeBucket from a map with bucket data
 func NewKVMemBucketFromMap(clientID, bucketID string, data map[string][]byte) *KVBTreeBucket {
+	logrus.Debugf("creating bucket '%s' of client '%s'", bucketID, clientID)
 	kvbucket := &KVBTreeBucket{
 		BucketID: bucketID,
 		ClientID: clientID,

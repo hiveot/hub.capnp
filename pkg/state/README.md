@@ -1,27 +1,19 @@
-# State Storage
+# State Service
 
-The state storage provides a simple key-value storage services to store application state.
+The state service provides a simple key-value storage service to store application state.
 
 ## Objective
 
 Persist the state of other services and consumers.
 
-## Roadmap
-
-1. Add support for SQLite to support increased capacity
-2. Add list and query support
 
 ## Summary
 
 Services that need to persist state can use this key-value store to save their state. This is also available to consumers that like to store state of their web application, for example a dashboard layout.
 
-The default state store uses the built-in in-memory Key-value store with a file based storage. Additional storage engines can be made available in time.
+The state service uses the bucket store package that supports multiple implementations of the key-value store. The default store uses the built-in btree key-value store with a file based storage.  
 
-The state service is intended for a relatively small amount of data. Limits for the total data size can be set for services and consumers. The default is 100 keys with 100K values for a total of 10MB per service or user. See state.yaml for the selection of backend storage and limits.
-
-The state service is intended to be accessed via the gateway. The gateway determines the location of the service and provides the capability to access the service at  that location. 
-
-By default, the state store resides on the Hub server.
+The state service is intended for a relatively small amount of state data. Performance and memory consumption are good for at least 100K total records. 
 
 ## Usage
 
@@ -41,12 +33,11 @@ An easy to use golang POGS client can be found at:
  
 To use the client, first obtain the capability (see below) and create the POGS client. For example to write a state value:
 
-```golang
+```golang  (not full code)
   stateCap := GetCapability(appID) // from authorized source
   stateAPI := NewStateCapnpClient(stateCap)
-  stateAPI.Put("mykey", "myvalue")
+  bucket := stateAPI.CapClientBucket(id)
+  bucket.Put("mykey", "myvalue")
 ```
 
-where GetCapability provides the capability to read and write key-values. This is restricted to the user's ID and application.
-
-The capability can be obtained from the gateway service with proper authentication.
+where GetCapability provides the capability to use storage buckets for the client to read and write key-values. 

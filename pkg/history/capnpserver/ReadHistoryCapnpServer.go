@@ -3,79 +3,76 @@ package capnpserver
 import (
 	"context"
 
+	"capnproto.org/go/capnp/v3"
+
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/internal/caphelp"
 	"github.com/hiveot/hub/pkg/history"
 )
 
-// ReadHistoryCapnpServer is a capnproto RPC server for reading of the history store
+// ReadHistoryCapnpServer is a capnproto server adapter for the history server
+// This implements the hubapi.ReadHistory interface
 type ReadHistoryCapnpServer struct {
-	srv history.IReadHistory
+	svc history.IReadHistory
 }
 
-func (capsrv *ReadHistoryCapnpServer) GetActionHistory(
-	ctx context.Context, call hubapi.CapReadHistory_getActionHistory) error {
-	args := call.Args()
-	thingID, _ := args.ThingID()
-	name, _ := args.ActionName()
-	after, _ := args.After()
-	before, _ := args.Before()
-	limit := args.Limit()
-	hist, err := capsrv.srv.GetActionHistory(ctx, thingID, name, after, before, int(limit))
-	if err == nil {
-		res, _ := call.AllocResults()
-		valList := caphelp.MarshalThingValueList(hist)
-		res.SetValues(valList)
-	}
-	return err
-}
-
-func (capsrv *ReadHistoryCapnpServer) GetEventHistory(
+// GetEventHistory returns a cursor to iterate the history of the thing
+// name is the event or action to filter on. Use "" to iterate all events/action of the thing
+// The cursor MUST be released after use.
+func (srv *ReadHistoryCapnpServer) GetEventHistory(
 	ctx context.Context, call hubapi.CapReadHistory_getEventHistory) error {
-	args := call.Args()
-	thingID, _ := args.ThingID()
-	name, _ := args.EventName()
-	after, _ := args.After()
-	before, _ := args.Before()
-	limit := args.Limit()
 
-	hist, err := capsrv.srv.GetEventHistory(ctx, thingID, name, after, before, int(limit))
+	args := call.Args()
+	eventName, _ := args.Name()
+	cursor := srv.svc.GetEventHistory(ctx, eventName)
+
+	cursorSrv := NewHistoryCursorCapnpServer(cursor)
+	capnpCursorServer := hubapi.CapHistoryCursor_ServerToClient(cursorSrv)
+
+	res, err := call.AllocResults()
 	if err == nil {
-		res, _ := call.AllocResults()
-		valList := caphelp.MarshalThingValueList(hist)
-		res.SetValues(valList)
+		err = res.SetCursor(capnpCursorServer)
 	}
 	return err
 }
 
-func (capsrv *ReadHistoryCapnpServer) GetLatestEvents(
-	ctx context.Context, call hubapi.CapReadHistory_getLatestEvents) error {
+// GetProperties returns the most recent property and event values of the Thing
+//
+//	names is the list of properties to return. Use "" to return all known properties.
+func (srv *ReadHistoryCapnpServer) GetProperties(
+	ctx context.Context, call hubapi.CapReadHistory_getProperties) error {
 
 	args := call.Args()
-	thingID, _ := args.ThingID()
+	capNameList, _ := args.Names()
+	names := caphelp.UnmarshalStringList(capNameList)
+	valueList := srv.svc.GetProperties(ctx, names)
 
-	hist, err := capsrv.srv.GetLatestEvents(ctx, thingID)
+	res, err := call.AllocResults()
 	if err == nil {
-		res, _ := call.AllocResults()
-		capMap := caphelp.MarshalThingValueMap(hist)
-		res.SetThingValueMap(capMap)
+		valueListCapnp := caphelp.MarshalThingValueList(valueList)
+		err = res.SetValueList(valueListCapnp)
 	}
 	return err
 }
 
-func (capsrv *ReadHistoryCapnpServer) Info(
-	ctx context.Context, call hubapi.CapReadHistory_info) (err error) {
-
-	inf, err := capsrv.srv.Info(ctx)
+func (srv *ReadHistoryCapnpServer) Info(
+	ctx context.Context, call hubapi.CapReadHistory_info) error {
+	bucketInfo := srv.svc.Info(ctx)
+	res, err := call.AllocResults()
 	if err == nil {
-		res, err2 := call.AllocResults()
-		err = err2
-		storeInfo, _ := res.NewStatistics()
-		storeInfo.SetNrActions(int64(inf.NrActions))
-		storeInfo.SetNrEvents(int64(inf.NrEvents))
-		storeInfo.SetEngine(inf.Engine)
-		storeInfo.SetUptime(int64(inf.Uptime))
+		_, seg, _ := capnp.NewMessage(capnp.SingleSegment(nil))
+		infoCapnp, _ := hubapi.NewBucketStoreInfo(seg)
+		infoCapnp.SetDataSize(bucketInfo.DataSize)
+		infoCapnp.SetEngine(bucketInfo.Engine)
+		infoCapnp.SetId(bucketInfo.Id)
+		infoCapnp.SetNrRecords(bucketInfo.NrRecords)
+		err = res.SetInfo(infoCapnp)
 	}
-
 	return err
+}
+
+func (capsrv *ReadHistoryCapnpServer) Shutdown() {
+	// Release on the client calls capnp release
+	// Pass this to the server to cleanup
+	capsrv.svc.Release()
 }

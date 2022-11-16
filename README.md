@@ -1,36 +1,36 @@
 # Hive-Of-Things Hub
 
-The Hub for the *Hive of Things* provides a simple and secure way to view and operate IoT devices. The Hub securely mediates between consumers and IoT device 'Things' using a hub-and-spokes architecture. Consumers interact with Things via the Hub without connecting directly to the IoT devices or services. The Hub is based on the [W3C WoT TD 1.1 specification](https://www.w3.org/TR/wot-thing-description11/) and uses the [cap'n proto](https://capnproto.org/) for Capabilities based 
-secure communication.
+The Hub for the *Hive of Things* provides a simple and secure way to view and operate IoT devices. The Hub securely mediates between consumers and IoT device 'Things' using a hub-and-spokes architecture. Consumers interact with Things via the Hub without connecting directly to the IoT devices or services. The Hub is based on the [W3C WoT TD 1.1 specification](https://www.w3.org/TR/wot-thing-description11/) and uses the [cap'n proto](https://capnproto.org/) for Capabilities based secure 
+communication.
 
 
 ## Project Status
 
-Status: The status of the Hub is In Development. It is undergoing a rewrite to Capabilities based design using **capnp** for infrastructure.
+Status: The status of the Hub is In Development. 
 
-Updated 2022-10-12: completed initial version of:
+Updated 2022-11-10: completed initial version of:
 ```
-- certificate management  manage CA, IoT device, service and user certificates 
-- thing directory store   store TD - thing description - documents. Uses file backed KV store.
-- thing history store     store and query thing events and actions. Uses mongodb.
-- provisioning service    issue auth certificates to IoT devices. 
-- state store             enable services to easily persist state. Uses file backed KV store.
-- launcher service        manage starting and stopping of services
-- authz service           user authorization of capabilities
+- certs         certificate management to manage CA, IoT device, service and user certificates 
+- directory     thing directory store to persist TD, thing description, documents
+- history       thing history store to store and query thing events and actions
+- provisioning  automated provisioning and issuing of auth certificates to IoT devices 
+- state         easy to use persistance of state for services
+- launcher      manage starting and stopping of services
+- authz         user authorization of capabilities
+- authn         user authentication management
 ```
 
 Todo in order to reach Alpha:
 ```
-- authn service           user authentication management
 - gateway service         provide https access to services
 - pubsub service          publish and subscribe to events and actions
 ```
 
 Stretch goal:
 ```
-- directory store         add support for SQLite
-- state store             add support for SQLite
-- history store           add support for SQLite
+- bucketstore             add support for mongodb
+- bucketstore             add support for SQLite
+- history store           add support for bucket store with time range queries
 ```
 
 
@@ -44,18 +44,21 @@ This project is aimed at software developers and system implementors that are wo
 
 The state of security of IoT devices is appalling. Many of those devices become part of botnets once exposed to the internet. It is too easy to hack these devices and most of them do not support firmware updates to install security patches.
 
-This security objective is supported by not allowing direct access to IoT devices and isolate them from the rest of the network. Instead, IoT devices discover and connect to a 'hub' to exchange information through publish and subscribe. Hub services offer 'capabilities' to clients via a 'gateway' proxy service. Capabilities based security ensures that capability can only be used for its intended purpose. Unlike authentication tokens which when compromised offer access to all services of the 
-user.
+This security objective is supported by not allowing direct access to IoT devices and isolate them from the rest of the network. Instead, IoT devices discover and connect to a 'hub' to exchange information through publish and subscribe. Hub services offer 'capabilities' to clients via a 'gateway' proxy service. Capabilities based security ensures that capability can only be used for its intended purpose. 
 
 > The HiveOT mandate is: 'Things Do Not Run (TCP) Servers'.
 
+When IoT devices don't run TCP servers they cannot be connected to. This removes a broad attack surface. Instead IoT devices connect to the hub using standard protocols for provisioning, publishing events, and subscribing to actions.
+
 2. The secondary objective is to simplify development of IoT devices for the web of things. 
 
-The HiveOT Hub supports this objective by handling authentication, authorization, logging, tracing, persistence, rate limiting and resiliency. The IoT device only has to send the TD of things it has on board, submit events for changes, and accept actions by subscribing to the Hub.
+The HiveOT Hub supports this objective by handling authentication, authorization, logging, tracing, persistence, rate limiting, resiliency and user interface. The IoT device only has to send the TD of things it has on board, submit events for changes, and accept actions by subscribing to the Hub.
 
 3. The third objective is to follow the WoT and other open standard where possible.
 
-4. Provide a decentralized solution. Multiple Hubs can build a bigger hive without requiring a cloud service. 
+Open standards improves interoperability with devices and 3rd party services. Protocol bindings provide this interop. 
+
+4. Provide a decentralized solution. Multiple Hubs can build a bigger hive without requiring a cloud service and can operate successfully on a private network. 
 
 HiveOT is based on the [W3C WoT TD 1.1 specification](https://www.w3.org/TR/wot-thing-description11/). See [docs/README-TD] for more information.
 
@@ -74,7 +77,7 @@ HiveOT follows the 'WoT' (Web of Things) open standard developed by the W3C orga
 
 Integration with 3rd party IoT devices is supported through the use of protocol bindings. These protocol bindings translate between the 3rd device protocol and WoT defined messages.  
 
-The communication infrastructure for the services is provided by 'Cap'n Proto', or capnp for short. Capnp provides a Capabilities based RPC for service invocation that is inherently secure. Only clients which have obtained a valid 'Capability' can invoke that capability, eg read a sensor or control a switch. The RPC will only pass requests that are valid, so the device does not have to concern itself with authentication and authorization. 
+The communication infrastructure of the Hub is provided by 'Cap'n Proto', or capnp for short. Capnp provides a Capabilities based RPC for service invocation that is inherently secure. Only clients which have obtained a valid 'Capability' can invoke that capability, eg read a sensor or control a switch. The RPC will only pass requests that are valid, so the device does not have to concern itself with authentication and authorization. 
 
 Since the Hub acts as the intermediary, it is responsible for features such as authentication, logging, resiliency, pub/sub and other protocol integration. The Hub can dynamically delegate some of these services to devices that are capable of doing so, potentially creating a decentralized solution that can scale as needed and recover from device failure. As a minimum the Hub manages service discovery acts as a proxy for capabilities. 
 
@@ -89,8 +92,8 @@ To build the core and bundled plugins from source, a Linux system with golang an
 
 Prerequisites:
 
-1. A Linux based system (sorry, Windows is currently not supported)
-2. Golang 1.18 or newer
+1. A Linux based system 
+2. Golang 1.19 or newer
 3. GCC Make
 4. Cap'n proto tools
 

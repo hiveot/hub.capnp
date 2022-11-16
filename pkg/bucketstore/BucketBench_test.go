@@ -89,7 +89,7 @@ func Benchmark_bucket(b *testing.B) {
 	for _, v := range DataSizeTable {
 		//setup
 		//testText := randstr.String(v.textSize)
-		store, _ := openNewStore(testBackendType, testBackendPath)
+		store, _ := openNewStore()
 		err := addDocs(store, testBucketID, v.dataSize)
 		assert.NoError(b, err)
 
@@ -167,9 +167,10 @@ func Benchmark_bucket(b *testing.B) {
 					// cursor based seek (find nearest) instead of a get
 					for i := 0; i < v.nrSteps; i++ {
 						td := testData[i]
-						key2, val2 := cursor.Seek(td.key)
+						key2, val2, valid := cursor.Seek(td.key)
 						_ = key2
 						_ = val2
+						assert.True(b, valid)
 						assert.NoError(b, err)
 					}
 
@@ -184,13 +185,15 @@ func Benchmark_bucket(b *testing.B) {
 				for n := 0; n < b.N; n++ {
 					bucket := store.GetBucket(testBucketID)
 					cursor := bucket.Cursor()
-					k0, v0 := cursor.First()
+					k0, v0, valid0 := cursor.First()
+					assert.True(b, valid0)
 					assert.NotEmpty(b, k0)
 					assert.NotEmpty(b, v0)
 
 					// cursor based iteration
 					for i := 0; i < v.nrSteps; i++ {
-						k1, v1 := cursor.Next()
+						k1, v1, valid1 := cursor.Next()
+						assert.True(b, valid1)
 						assert.NotEmpty(b, k1)
 						assert.NotEmpty(b, v1)
 					}

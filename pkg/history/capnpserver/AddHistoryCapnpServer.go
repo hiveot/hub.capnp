@@ -9,14 +9,14 @@ import (
 	"github.com/hiveot/hub/pkg/history"
 )
 
-// UpdateHistoryCapnpServer provides the capnp RPC server for adding to the history
-type UpdateHistoryCapnpServer struct {
-	srv history.IUpdateHistory
+// AddHistoryCapnpServer provides the capnp RPC server for adding to the history
+type AddHistoryCapnpServer struct {
+	svc history.IAddHistory
 	// TODO: restrict to a specific device publisher
 }
 
-func (capsrv *UpdateHistoryCapnpServer) AddAction(
-	ctx context.Context, call hubapi.CapUpdateHistory_addAction) error {
+func (capsrv *AddHistoryCapnpServer) AddAction(
+	ctx context.Context, call hubapi.CapAddHistory_addAction) error {
 
 	args := call.Args()
 	capValue, _ := args.ActionValue()
@@ -24,19 +24,19 @@ func (capsrv *UpdateHistoryCapnpServer) AddAction(
 	name, _ := capValue.Name()
 	valueJSON, _ := capValue.ValueJSON()
 	created, _ := capValue.Created()
-	actionValue := thing.ThingValue{
+	actionValue := &thing.ThingValue{
 		ThingID:   thingID,
 		Name:      name,
 		ValueJSON: valueJSON,
 		Created:   created,
 	}
 
-	err := capsrv.srv.AddAction(ctx, actionValue)
+	err := capsrv.svc.AddAction(ctx, actionValue)
 	return err
 }
 
-func (capsrv *UpdateHistoryCapnpServer) AddEvent(
-	ctx context.Context, call hubapi.CapUpdateHistory_addEvent) error {
+func (capsrv *AddHistoryCapnpServer) AddEvent(
+	ctx context.Context, call hubapi.CapAddHistory_addEvent) error {
 
 	args := call.Args()
 	capValue, _ := args.EventValue()
@@ -44,22 +44,28 @@ func (capsrv *UpdateHistoryCapnpServer) AddEvent(
 	name, _ := capValue.Name()
 	valueJSON, _ := capValue.ValueJSON()
 	created, _ := capValue.Created()
-	eventValue := thing.ThingValue{
+	eventValue := &thing.ThingValue{
 		ThingID:   thingID,
 		Name:      name,
 		ValueJSON: valueJSON,
 		Created:   created,
 	}
-	err := capsrv.srv.AddEvent(ctx, eventValue)
+	err := capsrv.svc.AddEvent(ctx, eventValue)
 	//call.Ack()
 	return err
 }
-func (capsrv *UpdateHistoryCapnpServer) AddEvents(
-	ctx context.Context, call hubapi.CapUpdateHistory_addEvents) error {
+func (capsrv *AddHistoryCapnpServer) AddEvents(
+	ctx context.Context, call hubapi.CapAddHistory_addEvents) error {
 
 	args := call.Args()
 	capValues, _ := args.EventValues()
 	eventValues := caphelp.UnmarshalThingValueList(capValues)
-	err := capsrv.srv.AddEvents(ctx, eventValues)
+	err := capsrv.svc.AddEvents(ctx, eventValues)
 	return err
+}
+
+func (capsrv *AddHistoryCapnpServer) Shutdown() {
+	// Release on the client calls capnp release
+	// Pass this to the server to cleanup
+	capsrv.svc.Release()
 }

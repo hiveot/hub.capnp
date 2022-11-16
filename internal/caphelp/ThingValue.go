@@ -9,8 +9,8 @@ import (
 )
 
 // UnmarshalThingValue deserializes a ThingValue object from capnp
-func UnmarshalThingValue(capValue hubapi.ThingValue) (thingValue thing.ThingValue) {
-
+func UnmarshalThingValue(capValue hubapi.ThingValue) *thing.ThingValue {
+	thingValue := &thing.ThingValue{}
 	// errors are ignored. If these fails then there are bigger problems
 	thingValue.ThingID, _ = capValue.ThingID()
 	thingValue.Name, _ = capValue.Name()
@@ -21,8 +21,8 @@ func UnmarshalThingValue(capValue hubapi.ThingValue) (thingValue thing.ThingValu
 
 // UnmarshalThingValueList deserializes a ThingValue array from capnp
 // errors are ignored
-func UnmarshalThingValueList(tlist hubapi.ThingValue_List) []thing.ThingValue {
-	arr := make([]thing.ThingValue, tlist.Len())
+func UnmarshalThingValueList(tlist hubapi.ThingValue_List) []*thing.ThingValue {
+	arr := make([]*thing.ThingValue, tlist.Len())
 	for i := 0; i < tlist.Len(); i++ {
 		capValue := tlist.At(i)
 		arr[i] = UnmarshalThingValue(capValue)
@@ -32,9 +32,9 @@ func UnmarshalThingValueList(tlist hubapi.ThingValue_List) []thing.ThingValue {
 
 // UnmarshalThingValueMap deserializes a map of [key]ThingValue from a capnp message
 // errors are ignored
-func UnmarshalThingValueMap(capMap hubapi.ThingValueMap) (valueMap map[string]thing.ThingValue) {
+func UnmarshalThingValueMap(capMap *hubapi.ThingValueMap) map[string]*thing.ThingValue {
 	entries, _ := capMap.Entries()
-	valueMap = make(map[string]thing.ThingValue)
+	valueMap := make(map[string]*thing.ThingValue)
 
 	for i := 0; i < entries.Len(); i++ {
 		capEntry := entries.At(i)
@@ -47,7 +47,7 @@ func UnmarshalThingValueMap(capMap hubapi.ThingValueMap) (valueMap map[string]th
 }
 
 // MarshalThingValueList serializes a ThingValue array to a capnp list
-func MarshalThingValueList(arr []thing.ThingValue) hubapi.ThingValue_List {
+func MarshalThingValueList(arr []*thing.ThingValue) hubapi.ThingValue_List {
 
 	_, seg, _ := capnp.NewMessage(capnp.SingleSegment(nil))
 	capList, _ := hubapi.NewThingValue_List(seg, int32(len(arr)))
@@ -62,7 +62,7 @@ func MarshalThingValueList(arr []thing.ThingValue) hubapi.ThingValue_List {
 }
 
 // MarshalThingValueMap serializes a map of thing.ThingValue to a capnp message
-func MarshalThingValueMap(valueMap map[string]thing.ThingValue) hubapi.ThingValueMap {
+func MarshalThingValueMap(valueMap map[string]*thing.ThingValue) hubapi.ThingValueMap {
 
 	// errors are ignored. If these fails then there are bigger problems
 	_, seg, _ := capnp.NewMessage(capnp.SingleSegment(nil))
@@ -88,8 +88,10 @@ func MarshalThingValueMap(valueMap map[string]thing.ThingValue) hubapi.ThingValu
 
 // MarshalThingValue serializes a thing.ThingValue object to a capnp message
 // errors are ignored
-func MarshalThingValue(thingValue thing.ThingValue) hubapi.ThingValue {
-
+func MarshalThingValue(thingValue *thing.ThingValue) hubapi.ThingValue {
+	if thingValue == nil {
+		return hubapi.ThingValue{}
+	}
 	// errors are ignored. If these fails then there are bigger problems
 	_, seg, _ := capnp.NewMessage(capnp.SingleSegment(nil))
 	capValue, err := hubapi.NewThingValue(seg)

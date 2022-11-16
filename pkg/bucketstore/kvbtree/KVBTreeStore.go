@@ -1,10 +1,8 @@
-// Package kvstore
 package kvbtree
 
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"sync"
@@ -52,7 +50,7 @@ import (
 // maintaining API compatibility.
 type KVBTreeStore struct {
 	clientID string
-	// collection of buckets, each being a map.
+	// collection of buckets, one for each Thing, each being a map.
 	buckets              map[string]*KVBTreeBucket
 	storePath            string
 	mutex                sync.RWMutex // simple locking is still fast enough
@@ -135,7 +133,7 @@ func writeStoreFile(storePath string, docs map[string]map[string][]byte) error {
 	// First write content to temp file
 	// The temp file is opened with 0600 permissions
 	tmpName := storePath + ".tmp"
-	err = ioutil.WriteFile(tmpName, rawData, 0600)
+	err = os.WriteFile(tmpName, rawData, 0600)
 	if err != nil {
 		// ouch, wth?
 		err := fmt.Errorf("error while creating tempfile for jsonstore: %s", err)
@@ -248,6 +246,8 @@ func (store *KVBTreeStore) GetBucket(bucketID string) (bucket bucketstore.IBucke
 
 // callback handler for notification that a bucket has been modified
 func (store *KVBTreeStore) onBucketUpdated(bucket *KVBTreeBucket) {
+	// at this point we don't need the bucket but this might change with more fine grained update tracking
+	_ = bucket
 	atomic.AddInt32(&store.updateCount, 1)
 }
 

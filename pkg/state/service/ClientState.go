@@ -24,20 +24,20 @@ type ClientState struct {
 }
 
 // Cursor provides an iterator cursor for the bucket
-func (svc *ClientState) Cursor(ctx context.Context) (cursor bucketstore.IBucketCursor) {
+func (svc *ClientState) Cursor(_ context.Context) (cursor bucketstore.IBucketCursor) {
 	cursor = svc.bucket.Cursor()
 	return cursor
 }
 
 // Delete a key from the bucket
-func (svc *ClientState) Delete(ctx context.Context, key string) (err error) {
+func (svc *ClientState) Delete(_ context.Context, key string) (err error) {
 	err = svc.bucket.Delete(key)
 	return err
 }
 
 // Get returns the document for the given key
 // The document can be any text.
-func (svc *ClientState) Get(ctx context.Context, key string) (value []byte, err error) {
+func (svc *ClientState) Get(_ context.Context, key string) (value []byte, err error) {
 	val, err := svc.bucket.Get(key)
 	return val, err
 }
@@ -45,7 +45,7 @@ func (svc *ClientState) Get(ctx context.Context, key string) (value []byte, err 
 // GetMultiple returns a batch of documents for the given key
 // The document can be any text.
 func (svc *ClientState) GetMultiple(
-	ctx context.Context, keys []string) (docs map[string][]byte, err error) {
+	_ context.Context, keys []string) (docs map[string][]byte, err error) {
 	docs = make(map[string][]byte)
 	docs, err = svc.bucket.GetMultiple(keys)
 	return docs, err
@@ -65,13 +65,13 @@ func (svc *ClientState) Release() {
 }
 
 // Set writes a document with the given key
-func (svc *ClientState) Set(ctx context.Context, key string, value []byte) error {
+func (svc *ClientState) Set(_ context.Context, key string, value []byte) error {
 	err := svc.bucket.Set(key, value)
 	return err
 }
 
 // SetMultiple writes a batch of key-values
-func (svc *ClientState) SetMultiple(ctx context.Context, docs map[string][]byte) (err error) {
+func (svc *ClientState) SetMultiple(_ context.Context, docs map[string][]byte) (err error) {
 	err = svc.bucket.SetMultiple(docs)
 	return err
 }

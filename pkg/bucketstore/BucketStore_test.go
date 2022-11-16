@@ -16,21 +16,17 @@ import (
 	"github.com/hiveot/hub.go/pkg/thing"
 	"github.com/hiveot/hub.go/pkg/vocab"
 	"github.com/hiveot/hub/pkg/bucketstore"
-	"github.com/hiveot/hub/pkg/bucketstore/bolts"
-	"github.com/hiveot/hub/pkg/bucketstore/kvbtree"
-	"github.com/hiveot/hub/pkg/bucketstore/pebble"
+	"github.com/hiveot/hub/pkg/bucketstore/cmd"
 )
 
 var testBucketID = "default"
 
-var testBackendType = bucketstore.BackendKVStore
-var testBackendPath = "/tmp/test-kvstore.json"
+var testBackendType = bucketstore.BackendKVBTree
 
-//var testBackendType = bucketstore.BackendBBolt
-//var testBackendPath = "/tmp/test-bolt.db"
-
-//var testBackendType = bucketstore.BackendPebble
-//var testBackendPath = "/tmp/test-pebble/"
+// var testBackendType = bucketstore.BackendBBolt
+// var testBackendType = bucketstore.BackendPebble
+var testBackendDirectory = "/tmp/test-bucketstore"
+var testClientID = "buckettestclient"
 
 const (
 	doc1ID = "doc1"
@@ -56,15 +52,9 @@ var doc2 = []byte(`{
 }`)
 
 // Create the bucket store using the backend
-func openNewStore(backend string, storePath string) (store bucketstore.IBucketStore, err error) {
-	_ = os.RemoveAll(storePath)
-	if backend == bucketstore.BackendKVStore {
-		store = kvbtree.NewKVStore("testclientkv", storePath)
-	} else if backend == bucketstore.BackendBBolt {
-		store = bolts.NewBoltStore("testclientbbolt", storePath)
-	} else if backend == bucketstore.BackendPebble {
-		store = pebble.NewPebbleStore("testclientpebble", storePath)
-	}
+func openNewStore() (store bucketstore.IBucketStore, err error) {
+	_ = os.RemoveAll(testBackendDirectory)
+	store = cmd.NewBucketStore(testBackendDirectory, testClientID, testBackendType)
 	err = store.Open()
 	return store, err
 }
@@ -172,27 +162,30 @@ func TestMain(m *testing.M) {
 
 // Generic directory store testcases
 func TestStartStop(t *testing.T) {
-	store, err := openNewStore(testBackendType, testBackendPath)
+	store, err := openNewStore()
 	require.NoError(t, err)
 	err = store.Close()
 	assert.NoError(t, err)
 }
 
 func TestCreateStoreBadFolder(t *testing.T) {
-	filename := "/folder/does/not/exist/store.json"
-	_, err := openNewStore(testBackendType, filename)
+	badDir := "/folder/does/not/exist/"
+	store := cmd.NewBucketStore(badDir, testClientID, testBackendType)
+	err := store.Open()
 	assert.Error(t, err)
 }
 
 func TestCreateStoreReadOnlyFolder(t *testing.T) {
-	filename := "/var/jsonstore.json"
-	_, err := openNewStore(testBackendType, filename)
+	badDir := "/var/"
+	store := cmd.NewBucketStore(badDir, testClientID, testBackendType)
+	err := store.Open()
 	assert.Error(t, err)
 }
 
 func TestCreateStoreCantReadFile(t *testing.T) {
-	filename := "/var"
-	_, err := openNewStore(testBackendType, filename)
+	badDir := "/bin"
+	store := cmd.NewBucketStore(badDir, "yes", testBackendType)
+	err := store.Open()
 	assert.Error(t, err)
 }
 
@@ -201,7 +194,7 @@ func TestWriteRead(t *testing.T) {
 	const id5 = "id5"
 	const id22 = "id22"
 
-	store, err := openNewStore(testBackendType, testBackendPath)
+	store, err := openNewStore()
 	assert.NoError(t, err)
 	err = addDocs(store, testBucketID, 3)
 
@@ -272,7 +265,7 @@ func TestWriteRead(t *testing.T) {
 }
 
 func TestWriteBadData(t *testing.T) {
-	store, err := openNewStore(testBackendType, testBackendPath)
+	store, err := openNewStore()
 	require.NoError(t, err)
 	defer store.Close()
 	bucket := store.GetBucket(testBucketID)
@@ -292,7 +285,7 @@ func TestWriteReadMultiple(t *testing.T) {
 	const id22 = "id22"
 	docs := make(map[string][]byte)
 
-	store, err := openNewStore(testBackendType, testBackendPath)
+	store, err := openNewStore()
 	require.NoError(t, err)
 	err = addDocs(store, testBucketID, 3)
 	require.NoError(t, err)
@@ -330,7 +323,7 @@ func TestSeek(t *testing.T) {
 	const seekCount = 200
 	const base = 500
 
-	store, err := openNewStore(testBackendType, testBackendPath)
+	store, err := openNewStore()
 	require.NoError(t, err)
 	err = addDocs(store, testBucketID, count)
 	require.NoError(t, err)
@@ -341,21 +334,27 @@ func TestSeek(t *testing.T) {
 
 	// set cursor 'base' records forward
 	cursor := bucket.Cursor()
-	k1, v1 := cursor.First()
+	k1, v1, valid := cursor.First()
+	assert.True(t, valid)
 	for i := 0; i < base; i++ {
-		k1, v1 = cursor.Next()
+		k1, v1, valid = cursor.Next()
+		assert.True(t, valid)
+		assert.NotEmpty(t, k1)
+		assert.NotEmpty(t, v1)
 	}
 	// k1 now holds the key at the base N'th record
 
 	// seek of the current key should bring us back here, at the base Nth record
-	k2, v2 := cursor.Seek(k1)
+	k2, v2, valid2 := cursor.Seek(k1)
+	assert.True(t, valid2)
 	assert.Equal(t, k1, k2)
 	assert.Equal(t, v1, v2)
 
 	// test that keys increment
 	for i := 0; i < seekCount; i++ {
-		k, v := cursor.Next()
+		k, v, valid := cursor.Next()
 		require.GreaterOrEqual(t, k, k2)
+		assert.True(t, valid)
 		if !assert.NotEmpty(t, v) {
 			logrus.Infof("unexpected")
 		}
@@ -363,9 +362,11 @@ func TestSeek(t *testing.T) {
 	}
 
 	// step seekCount nr backwards should lead us right back to k1
-	k2, v2 = cursor.Prev()
+	k2, v2, valid2 = cursor.Prev()
+	assert.True(t, valid2)
 	for i := 1; i < seekCount; i++ {
-		k, v := cursor.Prev()
+		k, v, valid := cursor.Prev()
+		assert.True(t, valid)
 		require.LessOrEqual(t, k, k2)
 		if !assert.NotEmpty(t, v) {
 			logrus.Infof("unexpected")
@@ -373,7 +374,8 @@ func TestSeek(t *testing.T) {
 		k2 = k
 	}
 	// how to test Last?
-	_, _ = cursor.Last()
+	_, _, valid = cursor.Last()
+	assert.True(t, valid)
 	assert.Equal(t, k1, k2)
 	cursor.Release()
 }
@@ -384,7 +386,7 @@ func TestPrevNextN(t *testing.T) {
 	const base = 500
 
 	// setup
-	store, err := openNewStore(testBackendType, testBackendPath)
+	store, err := openNewStore()
 	require.NoError(t, err)
 	err = addDocs(store, testBucketID, count)
 	require.NoError(t, err)
@@ -395,17 +397,19 @@ func TestPrevNextN(t *testing.T) {
 
 	// test NextN
 	cursor := bucket.Cursor()
-	k1, v1 := cursor.First()
-	docs, atEnd := cursor.NextN(seekCount)
-	assert.False(t, atEnd)
+	k1, v1, valid := cursor.First()
+	assert.True(t, valid)
+	docs, itemsRemaining := cursor.NextN(seekCount)
+	assert.True(t, itemsRemaining)
 	assert.Equal(t, seekCount, len(docs))
 
-	docs2, atBegin := cursor.PrevN(seekCount - 1)
-	assert.False(t, atBegin)
+	docs2, itemsRemaining := cursor.PrevN(seekCount - 1)
+	assert.True(t, itemsRemaining)
 	assert.Equal(t, seekCount-1, len(docs2))
 
 	// one step further we're at the begin again
-	k2, v2 := cursor.Prev()
+	k2, v2, valid2 := cursor.Prev()
+	assert.True(t, valid2)
 	assert.Equal(t, k1, k2)
 	assert.Equal(t, v1, v2)
 

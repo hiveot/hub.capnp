@@ -15,11 +15,13 @@ import (
 // Buckets are not supported in Pebble so these are simulated by prefixing all keys with "{bucketID}$"
 // Each write operation is its own transaction.
 type PebbleBucket struct {
-	db           *pebble.DB
-	bucketPrefix string // the prefix to apply to all keys of this bucket
-	bucketID     string
-	clientID     string
-	closed       bool
+	db *pebble.DB
+	// key range for this bucket
+	rangeStart string
+	rangeEnd   string
+	bucketID   string
+	clientID   string
+	closed     bool
 }
 
 // Close the bucket
@@ -49,7 +51,7 @@ func (bucket *PebbleBucket) Cursor() bucketstore.IBucketCursor {
 	// bucket prefix is {bucketID}$
 	// range bounds end at {bucketID}@
 	opts := &pebble.IterOptions{
-		LowerBound:      []byte(bucket.bucketPrefix),
+		LowerBound:      []byte(bucket.bucketID + "$"),
 		UpperBound:      []byte(bucket.bucketID + "@"), // this key never exists
 		TableFilter:     nil,
 		PointKeyFilters: nil,
@@ -63,13 +65,13 @@ func (bucket *PebbleBucket) Cursor() bucketstore.IBucketCursor {
 		UseL6Filters:              false,
 	}
 	bucketIterator := bucket.db.NewIter(opts)
-	cursor := NewPebbleCursor(bucket.clientID, bucket.bucketID, bucket.bucketPrefix, bucketIterator)
+	cursor := NewPebbleCursor(bucket.clientID, bucket.bucketID, bucket.rangeStart, bucketIterator)
 	return cursor
 }
 
 // Delete removes the key-value pair from the bucket store
 func (bucket *PebbleBucket) Delete(key string) (err error) {
-	bucketKey := bucket.bucketPrefix + key
+	bucketKey := bucket.rangeStart + key
 	opts := &pebble.WriteOptions{}
 	err = bucket.db.Delete([]byte(bucketKey), opts)
 	return err
@@ -77,7 +79,7 @@ func (bucket *PebbleBucket) Delete(key string) (err error) {
 
 // Get returns the document for the given key
 func (bucket *PebbleBucket) Get(key string) (doc []byte, err error) {
-	bucketKey := bucket.bucketPrefix + key
+	bucketKey := bucket.rangeStart + key
 	byteValue, closer, err := bucket.db.Get([]byte(bucketKey))
 	if err == nil {
 		doc = bytes.NewBuffer(byteValue).Bytes()
@@ -96,11 +98,11 @@ func (bucket *PebbleBucket) GetMultiple(keys []string) (docs map[string][]byte, 
 	docs = make(map[string][]byte)
 	batch := bucket.db.NewIndexedBatch()
 	for _, key := range keys {
-		bucketKey := bucket.bucketPrefix + key
+		bucketKey := bucket.rangeStart + key
 		value, closer, err2 := batch.Get([]byte(bucketKey))
 		if err2 == nil {
 			docs[key] = bytes.NewBuffer(value).Bytes()
-			closer.Close()
+			err = closer.Close()
 		}
 	}
 	err = batch.Close()
@@ -112,6 +114,35 @@ func (bucket *PebbleBucket) ID() string {
 	return bucket.bucketID
 }
 
+// Info returns bucket information
+// FIXME: Unable to determine the number of records in a bucket (or even in the DB)
+func (bucket *PebbleBucket) Info() (info *bucketstore.BucketStoreInfo) {
+
+	//metrics := bucket.db.Metrics()
+	// bucket key range
+	//size, _ := bucket.db.EstimateDiskUsage([]byte(bucket.rangeStart), []byte(bucket.rangeEnd))
+	//size = uint64(0)
+	//sstables, err := bucket.db.SSTables()
+	//if err == nil {
+	//	for _, tblList := range sstables {
+	//		for _, tbl := range tblList {
+	//			size += tbl.Size
+	//		}
+	//	}
+	//}
+
+	info = &bucketstore.BucketStoreInfo{
+		Id:     bucket.bucketID,
+		Engine: bucketstore.BackendPebble,
+		// FIXME: get bucket metrics
+		DataSize:  -1, //int64(metrics.WAL.Size),
+		NrRecords: -1,
+		//Size: size,
+	}
+
+	return info
+}
+
 // Set sets a document with the given key
 func (bucket *PebbleBucket) Set(key string, doc []byte) error {
 	if key == "" {
@@ -119,7 +150,7 @@ func (bucket *PebbleBucket) Set(key string, doc []byte) error {
 			key, bucket.bucketID, bucket.clientID)
 		return err
 	}
-	bucketKey := bucket.bucketPrefix + key
+	bucketKey := bucket.rangeStart + key
 	opts := &pebble.WriteOptions{}
 	err := bucket.db.Set([]byte(bucketKey), doc, opts)
 	return err
@@ -131,7 +162,7 @@ func (bucket *PebbleBucket) SetMultiple(docs map[string][]byte) (err error) {
 
 	batch := bucket.db.NewBatch()
 	for key, value := range docs {
-		bucketKey := bucket.bucketPrefix + key
+		bucketKey := bucket.rangeStart + key
 		opts := &pebble.WriteOptions{}
 		err = batch.Set([]byte(bucketKey), value, opts)
 		if err != nil {
@@ -148,10 +179,11 @@ func (bucket *PebbleBucket) SetMultiple(docs map[string][]byte) (err error) {
 // NewPebbleBucket creates a new bucket
 func NewPebbleBucket(clientID, bucketID string, pebbleDB *pebble.DB) *PebbleBucket {
 	srv := &PebbleBucket{
-		clientID:     clientID,
-		bucketID:     bucketID,
-		db:           pebbleDB,
-		bucketPrefix: bucketID + "$",
+		clientID:   clientID,
+		bucketID:   bucketID,
+		db:         pebbleDB,
+		rangeStart: bucketID + "$",
+		rangeEnd:   bucketID + "@",
 	}
 	return srv
 }

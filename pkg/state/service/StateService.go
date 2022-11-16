@@ -18,10 +18,10 @@ import (
 	"github.com/hiveot/hub/pkg/state/config"
 )
 
-// StateStoreService implements the server for storing application state for clients
+// StateService implements the server for storing application state for clients
 // This implements the IStateStore interface
 // Each client will have its own store instance that is used by all instance of the client store capability.
-type StateStoreService struct {
+type StateService struct {
 	cfg config.StateConfig
 	// The underlying persistence store for each client that is concurrent safe.
 	// Released stores have a nil entry
@@ -37,8 +37,8 @@ type StateStoreService struct {
 
 // CapClientBucket returns a new instance of the capability to store client state in a bucket.
 // This opens a store for the client if one doesn't yet exist.
-func (srv *StateStoreService) CapClientBucket(
-	ctx context.Context, clientID string, bucketID string) (cap state.IClientState, err error) {
+func (srv *StateService) CapClientBucket(_ context.Context,
+	clientID string, bucketID string) (cap state.IClientState, err error) {
 
 	srv.mux.Lock()
 	defer srv.mux.Unlock()
@@ -80,7 +80,7 @@ func (srv *StateStoreService) CapClientBucket(
 
 // callback to close the client store when all its clients are removed
 // An error is reported if not all buckets are running
-func (srv *StateStoreService) onClientReleased(clientID string) {
+func (srv *StateService) onClientReleased(clientID string) {
 	srv.mux.Lock()
 	defer srv.mux.Unlock()
 	refCount := srv.clientRefs[clientID]
@@ -97,20 +97,20 @@ func (srv *StateStoreService) onClientReleased(clientID string) {
 			logrus.Errorf("Client '%s' released but it doesn't have a store", clientID)
 		} else {
 			srv.clientStores[clientID] = nil
-			clientStore.Close()
+			_ = clientStore.Close()
 		}
 	}
 }
 
 // Start the state service
 // Ensure the stores location exists and is writable
-func (srv *StateStoreService) Start() error {
+func (srv *StateService) Start() error {
 	logrus.Infof("starting state store service")
 	info, err := os.Stat(srv.cfg.StoreDirectory)
 	if err != nil {
 		if !os.IsNotExist(err) {
 			// not sure whats wrong here but the service can't continue
-			logrus.Errorf("store directory exists but can't be used", err)
+			logrus.Errorf("store directory exists but can't be used: %s", err)
 			return err
 		}
 		err = os.MkdirAll(srv.cfg.StoreDirectory, 0700)
@@ -133,7 +133,7 @@ func (srv *StateStoreService) Start() error {
 
 // Stop prevents new client capabilities from opening.
 // Existing clients might need time to finish.
-func (srv *StateStoreService) Stop() error {
+func (srv *StateService) Stop() error {
 	logrus.Infof("stopping state store service")
 	// build the list of stores to close to allow list update while closing
 	srv.mux.Lock()
@@ -173,10 +173,10 @@ func (srv *StateStoreService) Stop() error {
 // Intended for use by the launcher.
 //
 //	storeDirectory is the location to store client state files
-func NewStateStoreService(stateConfig config.StateConfig) *StateStoreService {
+func NewStateStoreService(stateConfig config.StateConfig) *StateService {
 	// TODO: use configuration to determine backend and load limits
 	//kvStore := kvstore.NewKVStore(stateConfig.DatabaseURL)
-	srv := &StateStoreService{
+	srv := &StateService{
 		cfg:          stateConfig,
 		clientStores: make(map[string]bucketstore.IBucketStore),
 		clientRefs:   make(map[string]int),

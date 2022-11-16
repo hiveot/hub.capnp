@@ -8,13 +8,14 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/hiveot/hub/pkg/history/service/mongohs"
+
 	"github.com/hiveot/hub.go/pkg/logging"
 	"github.com/hiveot/hub/internal/listener"
 	"github.com/hiveot/hub/internal/svcconfig"
 	"github.com/hiveot/hub/pkg/history"
 	"github.com/hiveot/hub/pkg/history/capnpserver"
 	"github.com/hiveot/hub/pkg/history/config"
-	"github.com/hiveot/hub/pkg/history/service/mongohs"
 	"github.com/hiveot/hub/pkg/launcher"
 )
 
@@ -34,7 +35,7 @@ func main() {
 	defer svc.Stop(ctx)
 
 	if err == nil {
-		logrus.Infof("HistoryCapnpServer starting on: %s", srvListener.Addr())
+		logrus.Infof("HistoryServiceCapnpServer starting on: %s", srvListener.Addr())
 		_ = capnpserver.StartHistoryCapnpServer(context.Background(), srvListener, svc)
 	}
 	if err != nil {

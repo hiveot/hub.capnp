@@ -1,6 +1,8 @@
 package bolts
 
 import (
+	"os"
+	"path"
 	"sync/atomic"
 	"time"
 
@@ -92,6 +94,13 @@ func (store *BoltStore) onBucketReleased(bucket bucketstore.IBucket) {
 // Open the store
 func (store *BoltStore) Open() (err error) {
 	logrus.Infof("Opening bboltDB store for client %s", store.clientID)
+
+	// make sure the folder exists
+	storeDir := path.Dir(store.storePath)
+	err = os.MkdirAll(storeDir, 0700)
+	if err != nil {
+		logrus.Errorf("Failed ensuring folder exists: %s", err)
+	}
 
 	options := &bbolt.Options{
 		Timeout:        10,                    // wait max 1 sec for a file lock

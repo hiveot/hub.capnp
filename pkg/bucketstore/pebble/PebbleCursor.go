@@ -11,84 +11,92 @@ import (
 type PebbleCursor struct {
 	//db       *pebble.DB
 	//bucket   *PebbleBucket
-	bucketPrefix string // prefix to remove from keys returned by get/set/seek/first/lasst
+	bucketPrefix string // prefix to remove from keys returned by get/set/seek/first/last
 	bucketID     string
 	clientID     string
 	iterator     *pebble.Iterator
 }
 
 // First moves the cursor to the first item
-func (cursor *PebbleCursor) First() (key string, value []byte) {
-	isValid := cursor.iterator.First()
-	_ = isValid
+func (cursor *PebbleCursor) First() (key string, value []byte, valid bool) {
+	valid = cursor.iterator.First()
+	if !valid {
+		return
+	}
 	return cursor.getKV()
 }
 
 // Return the iterator current key and value
 // This removes the bucket prefix
-func (cursor *PebbleCursor) getKV() (key string, value []byte) {
+func (cursor *PebbleCursor) getKV() (key string, value []byte, valid bool) {
 	k := string(cursor.iterator.Key())
 	v, err := cursor.iterator.ValueAndErr()
 	if strings.HasPrefix(k, cursor.bucketPrefix) {
 		key = k[len(cursor.bucketPrefix):]
+		valid = cursor.iterator.Valid()
 	} else {
 		err = fmt.Errorf("bucket key '%s' has no prefix '%s'", k, cursor.bucketPrefix)
+		valid = false
 	}
+
 	// what to do in case of error?
 	_ = err
-	return key, v
+	return key, v, valid
 }
 
 // Last moves the cursor to the last item
-func (cursor *PebbleCursor) Last() (key string, value []byte) {
-	cursor.iterator.Last()
+func (cursor *PebbleCursor) Last() (key string, value []byte, valid bool) {
+	valid = cursor.iterator.Last()
+	if !valid {
+		return
+	}
 	return cursor.getKV()
 }
 
 // Next iterates to the next key from the current cursor
-func (cursor *PebbleCursor) Next() (key string, value []byte) {
-	isValid := cursor.iterator.Next()
-	if !isValid {
-		return "", nil
+func (cursor *PebbleCursor) Next() (key string, value []byte, valid bool) {
+	valid = cursor.iterator.Next()
+	if !valid {
+		return
 	}
 	return cursor.getKV()
 }
 
 // NextN increases the cursor position N times and return the encountered key-value pairs
-func (cursor *PebbleCursor) NextN(steps uint) (docs map[string][]byte, endReached bool) {
+func (cursor *PebbleCursor) NextN(steps uint) (docs map[string][]byte, itemsRemaining bool) {
 	docs = make(map[string][]byte)
 	for i := uint(0); i < steps; i++ {
-		endReached = !cursor.iterator.Next()
-		if endReached {
+		itemsRemaining = cursor.iterator.Next()
+		if !itemsRemaining {
 			break
 		}
-		key, value := cursor.getKV()
+		key, value, _ := cursor.getKV()
 		docs[key] = value
 	}
-	return docs, endReached
+	return
 }
 
 // Prev iterations to the previous key from the current cursor
-func (cursor *PebbleCursor) Prev() (key string, value []byte) {
-	isValid := cursor.iterator.Prev()
-	if !isValid {
-		return "", nil
+func (cursor *PebbleCursor) Prev() (key string, value []byte, valid bool) {
+	valid = cursor.iterator.Prev()
+	if !valid {
+		return
 	}
 	return cursor.getKV()
 }
 
 // PrevN decreases the cursor position N times and return the encountered key-value pairs
-func (cursor *PebbleCursor) PrevN(steps uint) (docs map[string][]byte, beginReached bool) {
+func (cursor *PebbleCursor) PrevN(steps uint) (docs map[string][]byte, itemsRemaining bool) {
 	docs = make(map[string][]byte)
 	for i := uint(0); i < steps; i++ {
-		beginReached = !cursor.iterator.Prev()
-		if beginReached {
+		itemsRemaining = cursor.iterator.Prev()
+		if !itemsRemaining {
 			break
 		}
-		key, value := cursor.getKV()
+		key, value, _ := cursor.getKV()
 		docs[key] = value
 	}
-	return docs, beginReached
+	return
 }
 
 // Release the cursor
@@ -100,13 +108,17 @@ func (cursor *PebbleCursor) Release() {
 }
 
 // Seek returns a cursor with Next() and Prev() iterators
-func (cursor *PebbleCursor) Seek(searchKey string) (key string, value []byte) {
+func (cursor *PebbleCursor) Seek(searchKey string) (key string, value []byte, valid bool) {
 	bucketKey := cursor.bucketPrefix + searchKey
-	cursor.iterator.SeekGE([]byte(bucketKey))
+	valid = cursor.iterator.SeekGE([]byte(bucketKey))
+	if !valid {
+		return
+	}
 	return cursor.getKV()
 }
 
 func NewPebbleCursor(clientID, bucketID string, bucketPrefix string, iterator *pebble.Iterator) *PebbleCursor {
+	// TBD: use pebble range keys instead of for bucket prefix
 	cursor := &PebbleCursor{
 		bucketPrefix: bucketPrefix,
 		bucketID:     bucketID,
