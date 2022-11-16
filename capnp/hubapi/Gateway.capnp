@@ -28,6 +28,6 @@ interface ClientCapabilities {
     readDirectoryCapability @0 () -> (cap :Directory.CapReadDirectory);
     # Obtain capability to read from the Thing directory
 
-    readHistoryCapability @1 () -> (cap :History.CapReadHistory);
-    # Obtain capability to read from the thing value history store
+    readHistoryCapability @1 (thingID :Text) -> (cap :History.CapReadHistory);
+    # Obtain capability to iterate the history of a thing
 }

@@ -10,727 +10,665 @@ import (
 	context "context"
 )
 
-// Constants defined in History.capnp.
-const (
-	GoISO8601Format = "2006-01-02T15:04:05.000-0700"
-)
+type CapHistoryService capnp.Client
 
-type ThingValue capnp.Struct
+// CapHistoryService_TypeID is the unique identifier for the type CapHistoryService.
+const CapHistoryService_TypeID = 0x934ac037c7063be0
 
-// ThingValue_TypeID is the unique identifier for the type ThingValue.
-const ThingValue_TypeID = 0xe97993dce68f7c8d
-
-func NewThingValue(s *capnp.Segment) (ThingValue, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4})
-	return ThingValue(st), err
-}
-
-func NewRootThingValue(s *capnp.Segment) (ThingValue, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4})
-	return ThingValue(st), err
-}
-
-func ReadRootThingValue(msg *capnp.Message) (ThingValue, error) {
-	root, err := msg.Root()
-	return ThingValue(root.Struct()), err
-}
-
-func (s ThingValue) String() string {
-	str, _ := text.Marshal(0xe97993dce68f7c8d, capnp.Struct(s))
-	return str
-}
-
-func (s ThingValue) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (ThingValue) DecodeFromPtr(p capnp.Ptr) ThingValue {
-	return ThingValue(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s ThingValue) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s ThingValue) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s ThingValue) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s ThingValue) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s ThingValue) ThingID() (string, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.Text(), err
-}
-
-func (s ThingValue) HasThingID() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s ThingValue) ThingIDBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.TextBytes(), err
-}
-
-func (s ThingValue) SetThingID(v string) error {
-	return capnp.Struct(s).SetText(0, v)
-}
-
-func (s ThingValue) Name() (string, error) {
-	p, err := capnp.Struct(s).Ptr(1)
-	return p.Text(), err
-}
-
-func (s ThingValue) HasName() bool {
-	return capnp.Struct(s).HasPtr(1)
-}
-
-func (s ThingValue) NameBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(1)
-	return p.TextBytes(), err
-}
-
-func (s ThingValue) SetName(v string) error {
-	return capnp.Struct(s).SetText(1, v)
-}
-
-func (s ThingValue) ValueJSON() (string, error) {
-	p, err := capnp.Struct(s).Ptr(2)
-	return p.Text(), err
-}
-
-func (s ThingValue) HasValueJSON() bool {
-	return capnp.Struct(s).HasPtr(2)
-}
-
-func (s ThingValue) ValueJSONBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(2)
-	return p.TextBytes(), err
-}
-
-func (s ThingValue) SetValueJSON(v string) error {
-	return capnp.Struct(s).SetText(2, v)
-}
-
-func (s ThingValue) Created() (string, error) {
-	p, err := capnp.Struct(s).Ptr(3)
-	return p.Text(), err
-}
-
-func (s ThingValue) HasCreated() bool {
-	return capnp.Struct(s).HasPtr(3)
-}
-
-func (s ThingValue) CreatedBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(3)
-	return p.TextBytes(), err
-}
-
-func (s ThingValue) SetCreated(v string) error {
-	return capnp.Struct(s).SetText(3, v)
-}
-
-// ThingValue_List is a list of ThingValue.
-type ThingValue_List = capnp.StructList[ThingValue]
-
-// NewThingValue creates a new list of ThingValue.
-func NewThingValue_List(s *capnp.Segment, sz int32) (ThingValue_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4}, sz)
-	return capnp.StructList[ThingValue](l), err
-}
-
-// ThingValue_Future is a wrapper for a ThingValue promised by a client call.
-type ThingValue_Future struct{ *capnp.Future }
-
-func (p ThingValue_Future) Struct() (ThingValue, error) {
-	s, err := p.Future.Struct()
-	return ThingValue(s), err
-}
-
-type ThingValueMap capnp.Struct
-
-// ThingValueMap_TypeID is the unique identifier for the type ThingValueMap.
-const ThingValueMap_TypeID = 0xef0e8705e466c9b5
-
-func NewThingValueMap(s *capnp.Segment) (ThingValueMap, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return ThingValueMap(st), err
-}
-
-func NewRootThingValueMap(s *capnp.Segment) (ThingValueMap, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return ThingValueMap(st), err
-}
-
-func ReadRootThingValueMap(msg *capnp.Message) (ThingValueMap, error) {
-	root, err := msg.Root()
-	return ThingValueMap(root.Struct()), err
-}
-
-func (s ThingValueMap) String() string {
-	str, _ := text.Marshal(0xef0e8705e466c9b5, capnp.Struct(s))
-	return str
-}
-
-func (s ThingValueMap) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (ThingValueMap) DecodeFromPtr(p capnp.Ptr) ThingValueMap {
-	return ThingValueMap(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s ThingValueMap) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s ThingValueMap) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s ThingValueMap) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s ThingValueMap) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s ThingValueMap) Entries() (ThingValueMap_Entry_List, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return ThingValueMap_Entry_List(p.List()), err
-}
-
-func (s ThingValueMap) HasEntries() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s ThingValueMap) SetEntries(v ThingValueMap_Entry_List) error {
-	return capnp.Struct(s).SetPtr(0, v.ToPtr())
-}
-
-// NewEntries sets the entries field to a newly
-// allocated ThingValueMap_Entry_List, preferring placement in s's segment.
-func (s ThingValueMap) NewEntries(n int32) (ThingValueMap_Entry_List, error) {
-	l, err := NewThingValueMap_Entry_List(capnp.Struct(s).Segment(), n)
-	if err != nil {
-		return ThingValueMap_Entry_List{}, err
-	}
-	err = capnp.Struct(s).SetPtr(0, l.ToPtr())
-	return l, err
-}
-
-// ThingValueMap_List is a list of ThingValueMap.
-type ThingValueMap_List = capnp.StructList[ThingValueMap]
-
-// NewThingValueMap creates a new list of ThingValueMap.
-func NewThingValueMap_List(s *capnp.Segment, sz int32) (ThingValueMap_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[ThingValueMap](l), err
-}
-
-// ThingValueMap_Future is a wrapper for a ThingValueMap promised by a client call.
-type ThingValueMap_Future struct{ *capnp.Future }
-
-func (p ThingValueMap_Future) Struct() (ThingValueMap, error) {
-	s, err := p.Future.Struct()
-	return ThingValueMap(s), err
-}
-
-type ThingValueMap_Entry capnp.Struct
-
-// ThingValueMap_Entry_TypeID is the unique identifier for the type ThingValueMap_Entry.
-const ThingValueMap_Entry_TypeID = 0xf7ae792774c9c028
-
-func NewThingValueMap_Entry(s *capnp.Segment) (ThingValueMap_Entry, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
-	return ThingValueMap_Entry(st), err
-}
-
-func NewRootThingValueMap_Entry(s *capnp.Segment) (ThingValueMap_Entry, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
-	return ThingValueMap_Entry(st), err
-}
-
-func ReadRootThingValueMap_Entry(msg *capnp.Message) (ThingValueMap_Entry, error) {
-	root, err := msg.Root()
-	return ThingValueMap_Entry(root.Struct()), err
-}
-
-func (s ThingValueMap_Entry) String() string {
-	str, _ := text.Marshal(0xf7ae792774c9c028, capnp.Struct(s))
-	return str
-}
-
-func (s ThingValueMap_Entry) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (ThingValueMap_Entry) DecodeFromPtr(p capnp.Ptr) ThingValueMap_Entry {
-	return ThingValueMap_Entry(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s ThingValueMap_Entry) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s ThingValueMap_Entry) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s ThingValueMap_Entry) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s ThingValueMap_Entry) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s ThingValueMap_Entry) Key() (string, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.Text(), err
-}
-
-func (s ThingValueMap_Entry) HasKey() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s ThingValueMap_Entry) KeyBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.TextBytes(), err
-}
-
-func (s ThingValueMap_Entry) SetKey(v string) error {
-	return capnp.Struct(s).SetText(0, v)
-}
-
-func (s ThingValueMap_Entry) Value() (ThingValue, error) {
-	p, err := capnp.Struct(s).Ptr(1)
-	return ThingValue(p.Struct()), err
-}
-
-func (s ThingValueMap_Entry) HasValue() bool {
-	return capnp.Struct(s).HasPtr(1)
-}
-
-func (s ThingValueMap_Entry) SetValue(v ThingValue) error {
-	return capnp.Struct(s).SetPtr(1, capnp.Struct(v).ToPtr())
-}
-
-// NewValue sets the value field to a newly
-// allocated ThingValue struct, preferring placement in s's segment.
-func (s ThingValueMap_Entry) NewValue() (ThingValue, error) {
-	ss, err := NewThingValue(capnp.Struct(s).Segment())
-	if err != nil {
-		return ThingValue{}, err
-	}
-	err = capnp.Struct(s).SetPtr(1, capnp.Struct(ss).ToPtr())
-	return ss, err
-}
-
-// ThingValueMap_Entry_List is a list of ThingValueMap_Entry.
-type ThingValueMap_Entry_List = capnp.StructList[ThingValueMap_Entry]
-
-// NewThingValueMap_Entry creates a new list of ThingValueMap_Entry.
-func NewThingValueMap_Entry_List(s *capnp.Segment, sz int32) (ThingValueMap_Entry_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
-	return capnp.StructList[ThingValueMap_Entry](l), err
-}
-
-// ThingValueMap_Entry_Future is a wrapper for a ThingValueMap_Entry promised by a client call.
-type ThingValueMap_Entry_Future struct{ *capnp.Future }
-
-func (p ThingValueMap_Entry_Future) Struct() (ThingValueMap_Entry, error) {
-	s, err := p.Future.Struct()
-	return ThingValueMap_Entry(s), err
-}
-
-func (p ThingValueMap_Entry_Future) Value() ThingValue_Future {
-	return ThingValue_Future{Future: p.Future.Field(1, nil)}
-}
-
-type StoreInfo capnp.Struct
-
-// StoreInfo_TypeID is the unique identifier for the type StoreInfo.
-const StoreInfo_TypeID = 0x9a2d5d19db232b0c
-
-func NewStoreInfo(s *capnp.Segment) (StoreInfo, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 24, PointerCount: 1})
-	return StoreInfo(st), err
-}
-
-func NewRootStoreInfo(s *capnp.Segment) (StoreInfo, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 24, PointerCount: 1})
-	return StoreInfo(st), err
-}
-
-func ReadRootStoreInfo(msg *capnp.Message) (StoreInfo, error) {
-	root, err := msg.Root()
-	return StoreInfo(root.Struct()), err
-}
-
-func (s StoreInfo) String() string {
-	str, _ := text.Marshal(0x9a2d5d19db232b0c, capnp.Struct(s))
-	return str
-}
-
-func (s StoreInfo) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (StoreInfo) DecodeFromPtr(p capnp.Ptr) StoreInfo {
-	return StoreInfo(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s StoreInfo) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s StoreInfo) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s StoreInfo) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s StoreInfo) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s StoreInfo) Engine() (string, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.Text(), err
-}
-
-func (s StoreInfo) HasEngine() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s StoreInfo) EngineBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.TextBytes(), err
-}
-
-func (s StoreInfo) SetEngine(v string) error {
-	return capnp.Struct(s).SetText(0, v)
-}
-
-func (s StoreInfo) NrActions() int64 {
-	return int64(capnp.Struct(s).Uint64(0))
-}
-
-func (s StoreInfo) SetNrActions(v int64) {
-	capnp.Struct(s).SetUint64(0, uint64(v))
-}
-
-func (s StoreInfo) NrEvents() int64 {
-	return int64(capnp.Struct(s).Uint64(8))
-}
-
-func (s StoreInfo) SetNrEvents(v int64) {
-	capnp.Struct(s).SetUint64(8, uint64(v))
-}
-
-func (s StoreInfo) Uptime() int64 {
-	return int64(capnp.Struct(s).Uint64(16))
-}
-
-func (s StoreInfo) SetUptime(v int64) {
-	capnp.Struct(s).SetUint64(16, uint64(v))
-}
-
-// StoreInfo_List is a list of StoreInfo.
-type StoreInfo_List = capnp.StructList[StoreInfo]
-
-// NewStoreInfo creates a new list of StoreInfo.
-func NewStoreInfo_List(s *capnp.Segment, sz int32) (StoreInfo_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 24, PointerCount: 1}, sz)
-	return capnp.StructList[StoreInfo](l), err
-}
-
-// StoreInfo_Future is a wrapper for a StoreInfo promised by a client call.
-type StoreInfo_Future struct{ *capnp.Future }
-
-func (p StoreInfo_Future) Struct() (StoreInfo, error) {
-	s, err := p.Future.Struct()
-	return StoreInfo(s), err
-}
-
-type CapHistory capnp.Client
-
-// CapHistory_TypeID is the unique identifier for the type CapHistory.
-const CapHistory_TypeID = 0xbf4b46b4adc553b3
-
-func (c CapHistory) CapReadHistory(ctx context.Context, params func(CapHistory_capReadHistory_Params) error) (CapHistory_capReadHistory_Results_Future, capnp.ReleaseFunc) {
+func (c CapHistoryService) CapAddHistory(ctx context.Context, params func(CapHistoryService_capAddHistory_Params) error) (CapHistoryService_capAddHistory_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
-			InterfaceID:   0xbf4b46b4adc553b3,
+			InterfaceID:   0x934ac037c7063be0,
 			MethodID:      0,
-			InterfaceName: "hubapi/History.capnp:CapHistory",
+			InterfaceName: "hubapi/History.capnp:CapHistoryService",
+			MethodName:    "capAddHistory",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapHistoryService_capAddHistory_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapHistoryService_capAddHistory_Results_Future{Future: ans.Future()}, release
+}
+func (c CapHistoryService) CapAddAnyThing(ctx context.Context, params func(CapHistoryService_capAddAnyThing_Params) error) (CapHistoryService_capAddAnyThing_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0x934ac037c7063be0,
+			MethodID:      1,
+			InterfaceName: "hubapi/History.capnp:CapHistoryService",
+			MethodName:    "capAddAnyThing",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapHistoryService_capAddAnyThing_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapHistoryService_capAddAnyThing_Results_Future{Future: ans.Future()}, release
+}
+func (c CapHistoryService) CapReadHistory(ctx context.Context, params func(CapHistoryService_capReadHistory_Params) error) (CapHistoryService_capReadHistory_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0x934ac037c7063be0,
+			MethodID:      2,
+			InterfaceName: "hubapi/History.capnp:CapHistoryService",
 			MethodName:    "capReadHistory",
 		},
 	}
 	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapHistory_capReadHistory_Params(s)) }
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapHistoryService_capReadHistory_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapHistory_capReadHistory_Results_Future{Future: ans.Future()}, release
-}
-func (c CapHistory) CapUpdateHistory(ctx context.Context, params func(CapHistory_capUpdateHistory_Params) error) (CapHistory_capUpdateHistory_Results_Future, capnp.ReleaseFunc) {
-	s := capnp.Send{
-		Method: capnp.Method{
-			InterfaceID:   0xbf4b46b4adc553b3,
-			MethodID:      1,
-			InterfaceName: "hubapi/History.capnp:CapHistory",
-			MethodName:    "capUpdateHistory",
-		},
-	}
-	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapHistory_capUpdateHistory_Params(s)) }
-	}
-	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapHistory_capUpdateHistory_Results_Future{Future: ans.Future()}, release
+	return CapHistoryService_capReadHistory_Results_Future{Future: ans.Future()}, release
 }
 
-func (c CapHistory) AddRef() CapHistory {
-	return CapHistory(capnp.Client(c).AddRef())
+func (c CapHistoryService) AddRef() CapHistoryService {
+	return CapHistoryService(capnp.Client(c).AddRef())
 }
 
-func (c CapHistory) Release() {
+func (c CapHistoryService) Release() {
 	capnp.Client(c).Release()
 }
 
-func (c CapHistory) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (c CapHistoryService) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Client(c).EncodeAsPtr(seg)
 }
 
-func (CapHistory) DecodeFromPtr(p capnp.Ptr) CapHistory {
-	return CapHistory(capnp.Client{}.DecodeFromPtr(p))
+func (CapHistoryService) DecodeFromPtr(p capnp.Ptr) CapHistoryService {
+	return CapHistoryService(capnp.Client{}.DecodeFromPtr(p))
 }
 
-func (c CapHistory) IsValid() bool {
+func (c CapHistoryService) IsValid() bool {
 	return capnp.Client(c).IsValid()
 }
 
-// A CapHistory_Server is a CapHistory with a local implementation.
-type CapHistory_Server interface {
-	CapReadHistory(context.Context, CapHistory_capReadHistory) error
+// A CapHistoryService_Server is a CapHistoryService with a local implementation.
+type CapHistoryService_Server interface {
+	CapAddHistory(context.Context, CapHistoryService_capAddHistory) error
 
-	CapUpdateHistory(context.Context, CapHistory_capUpdateHistory) error
+	CapAddAnyThing(context.Context, CapHistoryService_capAddAnyThing) error
+
+	CapReadHistory(context.Context, CapHistoryService_capReadHistory) error
 }
 
-// CapHistory_NewServer creates a new Server from an implementation of CapHistory_Server.
-func CapHistory_NewServer(s CapHistory_Server) *server.Server {
+// CapHistoryService_NewServer creates a new Server from an implementation of CapHistoryService_Server.
+func CapHistoryService_NewServer(s CapHistoryService_Server) *server.Server {
 	c, _ := s.(server.Shutdowner)
-	return server.New(CapHistory_Methods(nil, s), s, c)
+	return server.New(CapHistoryService_Methods(nil, s), s, c)
 }
 
-// CapHistory_ServerToClient creates a new Client from an implementation of CapHistory_Server.
+// CapHistoryService_ServerToClient creates a new Client from an implementation of CapHistoryService_Server.
 // The caller is responsible for calling Release on the returned Client.
-func CapHistory_ServerToClient(s CapHistory_Server) CapHistory {
-	return CapHistory(capnp.NewClient(CapHistory_NewServer(s)))
+func CapHistoryService_ServerToClient(s CapHistoryService_Server) CapHistoryService {
+	return CapHistoryService(capnp.NewClient(CapHistoryService_NewServer(s)))
 }
 
-// CapHistory_Methods appends Methods to a slice that invoke the methods on s.
+// CapHistoryService_Methods appends Methods to a slice that invoke the methods on s.
 // This can be used to create a more complicated Server.
-func CapHistory_Methods(methods []server.Method, s CapHistory_Server) []server.Method {
+func CapHistoryService_Methods(methods []server.Method, s CapHistoryService_Server) []server.Method {
 	if cap(methods) == 0 {
-		methods = make([]server.Method, 0, 2)
+		methods = make([]server.Method, 0, 3)
 	}
 
 	methods = append(methods, server.Method{
 		Method: capnp.Method{
-			InterfaceID:   0xbf4b46b4adc553b3,
+			InterfaceID:   0x934ac037c7063be0,
 			MethodID:      0,
-			InterfaceName: "hubapi/History.capnp:CapHistory",
-			MethodName:    "capReadHistory",
+			InterfaceName: "hubapi/History.capnp:CapHistoryService",
+			MethodName:    "capAddHistory",
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.CapReadHistory(ctx, CapHistory_capReadHistory{call})
+			return s.CapAddHistory(ctx, CapHistoryService_capAddHistory{call})
 		},
 	})
 
 	methods = append(methods, server.Method{
 		Method: capnp.Method{
-			InterfaceID:   0xbf4b46b4adc553b3,
+			InterfaceID:   0x934ac037c7063be0,
 			MethodID:      1,
-			InterfaceName: "hubapi/History.capnp:CapHistory",
-			MethodName:    "capUpdateHistory",
+			InterfaceName: "hubapi/History.capnp:CapHistoryService",
+			MethodName:    "capAddAnyThing",
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.CapUpdateHistory(ctx, CapHistory_capUpdateHistory{call})
+			return s.CapAddAnyThing(ctx, CapHistoryService_capAddAnyThing{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0x934ac037c7063be0,
+			MethodID:      2,
+			InterfaceName: "hubapi/History.capnp:CapHistoryService",
+			MethodName:    "capReadHistory",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.CapReadHistory(ctx, CapHistoryService_capReadHistory{call})
 		},
 	})
 
 	return methods
 }
 
-// CapHistory_capReadHistory holds the state for a server call to CapHistory.capReadHistory.
+// CapHistoryService_capAddHistory holds the state for a server call to CapHistoryService.capAddHistory.
 // See server.Call for documentation.
-type CapHistory_capReadHistory struct {
+type CapHistoryService_capAddHistory struct {
 	*server.Call
 }
 
 // Args returns the call's arguments.
-func (c CapHistory_capReadHistory) Args() CapHistory_capReadHistory_Params {
-	return CapHistory_capReadHistory_Params(c.Call.Args())
+func (c CapHistoryService_capAddHistory) Args() CapHistoryService_capAddHistory_Params {
+	return CapHistoryService_capAddHistory_Params(c.Call.Args())
 }
 
 // AllocResults allocates the results struct.
-func (c CapHistory_capReadHistory) AllocResults() (CapHistory_capReadHistory_Results, error) {
+func (c CapHistoryService_capAddHistory) AllocResults() (CapHistoryService_capAddHistory_Results, error) {
 	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapHistory_capReadHistory_Results(r), err
+	return CapHistoryService_capAddHistory_Results(r), err
 }
 
-// CapHistory_capUpdateHistory holds the state for a server call to CapHistory.capUpdateHistory.
+// CapHistoryService_capAddAnyThing holds the state for a server call to CapHistoryService.capAddAnyThing.
 // See server.Call for documentation.
-type CapHistory_capUpdateHistory struct {
+type CapHistoryService_capAddAnyThing struct {
 	*server.Call
 }
 
 // Args returns the call's arguments.
-func (c CapHistory_capUpdateHistory) Args() CapHistory_capUpdateHistory_Params {
-	return CapHistory_capUpdateHistory_Params(c.Call.Args())
+func (c CapHistoryService_capAddAnyThing) Args() CapHistoryService_capAddAnyThing_Params {
+	return CapHistoryService_capAddAnyThing_Params(c.Call.Args())
 }
 
 // AllocResults allocates the results struct.
-func (c CapHistory_capUpdateHistory) AllocResults() (CapHistory_capUpdateHistory_Results, error) {
+func (c CapHistoryService_capAddAnyThing) AllocResults() (CapHistoryService_capAddAnyThing_Results, error) {
 	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapHistory_capUpdateHistory_Results(r), err
+	return CapHistoryService_capAddAnyThing_Results(r), err
 }
 
-// CapHistory_List is a list of CapHistory.
-type CapHistory_List = capnp.CapList[CapHistory]
+// CapHistoryService_capReadHistory holds the state for a server call to CapHistoryService.capReadHistory.
+// See server.Call for documentation.
+type CapHistoryService_capReadHistory struct {
+	*server.Call
+}
 
-// NewCapHistory creates a new list of CapHistory.
-func NewCapHistory_List(s *capnp.Segment, sz int32) (CapHistory_List, error) {
+// Args returns the call's arguments.
+func (c CapHistoryService_capReadHistory) Args() CapHistoryService_capReadHistory_Params {
+	return CapHistoryService_capReadHistory_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c CapHistoryService_capReadHistory) AllocResults() (CapHistoryService_capReadHistory_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapHistoryService_capReadHistory_Results(r), err
+}
+
+// CapHistoryService_List is a list of CapHistoryService.
+type CapHistoryService_List = capnp.CapList[CapHistoryService]
+
+// NewCapHistoryService creates a new list of CapHistoryService.
+func NewCapHistoryService_List(s *capnp.Segment, sz int32) (CapHistoryService_List, error) {
 	l, err := capnp.NewPointerList(s, sz)
-	return capnp.CapList[CapHistory](l), err
+	return capnp.CapList[CapHistoryService](l), err
 }
 
-type CapHistory_capReadHistory_Params capnp.Struct
+type CapHistoryService_capAddHistory_Params capnp.Struct
 
-// CapHistory_capReadHistory_Params_TypeID is the unique identifier for the type CapHistory_capReadHistory_Params.
-const CapHistory_capReadHistory_Params_TypeID = 0xb2a9c0b9231f772b
+// CapHistoryService_capAddHistory_Params_TypeID is the unique identifier for the type CapHistoryService_capAddHistory_Params.
+const CapHistoryService_capAddHistory_Params_TypeID = 0xe77e737e0f852702
 
-func NewCapHistory_capReadHistory_Params(s *capnp.Segment) (CapHistory_capReadHistory_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapHistory_capReadHistory_Params(st), err
-}
-
-func NewRootCapHistory_capReadHistory_Params(s *capnp.Segment) (CapHistory_capReadHistory_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapHistory_capReadHistory_Params(st), err
-}
-
-func ReadRootCapHistory_capReadHistory_Params(msg *capnp.Message) (CapHistory_capReadHistory_Params, error) {
-	root, err := msg.Root()
-	return CapHistory_capReadHistory_Params(root.Struct()), err
-}
-
-func (s CapHistory_capReadHistory_Params) String() string {
-	str, _ := text.Marshal(0xb2a9c0b9231f772b, capnp.Struct(s))
-	return str
-}
-
-func (s CapHistory_capReadHistory_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapHistory_capReadHistory_Params) DecodeFromPtr(p capnp.Ptr) CapHistory_capReadHistory_Params {
-	return CapHistory_capReadHistory_Params(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapHistory_capReadHistory_Params) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapHistory_capReadHistory_Params) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapHistory_capReadHistory_Params) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapHistory_capReadHistory_Params) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-
-// CapHistory_capReadHistory_Params_List is a list of CapHistory_capReadHistory_Params.
-type CapHistory_capReadHistory_Params_List = capnp.StructList[CapHistory_capReadHistory_Params]
-
-// NewCapHistory_capReadHistory_Params creates a new list of CapHistory_capReadHistory_Params.
-func NewCapHistory_capReadHistory_Params_List(s *capnp.Segment, sz int32) (CapHistory_capReadHistory_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
-	return capnp.StructList[CapHistory_capReadHistory_Params](l), err
-}
-
-// CapHistory_capReadHistory_Params_Future is a wrapper for a CapHistory_capReadHistory_Params promised by a client call.
-type CapHistory_capReadHistory_Params_Future struct{ *capnp.Future }
-
-func (p CapHistory_capReadHistory_Params_Future) Struct() (CapHistory_capReadHistory_Params, error) {
-	s, err := p.Future.Struct()
-	return CapHistory_capReadHistory_Params(s), err
-}
-
-type CapHistory_capReadHistory_Results capnp.Struct
-
-// CapHistory_capReadHistory_Results_TypeID is the unique identifier for the type CapHistory_capReadHistory_Results.
-const CapHistory_capReadHistory_Results_TypeID = 0x9b158e17a933c2f7
-
-func NewCapHistory_capReadHistory_Results(s *capnp.Segment) (CapHistory_capReadHistory_Results, error) {
+func NewCapHistoryService_capAddHistory_Params(s *capnp.Segment) (CapHistoryService_capAddHistory_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapHistory_capReadHistory_Results(st), err
+	return CapHistoryService_capAddHistory_Params(st), err
 }
 
-func NewRootCapHistory_capReadHistory_Results(s *capnp.Segment) (CapHistory_capReadHistory_Results, error) {
+func NewRootCapHistoryService_capAddHistory_Params(s *capnp.Segment) (CapHistoryService_capAddHistory_Params, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapHistory_capReadHistory_Results(st), err
+	return CapHistoryService_capAddHistory_Params(st), err
 }
 
-func ReadRootCapHistory_capReadHistory_Results(msg *capnp.Message) (CapHistory_capReadHistory_Results, error) {
+func ReadRootCapHistoryService_capAddHistory_Params(msg *capnp.Message) (CapHistoryService_capAddHistory_Params, error) {
 	root, err := msg.Root()
-	return CapHistory_capReadHistory_Results(root.Struct()), err
+	return CapHistoryService_capAddHistory_Params(root.Struct()), err
 }
 
-func (s CapHistory_capReadHistory_Results) String() string {
-	str, _ := text.Marshal(0x9b158e17a933c2f7, capnp.Struct(s))
+func (s CapHistoryService_capAddHistory_Params) String() string {
+	str, _ := text.Marshal(0xe77e737e0f852702, capnp.Struct(s))
 	return str
 }
 
-func (s CapHistory_capReadHistory_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapHistoryService_capAddHistory_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapHistory_capReadHistory_Results) DecodeFromPtr(p capnp.Ptr) CapHistory_capReadHistory_Results {
-	return CapHistory_capReadHistory_Results(capnp.Struct{}.DecodeFromPtr(p))
+func (CapHistoryService_capAddHistory_Params) DecodeFromPtr(p capnp.Ptr) CapHistoryService_capAddHistory_Params {
+	return CapHistoryService_capAddHistory_Params(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapHistory_capReadHistory_Results) ToPtr() capnp.Ptr {
+func (s CapHistoryService_capAddHistory_Params) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapHistory_capReadHistory_Results) IsValid() bool {
+func (s CapHistoryService_capAddHistory_Params) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapHistory_capReadHistory_Results) Message() *capnp.Message {
+func (s CapHistoryService_capAddHistory_Params) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapHistory_capReadHistory_Results) Segment() *capnp.Segment {
+func (s CapHistoryService_capAddHistory_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapHistory_capReadHistory_Results) Cap() CapReadHistory {
+func (s CapHistoryService_capAddHistory_Params) ThingID() (string, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.Text(), err
+}
+
+func (s CapHistoryService_capAddHistory_Params) HasThingID() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapHistoryService_capAddHistory_Params) ThingIDBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.TextBytes(), err
+}
+
+func (s CapHistoryService_capAddHistory_Params) SetThingID(v string) error {
+	return capnp.Struct(s).SetText(0, v)
+}
+
+// CapHistoryService_capAddHistory_Params_List is a list of CapHistoryService_capAddHistory_Params.
+type CapHistoryService_capAddHistory_Params_List = capnp.StructList[CapHistoryService_capAddHistory_Params]
+
+// NewCapHistoryService_capAddHistory_Params creates a new list of CapHistoryService_capAddHistory_Params.
+func NewCapHistoryService_capAddHistory_Params_List(s *capnp.Segment, sz int32) (CapHistoryService_capAddHistory_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[CapHistoryService_capAddHistory_Params](l), err
+}
+
+// CapHistoryService_capAddHistory_Params_Future is a wrapper for a CapHistoryService_capAddHistory_Params promised by a client call.
+type CapHistoryService_capAddHistory_Params_Future struct{ *capnp.Future }
+
+func (p CapHistoryService_capAddHistory_Params_Future) Struct() (CapHistoryService_capAddHistory_Params, error) {
+	s, err := p.Future.Struct()
+	return CapHistoryService_capAddHistory_Params(s), err
+}
+
+type CapHistoryService_capAddHistory_Results capnp.Struct
+
+// CapHistoryService_capAddHistory_Results_TypeID is the unique identifier for the type CapHistoryService_capAddHistory_Results.
+const CapHistoryService_capAddHistory_Results_TypeID = 0xffd4b7abb0abe3b4
+
+func NewCapHistoryService_capAddHistory_Results(s *capnp.Segment) (CapHistoryService_capAddHistory_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapHistoryService_capAddHistory_Results(st), err
+}
+
+func NewRootCapHistoryService_capAddHistory_Results(s *capnp.Segment) (CapHistoryService_capAddHistory_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapHistoryService_capAddHistory_Results(st), err
+}
+
+func ReadRootCapHistoryService_capAddHistory_Results(msg *capnp.Message) (CapHistoryService_capAddHistory_Results, error) {
+	root, err := msg.Root()
+	return CapHistoryService_capAddHistory_Results(root.Struct()), err
+}
+
+func (s CapHistoryService_capAddHistory_Results) String() string {
+	str, _ := text.Marshal(0xffd4b7abb0abe3b4, capnp.Struct(s))
+	return str
+}
+
+func (s CapHistoryService_capAddHistory_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapHistoryService_capAddHistory_Results) DecodeFromPtr(p capnp.Ptr) CapHistoryService_capAddHistory_Results {
+	return CapHistoryService_capAddHistory_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapHistoryService_capAddHistory_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapHistoryService_capAddHistory_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapHistoryService_capAddHistory_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapHistoryService_capAddHistory_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapHistoryService_capAddHistory_Results) Cap() CapAddHistory {
+	p, _ := capnp.Struct(s).Ptr(0)
+	return CapAddHistory(p.Interface().Client())
+}
+
+func (s CapHistoryService_capAddHistory_Results) HasCap() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapHistoryService_capAddHistory_Results) SetCap(v CapAddHistory) error {
+	if !v.IsValid() {
+		return capnp.Struct(s).SetPtr(0, capnp.Ptr{})
+	}
+	seg := s.Segment()
+	in := capnp.NewInterface(seg, seg.Message().AddCap(capnp.Client(v)))
+	return capnp.Struct(s).SetPtr(0, in.ToPtr())
+}
+
+// CapHistoryService_capAddHistory_Results_List is a list of CapHistoryService_capAddHistory_Results.
+type CapHistoryService_capAddHistory_Results_List = capnp.StructList[CapHistoryService_capAddHistory_Results]
+
+// NewCapHistoryService_capAddHistory_Results creates a new list of CapHistoryService_capAddHistory_Results.
+func NewCapHistoryService_capAddHistory_Results_List(s *capnp.Segment, sz int32) (CapHistoryService_capAddHistory_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[CapHistoryService_capAddHistory_Results](l), err
+}
+
+// CapHistoryService_capAddHistory_Results_Future is a wrapper for a CapHistoryService_capAddHistory_Results promised by a client call.
+type CapHistoryService_capAddHistory_Results_Future struct{ *capnp.Future }
+
+func (p CapHistoryService_capAddHistory_Results_Future) Struct() (CapHistoryService_capAddHistory_Results, error) {
+	s, err := p.Future.Struct()
+	return CapHistoryService_capAddHistory_Results(s), err
+}
+
+func (p CapHistoryService_capAddHistory_Results_Future) Cap() CapAddHistory {
+	return CapAddHistory(p.Future.Field(0, nil).Client())
+}
+
+type CapHistoryService_capAddAnyThing_Params capnp.Struct
+
+// CapHistoryService_capAddAnyThing_Params_TypeID is the unique identifier for the type CapHistoryService_capAddAnyThing_Params.
+const CapHistoryService_capAddAnyThing_Params_TypeID = 0xf71ceab5f8e294bd
+
+func NewCapHistoryService_capAddAnyThing_Params(s *capnp.Segment) (CapHistoryService_capAddAnyThing_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapHistoryService_capAddAnyThing_Params(st), err
+}
+
+func NewRootCapHistoryService_capAddAnyThing_Params(s *capnp.Segment) (CapHistoryService_capAddAnyThing_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapHistoryService_capAddAnyThing_Params(st), err
+}
+
+func ReadRootCapHistoryService_capAddAnyThing_Params(msg *capnp.Message) (CapHistoryService_capAddAnyThing_Params, error) {
+	root, err := msg.Root()
+	return CapHistoryService_capAddAnyThing_Params(root.Struct()), err
+}
+
+func (s CapHistoryService_capAddAnyThing_Params) String() string {
+	str, _ := text.Marshal(0xf71ceab5f8e294bd, capnp.Struct(s))
+	return str
+}
+
+func (s CapHistoryService_capAddAnyThing_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapHistoryService_capAddAnyThing_Params) DecodeFromPtr(p capnp.Ptr) CapHistoryService_capAddAnyThing_Params {
+	return CapHistoryService_capAddAnyThing_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapHistoryService_capAddAnyThing_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapHistoryService_capAddAnyThing_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapHistoryService_capAddAnyThing_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapHistoryService_capAddAnyThing_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+
+// CapHistoryService_capAddAnyThing_Params_List is a list of CapHistoryService_capAddAnyThing_Params.
+type CapHistoryService_capAddAnyThing_Params_List = capnp.StructList[CapHistoryService_capAddAnyThing_Params]
+
+// NewCapHistoryService_capAddAnyThing_Params creates a new list of CapHistoryService_capAddAnyThing_Params.
+func NewCapHistoryService_capAddAnyThing_Params_List(s *capnp.Segment, sz int32) (CapHistoryService_capAddAnyThing_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
+	return capnp.StructList[CapHistoryService_capAddAnyThing_Params](l), err
+}
+
+// CapHistoryService_capAddAnyThing_Params_Future is a wrapper for a CapHistoryService_capAddAnyThing_Params promised by a client call.
+type CapHistoryService_capAddAnyThing_Params_Future struct{ *capnp.Future }
+
+func (p CapHistoryService_capAddAnyThing_Params_Future) Struct() (CapHistoryService_capAddAnyThing_Params, error) {
+	s, err := p.Future.Struct()
+	return CapHistoryService_capAddAnyThing_Params(s), err
+}
+
+type CapHistoryService_capAddAnyThing_Results capnp.Struct
+
+// CapHistoryService_capAddAnyThing_Results_TypeID is the unique identifier for the type CapHistoryService_capAddAnyThing_Results.
+const CapHistoryService_capAddAnyThing_Results_TypeID = 0xe610c5eade193517
+
+func NewCapHistoryService_capAddAnyThing_Results(s *capnp.Segment) (CapHistoryService_capAddAnyThing_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapHistoryService_capAddAnyThing_Results(st), err
+}
+
+func NewRootCapHistoryService_capAddAnyThing_Results(s *capnp.Segment) (CapHistoryService_capAddAnyThing_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapHistoryService_capAddAnyThing_Results(st), err
+}
+
+func ReadRootCapHistoryService_capAddAnyThing_Results(msg *capnp.Message) (CapHistoryService_capAddAnyThing_Results, error) {
+	root, err := msg.Root()
+	return CapHistoryService_capAddAnyThing_Results(root.Struct()), err
+}
+
+func (s CapHistoryService_capAddAnyThing_Results) String() string {
+	str, _ := text.Marshal(0xe610c5eade193517, capnp.Struct(s))
+	return str
+}
+
+func (s CapHistoryService_capAddAnyThing_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapHistoryService_capAddAnyThing_Results) DecodeFromPtr(p capnp.Ptr) CapHistoryService_capAddAnyThing_Results {
+	return CapHistoryService_capAddAnyThing_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapHistoryService_capAddAnyThing_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapHistoryService_capAddAnyThing_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapHistoryService_capAddAnyThing_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapHistoryService_capAddAnyThing_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapHistoryService_capAddAnyThing_Results) Cap() CapAddHistory {
+	p, _ := capnp.Struct(s).Ptr(0)
+	return CapAddHistory(p.Interface().Client())
+}
+
+func (s CapHistoryService_capAddAnyThing_Results) HasCap() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapHistoryService_capAddAnyThing_Results) SetCap(v CapAddHistory) error {
+	if !v.IsValid() {
+		return capnp.Struct(s).SetPtr(0, capnp.Ptr{})
+	}
+	seg := s.Segment()
+	in := capnp.NewInterface(seg, seg.Message().AddCap(capnp.Client(v)))
+	return capnp.Struct(s).SetPtr(0, in.ToPtr())
+}
+
+// CapHistoryService_capAddAnyThing_Results_List is a list of CapHistoryService_capAddAnyThing_Results.
+type CapHistoryService_capAddAnyThing_Results_List = capnp.StructList[CapHistoryService_capAddAnyThing_Results]
+
+// NewCapHistoryService_capAddAnyThing_Results creates a new list of CapHistoryService_capAddAnyThing_Results.
+func NewCapHistoryService_capAddAnyThing_Results_List(s *capnp.Segment, sz int32) (CapHistoryService_capAddAnyThing_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[CapHistoryService_capAddAnyThing_Results](l), err
+}
+
+// CapHistoryService_capAddAnyThing_Results_Future is a wrapper for a CapHistoryService_capAddAnyThing_Results promised by a client call.
+type CapHistoryService_capAddAnyThing_Results_Future struct{ *capnp.Future }
+
+func (p CapHistoryService_capAddAnyThing_Results_Future) Struct() (CapHistoryService_capAddAnyThing_Results, error) {
+	s, err := p.Future.Struct()
+	return CapHistoryService_capAddAnyThing_Results(s), err
+}
+
+func (p CapHistoryService_capAddAnyThing_Results_Future) Cap() CapAddHistory {
+	return CapAddHistory(p.Future.Field(0, nil).Client())
+}
+
+type CapHistoryService_capReadHistory_Params capnp.Struct
+
+// CapHistoryService_capReadHistory_Params_TypeID is the unique identifier for the type CapHistoryService_capReadHistory_Params.
+const CapHistoryService_capReadHistory_Params_TypeID = 0xf51b4d58d6c7f245
+
+func NewCapHistoryService_capReadHistory_Params(s *capnp.Segment) (CapHistoryService_capReadHistory_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapHistoryService_capReadHistory_Params(st), err
+}
+
+func NewRootCapHistoryService_capReadHistory_Params(s *capnp.Segment) (CapHistoryService_capReadHistory_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapHistoryService_capReadHistory_Params(st), err
+}
+
+func ReadRootCapHistoryService_capReadHistory_Params(msg *capnp.Message) (CapHistoryService_capReadHistory_Params, error) {
+	root, err := msg.Root()
+	return CapHistoryService_capReadHistory_Params(root.Struct()), err
+}
+
+func (s CapHistoryService_capReadHistory_Params) String() string {
+	str, _ := text.Marshal(0xf51b4d58d6c7f245, capnp.Struct(s))
+	return str
+}
+
+func (s CapHistoryService_capReadHistory_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapHistoryService_capReadHistory_Params) DecodeFromPtr(p capnp.Ptr) CapHistoryService_capReadHistory_Params {
+	return CapHistoryService_capReadHistory_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapHistoryService_capReadHistory_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapHistoryService_capReadHistory_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapHistoryService_capReadHistory_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapHistoryService_capReadHistory_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapHistoryService_capReadHistory_Params) ThingID() (string, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.Text(), err
+}
+
+func (s CapHistoryService_capReadHistory_Params) HasThingID() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapHistoryService_capReadHistory_Params) ThingIDBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.TextBytes(), err
+}
+
+func (s CapHistoryService_capReadHistory_Params) SetThingID(v string) error {
+	return capnp.Struct(s).SetText(0, v)
+}
+
+// CapHistoryService_capReadHistory_Params_List is a list of CapHistoryService_capReadHistory_Params.
+type CapHistoryService_capReadHistory_Params_List = capnp.StructList[CapHistoryService_capReadHistory_Params]
+
+// NewCapHistoryService_capReadHistory_Params creates a new list of CapHistoryService_capReadHistory_Params.
+func NewCapHistoryService_capReadHistory_Params_List(s *capnp.Segment, sz int32) (CapHistoryService_capReadHistory_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[CapHistoryService_capReadHistory_Params](l), err
+}
+
+// CapHistoryService_capReadHistory_Params_Future is a wrapper for a CapHistoryService_capReadHistory_Params promised by a client call.
+type CapHistoryService_capReadHistory_Params_Future struct{ *capnp.Future }
+
+func (p CapHistoryService_capReadHistory_Params_Future) Struct() (CapHistoryService_capReadHistory_Params, error) {
+	s, err := p.Future.Struct()
+	return CapHistoryService_capReadHistory_Params(s), err
+}
+
+type CapHistoryService_capReadHistory_Results capnp.Struct
+
+// CapHistoryService_capReadHistory_Results_TypeID is the unique identifier for the type CapHistoryService_capReadHistory_Results.
+const CapHistoryService_capReadHistory_Results_TypeID = 0x8a3402043f3ec9f0
+
+func NewCapHistoryService_capReadHistory_Results(s *capnp.Segment) (CapHistoryService_capReadHistory_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapHistoryService_capReadHistory_Results(st), err
+}
+
+func NewRootCapHistoryService_capReadHistory_Results(s *capnp.Segment) (CapHistoryService_capReadHistory_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapHistoryService_capReadHistory_Results(st), err
+}
+
+func ReadRootCapHistoryService_capReadHistory_Results(msg *capnp.Message) (CapHistoryService_capReadHistory_Results, error) {
+	root, err := msg.Root()
+	return CapHistoryService_capReadHistory_Results(root.Struct()), err
+}
+
+func (s CapHistoryService_capReadHistory_Results) String() string {
+	str, _ := text.Marshal(0x8a3402043f3ec9f0, capnp.Struct(s))
+	return str
+}
+
+func (s CapHistoryService_capReadHistory_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapHistoryService_capReadHistory_Results) DecodeFromPtr(p capnp.Ptr) CapHistoryService_capReadHistory_Results {
+	return CapHistoryService_capReadHistory_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapHistoryService_capReadHistory_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapHistoryService_capReadHistory_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapHistoryService_capReadHistory_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapHistoryService_capReadHistory_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapHistoryService_capReadHistory_Results) Cap() CapReadHistory {
 	p, _ := capnp.Struct(s).Ptr(0)
 	return CapReadHistory(p.Interface().Client())
 }
 
-func (s CapHistory_capReadHistory_Results) HasCap() bool {
+func (s CapHistoryService_capReadHistory_Results) HasCap() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapHistory_capReadHistory_Results) SetCap(v CapReadHistory) error {
+func (s CapHistoryService_capReadHistory_Results) SetCap(v CapReadHistory) error {
 	if !v.IsValid() {
 		return capnp.Struct(s).SetPtr(0, capnp.Ptr{})
 	}
@@ -739,176 +677,693 @@ func (s CapHistory_capReadHistory_Results) SetCap(v CapReadHistory) error {
 	return capnp.Struct(s).SetPtr(0, in.ToPtr())
 }
 
-// CapHistory_capReadHistory_Results_List is a list of CapHistory_capReadHistory_Results.
-type CapHistory_capReadHistory_Results_List = capnp.StructList[CapHistory_capReadHistory_Results]
+// CapHistoryService_capReadHistory_Results_List is a list of CapHistoryService_capReadHistory_Results.
+type CapHistoryService_capReadHistory_Results_List = capnp.StructList[CapHistoryService_capReadHistory_Results]
 
-// NewCapHistory_capReadHistory_Results creates a new list of CapHistory_capReadHistory_Results.
-func NewCapHistory_capReadHistory_Results_List(s *capnp.Segment, sz int32) (CapHistory_capReadHistory_Results_List, error) {
+// NewCapHistoryService_capReadHistory_Results creates a new list of CapHistoryService_capReadHistory_Results.
+func NewCapHistoryService_capReadHistory_Results_List(s *capnp.Segment, sz int32) (CapHistoryService_capReadHistory_Results_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapHistory_capReadHistory_Results](l), err
+	return capnp.StructList[CapHistoryService_capReadHistory_Results](l), err
 }
 
-// CapHistory_capReadHistory_Results_Future is a wrapper for a CapHistory_capReadHistory_Results promised by a client call.
-type CapHistory_capReadHistory_Results_Future struct{ *capnp.Future }
+// CapHistoryService_capReadHistory_Results_Future is a wrapper for a CapHistoryService_capReadHistory_Results promised by a client call.
+type CapHistoryService_capReadHistory_Results_Future struct{ *capnp.Future }
 
-func (p CapHistory_capReadHistory_Results_Future) Struct() (CapHistory_capReadHistory_Results, error) {
+func (p CapHistoryService_capReadHistory_Results_Future) Struct() (CapHistoryService_capReadHistory_Results, error) {
 	s, err := p.Future.Struct()
-	return CapHistory_capReadHistory_Results(s), err
+	return CapHistoryService_capReadHistory_Results(s), err
 }
 
-func (p CapHistory_capReadHistory_Results_Future) Cap() CapReadHistory {
+func (p CapHistoryService_capReadHistory_Results_Future) Cap() CapReadHistory {
 	return CapReadHistory(p.Future.Field(0, nil).Client())
 }
 
-type CapHistory_capUpdateHistory_Params capnp.Struct
+type CapAddHistory capnp.Client
 
-// CapHistory_capUpdateHistory_Params_TypeID is the unique identifier for the type CapHistory_capUpdateHistory_Params.
-const CapHistory_capUpdateHistory_Params_TypeID = 0xf8d62969417e948c
+// CapAddHistory_TypeID is the unique identifier for the type CapAddHistory.
+const CapAddHistory_TypeID = 0xaeedfb5c318d00ee
 
-func NewCapHistory_capUpdateHistory_Params(s *capnp.Segment) (CapHistory_capUpdateHistory_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapHistory_capUpdateHistory_Params(st), err
+func (c CapAddHistory) AddAction(ctx context.Context, params func(CapAddHistory_addAction_Params) error) (CapAddHistory_addAction_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xaeedfb5c318d00ee,
+			MethodID:      0,
+			InterfaceName: "hubapi/History.capnp:CapAddHistory",
+			MethodName:    "addAction",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapAddHistory_addAction_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapAddHistory_addAction_Results_Future{Future: ans.Future()}, release
+}
+func (c CapAddHistory) AddEvent(ctx context.Context, params func(CapAddHistory_addEvent_Params) error) (CapAddHistory_addEvent_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xaeedfb5c318d00ee,
+			MethodID:      1,
+			InterfaceName: "hubapi/History.capnp:CapAddHistory",
+			MethodName:    "addEvent",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapAddHistory_addEvent_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapAddHistory_addEvent_Results_Future{Future: ans.Future()}, release
+}
+func (c CapAddHistory) AddEvents(ctx context.Context, params func(CapAddHistory_addEvents_Params) error) (CapAddHistory_addEvents_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xaeedfb5c318d00ee,
+			MethodID:      2,
+			InterfaceName: "hubapi/History.capnp:CapAddHistory",
+			MethodName:    "addEvents",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapAddHistory_addEvents_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapAddHistory_addEvents_Results_Future{Future: ans.Future()}, release
 }
 
-func NewRootCapHistory_capUpdateHistory_Params(s *capnp.Segment) (CapHistory_capUpdateHistory_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapHistory_capUpdateHistory_Params(st), err
+func (c CapAddHistory) AddRef() CapAddHistory {
+	return CapAddHistory(capnp.Client(c).AddRef())
 }
 
-func ReadRootCapHistory_capUpdateHistory_Params(msg *capnp.Message) (CapHistory_capUpdateHistory_Params, error) {
-	root, err := msg.Root()
-	return CapHistory_capUpdateHistory_Params(root.Struct()), err
+func (c CapAddHistory) Release() {
+	capnp.Client(c).Release()
 }
 
-func (s CapHistory_capUpdateHistory_Params) String() string {
-	str, _ := text.Marshal(0xf8d62969417e948c, capnp.Struct(s))
-	return str
+func (c CapAddHistory) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Client(c).EncodeAsPtr(seg)
 }
 
-func (s CapHistory_capUpdateHistory_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
+func (CapAddHistory) DecodeFromPtr(p capnp.Ptr) CapAddHistory {
+	return CapAddHistory(capnp.Client{}.DecodeFromPtr(p))
 }
 
-func (CapHistory_capUpdateHistory_Params) DecodeFromPtr(p capnp.Ptr) CapHistory_capUpdateHistory_Params {
-	return CapHistory_capUpdateHistory_Params(capnp.Struct{}.DecodeFromPtr(p))
+func (c CapAddHistory) IsValid() bool {
+	return capnp.Client(c).IsValid()
 }
 
-func (s CapHistory_capUpdateHistory_Params) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapHistory_capUpdateHistory_Params) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
+// A CapAddHistory_Server is a CapAddHistory with a local implementation.
+type CapAddHistory_Server interface {
+	AddAction(context.Context, CapAddHistory_addAction) error
 
-func (s CapHistory_capUpdateHistory_Params) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
+	AddEvent(context.Context, CapAddHistory_addEvent) error
+
+	AddEvents(context.Context, CapAddHistory_addEvents) error
 }
 
-func (s CapHistory_capUpdateHistory_Params) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
+// CapAddHistory_NewServer creates a new Server from an implementation of CapAddHistory_Server.
+func CapAddHistory_NewServer(s CapAddHistory_Server) *server.Server {
+	c, _ := s.(server.Shutdowner)
+	return server.New(CapAddHistory_Methods(nil, s), s, c)
 }
 
-// CapHistory_capUpdateHistory_Params_List is a list of CapHistory_capUpdateHistory_Params.
-type CapHistory_capUpdateHistory_Params_List = capnp.StructList[CapHistory_capUpdateHistory_Params]
-
-// NewCapHistory_capUpdateHistory_Params creates a new list of CapHistory_capUpdateHistory_Params.
-func NewCapHistory_capUpdateHistory_Params_List(s *capnp.Segment, sz int32) (CapHistory_capUpdateHistory_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
-	return capnp.StructList[CapHistory_capUpdateHistory_Params](l), err
+// CapAddHistory_ServerToClient creates a new Client from an implementation of CapAddHistory_Server.
+// The caller is responsible for calling Release on the returned Client.
+func CapAddHistory_ServerToClient(s CapAddHistory_Server) CapAddHistory {
+	return CapAddHistory(capnp.NewClient(CapAddHistory_NewServer(s)))
 }
 
-// CapHistory_capUpdateHistory_Params_Future is a wrapper for a CapHistory_capUpdateHistory_Params promised by a client call.
-type CapHistory_capUpdateHistory_Params_Future struct{ *capnp.Future }
+// CapAddHistory_Methods appends Methods to a slice that invoke the methods on s.
+// This can be used to create a more complicated Server.
+func CapAddHistory_Methods(methods []server.Method, s CapAddHistory_Server) []server.Method {
+	if cap(methods) == 0 {
+		methods = make([]server.Method, 0, 3)
+	}
 
-func (p CapHistory_capUpdateHistory_Params_Future) Struct() (CapHistory_capUpdateHistory_Params, error) {
-	s, err := p.Future.Struct()
-	return CapHistory_capUpdateHistory_Params(s), err
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xaeedfb5c318d00ee,
+			MethodID:      0,
+			InterfaceName: "hubapi/History.capnp:CapAddHistory",
+			MethodName:    "addAction",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.AddAction(ctx, CapAddHistory_addAction{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xaeedfb5c318d00ee,
+			MethodID:      1,
+			InterfaceName: "hubapi/History.capnp:CapAddHistory",
+			MethodName:    "addEvent",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.AddEvent(ctx, CapAddHistory_addEvent{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xaeedfb5c318d00ee,
+			MethodID:      2,
+			InterfaceName: "hubapi/History.capnp:CapAddHistory",
+			MethodName:    "addEvents",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.AddEvents(ctx, CapAddHistory_addEvents{call})
+		},
+	})
+
+	return methods
 }
 
-type CapHistory_capUpdateHistory_Results capnp.Struct
+// CapAddHistory_addAction holds the state for a server call to CapAddHistory.addAction.
+// See server.Call for documentation.
+type CapAddHistory_addAction struct {
+	*server.Call
+}
 
-// CapHistory_capUpdateHistory_Results_TypeID is the unique identifier for the type CapHistory_capUpdateHistory_Results.
-const CapHistory_capUpdateHistory_Results_TypeID = 0xc22c153c8d3321b1
+// Args returns the call's arguments.
+func (c CapAddHistory_addAction) Args() CapAddHistory_addAction_Params {
+	return CapAddHistory_addAction_Params(c.Call.Args())
+}
 
-func NewCapHistory_capUpdateHistory_Results(s *capnp.Segment) (CapHistory_capUpdateHistory_Results, error) {
+// AllocResults allocates the results struct.
+func (c CapAddHistory_addAction) AllocResults() (CapAddHistory_addAction_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapAddHistory_addAction_Results(r), err
+}
+
+// CapAddHistory_addEvent holds the state for a server call to CapAddHistory.addEvent.
+// See server.Call for documentation.
+type CapAddHistory_addEvent struct {
+	*server.Call
+}
+
+// Args returns the call's arguments.
+func (c CapAddHistory_addEvent) Args() CapAddHistory_addEvent_Params {
+	return CapAddHistory_addEvent_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c CapAddHistory_addEvent) AllocResults() (CapAddHistory_addEvent_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapAddHistory_addEvent_Results(r), err
+}
+
+// CapAddHistory_addEvents holds the state for a server call to CapAddHistory.addEvents.
+// See server.Call for documentation.
+type CapAddHistory_addEvents struct {
+	*server.Call
+}
+
+// Args returns the call's arguments.
+func (c CapAddHistory_addEvents) Args() CapAddHistory_addEvents_Params {
+	return CapAddHistory_addEvents_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c CapAddHistory_addEvents) AllocResults() (CapAddHistory_addEvents_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapAddHistory_addEvents_Results(r), err
+}
+
+// CapAddHistory_List is a list of CapAddHistory.
+type CapAddHistory_List = capnp.CapList[CapAddHistory]
+
+// NewCapAddHistory creates a new list of CapAddHistory.
+func NewCapAddHistory_List(s *capnp.Segment, sz int32) (CapAddHistory_List, error) {
+	l, err := capnp.NewPointerList(s, sz)
+	return capnp.CapList[CapAddHistory](l), err
+}
+
+type CapAddHistory_addAction_Params capnp.Struct
+
+// CapAddHistory_addAction_Params_TypeID is the unique identifier for the type CapAddHistory_addAction_Params.
+const CapAddHistory_addAction_Params_TypeID = 0xf2d04e4d076109a1
+
+func NewCapAddHistory_addAction_Params(s *capnp.Segment) (CapAddHistory_addAction_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapHistory_capUpdateHistory_Results(st), err
+	return CapAddHistory_addAction_Params(st), err
 }
 
-func NewRootCapHistory_capUpdateHistory_Results(s *capnp.Segment) (CapHistory_capUpdateHistory_Results, error) {
+func NewRootCapAddHistory_addAction_Params(s *capnp.Segment) (CapAddHistory_addAction_Params, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapHistory_capUpdateHistory_Results(st), err
+	return CapAddHistory_addAction_Params(st), err
 }
 
-func ReadRootCapHistory_capUpdateHistory_Results(msg *capnp.Message) (CapHistory_capUpdateHistory_Results, error) {
+func ReadRootCapAddHistory_addAction_Params(msg *capnp.Message) (CapAddHistory_addAction_Params, error) {
 	root, err := msg.Root()
-	return CapHistory_capUpdateHistory_Results(root.Struct()), err
+	return CapAddHistory_addAction_Params(root.Struct()), err
 }
 
-func (s CapHistory_capUpdateHistory_Results) String() string {
-	str, _ := text.Marshal(0xc22c153c8d3321b1, capnp.Struct(s))
+func (s CapAddHistory_addAction_Params) String() string {
+	str, _ := text.Marshal(0xf2d04e4d076109a1, capnp.Struct(s))
 	return str
 }
 
-func (s CapHistory_capUpdateHistory_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapAddHistory_addAction_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapHistory_capUpdateHistory_Results) DecodeFromPtr(p capnp.Ptr) CapHistory_capUpdateHistory_Results {
-	return CapHistory_capUpdateHistory_Results(capnp.Struct{}.DecodeFromPtr(p))
+func (CapAddHistory_addAction_Params) DecodeFromPtr(p capnp.Ptr) CapAddHistory_addAction_Params {
+	return CapAddHistory_addAction_Params(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapHistory_capUpdateHistory_Results) ToPtr() capnp.Ptr {
+func (s CapAddHistory_addAction_Params) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapHistory_capUpdateHistory_Results) IsValid() bool {
+func (s CapAddHistory_addAction_Params) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapHistory_capUpdateHistory_Results) Message() *capnp.Message {
+func (s CapAddHistory_addAction_Params) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapHistory_capUpdateHistory_Results) Segment() *capnp.Segment {
+func (s CapAddHistory_addAction_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapHistory_capUpdateHistory_Results) Cap() CapUpdateHistory {
-	p, _ := capnp.Struct(s).Ptr(0)
-	return CapUpdateHistory(p.Interface().Client())
+func (s CapAddHistory_addAction_Params) ActionValue() (ThingValue, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return ThingValue(p.Struct()), err
 }
 
-func (s CapHistory_capUpdateHistory_Results) HasCap() bool {
+func (s CapAddHistory_addAction_Params) HasActionValue() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapHistory_capUpdateHistory_Results) SetCap(v CapUpdateHistory) error {
-	if !v.IsValid() {
-		return capnp.Struct(s).SetPtr(0, capnp.Ptr{})
+func (s CapAddHistory_addAction_Params) SetActionValue(v ThingValue) error {
+	return capnp.Struct(s).SetPtr(0, capnp.Struct(v).ToPtr())
+}
+
+// NewActionValue sets the actionValue field to a newly
+// allocated ThingValue struct, preferring placement in s's segment.
+func (s CapAddHistory_addAction_Params) NewActionValue() (ThingValue, error) {
+	ss, err := NewThingValue(capnp.Struct(s).Segment())
+	if err != nil {
+		return ThingValue{}, err
 	}
-	seg := s.Segment()
-	in := capnp.NewInterface(seg, seg.Message().AddCap(capnp.Client(v)))
-	return capnp.Struct(s).SetPtr(0, in.ToPtr())
+	err = capnp.Struct(s).SetPtr(0, capnp.Struct(ss).ToPtr())
+	return ss, err
 }
 
-// CapHistory_capUpdateHistory_Results_List is a list of CapHistory_capUpdateHistory_Results.
-type CapHistory_capUpdateHistory_Results_List = capnp.StructList[CapHistory_capUpdateHistory_Results]
+// CapAddHistory_addAction_Params_List is a list of CapAddHistory_addAction_Params.
+type CapAddHistory_addAction_Params_List = capnp.StructList[CapAddHistory_addAction_Params]
 
-// NewCapHistory_capUpdateHistory_Results creates a new list of CapHistory_capUpdateHistory_Results.
-func NewCapHistory_capUpdateHistory_Results_List(s *capnp.Segment, sz int32) (CapHistory_capUpdateHistory_Results_List, error) {
+// NewCapAddHistory_addAction_Params creates a new list of CapAddHistory_addAction_Params.
+func NewCapAddHistory_addAction_Params_List(s *capnp.Segment, sz int32) (CapAddHistory_addAction_Params_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapHistory_capUpdateHistory_Results](l), err
+	return capnp.StructList[CapAddHistory_addAction_Params](l), err
 }
 
-// CapHistory_capUpdateHistory_Results_Future is a wrapper for a CapHistory_capUpdateHistory_Results promised by a client call.
-type CapHistory_capUpdateHistory_Results_Future struct{ *capnp.Future }
+// CapAddHistory_addAction_Params_Future is a wrapper for a CapAddHistory_addAction_Params promised by a client call.
+type CapAddHistory_addAction_Params_Future struct{ *capnp.Future }
 
-func (p CapHistory_capUpdateHistory_Results_Future) Struct() (CapHistory_capUpdateHistory_Results, error) {
+func (p CapAddHistory_addAction_Params_Future) Struct() (CapAddHistory_addAction_Params, error) {
 	s, err := p.Future.Struct()
-	return CapHistory_capUpdateHistory_Results(s), err
+	return CapAddHistory_addAction_Params(s), err
 }
 
-func (p CapHistory_capUpdateHistory_Results_Future) Cap() CapUpdateHistory {
-	return CapUpdateHistory(p.Future.Field(0, nil).Client())
+func (p CapAddHistory_addAction_Params_Future) ActionValue() ThingValue_Future {
+	return ThingValue_Future{Future: p.Future.Field(0, nil)}
+}
+
+type CapAddHistory_addAction_Results capnp.Struct
+
+// CapAddHistory_addAction_Results_TypeID is the unique identifier for the type CapAddHistory_addAction_Results.
+const CapAddHistory_addAction_Results_TypeID = 0xaa066f541f1a116a
+
+func NewCapAddHistory_addAction_Results(s *capnp.Segment) (CapAddHistory_addAction_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapAddHistory_addAction_Results(st), err
+}
+
+func NewRootCapAddHistory_addAction_Results(s *capnp.Segment) (CapAddHistory_addAction_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapAddHistory_addAction_Results(st), err
+}
+
+func ReadRootCapAddHistory_addAction_Results(msg *capnp.Message) (CapAddHistory_addAction_Results, error) {
+	root, err := msg.Root()
+	return CapAddHistory_addAction_Results(root.Struct()), err
+}
+
+func (s CapAddHistory_addAction_Results) String() string {
+	str, _ := text.Marshal(0xaa066f541f1a116a, capnp.Struct(s))
+	return str
+}
+
+func (s CapAddHistory_addAction_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapAddHistory_addAction_Results) DecodeFromPtr(p capnp.Ptr) CapAddHistory_addAction_Results {
+	return CapAddHistory_addAction_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapAddHistory_addAction_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapAddHistory_addAction_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapAddHistory_addAction_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapAddHistory_addAction_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+
+// CapAddHistory_addAction_Results_List is a list of CapAddHistory_addAction_Results.
+type CapAddHistory_addAction_Results_List = capnp.StructList[CapAddHistory_addAction_Results]
+
+// NewCapAddHistory_addAction_Results creates a new list of CapAddHistory_addAction_Results.
+func NewCapAddHistory_addAction_Results_List(s *capnp.Segment, sz int32) (CapAddHistory_addAction_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
+	return capnp.StructList[CapAddHistory_addAction_Results](l), err
+}
+
+// CapAddHistory_addAction_Results_Future is a wrapper for a CapAddHistory_addAction_Results promised by a client call.
+type CapAddHistory_addAction_Results_Future struct{ *capnp.Future }
+
+func (p CapAddHistory_addAction_Results_Future) Struct() (CapAddHistory_addAction_Results, error) {
+	s, err := p.Future.Struct()
+	return CapAddHistory_addAction_Results(s), err
+}
+
+type CapAddHistory_addEvent_Params capnp.Struct
+
+// CapAddHistory_addEvent_Params_TypeID is the unique identifier for the type CapAddHistory_addEvent_Params.
+const CapAddHistory_addEvent_Params_TypeID = 0xd3899668953eaf95
+
+func NewCapAddHistory_addEvent_Params(s *capnp.Segment) (CapAddHistory_addEvent_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapAddHistory_addEvent_Params(st), err
+}
+
+func NewRootCapAddHistory_addEvent_Params(s *capnp.Segment) (CapAddHistory_addEvent_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapAddHistory_addEvent_Params(st), err
+}
+
+func ReadRootCapAddHistory_addEvent_Params(msg *capnp.Message) (CapAddHistory_addEvent_Params, error) {
+	root, err := msg.Root()
+	return CapAddHistory_addEvent_Params(root.Struct()), err
+}
+
+func (s CapAddHistory_addEvent_Params) String() string {
+	str, _ := text.Marshal(0xd3899668953eaf95, capnp.Struct(s))
+	return str
+}
+
+func (s CapAddHistory_addEvent_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapAddHistory_addEvent_Params) DecodeFromPtr(p capnp.Ptr) CapAddHistory_addEvent_Params {
+	return CapAddHistory_addEvent_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapAddHistory_addEvent_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapAddHistory_addEvent_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapAddHistory_addEvent_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapAddHistory_addEvent_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapAddHistory_addEvent_Params) EventValue() (ThingValue, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return ThingValue(p.Struct()), err
+}
+
+func (s CapAddHistory_addEvent_Params) HasEventValue() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapAddHistory_addEvent_Params) SetEventValue(v ThingValue) error {
+	return capnp.Struct(s).SetPtr(0, capnp.Struct(v).ToPtr())
+}
+
+// NewEventValue sets the eventValue field to a newly
+// allocated ThingValue struct, preferring placement in s's segment.
+func (s CapAddHistory_addEvent_Params) NewEventValue() (ThingValue, error) {
+	ss, err := NewThingValue(capnp.Struct(s).Segment())
+	if err != nil {
+		return ThingValue{}, err
+	}
+	err = capnp.Struct(s).SetPtr(0, capnp.Struct(ss).ToPtr())
+	return ss, err
+}
+
+// CapAddHistory_addEvent_Params_List is a list of CapAddHistory_addEvent_Params.
+type CapAddHistory_addEvent_Params_List = capnp.StructList[CapAddHistory_addEvent_Params]
+
+// NewCapAddHistory_addEvent_Params creates a new list of CapAddHistory_addEvent_Params.
+func NewCapAddHistory_addEvent_Params_List(s *capnp.Segment, sz int32) (CapAddHistory_addEvent_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[CapAddHistory_addEvent_Params](l), err
+}
+
+// CapAddHistory_addEvent_Params_Future is a wrapper for a CapAddHistory_addEvent_Params promised by a client call.
+type CapAddHistory_addEvent_Params_Future struct{ *capnp.Future }
+
+func (p CapAddHistory_addEvent_Params_Future) Struct() (CapAddHistory_addEvent_Params, error) {
+	s, err := p.Future.Struct()
+	return CapAddHistory_addEvent_Params(s), err
+}
+
+func (p CapAddHistory_addEvent_Params_Future) EventValue() ThingValue_Future {
+	return ThingValue_Future{Future: p.Future.Field(0, nil)}
+}
+
+type CapAddHistory_addEvent_Results capnp.Struct
+
+// CapAddHistory_addEvent_Results_TypeID is the unique identifier for the type CapAddHistory_addEvent_Results.
+const CapAddHistory_addEvent_Results_TypeID = 0x9c3ac18a6f855cd2
+
+func NewCapAddHistory_addEvent_Results(s *capnp.Segment) (CapAddHistory_addEvent_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapAddHistory_addEvent_Results(st), err
+}
+
+func NewRootCapAddHistory_addEvent_Results(s *capnp.Segment) (CapAddHistory_addEvent_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapAddHistory_addEvent_Results(st), err
+}
+
+func ReadRootCapAddHistory_addEvent_Results(msg *capnp.Message) (CapAddHistory_addEvent_Results, error) {
+	root, err := msg.Root()
+	return CapAddHistory_addEvent_Results(root.Struct()), err
+}
+
+func (s CapAddHistory_addEvent_Results) String() string {
+	str, _ := text.Marshal(0x9c3ac18a6f855cd2, capnp.Struct(s))
+	return str
+}
+
+func (s CapAddHistory_addEvent_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapAddHistory_addEvent_Results) DecodeFromPtr(p capnp.Ptr) CapAddHistory_addEvent_Results {
+	return CapAddHistory_addEvent_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapAddHistory_addEvent_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapAddHistory_addEvent_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapAddHistory_addEvent_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapAddHistory_addEvent_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+
+// CapAddHistory_addEvent_Results_List is a list of CapAddHistory_addEvent_Results.
+type CapAddHistory_addEvent_Results_List = capnp.StructList[CapAddHistory_addEvent_Results]
+
+// NewCapAddHistory_addEvent_Results creates a new list of CapAddHistory_addEvent_Results.
+func NewCapAddHistory_addEvent_Results_List(s *capnp.Segment, sz int32) (CapAddHistory_addEvent_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
+	return capnp.StructList[CapAddHistory_addEvent_Results](l), err
+}
+
+// CapAddHistory_addEvent_Results_Future is a wrapper for a CapAddHistory_addEvent_Results promised by a client call.
+type CapAddHistory_addEvent_Results_Future struct{ *capnp.Future }
+
+func (p CapAddHistory_addEvent_Results_Future) Struct() (CapAddHistory_addEvent_Results, error) {
+	s, err := p.Future.Struct()
+	return CapAddHistory_addEvent_Results(s), err
+}
+
+type CapAddHistory_addEvents_Params capnp.Struct
+
+// CapAddHistory_addEvents_Params_TypeID is the unique identifier for the type CapAddHistory_addEvents_Params.
+const CapAddHistory_addEvents_Params_TypeID = 0xb3a20cba1aabab09
+
+func NewCapAddHistory_addEvents_Params(s *capnp.Segment) (CapAddHistory_addEvents_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapAddHistory_addEvents_Params(st), err
+}
+
+func NewRootCapAddHistory_addEvents_Params(s *capnp.Segment) (CapAddHistory_addEvents_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapAddHistory_addEvents_Params(st), err
+}
+
+func ReadRootCapAddHistory_addEvents_Params(msg *capnp.Message) (CapAddHistory_addEvents_Params, error) {
+	root, err := msg.Root()
+	return CapAddHistory_addEvents_Params(root.Struct()), err
+}
+
+func (s CapAddHistory_addEvents_Params) String() string {
+	str, _ := text.Marshal(0xb3a20cba1aabab09, capnp.Struct(s))
+	return str
+}
+
+func (s CapAddHistory_addEvents_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapAddHistory_addEvents_Params) DecodeFromPtr(p capnp.Ptr) CapAddHistory_addEvents_Params {
+	return CapAddHistory_addEvents_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapAddHistory_addEvents_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapAddHistory_addEvents_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapAddHistory_addEvents_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapAddHistory_addEvents_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapAddHistory_addEvents_Params) EventValues() (ThingValue_List, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return ThingValue_List(p.List()), err
+}
+
+func (s CapAddHistory_addEvents_Params) HasEventValues() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapAddHistory_addEvents_Params) SetEventValues(v ThingValue_List) error {
+	return capnp.Struct(s).SetPtr(0, v.ToPtr())
+}
+
+// NewEventValues sets the eventValues field to a newly
+// allocated ThingValue_List, preferring placement in s's segment.
+func (s CapAddHistory_addEvents_Params) NewEventValues(n int32) (ThingValue_List, error) {
+	l, err := NewThingValue_List(capnp.Struct(s).Segment(), n)
+	if err != nil {
+		return ThingValue_List{}, err
+	}
+	err = capnp.Struct(s).SetPtr(0, l.ToPtr())
+	return l, err
+}
+
+// CapAddHistory_addEvents_Params_List is a list of CapAddHistory_addEvents_Params.
+type CapAddHistory_addEvents_Params_List = capnp.StructList[CapAddHistory_addEvents_Params]
+
+// NewCapAddHistory_addEvents_Params creates a new list of CapAddHistory_addEvents_Params.
+func NewCapAddHistory_addEvents_Params_List(s *capnp.Segment, sz int32) (CapAddHistory_addEvents_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[CapAddHistory_addEvents_Params](l), err
+}
+
+// CapAddHistory_addEvents_Params_Future is a wrapper for a CapAddHistory_addEvents_Params promised by a client call.
+type CapAddHistory_addEvents_Params_Future struct{ *capnp.Future }
+
+func (p CapAddHistory_addEvents_Params_Future) Struct() (CapAddHistory_addEvents_Params, error) {
+	s, err := p.Future.Struct()
+	return CapAddHistory_addEvents_Params(s), err
+}
+
+type CapAddHistory_addEvents_Results capnp.Struct
+
+// CapAddHistory_addEvents_Results_TypeID is the unique identifier for the type CapAddHistory_addEvents_Results.
+const CapAddHistory_addEvents_Results_TypeID = 0x95158665d71f5337
+
+func NewCapAddHistory_addEvents_Results(s *capnp.Segment) (CapAddHistory_addEvents_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapAddHistory_addEvents_Results(st), err
+}
+
+func NewRootCapAddHistory_addEvents_Results(s *capnp.Segment) (CapAddHistory_addEvents_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapAddHistory_addEvents_Results(st), err
+}
+
+func ReadRootCapAddHistory_addEvents_Results(msg *capnp.Message) (CapAddHistory_addEvents_Results, error) {
+	root, err := msg.Root()
+	return CapAddHistory_addEvents_Results(root.Struct()), err
+}
+
+func (s CapAddHistory_addEvents_Results) String() string {
+	str, _ := text.Marshal(0x95158665d71f5337, capnp.Struct(s))
+	return str
+}
+
+func (s CapAddHistory_addEvents_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapAddHistory_addEvents_Results) DecodeFromPtr(p capnp.Ptr) CapAddHistory_addEvents_Results {
+	return CapAddHistory_addEvents_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapAddHistory_addEvents_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapAddHistory_addEvents_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapAddHistory_addEvents_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapAddHistory_addEvents_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+
+// CapAddHistory_addEvents_Results_List is a list of CapAddHistory_addEvents_Results.
+type CapAddHistory_addEvents_Results_List = capnp.StructList[CapAddHistory_addEvents_Results]
+
+// NewCapAddHistory_addEvents_Results creates a new list of CapAddHistory_addEvents_Results.
+func NewCapAddHistory_addEvents_Results_List(s *capnp.Segment, sz int32) (CapAddHistory_addEvents_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
+	return capnp.StructList[CapAddHistory_addEvents_Results](l), err
+}
+
+// CapAddHistory_addEvents_Results_Future is a wrapper for a CapAddHistory_addEvents_Results promised by a client call.
+type CapAddHistory_addEvents_Results_Future struct{ *capnp.Future }
+
+func (p CapAddHistory_addEvents_Results_Future) Struct() (CapAddHistory_addEvents_Results, error) {
+	s, err := p.Future.Struct()
+	return CapAddHistory_addEvents_Results(s), err
 }
 
 type CapReadHistory capnp.Client
@@ -916,59 +1371,43 @@ type CapReadHistory capnp.Client
 // CapReadHistory_TypeID is the unique identifier for the type CapReadHistory.
 const CapReadHistory_TypeID = 0xadd9881ba4754f20
 
-func (c CapReadHistory) GetActionHistory(ctx context.Context, params func(CapReadHistory_getActionHistory_Params) error) (CapReadHistory_getActionHistory_Results_Future, capnp.ReleaseFunc) {
+func (c CapReadHistory) GetEventHistory(ctx context.Context, params func(CapReadHistory_getEventHistory_Params) error) (CapReadHistory_getEventHistory_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
 			InterfaceID:   0xadd9881ba4754f20,
 			MethodID:      0,
 			InterfaceName: "hubapi/History.capnp:CapReadHistory",
-			MethodName:    "getActionHistory",
-		},
-	}
-	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 8, PointerCount: 4}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapReadHistory_getActionHistory_Params(s)) }
-	}
-	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapReadHistory_getActionHistory_Results_Future{Future: ans.Future()}, release
-}
-func (c CapReadHistory) GetEventHistory(ctx context.Context, params func(CapReadHistory_getEventHistory_Params) error) (CapReadHistory_getEventHistory_Results_Future, capnp.ReleaseFunc) {
-	s := capnp.Send{
-		Method: capnp.Method{
-			InterfaceID:   0xadd9881ba4754f20,
-			MethodID:      1,
-			InterfaceName: "hubapi/History.capnp:CapReadHistory",
 			MethodName:    "getEventHistory",
 		},
 	}
 	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 8, PointerCount: 4}
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
 		s.PlaceArgs = func(s capnp.Struct) error { return params(CapReadHistory_getEventHistory_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
 	return CapReadHistory_getEventHistory_Results_Future{Future: ans.Future()}, release
 }
-func (c CapReadHistory) GetLatestEvents(ctx context.Context, params func(CapReadHistory_getLatestEvents_Params) error) (CapReadHistory_getLatestEvents_Results_Future, capnp.ReleaseFunc) {
+func (c CapReadHistory) GetProperties(ctx context.Context, params func(CapReadHistory_getProperties_Params) error) (CapReadHistory_getProperties_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
 			InterfaceID:   0xadd9881ba4754f20,
-			MethodID:      2,
+			MethodID:      1,
 			InterfaceName: "hubapi/History.capnp:CapReadHistory",
-			MethodName:    "getLatestEvents",
+			MethodName:    "getProperties",
 		},
 	}
 	if params != nil {
 		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapReadHistory_getLatestEvents_Params(s)) }
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapReadHistory_getProperties_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapReadHistory_getLatestEvents_Results_Future{Future: ans.Future()}, release
+	return CapReadHistory_getProperties_Results_Future{Future: ans.Future()}, release
 }
 func (c CapReadHistory) Info(ctx context.Context, params func(CapReadHistory_info_Params) error) (CapReadHistory_info_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
 			InterfaceID:   0xadd9881ba4754f20,
-			MethodID:      3,
+			MethodID:      2,
 			InterfaceName: "hubapi/History.capnp:CapReadHistory",
 			MethodName:    "info",
 		},
@@ -1003,11 +1442,9 @@ func (c CapReadHistory) IsValid() bool {
 
 // A CapReadHistory_Server is a CapReadHistory with a local implementation.
 type CapReadHistory_Server interface {
-	GetActionHistory(context.Context, CapReadHistory_getActionHistory) error
-
 	GetEventHistory(context.Context, CapReadHistory_getEventHistory) error
 
-	GetLatestEvents(context.Context, CapReadHistory_getLatestEvents) error
+	GetProperties(context.Context, CapReadHistory_getProperties) error
 
 	Info(context.Context, CapReadHistory_info) error
 }
@@ -1028,25 +1465,13 @@ func CapReadHistory_ServerToClient(s CapReadHistory_Server) CapReadHistory {
 // This can be used to create a more complicated Server.
 func CapReadHistory_Methods(methods []server.Method, s CapReadHistory_Server) []server.Method {
 	if cap(methods) == 0 {
-		methods = make([]server.Method, 0, 4)
+		methods = make([]server.Method, 0, 3)
 	}
 
 	methods = append(methods, server.Method{
 		Method: capnp.Method{
 			InterfaceID:   0xadd9881ba4754f20,
 			MethodID:      0,
-			InterfaceName: "hubapi/History.capnp:CapReadHistory",
-			MethodName:    "getActionHistory",
-		},
-		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.GetActionHistory(ctx, CapReadHistory_getActionHistory{call})
-		},
-	})
-
-	methods = append(methods, server.Method{
-		Method: capnp.Method{
-			InterfaceID:   0xadd9881ba4754f20,
-			MethodID:      1,
 			InterfaceName: "hubapi/History.capnp:CapReadHistory",
 			MethodName:    "getEventHistory",
 		},
@@ -1058,19 +1483,19 @@ func CapReadHistory_Methods(methods []server.Method, s CapReadHistory_Server) []
 	methods = append(methods, server.Method{
 		Method: capnp.Method{
 			InterfaceID:   0xadd9881ba4754f20,
-			MethodID:      2,
+			MethodID:      1,
 			InterfaceName: "hubapi/History.capnp:CapReadHistory",
-			MethodName:    "getLatestEvents",
+			MethodName:    "getProperties",
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.GetLatestEvents(ctx, CapReadHistory_getLatestEvents{call})
+			return s.GetProperties(ctx, CapReadHistory_getProperties{call})
 		},
 	})
 
 	methods = append(methods, server.Method{
 		Method: capnp.Method{
 			InterfaceID:   0xadd9881ba4754f20,
-			MethodID:      3,
+			MethodID:      2,
 			InterfaceName: "hubapi/History.capnp:CapReadHistory",
 			MethodName:    "info",
 		},
@@ -1080,23 +1505,6 @@ func CapReadHistory_Methods(methods []server.Method, s CapReadHistory_Server) []
 	})
 
 	return methods
-}
-
-// CapReadHistory_getActionHistory holds the state for a server call to CapReadHistory.getActionHistory.
-// See server.Call for documentation.
-type CapReadHistory_getActionHistory struct {
-	*server.Call
-}
-
-// Args returns the call's arguments.
-func (c CapReadHistory_getActionHistory) Args() CapReadHistory_getActionHistory_Params {
-	return CapReadHistory_getActionHistory_Params(c.Call.Args())
-}
-
-// AllocResults allocates the results struct.
-func (c CapReadHistory_getActionHistory) AllocResults() (CapReadHistory_getActionHistory_Results, error) {
-	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapReadHistory_getActionHistory_Results(r), err
 }
 
 // CapReadHistory_getEventHistory holds the state for a server call to CapReadHistory.getEventHistory.
@@ -1116,21 +1524,21 @@ func (c CapReadHistory_getEventHistory) AllocResults() (CapReadHistory_getEventH
 	return CapReadHistory_getEventHistory_Results(r), err
 }
 
-// CapReadHistory_getLatestEvents holds the state for a server call to CapReadHistory.getLatestEvents.
+// CapReadHistory_getProperties holds the state for a server call to CapReadHistory.getProperties.
 // See server.Call for documentation.
-type CapReadHistory_getLatestEvents struct {
+type CapReadHistory_getProperties struct {
 	*server.Call
 }
 
 // Args returns the call's arguments.
-func (c CapReadHistory_getLatestEvents) Args() CapReadHistory_getLatestEvents_Params {
-	return CapReadHistory_getLatestEvents_Params(c.Call.Args())
+func (c CapReadHistory_getProperties) Args() CapReadHistory_getProperties_Params {
+	return CapReadHistory_getProperties_Params(c.Call.Args())
 }
 
 // AllocResults allocates the results struct.
-func (c CapReadHistory_getLatestEvents) AllocResults() (CapReadHistory_getLatestEvents_Results, error) {
+func (c CapReadHistory_getProperties) AllocResults() (CapReadHistory_getProperties_Results, error) {
 	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapReadHistory_getLatestEvents_Results(r), err
+	return CapReadHistory_getProperties_Results(r), err
 }
 
 // CapReadHistory_info holds the state for a server call to CapReadHistory.info.
@@ -1159,250 +1567,18 @@ func NewCapReadHistory_List(s *capnp.Segment, sz int32) (CapReadHistory_List, er
 	return capnp.CapList[CapReadHistory](l), err
 }
 
-type CapReadHistory_getActionHistory_Params capnp.Struct
-
-// CapReadHistory_getActionHistory_Params_TypeID is the unique identifier for the type CapReadHistory_getActionHistory_Params.
-const CapReadHistory_getActionHistory_Params_TypeID = 0xb400b2d098c85f04
-
-func NewCapReadHistory_getActionHistory_Params(s *capnp.Segment) (CapReadHistory_getActionHistory_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 4})
-	return CapReadHistory_getActionHistory_Params(st), err
-}
-
-func NewRootCapReadHistory_getActionHistory_Params(s *capnp.Segment) (CapReadHistory_getActionHistory_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 4})
-	return CapReadHistory_getActionHistory_Params(st), err
-}
-
-func ReadRootCapReadHistory_getActionHistory_Params(msg *capnp.Message) (CapReadHistory_getActionHistory_Params, error) {
-	root, err := msg.Root()
-	return CapReadHistory_getActionHistory_Params(root.Struct()), err
-}
-
-func (s CapReadHistory_getActionHistory_Params) String() string {
-	str, _ := text.Marshal(0xb400b2d098c85f04, capnp.Struct(s))
-	return str
-}
-
-func (s CapReadHistory_getActionHistory_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapReadHistory_getActionHistory_Params) DecodeFromPtr(p capnp.Ptr) CapReadHistory_getActionHistory_Params {
-	return CapReadHistory_getActionHistory_Params(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapReadHistory_getActionHistory_Params) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapReadHistory_getActionHistory_Params) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapReadHistory_getActionHistory_Params) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapReadHistory_getActionHistory_Params) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s CapReadHistory_getActionHistory_Params) ThingID() (string, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.Text(), err
-}
-
-func (s CapReadHistory_getActionHistory_Params) HasThingID() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s CapReadHistory_getActionHistory_Params) ThingIDBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.TextBytes(), err
-}
-
-func (s CapReadHistory_getActionHistory_Params) SetThingID(v string) error {
-	return capnp.Struct(s).SetText(0, v)
-}
-
-func (s CapReadHistory_getActionHistory_Params) ActionName() (string, error) {
-	p, err := capnp.Struct(s).Ptr(1)
-	return p.Text(), err
-}
-
-func (s CapReadHistory_getActionHistory_Params) HasActionName() bool {
-	return capnp.Struct(s).HasPtr(1)
-}
-
-func (s CapReadHistory_getActionHistory_Params) ActionNameBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(1)
-	return p.TextBytes(), err
-}
-
-func (s CapReadHistory_getActionHistory_Params) SetActionName(v string) error {
-	return capnp.Struct(s).SetText(1, v)
-}
-
-func (s CapReadHistory_getActionHistory_Params) After() (string, error) {
-	p, err := capnp.Struct(s).Ptr(2)
-	return p.Text(), err
-}
-
-func (s CapReadHistory_getActionHistory_Params) HasAfter() bool {
-	return capnp.Struct(s).HasPtr(2)
-}
-
-func (s CapReadHistory_getActionHistory_Params) AfterBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(2)
-	return p.TextBytes(), err
-}
-
-func (s CapReadHistory_getActionHistory_Params) SetAfter(v string) error {
-	return capnp.Struct(s).SetText(2, v)
-}
-
-func (s CapReadHistory_getActionHistory_Params) Before() (string, error) {
-	p, err := capnp.Struct(s).Ptr(3)
-	return p.Text(), err
-}
-
-func (s CapReadHistory_getActionHistory_Params) HasBefore() bool {
-	return capnp.Struct(s).HasPtr(3)
-}
-
-func (s CapReadHistory_getActionHistory_Params) BeforeBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(3)
-	return p.TextBytes(), err
-}
-
-func (s CapReadHistory_getActionHistory_Params) SetBefore(v string) error {
-	return capnp.Struct(s).SetText(3, v)
-}
-
-func (s CapReadHistory_getActionHistory_Params) Limit() int32 {
-	return int32(capnp.Struct(s).Uint32(0))
-}
-
-func (s CapReadHistory_getActionHistory_Params) SetLimit(v int32) {
-	capnp.Struct(s).SetUint32(0, uint32(v))
-}
-
-// CapReadHistory_getActionHistory_Params_List is a list of CapReadHistory_getActionHistory_Params.
-type CapReadHistory_getActionHistory_Params_List = capnp.StructList[CapReadHistory_getActionHistory_Params]
-
-// NewCapReadHistory_getActionHistory_Params creates a new list of CapReadHistory_getActionHistory_Params.
-func NewCapReadHistory_getActionHistory_Params_List(s *capnp.Segment, sz int32) (CapReadHistory_getActionHistory_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 4}, sz)
-	return capnp.StructList[CapReadHistory_getActionHistory_Params](l), err
-}
-
-// CapReadHistory_getActionHistory_Params_Future is a wrapper for a CapReadHistory_getActionHistory_Params promised by a client call.
-type CapReadHistory_getActionHistory_Params_Future struct{ *capnp.Future }
-
-func (p CapReadHistory_getActionHistory_Params_Future) Struct() (CapReadHistory_getActionHistory_Params, error) {
-	s, err := p.Future.Struct()
-	return CapReadHistory_getActionHistory_Params(s), err
-}
-
-type CapReadHistory_getActionHistory_Results capnp.Struct
-
-// CapReadHistory_getActionHistory_Results_TypeID is the unique identifier for the type CapReadHistory_getActionHistory_Results.
-const CapReadHistory_getActionHistory_Results_TypeID = 0x9d6b3c5af51f3915
-
-func NewCapReadHistory_getActionHistory_Results(s *capnp.Segment) (CapReadHistory_getActionHistory_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapReadHistory_getActionHistory_Results(st), err
-}
-
-func NewRootCapReadHistory_getActionHistory_Results(s *capnp.Segment) (CapReadHistory_getActionHistory_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapReadHistory_getActionHistory_Results(st), err
-}
-
-func ReadRootCapReadHistory_getActionHistory_Results(msg *capnp.Message) (CapReadHistory_getActionHistory_Results, error) {
-	root, err := msg.Root()
-	return CapReadHistory_getActionHistory_Results(root.Struct()), err
-}
-
-func (s CapReadHistory_getActionHistory_Results) String() string {
-	str, _ := text.Marshal(0x9d6b3c5af51f3915, capnp.Struct(s))
-	return str
-}
-
-func (s CapReadHistory_getActionHistory_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapReadHistory_getActionHistory_Results) DecodeFromPtr(p capnp.Ptr) CapReadHistory_getActionHistory_Results {
-	return CapReadHistory_getActionHistory_Results(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapReadHistory_getActionHistory_Results) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapReadHistory_getActionHistory_Results) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapReadHistory_getActionHistory_Results) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapReadHistory_getActionHistory_Results) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s CapReadHistory_getActionHistory_Results) Values() (ThingValue_List, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return ThingValue_List(p.List()), err
-}
-
-func (s CapReadHistory_getActionHistory_Results) HasValues() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s CapReadHistory_getActionHistory_Results) SetValues(v ThingValue_List) error {
-	return capnp.Struct(s).SetPtr(0, v.ToPtr())
-}
-
-// NewValues sets the values field to a newly
-// allocated ThingValue_List, preferring placement in s's segment.
-func (s CapReadHistory_getActionHistory_Results) NewValues(n int32) (ThingValue_List, error) {
-	l, err := NewThingValue_List(capnp.Struct(s).Segment(), n)
-	if err != nil {
-		return ThingValue_List{}, err
-	}
-	err = capnp.Struct(s).SetPtr(0, l.ToPtr())
-	return l, err
-}
-
-// CapReadHistory_getActionHistory_Results_List is a list of CapReadHistory_getActionHistory_Results.
-type CapReadHistory_getActionHistory_Results_List = capnp.StructList[CapReadHistory_getActionHistory_Results]
-
-// NewCapReadHistory_getActionHistory_Results creates a new list of CapReadHistory_getActionHistory_Results.
-func NewCapReadHistory_getActionHistory_Results_List(s *capnp.Segment, sz int32) (CapReadHistory_getActionHistory_Results_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapReadHistory_getActionHistory_Results](l), err
-}
-
-// CapReadHistory_getActionHistory_Results_Future is a wrapper for a CapReadHistory_getActionHistory_Results promised by a client call.
-type CapReadHistory_getActionHistory_Results_Future struct{ *capnp.Future }
-
-func (p CapReadHistory_getActionHistory_Results_Future) Struct() (CapReadHistory_getActionHistory_Results, error) {
-	s, err := p.Future.Struct()
-	return CapReadHistory_getActionHistory_Results(s), err
-}
-
 type CapReadHistory_getEventHistory_Params capnp.Struct
 
 // CapReadHistory_getEventHistory_Params_TypeID is the unique identifier for the type CapReadHistory_getEventHistory_Params.
-const CapReadHistory_getEventHistory_Params_TypeID = 0xcc69b73148363436
+const CapReadHistory_getEventHistory_Params_TypeID = 0xb400b2d098c85f04
 
 func NewCapReadHistory_getEventHistory_Params(s *capnp.Segment) (CapReadHistory_getEventHistory_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 4})
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
 	return CapReadHistory_getEventHistory_Params(st), err
 }
 
 func NewRootCapReadHistory_getEventHistory_Params(s *capnp.Segment) (CapReadHistory_getEventHistory_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 4})
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
 	return CapReadHistory_getEventHistory_Params(st), err
 }
 
@@ -1412,7 +1588,7 @@ func ReadRootCapReadHistory_getEventHistory_Params(msg *capnp.Message) (CapReadH
 }
 
 func (s CapReadHistory_getEventHistory_Params) String() string {
-	str, _ := text.Marshal(0xcc69b73148363436, capnp.Struct(s))
+	str, _ := text.Marshal(0xb400b2d098c85f04, capnp.Struct(s))
 	return str
 }
 
@@ -1438,84 +1614,22 @@ func (s CapReadHistory_getEventHistory_Params) Message() *capnp.Message {
 func (s CapReadHistory_getEventHistory_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapReadHistory_getEventHistory_Params) ThingID() (string, error) {
+func (s CapReadHistory_getEventHistory_Params) Name() (string, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.Text(), err
 }
 
-func (s CapReadHistory_getEventHistory_Params) HasThingID() bool {
+func (s CapReadHistory_getEventHistory_Params) HasName() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapReadHistory_getEventHistory_Params) ThingIDBytes() ([]byte, error) {
+func (s CapReadHistory_getEventHistory_Params) NameBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.TextBytes(), err
 }
 
-func (s CapReadHistory_getEventHistory_Params) SetThingID(v string) error {
+func (s CapReadHistory_getEventHistory_Params) SetName(v string) error {
 	return capnp.Struct(s).SetText(0, v)
-}
-
-func (s CapReadHistory_getEventHistory_Params) EventName() (string, error) {
-	p, err := capnp.Struct(s).Ptr(1)
-	return p.Text(), err
-}
-
-func (s CapReadHistory_getEventHistory_Params) HasEventName() bool {
-	return capnp.Struct(s).HasPtr(1)
-}
-
-func (s CapReadHistory_getEventHistory_Params) EventNameBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(1)
-	return p.TextBytes(), err
-}
-
-func (s CapReadHistory_getEventHistory_Params) SetEventName(v string) error {
-	return capnp.Struct(s).SetText(1, v)
-}
-
-func (s CapReadHistory_getEventHistory_Params) After() (string, error) {
-	p, err := capnp.Struct(s).Ptr(2)
-	return p.Text(), err
-}
-
-func (s CapReadHistory_getEventHistory_Params) HasAfter() bool {
-	return capnp.Struct(s).HasPtr(2)
-}
-
-func (s CapReadHistory_getEventHistory_Params) AfterBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(2)
-	return p.TextBytes(), err
-}
-
-func (s CapReadHistory_getEventHistory_Params) SetAfter(v string) error {
-	return capnp.Struct(s).SetText(2, v)
-}
-
-func (s CapReadHistory_getEventHistory_Params) Before() (string, error) {
-	p, err := capnp.Struct(s).Ptr(3)
-	return p.Text(), err
-}
-
-func (s CapReadHistory_getEventHistory_Params) HasBefore() bool {
-	return capnp.Struct(s).HasPtr(3)
-}
-
-func (s CapReadHistory_getEventHistory_Params) BeforeBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(3)
-	return p.TextBytes(), err
-}
-
-func (s CapReadHistory_getEventHistory_Params) SetBefore(v string) error {
-	return capnp.Struct(s).SetText(3, v)
-}
-
-func (s CapReadHistory_getEventHistory_Params) Limit() int32 {
-	return int32(capnp.Struct(s).Uint32(0))
-}
-
-func (s CapReadHistory_getEventHistory_Params) SetLimit(v int32) {
-	capnp.Struct(s).SetUint32(0, uint32(v))
 }
 
 // CapReadHistory_getEventHistory_Params_List is a list of CapReadHistory_getEventHistory_Params.
@@ -1523,7 +1637,7 @@ type CapReadHistory_getEventHistory_Params_List = capnp.StructList[CapReadHistor
 
 // NewCapReadHistory_getEventHistory_Params creates a new list of CapReadHistory_getEventHistory_Params.
 func NewCapReadHistory_getEventHistory_Params_List(s *capnp.Segment, sz int32) (CapReadHistory_getEventHistory_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 4}, sz)
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
 	return capnp.StructList[CapReadHistory_getEventHistory_Params](l), err
 }
 
@@ -1538,7 +1652,7 @@ func (p CapReadHistory_getEventHistory_Params_Future) Struct() (CapReadHistory_g
 type CapReadHistory_getEventHistory_Results capnp.Struct
 
 // CapReadHistory_getEventHistory_Results_TypeID is the unique identifier for the type CapReadHistory_getEventHistory_Results.
-const CapReadHistory_getEventHistory_Results_TypeID = 0xa9ea20731d3aa7a9
+const CapReadHistory_getEventHistory_Results_TypeID = 0x9d6b3c5af51f3915
 
 func NewCapReadHistory_getEventHistory_Results(s *capnp.Segment) (CapReadHistory_getEventHistory_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
@@ -1556,7 +1670,7 @@ func ReadRootCapReadHistory_getEventHistory_Results(msg *capnp.Message) (CapRead
 }
 
 func (s CapReadHistory_getEventHistory_Results) String() string {
-	str, _ := text.Marshal(0xa9ea20731d3aa7a9, capnp.Struct(s))
+	str, _ := text.Marshal(0x9d6b3c5af51f3915, capnp.Struct(s))
 	return str
 }
 
@@ -1582,28 +1696,22 @@ func (s CapReadHistory_getEventHistory_Results) Message() *capnp.Message {
 func (s CapReadHistory_getEventHistory_Results) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapReadHistory_getEventHistory_Results) Values() (ThingValue_List, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return ThingValue_List(p.List()), err
+func (s CapReadHistory_getEventHistory_Results) Cursor() CapHistoryCursor {
+	p, _ := capnp.Struct(s).Ptr(0)
+	return CapHistoryCursor(p.Interface().Client())
 }
 
-func (s CapReadHistory_getEventHistory_Results) HasValues() bool {
+func (s CapReadHistory_getEventHistory_Results) HasCursor() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapReadHistory_getEventHistory_Results) SetValues(v ThingValue_List) error {
-	return capnp.Struct(s).SetPtr(0, v.ToPtr())
-}
-
-// NewValues sets the values field to a newly
-// allocated ThingValue_List, preferring placement in s's segment.
-func (s CapReadHistory_getEventHistory_Results) NewValues(n int32) (ThingValue_List, error) {
-	l, err := NewThingValue_List(capnp.Struct(s).Segment(), n)
-	if err != nil {
-		return ThingValue_List{}, err
+func (s CapReadHistory_getEventHistory_Results) SetCursor(v CapHistoryCursor) error {
+	if !v.IsValid() {
+		return capnp.Struct(s).SetPtr(0, capnp.Ptr{})
 	}
-	err = capnp.Struct(s).SetPtr(0, l.ToPtr())
-	return l, err
+	seg := s.Segment()
+	in := capnp.NewInterface(seg, seg.Message().AddCap(capnp.Client(v)))
+	return capnp.Struct(s).SetPtr(0, in.ToPtr())
 }
 
 // CapReadHistory_getEventHistory_Results_List is a list of CapReadHistory_getEventHistory_Results.
@@ -1623,184 +1731,190 @@ func (p CapReadHistory_getEventHistory_Results_Future) Struct() (CapReadHistory_
 	return CapReadHistory_getEventHistory_Results(s), err
 }
 
-type CapReadHistory_getLatestEvents_Params capnp.Struct
+func (p CapReadHistory_getEventHistory_Results_Future) Cursor() CapHistoryCursor {
+	return CapHistoryCursor(p.Future.Field(0, nil).Client())
+}
 
-// CapReadHistory_getLatestEvents_Params_TypeID is the unique identifier for the type CapReadHistory_getLatestEvents_Params.
-const CapReadHistory_getLatestEvents_Params_TypeID = 0xfa5aa37101cf4521
+type CapReadHistory_getProperties_Params capnp.Struct
 
-func NewCapReadHistory_getLatestEvents_Params(s *capnp.Segment) (CapReadHistory_getLatestEvents_Params, error) {
+// CapReadHistory_getProperties_Params_TypeID is the unique identifier for the type CapReadHistory_getProperties_Params.
+const CapReadHistory_getProperties_Params_TypeID = 0xcc69b73148363436
+
+func NewCapReadHistory_getProperties_Params(s *capnp.Segment) (CapReadHistory_getProperties_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapReadHistory_getLatestEvents_Params(st), err
+	return CapReadHistory_getProperties_Params(st), err
 }
 
-func NewRootCapReadHistory_getLatestEvents_Params(s *capnp.Segment) (CapReadHistory_getLatestEvents_Params, error) {
+func NewRootCapReadHistory_getProperties_Params(s *capnp.Segment) (CapReadHistory_getProperties_Params, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapReadHistory_getLatestEvents_Params(st), err
+	return CapReadHistory_getProperties_Params(st), err
 }
 
-func ReadRootCapReadHistory_getLatestEvents_Params(msg *capnp.Message) (CapReadHistory_getLatestEvents_Params, error) {
+func ReadRootCapReadHistory_getProperties_Params(msg *capnp.Message) (CapReadHistory_getProperties_Params, error) {
 	root, err := msg.Root()
-	return CapReadHistory_getLatestEvents_Params(root.Struct()), err
+	return CapReadHistory_getProperties_Params(root.Struct()), err
 }
 
-func (s CapReadHistory_getLatestEvents_Params) String() string {
-	str, _ := text.Marshal(0xfa5aa37101cf4521, capnp.Struct(s))
+func (s CapReadHistory_getProperties_Params) String() string {
+	str, _ := text.Marshal(0xcc69b73148363436, capnp.Struct(s))
 	return str
 }
 
-func (s CapReadHistory_getLatestEvents_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapReadHistory_getProperties_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapReadHistory_getLatestEvents_Params) DecodeFromPtr(p capnp.Ptr) CapReadHistory_getLatestEvents_Params {
-	return CapReadHistory_getLatestEvents_Params(capnp.Struct{}.DecodeFromPtr(p))
+func (CapReadHistory_getProperties_Params) DecodeFromPtr(p capnp.Ptr) CapReadHistory_getProperties_Params {
+	return CapReadHistory_getProperties_Params(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapReadHistory_getLatestEvents_Params) ToPtr() capnp.Ptr {
+func (s CapReadHistory_getProperties_Params) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapReadHistory_getLatestEvents_Params) IsValid() bool {
+func (s CapReadHistory_getProperties_Params) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapReadHistory_getLatestEvents_Params) Message() *capnp.Message {
+func (s CapReadHistory_getProperties_Params) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapReadHistory_getLatestEvents_Params) Segment() *capnp.Segment {
+func (s CapReadHistory_getProperties_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapReadHistory_getLatestEvents_Params) ThingID() (string, error) {
+func (s CapReadHistory_getProperties_Params) Names() (capnp.TextList, error) {
 	p, err := capnp.Struct(s).Ptr(0)
-	return p.Text(), err
+	return capnp.TextList(p.List()), err
 }
 
-func (s CapReadHistory_getLatestEvents_Params) HasThingID() bool {
+func (s CapReadHistory_getProperties_Params) HasNames() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapReadHistory_getLatestEvents_Params) ThingIDBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.TextBytes(), err
+func (s CapReadHistory_getProperties_Params) SetNames(v capnp.TextList) error {
+	return capnp.Struct(s).SetPtr(0, v.ToPtr())
 }
 
-func (s CapReadHistory_getLatestEvents_Params) SetThingID(v string) error {
-	return capnp.Struct(s).SetText(0, v)
-}
-
-// CapReadHistory_getLatestEvents_Params_List is a list of CapReadHistory_getLatestEvents_Params.
-type CapReadHistory_getLatestEvents_Params_List = capnp.StructList[CapReadHistory_getLatestEvents_Params]
-
-// NewCapReadHistory_getLatestEvents_Params creates a new list of CapReadHistory_getLatestEvents_Params.
-func NewCapReadHistory_getLatestEvents_Params_List(s *capnp.Segment, sz int32) (CapReadHistory_getLatestEvents_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapReadHistory_getLatestEvents_Params](l), err
-}
-
-// CapReadHistory_getLatestEvents_Params_Future is a wrapper for a CapReadHistory_getLatestEvents_Params promised by a client call.
-type CapReadHistory_getLatestEvents_Params_Future struct{ *capnp.Future }
-
-func (p CapReadHistory_getLatestEvents_Params_Future) Struct() (CapReadHistory_getLatestEvents_Params, error) {
-	s, err := p.Future.Struct()
-	return CapReadHistory_getLatestEvents_Params(s), err
-}
-
-type CapReadHistory_getLatestEvents_Results capnp.Struct
-
-// CapReadHistory_getLatestEvents_Results_TypeID is the unique identifier for the type CapReadHistory_getLatestEvents_Results.
-const CapReadHistory_getLatestEvents_Results_TypeID = 0xab3daf6000a44ed3
-
-func NewCapReadHistory_getLatestEvents_Results(s *capnp.Segment) (CapReadHistory_getLatestEvents_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapReadHistory_getLatestEvents_Results(st), err
-}
-
-func NewRootCapReadHistory_getLatestEvents_Results(s *capnp.Segment) (CapReadHistory_getLatestEvents_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapReadHistory_getLatestEvents_Results(st), err
-}
-
-func ReadRootCapReadHistory_getLatestEvents_Results(msg *capnp.Message) (CapReadHistory_getLatestEvents_Results, error) {
-	root, err := msg.Root()
-	return CapReadHistory_getLatestEvents_Results(root.Struct()), err
-}
-
-func (s CapReadHistory_getLatestEvents_Results) String() string {
-	str, _ := text.Marshal(0xab3daf6000a44ed3, capnp.Struct(s))
-	return str
-}
-
-func (s CapReadHistory_getLatestEvents_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapReadHistory_getLatestEvents_Results) DecodeFromPtr(p capnp.Ptr) CapReadHistory_getLatestEvents_Results {
-	return CapReadHistory_getLatestEvents_Results(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapReadHistory_getLatestEvents_Results) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapReadHistory_getLatestEvents_Results) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapReadHistory_getLatestEvents_Results) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapReadHistory_getLatestEvents_Results) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s CapReadHistory_getLatestEvents_Results) ThingValueMap() (ThingValueMap, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return ThingValueMap(p.Struct()), err
-}
-
-func (s CapReadHistory_getLatestEvents_Results) HasThingValueMap() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s CapReadHistory_getLatestEvents_Results) SetThingValueMap(v ThingValueMap) error {
-	return capnp.Struct(s).SetPtr(0, capnp.Struct(v).ToPtr())
-}
-
-// NewThingValueMap sets the thingValueMap field to a newly
-// allocated ThingValueMap struct, preferring placement in s's segment.
-func (s CapReadHistory_getLatestEvents_Results) NewThingValueMap() (ThingValueMap, error) {
-	ss, err := NewThingValueMap(capnp.Struct(s).Segment())
+// NewNames sets the names field to a newly
+// allocated capnp.TextList, preferring placement in s's segment.
+func (s CapReadHistory_getProperties_Params) NewNames(n int32) (capnp.TextList, error) {
+	l, err := capnp.NewTextList(capnp.Struct(s).Segment(), n)
 	if err != nil {
-		return ThingValueMap{}, err
+		return capnp.TextList{}, err
 	}
-	err = capnp.Struct(s).SetPtr(0, capnp.Struct(ss).ToPtr())
-	return ss, err
+	err = capnp.Struct(s).SetPtr(0, l.ToPtr())
+	return l, err
 }
 
-// CapReadHistory_getLatestEvents_Results_List is a list of CapReadHistory_getLatestEvents_Results.
-type CapReadHistory_getLatestEvents_Results_List = capnp.StructList[CapReadHistory_getLatestEvents_Results]
+// CapReadHistory_getProperties_Params_List is a list of CapReadHistory_getProperties_Params.
+type CapReadHistory_getProperties_Params_List = capnp.StructList[CapReadHistory_getProperties_Params]
 
-// NewCapReadHistory_getLatestEvents_Results creates a new list of CapReadHistory_getLatestEvents_Results.
-func NewCapReadHistory_getLatestEvents_Results_List(s *capnp.Segment, sz int32) (CapReadHistory_getLatestEvents_Results_List, error) {
+// NewCapReadHistory_getProperties_Params creates a new list of CapReadHistory_getProperties_Params.
+func NewCapReadHistory_getProperties_Params_List(s *capnp.Segment, sz int32) (CapReadHistory_getProperties_Params_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapReadHistory_getLatestEvents_Results](l), err
+	return capnp.StructList[CapReadHistory_getProperties_Params](l), err
 }
 
-// CapReadHistory_getLatestEvents_Results_Future is a wrapper for a CapReadHistory_getLatestEvents_Results promised by a client call.
-type CapReadHistory_getLatestEvents_Results_Future struct{ *capnp.Future }
+// CapReadHistory_getProperties_Params_Future is a wrapper for a CapReadHistory_getProperties_Params promised by a client call.
+type CapReadHistory_getProperties_Params_Future struct{ *capnp.Future }
 
-func (p CapReadHistory_getLatestEvents_Results_Future) Struct() (CapReadHistory_getLatestEvents_Results, error) {
+func (p CapReadHistory_getProperties_Params_Future) Struct() (CapReadHistory_getProperties_Params, error) {
 	s, err := p.Future.Struct()
-	return CapReadHistory_getLatestEvents_Results(s), err
+	return CapReadHistory_getProperties_Params(s), err
 }
 
-func (p CapReadHistory_getLatestEvents_Results_Future) ThingValueMap() ThingValueMap_Future {
-	return ThingValueMap_Future{Future: p.Future.Field(0, nil)}
+type CapReadHistory_getProperties_Results capnp.Struct
+
+// CapReadHistory_getProperties_Results_TypeID is the unique identifier for the type CapReadHistory_getProperties_Results.
+const CapReadHistory_getProperties_Results_TypeID = 0xa9ea20731d3aa7a9
+
+func NewCapReadHistory_getProperties_Results(s *capnp.Segment) (CapReadHistory_getProperties_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapReadHistory_getProperties_Results(st), err
+}
+
+func NewRootCapReadHistory_getProperties_Results(s *capnp.Segment) (CapReadHistory_getProperties_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapReadHistory_getProperties_Results(st), err
+}
+
+func ReadRootCapReadHistory_getProperties_Results(msg *capnp.Message) (CapReadHistory_getProperties_Results, error) {
+	root, err := msg.Root()
+	return CapReadHistory_getProperties_Results(root.Struct()), err
+}
+
+func (s CapReadHistory_getProperties_Results) String() string {
+	str, _ := text.Marshal(0xa9ea20731d3aa7a9, capnp.Struct(s))
+	return str
+}
+
+func (s CapReadHistory_getProperties_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapReadHistory_getProperties_Results) DecodeFromPtr(p capnp.Ptr) CapReadHistory_getProperties_Results {
+	return CapReadHistory_getProperties_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapReadHistory_getProperties_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapReadHistory_getProperties_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapReadHistory_getProperties_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapReadHistory_getProperties_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapReadHistory_getProperties_Results) ValueList() (ThingValue_List, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return ThingValue_List(p.List()), err
+}
+
+func (s CapReadHistory_getProperties_Results) HasValueList() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapReadHistory_getProperties_Results) SetValueList(v ThingValue_List) error {
+	return capnp.Struct(s).SetPtr(0, v.ToPtr())
+}
+
+// NewValueList sets the valueList field to a newly
+// allocated ThingValue_List, preferring placement in s's segment.
+func (s CapReadHistory_getProperties_Results) NewValueList(n int32) (ThingValue_List, error) {
+	l, err := NewThingValue_List(capnp.Struct(s).Segment(), n)
+	if err != nil {
+		return ThingValue_List{}, err
+	}
+	err = capnp.Struct(s).SetPtr(0, l.ToPtr())
+	return l, err
+}
+
+// CapReadHistory_getProperties_Results_List is a list of CapReadHistory_getProperties_Results.
+type CapReadHistory_getProperties_Results_List = capnp.StructList[CapReadHistory_getProperties_Results]
+
+// NewCapReadHistory_getProperties_Results creates a new list of CapReadHistory_getProperties_Results.
+func NewCapReadHistory_getProperties_Results_List(s *capnp.Segment, sz int32) (CapReadHistory_getProperties_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[CapReadHistory_getProperties_Results](l), err
+}
+
+// CapReadHistory_getProperties_Results_Future is a wrapper for a CapReadHistory_getProperties_Results promised by a client call.
+type CapReadHistory_getProperties_Results_Future struct{ *capnp.Future }
+
+func (p CapReadHistory_getProperties_Results_Future) Struct() (CapReadHistory_getProperties_Results, error) {
+	s, err := p.Future.Struct()
+	return CapReadHistory_getProperties_Results(s), err
 }
 
 type CapReadHistory_info_Params capnp.Struct
 
 // CapReadHistory_info_Params_TypeID is the unique identifier for the type CapReadHistory_info_Params.
-const CapReadHistory_info_Params_TypeID = 0xe4275f9fec5abef6
+const CapReadHistory_info_Params_TypeID = 0xfa5aa37101cf4521
 
 func NewCapReadHistory_info_Params(s *capnp.Segment) (CapReadHistory_info_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
@@ -1818,7 +1932,7 @@ func ReadRootCapReadHistory_info_Params(msg *capnp.Message) (CapReadHistory_info
 }
 
 func (s CapReadHistory_info_Params) String() string {
-	str, _ := text.Marshal(0xe4275f9fec5abef6, capnp.Struct(s))
+	str, _ := text.Marshal(0xfa5aa37101cf4521, capnp.Struct(s))
 	return str
 }
 
@@ -1865,7 +1979,7 @@ func (p CapReadHistory_info_Params_Future) Struct() (CapReadHistory_info_Params,
 type CapReadHistory_info_Results capnp.Struct
 
 // CapReadHistory_info_Results_TypeID is the unique identifier for the type CapReadHistory_info_Results.
-const CapReadHistory_info_Results_TypeID = 0xc27fbcfe703c0635
+const CapReadHistory_info_Results_TypeID = 0xab3daf6000a44ed3
 
 func NewCapReadHistory_info_Results(s *capnp.Segment) (CapReadHistory_info_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
@@ -1883,7 +1997,7 @@ func ReadRootCapReadHistory_info_Results(msg *capnp.Message) (CapReadHistory_inf
 }
 
 func (s CapReadHistory_info_Results) String() string {
-	str, _ := text.Marshal(0xc27fbcfe703c0635, capnp.Struct(s))
+	str, _ := text.Marshal(0xab3daf6000a44ed3, capnp.Struct(s))
 	return str
 }
 
@@ -1909,25 +2023,25 @@ func (s CapReadHistory_info_Results) Message() *capnp.Message {
 func (s CapReadHistory_info_Results) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapReadHistory_info_Results) Statistics() (StoreInfo, error) {
+func (s CapReadHistory_info_Results) Info() (BucketStoreInfo, error) {
 	p, err := capnp.Struct(s).Ptr(0)
-	return StoreInfo(p.Struct()), err
+	return BucketStoreInfo(p.Struct()), err
 }
 
-func (s CapReadHistory_info_Results) HasStatistics() bool {
+func (s CapReadHistory_info_Results) HasInfo() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapReadHistory_info_Results) SetStatistics(v StoreInfo) error {
+func (s CapReadHistory_info_Results) SetInfo(v BucketStoreInfo) error {
 	return capnp.Struct(s).SetPtr(0, capnp.Struct(v).ToPtr())
 }
 
-// NewStatistics sets the statistics field to a newly
-// allocated StoreInfo struct, preferring placement in s's segment.
-func (s CapReadHistory_info_Results) NewStatistics() (StoreInfo, error) {
-	ss, err := NewStoreInfo(capnp.Struct(s).Segment())
+// NewInfo sets the info field to a newly
+// allocated BucketStoreInfo struct, preferring placement in s's segment.
+func (s CapReadHistory_info_Results) NewInfo() (BucketStoreInfo, error) {
+	ss, err := NewBucketStoreInfo(capnp.Struct(s).Segment())
 	if err != nil {
-		return StoreInfo{}, err
+		return BucketStoreInfo{}, err
 	}
 	err = capnp.Struct(s).SetPtr(0, capnp.Struct(ss).ToPtr())
 	return ss, err
@@ -1950,274 +2064,527 @@ func (p CapReadHistory_info_Results_Future) Struct() (CapReadHistory_info_Result
 	return CapReadHistory_info_Results(s), err
 }
 
-func (p CapReadHistory_info_Results_Future) Statistics() StoreInfo_Future {
-	return StoreInfo_Future{Future: p.Future.Field(0, nil)}
+func (p CapReadHistory_info_Results_Future) Info() BucketStoreInfo_Future {
+	return BucketStoreInfo_Future{Future: p.Future.Field(0, nil)}
 }
 
-type CapUpdateHistory capnp.Client
+type CapHistoryCursor capnp.Client
 
-// CapUpdateHistory_TypeID is the unique identifier for the type CapUpdateHistory.
-const CapUpdateHistory_TypeID = 0xb9e959737479a03d
+// CapHistoryCursor_TypeID is the unique identifier for the type CapHistoryCursor.
+const CapHistoryCursor_TypeID = 0x9d62a769e5dd0281
 
-func (c CapUpdateHistory) AddAction(ctx context.Context, params func(CapUpdateHistory_addAction_Params) error) (CapUpdateHistory_addAction_Results_Future, capnp.ReleaseFunc) {
+func (c CapHistoryCursor) First(ctx context.Context, params func(CapHistoryCursor_first_Params) error) (CapHistoryCursor_first_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
-			InterfaceID:   0xb9e959737479a03d,
+			InterfaceID:   0x9d62a769e5dd0281,
 			MethodID:      0,
-			InterfaceName: "hubapi/History.capnp:CapUpdateHistory",
-			MethodName:    "addAction",
+			InterfaceName: "hubapi/History.capnp:CapHistoryCursor",
+			MethodName:    "first",
 		},
 	}
 	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapUpdateHistory_addAction_Params(s)) }
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapHistoryCursor_first_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapUpdateHistory_addAction_Results_Future{Future: ans.Future()}, release
+	return CapHistoryCursor_first_Results_Future{Future: ans.Future()}, release
 }
-func (c CapUpdateHistory) AddEvent(ctx context.Context, params func(CapUpdateHistory_addEvent_Params) error) (CapUpdateHistory_addEvent_Results_Future, capnp.ReleaseFunc) {
+func (c CapHistoryCursor) Last(ctx context.Context, params func(CapHistoryCursor_last_Params) error) (CapHistoryCursor_last_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
-			InterfaceID:   0xb9e959737479a03d,
+			InterfaceID:   0x9d62a769e5dd0281,
 			MethodID:      1,
-			InterfaceName: "hubapi/History.capnp:CapUpdateHistory",
-			MethodName:    "addEvent",
+			InterfaceName: "hubapi/History.capnp:CapHistoryCursor",
+			MethodName:    "last",
 		},
 	}
 	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapUpdateHistory_addEvent_Params(s)) }
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapHistoryCursor_last_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapUpdateHistory_addEvent_Results_Future{Future: ans.Future()}, release
+	return CapHistoryCursor_last_Results_Future{Future: ans.Future()}, release
 }
-func (c CapUpdateHistory) AddEvents(ctx context.Context, params func(CapUpdateHistory_addEvents_Params) error) (CapUpdateHistory_addEvents_Results_Future, capnp.ReleaseFunc) {
+func (c CapHistoryCursor) Next(ctx context.Context, params func(CapHistoryCursor_next_Params) error) (CapHistoryCursor_next_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
-			InterfaceID:   0xb9e959737479a03d,
+			InterfaceID:   0x9d62a769e5dd0281,
 			MethodID:      2,
-			InterfaceName: "hubapi/History.capnp:CapUpdateHistory",
-			MethodName:    "addEvents",
+			InterfaceName: "hubapi/History.capnp:CapHistoryCursor",
+			MethodName:    "next",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapHistoryCursor_next_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapHistoryCursor_next_Results_Future{Future: ans.Future()}, release
+}
+func (c CapHistoryCursor) NextN(ctx context.Context, params func(CapHistoryCursor_nextN_Params) error) (CapHistoryCursor_nextN_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0x9d62a769e5dd0281,
+			MethodID:      3,
+			InterfaceName: "hubapi/History.capnp:CapHistoryCursor",
+			MethodName:    "nextN",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 8, PointerCount: 0}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapHistoryCursor_nextN_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapHistoryCursor_nextN_Results_Future{Future: ans.Future()}, release
+}
+func (c CapHistoryCursor) Prev(ctx context.Context, params func(CapHistoryCursor_prev_Params) error) (CapHistoryCursor_prev_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0x9d62a769e5dd0281,
+			MethodID:      4,
+			InterfaceName: "hubapi/History.capnp:CapHistoryCursor",
+			MethodName:    "prev",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapHistoryCursor_prev_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapHistoryCursor_prev_Results_Future{Future: ans.Future()}, release
+}
+func (c CapHistoryCursor) PrevN(ctx context.Context, params func(CapHistoryCursor_prevN_Params) error) (CapHistoryCursor_prevN_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0x9d62a769e5dd0281,
+			MethodID:      5,
+			InterfaceName: "hubapi/History.capnp:CapHistoryCursor",
+			MethodName:    "prevN",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 8, PointerCount: 0}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapHistoryCursor_prevN_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapHistoryCursor_prevN_Results_Future{Future: ans.Future()}, release
+}
+func (c CapHistoryCursor) Seek(ctx context.Context, params func(CapHistoryCursor_seek_Params) error) (CapHistoryCursor_seek_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0x9d62a769e5dd0281,
+			MethodID:      6,
+			InterfaceName: "hubapi/History.capnp:CapHistoryCursor",
+			MethodName:    "seek",
 		},
 	}
 	if params != nil {
 		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapUpdateHistory_addEvents_Params(s)) }
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapHistoryCursor_seek_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapUpdateHistory_addEvents_Results_Future{Future: ans.Future()}, release
+	return CapHistoryCursor_seek_Results_Future{Future: ans.Future()}, release
 }
 
-func (c CapUpdateHistory) AddRef() CapUpdateHistory {
-	return CapUpdateHistory(capnp.Client(c).AddRef())
+func (c CapHistoryCursor) AddRef() CapHistoryCursor {
+	return CapHistoryCursor(capnp.Client(c).AddRef())
 }
 
-func (c CapUpdateHistory) Release() {
+func (c CapHistoryCursor) Release() {
 	capnp.Client(c).Release()
 }
 
-func (c CapUpdateHistory) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (c CapHistoryCursor) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Client(c).EncodeAsPtr(seg)
 }
 
-func (CapUpdateHistory) DecodeFromPtr(p capnp.Ptr) CapUpdateHistory {
-	return CapUpdateHistory(capnp.Client{}.DecodeFromPtr(p))
+func (CapHistoryCursor) DecodeFromPtr(p capnp.Ptr) CapHistoryCursor {
+	return CapHistoryCursor(capnp.Client{}.DecodeFromPtr(p))
 }
 
-func (c CapUpdateHistory) IsValid() bool {
+func (c CapHistoryCursor) IsValid() bool {
 	return capnp.Client(c).IsValid()
 }
 
-// A CapUpdateHistory_Server is a CapUpdateHistory with a local implementation.
-type CapUpdateHistory_Server interface {
-	AddAction(context.Context, CapUpdateHistory_addAction) error
+// A CapHistoryCursor_Server is a CapHistoryCursor with a local implementation.
+type CapHistoryCursor_Server interface {
+	First(context.Context, CapHistoryCursor_first) error
 
-	AddEvent(context.Context, CapUpdateHistory_addEvent) error
+	Last(context.Context, CapHistoryCursor_last) error
 
-	AddEvents(context.Context, CapUpdateHistory_addEvents) error
+	Next(context.Context, CapHistoryCursor_next) error
+
+	NextN(context.Context, CapHistoryCursor_nextN) error
+
+	Prev(context.Context, CapHistoryCursor_prev) error
+
+	PrevN(context.Context, CapHistoryCursor_prevN) error
+
+	Seek(context.Context, CapHistoryCursor_seek) error
 }
 
-// CapUpdateHistory_NewServer creates a new Server from an implementation of CapUpdateHistory_Server.
-func CapUpdateHistory_NewServer(s CapUpdateHistory_Server) *server.Server {
+// CapHistoryCursor_NewServer creates a new Server from an implementation of CapHistoryCursor_Server.
+func CapHistoryCursor_NewServer(s CapHistoryCursor_Server) *server.Server {
 	c, _ := s.(server.Shutdowner)
-	return server.New(CapUpdateHistory_Methods(nil, s), s, c)
+	return server.New(CapHistoryCursor_Methods(nil, s), s, c)
 }
 
-// CapUpdateHistory_ServerToClient creates a new Client from an implementation of CapUpdateHistory_Server.
+// CapHistoryCursor_ServerToClient creates a new Client from an implementation of CapHistoryCursor_Server.
 // The caller is responsible for calling Release on the returned Client.
-func CapUpdateHistory_ServerToClient(s CapUpdateHistory_Server) CapUpdateHistory {
-	return CapUpdateHistory(capnp.NewClient(CapUpdateHistory_NewServer(s)))
+func CapHistoryCursor_ServerToClient(s CapHistoryCursor_Server) CapHistoryCursor {
+	return CapHistoryCursor(capnp.NewClient(CapHistoryCursor_NewServer(s)))
 }
 
-// CapUpdateHistory_Methods appends Methods to a slice that invoke the methods on s.
+// CapHistoryCursor_Methods appends Methods to a slice that invoke the methods on s.
 // This can be used to create a more complicated Server.
-func CapUpdateHistory_Methods(methods []server.Method, s CapUpdateHistory_Server) []server.Method {
+func CapHistoryCursor_Methods(methods []server.Method, s CapHistoryCursor_Server) []server.Method {
 	if cap(methods) == 0 {
-		methods = make([]server.Method, 0, 3)
+		methods = make([]server.Method, 0, 7)
 	}
 
 	methods = append(methods, server.Method{
 		Method: capnp.Method{
-			InterfaceID:   0xb9e959737479a03d,
+			InterfaceID:   0x9d62a769e5dd0281,
 			MethodID:      0,
-			InterfaceName: "hubapi/History.capnp:CapUpdateHistory",
-			MethodName:    "addAction",
+			InterfaceName: "hubapi/History.capnp:CapHistoryCursor",
+			MethodName:    "first",
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.AddAction(ctx, CapUpdateHistory_addAction{call})
+			return s.First(ctx, CapHistoryCursor_first{call})
 		},
 	})
 
 	methods = append(methods, server.Method{
 		Method: capnp.Method{
-			InterfaceID:   0xb9e959737479a03d,
+			InterfaceID:   0x9d62a769e5dd0281,
 			MethodID:      1,
-			InterfaceName: "hubapi/History.capnp:CapUpdateHistory",
-			MethodName:    "addEvent",
+			InterfaceName: "hubapi/History.capnp:CapHistoryCursor",
+			MethodName:    "last",
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.AddEvent(ctx, CapUpdateHistory_addEvent{call})
+			return s.Last(ctx, CapHistoryCursor_last{call})
 		},
 	})
 
 	methods = append(methods, server.Method{
 		Method: capnp.Method{
-			InterfaceID:   0xb9e959737479a03d,
+			InterfaceID:   0x9d62a769e5dd0281,
 			MethodID:      2,
-			InterfaceName: "hubapi/History.capnp:CapUpdateHistory",
-			MethodName:    "addEvents",
+			InterfaceName: "hubapi/History.capnp:CapHistoryCursor",
+			MethodName:    "next",
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.AddEvents(ctx, CapUpdateHistory_addEvents{call})
+			return s.Next(ctx, CapHistoryCursor_next{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0x9d62a769e5dd0281,
+			MethodID:      3,
+			InterfaceName: "hubapi/History.capnp:CapHistoryCursor",
+			MethodName:    "nextN",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.NextN(ctx, CapHistoryCursor_nextN{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0x9d62a769e5dd0281,
+			MethodID:      4,
+			InterfaceName: "hubapi/History.capnp:CapHistoryCursor",
+			MethodName:    "prev",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.Prev(ctx, CapHistoryCursor_prev{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0x9d62a769e5dd0281,
+			MethodID:      5,
+			InterfaceName: "hubapi/History.capnp:CapHistoryCursor",
+			MethodName:    "prevN",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.PrevN(ctx, CapHistoryCursor_prevN{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0x9d62a769e5dd0281,
+			MethodID:      6,
+			InterfaceName: "hubapi/History.capnp:CapHistoryCursor",
+			MethodName:    "seek",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.Seek(ctx, CapHistoryCursor_seek{call})
 		},
 	})
 
 	return methods
 }
 
-// CapUpdateHistory_addAction holds the state for a server call to CapUpdateHistory.addAction.
+// CapHistoryCursor_first holds the state for a server call to CapHistoryCursor.first.
 // See server.Call for documentation.
-type CapUpdateHistory_addAction struct {
+type CapHistoryCursor_first struct {
 	*server.Call
 }
 
 // Args returns the call's arguments.
-func (c CapUpdateHistory_addAction) Args() CapUpdateHistory_addAction_Params {
-	return CapUpdateHistory_addAction_Params(c.Call.Args())
+func (c CapHistoryCursor_first) Args() CapHistoryCursor_first_Params {
+	return CapHistoryCursor_first_Params(c.Call.Args())
 }
 
 // AllocResults allocates the results struct.
-func (c CapUpdateHistory_addAction) AllocResults() (CapUpdateHistory_addAction_Results, error) {
-	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapUpdateHistory_addAction_Results(r), err
+func (c CapHistoryCursor_first) AllocResults() (CapHistoryCursor_first_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapHistoryCursor_first_Results(r), err
 }
 
-// CapUpdateHistory_addEvent holds the state for a server call to CapUpdateHistory.addEvent.
+// CapHistoryCursor_last holds the state for a server call to CapHistoryCursor.last.
 // See server.Call for documentation.
-type CapUpdateHistory_addEvent struct {
+type CapHistoryCursor_last struct {
 	*server.Call
 }
 
 // Args returns the call's arguments.
-func (c CapUpdateHistory_addEvent) Args() CapUpdateHistory_addEvent_Params {
-	return CapUpdateHistory_addEvent_Params(c.Call.Args())
+func (c CapHistoryCursor_last) Args() CapHistoryCursor_last_Params {
+	return CapHistoryCursor_last_Params(c.Call.Args())
 }
 
 // AllocResults allocates the results struct.
-func (c CapUpdateHistory_addEvent) AllocResults() (CapUpdateHistory_addEvent_Results, error) {
-	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapUpdateHistory_addEvent_Results(r), err
+func (c CapHistoryCursor_last) AllocResults() (CapHistoryCursor_last_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapHistoryCursor_last_Results(r), err
 }
 
-// CapUpdateHistory_addEvents holds the state for a server call to CapUpdateHistory.addEvents.
+// CapHistoryCursor_next holds the state for a server call to CapHistoryCursor.next.
 // See server.Call for documentation.
-type CapUpdateHistory_addEvents struct {
+type CapHistoryCursor_next struct {
 	*server.Call
 }
 
 // Args returns the call's arguments.
-func (c CapUpdateHistory_addEvents) Args() CapUpdateHistory_addEvents_Params {
-	return CapUpdateHistory_addEvents_Params(c.Call.Args())
+func (c CapHistoryCursor_next) Args() CapHistoryCursor_next_Params {
+	return CapHistoryCursor_next_Params(c.Call.Args())
 }
 
 // AllocResults allocates the results struct.
-func (c CapUpdateHistory_addEvents) AllocResults() (CapUpdateHistory_addEvents_Results, error) {
-	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapUpdateHistory_addEvents_Results(r), err
+func (c CapHistoryCursor_next) AllocResults() (CapHistoryCursor_next_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapHistoryCursor_next_Results(r), err
 }
 
-// CapUpdateHistory_List is a list of CapUpdateHistory.
-type CapUpdateHistory_List = capnp.CapList[CapUpdateHistory]
+// CapHistoryCursor_nextN holds the state for a server call to CapHistoryCursor.nextN.
+// See server.Call for documentation.
+type CapHistoryCursor_nextN struct {
+	*server.Call
+}
 
-// NewCapUpdateHistory creates a new list of CapUpdateHistory.
-func NewCapUpdateHistory_List(s *capnp.Segment, sz int32) (CapUpdateHistory_List, error) {
+// Args returns the call's arguments.
+func (c CapHistoryCursor_nextN) Args() CapHistoryCursor_nextN_Params {
+	return CapHistoryCursor_nextN_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c CapHistoryCursor_nextN) AllocResults() (CapHistoryCursor_nextN_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapHistoryCursor_nextN_Results(r), err
+}
+
+// CapHistoryCursor_prev holds the state for a server call to CapHistoryCursor.prev.
+// See server.Call for documentation.
+type CapHistoryCursor_prev struct {
+	*server.Call
+}
+
+// Args returns the call's arguments.
+func (c CapHistoryCursor_prev) Args() CapHistoryCursor_prev_Params {
+	return CapHistoryCursor_prev_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c CapHistoryCursor_prev) AllocResults() (CapHistoryCursor_prev_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapHistoryCursor_prev_Results(r), err
+}
+
+// CapHistoryCursor_prevN holds the state for a server call to CapHistoryCursor.prevN.
+// See server.Call for documentation.
+type CapHistoryCursor_prevN struct {
+	*server.Call
+}
+
+// Args returns the call's arguments.
+func (c CapHistoryCursor_prevN) Args() CapHistoryCursor_prevN_Params {
+	return CapHistoryCursor_prevN_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c CapHistoryCursor_prevN) AllocResults() (CapHistoryCursor_prevN_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapHistoryCursor_prevN_Results(r), err
+}
+
+// CapHistoryCursor_seek holds the state for a server call to CapHistoryCursor.seek.
+// See server.Call for documentation.
+type CapHistoryCursor_seek struct {
+	*server.Call
+}
+
+// Args returns the call's arguments.
+func (c CapHistoryCursor_seek) Args() CapHistoryCursor_seek_Params {
+	return CapHistoryCursor_seek_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c CapHistoryCursor_seek) AllocResults() (CapHistoryCursor_seek_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapHistoryCursor_seek_Results(r), err
+}
+
+// CapHistoryCursor_List is a list of CapHistoryCursor.
+type CapHistoryCursor_List = capnp.CapList[CapHistoryCursor]
+
+// NewCapHistoryCursor creates a new list of CapHistoryCursor.
+func NewCapHistoryCursor_List(s *capnp.Segment, sz int32) (CapHistoryCursor_List, error) {
 	l, err := capnp.NewPointerList(s, sz)
-	return capnp.CapList[CapUpdateHistory](l), err
+	return capnp.CapList[CapHistoryCursor](l), err
 }
 
-type CapUpdateHistory_addAction_Params capnp.Struct
+type CapHistoryCursor_first_Params capnp.Struct
 
-// CapUpdateHistory_addAction_Params_TypeID is the unique identifier for the type CapUpdateHistory_addAction_Params.
-const CapUpdateHistory_addAction_Params_TypeID = 0x81f2747c1ccb1b48
+// CapHistoryCursor_first_Params_TypeID is the unique identifier for the type CapHistoryCursor_first_Params.
+const CapHistoryCursor_first_Params_TypeID = 0xcf1afe8826feb5a0
 
-func NewCapUpdateHistory_addAction_Params(s *capnp.Segment) (CapUpdateHistory_addAction_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapUpdateHistory_addAction_Params(st), err
+func NewCapHistoryCursor_first_Params(s *capnp.Segment) (CapHistoryCursor_first_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapHistoryCursor_first_Params(st), err
 }
 
-func NewRootCapUpdateHistory_addAction_Params(s *capnp.Segment) (CapUpdateHistory_addAction_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapUpdateHistory_addAction_Params(st), err
+func NewRootCapHistoryCursor_first_Params(s *capnp.Segment) (CapHistoryCursor_first_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapHistoryCursor_first_Params(st), err
 }
 
-func ReadRootCapUpdateHistory_addAction_Params(msg *capnp.Message) (CapUpdateHistory_addAction_Params, error) {
+func ReadRootCapHistoryCursor_first_Params(msg *capnp.Message) (CapHistoryCursor_first_Params, error) {
 	root, err := msg.Root()
-	return CapUpdateHistory_addAction_Params(root.Struct()), err
+	return CapHistoryCursor_first_Params(root.Struct()), err
 }
 
-func (s CapUpdateHistory_addAction_Params) String() string {
-	str, _ := text.Marshal(0x81f2747c1ccb1b48, capnp.Struct(s))
+func (s CapHistoryCursor_first_Params) String() string {
+	str, _ := text.Marshal(0xcf1afe8826feb5a0, capnp.Struct(s))
 	return str
 }
 
-func (s CapUpdateHistory_addAction_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapHistoryCursor_first_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapUpdateHistory_addAction_Params) DecodeFromPtr(p capnp.Ptr) CapUpdateHistory_addAction_Params {
-	return CapUpdateHistory_addAction_Params(capnp.Struct{}.DecodeFromPtr(p))
+func (CapHistoryCursor_first_Params) DecodeFromPtr(p capnp.Ptr) CapHistoryCursor_first_Params {
+	return CapHistoryCursor_first_Params(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapUpdateHistory_addAction_Params) ToPtr() capnp.Ptr {
+func (s CapHistoryCursor_first_Params) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapUpdateHistory_addAction_Params) IsValid() bool {
+func (s CapHistoryCursor_first_Params) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapUpdateHistory_addAction_Params) Message() *capnp.Message {
+func (s CapHistoryCursor_first_Params) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapUpdateHistory_addAction_Params) Segment() *capnp.Segment {
+func (s CapHistoryCursor_first_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapUpdateHistory_addAction_Params) ActionValue() (ThingValue, error) {
+
+// CapHistoryCursor_first_Params_List is a list of CapHistoryCursor_first_Params.
+type CapHistoryCursor_first_Params_List = capnp.StructList[CapHistoryCursor_first_Params]
+
+// NewCapHistoryCursor_first_Params creates a new list of CapHistoryCursor_first_Params.
+func NewCapHistoryCursor_first_Params_List(s *capnp.Segment, sz int32) (CapHistoryCursor_first_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
+	return capnp.StructList[CapHistoryCursor_first_Params](l), err
+}
+
+// CapHistoryCursor_first_Params_Future is a wrapper for a CapHistoryCursor_first_Params promised by a client call.
+type CapHistoryCursor_first_Params_Future struct{ *capnp.Future }
+
+func (p CapHistoryCursor_first_Params_Future) Struct() (CapHistoryCursor_first_Params, error) {
+	s, err := p.Future.Struct()
+	return CapHistoryCursor_first_Params(s), err
+}
+
+type CapHistoryCursor_first_Results capnp.Struct
+
+// CapHistoryCursor_first_Results_TypeID is the unique identifier for the type CapHistoryCursor_first_Results.
+const CapHistoryCursor_first_Results_TypeID = 0xf473c4c1fb580a07
+
+func NewCapHistoryCursor_first_Results(s *capnp.Segment) (CapHistoryCursor_first_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapHistoryCursor_first_Results(st), err
+}
+
+func NewRootCapHistoryCursor_first_Results(s *capnp.Segment) (CapHistoryCursor_first_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapHistoryCursor_first_Results(st), err
+}
+
+func ReadRootCapHistoryCursor_first_Results(msg *capnp.Message) (CapHistoryCursor_first_Results, error) {
+	root, err := msg.Root()
+	return CapHistoryCursor_first_Results(root.Struct()), err
+}
+
+func (s CapHistoryCursor_first_Results) String() string {
+	str, _ := text.Marshal(0xf473c4c1fb580a07, capnp.Struct(s))
+	return str
+}
+
+func (s CapHistoryCursor_first_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapHistoryCursor_first_Results) DecodeFromPtr(p capnp.Ptr) CapHistoryCursor_first_Results {
+	return CapHistoryCursor_first_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapHistoryCursor_first_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapHistoryCursor_first_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapHistoryCursor_first_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapHistoryCursor_first_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapHistoryCursor_first_Results) ThingValue() (ThingValue, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return ThingValue(p.Struct()), err
 }
 
-func (s CapUpdateHistory_addAction_Params) HasActionValue() bool {
+func (s CapHistoryCursor_first_Results) HasThingValue() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapUpdateHistory_addAction_Params) SetActionValue(v ThingValue) error {
+func (s CapHistoryCursor_first_Results) SetThingValue(v ThingValue) error {
 	return capnp.Struct(s).SetPtr(0, capnp.Struct(v).ToPtr())
 }
 
-// NewActionValue sets the actionValue field to a newly
+// NewThingValue sets the thingValue field to a newly
 // allocated ThingValue struct, preferring placement in s's segment.
-func (s CapUpdateHistory_addAction_Params) NewActionValue() (ThingValue, error) {
+func (s CapHistoryCursor_first_Results) NewThingValue() (ThingValue, error) {
 	ss, err := NewThingValue(capnp.Struct(s).Segment())
 	if err != nil {
 		return ThingValue{}, err
@@ -2226,155 +2593,163 @@ func (s CapUpdateHistory_addAction_Params) NewActionValue() (ThingValue, error) 
 	return ss, err
 }
 
-// CapUpdateHistory_addAction_Params_List is a list of CapUpdateHistory_addAction_Params.
-type CapUpdateHistory_addAction_Params_List = capnp.StructList[CapUpdateHistory_addAction_Params]
-
-// NewCapUpdateHistory_addAction_Params creates a new list of CapUpdateHistory_addAction_Params.
-func NewCapUpdateHistory_addAction_Params_List(s *capnp.Segment, sz int32) (CapUpdateHistory_addAction_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapUpdateHistory_addAction_Params](l), err
+func (s CapHistoryCursor_first_Results) Valid() bool {
+	return capnp.Struct(s).Bit(0)
 }
 
-// CapUpdateHistory_addAction_Params_Future is a wrapper for a CapUpdateHistory_addAction_Params promised by a client call.
-type CapUpdateHistory_addAction_Params_Future struct{ *capnp.Future }
+func (s CapHistoryCursor_first_Results) SetValid(v bool) {
+	capnp.Struct(s).SetBit(0, v)
+}
 
-func (p CapUpdateHistory_addAction_Params_Future) Struct() (CapUpdateHistory_addAction_Params, error) {
+// CapHistoryCursor_first_Results_List is a list of CapHistoryCursor_first_Results.
+type CapHistoryCursor_first_Results_List = capnp.StructList[CapHistoryCursor_first_Results]
+
+// NewCapHistoryCursor_first_Results creates a new list of CapHistoryCursor_first_Results.
+func NewCapHistoryCursor_first_Results_List(s *capnp.Segment, sz int32) (CapHistoryCursor_first_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1}, sz)
+	return capnp.StructList[CapHistoryCursor_first_Results](l), err
+}
+
+// CapHistoryCursor_first_Results_Future is a wrapper for a CapHistoryCursor_first_Results promised by a client call.
+type CapHistoryCursor_first_Results_Future struct{ *capnp.Future }
+
+func (p CapHistoryCursor_first_Results_Future) Struct() (CapHistoryCursor_first_Results, error) {
 	s, err := p.Future.Struct()
-	return CapUpdateHistory_addAction_Params(s), err
+	return CapHistoryCursor_first_Results(s), err
 }
 
-func (p CapUpdateHistory_addAction_Params_Future) ActionValue() ThingValue_Future {
+func (p CapHistoryCursor_first_Results_Future) ThingValue() ThingValue_Future {
 	return ThingValue_Future{Future: p.Future.Field(0, nil)}
 }
 
-type CapUpdateHistory_addAction_Results capnp.Struct
+type CapHistoryCursor_last_Params capnp.Struct
 
-// CapUpdateHistory_addAction_Results_TypeID is the unique identifier for the type CapUpdateHistory_addAction_Results.
-const CapUpdateHistory_addAction_Results_TypeID = 0xda08a835ed3f9590
+// CapHistoryCursor_last_Params_TypeID is the unique identifier for the type CapHistoryCursor_last_Params.
+const CapHistoryCursor_last_Params_TypeID = 0xc986f64c6c14ca4f
 
-func NewCapUpdateHistory_addAction_Results(s *capnp.Segment) (CapUpdateHistory_addAction_Results, error) {
+func NewCapHistoryCursor_last_Params(s *capnp.Segment) (CapHistoryCursor_last_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapUpdateHistory_addAction_Results(st), err
+	return CapHistoryCursor_last_Params(st), err
 }
 
-func NewRootCapUpdateHistory_addAction_Results(s *capnp.Segment) (CapUpdateHistory_addAction_Results, error) {
+func NewRootCapHistoryCursor_last_Params(s *capnp.Segment) (CapHistoryCursor_last_Params, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapUpdateHistory_addAction_Results(st), err
+	return CapHistoryCursor_last_Params(st), err
 }
 
-func ReadRootCapUpdateHistory_addAction_Results(msg *capnp.Message) (CapUpdateHistory_addAction_Results, error) {
+func ReadRootCapHistoryCursor_last_Params(msg *capnp.Message) (CapHistoryCursor_last_Params, error) {
 	root, err := msg.Root()
-	return CapUpdateHistory_addAction_Results(root.Struct()), err
+	return CapHistoryCursor_last_Params(root.Struct()), err
 }
 
-func (s CapUpdateHistory_addAction_Results) String() string {
-	str, _ := text.Marshal(0xda08a835ed3f9590, capnp.Struct(s))
+func (s CapHistoryCursor_last_Params) String() string {
+	str, _ := text.Marshal(0xc986f64c6c14ca4f, capnp.Struct(s))
 	return str
 }
 
-func (s CapUpdateHistory_addAction_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapHistoryCursor_last_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapUpdateHistory_addAction_Results) DecodeFromPtr(p capnp.Ptr) CapUpdateHistory_addAction_Results {
-	return CapUpdateHistory_addAction_Results(capnp.Struct{}.DecodeFromPtr(p))
+func (CapHistoryCursor_last_Params) DecodeFromPtr(p capnp.Ptr) CapHistoryCursor_last_Params {
+	return CapHistoryCursor_last_Params(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapUpdateHistory_addAction_Results) ToPtr() capnp.Ptr {
+func (s CapHistoryCursor_last_Params) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapUpdateHistory_addAction_Results) IsValid() bool {
+func (s CapHistoryCursor_last_Params) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapUpdateHistory_addAction_Results) Message() *capnp.Message {
+func (s CapHistoryCursor_last_Params) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapUpdateHistory_addAction_Results) Segment() *capnp.Segment {
+func (s CapHistoryCursor_last_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
 
-// CapUpdateHistory_addAction_Results_List is a list of CapUpdateHistory_addAction_Results.
-type CapUpdateHistory_addAction_Results_List = capnp.StructList[CapUpdateHistory_addAction_Results]
+// CapHistoryCursor_last_Params_List is a list of CapHistoryCursor_last_Params.
+type CapHistoryCursor_last_Params_List = capnp.StructList[CapHistoryCursor_last_Params]
 
-// NewCapUpdateHistory_addAction_Results creates a new list of CapUpdateHistory_addAction_Results.
-func NewCapUpdateHistory_addAction_Results_List(s *capnp.Segment, sz int32) (CapUpdateHistory_addAction_Results_List, error) {
+// NewCapHistoryCursor_last_Params creates a new list of CapHistoryCursor_last_Params.
+func NewCapHistoryCursor_last_Params_List(s *capnp.Segment, sz int32) (CapHistoryCursor_last_Params_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
-	return capnp.StructList[CapUpdateHistory_addAction_Results](l), err
+	return capnp.StructList[CapHistoryCursor_last_Params](l), err
 }
 
-// CapUpdateHistory_addAction_Results_Future is a wrapper for a CapUpdateHistory_addAction_Results promised by a client call.
-type CapUpdateHistory_addAction_Results_Future struct{ *capnp.Future }
+// CapHistoryCursor_last_Params_Future is a wrapper for a CapHistoryCursor_last_Params promised by a client call.
+type CapHistoryCursor_last_Params_Future struct{ *capnp.Future }
 
-func (p CapUpdateHistory_addAction_Results_Future) Struct() (CapUpdateHistory_addAction_Results, error) {
+func (p CapHistoryCursor_last_Params_Future) Struct() (CapHistoryCursor_last_Params, error) {
 	s, err := p.Future.Struct()
-	return CapUpdateHistory_addAction_Results(s), err
+	return CapHistoryCursor_last_Params(s), err
 }
 
-type CapUpdateHistory_addEvent_Params capnp.Struct
+type CapHistoryCursor_last_Results capnp.Struct
 
-// CapUpdateHistory_addEvent_Params_TypeID is the unique identifier for the type CapUpdateHistory_addEvent_Params.
-const CapUpdateHistory_addEvent_Params_TypeID = 0xb4510fcd9b40b1d4
+// CapHistoryCursor_last_Results_TypeID is the unique identifier for the type CapHistoryCursor_last_Results.
+const CapHistoryCursor_last_Results_TypeID = 0x9f1384ed24dccf37
 
-func NewCapUpdateHistory_addEvent_Params(s *capnp.Segment) (CapUpdateHistory_addEvent_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapUpdateHistory_addEvent_Params(st), err
+func NewCapHistoryCursor_last_Results(s *capnp.Segment) (CapHistoryCursor_last_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapHistoryCursor_last_Results(st), err
 }
 
-func NewRootCapUpdateHistory_addEvent_Params(s *capnp.Segment) (CapUpdateHistory_addEvent_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapUpdateHistory_addEvent_Params(st), err
+func NewRootCapHistoryCursor_last_Results(s *capnp.Segment) (CapHistoryCursor_last_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapHistoryCursor_last_Results(st), err
 }
 
-func ReadRootCapUpdateHistory_addEvent_Params(msg *capnp.Message) (CapUpdateHistory_addEvent_Params, error) {
+func ReadRootCapHistoryCursor_last_Results(msg *capnp.Message) (CapHistoryCursor_last_Results, error) {
 	root, err := msg.Root()
-	return CapUpdateHistory_addEvent_Params(root.Struct()), err
+	return CapHistoryCursor_last_Results(root.Struct()), err
 }
 
-func (s CapUpdateHistory_addEvent_Params) String() string {
-	str, _ := text.Marshal(0xb4510fcd9b40b1d4, capnp.Struct(s))
+func (s CapHistoryCursor_last_Results) String() string {
+	str, _ := text.Marshal(0x9f1384ed24dccf37, capnp.Struct(s))
 	return str
 }
 
-func (s CapUpdateHistory_addEvent_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapHistoryCursor_last_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapUpdateHistory_addEvent_Params) DecodeFromPtr(p capnp.Ptr) CapUpdateHistory_addEvent_Params {
-	return CapUpdateHistory_addEvent_Params(capnp.Struct{}.DecodeFromPtr(p))
+func (CapHistoryCursor_last_Results) DecodeFromPtr(p capnp.Ptr) CapHistoryCursor_last_Results {
+	return CapHistoryCursor_last_Results(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapUpdateHistory_addEvent_Params) ToPtr() capnp.Ptr {
+func (s CapHistoryCursor_last_Results) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapUpdateHistory_addEvent_Params) IsValid() bool {
+func (s CapHistoryCursor_last_Results) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapUpdateHistory_addEvent_Params) Message() *capnp.Message {
+func (s CapHistoryCursor_last_Results) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapUpdateHistory_addEvent_Params) Segment() *capnp.Segment {
+func (s CapHistoryCursor_last_Results) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapUpdateHistory_addEvent_Params) EventValue() (ThingValue, error) {
+func (s CapHistoryCursor_last_Results) ThingValue() (ThingValue, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return ThingValue(p.Struct()), err
 }
 
-func (s CapUpdateHistory_addEvent_Params) HasEventValue() bool {
+func (s CapHistoryCursor_last_Results) HasThingValue() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapUpdateHistory_addEvent_Params) SetEventValue(v ThingValue) error {
+func (s CapHistoryCursor_last_Results) SetThingValue(v ThingValue) error {
 	return capnp.Struct(s).SetPtr(0, capnp.Struct(v).ToPtr())
 }
 
-// NewEventValue sets the eventValue field to a newly
+// NewThingValue sets the thingValue field to a newly
 // allocated ThingValue struct, preferring placement in s's segment.
-func (s CapUpdateHistory_addEvent_Params) NewEventValue() (ThingValue, error) {
+func (s CapHistoryCursor_last_Results) NewThingValue() (ThingValue, error) {
 	ss, err := NewThingValue(capnp.Struct(s).Segment())
 	if err != nil {
 		return ThingValue{}, err
@@ -2383,155 +2758,335 @@ func (s CapUpdateHistory_addEvent_Params) NewEventValue() (ThingValue, error) {
 	return ss, err
 }
 
-// CapUpdateHistory_addEvent_Params_List is a list of CapUpdateHistory_addEvent_Params.
-type CapUpdateHistory_addEvent_Params_List = capnp.StructList[CapUpdateHistory_addEvent_Params]
-
-// NewCapUpdateHistory_addEvent_Params creates a new list of CapUpdateHistory_addEvent_Params.
-func NewCapUpdateHistory_addEvent_Params_List(s *capnp.Segment, sz int32) (CapUpdateHistory_addEvent_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapUpdateHistory_addEvent_Params](l), err
+func (s CapHistoryCursor_last_Results) Valid() bool {
+	return capnp.Struct(s).Bit(0)
 }
 
-// CapUpdateHistory_addEvent_Params_Future is a wrapper for a CapUpdateHistory_addEvent_Params promised by a client call.
-type CapUpdateHistory_addEvent_Params_Future struct{ *capnp.Future }
+func (s CapHistoryCursor_last_Results) SetValid(v bool) {
+	capnp.Struct(s).SetBit(0, v)
+}
 
-func (p CapUpdateHistory_addEvent_Params_Future) Struct() (CapUpdateHistory_addEvent_Params, error) {
+// CapHistoryCursor_last_Results_List is a list of CapHistoryCursor_last_Results.
+type CapHistoryCursor_last_Results_List = capnp.StructList[CapHistoryCursor_last_Results]
+
+// NewCapHistoryCursor_last_Results creates a new list of CapHistoryCursor_last_Results.
+func NewCapHistoryCursor_last_Results_List(s *capnp.Segment, sz int32) (CapHistoryCursor_last_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1}, sz)
+	return capnp.StructList[CapHistoryCursor_last_Results](l), err
+}
+
+// CapHistoryCursor_last_Results_Future is a wrapper for a CapHistoryCursor_last_Results promised by a client call.
+type CapHistoryCursor_last_Results_Future struct{ *capnp.Future }
+
+func (p CapHistoryCursor_last_Results_Future) Struct() (CapHistoryCursor_last_Results, error) {
 	s, err := p.Future.Struct()
-	return CapUpdateHistory_addEvent_Params(s), err
+	return CapHistoryCursor_last_Results(s), err
 }
 
-func (p CapUpdateHistory_addEvent_Params_Future) EventValue() ThingValue_Future {
+func (p CapHistoryCursor_last_Results_Future) ThingValue() ThingValue_Future {
 	return ThingValue_Future{Future: p.Future.Field(0, nil)}
 }
 
-type CapUpdateHistory_addEvent_Results capnp.Struct
+type CapHistoryCursor_next_Params capnp.Struct
 
-// CapUpdateHistory_addEvent_Results_TypeID is the unique identifier for the type CapUpdateHistory_addEvent_Results.
-const CapUpdateHistory_addEvent_Results_TypeID = 0xa4e0b4f3ab9b970e
+// CapHistoryCursor_next_Params_TypeID is the unique identifier for the type CapHistoryCursor_next_Params.
+const CapHistoryCursor_next_Params_TypeID = 0xbdeae8c7974b47f8
 
-func NewCapUpdateHistory_addEvent_Results(s *capnp.Segment) (CapUpdateHistory_addEvent_Results, error) {
+func NewCapHistoryCursor_next_Params(s *capnp.Segment) (CapHistoryCursor_next_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapUpdateHistory_addEvent_Results(st), err
+	return CapHistoryCursor_next_Params(st), err
 }
 
-func NewRootCapUpdateHistory_addEvent_Results(s *capnp.Segment) (CapUpdateHistory_addEvent_Results, error) {
+func NewRootCapHistoryCursor_next_Params(s *capnp.Segment) (CapHistoryCursor_next_Params, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapUpdateHistory_addEvent_Results(st), err
+	return CapHistoryCursor_next_Params(st), err
 }
 
-func ReadRootCapUpdateHistory_addEvent_Results(msg *capnp.Message) (CapUpdateHistory_addEvent_Results, error) {
+func ReadRootCapHistoryCursor_next_Params(msg *capnp.Message) (CapHistoryCursor_next_Params, error) {
 	root, err := msg.Root()
-	return CapUpdateHistory_addEvent_Results(root.Struct()), err
+	return CapHistoryCursor_next_Params(root.Struct()), err
 }
 
-func (s CapUpdateHistory_addEvent_Results) String() string {
-	str, _ := text.Marshal(0xa4e0b4f3ab9b970e, capnp.Struct(s))
+func (s CapHistoryCursor_next_Params) String() string {
+	str, _ := text.Marshal(0xbdeae8c7974b47f8, capnp.Struct(s))
 	return str
 }
 
-func (s CapUpdateHistory_addEvent_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapHistoryCursor_next_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapUpdateHistory_addEvent_Results) DecodeFromPtr(p capnp.Ptr) CapUpdateHistory_addEvent_Results {
-	return CapUpdateHistory_addEvent_Results(capnp.Struct{}.DecodeFromPtr(p))
+func (CapHistoryCursor_next_Params) DecodeFromPtr(p capnp.Ptr) CapHistoryCursor_next_Params {
+	return CapHistoryCursor_next_Params(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapUpdateHistory_addEvent_Results) ToPtr() capnp.Ptr {
+func (s CapHistoryCursor_next_Params) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapUpdateHistory_addEvent_Results) IsValid() bool {
+func (s CapHistoryCursor_next_Params) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapUpdateHistory_addEvent_Results) Message() *capnp.Message {
+func (s CapHistoryCursor_next_Params) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapUpdateHistory_addEvent_Results) Segment() *capnp.Segment {
+func (s CapHistoryCursor_next_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
 
-// CapUpdateHistory_addEvent_Results_List is a list of CapUpdateHistory_addEvent_Results.
-type CapUpdateHistory_addEvent_Results_List = capnp.StructList[CapUpdateHistory_addEvent_Results]
+// CapHistoryCursor_next_Params_List is a list of CapHistoryCursor_next_Params.
+type CapHistoryCursor_next_Params_List = capnp.StructList[CapHistoryCursor_next_Params]
 
-// NewCapUpdateHistory_addEvent_Results creates a new list of CapUpdateHistory_addEvent_Results.
-func NewCapUpdateHistory_addEvent_Results_List(s *capnp.Segment, sz int32) (CapUpdateHistory_addEvent_Results_List, error) {
+// NewCapHistoryCursor_next_Params creates a new list of CapHistoryCursor_next_Params.
+func NewCapHistoryCursor_next_Params_List(s *capnp.Segment, sz int32) (CapHistoryCursor_next_Params_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
-	return capnp.StructList[CapUpdateHistory_addEvent_Results](l), err
+	return capnp.StructList[CapHistoryCursor_next_Params](l), err
 }
 
-// CapUpdateHistory_addEvent_Results_Future is a wrapper for a CapUpdateHistory_addEvent_Results promised by a client call.
-type CapUpdateHistory_addEvent_Results_Future struct{ *capnp.Future }
+// CapHistoryCursor_next_Params_Future is a wrapper for a CapHistoryCursor_next_Params promised by a client call.
+type CapHistoryCursor_next_Params_Future struct{ *capnp.Future }
 
-func (p CapUpdateHistory_addEvent_Results_Future) Struct() (CapUpdateHistory_addEvent_Results, error) {
+func (p CapHistoryCursor_next_Params_Future) Struct() (CapHistoryCursor_next_Params, error) {
 	s, err := p.Future.Struct()
-	return CapUpdateHistory_addEvent_Results(s), err
+	return CapHistoryCursor_next_Params(s), err
 }
 
-type CapUpdateHistory_addEvents_Params capnp.Struct
+type CapHistoryCursor_next_Results capnp.Struct
 
-// CapUpdateHistory_addEvents_Params_TypeID is the unique identifier for the type CapUpdateHistory_addEvents_Params.
-const CapUpdateHistory_addEvents_Params_TypeID = 0xc8c2482a448c5a86
+// CapHistoryCursor_next_Results_TypeID is the unique identifier for the type CapHistoryCursor_next_Results.
+const CapHistoryCursor_next_Results_TypeID = 0xfc5dac1667b5feb1
 
-func NewCapUpdateHistory_addEvents_Params(s *capnp.Segment) (CapUpdateHistory_addEvents_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapUpdateHistory_addEvents_Params(st), err
+func NewCapHistoryCursor_next_Results(s *capnp.Segment) (CapHistoryCursor_next_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapHistoryCursor_next_Results(st), err
 }
 
-func NewRootCapUpdateHistory_addEvents_Params(s *capnp.Segment) (CapUpdateHistory_addEvents_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapUpdateHistory_addEvents_Params(st), err
+func NewRootCapHistoryCursor_next_Results(s *capnp.Segment) (CapHistoryCursor_next_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapHistoryCursor_next_Results(st), err
 }
 
-func ReadRootCapUpdateHistory_addEvents_Params(msg *capnp.Message) (CapUpdateHistory_addEvents_Params, error) {
+func ReadRootCapHistoryCursor_next_Results(msg *capnp.Message) (CapHistoryCursor_next_Results, error) {
 	root, err := msg.Root()
-	return CapUpdateHistory_addEvents_Params(root.Struct()), err
+	return CapHistoryCursor_next_Results(root.Struct()), err
 }
 
-func (s CapUpdateHistory_addEvents_Params) String() string {
-	str, _ := text.Marshal(0xc8c2482a448c5a86, capnp.Struct(s))
+func (s CapHistoryCursor_next_Results) String() string {
+	str, _ := text.Marshal(0xfc5dac1667b5feb1, capnp.Struct(s))
 	return str
 }
 
-func (s CapUpdateHistory_addEvents_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapHistoryCursor_next_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapUpdateHistory_addEvents_Params) DecodeFromPtr(p capnp.Ptr) CapUpdateHistory_addEvents_Params {
-	return CapUpdateHistory_addEvents_Params(capnp.Struct{}.DecodeFromPtr(p))
+func (CapHistoryCursor_next_Results) DecodeFromPtr(p capnp.Ptr) CapHistoryCursor_next_Results {
+	return CapHistoryCursor_next_Results(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapUpdateHistory_addEvents_Params) ToPtr() capnp.Ptr {
+func (s CapHistoryCursor_next_Results) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapUpdateHistory_addEvents_Params) IsValid() bool {
+func (s CapHistoryCursor_next_Results) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapUpdateHistory_addEvents_Params) Message() *capnp.Message {
+func (s CapHistoryCursor_next_Results) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapUpdateHistory_addEvents_Params) Segment() *capnp.Segment {
+func (s CapHistoryCursor_next_Results) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapUpdateHistory_addEvents_Params) EventValues() (ThingValue_List, error) {
+func (s CapHistoryCursor_next_Results) ThingValue() (ThingValue, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return ThingValue(p.Struct()), err
+}
+
+func (s CapHistoryCursor_next_Results) HasThingValue() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapHistoryCursor_next_Results) SetThingValue(v ThingValue) error {
+	return capnp.Struct(s).SetPtr(0, capnp.Struct(v).ToPtr())
+}
+
+// NewThingValue sets the thingValue field to a newly
+// allocated ThingValue struct, preferring placement in s's segment.
+func (s CapHistoryCursor_next_Results) NewThingValue() (ThingValue, error) {
+	ss, err := NewThingValue(capnp.Struct(s).Segment())
+	if err != nil {
+		return ThingValue{}, err
+	}
+	err = capnp.Struct(s).SetPtr(0, capnp.Struct(ss).ToPtr())
+	return ss, err
+}
+
+func (s CapHistoryCursor_next_Results) Valid() bool {
+	return capnp.Struct(s).Bit(0)
+}
+
+func (s CapHistoryCursor_next_Results) SetValid(v bool) {
+	capnp.Struct(s).SetBit(0, v)
+}
+
+// CapHistoryCursor_next_Results_List is a list of CapHistoryCursor_next_Results.
+type CapHistoryCursor_next_Results_List = capnp.StructList[CapHistoryCursor_next_Results]
+
+// NewCapHistoryCursor_next_Results creates a new list of CapHistoryCursor_next_Results.
+func NewCapHistoryCursor_next_Results_List(s *capnp.Segment, sz int32) (CapHistoryCursor_next_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1}, sz)
+	return capnp.StructList[CapHistoryCursor_next_Results](l), err
+}
+
+// CapHistoryCursor_next_Results_Future is a wrapper for a CapHistoryCursor_next_Results promised by a client call.
+type CapHistoryCursor_next_Results_Future struct{ *capnp.Future }
+
+func (p CapHistoryCursor_next_Results_Future) Struct() (CapHistoryCursor_next_Results, error) {
+	s, err := p.Future.Struct()
+	return CapHistoryCursor_next_Results(s), err
+}
+
+func (p CapHistoryCursor_next_Results_Future) ThingValue() ThingValue_Future {
+	return ThingValue_Future{Future: p.Future.Field(0, nil)}
+}
+
+type CapHistoryCursor_nextN_Params capnp.Struct
+
+// CapHistoryCursor_nextN_Params_TypeID is the unique identifier for the type CapHistoryCursor_nextN_Params.
+const CapHistoryCursor_nextN_Params_TypeID = 0xe46ac295853f5a28
+
+func NewCapHistoryCursor_nextN_Params(s *capnp.Segment) (CapHistoryCursor_nextN_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0})
+	return CapHistoryCursor_nextN_Params(st), err
+}
+
+func NewRootCapHistoryCursor_nextN_Params(s *capnp.Segment) (CapHistoryCursor_nextN_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0})
+	return CapHistoryCursor_nextN_Params(st), err
+}
+
+func ReadRootCapHistoryCursor_nextN_Params(msg *capnp.Message) (CapHistoryCursor_nextN_Params, error) {
+	root, err := msg.Root()
+	return CapHistoryCursor_nextN_Params(root.Struct()), err
+}
+
+func (s CapHistoryCursor_nextN_Params) String() string {
+	str, _ := text.Marshal(0xe46ac295853f5a28, capnp.Struct(s))
+	return str
+}
+
+func (s CapHistoryCursor_nextN_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapHistoryCursor_nextN_Params) DecodeFromPtr(p capnp.Ptr) CapHistoryCursor_nextN_Params {
+	return CapHistoryCursor_nextN_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapHistoryCursor_nextN_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapHistoryCursor_nextN_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapHistoryCursor_nextN_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapHistoryCursor_nextN_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapHistoryCursor_nextN_Params) Steps() uint32 {
+	return capnp.Struct(s).Uint32(0)
+}
+
+func (s CapHistoryCursor_nextN_Params) SetSteps(v uint32) {
+	capnp.Struct(s).SetUint32(0, v)
+}
+
+// CapHistoryCursor_nextN_Params_List is a list of CapHistoryCursor_nextN_Params.
+type CapHistoryCursor_nextN_Params_List = capnp.StructList[CapHistoryCursor_nextN_Params]
+
+// NewCapHistoryCursor_nextN_Params creates a new list of CapHistoryCursor_nextN_Params.
+func NewCapHistoryCursor_nextN_Params_List(s *capnp.Segment, sz int32) (CapHistoryCursor_nextN_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0}, sz)
+	return capnp.StructList[CapHistoryCursor_nextN_Params](l), err
+}
+
+// CapHistoryCursor_nextN_Params_Future is a wrapper for a CapHistoryCursor_nextN_Params promised by a client call.
+type CapHistoryCursor_nextN_Params_Future struct{ *capnp.Future }
+
+func (p CapHistoryCursor_nextN_Params_Future) Struct() (CapHistoryCursor_nextN_Params, error) {
+	s, err := p.Future.Struct()
+	return CapHistoryCursor_nextN_Params(s), err
+}
+
+type CapHistoryCursor_nextN_Results capnp.Struct
+
+// CapHistoryCursor_nextN_Results_TypeID is the unique identifier for the type CapHistoryCursor_nextN_Results.
+const CapHistoryCursor_nextN_Results_TypeID = 0xee77b061c9ba3ce9
+
+func NewCapHistoryCursor_nextN_Results(s *capnp.Segment) (CapHistoryCursor_nextN_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapHistoryCursor_nextN_Results(st), err
+}
+
+func NewRootCapHistoryCursor_nextN_Results(s *capnp.Segment) (CapHistoryCursor_nextN_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapHistoryCursor_nextN_Results(st), err
+}
+
+func ReadRootCapHistoryCursor_nextN_Results(msg *capnp.Message) (CapHistoryCursor_nextN_Results, error) {
+	root, err := msg.Root()
+	return CapHistoryCursor_nextN_Results(root.Struct()), err
+}
+
+func (s CapHistoryCursor_nextN_Results) String() string {
+	str, _ := text.Marshal(0xee77b061c9ba3ce9, capnp.Struct(s))
+	return str
+}
+
+func (s CapHistoryCursor_nextN_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapHistoryCursor_nextN_Results) DecodeFromPtr(p capnp.Ptr) CapHistoryCursor_nextN_Results {
+	return CapHistoryCursor_nextN_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapHistoryCursor_nextN_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapHistoryCursor_nextN_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapHistoryCursor_nextN_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapHistoryCursor_nextN_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapHistoryCursor_nextN_Results) Batch() (ThingValue_List, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return ThingValue_List(p.List()), err
 }
 
-func (s CapUpdateHistory_addEvents_Params) HasEventValues() bool {
+func (s CapHistoryCursor_nextN_Results) HasBatch() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapUpdateHistory_addEvents_Params) SetEventValues(v ThingValue_List) error {
+func (s CapHistoryCursor_nextN_Results) SetBatch(v ThingValue_List) error {
 	return capnp.Struct(s).SetPtr(0, v.ToPtr())
 }
 
-// NewEventValues sets the eventValues field to a newly
+// NewBatch sets the batch field to a newly
 // allocated ThingValue_List, preferring placement in s's segment.
-func (s CapUpdateHistory_addEvents_Params) NewEventValues(n int32) (ThingValue_List, error) {
+func (s CapHistoryCursor_nextN_Results) NewBatch(n int32) (ThingValue_List, error) {
 	l, err := NewThingValue_List(capnp.Struct(s).Segment(), n)
 	if err != nil {
 		return ThingValue_List{}, err
@@ -2540,221 +3095,695 @@ func (s CapUpdateHistory_addEvents_Params) NewEventValues(n int32) (ThingValue_L
 	return l, err
 }
 
-// CapUpdateHistory_addEvents_Params_List is a list of CapUpdateHistory_addEvents_Params.
-type CapUpdateHistory_addEvents_Params_List = capnp.StructList[CapUpdateHistory_addEvents_Params]
-
-// NewCapUpdateHistory_addEvents_Params creates a new list of CapUpdateHistory_addEvents_Params.
-func NewCapUpdateHistory_addEvents_Params_List(s *capnp.Segment, sz int32) (CapUpdateHistory_addEvents_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapUpdateHistory_addEvents_Params](l), err
+func (s CapHistoryCursor_nextN_Results) Valid() bool {
+	return capnp.Struct(s).Bit(0)
 }
 
-// CapUpdateHistory_addEvents_Params_Future is a wrapper for a CapUpdateHistory_addEvents_Params promised by a client call.
-type CapUpdateHistory_addEvents_Params_Future struct{ *capnp.Future }
+func (s CapHistoryCursor_nextN_Results) SetValid(v bool) {
+	capnp.Struct(s).SetBit(0, v)
+}
 
-func (p CapUpdateHistory_addEvents_Params_Future) Struct() (CapUpdateHistory_addEvents_Params, error) {
+// CapHistoryCursor_nextN_Results_List is a list of CapHistoryCursor_nextN_Results.
+type CapHistoryCursor_nextN_Results_List = capnp.StructList[CapHistoryCursor_nextN_Results]
+
+// NewCapHistoryCursor_nextN_Results creates a new list of CapHistoryCursor_nextN_Results.
+func NewCapHistoryCursor_nextN_Results_List(s *capnp.Segment, sz int32) (CapHistoryCursor_nextN_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1}, sz)
+	return capnp.StructList[CapHistoryCursor_nextN_Results](l), err
+}
+
+// CapHistoryCursor_nextN_Results_Future is a wrapper for a CapHistoryCursor_nextN_Results promised by a client call.
+type CapHistoryCursor_nextN_Results_Future struct{ *capnp.Future }
+
+func (p CapHistoryCursor_nextN_Results_Future) Struct() (CapHistoryCursor_nextN_Results, error) {
 	s, err := p.Future.Struct()
-	return CapUpdateHistory_addEvents_Params(s), err
+	return CapHistoryCursor_nextN_Results(s), err
 }
 
-type CapUpdateHistory_addEvents_Results capnp.Struct
+type CapHistoryCursor_prev_Params capnp.Struct
 
-// CapUpdateHistory_addEvents_Results_TypeID is the unique identifier for the type CapUpdateHistory_addEvents_Results.
-const CapUpdateHistory_addEvents_Results_TypeID = 0xa12d8b55c40f5c89
+// CapHistoryCursor_prev_Params_TypeID is the unique identifier for the type CapHistoryCursor_prev_Params.
+const CapHistoryCursor_prev_Params_TypeID = 0xc6fd08f6df519d73
 
-func NewCapUpdateHistory_addEvents_Results(s *capnp.Segment) (CapUpdateHistory_addEvents_Results, error) {
+func NewCapHistoryCursor_prev_Params(s *capnp.Segment) (CapHistoryCursor_prev_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapUpdateHistory_addEvents_Results(st), err
+	return CapHistoryCursor_prev_Params(st), err
 }
 
-func NewRootCapUpdateHistory_addEvents_Results(s *capnp.Segment) (CapUpdateHistory_addEvents_Results, error) {
+func NewRootCapHistoryCursor_prev_Params(s *capnp.Segment) (CapHistoryCursor_prev_Params, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapUpdateHistory_addEvents_Results(st), err
+	return CapHistoryCursor_prev_Params(st), err
 }
 
-func ReadRootCapUpdateHistory_addEvents_Results(msg *capnp.Message) (CapUpdateHistory_addEvents_Results, error) {
+func ReadRootCapHistoryCursor_prev_Params(msg *capnp.Message) (CapHistoryCursor_prev_Params, error) {
 	root, err := msg.Root()
-	return CapUpdateHistory_addEvents_Results(root.Struct()), err
+	return CapHistoryCursor_prev_Params(root.Struct()), err
 }
 
-func (s CapUpdateHistory_addEvents_Results) String() string {
-	str, _ := text.Marshal(0xa12d8b55c40f5c89, capnp.Struct(s))
+func (s CapHistoryCursor_prev_Params) String() string {
+	str, _ := text.Marshal(0xc6fd08f6df519d73, capnp.Struct(s))
 	return str
 }
 
-func (s CapUpdateHistory_addEvents_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapHistoryCursor_prev_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapUpdateHistory_addEvents_Results) DecodeFromPtr(p capnp.Ptr) CapUpdateHistory_addEvents_Results {
-	return CapUpdateHistory_addEvents_Results(capnp.Struct{}.DecodeFromPtr(p))
+func (CapHistoryCursor_prev_Params) DecodeFromPtr(p capnp.Ptr) CapHistoryCursor_prev_Params {
+	return CapHistoryCursor_prev_Params(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapUpdateHistory_addEvents_Results) ToPtr() capnp.Ptr {
+func (s CapHistoryCursor_prev_Params) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapUpdateHistory_addEvents_Results) IsValid() bool {
+func (s CapHistoryCursor_prev_Params) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapUpdateHistory_addEvents_Results) Message() *capnp.Message {
+func (s CapHistoryCursor_prev_Params) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapUpdateHistory_addEvents_Results) Segment() *capnp.Segment {
+func (s CapHistoryCursor_prev_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
 
-// CapUpdateHistory_addEvents_Results_List is a list of CapUpdateHistory_addEvents_Results.
-type CapUpdateHistory_addEvents_Results_List = capnp.StructList[CapUpdateHistory_addEvents_Results]
+// CapHistoryCursor_prev_Params_List is a list of CapHistoryCursor_prev_Params.
+type CapHistoryCursor_prev_Params_List = capnp.StructList[CapHistoryCursor_prev_Params]
 
-// NewCapUpdateHistory_addEvents_Results creates a new list of CapUpdateHistory_addEvents_Results.
-func NewCapUpdateHistory_addEvents_Results_List(s *capnp.Segment, sz int32) (CapUpdateHistory_addEvents_Results_List, error) {
+// NewCapHistoryCursor_prev_Params creates a new list of CapHistoryCursor_prev_Params.
+func NewCapHistoryCursor_prev_Params_List(s *capnp.Segment, sz int32) (CapHistoryCursor_prev_Params_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
-	return capnp.StructList[CapUpdateHistory_addEvents_Results](l), err
+	return capnp.StructList[CapHistoryCursor_prev_Params](l), err
 }
 
-// CapUpdateHistory_addEvents_Results_Future is a wrapper for a CapUpdateHistory_addEvents_Results promised by a client call.
-type CapUpdateHistory_addEvents_Results_Future struct{ *capnp.Future }
+// CapHistoryCursor_prev_Params_Future is a wrapper for a CapHistoryCursor_prev_Params promised by a client call.
+type CapHistoryCursor_prev_Params_Future struct{ *capnp.Future }
 
-func (p CapUpdateHistory_addEvents_Results_Future) Struct() (CapUpdateHistory_addEvents_Results, error) {
+func (p CapHistoryCursor_prev_Params_Future) Struct() (CapHistoryCursor_prev_Params, error) {
 	s, err := p.Future.Struct()
-	return CapUpdateHistory_addEvents_Results(s), err
+	return CapHistoryCursor_prev_Params(s), err
 }
 
-const schema_f1bd301f7c12caab = "x\xda\xb4V\x7fl\x1cG\x15~ov\xef\xf6\xee|" +
-	"\x8e=\xacO\xa5\x94\xea\x92\xc6\xd08\xed\x85\xb5\x1d\x07" +
-	"b%\xba\x8b\xa9+\xdb`\xc7c7E\xb1\x8a\xda\xb5" +
-	"\xbd\xb6W\xf5\xfd\xf0\xdd^\x9bC\x0e&U\xa1M\xb1" +
-	"\xa1\x15E\x14\xa2\x0a*,\x81\x15\x19\x14\xe3\x08\x15\x01" +
-	"m-,\xda\x02\x02\xa9\x80D\xe1\x0f@\x15(\x11\x08" +
-	"\x15TB\xf2\x07\x8bf\xf7vo|\xb6\xcf.\x94\xff" +
-	"vg\xde\xcc\xf7\xde7\xdf|\xf3\xb4\xa2\x9c\x92[\xeb" +
-	"?\x16\x01\xc2\xce\x04\x82v\xcf-?y\xef\xac\xf5\xf7" +
-	"s@\xdf\x8f\x00\x01T\x00\xdai\xe0{\x08\xa8\xee\x0b" +
-	"$\x01\xed\xe8\x1d\xfb\x7f{\xf3\xc7\x13_\x01\x16C\xc9" +
-	"\xbe\xf8\xea\xbbf\xe3\xda\x0f\xdet#\xd5\xee\xc0\x0d\x95" +
-	"\x05\xf8W\x7f\xe0\xcf\x80\xf6\xb5\xb5\xf6\xa5\x9b>\x17\xbb" +
-	"\x00t\xaf\xbf[K\xd0\xd9\xedh\x90\xef\x16;\x1a\x7f" +
-	"k\xe4\xd8\x83\xcf\x02m\xf6\x03N\x07\xaf\xf2\x80\xb4\x13" +
-	"p\xfe\xbe\x86\x1f\x9d\xfal\xe297\x1f\x99\xcf?\x1b" +
-	"\\C\x90\xed=_\xbap\xf1\x1f\xab\xbf_\x14f\x16" +
-	"\xf8\xd6\xb2\xbd\xf4\x8d\xce[\x0b{\xaf.\x89\x9b\x9e\x0d" +
-	"\xfe\x91o\xfa\x14\xdf\xf4\xdak\x03\x8b\x0f|\xfb\xf8E" +
-	"a\xfa%w\xfaW\x0e\xe6\xde\x93\xc5\xc5[\x1e\xff\xcd" +
-	"2\xd0\x98P!`\xfb\xf5\xe0m\xa8\x86\x15\xbe \xa0" +
-	"(\xa8^\xe6\x9f\xf6\x1d\x0f\xc7\xf7?\xff\xe2\xd2\x8a[" +
-	"\xa4\x9b\xa2\xb2\x82 \xbf \xdf\xff\xf23\xbfXYe" +
-	"\xcd\xc8\x81\xdc\x14\x15\x0e\xd4\xfe\x9c\x12G@\xfb\x97\x97" +
-	"R\x17~\xd6\xc0VE\xb6/\x87Vx*\xeb!\x9e" +
-	"\xca\xf1\xaf\x95\xac\xc2\xe9+\xcfoJ\xe5J\xa8\x0d\xd5" +
-	"\xeb!N\xf5[\xa1\x1f\xab\xa50\xcf\xe4;\xc3\xeb\xcb" +
-	"\xabw\x7f\xe4\x85M\xd1z\x98\xa0\x9a\xe61\xaa\x19~" +
-	"L]w\xa2/\xedk_8\x16\xbbsM<\x9c\xe5" +
-	"\xf0\xab\x1c\xfc\xa50\x07\xef\x08\x1e\xcb\xfd\xfb\xfbsk" +
-	"\"\x8f\x7f\x08?\xc1\x03\xdet\x02\xc6b'n\xa4\xda" +
-	"F\xd7\x81\xc6\xe4\x0dx\xb1\xc8AT\xdf\x17Q\x00\x86" +
-	"\xf7F$\x1c\xbe3B\x10\xc0\xfe\xcc\xc8\xfc]\x07{" +
-	"\xd6^\x16\xcbMD\x1c9\x1c\x8f\xf0\x0d\x8f\x1c>\xd2" +
-	"\xd3\xfa]\xf3\xa7 R6\x13y\x9dS\xf6\xe9\x88C" +
-	"\xd9\x93_L\xfe\xb5\xe3\x9b\xa1\xd7\x85c\xffr\x9d#" +
-	"\x88\x7f\xfep\xe4/_\xbd\xff\xf67\xdct\x9d\x99\xf3" +
-	"u\x8f\xf0\x99\x85\xd9\xcf\xff\xe9w_(]\x01\x1aC" +
-	"A\xb2NH\xb1\x8e\xa0z\xae\x8eSs\xb6\x8ek\xf6" +
-	"\xf2+\x13o\x04\x1e\xdb\xf3\xb7\xaa`'\xd9S\xd1\xf7" +
-	"\xa0jDo\x02P\xd3Q\x9e\xf0\x81\x17_\xb1n/" +
-	"}\xeb\x1a\xd0\xfd\xc2\xca\x00qD\x10\xedC\xf5R\x94" +
-	"\xef\xbc\x1c}\x18\xd0\x9e\x7f\xfa\x93'\xcc\x96_\xffK" +
-	"\x10J\xb8\xdeI}_\xf7\xcfq\xe6\xeb#7D\xa6" +
-	"\xafGy\xd9j}}\x12\x12\xf6TqT\xcf\x99\x1f" +
-	"\xe8\x09\x98\x05+\x9b/\x1d\x1a\xd3s\x99\\\xe7\x87\xf5" +
-	"\xdc\xa9\xdc\xb8n\x19=\xe5a}|\xfc\xc4\x98ef" +
-	"3\xcd\xc9A=\xaf\xa7\x0bL\x96d\x00\x19\x01h\xfd" +
-	"(\x00\x8bJ\xc8\xdeM\xd0\xd6\x9d\xa8{uP\xa6\x8b" +
-	"\x066V\x18\x02\xc4F@\x1f\x8fl\xc0\x1b\xb6\xb2\xc9" +
-	"\xbc\xd1\x9b\x99\xc8\x0e\"\xb2F\x7fk\xbd\x13\x80\xdd'" +
-	"!\x9b\"\x88\xd8\xc4\x8f\x8e\x1aC\x00l\\B\x96#" +
-	"H\x096!\x01\xa0\xe9>\x006-!;C\x90J" +
-	"\xa4\x09%\x00Z\xe4\xabs\x12\xb2Y\x82I#3i" +
-	"f\x0c\x8c\x02\xc1(\xa0\x9d\xc9\xbb\xf5\x00\x160\x00\x04" +
-	"\x03\xceX\xf7CF\xc6*\x00\x807\x96,\xe6,3" +
-	"m\xf8!\xdb\xd2\xd5S\x19\x182\xf4\xf1\xf2o\xf3P" +
-	"\xd2(\x14\xa7\xad\x0dt\xdd\x06\xc0B\x12\xb2&\x82\xca" +
-	"\x98\x9eCZ\xf1\x05@\xa4\x02J\xb0\x1aE\xd8\xfa\xd0" +
-	"\xa4a\xb9%\xf8XF\xa1\xa1\x1a\xab\xb3\x8c\xd5L0" +
-	"\xf9\x90>]4\x0a\xb8\x07pP\xc2\xaa\xa3\xd9#\xa0" +
-	"Fw\x94\x82K\x13\x07\xe4x\xe0-\xdc\xdd:\x9f\x93" +
-	"]\x97\xe9,\x13\xaa,*\xef@\x95;\x81~T\xb7" +
-	"\x8c\x82%TZ\x0d\x9a\x17ToM\x99\x99\xc9{\xf5" +
-	"i\x88\x17\x8d~=\x87\x8d\x95+[\xa5{i;X" +
-	"%\x9b/\xb9\xe2\x0f\x00x\x06/<c3O\x00\xa1" +
-	"i\x05+^\x86\xdesD\xf5G\x80\xd0\xd3\x0a\x12\xff" +
-	"\xbe\xe3k\x03\x8b\xe0<E\xfd|\xae[A\xc9\xb71" +
-	"\xf4\xec\x97\x1e=\x08\x84&\x14\xdb\x93\x12zZ\x02H" +
-	"\xa1\xed1\x8f\xde\xa0;\xe6\x10\x83ef \x85\x0df" +
-	"f\"\x9b\xc2A|\xfb\xb7c0\xeex\xc9\x7f\xa9\xf7" +
-	"A=\xafp'j\xf2\xcf\xe4l\x17\x00;#!{" +
-	"\x94 \xf5\xfc\xe2\xdc\x08\x00\xfb\x94\x84l\x9e\xfb\x05q" +
-	"\xfd\xe2|\x1b\x00{TB\xf6$\xf7\x0b\xc9\xf5\x8b\x05" +
-	"\xae\xa3\xc7%dO\x13D\xb9\x09e\x00\xfa\x14\x0f\x9c" +
-	"\x97\x90=Cp\xce9\xe6\xde\xbb|\x13q\xcdn@" +
-	"\x07)\xed;K\\\x9f\xb0\x8c\xbc\xf7\x97\x1c5&\xb2" +
-	"\xf9\xca\xe4\xb4\x996-\x94\x81\xa0\\\xcbM\xb6\xb99" +
-	"e\xbeD\x15\x8e\x08*4x\x10W\xa1T\xd3z\xa5" +
-	"\xed\xd0\xe2\xce8\x17a\x94\x8b\xd0o\xd9\xd0{\x1a)" +
-	"\x1b\x02B{\xb9\x08\xbd\x06\x03\xbdn\x89\x1e\xef\x03B" +
-	";\xb8\x08\xbd\xd7\x18\xbd\x1e\x8b\xb6\xf0u\xfb\x14\xdb{" +
-	"F\x003)\xb4\xbd\xba\xc0\x91\x9b\xff\x87\x85\x8dj\x92" +
-	"\xb6Q\x13\xf0LCN\xa6^\xa7\x84^_H[?" +
-	"\x01\x84\xb6\xf0L\xbd\xc7\x11\xbd\xb6\x84\xde\xca\xaf\xd2\xcd" +
-	"\x8a\xed\xa9\x11\x92\xee\x86)\xe4C\x0e\x1bh\x087A" +
-	"L&XC\xda\x1bN\xcdwG\xa8\xed\xfd~#V" +
-	"\xe5\xfd\x81Zw\x81_\xb9\xad\x01D=\x14,\xdd2" +
-	"\x0b\x96\x09\xd2X\x01\x1b+\x0dvM=Lf{\x87" +
-	"O~\xe8\x88\xd6zw\xb6!\x9f\xd6\xadA\xc4\xb2z" +
-	"\x81\xe2U\xbbM\xd3\x8e$\xb4\xd6\x04\xd1\xda\xeei\xed" +
-	"\xe8\xd4\x0ewj\x1d\x874MK4h\x1f\xd4\xb4\xb7" +
-	"\xab\xe8B\xadv\xe2\x80(i\xe5\x1d1\xf5\x0d/\x09" +
-	"G\x96v\xe1\x1fC\xff7\xffp\xaa\x1b\xd0\xd3\x80\xff" +
-	"\x93}4\xee\xb6w\xdb\xe9\xc1\xde$1\xf7p\xb6\x8e" +
-	"\xbf\xa7\xfc\xe6\x15\x0d\xa8j\xda\xba*M\x9b\xcf\xa2q" +
-	"\x10\x80= !\x9b\x16X49\xb5S\x122K`" +
-	"q\xa6\xab\xd2\xcaU3\xd6\x90\xd1+Nk;O}" +
-	"\xdf\xf0I\xc0\x01oln,o\xe8\x961\xee\xc7l" +
-	"-\xf2J\xee\xfd\x92\x9ec2\x8a\x0d7\xb6\xc5\xbb3" +
-	"V\xbe$j\xb2\xab\xd2a\xcc\x19\x19+o\x8aj\xf4" +
-	"\x97V\xa9Q\xde\x0eS\xcf\x1dr\x10\xa0la\x1eL" +
-	"\x0b\xb7\x87f\x09\x99&0\x97\xe0\x0a: !;L" +
-	"Py\xd0(\xf9bp\xca\xaf\xe1\xf3\xf5\xbb\xb6\xaaZ" +
-	"\xc7\xbcCg\xe4]\xa2-\xb8j\xda|~\xff\x09\x00" +
-	"\x00\xff\xffm\xa8\x80\xb5"
+type CapHistoryCursor_prev_Results capnp.Struct
+
+// CapHistoryCursor_prev_Results_TypeID is the unique identifier for the type CapHistoryCursor_prev_Results.
+const CapHistoryCursor_prev_Results_TypeID = 0xc68e1d3ad2dcac35
+
+func NewCapHistoryCursor_prev_Results(s *capnp.Segment) (CapHistoryCursor_prev_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapHistoryCursor_prev_Results(st), err
+}
+
+func NewRootCapHistoryCursor_prev_Results(s *capnp.Segment) (CapHistoryCursor_prev_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapHistoryCursor_prev_Results(st), err
+}
+
+func ReadRootCapHistoryCursor_prev_Results(msg *capnp.Message) (CapHistoryCursor_prev_Results, error) {
+	root, err := msg.Root()
+	return CapHistoryCursor_prev_Results(root.Struct()), err
+}
+
+func (s CapHistoryCursor_prev_Results) String() string {
+	str, _ := text.Marshal(0xc68e1d3ad2dcac35, capnp.Struct(s))
+	return str
+}
+
+func (s CapHistoryCursor_prev_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapHistoryCursor_prev_Results) DecodeFromPtr(p capnp.Ptr) CapHistoryCursor_prev_Results {
+	return CapHistoryCursor_prev_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapHistoryCursor_prev_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapHistoryCursor_prev_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapHistoryCursor_prev_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapHistoryCursor_prev_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapHistoryCursor_prev_Results) ThingValue() (ThingValue, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return ThingValue(p.Struct()), err
+}
+
+func (s CapHistoryCursor_prev_Results) HasThingValue() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapHistoryCursor_prev_Results) SetThingValue(v ThingValue) error {
+	return capnp.Struct(s).SetPtr(0, capnp.Struct(v).ToPtr())
+}
+
+// NewThingValue sets the thingValue field to a newly
+// allocated ThingValue struct, preferring placement in s's segment.
+func (s CapHistoryCursor_prev_Results) NewThingValue() (ThingValue, error) {
+	ss, err := NewThingValue(capnp.Struct(s).Segment())
+	if err != nil {
+		return ThingValue{}, err
+	}
+	err = capnp.Struct(s).SetPtr(0, capnp.Struct(ss).ToPtr())
+	return ss, err
+}
+
+func (s CapHistoryCursor_prev_Results) Valid() bool {
+	return capnp.Struct(s).Bit(0)
+}
+
+func (s CapHistoryCursor_prev_Results) SetValid(v bool) {
+	capnp.Struct(s).SetBit(0, v)
+}
+
+// CapHistoryCursor_prev_Results_List is a list of CapHistoryCursor_prev_Results.
+type CapHistoryCursor_prev_Results_List = capnp.StructList[CapHistoryCursor_prev_Results]
+
+// NewCapHistoryCursor_prev_Results creates a new list of CapHistoryCursor_prev_Results.
+func NewCapHistoryCursor_prev_Results_List(s *capnp.Segment, sz int32) (CapHistoryCursor_prev_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1}, sz)
+	return capnp.StructList[CapHistoryCursor_prev_Results](l), err
+}
+
+// CapHistoryCursor_prev_Results_Future is a wrapper for a CapHistoryCursor_prev_Results promised by a client call.
+type CapHistoryCursor_prev_Results_Future struct{ *capnp.Future }
+
+func (p CapHistoryCursor_prev_Results_Future) Struct() (CapHistoryCursor_prev_Results, error) {
+	s, err := p.Future.Struct()
+	return CapHistoryCursor_prev_Results(s), err
+}
+
+func (p CapHistoryCursor_prev_Results_Future) ThingValue() ThingValue_Future {
+	return ThingValue_Future{Future: p.Future.Field(0, nil)}
+}
+
+type CapHistoryCursor_prevN_Params capnp.Struct
+
+// CapHistoryCursor_prevN_Params_TypeID is the unique identifier for the type CapHistoryCursor_prevN_Params.
+const CapHistoryCursor_prevN_Params_TypeID = 0xa6fcb2009f6f5277
+
+func NewCapHistoryCursor_prevN_Params(s *capnp.Segment) (CapHistoryCursor_prevN_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0})
+	return CapHistoryCursor_prevN_Params(st), err
+}
+
+func NewRootCapHistoryCursor_prevN_Params(s *capnp.Segment) (CapHistoryCursor_prevN_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0})
+	return CapHistoryCursor_prevN_Params(st), err
+}
+
+func ReadRootCapHistoryCursor_prevN_Params(msg *capnp.Message) (CapHistoryCursor_prevN_Params, error) {
+	root, err := msg.Root()
+	return CapHistoryCursor_prevN_Params(root.Struct()), err
+}
+
+func (s CapHistoryCursor_prevN_Params) String() string {
+	str, _ := text.Marshal(0xa6fcb2009f6f5277, capnp.Struct(s))
+	return str
+}
+
+func (s CapHistoryCursor_prevN_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapHistoryCursor_prevN_Params) DecodeFromPtr(p capnp.Ptr) CapHistoryCursor_prevN_Params {
+	return CapHistoryCursor_prevN_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapHistoryCursor_prevN_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapHistoryCursor_prevN_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapHistoryCursor_prevN_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapHistoryCursor_prevN_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapHistoryCursor_prevN_Params) Steps() uint32 {
+	return capnp.Struct(s).Uint32(0)
+}
+
+func (s CapHistoryCursor_prevN_Params) SetSteps(v uint32) {
+	capnp.Struct(s).SetUint32(0, v)
+}
+
+// CapHistoryCursor_prevN_Params_List is a list of CapHistoryCursor_prevN_Params.
+type CapHistoryCursor_prevN_Params_List = capnp.StructList[CapHistoryCursor_prevN_Params]
+
+// NewCapHistoryCursor_prevN_Params creates a new list of CapHistoryCursor_prevN_Params.
+func NewCapHistoryCursor_prevN_Params_List(s *capnp.Segment, sz int32) (CapHistoryCursor_prevN_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0}, sz)
+	return capnp.StructList[CapHistoryCursor_prevN_Params](l), err
+}
+
+// CapHistoryCursor_prevN_Params_Future is a wrapper for a CapHistoryCursor_prevN_Params promised by a client call.
+type CapHistoryCursor_prevN_Params_Future struct{ *capnp.Future }
+
+func (p CapHistoryCursor_prevN_Params_Future) Struct() (CapHistoryCursor_prevN_Params, error) {
+	s, err := p.Future.Struct()
+	return CapHistoryCursor_prevN_Params(s), err
+}
+
+type CapHistoryCursor_prevN_Results capnp.Struct
+
+// CapHistoryCursor_prevN_Results_TypeID is the unique identifier for the type CapHistoryCursor_prevN_Results.
+const CapHistoryCursor_prevN_Results_TypeID = 0xb1731fa2fac2190d
+
+func NewCapHistoryCursor_prevN_Results(s *capnp.Segment) (CapHistoryCursor_prevN_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapHistoryCursor_prevN_Results(st), err
+}
+
+func NewRootCapHistoryCursor_prevN_Results(s *capnp.Segment) (CapHistoryCursor_prevN_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapHistoryCursor_prevN_Results(st), err
+}
+
+func ReadRootCapHistoryCursor_prevN_Results(msg *capnp.Message) (CapHistoryCursor_prevN_Results, error) {
+	root, err := msg.Root()
+	return CapHistoryCursor_prevN_Results(root.Struct()), err
+}
+
+func (s CapHistoryCursor_prevN_Results) String() string {
+	str, _ := text.Marshal(0xb1731fa2fac2190d, capnp.Struct(s))
+	return str
+}
+
+func (s CapHistoryCursor_prevN_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapHistoryCursor_prevN_Results) DecodeFromPtr(p capnp.Ptr) CapHistoryCursor_prevN_Results {
+	return CapHistoryCursor_prevN_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapHistoryCursor_prevN_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapHistoryCursor_prevN_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapHistoryCursor_prevN_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapHistoryCursor_prevN_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapHistoryCursor_prevN_Results) Batch() (ThingValue_List, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return ThingValue_List(p.List()), err
+}
+
+func (s CapHistoryCursor_prevN_Results) HasBatch() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapHistoryCursor_prevN_Results) SetBatch(v ThingValue_List) error {
+	return capnp.Struct(s).SetPtr(0, v.ToPtr())
+}
+
+// NewBatch sets the batch field to a newly
+// allocated ThingValue_List, preferring placement in s's segment.
+func (s CapHistoryCursor_prevN_Results) NewBatch(n int32) (ThingValue_List, error) {
+	l, err := NewThingValue_List(capnp.Struct(s).Segment(), n)
+	if err != nil {
+		return ThingValue_List{}, err
+	}
+	err = capnp.Struct(s).SetPtr(0, l.ToPtr())
+	return l, err
+}
+
+func (s CapHistoryCursor_prevN_Results) Valid() bool {
+	return capnp.Struct(s).Bit(0)
+}
+
+func (s CapHistoryCursor_prevN_Results) SetValid(v bool) {
+	capnp.Struct(s).SetBit(0, v)
+}
+
+// CapHistoryCursor_prevN_Results_List is a list of CapHistoryCursor_prevN_Results.
+type CapHistoryCursor_prevN_Results_List = capnp.StructList[CapHistoryCursor_prevN_Results]
+
+// NewCapHistoryCursor_prevN_Results creates a new list of CapHistoryCursor_prevN_Results.
+func NewCapHistoryCursor_prevN_Results_List(s *capnp.Segment, sz int32) (CapHistoryCursor_prevN_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1}, sz)
+	return capnp.StructList[CapHistoryCursor_prevN_Results](l), err
+}
+
+// CapHistoryCursor_prevN_Results_Future is a wrapper for a CapHistoryCursor_prevN_Results promised by a client call.
+type CapHistoryCursor_prevN_Results_Future struct{ *capnp.Future }
+
+func (p CapHistoryCursor_prevN_Results_Future) Struct() (CapHistoryCursor_prevN_Results, error) {
+	s, err := p.Future.Struct()
+	return CapHistoryCursor_prevN_Results(s), err
+}
+
+type CapHistoryCursor_seek_Params capnp.Struct
+
+// CapHistoryCursor_seek_Params_TypeID is the unique identifier for the type CapHistoryCursor_seek_Params.
+const CapHistoryCursor_seek_Params_TypeID = 0xc3ef318bca0bb7b4
+
+func NewCapHistoryCursor_seek_Params(s *capnp.Segment) (CapHistoryCursor_seek_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapHistoryCursor_seek_Params(st), err
+}
+
+func NewRootCapHistoryCursor_seek_Params(s *capnp.Segment) (CapHistoryCursor_seek_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapHistoryCursor_seek_Params(st), err
+}
+
+func ReadRootCapHistoryCursor_seek_Params(msg *capnp.Message) (CapHistoryCursor_seek_Params, error) {
+	root, err := msg.Root()
+	return CapHistoryCursor_seek_Params(root.Struct()), err
+}
+
+func (s CapHistoryCursor_seek_Params) String() string {
+	str, _ := text.Marshal(0xc3ef318bca0bb7b4, capnp.Struct(s))
+	return str
+}
+
+func (s CapHistoryCursor_seek_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapHistoryCursor_seek_Params) DecodeFromPtr(p capnp.Ptr) CapHistoryCursor_seek_Params {
+	return CapHistoryCursor_seek_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapHistoryCursor_seek_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapHistoryCursor_seek_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapHistoryCursor_seek_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapHistoryCursor_seek_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapHistoryCursor_seek_Params) IsoTimestamp() (string, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.Text(), err
+}
+
+func (s CapHistoryCursor_seek_Params) HasIsoTimestamp() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapHistoryCursor_seek_Params) IsoTimestampBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.TextBytes(), err
+}
+
+func (s CapHistoryCursor_seek_Params) SetIsoTimestamp(v string) error {
+	return capnp.Struct(s).SetText(0, v)
+}
+
+// CapHistoryCursor_seek_Params_List is a list of CapHistoryCursor_seek_Params.
+type CapHistoryCursor_seek_Params_List = capnp.StructList[CapHistoryCursor_seek_Params]
+
+// NewCapHistoryCursor_seek_Params creates a new list of CapHistoryCursor_seek_Params.
+func NewCapHistoryCursor_seek_Params_List(s *capnp.Segment, sz int32) (CapHistoryCursor_seek_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[CapHistoryCursor_seek_Params](l), err
+}
+
+// CapHistoryCursor_seek_Params_Future is a wrapper for a CapHistoryCursor_seek_Params promised by a client call.
+type CapHistoryCursor_seek_Params_Future struct{ *capnp.Future }
+
+func (p CapHistoryCursor_seek_Params_Future) Struct() (CapHistoryCursor_seek_Params, error) {
+	s, err := p.Future.Struct()
+	return CapHistoryCursor_seek_Params(s), err
+}
+
+type CapHistoryCursor_seek_Results capnp.Struct
+
+// CapHistoryCursor_seek_Results_TypeID is the unique identifier for the type CapHistoryCursor_seek_Results.
+const CapHistoryCursor_seek_Results_TypeID = 0x88f56e7efe394a20
+
+func NewCapHistoryCursor_seek_Results(s *capnp.Segment) (CapHistoryCursor_seek_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapHistoryCursor_seek_Results(st), err
+}
+
+func NewRootCapHistoryCursor_seek_Results(s *capnp.Segment) (CapHistoryCursor_seek_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapHistoryCursor_seek_Results(st), err
+}
+
+func ReadRootCapHistoryCursor_seek_Results(msg *capnp.Message) (CapHistoryCursor_seek_Results, error) {
+	root, err := msg.Root()
+	return CapHistoryCursor_seek_Results(root.Struct()), err
+}
+
+func (s CapHistoryCursor_seek_Results) String() string {
+	str, _ := text.Marshal(0x88f56e7efe394a20, capnp.Struct(s))
+	return str
+}
+
+func (s CapHistoryCursor_seek_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapHistoryCursor_seek_Results) DecodeFromPtr(p capnp.Ptr) CapHistoryCursor_seek_Results {
+	return CapHistoryCursor_seek_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapHistoryCursor_seek_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapHistoryCursor_seek_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapHistoryCursor_seek_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapHistoryCursor_seek_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapHistoryCursor_seek_Results) ThingValue() (ThingValue, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return ThingValue(p.Struct()), err
+}
+
+func (s CapHistoryCursor_seek_Results) HasThingValue() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapHistoryCursor_seek_Results) SetThingValue(v ThingValue) error {
+	return capnp.Struct(s).SetPtr(0, capnp.Struct(v).ToPtr())
+}
+
+// NewThingValue sets the thingValue field to a newly
+// allocated ThingValue struct, preferring placement in s's segment.
+func (s CapHistoryCursor_seek_Results) NewThingValue() (ThingValue, error) {
+	ss, err := NewThingValue(capnp.Struct(s).Segment())
+	if err != nil {
+		return ThingValue{}, err
+	}
+	err = capnp.Struct(s).SetPtr(0, capnp.Struct(ss).ToPtr())
+	return ss, err
+}
+
+func (s CapHistoryCursor_seek_Results) Valid() bool {
+	return capnp.Struct(s).Bit(0)
+}
+
+func (s CapHistoryCursor_seek_Results) SetValid(v bool) {
+	capnp.Struct(s).SetBit(0, v)
+}
+
+// CapHistoryCursor_seek_Results_List is a list of CapHistoryCursor_seek_Results.
+type CapHistoryCursor_seek_Results_List = capnp.StructList[CapHistoryCursor_seek_Results]
+
+// NewCapHistoryCursor_seek_Results creates a new list of CapHistoryCursor_seek_Results.
+func NewCapHistoryCursor_seek_Results_List(s *capnp.Segment, sz int32) (CapHistoryCursor_seek_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1}, sz)
+	return capnp.StructList[CapHistoryCursor_seek_Results](l), err
+}
+
+// CapHistoryCursor_seek_Results_Future is a wrapper for a CapHistoryCursor_seek_Results promised by a client call.
+type CapHistoryCursor_seek_Results_Future struct{ *capnp.Future }
+
+func (p CapHistoryCursor_seek_Results_Future) Struct() (CapHistoryCursor_seek_Results, error) {
+	s, err := p.Future.Struct()
+	return CapHistoryCursor_seek_Results(s), err
+}
+
+func (p CapHistoryCursor_seek_Results_Future) ThingValue() ThingValue_Future {
+	return ThingValue_Future{Future: p.Future.Field(0, nil)}
+}
+
+const schema_f1bd301f7c12caab = "x\xda\xccW}l[W\x15?\xe7='\xcfq\xec" +
+	"8\x0f\xb7\xc0\xb2E\xaf\x19\xe9G*(s\xda\xb4[" +
+	"Xfg]DZ\xd6,/k\xa75\x1a\x1a/\xc9" +
+	"[\xf3:\xc7\xf6\xfc\xec\x84 V\xe8\xb4LM\xa1\xfc" +
+	"Q\xc8\x80\x815\x16*\xa6,\xeb\xd6\x8dFe\x93\"" +
+	"\xc8\xa0\x0b\x89@][44\xb4\x01\x1a0X\xa4m" +
+	"\xac\xa2k\xd5\x8f<t\xef\xf3}\xbe\xce\x07\xb1\x0bB" +
+	"\xf9\xcb\xf6=\xe7\xdcs\xce\xef\xfc\xce\xb9\xc77\x1d." +
+	"\x0a\xbb\x82\xbe\xb5~\x10\xd4cE\xc5\xd6\xaa\xed\xb7\xcc" +
+	"\xee\x8b\x9e?\x00\xea\x1aD\x80\"\x94\x006\xf6KO" +
+	" ``P\xea\x03\xb4\xfe9u[\xc8%l:\x08" +
+	"\xf2ZG\xe1]\xe9\x1cQ\xb8*\x85\x00\xad?\x7f\xae" +
+	"xr\xcb/\xb6\x7f\x1b\xe4\x95\xa25:\xfd\xb1\xaf*" +
+	"7\x8d\x7f\x08\x80\x1b+\xdd\xf5\x18\xf8\x8c[\x02\x08\xd4" +
+	"\xb8'\x03G\xc97k\xcb\xdd\xca\xef\xf5\xc7V\x0e\x81" +
+	"\xfc)\x04p\x91\xdb\x86\xdc\xcf \xb8\xac3\xf7\x0d\xc4" +
+	"\x0eN\xd4\xff\x90\x93\x0c\xb8\x87\x89d\xbf\xf0\xd6\xdf\x8c" +
+	"\xa7;\xd2\xf3<\xa4\xdc\xb5\x18\x18 \xf7n\xdc\xef\x9e" +
+	"\xc4\xc0\xf7K\x88\x8b\x95\xb7(\xe7\xdbo}0\x0dr" +
+	"\xb5\x13\xf1\xfe\x92\xb7I\xc4C%$\xe2-\xa7\xde\xac" +
+	"~\xef\xd1\xc0\x939I\x8f\x95\xd0\xa4O\x96\xf4\x01~" +
+	"\xd0\xd7\x16{\xf2\xc5+?\xb1\xe54\x94\xd5\x1e*\xae" +
+	"\xf3\x90\x0bF\x9e\xae\xaf4W\xcd\x8c\xf0\x1evy\xce" +
+	"\x10\x05\x83*\xec\x95+\x94\x9d\xb1\xe2g\xb8\\\xd2\x1e" +
+	"\x92\xe5\x85\xb3-G\xbe\xf4|\xc3(gx\xc8s\x90" +
+	"\x18\xa6\xa9\xe1\xaa\xbbRG\xae?\xf0\xc6\xd1y\xa9\x8e" +
+	"{n\xc4\xc0o=\x04\xcc)\xcfd`[\xa9\x04p" +
+	"\xf5\xfdC\xc1\xfb.\xbf\xf7\xdc\\\xdd`i\x05\x06\x1a" +
+	"\x89F\xa0\xa1t20A\xbeY\xbe\xeb^\xb94\xac" +
+	"\x98/\xe4$=R:L|\xbfTJ*]2:" +
+	"Z\xf1\xb2w\xf8\xa7v\xd0\xb6\xc2j/U\xa8\xf3\x86" +
+	"\x00\x7f\xee\xba\xff\xd7\xdf{\xed\xc5\xe3\\\xec\x86\xf7\x0f" +
+	"D\xfc0\x11[\x17?\xff\x85\xefN\xfecf\x1c\xe4" +
+	"5N\xd2\xde\xc3\xa4\x80\xc7O\x94N\x7f#\xf8\xc1/" +
+	"mI&m\"\xc2@\x9a\x9a\xd6=\xfb\xe6\x99\xfa\xca" +
+	"o\xbd\x9a\x13\xdc\x84\x97B~\xdaK\x823\xd3\xea\x9f" +
+	">r_}\x95\xbb<\xe8\xa3\x97\xdf5\xbd\"r\xe7" +
+	"G\x8fMq\x92*[\xb2y\xd3\xe6\xe6\xe0\x09\xe37" +
+	"|\x99d\xdf4\xb9t\xb5\x8f\xb8\xfd\xd1\xd8\xec\x9a\x03" +
+	"\xb3\x15\xa78\xd3]\xbe'\x88\xe9\xd0\xf3\xb7\x0du?" +
+	">x\x96\xc7\xa2\xc9G\xe3\xd9EM\xd7\xb5\x87\x06\x86" +
+	"^\xd9\xfbW\xe08\xd2o+\x0cR\x85O\xd4]\xf7" +
+	"\xc7\x99\x93\xe5\xef\xf0}3\xe2\xa3}3N\x15\x84\xb5" +
+	"\x03\xfe}\xe6\xbe\xbf\xf3\x0ao\xf9(M?\xa4\x0a\xef" +
+	"\xde\xfa\xf2\x94v\xac\xef\xfd\x1cP\xe42Z\x90\xaa2" +
+	"\x02\xcaS%\x9a\xb4\xa3\xe5\xb5s|\x94\x87l\x85t" +
+	"\x19\xb9B\xf2\xdc{y\xe2W\xe6\xbfrq\xb55N" +
+	"\xd3+\x9a\xceM\xbe~\xef\x8e\xeb\xcf\xf3Q\x04\xfd3" +
+	"D\xa1\xc9O\xae\x18\xff\xce\xdb\x17\xc7fn\xb8`+" +
+	"\xd0<u\"wYUM\xa7\xf0\xa1\x1f\xb7_\xb2\xe1" +
+	"\xa5\x92\xdd\xfeG\x88\xe4\x85\xd9\xb1=\x1f\x7f\xf6\x8bW" +
+	"r\xdc6\xf9m\xf8\xfc\xc4\xed\xf1\xbf\x8c\x1e\x1b=\xf1" +
+	";\x8bw;f\xbb\x9d\xf2\x87`\xb7\xd5\x9d\xea\xd0\xe2" +
+	"\xc6g\x9b\x8b\x0c3\x19K\xf4o\xe8\xd4\xe2\xd1x\xfd" +
+	"V-\xdel\x1flM%\xccXb\x83\xa9\xeb\x0fV" +
+	"\xb7\xe9f*\"&M\xd5-\xba\x00\\\x08 \xd7\xb4" +
+	"\x03\xa8\xebDT7\x09\x88\xb8\x82D!\x07k\x01\xd4" +
+	"O\x8b\xa8\xde,\xa0\x95\xec6\xa2{\xee\xd1\" \xa6" +
+	"t,\xb7\x0e\x7f\xfd\xf1\x9f\xa5\xdfy\xfd\x07\x00\x88\xe5" +
+	"\x80J\xaf\x161\xba\x10A@\x04t\x82)^$\x98" +
+	"\xbb\xf5D\xaf\xd1\xa9\x93\xf36]\xeb\xca\x9cV\xb7\xe9" +
+	"\x8a\x99\x8a$M\xd5\xe5\xc4\xe5\xbb\x11@u\x8b\xa8\xae" +
+	"\x10P\xea\xd4\xe2(g[\x1e\x10e\xce\x99\xb8\x98\xb3" +
+	"\x90\xed\xad\x15Q\xf5\x8aE\x00\x0e\x93\x90\xa1*\xab\x09" +
+	"\x10\xe4m\x12f\xcb\x87\x8c\x8fr\xc3W@\x90\xeb$" +
+	"\x14\x9c\xda#\x9b\xf1r\x0d\x91UIV\xa7\x16o\xec" +
+	"\xeaj6@\xa1.\xc3\x989i\x8cB\xa8\x7f'\x81" +
+	"\xce>\xa2\xd9B\xc8\xc8h\xb5\".^8z\xa1}" +
+	"\xa6uu5\xf5\xea\xd1\xa4IJ\xe7'\x10\x15dF" +
+	"\x0b.\xf1V\x8ba\xb5U\xa14!P\xdd@\xa1b" +
+	"\x1d\x8f\xac3\xe4\xd3\xb5 \xc8'\x09Tl\x90 {" +
+	"\x1f\xe4\x97\xd6\x83 \x1f%P\xb1\xd9\x86\x8c\xda\xf2S" +
+	"D6$\xa1\xe8\x8c\x02d\x0d+\x0f\x92;\x1f\x96\xd0" +
+	"\xe5\x8c-d\x13N~\x88\xd8\xe9\x12\x16\xb1G&;" +
+	"\x99\xe5\xdd\xc4n\x87\x84\xc5\xce\xc4D\xf6@\xcb\x8d\xeb" +
+	"i\xd9\x94\x07\x8c\x84\x99\x0c\xa3?\xa2\xd1\x8f\xa8\xfe\xe5" +
+	"d\x18\x15\xf2\xd1\x12F\x7f<\xa1\xf7\x86Q!\x1f\xe4" +
+	"'i\x8f\xdc\xb2\xcc\xa30G\xd8\x0d{\xf4$\x058" +
+	"K`\x1bg\x9e\xc0\xf5Y\x02\x87:)\xba(g_" +
+	"\xe89\x1c^\xa2{I\x0e\xff\xbf\xee]\"\x18\x8aY" +
+	"u\xab\x96\xd0\xc4\x9e\x9c\x8ck\xb3\x19+fR\x8f\x9b" +
+	"\xe8\x06\x01\xdd\x90?\xa8\xad\x89X\\O$\x0d\xdd\xb4" +
+	"\xb3Mb\x8e\x836\x00\xd5+\xa2\xbaN@\xabW\x8b" +
+	"\xa4\xf4;\x0d\x130\x89e\x80\xad\"\xce\xc9\xaf\x0c\xf2" +
+	"\xee\xb1\xc6\xce\xa4\x11\x8b\xe6\xd1c|\xb8F\xf4\x81X" +
+	"&J\x13\x80\x0fs}\x16\x07?\xd1\xc2r\xab\xe1\x8d" +
+	"\xdb\x9f\xdb|\xff\xa3\xdf\xcc\x00\xbfx?2\x0fR," +
+	"\xd1\xef\x0c.\xb6Pp\x1b\x9b\xfa\x08\x1b\\\xec\xf1F" +
+	"\xb6l\xc9\x0d\x096\xb8\xd8\xcb\x83g[\x8e\x00]\xa7" +
+	"jHwTJ\x16c0f\xd2\x810Z\xac\x00\xa0" +
+	"\xd0\x12\x84\xed\xe8s\xdbB\\\x0cI\x91\x8b\xd7yo" +
+	"\x91\xedw\xb2\xda\xc6\xe2e\x1b\x03\xb2=Vn\xd8\xce" +
+	"\xe2e\x9b\x15\xb2\xedW\xaei\xb3\x07-\xab\x12`4" +
+	"\x8c\x16\x1bp\x00\xc0\xffBs\x89\xd1\xba\x10\x91\x9d\xde" +
+	"\xe5\xda\x8a0\xb9ZD5\x9cm\xab\x06rv\xb3\x88" +
+	"\xea\x1d\x02*\x1dZ\xb2\xb3{Q\xda\xe5\xdbV\x0b\x0e" +
+	"\xfaV-!i\xb9}\xd5\xc1\xd1^'Z\xa4\xa1\xa5" +
+	"\x94n.M\xfc\x82\xa6\xd8\x02-\xcdS9\xaa\xf5\xe8" +
+	"\xe8\x05\x01\xbd\xf9\xcf\x0a2n\xe9\xbd=h\x16\xb4\xaa" +
+	"dl\xf8X\xf6f`\xf8\xa4\x80\x96a\xc6v\x1a=" +
+	"\xba\x09\xfe\xa4\xd6\x13/4*R\xf8e5N\x0b\x85" +
+	"\x88\xbe\x07sm\x0a\x18\xae\xd4t\xce\xd4b\xd3\xbbZ" +
+	"@\x85\x94\xdaa\x17\x01\xb7,\xff|\xe8\xbb\xcb\xb8T" +
+	"\xd8\xba\xb2\x00\x01\xdb\xb9\xa2;\xdc_\x10\xfdB(\xf9" +
+	"\xbfz\xbe\xe6\xaf\xb5t\xf7\xb37\xbf\xfc\xd6Z\xf6\xdf" +
+	"t\xceB\x90\x9f+\xaes\xe7\x0e\x8d\xdb\xb3\x8e\xbeF" +
+	"i\xbb\xed\x8eki\xde\xe53\x1f3\x8f\xf4\x7f\x98\x8f" +
+	"\x84#\x1a\xd5\xbaG\x03)\xf2\xdf\x90\xc4&\xf1B\xa9" +
+	"/\x87\xffK\xad\x9a?q\x0d\xe5.\x90\xbe\x19/\x8e" +
+	"y\xe9\x92\xdbPf\xac0\x83<\x9e\x86\xe5\xf4\x8f\x94" +
+	"\xeb'\xb6\x09\x16\xd0\xb9\xff\x0e\x00\x00\xff\xff:\x91\xfb" +
+	"\x9c"
 
 func init() {
 	schemas.Register(schema_f1bd301f7c12caab,
-		0x81f2747c1ccb1b48,
-		0x9a2d5d19db232b0c,
-		0x9b158e17a933c2f7,
+		0x88f56e7efe394a20,
+		0x8a3402043f3ec9f0,
+		0x934ac037c7063be0,
+		0x95158665d71f5337,
+		0x9c3ac18a6f855cd2,
+		0x9d62a769e5dd0281,
 		0x9d6b3c5af51f3915,
-		0xa12d8b55c40f5c89,
-		0xa4e0b4f3ab9b970e,
+		0x9f1384ed24dccf37,
+		0xa6fcb2009f6f5277,
 		0xa9ea20731d3aa7a9,
+		0xaa066f541f1a116a,
 		0xab3daf6000a44ed3,
 		0xadd9881ba4754f20,
-		0xb2a9c0b9231f772b,
+		0xaeedfb5c318d00ee,
+		0xb1731fa2fac2190d,
+		0xb3a20cba1aabab09,
 		0xb400b2d098c85f04,
-		0xb4510fcd9b40b1d4,
-		0xb9e959737479a03d,
-		0xbf4b46b4adc553b3,
-		0xc22c153c8d3321b1,
-		0xc27fbcfe703c0635,
-		0xc5623240fa411563,
-		0xc8c2482a448c5a86,
+		0xbdeae8c7974b47f8,
+		0xc3ef318bca0bb7b4,
+		0xc68e1d3ad2dcac35,
+		0xc6fd08f6df519d73,
+		0xc986f64c6c14ca4f,
 		0xcc69b73148363436,
-		0xda08a835ed3f9590,
-		0xe4275f9fec5abef6,
-		0xe97993dce68f7c8d,
-		0xef0e8705e466c9b5,
-		0xf7ae792774c9c028,
-		0xf8d62969417e948c,
-		0xfa5aa37101cf4521)
+		0xcf1afe8826feb5a0,
+		0xd3899668953eaf95,
+		0xe46ac295853f5a28,
+		0xe610c5eade193517,
+		0xe77e737e0f852702,
+		0xee77b061c9ba3ce9,
+		0xf2d04e4d076109a1,
+		0xf473c4c1fb580a07,
+		0xf51b4d58d6c7f245,
+		0xf71ceab5f8e294bd,
+		0xfa5aa37101cf4521,
+		0xfc5dac1667b5feb1,
+		0xffd4b7abb0abe3b4)
 }

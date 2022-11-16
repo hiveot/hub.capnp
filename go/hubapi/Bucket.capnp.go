@@ -193,6 +193,122 @@ func (p KeyValueMap_Entry_Future) Struct() (KeyValueMap_Entry, error) {
 	return KeyValueMap_Entry(s), err
 }
 
+type BucketStoreInfo capnp.Struct
+
+// BucketStoreInfo_TypeID is the unique identifier for the type BucketStoreInfo.
+const BucketStoreInfo_TypeID = 0x8c845f36ae42d93d
+
+func NewBucketStoreInfo(s *capnp.Segment) (BucketStoreInfo, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 16, PointerCount: 2})
+	return BucketStoreInfo(st), err
+}
+
+func NewRootBucketStoreInfo(s *capnp.Segment) (BucketStoreInfo, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 16, PointerCount: 2})
+	return BucketStoreInfo(st), err
+}
+
+func ReadRootBucketStoreInfo(msg *capnp.Message) (BucketStoreInfo, error) {
+	root, err := msg.Root()
+	return BucketStoreInfo(root.Struct()), err
+}
+
+func (s BucketStoreInfo) String() string {
+	str, _ := text.Marshal(0x8c845f36ae42d93d, capnp.Struct(s))
+	return str
+}
+
+func (s BucketStoreInfo) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (BucketStoreInfo) DecodeFromPtr(p capnp.Ptr) BucketStoreInfo {
+	return BucketStoreInfo(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s BucketStoreInfo) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s BucketStoreInfo) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s BucketStoreInfo) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s BucketStoreInfo) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s BucketStoreInfo) DataSize() int64 {
+	return int64(capnp.Struct(s).Uint64(0))
+}
+
+func (s BucketStoreInfo) SetDataSize(v int64) {
+	capnp.Struct(s).SetUint64(0, uint64(v))
+}
+
+func (s BucketStoreInfo) Engine() (string, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.Text(), err
+}
+
+func (s BucketStoreInfo) HasEngine() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s BucketStoreInfo) EngineBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.TextBytes(), err
+}
+
+func (s BucketStoreInfo) SetEngine(v string) error {
+	return capnp.Struct(s).SetText(0, v)
+}
+
+func (s BucketStoreInfo) Id() (string, error) {
+	p, err := capnp.Struct(s).Ptr(1)
+	return p.Text(), err
+}
+
+func (s BucketStoreInfo) HasId() bool {
+	return capnp.Struct(s).HasPtr(1)
+}
+
+func (s BucketStoreInfo) IdBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(1)
+	return p.TextBytes(), err
+}
+
+func (s BucketStoreInfo) SetId(v string) error {
+	return capnp.Struct(s).SetText(1, v)
+}
+
+func (s BucketStoreInfo) NrRecords() int64 {
+	return int64(capnp.Struct(s).Uint64(8))
+}
+
+func (s BucketStoreInfo) SetNrRecords(v int64) {
+	capnp.Struct(s).SetUint64(8, uint64(v))
+}
+
+// BucketStoreInfo_List is a list of BucketStoreInfo.
+type BucketStoreInfo_List = capnp.StructList[BucketStoreInfo]
+
+// NewBucketStoreInfo creates a new list of BucketStoreInfo.
+func NewBucketStoreInfo_List(s *capnp.Segment, sz int32) (BucketStoreInfo_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 16, PointerCount: 2}, sz)
+	return capnp.StructList[BucketStoreInfo](l), err
+}
+
+// BucketStoreInfo_Future is a wrapper for a BucketStoreInfo promised by a client call.
+type BucketStoreInfo_Future struct{ *capnp.Future }
+
+func (p BucketStoreInfo_Future) Struct() (BucketStoreInfo, error) {
+	s, err := p.Future.Struct()
+	return BucketStoreInfo(s), err
+}
+
 type CapBucketCursor capnp.Client
 
 // CapBucketCursor_TypeID is the unique identifier for the type CapBucketCursor.
@@ -467,7 +583,7 @@ func (c CapBucketCursor_first) Args() CapBucketCursor_first_Params {
 
 // AllocResults allocates the results struct.
 func (c CapBucketCursor_first) AllocResults() (CapBucketCursor_first_Results, error) {
-	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 8, PointerCount: 2})
 	return CapBucketCursor_first_Results(r), err
 }
 
@@ -484,7 +600,7 @@ func (c CapBucketCursor_last) Args() CapBucketCursor_last_Params {
 
 // AllocResults allocates the results struct.
 func (c CapBucketCursor_last) AllocResults() (CapBucketCursor_last_Results, error) {
-	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 8, PointerCount: 2})
 	return CapBucketCursor_last_Results(r), err
 }
 
@@ -501,7 +617,7 @@ func (c CapBucketCursor_next) Args() CapBucketCursor_next_Params {
 
 // AllocResults allocates the results struct.
 func (c CapBucketCursor_next) AllocResults() (CapBucketCursor_next_Results, error) {
-	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 8, PointerCount: 2})
 	return CapBucketCursor_next_Results(r), err
 }
 
@@ -535,7 +651,7 @@ func (c CapBucketCursor_prev) Args() CapBucketCursor_prev_Params {
 
 // AllocResults allocates the results struct.
 func (c CapBucketCursor_prev) AllocResults() (CapBucketCursor_prev_Results, error) {
-	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 8, PointerCount: 2})
 	return CapBucketCursor_prev_Results(r), err
 }
 
@@ -569,7 +685,7 @@ func (c CapBucketCursor_seek) Args() CapBucketCursor_seek_Params {
 
 // AllocResults allocates the results struct.
 func (c CapBucketCursor_seek) AllocResults() (CapBucketCursor_seek_Results, error) {
-	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 8, PointerCount: 2})
 	return CapBucketCursor_seek_Results(r), err
 }
 
@@ -653,12 +769,12 @@ type CapBucketCursor_first_Results capnp.Struct
 const CapBucketCursor_first_Results_TypeID = 0x92163fe8dfbba335
 
 func NewCapBucketCursor_first_Results(s *capnp.Segment) (CapBucketCursor_first_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2})
 	return CapBucketCursor_first_Results(st), err
 }
 
 func NewRootCapBucketCursor_first_Results(s *capnp.Segment) (CapBucketCursor_first_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2})
 	return CapBucketCursor_first_Results(st), err
 }
 
@@ -725,12 +841,20 @@ func (s CapBucketCursor_first_Results) SetValue(v []byte) error {
 	return capnp.Struct(s).SetData(1, v)
 }
 
+func (s CapBucketCursor_first_Results) Valid() bool {
+	return capnp.Struct(s).Bit(0)
+}
+
+func (s CapBucketCursor_first_Results) SetValid(v bool) {
+	capnp.Struct(s).SetBit(0, v)
+}
+
 // CapBucketCursor_first_Results_List is a list of CapBucketCursor_first_Results.
 type CapBucketCursor_first_Results_List = capnp.StructList[CapBucketCursor_first_Results]
 
 // NewCapBucketCursor_first_Results creates a new list of CapBucketCursor_first_Results.
 func NewCapBucketCursor_first_Results_List(s *capnp.Segment, sz int32) (CapBucketCursor_first_Results_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2}, sz)
 	return capnp.StructList[CapBucketCursor_first_Results](l), err
 }
 
@@ -813,12 +937,12 @@ type CapBucketCursor_last_Results capnp.Struct
 const CapBucketCursor_last_Results_TypeID = 0xbec9f2412880c3c4
 
 func NewCapBucketCursor_last_Results(s *capnp.Segment) (CapBucketCursor_last_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2})
 	return CapBucketCursor_last_Results(st), err
 }
 
 func NewRootCapBucketCursor_last_Results(s *capnp.Segment) (CapBucketCursor_last_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2})
 	return CapBucketCursor_last_Results(st), err
 }
 
@@ -885,12 +1009,20 @@ func (s CapBucketCursor_last_Results) SetValue(v []byte) error {
 	return capnp.Struct(s).SetData(1, v)
 }
 
+func (s CapBucketCursor_last_Results) Valid() bool {
+	return capnp.Struct(s).Bit(0)
+}
+
+func (s CapBucketCursor_last_Results) SetValid(v bool) {
+	capnp.Struct(s).SetBit(0, v)
+}
+
 // CapBucketCursor_last_Results_List is a list of CapBucketCursor_last_Results.
 type CapBucketCursor_last_Results_List = capnp.StructList[CapBucketCursor_last_Results]
 
 // NewCapBucketCursor_last_Results creates a new list of CapBucketCursor_last_Results.
 func NewCapBucketCursor_last_Results_List(s *capnp.Segment, sz int32) (CapBucketCursor_last_Results_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2}, sz)
 	return capnp.StructList[CapBucketCursor_last_Results](l), err
 }
 
@@ -973,12 +1105,12 @@ type CapBucketCursor_next_Results capnp.Struct
 const CapBucketCursor_next_Results_TypeID = 0xf4d0d1cc3d7621b4
 
 func NewCapBucketCursor_next_Results(s *capnp.Segment) (CapBucketCursor_next_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2})
 	return CapBucketCursor_next_Results(st), err
 }
 
 func NewRootCapBucketCursor_next_Results(s *capnp.Segment) (CapBucketCursor_next_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2})
 	return CapBucketCursor_next_Results(st), err
 }
 
@@ -1045,12 +1177,20 @@ func (s CapBucketCursor_next_Results) SetValue(v []byte) error {
 	return capnp.Struct(s).SetData(1, v)
 }
 
+func (s CapBucketCursor_next_Results) Valid() bool {
+	return capnp.Struct(s).Bit(0)
+}
+
+func (s CapBucketCursor_next_Results) SetValid(v bool) {
+	capnp.Struct(s).SetBit(0, v)
+}
+
 // CapBucketCursor_next_Results_List is a list of CapBucketCursor_next_Results.
 type CapBucketCursor_next_Results_List = capnp.StructList[CapBucketCursor_next_Results]
 
 // NewCapBucketCursor_next_Results creates a new list of CapBucketCursor_next_Results.
 func NewCapBucketCursor_next_Results_List(s *capnp.Segment, sz int32) (CapBucketCursor_next_Results_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2}, sz)
 	return capnp.StructList[CapBucketCursor_next_Results](l), err
 }
 
@@ -1205,11 +1345,11 @@ func (s CapBucketCursor_nextN_Results) NewDocs() (KeyValueMap, error) {
 	return ss, err
 }
 
-func (s CapBucketCursor_nextN_Results) EndReached() bool {
+func (s CapBucketCursor_nextN_Results) ItemsRemaining() bool {
 	return capnp.Struct(s).Bit(0)
 }
 
-func (s CapBucketCursor_nextN_Results) SetEndReached(v bool) {
+func (s CapBucketCursor_nextN_Results) SetItemsRemaining(v bool) {
 	capnp.Struct(s).SetBit(0, v)
 }
 
@@ -1305,12 +1445,12 @@ type CapBucketCursor_prev_Results capnp.Struct
 const CapBucketCursor_prev_Results_TypeID = 0x80afad1a89a118e9
 
 func NewCapBucketCursor_prev_Results(s *capnp.Segment) (CapBucketCursor_prev_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2})
 	return CapBucketCursor_prev_Results(st), err
 }
 
 func NewRootCapBucketCursor_prev_Results(s *capnp.Segment) (CapBucketCursor_prev_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2})
 	return CapBucketCursor_prev_Results(st), err
 }
 
@@ -1377,12 +1517,20 @@ func (s CapBucketCursor_prev_Results) SetValue(v []byte) error {
 	return capnp.Struct(s).SetData(1, v)
 }
 
+func (s CapBucketCursor_prev_Results) Valid() bool {
+	return capnp.Struct(s).Bit(0)
+}
+
+func (s CapBucketCursor_prev_Results) SetValid(v bool) {
+	capnp.Struct(s).SetBit(0, v)
+}
+
 // CapBucketCursor_prev_Results_List is a list of CapBucketCursor_prev_Results.
 type CapBucketCursor_prev_Results_List = capnp.StructList[CapBucketCursor_prev_Results]
 
 // NewCapBucketCursor_prev_Results creates a new list of CapBucketCursor_prev_Results.
 func NewCapBucketCursor_prev_Results_List(s *capnp.Segment, sz int32) (CapBucketCursor_prev_Results_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2}, sz)
 	return capnp.StructList[CapBucketCursor_prev_Results](l), err
 }
 
@@ -1537,11 +1685,11 @@ func (s CapBucketCursor_prevN_Results) NewDocs() (KeyValueMap, error) {
 	return ss, err
 }
 
-func (s CapBucketCursor_prevN_Results) StartReached() bool {
+func (s CapBucketCursor_prevN_Results) ItemsRemaining() bool {
 	return capnp.Struct(s).Bit(0)
 }
 
-func (s CapBucketCursor_prevN_Results) SetStartReached(v bool) {
+func (s CapBucketCursor_prevN_Results) SetItemsRemaining(v bool) {
 	capnp.Struct(s).SetBit(0, v)
 }
 
@@ -1654,12 +1802,12 @@ type CapBucketCursor_seek_Results capnp.Struct
 const CapBucketCursor_seek_Results_TypeID = 0x9279eeebcc13f8a4
 
 func NewCapBucketCursor_seek_Results(s *capnp.Segment) (CapBucketCursor_seek_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2})
 	return CapBucketCursor_seek_Results(st), err
 }
 
 func NewRootCapBucketCursor_seek_Results(s *capnp.Segment) (CapBucketCursor_seek_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2})
 	return CapBucketCursor_seek_Results(st), err
 }
 
@@ -1726,12 +1874,20 @@ func (s CapBucketCursor_seek_Results) SetValue(v []byte) error {
 	return capnp.Struct(s).SetData(1, v)
 }
 
+func (s CapBucketCursor_seek_Results) Valid() bool {
+	return capnp.Struct(s).Bit(0)
+}
+
+func (s CapBucketCursor_seek_Results) SetValid(v bool) {
+	capnp.Struct(s).SetBit(0, v)
+}
+
 // CapBucketCursor_seek_Results_List is a list of CapBucketCursor_seek_Results.
 type CapBucketCursor_seek_Results_List = capnp.StructList[CapBucketCursor_seek_Results]
 
 // NewCapBucketCursor_seek_Results creates a new list of CapBucketCursor_seek_Results.
 func NewCapBucketCursor_seek_Results_List(s *capnp.Segment, sz int32) (CapBucketCursor_seek_Results_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2}, sz)
 	return capnp.StructList[CapBucketCursor_seek_Results](l), err
 }
 
@@ -1743,65 +1899,76 @@ func (p CapBucketCursor_seek_Results_Future) Struct() (CapBucketCursor_seek_Resu
 	return CapBucketCursor_seek_Results(s), err
 }
 
-const schema_893d996fbc85a1c3 = "x\xda\xbcU[h\x1cU\x18\xfe\xbf\xb9\xec\xd9\xd6\xac" +
-	"\x9b\xc3\x84\xda\xa8am\xd8\x87\xb4\xda\xb4n\x8d\xb4b" +
-	"\xc86\xa5E)\x91\xcc*B}\x9bn\x8en.n" +
-	"\xd6\x99\xd9\xe8>\xd4\xc6J\x84D\x8b\x10\xe8C\x1f\x17" +
-	"oT(>\xa8hm\x08B[\xa4\x10\xd1 \x14\xf3" +
-	"PD\xf0\x8aPP,\xf86r\xce\xeeL&Ps" +
-	"\x81\xc4\xa709\xdf\x7f\xfb\xfe\xef\xffv\xff/Z\xde" +
-	"x8\xd5\xc7H\xb3\x9f1\x13\xc1\xef;\xeb\xd3\xf7^" +
-	"\xfch\x92x\x16D\xa6\xc6\x88\x0eL\xe93 X\xe7" +
-	"\xf4\x97\x09\xc1A\xf3i\x8d\xa5\xbex\xad\x010\xe4\xfb" +
-	"\x9f\xfa\x19\x90\x11\x8c\xfcz\xac\xd0n\xceO\xc5^n" +
-	"6^\xbe\xb1\xcf_\xb8\xf6\xc4[o\x90\x9d\x85\xcc\x0a" +
-	"\xf9v]\x9f\x95Y\x97T\xd6\x9ew.\xff\xf0[\xdf" +
-	"\x8e\xd9x\xd9C\x86\x02<iH\xc0\xbb\xffX\x0b\x7f" +
-	"\xdc\xaa\xad\x00\xbcg\xa8\xbe>U\x80\xf4\xc9\xc9\x96W" +
-	"\xbf\xbc\xafN\xbcM\x0f\xae\xd4\xa7\xe6\xc6\xcf\xf7N\x13" +
-	"\xe1\x007;a\xed2e@\x87\xf9\x15\xac\x9e\x04#" +
-	"\x0a\xae\xbemm7\x1e?\xfb~\xac\xd9\x8e\xc4\x8cl" +
-	"v\xdbh\x87?\xd3\xde\xf9Y\xb3Y\xf5\x94J\xa8J" +
-	"\x1d\x89>Bp\xf5\xcad\xd7\xe1\xbf\xae\xcf\xc7[\xe9" +
-	"m\x00\x06\x12\xb2\x95\xa1\x17J\x0bv\xf7\x8d\xc5x\x86" +
-	"\x0b\x0d\xc0%\x95\xa1v\xccI\xcdZ\xa7o43(" +
-	":\x96\x12g$\xe0g\x05\xd81'\x1e\xfc\xee\xf57" +
-	"\xbf_A\xd86\xa6\xf8hg\xb2F\xfd\xe3\xb9\xcb\xb7" +
-	"\xe6w/\x11\x7f\x00\xc1\xa9\xb3\xe5GO\xdc\xfe\xfcv" +
-	"\xb3\x99\x1a\xcb\xc1\x9af\x8c\xc8\x9aR\xe0\x0f\xbb\xb6\xef" +
-	"\x1b\xf9\xc0\xff)6\xec\x8fLm\xe6\x93]\x13\xbd\x0b" +
-	"\x8b\xdf\xfe\x1d\x9f\xe5k\xa6Z\xbd\xa9B\xa3\xd4\xbc\x0d" +
-	"\xcb\xb46\x1a:\x94\xd4`\x1dM\xdeCd\x0d$\xfb" +
-	"hoP\xaa\x9et*\xc3\xfb\xfa\xcdjqT\xf8\xdd" +
-	"E\xa7R\xae<v\xc4\xa9\xf4\xab\xef#U\xd7\x1bw" +
-	"\xbb+\xae\x98\xc8\x16\x84W\x1d\xf3=\";\xa9\x1bD" +
-	"\x06\x88\xf8\xeeN\";\xab\xc3\xde\xaf\x81\x03mrr" +
-	"\xbe7Gdw\xe9\xb0\x1f\xd1\xc0FE\x0d-\xa4\xa1" +
-	"\x85\x90\x99p\xc6\xaa\x02)\xd2\x90\"D\x95\xf9\x9a\x95" +
-	"\x07\x1d\xd7y\xd1\xa30`5\xfc\x98\xe3\xf9\x1b\xc1\x97" +
-	"\xc5+\xfeS\xcd\xd1\xe0\xc5'\xdb\xb3<Y4\xd8s" +
-	"D\xf6C:\xec\x83\x1a\xd2C\xe3E\x0f\xad\xcbd\x13" +
-	"\xd0J\x08Dy\xa8 \x9cb\x89t1\x04\x90\x06\xc4" +
-	"F]\x95\xe4\xe7\x87]\xcf\xbfc+\x9b@\xf2\xaa\x95" +
-	"=!F\xb7l\xbd\xfa\x7fUf\xde\xb8;\x08\xd8\xf7" +
-	"\xebf\xec\xb8\x11\xda\x0a_\xcc\x91\xc6\xaf1 r)" +
-	"\x84g\xcc/\xed!\x8d_d\xd0\xa2;Ax\x16\xbc" +
-	".\xdf\xce1\xe8\x91- 43>-s\x9eb0" +
-	"\"OD\xe8\x9e\xfc%\x19'\x18\xcc\xc8\x0c\x10\xde4" +
-	"?!\xe3\x06\x18\x12\x91\x0f t7~X\xc6\xf5\xb0" +
-	"\x8c\xda_\x1ei)\xc1<\xd2RYyd\x94\xc0\xf2" +
-	"HK!\xe7\x91\x91\x7f\xe4\xa7\xa4<\x8fAlH\x1b" +
-	"M]\xd3\xfab\x1a\xd2\x0ecl#\xdaj*\xa7\x96" +
-	"\x0c\xbbMC\xc6\xf3E\xc5C\x924$\xd7+\x17u" +
-	"c[%\x975}hKFR\x17\xd0\xcc\x1bO[" +
-	" \xb2[t\xd8;5\x04\x9ep\xdcb\xe9\xb8 D" +
-	"3l\xa4\xeb\xf5z\xcc\xc8\xda\x1e\xe3\xf9\x8e\xeb\x17\x84" +
-	"C\xe9b\xe9\x0e.\xb3\xe2\xe2\x8e\x8b\xda\xb3\x92\xe8\x01" +
-	"\xa7\xd2\x9d9Z\xf6\xdd\x9a\xbc\xb9\xcd\xdd\xd9]k\xc9" +
-	"p\xa3\x8e\xfc\xff\x98Q\x8c\x1a\xb2\x0d\xc4\x7f\xa0\x91k" +
-	"p\x15\xd7B\x7fSbY\x0d\xa7E\xd9w\x87\x85\x87" +
-	"\xbb\x09\x83:\xd0\xba\x1cJ\x90\xff\xfc7\x00\x00\xff\xff" +
-	"\xf8\xd5\x8bR"
+const schema_893d996fbc85a1c3 = "x\xda\xccV_h\x1c\xd5\x17>\xdf\xbd3;\xbb\xf9" +
+	"e\x7f\xc9\xb0km\xabe5\xe4\xa1\xad6mS[" +
+	"J\xb1d\x93\xda\xd2Z+\xb9[\x11\xfb\xa4\xd3\xec\xb4" +
+	"\xd9&\xd9\xdd\xceL\xa2[\x8cM\xab\x11\x12\x1b\x84\x80" +
+	"H\x1e\x17EQ\x88\xa5(\xf8\xa71(m\x11!\xa0" +
+	"A,\xe6AD0\xd4 \xf4A,\xf8\"#wv" +
+	"gv\x82\x98?\x0f\x1a\x9f\x92;\xf7\x9cs\xbf\xf3\x9d" +
+	"s\xbe\xb3;.\xf0\xb4\xb23\xfe\xbaFL<\xa5F" +
+	"\xdc\x85\xf5\xe5\x91\x8d\x93\x97\x87H4\x03D*\xd3\x88" +
+	"v]\xe1\xa3 $>\xe7\x97\x09\xee^\xf58\xd3\xe2" +
+	"\x9f\\ \xbd\x19D\x8a\xbc?\xa1\\\x04)\xee\x99[" +
+	"\x872\x1b\xd4\xe9\xe1\xd0\xcd\xc1\xca\xcdWb\xe2\x9d\x1b" +
+	"\x87/\xbd\xecG\x85\xbc\xdb\xa9\x8c\xcb\xa8\xed\xca\xb3\x04" +
+	"w\xff\\\xc7{{\x9e~\xe9\x12\x89$\x98{\xad<" +
+	"<U\x98\xd8?R}\xbf\xac4!qE\x06LL" +
+	"*\xb7\x08\xee\xee7\xae\xfe\xf0s\xdb\xba\xf1E(G" +
+	"T/\xde\x84*Q\xbe\xf9{b\xe6\x97\xdb\xa5\xc5\x16" +
+	";#^\x1e\xed\x11i\xd1pr\xa8\xfe\x85\xcf\xee)" +
+	"\x93\x9e\xe4\xb5\x07\x09\xbb\xe6\"MH,D\xa4\xc3|" +
+	"\xe4\x0b$\xfe\xd04\"\xf7\xfa\xab\x89:\xe5\xe1\xb1\xb7" +
+	"B\xc9\xcdk\xa32\xb9X\xcf&gtC\xd3\x87\xd5" +
+	"\xa7\xbc\xabo5\xef\xa5y\xad\x8d\xe0^\xbf6\xb4\xb9" +
+	"\xfd\xd7/\xa7\x17aQ\xa3\x9e\xc5]Q\x89%{\xba" +
+	"{F\xb4\xdc\x9c\x0d\x87\x98\xac\x18|\x1a\x95!J\x87" +
+	"\x8c\xf8x\xe2\xfc\xcd\xca\xeb\x15\xfe\xbe\x8f^\x94\x06\x0b" +
+	"\x9e\xc1\xba)\xf3\x81o^|\xe5\xbbE\x0c\xc7c\x1e" +
+	"#\x9bb\x92\xe1\xf2\xfbSWoOo\x99#\xfd>" +
+	"\xb8\x83c\xf9='\xee|t\xa7\x0af0\xd6\x8a\xc4" +
+	"XL\x12<\xe2\x19\xbf\xbb\xb9n\xfb\x99\xb7\x9d\x9f\xc2" +
+	"\xd9\xc6\xbcR~p\xff\xc0\xfe\x99\xd9\xaf\x7f[\x94\xcc" +
+	"l\xcc\xc3\xfacL&\x13\xc4\xd6\x93\x08U\xd2CT" +
+	"\xaacH\x0c\xd7\xddM\x94\x18\xabk\xa3mnw\xff" +
+	"I\xa3\x98\xdb\xde\xa1\xf6w\xf5\x98NK\x97Q\xcc\x17" +
+	"\xf7\x1d0\x8a\x1d\xde\xf9@\xbfe\x17\xac\x96\xa2e\x0e" +
+	"4gL\xbb\xbf\xd7\xb1\x89D=W\x88\x14\x10\xe9\x07" +
+	"\x9b\x88D\x9aC<\xc6\xa0\x03I\x89H?\xd2J$" +
+	"\x1e\xe1\x10\x9d\x0c`I0\"\xfd\x98\xfcv\x98C<" +
+	"\xc1\xa0\xf5\x98%\xd4\x13C=!5`\xf4\xf6\x9b\x88" +
+	"\x13C\xbcr\xcae\x01b\x00!\xc0\xa6/\x8b\xad\xd3" +
+	"\xb0\x8c>\x9b|\x87\xa5\xec{\x0d\xdbY\x8d}\xde|" +
+	"\xcey\xbc\x9a<l\x11\x0dr\xdf\xb2\x95H4s\x88" +
+	"\x1d\x0c~\xea\xdb\xce\x11\x89\x079\xc4^\x86\x86l\xa1" +
+	"\xcbFc\xad\x1c\x044\x12\xdc\x9cc\xf6\xd9\x19\xb3\x8f" +
+	"\xda\x8c\\>\x97?\xfd\x97ty\x18N\x05\xcbq\xa7" +
+	"`\x99G\xb4\xfc\xa9B' \x1a\x03\x0c\xc6\xa3D\xe2" +
+	"\x19\x0e\xd1[\xc3\x90\xdbG$\xb2\x1c\xa2\xc8\xa03T" +
+	"\xf8\xef\xdbH$\xba9\x84\xc3\xa0s$\xc1\x89\xf4\xb3" +
+	"\x19\"Q\xe4\x10\xcf3\xb8Y\xc31\x8e\xe7\xce\x99D" +
+	"\x04\x95\x18TB\x9b\x99?\x9d\xcb\x9b~\xadx.\xeb" +
+	"\xff\xeb\xe6\xad\x8c\xd9U\xb0\xb2\x04\xdb\xb7^Y+\x9d" +
+	"\xcaY\xb6S\xa3\xf3\xdfn\xa5%\xb1\xd9\xa6\xd9\xb3\x86" +
+	"m\xce\xff\x0e\x9bf\x17,Y\xf7{\xb9\x1a\x12B\xf8" +
+	"\"\xac\xcf\xb6\x12\xd3oh@\xb0\x01\xe0K\x9e\xfe\xf1" +
+	"Vb\xfa\xa4\x06\x16H\x0a|\x05\xd1\xcb\xf2\xee5\x0d" +
+	"<\x90P\xf8\x8bB\x1f\x911\x075(\xc1\xbe\x81\xbf" +
+	"\x9a\xf4\xb3\xd2\xcf\xd4\xa0\x06\xba\x09_\xfe\xf4\x13\xd2\xef" +
+	"\x98\x86H \x99\xf0W\x81\xde.\xfdvk)\xaf\x07" +
+	"\xd2h\x90\xa3\x98F\x83\x9c\xb04R\xde\xa0\xa5\xd1 " +
+	"\x07:\x8d\x94\xfc#\x8f\xb2(itbU\xfdU\x9d" +
+	"oZ\x99Oe\xc4}\x1f\xa1\x04u\x8f\xcbrF9" +
+	"D\x92!e;f\xd1F\x94\x18\xa2+m(Ok" +
+	"\xd6\xae\xa1\x96\xd5\xf4\x7f$io\x8a\xaaq\xc3a3" +
+	"\x1e\x03\x10\xeb\x19\\\xdb4\xac\xae\xee\xa3&!\xc8h" +
+	"5\xa8\xd7L\x8d\x8f\x9a\xa5'%\xf1\xc7\x8cbK\xea" +
+	"`\xde\xb1Jr.C(\x9aj(\x82\xban\x93\x84" +
+	"n\xe6\x10\x0f-U\xc3\xe0\xc1\xff-\xd7\xaa\xab\xdd^" +
+	"\xff\x15I\x0b\x91GBA\xf8\x17\x11Z+l\x86\xfb" +
+	"\xa5\xa3\xda\x86\xcd\x0c\xe7\xcd\xbcc\xe5L\x1b\xff't" +
+	"r\xa0\xb1\xe6J\x90\x1f\xff\x0c\x00\x00\xff\xff\x128\xe0" +
+	"P"
 
 func init() {
 	schemas.Register(schema_893d996fbc85a1c3,
@@ -1809,6 +1976,7 @@ func init() {
 		0x81ba0d0702530538,
 		0x85be05195246e76a,
 		0x868c48c5a99951cf,
+		0x8c845f36ae42d93d,
 		0x92163fe8dfbba335,
 		0x9279eeebcc13f8a4,
 		0xa11bc07e0c80620f,

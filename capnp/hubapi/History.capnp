@@ -4,96 +4,111 @@
 using Go = import "/go.capnp";
 $Go.package("hubapi");
 $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
+using Thing = import "./Thing.capnp";
+using Bucket = import "./Bucket.capnp";
 
-# Date format madness at work here.
-# Event timestamps must be formatted as YYYY-MM-DDTHH:MM:SS.sss-0700 where 0700 is the timezone.
-# in golang:
-const goISO8601Format :Text = "2006-01-02T15:04:05.000-0700";
 
-struct ThingValue {
-    # Data containing an event or action value of a thing
-    thingID @0 :Text;
-    # ID of the thing owning the value
-
-    name @1 :Text;
-    # Name of event or action as described in the thing TD
-
-    valueJSON @2:Text;
-    # Value, JSON encoded
-
-    created @3:Text;
-    # Timestamp the value was created, in ISO8601 format. Default is 'now'
-}
-
-struct ThingValueMap {
-  # capnp doesn't have map types. It uses a struct with dynamic keys.
-  # This compiles to an array in golang.
-  entries @0 :List(Entry);
-  struct Entry {
-    key @0 :Text;
-    value @1 :ThingValue;
-  }
-}
-
-struct StoreInfo {
-    # History Store information
-
-    engine @0 :Text;
-    # Storage engine used, eg "mongodb" or other
-
-    nrActions @1 :Int64;
-    # The number of actions in the store
-
-    nrEvents @2 :Int64;
-    # The number of events in the store
-
-    uptime @3 :Int64;
-    # Nr of seconds the service is running
-}
-
-interface CapHistory {
+interface CapHistoryService {
 # Available History store capabilities
 
-  capReadHistory @0 () -> (cap :CapReadHistory);
-  # Capabilities to read the event and action history
+  capAddHistory @0 (thingID :Text) -> (cap :CapAddHistory);
+  # Capabilities to add to the Thing history
+  # This capability should only be provided to the device or service that have write access to the Thing.
 
-  capUpdateHistory @1 () -> (cap :CapUpdateHistory);
-  # Capabilities to update the Thing history
-  # TBD. Limit to a specific Thing ID or publisher when used by a device directly
+  capAddAnyThing @1 () -> (cap :CapAddHistory);
+  # CapAddAnyThing provides the capability to add to the history of any Thing.
+  # It is similar to CapAddHistory but not constraint to a specific Thing.
+  # This capability should only be provided to trusted services that capture events from multiple sources
+  # and can verify their authenticity.
 
+  capReadHistory @2 (thingID :Text) -> (cap :CapReadHistory);
+  # CapReadHistory provides the capability to iterate history.
+  # This returns an iterator for the history.
+  # Values added after creating the cursor might not be included, depending on the
+  # underlying store.
+  # This capability can be provided to anyone who has read access to the thing.
+  #
+  #  the cursor key is the timestamp in ISO8601 in msec, eg YYYY-MM-DDTHH:MM:SS.sss-TZ
+  #  the cursor value is the event or action
+
+#tbd  getValues @2 (thingNames :List(Text)) -> (values :List(Thing.ThingValue));
+  # getValues returns a collection of latest thing property/event values
+  # It is up to the caller to authorize access from external requests.
+  # The argument is a list of thingID/propname to return. Use '/' as separator.
+  #
+  # This capability should only be provided to a service that authorizes proper read access
+  # to the Things, eg a gateway service or similar.
+  #  thingNames is a list of thingID/name to return
+
+   #info @3 () -> (info :HistoryInfo);
+  # Provide info on the history store
 }
 
-interface CapReadHistory {
-# Capability to read from the history store
 
-  getActionHistory @0 (thingID :Text, actionName :Text, after:Text, before:Text, limit:Int32) -> (values :List(ThingValue));
-  # Return the history of a Thing action
-  # before and after are timestamps in iso8601 format (YYYY-MM-DDTHH:MM:SS-TZ)
 
-  getEventHistory @1 (thingID :Text, eventName :Text, after:Text, before:Text, limit:Int32) -> (values :List(ThingValue));
-  # Return the history of a Thing event
-  # before and after are timestamps in iso8601 format (YYYY-MM-DDTHH:MM:SS-TZ)
-  # if before is provided, after must be provided as well
+interface CapAddHistory {
+# Capability to add to a Thing's history
 
-  getLatestEvents @2 (thingID :Text) -> (thingValueMap :ThingValueMap);
-  # Return a map with the most recent event values of a Thing
-
-  info @3 () -> (statistics :StoreInfo);
-  # Return storage information
-}
-
-interface CapUpdateHistory {
-# Capability to update the history store
-
-  addAction @0 (actionValue :ThingValue) -> ();
+  addAction @0 (actionValue :Thing.ThingValue) -> ();
   # Add a Thing action with the given name and value to the action history
   # value is json encoded. Optionally include a 'created' ISO8601 timestamp
 
 
-  addEvent @1 (eventValue :ThingValue) -> ();
+  addEvent @1 (eventValue :Thing.ThingValue) -> ();
   # Add an event to the event history
 
-  addEvents @2 (eventValues :List(ThingValue)) -> ();
+  addEvents @2 (eventValues :List(Thing.ThingValue)) -> ();
   # Bulk add events to the event history
+}
+
+
+interface CapReadHistory {
+# CapReadHistory defines the capability to read information from a thing
+
+	getEventHistory @0 (name :Text) -> (cursor :CapHistoryCursor);
+	# GetEventHistory returns a cursor to iterate the history of a thing's event
+	# name is the event or action to filter on. Use "" to iterate all events/action of the thing
+
+	getProperties @1 (names :List(Text)) -> (valueList :List(Thing.ThingValue));
+	# GetProperties returns the most recent property and event values of the Thing
+
+	info @2 () -> (info :Bucket.BucketStoreInfo);
+	# info() returns the storage information of the Thing
+}
+
+interface CapHistoryCursor {
+# CapHistoryCursor is a cursor to iterate the Thing event and action history
+# This is a bucket cursor that converts converts the data to ThingValue types.
+# Use Seek to find the start of the range and NextN to read batches of values
+
+	first @0 () -> (thingValue :Thing.ThingValue, valid :Bool);
+    # First return the oldest value in the history
+	# Returns nil if the store is empty
+
+	last @1 () -> (thingValue :Thing.ThingValue, valid :Bool);
+	# Last returns the latest value in the history
+	# Returns nil if the store is empty
+
+	next @2 () -> (thingValue :Thing.ThingValue, valid :Bool);
+    # Next returns the next value in the history
+	# Returns nil when trying to read past the last value
+
+	nextN @3 (steps :UInt32) -> (batch :List(Thing.ThingValue), valid :Bool);
+	# NextN returns a batch of next history values
+	# Returns empty list when trying to read past the last value
+
+	prev @4 () -> (thingValue :Thing.ThingValue, valid :Bool);
+	# Prev returns the previous value in history
+	# Returns nil when trying to read before the first value
+
+	prevN @5 (steps :UInt32) -> (batch :List(Thing.ThingValue), valid :Bool);
+	# PrevN returns a batch of previous history values
+	# Returns empty list when trying to read before the first value
+
+	seek @6 (isoTimestamp :Text) -> (thingValue :Thing.ThingValue, valid :Bool);
+	# Seek the starting point for iterating the history
+	# This returns the value at timestamp or next closest if it doesn't exist
+    # The timestamp is in iso8601 format (YYYY-MM-DDTHH:MM:SS-TZ)
+	# Returns empty list when there are no values at or past the given timestamp
 
 }
