@@ -1,4 +1,4 @@
-// Package mongohs with MongoDB based history store
+// Package mongohs with MongoDB based history mongoClient
 // This implements the HistoryStore.proto API
 package mongohs
 
@@ -17,8 +17,8 @@ import (
 	"github.com/hiveot/hub.go/pkg/vocab"
 )
 
-// AddAction adds a new action to the history store
-func (srv *MongoHistoryServer) AddAction(ctx context.Context,
+// AddAction adds a new action to the history mongoClient
+func (srv *MongoBucketStore) AddAction(ctx context.Context,
 	actionValue thing.ThingValue) error {
 
 	// Name and ThingID are required fields
@@ -51,8 +51,8 @@ func (srv *MongoHistoryServer) AddAction(ctx context.Context,
 	return err
 }
 
-// AddEvent adds a new event to the history store
-func (srv *MongoHistoryServer) AddEvent(
+// AddEvent adds a new event to the history mongoClient
+func (srv *MongoBucketStore) AddEvent(
 	ctx context.Context, eventValue thing.ThingValue) error {
 
 	// Name and ThingID are required fields
@@ -111,7 +111,7 @@ func (srv *MongoHistoryServer) AddEvent(
 
 // AddEvents performs a bulk update of events
 // This provides a significant performance increase over adding multiple single events
-func (srv *MongoHistoryServer) AddEvents(ctx context.Context,
+func (srv *MongoBucketStore) AddEvents(ctx context.Context,
 	events []thing.ThingValue) error {
 	evList := make([]interface{}, 0)
 
@@ -199,7 +199,7 @@ func (srv *MongoHistoryServer) AddEvents(ctx context.Context,
 }
 
 // Update the latest record with the new value
-func (srv *MongoHistoryServer) addLatest(ctx context.Context,
+func (srv *MongoBucketStore) addLatest(ctx context.Context,
 	value thing.ThingValue) error {
 
 	// It is possible that events arrive out of order so the created date must be newer

@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/hiveot/hub.go/pkg/logging"
+	"github.com/hiveot/hub/pkg/bucketstore"
 	"github.com/hiveot/hub/pkg/state"
 	"github.com/hiveot/hub/pkg/state/capnpclient"
 	"github.com/hiveot/hub/pkg/state/capnpserver"
@@ -24,11 +25,7 @@ const storeDir = "/tmp/test-state"
 const testAddress = "/tmp/statestore_test.socket"
 const testUseCapnp = true
 
-//var backend = config.StateBackendKVStore
-
-var backend = config.StateBackendBBolt
-
-//var backend = config.StateBackendPebble
+var backend = bucketstore.BackendKVBTree
 
 // return an API to the state service, optionally using capnp RPC
 func createStateService(useCapnp bool) (store state.IStateService, stopFn func() error, err error) {

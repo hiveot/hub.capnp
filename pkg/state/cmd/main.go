@@ -26,7 +26,7 @@ func main() {
 	// this is a service so go 2 levels up
 	f := svcconfig.GetFolders("", false)
 	var stateConfig = config.NewStateConfig(f.Stores)
-	stateConfig.Backend = bucketstore.BackendKVStore
+	stateConfig.Backend = bucketstore.BackendKVBTree
 	//stateConfig.Backend = bucketstore.BackendBBolt
 	//stateConfig.Backend = bucketstore.BackendPebble
 

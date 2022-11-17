@@ -4,16 +4,13 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path"
 	"sync"
 
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
 
 	"github.com/hiveot/hub/pkg/bucketstore"
-	"github.com/hiveot/hub/pkg/bucketstore/bolts"
-	"github.com/hiveot/hub/pkg/bucketstore/kvbtree"
-	"github.com/hiveot/hub/pkg/bucketstore/pebble"
+	"github.com/hiveot/hub/pkg/bucketstore/cmd"
 	"github.com/hiveot/hub/pkg/state"
 	"github.com/hiveot/hub/pkg/state/config"
 )
@@ -50,19 +47,20 @@ func (srv *StateService) CapClientBucket(_ context.Context,
 	clientStore := srv.clientStores[clientID]
 	// create the store instance for the client if one doesn't yet exist
 	if clientStore == nil {
-		if srv.cfg.Backend == config.StateBackendKVStore {
-			logrus.Infof("opening kv store for client '%s' bucket '%s", clientID, bucketID)
-			storePath := path.Join(srv.cfg.StoreDirectory, clientID+".json")
-			clientStore = kvbtree.NewKVStore(clientID, storePath)
-		} else if srv.cfg.Backend == config.StateBackendBBolt {
-			logrus.Infof("opening boltDB store for client '%s' bucket '%s", clientID, bucketID)
-			storePath := path.Join(srv.cfg.StoreDirectory, clientID+".boltdb")
-			clientStore = bolts.NewBoltStore(clientID, storePath)
-		} else {
-			logrus.Infof("opening Pebble store for client '%s' bucket '%s", clientID, bucketID)
-			storePath := path.Join(srv.cfg.StoreDirectory, clientID) // this is a folder
-			clientStore = pebble.NewPebbleStore(clientID, storePath)
-		}
+		clientStore = cmd.NewBucketStore(srv.cfg.StoreDirectory, clientID, srv.cfg.Backend)
+		//if srv.cfg.Backend == config.StateBackendKVStore {
+		//	logrus.Infof("opening kv store for client '%s' bucket '%s", clientID, bucketID)
+		//	storePath := path.Join(srv.cfg.StoreDirectory, clientID+".json")
+		//	clientStore = kvbtree.NewKVStore(clientID, storePath)
+		//} else if srv.cfg.Backend == config.StateBackendBBolt {
+		//	logrus.Infof("opening boltDB store for client '%s' bucket '%s", clientID, bucketID)
+		//	storePath := path.Join(srv.cfg.StoreDirectory, clientID+".boltdb")
+		//	clientStore = bolts.NewBoltStore(clientID, storePath)
+		//} else {
+		//	logrus.Infof("opening Pebble store for client '%s' bucket '%s", clientID, bucketID)
+		//	storePath := path.Join(srv.cfg.StoreDirectory, clientID) // this is a folder
+		//	clientStore = pebble.NewPebbleStore(clientID, storePath)
+		//}
 		err = clientStore.Open()
 		if err == nil {
 			srv.clientStores[clientID] = clientStore

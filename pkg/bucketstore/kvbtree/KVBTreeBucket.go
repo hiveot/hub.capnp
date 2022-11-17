@@ -292,6 +292,7 @@ func NewKVMemBucket(clientID, bucketID string) *KVBTreeBucket {
 }
 
 // NewKVMemBucketFromMap creates a new KVBTreeBucket from a map with bucket data
+// Intended for loading a saved store.
 func NewKVMemBucketFromMap(clientID, bucketID string, data map[string][]byte) *KVBTreeBucket {
 	logrus.Debugf("creating bucket '%s' of client '%s'", bucketID, clientID)
 	kvbucket := &KVBTreeBucket{

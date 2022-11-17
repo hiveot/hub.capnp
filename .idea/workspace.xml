@@ -4,65 +4,26 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a8355b86-cb16-4dbc-90ec-9852fdfe1e16" name="Changes" comment="Cleanup, fix build errors after API change">
-      <change afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Thing.capnp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Thing.capnp.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/bucketstore/cmd/NewBucketStore.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/bucketstore/mongo/MongoBucket.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/bucketstore/mongo/MongoCursor.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/history/HistoryBench_test.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/history/capnpclient/HistoryCursorCapnpClient.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/history/capnpserver/HistoryCursorCapnpServer.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/history/service/AddAnyThing.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/history/service/AddHistory.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/history/service/HistoryCursor.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/history/service/HistoryService.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/history/service/PropertiesStore.go" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/pkg/history/service/ReadHistory.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../hub.capnp/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/Makefile" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Bucket.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Bucket.capnp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Gateway.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Gateway.capnp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/History.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/History.capnp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Bucket.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Bucket.capnp.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Gateway.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Gateway.capnp.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/History.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/History.capnp.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../hub.go/pkg/thing/ThingValue.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.go/pkg/thing/ThingValue.go" afterDir="false" />
+    <list default="true" id="a8355b86-cb16-4dbc-90ec-9852fdfe1e16" name="Changes" comment="Convert history service to use the bucket store instead of mongodb.&#10;Tweak the bucket store. &#10;Change JSON encoded data from string to []byte&#10;Update testcases.&#10;Cleanup and bug fixes">
+      <change afterPath="$PROJECT_DIR$/215.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/bucketstore/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/bucketstore/mongo/ReadMongoHS.go.old" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/caphelp/ThingValue.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/caphelp/ThingValue.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/authn/Authn_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/authn/Authn_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/bucketstore/BucketBench_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/bucketstore/BucketBench_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/bucketstore/BucketStore_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/bucketstore/BucketStore_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/bucketstore/IBucketStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/bucketstore/IBucketStore.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/bucketstore/bolts/BBoltCursor.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/bucketstore/bolts/BBoltCursor.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/bucketstore/bolts/BoltBucket.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/bucketstore/bolts/BoltBucket.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/bucketstore/bolts/BoltStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/bucketstore/bolts/BoltStore.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/bucketstore/capnpclient/BucketCursorCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/bucketstore/capnpclient/BucketCursorCapnpClient.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/bucketstore/capnpserver/BucketCursorCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/bucketstore/capnpserver/BucketCursorCapnpServer.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/bucketstore/kvbtree/KVBTreeBucket.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/bucketstore/kvbtree/KVBTreeBucket.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/bucketstore/kvbtree/KVBTreeCursor.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/bucketstore/kvbtree/KVBTreeCursor.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/bucketstore/kvbtree/KVBTreeStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/bucketstore/kvbtree/KVBTreeStore.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/bucketstore/pebble/PebbleBucket.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/bucketstore/pebble/PebbleBucket.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/bucketstore/pebble/PebbleCursor.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/bucketstore/pebble/PebbleCursor.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/directory/Directory_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/directory/Directory_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/directory/service/DirectoryService.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/directory/service/DirectoryService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/bucketstore/mongo/MongoBucket.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/bucketstore/mongo/MongoBucket.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/bucketstore/mongo/MongoCursor.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/bucketstore/mongo/MongoCursor.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/bucketstore/mongo/MongoStore.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/bucketstore/mongo/MongoStore.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/bucketstore/mongo/ReadMongoHS.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/bucketstore/mongo/UpdateMongoHS.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/bucketstore/mongo/UpdateMongoHS.go.old" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/history/History_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/History_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/history/IHistory.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/IHistory.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/history/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/history/capnpclient/HistoryCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/capnpclient/HistoryServiceCapnpClient.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/history/capnpclient/ReadHistoryCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/capnpclient/ReadHistoryCapnpClient.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/history/capnpclient/UpdateHistoryCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/capnpclient/AddHistoryCapnpClient.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/history/capnpserver/HistoryCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/capnpserver/HistoryServiceCapnpServer.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/history/capnpserver/ReadHistoryCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/capnpserver/ReadHistoryCapnpServer.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/history/capnpserver/UpdateHistoryCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/capnpserver/AddHistoryCapnpServer.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/history/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/cmd/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/history/service/mongohs/MongoHS.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/bucketstore/mongo/MongoStore.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/history/service/mongohs/ReadMongoHS.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/bucketstore/mongo/ReadMongoHS.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/history/service/mongohs/UpdateMongoHS.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/bucketstore/mongo/UpdateMongoHS.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/state/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/history/config/HistoryConfig.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/config/HistoryConfig.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/history/service/HistoryCursor.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/service/HistoryCursor.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/state/State_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/State_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/state/service/ClientState.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/service/ClientState.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/state/service/StateStoreService.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/service/StateService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/state/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/cmd/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/state/config/StateConfig.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/config/StateConfig.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/state/service/StateService.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/service/StateService.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -264,7 +225,6 @@
       <path value="$PROJECT_DIR$/../hub.grpc" />
       <path value="$PROJECT_DIR$/../owserver-pb" />
     </ignored-roots>
-    <MESSAGE value="dev iteration&#10;* Experiment with 'capabilities' oriented design&#10;* Standardize on folder layout&#10;* Split certificate capabilities &#10;* Refactor directory and history services&#10;* Start on provisioning service" />
     <MESSAGE value="dev iteration&#10;* Cleanup certs and directory with a standard capnp wrapping pattern." />
     <MESSAGE value="Complete cleanup and capnp readiness of certs service" />
     <MESSAGE value="Complete cleanup and capnp readiness of directory service" />
@@ -289,7 +249,8 @@
     <MESSAGE value="Updated the state service with the new bucket store.&#10;Added tests and benchmarks.&#10;Bug fixes." />
     <MESSAGE value="Improvements to the bucket store.&#10;- moved from internal to a package to allow external use&#10;- use of btree instead of map in kvmemstore (renamed to kvbtree)&#10;- improved benchmark tests&#10;- fixed some race conditions in test cases&#10;- add methods to iterate in bulk NextN, PrevN" />
     <MESSAGE value="Cleanup, fix build errors after API change" />
-    <option name="LAST_COMMIT_MESSAGE" value="Cleanup, fix build errors after API change" />
+    <MESSAGE value="Convert history service to use the bucket store instead of mongodb.&#10;Tweak the bucket store. &#10;Change JSON encoded data from string to []byte&#10;Update testcases.&#10;Cleanup and bug fixes" />
+    <option name="LAST_COMMIT_MESSAGE" value="Convert history service to use the bucket store instead of mongodb.&#10;Tweak the bucket store. &#10;Change JSON encoded data from string to []byte&#10;Update testcases.&#10;Cleanup and bug fixes" />
   </component>
   <component name="VgoProject">
     <settings-migrated>true</settings-migrated>
@@ -414,7 +375,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/pkg/history/History_test.go</url>
-          <line>336</line>
+          <line>335</line>
           <option name="timeStamp" value="391" />
         </line-breakpoint>
       </breakpoints>

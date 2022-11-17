@@ -55,11 +55,10 @@ var names = []string{"temperature", "humidity", "pressure", "wind", "speed", "sw
 
 // Create a new store, delete if it already exists
 func newHistoryService(useCapnp bool) (history.IHistoryService, func() error) {
-	svcConfig := config.NewHistoryConfig()
-	svcConfig.DatabaseName = "test"
+	svcConfig := config.NewHistoryConfig(testStoreDirectory)
 
 	// create a new empty store to use
-	_ = os.RemoveAll(testStoreDirectory)
+	_ = os.RemoveAll(svcConfig.Directory)
 	store := cmd.NewBucketStore(testStoreDirectory, testClientID, HistoryStoreBackend)
 	err := store.Open()
 	if err != nil {
@@ -170,10 +169,10 @@ func TestMain(m *testing.M) {
 // This requires a local unsecured MongoDB instance
 func TestStartStop(t *testing.T) {
 	ctx := context.Background()
-	cfg := config.NewHistoryConfig()
-	cfg.DatabaseName = "test"
+	cfg := config.NewHistoryConfig(testStoreDirectory)
+
 	//store := NewBucketStore()
-	store := cmd.NewBucketStore(testStoreDirectory, testClientID, bucketstore.BackendKVBTree)
+	store := cmd.NewBucketStore(cfg.Directory, testClientID, bucketstore.BackendKVBTree)
 	err := store.Open()
 	assert.NoError(t, err)
 	svc := service.NewHistoryService(store)

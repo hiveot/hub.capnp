@@ -8,6 +8,7 @@ const (
 	BackendKVBTree = "kvbtree" // fastest and best for small to medium amounts of data (dependent on available memory)
 	BackendBBolt   = "bbolt"   // slow on writes but otherwise a good choice
 	BackendPebble  = "pebble"  // a good middle ground between performance and memory
+	BackendMongoDB = "mongodb" // under construction, might not finish
 	// for consideration
 	// mongodb: for time seriers data
 	// encoding/gob encoder for serialization: interesting for kvmem serialization

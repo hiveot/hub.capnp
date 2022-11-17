@@ -233,7 +233,7 @@ func (hc *HistoryCursor) Seek(isoTimestamp string) (thingValue *thing.ThingValue
 	until := time.Now()
 	ts, err := dateparse.ParseAny(isoTimestamp)
 	if err != nil {
-		logrus.Infof("Seek using invalid timestamp '%s'. ThingID='%s'", hc.thingID)
+		logrus.Infof("Seek using invalid timestamp '%s'. ThingID='%s'", isoTimestamp, hc.thingID)
 		// can't do anything with this timestamp
 		return
 	}
