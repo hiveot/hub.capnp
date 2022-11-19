@@ -22,15 +22,16 @@ Updated 2022-11-10: completed initial version of:
 
 Todo in order to reach Alpha:
 ```
-- gateway service         provide https access to services
 - pubsub service          publish and subscribe to events and actions
+- user gateway service    provide https access to services
+- iot gateway service     provide http/rpc access to IoT devices
 ```
 
 Stretch goal:
 ```
 - bucketstore             add support for mongodb
 - bucketstore             add support for SQLite
-- history store           add support for bucket store with time range queries
+- history store           add support for bucket store with time range queries [complete]
 ```
 
 
