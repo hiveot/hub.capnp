@@ -52,7 +52,8 @@ type IHistoryService interface {
 
 	// CapAddHistory provides the capability to add to the history of a Thing.
 	// This capability should only be provided to the device or service that have write access to the Thing.
-	CapAddHistory(ctx context.Context, thingID string) IAddHistory
+	//  thingAddr is the gateway address of the thing, eg publisherID/thingID
+	CapAddHistory(ctx context.Context, thingAddr string) IAddHistory
 
 	// CapAddAnyThing provides the capability to add to the history of any Thing.
 	// It is similar to CapAddHistory but not constraint to a specific Thing.
@@ -66,32 +67,25 @@ type IHistoryService interface {
 	// underlying store.
 	// This capability can be provided to anyone who has read access to the thing.
 	//
-	//  the cursor key is the timestamp in ISO8601 in msec, eg YYYY-MM-DDTHH:MM:SS.sss-TZ
-	//  the cursor value is the event or action
-	CapReadHistory(ctx context.Context, thingID string) IReadHistory
-
-	// CapHistoryLatest returns the capability to retrieve the latest values of events and
-	// properties of things.
-	//CapHistoryLatest(ctx context.Context) IHistoryLatest
-	//GetValues(_ context.Context, thingNames []string) []thing.ThingValue {
-
+	//  thingAddr is the gateway address of the thing, eg publisherID/thingID
+	CapReadHistory(ctx context.Context, thingAddr string) IReadHistory
 }
 
 // IAddHistory defines the capability to add to a Thing's history
-// If this capability was created with the thingID constraint then only values for this
-// thingID will be accepted.
+// If this capability was created with the thingAddr constraint then only values for this
+// thingAddr will be accepted.
 type IAddHistory interface {
 
 	// AddAction adds a Thing action with the given name and value to the action history
-	// The given action object must not be modified after this call.
+	// The given value object must not be modified after this call.
 	AddAction(ctx context.Context, thingValue *thing.ThingValue) error
 
 	// AddEvent adds an event to the event history
-	// The given action object must not be modified after this call.
+	// The given value object must not be modified after this call.
 	AddEvent(ctx context.Context, thingValue *thing.ThingValue) error
 
 	// AddEvents provides a bulk-add of events to the event history
-	// The given event objects must not be modified after this call.
+	// The given value objects must not be modified after this call.
 	AddEvents(ctx context.Context, eventValues []*thing.ThingValue) error
 
 	// Release the capability and its resources

@@ -109,14 +109,14 @@ type IClientAuthz interface {
 
 	// GetPermissions returns the permissions the client has for a Thing
 	// Returns an array of permissions, eg PermEmitAction, etc
-	GetPermissions(ctx context.Context, thingID string) (permissions []string, err error)
+	GetPermissions(ctx context.Context, thingAddr string) (permissions []string, err error)
 }
 
 // IManageAuthz defines the capability for managing authorization groups.
 // Intended for use by administrators.
 type IManageAuthz interface {
 	// AddThing adds a Thing to a group
-	AddThing(ctx context.Context, thingID string, groupName string) error
+	AddThing(ctx context.Context, thingAddr string, groupName string) error
 
 	// Release this client capability after its use.
 	Release()
@@ -139,7 +139,7 @@ type IManageAuthz interface {
 	RemoveClient(ctx context.Context, clientID string, groupName string) error
 
 	// RemoveThing removes a Thing from a group
-	RemoveThing(ctx context.Context, thingID string, groupName string) error
+	RemoveThing(ctx context.Context, thingAddr string, groupName string) error
 
 	// SetClientRole sets the role for the client in a group.
 	// Note that 'things' are also clients. Things are added to groups with the role ClientRoleThing
@@ -154,16 +154,7 @@ type IVerifyAuthz interface {
 	// Release this client capability after its use.
 	Release()
 
-	// Verify verifies the client's authorization to access a Thing
-	//  clientID to authorize
-	//  thingID of the resources to access
-	// Returns a list of permissions
-	//Verify(ctx context.Context, clientID string, thingID string, authType string) (authorized bool)
-
 	// GetPermissions returns the permissions a client has for a Thing
 	// Returns an array of permissions, eg PermEmitAction, etc
-	GetPermissions(ctx context.Context, clientID, thingID string) (permissions []string, err error)
-
-	// IsPublisher determines if the given deviceID is the publisher for a Thing
-	IsPublisher(ctx context.Context, deviceID, thingID string) (bool, error)
+	GetPermissions(ctx context.Context, clientID, thingAddr string) (permissions []string, err error)
 }

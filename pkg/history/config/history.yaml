@@ -1,19 +1,13 @@
 # history.yaml - configuration file for the state storage.
 
 
-# backend storage to use. Options are: 'mongodb'
-# backend: mongodb
+# backend storage to use. Options are: 'pebble', "bbolt" and "kvbtree"
+# backend: pebble
 
-# the name of the backend database. Default 'thinghistory'
-# Can be changed if two hubs share the same backend
-#databaseName: thinghistory
+# storage directory. Default is the hub's stores subdirectory.
+#directory: /var/lib/thinghistory
 
-# location of backend server or file. Default is mongodb's URL
-#databaseURL: mongodb://localhost:27017
 
-# login and password to the database server if applicable
-#loginID:
-#password:
-
-# optional client certificate instead of login
-#clientCertificate: config/mongodb-clientcert.pem
+# serviceID is the service instance and thingID of the service itself without the urn: prefix.
+# Default is history
+#serviceID: history

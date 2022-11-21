@@ -4,7 +4,8 @@ import (
 	"context"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
-	"github.com/hiveot/hub/pkg/bucketstore/capnpserver"
+	"github.com/hiveot/hub.go/pkg/thing"
+	"github.com/hiveot/hub/internal/caphelp"
 	"github.com/hiveot/hub/pkg/directory"
 )
 
@@ -18,9 +19,9 @@ func (capsrv *ReadDirectoryCapnpServer) Cursor(
 	ctx context.Context, call hubapi.CapReadDirectory_cursor) error {
 
 	cursor := capsrv.srv.Cursor(ctx)
-	cursorSrv := capnpserver.NewBucketCursorCapnpServer(cursor)
+	cursorSrv := NewDirectoryCursorCapnpServer(cursor)
 
-	capability := hubapi.CapBucketCursor_ServerToClient(cursorSrv)
+	capability := hubapi.CapDirectoryCursor_ServerToClient(cursorSrv)
 	res, err := call.AllocResults()
 	if err == nil {
 		err = res.SetCursor(capability)
@@ -28,16 +29,16 @@ func (capsrv *ReadDirectoryCapnpServer) Cursor(
 	return err
 }
 func (capsrv *ReadDirectoryCapnpServer) GetTD(ctx context.Context, call hubapi.CapReadDirectory_getTD) (err error) {
-	var thingID string
-	var td []byte
+	var tv *thing.ThingValue
 
 	args := call.Args()
-	thingID, _ = args.ThingID()
-	td, err = capsrv.srv.GetTD(ctx, thingID)
+	thingAddr, _ := args.ThingAddr()
+	tv, err = capsrv.srv.GetTD(ctx, thingAddr)
 	if err == nil {
 		res, err2 := call.AllocResults()
 		err = err2
-		_ = res.SetTdJson(td)
+		tvCapnp := caphelp.MarshalThingValue(tv)
+		_ = res.SetTv(tvCapnp)
 	}
 	return err
 }

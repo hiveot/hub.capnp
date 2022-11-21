@@ -45,10 +45,12 @@ type IPubSubService interface {
 
 	// CapDevicePubSub provides the capability to pub/sub thing information as an IoT device.
 	// The issuer must only provide this capability after verifying the device ID.
+	// The deviceID is the thingID of the device requesting the capability.
 	CapDevicePubSub(ctx context.Context, deviceID string) IDevicePubSub
 
 	// CapServicePubSub provides the capability to pub/sub thing information as a hub service.
 	// Hub services can publish their own information and receive events from any thing.
+	// The serviceID is the thingID of the service requesting the capability.
 	CapServicePubSub(ctx context.Context, serviceID string) IServicePubSub
 
 	// CapUserPubSub provides the capability for an end-user to publish or subscribe to messages.
@@ -56,45 +58,31 @@ type IPubSubService interface {
 	//  userID is the login ID of an authenticated user
 	CapUserPubSub(ctx context.Context, userID string) (pub IUserPubSub)
 
-	// Stop the service and free its resources
-	Stop(ctx context.Context) error
-}
-
-// IUserPubSub defines the capability of an end-user to publish and subscribe messages
-type IUserPubSub interface {
-	// PubAction publishes an action request for a Thing.
-	// Authorization will only allow actions to be published for things that are in the same group as the user
-	// and for which the user has the operator or manager role.
-	//  action to send
-	PubAction(ctx context.Context, action *thing.ThingValue) (err error)
-
-	// SubEvent creates a topic for receiving an event
-	//  publisherID of the event. Use "" to subscribe to all publishers
-	//  thingID of the publisher event. Use "" to subscribe to events from all Things
-	//  eventName of the event. Use "" to subscribe to all events of publisher things
-	SubEvent(ctx context.Context, gatewayID, thingID, eventName string,
-		handler func(event *thing.ThingValue)) error
-
-	// SubTDs subscribes to all TD events.
-	//  gatewayID is optional. Use to limit subscriptions to TDs from a particular gateway.
-	//  handler is a callback invoked when a TD is received from a thing's publisher
-	SubTDs(ctx context.Context, gatewayID string, handler func(event *thing.ThingValue)) (err error)
-
 	// Release the capability and end subscriptions
-	Release()
+	// If this is an RPC client this just ends the client connection to the service
+	// If this is a server instance then the server stops
+	Release() error
 }
 
 // IDevicePubSub available to an IoT device
 type IDevicePubSub interface {
 	// PubEvent publishes the given thing event. The payload is an event value as per TD.
-	PubEvent(ctx context.Context, thingEvent *thing.ThingValue) (err error)
+	// This will combine the thingID with the device's thingID to publish it under the thing address
+	//  thingID of the Thing whose event is published
+	//  name is the event name
+	//  value is the serialized event value, or nil if the event has no value
+	PubEvent(ctx context.Context, thingID, name string, value []byte) (err error)
 
 	// PubProperties creates a topic and publishes properties of a thing.
-	// The props is a map of property name-value pairs.
-	PubProperties(ctx context.Context, thingID string, props map[string]string) (err error)
+	// This will combine the thingID with the device's thingID to publish it under the thing address
+	//  thingID of the Thing whose event is published (not the thing address)
+	//  The props is a map of property name-value pairs.
+	PubProperties(ctx context.Context, thingID string, props map[string][]byte) (err error)
 
 	// PubTD publishes the given thing TD. The payload is a serialized TD document.
-	PubTD(ctx context.Context, thingID string, deviceType string, td []byte) (err error)
+	// This will combine the thingID with the device's thingID to publish it under the thing address
+	//  thingID of the Thing whose event is published (not the thing address)
+	PubTD(ctx context.Context, thingID string, deviceType string, tdDoc []byte) (err error)
 
 	// Release the capability and end subscriptions
 	Release()
@@ -122,15 +110,38 @@ type IServicePubSub interface {
 	// Services can subscribe to other actions for logging, automation and other use-cases.
 	// For subscribing to service directed actions, use SubAction.
 	//
-	//  gatewayID of the thing. Use "" to subscribe to all gateways
-	//  thingID of the action target. Use "" to subscribe to all Things of the gateway
+	//  thingAddr of the action target. Use "" to subscribe to all Things
 	//  actionName or "" to subscribe to all actions
 	//  handler is a callback invoked when actions are received
 	SubActions(ctx context.Context,
-		gatewayID string,
-		thingID string,
+		thingAddr string,
 		actionName string,
 		handler func(action *thing.ThingValue)) (err error)
+
+	// Release the capability and end subscriptions
+	Release()
+}
+
+// IUserPubSub defines the capability of an end-user to publish and subscribe messages
+type IUserPubSub interface {
+	// PubAction publishes an action request for a Thing.
+	// Authorization will only allow actions to be published for things that are in the same group as the user
+	// and for which the user has the operator or manager role.
+	//  thingAddr is the address of the Thing whose action is being requested
+	//  name is the action name as defined in the Thing's TD
+	//  value is the JSON encoded value of the action
+	//PubAction(ctx context.Context, action *thing.ThingValue) (err error)
+	PubAction(ctx context.Context, thingAddr, actionName string, value []byte) (err error)
+
+	// SubEvent subscribes to events from a thing
+	//  thingAddr to subscribe to.
+	//  eventName of the event. Use "" to subscribe to all events of the things.
+	SubEvent(ctx context.Context, thingAddr, eventName string,
+		handler func(event *thing.ThingValue)) error
+
+	// SubTDs subscribes to eligible TD events
+	//  handler is a callback invoked when a TD is received
+	SubTDs(ctx context.Context, handler func(event *thing.ThingValue)) (err error)
 
 	// Release the capability and end subscriptions
 	Release()

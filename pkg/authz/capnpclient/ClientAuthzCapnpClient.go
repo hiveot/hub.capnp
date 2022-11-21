@@ -18,11 +18,11 @@ func (clAuthz *ClientAuthzCapnpClient) Release() {
 }
 
 func (clAuthz *ClientAuthzCapnpClient) GetPermissions(
-	ctx context.Context, thingID string) (permissions []string, err error) {
+	ctx context.Context, thingAddr string) (permissions []string, err error) {
 
 	method, release := clAuthz.capability.GetPermissions(ctx,
 		func(params hubapi.CapClientAuthz_getPermissions_Params) error {
-			params.SetThingID(thingID)
+			params.SetThingAddr(thingAddr)
 			return nil
 		})
 	defer release()

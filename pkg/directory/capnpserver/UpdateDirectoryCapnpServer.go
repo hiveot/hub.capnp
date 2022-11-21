@@ -18,8 +18,8 @@ func (capsrv *UpdateDirectoryCapnpServer) RemoveTD(
 	ctx context.Context, call hubapi.CapUpdateDirectory_removeTD) (err error) {
 
 	args := call.Args()
-	thingID, _ := args.ThingID()
-	err = capsrv.srv.RemoveTD(ctx, thingID)
+	thingAddr, _ := args.ThingAddr()
+	err = capsrv.srv.RemoveTD(ctx, thingAddr)
 	return err
 }
 
@@ -33,8 +33,8 @@ func (capsrv *UpdateDirectoryCapnpServer) UpdateTD(
 	ctx context.Context, call hubapi.CapUpdateDirectory_updateTD) (err error) {
 
 	args := call.Args()
-	thingID, _ := args.ThingID()
+	thingAddr, _ := args.ThingAddr()
 	tdDoc, _ := args.TdDoc()
-	err = capsrv.srv.UpdateTD(ctx, thingID, tdDoc)
+	err = capsrv.srv.UpdateTD(ctx, thingAddr, tdDoc)
 	return err
 }

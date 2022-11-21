@@ -18,14 +18,14 @@ type PubSubService struct {
 // CapDevicePubSub provides the capability to pub/sub thing information as an IoT device.
 // The issuer must only provide this capability after verifying the device ID.
 func (svc *PubSubService) CapDevicePubSub(ctx context.Context, deviceID string) pubsub.IDevicePubSub {
-	devicePubSub := NewCapDevicePubSub(deviceID, svc.core)
+	devicePubSub := NewDevicePubSub(deviceID, svc.core)
 	return devicePubSub
 }
 
 // CapServicePubSub provides the capability to pub/sub thing information as a hub service.
 // Hub services can publish their own information and receive events from any thing.
 func (svc *PubSubService) CapServicePubSub(ctx context.Context, serviceID string) pubsub.IServicePubSub {
-	servicePubSub := NewCapServicePubSub(serviceID, svc.core)
+	servicePubSub := NewServicePubSub(serviceID, svc.core)
 	return servicePubSub
 }
 
@@ -34,26 +34,22 @@ func (svc *PubSubService) CapServicePubSub(ctx context.Context, serviceID string
 //
 //	userID is the login ID of an authenticated user
 func (svc *PubSubService) CapUserPubSub(ctx context.Context, userID string) (pub pubsub.IUserPubSub) {
-	userPubSub := NewCapUserPubSub(userID, svc.core)
+	userPubSub := NewUserPubSub(userID, svc.core)
 	return userPubSub
-
 }
 
-// Start the service
-func (svc *PubSubService) Start(ctx context.Context) error {
-	return nil
-}
-
-// Stop the service and free its resources
-func (svc *PubSubService) Stop(ctx context.Context) error {
+// Release the service and free its resources
+func (svc *PubSubService) Release() error {
 	err := svc.core.Stop()
 	return err
 }
 
-func NewPubSubService() *PubSubService {
-	pubsubCore := core.NewPubSubCore()
+// StartPubSubService creates a new instance of the pubsub service and start it
+// returns an error if start fails
+func StartPubSubService() (*PubSubService, error) {
+	pubsubCore := core.StartPubSubCore()
 	svc := &PubSubService{
 		core: pubsubCore,
 	}
-	return svc
+	return svc, nil
 }

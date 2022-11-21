@@ -18,15 +18,15 @@ import (
 //
 // The storage format key is a timestamp ordered msec since epoc:
 //
-//		 timestamp/name/e|a = value
-//	 * where timestamp is the number of milliseconds since epoc
-//		* where name is the name of the event or action as described in the TD.
-//		* where 'e|a' is 'e' for events and 'a' for actions
+// timestamp/name/e|a = value
+// * where timestamp is the number of milliseconds since epoc
+// * where name is the name of the event or action as described in the TD.
+// * where 'e|a' is 'e' for events and 'a' for actions
 type AddHistory struct {
 	// this buckets holds the history updates of events and actions
-	bucket  bucketstore.IBucket
-	store   bucketstore.IBucketStore
-	thingID string // thing the bucket belongs to
+	bucket    bucketstore.IBucket
+	store     bucketstore.IBucketStore
+	ThingAddr string // address of the Thing the bucket belongs to
 
 	// callback to invoke when an event is added. Intended for tracking latest value.
 	onAddedValue func(ev *thing.ThingValue, isAction bool)
@@ -91,7 +91,7 @@ func (svc *AddHistory) AddEvent(_ context.Context, eventValue *thing.ThingValue)
 
 // AddEvents provides a bulk-add of events to the event history
 // This modifies eventValues that have no created date set with the current time.
-// If any of the values belongs to a different thingID, the complete request is rejected and
+// If any of the values belongs to a different Thing, the complete request is rejected and
 // an error is returned.
 func (svc *AddHistory) AddEvents(_ context.Context, eventValues []*thing.ThingValue) error {
 	kvmap := make(map[string][]byte)
@@ -122,19 +122,19 @@ func (svc *AddHistory) Release() {
 
 }
 
-// validateValue checks the event has the right thingID and adds a timestamp if missing
+// validateValue checks the event has the right thing address and adds a timestamp if missing
 func (svc *AddHistory) validateValue(thingValue *thing.ThingValue) error {
 	if thingValue == nil {
-		return fmt.Errorf("nil event instead of event for Thing '%s'", svc.thingID)
+		return fmt.Errorf("nil event instead of event for Thing '%s'", svc.ThingAddr)
 	}
-	if thingValue.ThingID == "" {
-		return fmt.Errorf("missing thingID in value with name '%s'", thingValue.Name)
+	if thingValue.ThingAddr == "" {
+		return fmt.Errorf("missing thing address in value with name '%s'", thingValue.Name)
 	}
-	if thingValue.ThingID != svc.thingID {
-		return fmt.Errorf("refused adding event for Thing '%s'. Only events for '%s' are allowed", thingValue.ThingID, svc.thingID)
+	if thingValue.ThingAddr != svc.ThingAddr {
+		return fmt.Errorf("refused adding event for Thing '%s'. Only events for '%s' are allowed", thingValue.ThingAddr, svc.ThingAddr)
 	}
 	if thingValue.Name == "" {
-		return fmt.Errorf("missing name for event or action '%s'", thingValue.ThingID)
+		return fmt.Errorf("missing name for event or action for thing '%s'", thingValue.ThingAddr)
 	}
 	if thingValue.Created == "" {
 		thingValue.Created = time.Now().Format(vocab.ISO8601Format)
@@ -144,20 +144,20 @@ func (svc *AddHistory) validateValue(thingValue *thing.ThingValue) error {
 
 // NewAddHistory provides the capability to add values to a Thing's history bucket
 //
-//	thingID with constraint.
+//	ThingAddr address of the thing (publisherID/thingID).
 //	bucket to store values
 //	onAddedValue callback to notify if a value was added
 func NewAddHistory(
-	thingID string,
+	ThingAddr string,
 	bucket bucketstore.IBucket,
 	onAddedValue func(event *thing.ThingValue, isAction bool)) *AddHistory {
 	svc := &AddHistory{
 		bucket:       bucket,
-		thingID:      thingID,
+		ThingAddr:    ThingAddr,
 		onAddedValue: onAddedValue,
 	}
-	if thingID == "" {
-		panic("NewAddHistory MUST have a thingID")
+	if ThingAddr == "" {
+		panic("NewAddHistory MUST have an address")
 	}
 	return svc
 }

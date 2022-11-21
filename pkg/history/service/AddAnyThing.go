@@ -14,7 +14,7 @@ import (
 )
 
 // AddAnyThing adds events and actions of any Thing
-// this is not restricted to the thingID and only intended for services that are authorized to do so.
+// this is not restricted to one Thing and only intended for services that are authorized to do so.
 type AddAnyThing struct {
 	// store with buckets for Things
 	store bucketstore.IBucketStore
@@ -52,7 +52,7 @@ func (svc *AddAnyThing) encodeValue(thingValue *thing.ThingValue, isAction bool)
 // value is json encoded. Optionally include a 'created' ISO8601 timestamp
 func (svc *AddAnyThing) AddAction(_ context.Context, actionValue *thing.ThingValue) error {
 	key, val := svc.encodeValue(actionValue, true)
-	bucket := svc.store.GetBucket(actionValue.ThingID)
+	bucket := svc.store.GetBucket(actionValue.ThingAddr)
 	err := bucket.Set(key, val)
 	_ = bucket.Close()
 	if svc.onAddedValue != nil {
@@ -68,7 +68,7 @@ func (svc *AddAnyThing) AddEvent(_ context.Context, eventValue *thing.ThingValue
 		eventValue.Created = time.Now().Format(vocab.ISO8601Format)
 	}
 	key, val := svc.encodeValue(eventValue, false)
-	bucket := svc.store.GetBucket(eventValue.ThingID)
+	bucket := svc.store.GetBucket(eventValue.ThingAddr)
 	err := bucket.Set(key, val)
 	_ = bucket.Close()
 	if svc.onAddedValue != nil {
@@ -78,8 +78,7 @@ func (svc *AddAnyThing) AddEvent(_ context.Context, eventValue *thing.ThingValue
 }
 
 // AddEvents provides a bulk-add of events to the event history
-// If this service is constraint to a thing then reject requests with wrong thingIDs
-// TODO: improve performance  for values with the same thingID by splitting things in buckets first
+// If this service is constraint to a thing then reject requests with wrong thing address
 func (svc *AddAnyThing) AddEvents(ctx context.Context, eventValues []*thing.ThingValue) (err error) {
 	if eventValues == nil || len(eventValues) == 0 {
 		return nil
@@ -87,14 +86,14 @@ func (svc *AddAnyThing) AddEvents(ctx context.Context, eventValues []*thing.Thin
 		err = svc.AddEvent(ctx, eventValues[0])
 		return err
 	}
-	// encode events as K,V pair and group them by thingID
-	kvpairsByThingID := make(map[string]map[string][]byte)
+	// encode events as K,V pair and group them by thingAddr
+	kvpairsByThingAddr := make(map[string]map[string][]byte)
 	for _, eventValue := range eventValues {
 		// kvpairs hold a map of storage encoded value key and value
-		kvpairs, found := kvpairsByThingID[eventValue.ThingID]
+		kvpairs, found := kvpairsByThingAddr[eventValue.ThingAddr]
 		if !found {
 			kvpairs = make(map[string][]byte, 0)
-			kvpairsByThingID[eventValue.ThingID] = kvpairs
+			kvpairsByThingAddr[eventValue.ThingAddr] = kvpairs
 		}
 		key, value := svc.encodeValue(eventValue, false)
 		kvpairs[key] = value
@@ -103,10 +102,10 @@ func (svc *AddAnyThing) AddEvents(ctx context.Context, eventValues []*thing.Thin
 			svc.onAddedValue(eventValue, false)
 		}
 	}
-	// adding in bulk, opening and closing buckets only once for each thingID
-	for thingID, kvpairs := range kvpairsByThingID {
-		bucket := svc.store.GetBucket(thingID)
-		bucket.SetMultiple(kvpairs)
+	// adding in bulk, opening and closing buckets only once for each thing address
+	for thingAddr, kvpairs := range kvpairsByThingAddr {
+		bucket := svc.store.GetBucket(thingAddr)
+		_ = bucket.SetMultiple(kvpairs)
 		err = bucket.Close()
 	}
 	return nil

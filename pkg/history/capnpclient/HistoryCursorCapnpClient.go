@@ -24,7 +24,7 @@ func (cl *HistoryCursorCapnpClient) First() (thingValue *thing.ThingValue, valid
 	defer release()
 	resp, err := method.Struct()
 	if err == nil {
-		tvCapnp, _ := resp.ThingValue()
+		tvCapnp, _ := resp.Tv()
 		valid = resp.Valid()
 		thingValue = caphelp.UnmarshalThingValue(tvCapnp)
 	}
@@ -38,7 +38,7 @@ func (cl *HistoryCursorCapnpClient) Last() (thingValue *thing.ThingValue, valid 
 	defer release()
 	resp, err := method.Struct()
 	if err == nil {
-		tvCapnp, _ := resp.ThingValue()
+		tvCapnp, _ := resp.Tv()
 		valid = resp.Valid()
 		thingValue = caphelp.UnmarshalThingValue(tvCapnp)
 	}
@@ -52,7 +52,7 @@ func (cl *HistoryCursorCapnpClient) Next() (thingValue *thing.ThingValue, valid 
 	defer release()
 	resp, err := method.Struct()
 	if err == nil {
-		tvCapnp, _ := resp.ThingValue()
+		tvCapnp, _ := resp.Tv()
 		valid = resp.Valid()
 		thingValue = caphelp.UnmarshalThingValue(tvCapnp)
 	}
@@ -85,7 +85,7 @@ func (cl *HistoryCursorCapnpClient) Prev() (thingValue *thing.ThingValue, valid 
 	defer release()
 	resp, err := method.Struct()
 	if err == nil {
-		tvCapnp, _ := resp.ThingValue()
+		tvCapnp, _ := resp.Tv()
 		thingValue = caphelp.UnmarshalThingValue(tvCapnp)
 		valid = resp.Valid()
 	}
@@ -127,7 +127,7 @@ func (cl *HistoryCursorCapnpClient) Seek(isoTimestamp string) (thingValue *thing
 	resp, err := method.Struct()
 	if err == nil {
 		valid = resp.Valid()
-		tvCapnp, _ := resp.ThingValue()
+		tvCapnp, _ := resp.Tv()
 		thingValue = caphelp.UnmarshalThingValue(tvCapnp)
 	}
 	return thingValue, valid

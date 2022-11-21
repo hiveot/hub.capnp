@@ -12,8 +12,8 @@ import (
 	"github.com/hiveot/hub/pkg/pubsub/core"
 )
 
-// CapUserPubSub provides the capability to pub/sub for end-users
-type CapUserPubSub struct {
+// UserPubSub provides the capability to pub/sub for end-users
+type UserPubSub struct {
 	userID          string
 	core            *core.PubSubCore
 	subscriptionIDs []string
@@ -21,17 +21,20 @@ type CapUserPubSub struct {
 }
 
 // PubAction publishes an action by the user to a thing
-func (cap *CapUserPubSub) PubAction(ctx context.Context, action *thing.ThingValue) (err error) {
-	topic := MakeThingTopic(action.GatewayID, action.ThingID, pubsub.MessageTypeAction, action.Name)
-	message, _ := json.Marshal(action)
+func (cap *UserPubSub) PubAction(
+	_ context.Context, thingAddr, actionName string, value []byte) (err error) {
+
+	topic := MakeThingTopic(thingAddr, pubsub.MessageTypeAction, actionName)
+	tv := thing.NewThingValue(thingAddr, actionName, value)
+	message, _ := json.Marshal(tv)
 	cap.core.Publish(topic, message)
 	return
 }
 
-func (cap *CapUserPubSub) subMessage(gatewayID, thingID, msgType, name string,
+func (cap *UserPubSub) subMessage(thingAddr, msgType, name string,
 	handler func(msgValue *thing.ThingValue)) error {
 
-	subTopic := MakeThingTopic(gatewayID, thingID, msgType, name)
+	subTopic := MakeThingTopic(thingAddr, msgType, name)
 
 	subID, err := cap.core.Subscribe(subTopic,
 		func(topic string, message []byte) {
@@ -55,41 +58,39 @@ func (cap *CapUserPubSub) subMessage(gatewayID, thingID, msgType, name string,
 
 // SubEvent creates a topic for receiving events
 //
-//	gatewayID publisher of the event. Use "" to subscribe to all publishers
+//	publisherID publisher of the event. Use "" to subscribe to all publishers
 //	thingID of the publisher event. Use "" to subscribe to events from all Things
 //	eventName of the event. Use "" to subscribe to all events of publisher things
-func (cap *CapUserPubSub) SubEvent(ctx context.Context,
-	gatewayID, thingID, eventName string,
+func (cap *UserPubSub) SubEvent(ctx context.Context, thingAddr, eventName string,
 	handler func(event *thing.ThingValue)) (err error) {
 
-	err = cap.subMessage(gatewayID, thingID, pubsub.MessageTypeEvent, eventName, handler)
+	err = cap.subMessage(thingAddr, pubsub.MessageTypeEvent, eventName, handler)
 	return err
 }
 
 // SubTDs subscribes to all (eligible) TDs from a gateway.
 //
-//	 gatewayID is optional. "" to subscribe to TD messages from all gateways.
+//	 publisherID is optional. "" to subscribe to TD messages from all gateways.
 //		handler is a callback invoked when a TD is received from a thing's publisher
-func (cap *CapUserPubSub) SubTDs(_ context.Context, gatewayID string,
-	handler func(event *thing.ThingValue)) (err error) {
+func (cap *UserPubSub) SubTDs(_ context.Context, handler func(event *thing.ThingValue)) (err error) {
 
-	err = cap.subMessage(gatewayID, "", pubsub.MessageTypeTD, "+", handler)
+	err = cap.subMessage("", pubsub.MessageTypeTD, "+", handler)
 	return
 }
 
 // Release the capability and end subscriptions
-func (cap *CapUserPubSub) Release() {
+func (cap *UserPubSub) Release() {
 	cap.subMutex.Lock()
 	_ = cap.core.Unsubscribe(cap.subscriptionIDs)
 	cap.subscriptionIDs = nil
 	cap.subMutex.Unlock()
 }
 
-func NewCapUserPubSub(userID string, core *core.PubSubCore) *CapUserPubSub {
-	cap := &CapUserPubSub{
+func NewUserPubSub(userID string, core *core.PubSubCore) *UserPubSub {
+	userPubSub := &UserPubSub{
 		userID:          userID,
 		core:            core,
 		subscriptionIDs: make([]string, 0),
 	}
-	return cap
+	return userPubSub
 }

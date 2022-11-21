@@ -33,7 +33,6 @@ func (sub *Subscription) match(parts []string) bool {
 
 // PubSubCore performs the actual publishing and subscription management
 type PubSubCore struct {
-
 	// list of subscribers
 	subscribers []*Subscription
 	submux      sync.RWMutex
@@ -121,8 +120,8 @@ func (psc *PubSubCore) Unsubscribe(subscriptionIDs []string) error {
 	return nil
 }
 
-// NewPubSubCore returns a new instance of the pubsub core
-func NewPubSubCore() *PubSubCore {
+// StartPubSubCore starts a new instance of the pubsub core
+func StartPubSubCore() *PubSubCore {
 	psc := PubSubCore{
 		subscribers: make([]*Subscription, 0),
 	}

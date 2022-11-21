@@ -19,13 +19,13 @@ func (capsrv *AddHistoryCapnpServer) AddAction(
 	ctx context.Context, call hubapi.CapAddHistory_addAction) error {
 
 	args := call.Args()
-	capValue, _ := args.ActionValue()
-	thingID, _ := capValue.ThingID()
+	capValue, _ := args.Tv()
+	thingAddr, _ := capValue.ThingAddr()
 	name, _ := capValue.Name()
 	valueJSON, _ := capValue.ValueJSON()
 	created, _ := capValue.Created()
 	actionValue := &thing.ThingValue{
-		ThingID:   thingID,
+		ThingAddr: thingAddr,
 		Name:      name,
 		ValueJSON: valueJSON,
 		Created:   created,
@@ -39,13 +39,13 @@ func (capsrv *AddHistoryCapnpServer) AddEvent(
 	ctx context.Context, call hubapi.CapAddHistory_addEvent) error {
 
 	args := call.Args()
-	capValue, _ := args.EventValue()
-	thingID, _ := capValue.ThingID()
+	capValue, _ := args.Tv()
+	thingAddr, _ := capValue.ThingAddr()
 	name, _ := capValue.Name()
 	valueJSON, _ := capValue.ValueJSON()
 	created, _ := capValue.Created()
 	eventValue := &thing.ThingValue{
-		ThingID:   thingID,
+		ThingAddr: thingAddr,
 		Name:      name,
 		ValueJSON: valueJSON,
 		Created:   created,
@@ -58,7 +58,7 @@ func (capsrv *AddHistoryCapnpServer) AddEvents(
 	ctx context.Context, call hubapi.CapAddHistory_addEvents) error {
 
 	args := call.Args()
-	capValues, _ := args.EventValues()
+	capValues, _ := args.Tv()
 	eventValues := caphelp.UnmarshalThingValueList(capValues)
 	err := capsrv.svc.AddEvents(ctx, eventValues)
 	return err

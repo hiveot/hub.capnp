@@ -17,8 +17,8 @@ func (capsrv *ClientAuthzCapnpServer) GetPermissions(
 	ctx context.Context, call hubapi.CapClientAuthz_getPermissions) (err error) {
 
 	args := call.Args()
-	thingID, _ := args.ThingID()
-	permissions, err := capsrv.srv.GetPermissions(ctx, thingID)
+	thingAddr, _ := args.ThingAddr()
+	permissions, err := capsrv.srv.GetPermissions(ctx, thingAddr)
 	if err == nil {
 		res, err2 := call.AllocResults()
 		err = err2

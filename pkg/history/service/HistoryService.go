@@ -10,18 +10,19 @@ import (
 const PropertiesBucketName = "properties"
 
 // HistoryService provides storage for action and event history using the bucket store
-// Each thingID has a bucket with actions and a bucket with events and actions.
+// Each Thing has a bucket with events and actions.
 // This implements the IHistoryService interface
 type HistoryService struct {
-	// The history service bucket store with a bucket for each thingID
+	// The history service bucket store with a bucket for each Thing
 	bucketStore bucketstore.IBucketStore
 	propsStore  *PropertiesStore
+	serviceID   string
 }
 
 // CapAddHistory provides the capability to update history
-func (srv *HistoryService) CapAddHistory(_ context.Context, thingID string) history.IAddHistory {
-	bucket := srv.bucketStore.GetBucket(thingID)
-	historyUpdater := NewAddHistory(thingID, bucket, srv.propsStore.HandleAddValue)
+func (srv *HistoryService) CapAddHistory(_ context.Context, ThingAddr string) history.IAddHistory {
+	bucket := srv.bucketStore.GetBucket(ThingAddr)
+	historyUpdater := NewAddHistory(ThingAddr, bucket, srv.propsStore.HandleAddValue)
 	return historyUpdater
 }
 
@@ -36,21 +37,11 @@ func (srv *HistoryService) CapAddAnyThing(context.Context) history.IAddHistory {
 }
 
 // CapReadHistory provides the capability to read history
-func (srv *HistoryService) CapReadHistory(_ context.Context, thingID string) history.IReadHistory {
-	bucket := srv.bucketStore.GetBucket(thingID)
-	readHistory := NewReadHistory(thingID, bucket, srv.propsStore.GetProperties)
-	//cursor := bucket.Cursor()
-	//historyCursor := NewHistoryCursor(thingID, "", cursor)
+func (srv *HistoryService) CapReadHistory(_ context.Context, ThingAddr string) history.IReadHistory {
+	bucket := srv.bucketStore.GetBucket(ThingAddr)
+	readHistory := NewReadHistory(ThingAddr, bucket, srv.propsStore.GetProperties)
 	return readHistory
 }
-
-// GetValues provides the capability to read
-//func (srv *HistoryService) GetValues(_ context.Context, thingNames []string) []thing.ThingValue {
-//	bucket := srv.bucketStore.GetBucket(thingID)
-//	cursor := bucket.Cursor()
-//	historyCursor := NewHistoryCursor(thingID, "", cursor)
-//	return historyCursor
-//}
 
 // Start using the history service
 func (srv *HistoryService) Start(_ context.Context) error {
@@ -65,11 +56,18 @@ func (srv *HistoryService) Stop(_ context.Context) error {
 
 // NewHistoryService creates a new instance for the history service using the given
 // storage bucket.
-func NewHistoryService(store bucketstore.IBucketStore) *HistoryService {
+//
+//	store contains the bucket store to use
+//	serviceID is the thingID of the service, eg "urn:history"
+func NewHistoryService(store bucketstore.IBucketStore, serviceID string) *HistoryService {
+	if serviceID == "" {
+		serviceID = history.ServiceName
+	}
 	propsbucket := store.GetBucket(PropertiesBucketName)
 	svc := &HistoryService{
 		bucketStore: store,
 		propsStore:  NewPropertiesStore(propsbucket),
+		serviceID:   serviceID,
 	}
 	return svc
 }

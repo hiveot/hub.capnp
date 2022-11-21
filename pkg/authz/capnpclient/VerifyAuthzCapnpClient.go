@@ -38,12 +38,12 @@ func (authz *VerifyAuthzCapnpClient) Release() {
 //}
 
 func (authz *VerifyAuthzCapnpClient) GetPermissions(
-	ctx context.Context, clientID string, thingID string) (permissions []string, err error) {
+	ctx context.Context, clientID string, thingAddr string) (permissions []string, err error) {
 
 	method, release := authz.capability.GetPermissions(ctx,
 		func(params hubapi.CapVerifyAuthz_getPermissions_Params) error {
 			params.SetClientID(clientID)
-			params.SetThingID(thingID)
+			params.SetThingAddr(thingAddr)
 			return nil
 		})
 	defer release()
@@ -54,24 +54,6 @@ func (authz *VerifyAuthzCapnpClient) GetPermissions(
 		permissions = caphelp.UnmarshalStringList(permsCapnp)
 	}
 	return permissions, err
-}
-
-func (authz *VerifyAuthzCapnpClient) IsPublisher(
-	ctx context.Context, deviceID string, thingID string) (isPub bool, err error) {
-	isPub = false
-	method, release := authz.capability.IsPublisher(ctx,
-		func(params hubapi.CapVerifyAuthz_isPublisher_Params) error {
-			params.SetDeviceID(deviceID)
-			params.SetThingID(thingID)
-			return nil
-		})
-	defer release()
-
-	resp, err := method.Struct()
-	if err == nil {
-		isPub = resp.Ispub()
-	}
-	return isPub, err
 }
 
 func NewVerifyAuthzCapnpClient(cap hubapi.CapVerifyAuthz) *VerifyAuthzCapnpClient {

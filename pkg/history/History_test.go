@@ -1,4 +1,3 @@
-// This requires a local unsecured MongoDB instance
 package history_test
 
 import (
@@ -30,13 +29,13 @@ import (
 	"github.com/hiveot/hub.go/pkg/thing"
 )
 
-const thingIDPrefix = "thing-"
+const thingIDPrefix = "urn:thing-"
 
 // when testing using the capnp RPC
 const testAddress = "/tmp/histstore_test.socket"
 const testStoreDirectory = "/tmp/test-history"
 const testClientID = "testclient"
-const useTestCapnp = false
+const useTestCapnp = true
 const HistoryStoreBackend = bucketstore.BackendKVBTree
 
 //var svcConfig = config.HistoryStoreConfig{
@@ -65,7 +64,7 @@ func newHistoryService(useCapnp bool) (history.IHistoryService, func() error) {
 		logrus.Fatalf("Unable to open test store: %s", err)
 	}
 	// start the service
-	svc := service.NewHistoryService(store)
+	svc := service.NewHistoryService(store, history.ServiceName)
 	ctx, cancelFn := context.WithCancel(context.Background())
 	err = svc.Start(ctx)
 	if err != nil {
@@ -113,8 +112,11 @@ func makeValueBatch(nrValues, nrThings, timespanSec int) (batch []*thing.ThingVa
 		randomValue := rand.Float64() * 100
 		randomSeconds := time.Duration(rand.Intn(timespanSec)) * time.Second
 		randomTime := time.Now().Add(-randomSeconds).Format(vocab.ISO8601Format)
+		thingID := thingIDPrefix + strconv.Itoa(randomID)
+		thingaddr := "urn:device1/" + thingID
+
 		ev := &thing.ThingValue{
-			ThingID:   thingIDPrefix + strconv.Itoa(randomID),
+			ThingAddr: thingaddr,
 			Name:      names[randomName],
 			ValueJSON: []byte(fmt.Sprintf("%2.3f", randomValue)),
 			Created:   randomTime,
@@ -175,7 +177,7 @@ func TestStartStop(t *testing.T) {
 	store := cmd.NewBucketStore(cfg.Directory, testClientID, bucketstore.BackendKVBTree)
 	err := store.Open()
 	assert.NoError(t, err)
-	svc := service.NewHistoryService(store)
+	svc := service.NewHistoryService(store, history.ServiceName)
 
 	err = svc.Start(ctx)
 	assert.NoError(t, err)
@@ -188,8 +190,11 @@ func TestStartStop(t *testing.T) {
 }
 
 func TestAddGetEvent(t *testing.T) {
-	const id1 = "thing1"
-	const id2 = "thing2"
+	const device1 = "urn:device1"
+	const id1 = "urn:thing1"
+	const id2 = "urn:thing2"
+	const thing1Addr = device1 + "/" + id1
+	const thing2Addr = device1 + "/" + id2
 	const evTemperature = "temperature"
 	const evHumidity = "humidity"
 	var timeafter = ""
@@ -201,8 +206,8 @@ func TestAddGetEvent(t *testing.T) {
 	addHistory(store, 20, 3, 3600)
 
 	// add events for thing 1
-	addHistory1 := store.CapAddHistory(ctx, id1)
-	readHistory1 := store.CapReadHistory(ctx, id1)
+	addHistory1 := store.CapAddHistory(ctx, thing1Addr)
+	readHistory1 := store.CapReadHistory(ctx, thing1Addr)
 
 	// release and cancel is order dependent
 	defer addHistory1.Release()
@@ -210,26 +215,26 @@ func TestAddGetEvent(t *testing.T) {
 	defer cancelFn()
 
 	// add thing1 temperature from 5 minutes ago
-	ev1_1 := &thing.ThingValue{ThingID: id1, Name: evTemperature,
+	ev1_1 := &thing.ThingValue{ThingAddr: thing1Addr, Name: evTemperature,
 		ValueJSON: []byte("12.5"), Created: fivemago.Format(vocab.ISO8601Format)}
 	err := addHistory1.AddEvent(ctx, ev1_1)
 	assert.NoError(t, err)
 	// add thing1 humidity from 55 minutes ago
-	ev1_2 := &thing.ThingValue{ThingID: id1, Name: evHumidity,
+	ev1_2 := &thing.ThingValue{ThingAddr: thing1Addr, Name: evHumidity,
 		ValueJSON: []byte("70"), Created: fiftyfivemago.Format(vocab.ISO8601Format)}
 	err = addHistory1.AddEvent(ctx, ev1_2)
 	assert.NoError(t, err)
 
 	// add events for thing 2, temperature and humidity
-	addHistory2 := store.CapAddHistory(ctx, id2)
+	addHistory2 := store.CapAddHistory(ctx, thing2Addr)
 	// add thing2 humidity from 5 minutes ago
-	ev2_1 := &thing.ThingValue{ThingID: id2, Name: evHumidity,
+	ev2_1 := &thing.ThingValue{ThingAddr: thing2Addr, Name: evHumidity,
 		ValueJSON: []byte("50"), Created: fivemago.Format(vocab.ISO8601Format)}
 	err = addHistory2.AddEvent(ctx, ev2_1)
 	assert.NoError(t, err)
 
 	// add thing2 temperature from 55 minutes ago
-	ev2_2 := &thing.ThingValue{ThingID: id2, Name: evTemperature,
+	ev2_2 := &thing.ThingValue{ThingAddr: thing2Addr, Name: evTemperature,
 		ValueJSON: []byte("17.5"), Created: fiftyfivemago.Format(vocab.ISO8601Format)}
 	err = addHistory2.AddEvent(ctx, ev2_2)
 	assert.NoError(t, err)
@@ -241,7 +246,7 @@ func TestAddGetEvent(t *testing.T) {
 	timeafter = time.Now().Add(-time.Minute * 300).Format(vocab.ISO8601Format)
 	res1, valid := cursor1.Seek(timeafter)
 	if assert.True(t, valid) {
-		assert.Equal(t, id1, res1.ThingID)
+		assert.Equal(t, thing1Addr, res1.ThingAddr)
 		assert.Equal(t, evHumidity, res1.Name)
 		// next finds the temperature from 5 minutes ago
 		res1, valid = cursor1.Next()
@@ -255,15 +260,15 @@ func TestAddGetEvent(t *testing.T) {
 	//readHistory = store.CapReadHistory()
 	res2, valid := cursor1.Seek(timeafter)
 	if assert.True(t, valid) {
-		assert.Equal(t, id1, res2.ThingID)        // must match the filtered id1
-		assert.Equal(t, evTemperature, res2.Name) // must match evTemperature from 5 minutes ago
+		assert.Equal(t, thing1Addr, res2.ThingAddr) // must match the filtered id1
+		assert.Equal(t, evTemperature, res2.Name)   // must match evTemperature from 5 minutes ago
 		assert.Equal(t, fivemago.Format(vocab.ISO8601Format), res2.Created)
 	}
 	cursor1.Release()
 	cursor1 = nil
 
 	// Test 3: get first temperature of thing 2 - expect 1 result
-	readHistory2 := store.CapReadHistory(ctx, id2)
+	readHistory2 := store.CapReadHistory(ctx, thing2Addr)
 	cursor2 := readHistory2.GetEventHistory(ctx, "")
 	res3, valid := cursor2.First()
 	cursor2.Release()
@@ -274,40 +279,41 @@ func TestAddGetEvent(t *testing.T) {
 
 func TestAddPropertiesEvent(t *testing.T) {
 	const count = 1000
-	const id1 = thingIDPrefix + "0" // matches a percentage of the random things
+	const id1 = "urn:" + thingIDPrefix + "0" // matches a percentage of the random things
+	const thing1Addr = "urn:device1/" + id1
 	const temp1 = "55"
 	store, closeFn := newHistoryService(useTestCapnp)
 
 	ctx := context.Background()
-	addHist := store.CapAddHistory(ctx, id1)
-	readHist := store.CapReadHistory(ctx, id1)
+	addHist := store.CapAddHistory(ctx, thing1Addr)
+	readHist := store.CapReadHistory(ctx, thing1Addr)
 
 	action1 := &thing.ThingValue{
-		ThingID:   id1,
+		ThingAddr: thing1Addr,
 		Name:      vocab.PropNameSwitch,
 		ValueJSON: []byte("on"),
 	}
 	event1 := &thing.ThingValue{
-		ThingID:   id1,
+		ThingAddr: thing1Addr,
 		Name:      vocab.PropNameTemperature,
 		ValueJSON: []byte(temp1),
 	}
 	badEvent1 := &thing.ThingValue{
-		ThingID: id1,
-		Name:    "", // missing name
+		ThingAddr: thing1Addr,
+		Name:      "", // missing name
 	}
 	badEvent2 := &thing.ThingValue{
-		ThingID: "fake", // wrong ID
-		Name:    "name",
+		ThingAddr: "fake", // wrong ID
+		Name:      "name",
 	}
 	badEvent3 := &thing.ThingValue{
-		ThingID: id1, // wrong ID
-		Name:    "baddate",
-		Created: "notadate",
+		ThingAddr: thing1Addr,
+		Name:      "baddate",
+		Created:   "notadate",
 	}
 	badEvent4 := &thing.ThingValue{
-		ThingID: "", // missing ID
-		Name:    "temperature",
+		ThingAddr: "", // missing ID
+		Name:      "temperature",
 	}
 	propsList := make(map[string][]byte)
 	propsList[vocab.PropNameBattery] = []byte("50")
@@ -315,7 +321,7 @@ func TestAddPropertiesEvent(t *testing.T) {
 	propsList[vocab.PropNameSwitch] = []byte("off")
 	propsValue, _ := json.Marshal(propsList)
 	props1 := &thing.ThingValue{
-		ThingID:   id1,
+		ThingAddr: thing1Addr,
 		Name:      history.EventNameProperties,
 		ValueJSON: propsValue,
 	}
@@ -361,12 +367,12 @@ func TestAddPropertiesEvent(t *testing.T) {
 	backend := cmd.NewBucketStore(testStoreDirectory, testClientID, HistoryStoreBackend)
 	err = backend.Open()
 	assert.NoError(t, err)
-	svc := service.NewHistoryService(backend)
+	svc := service.NewHistoryService(backend, history.ServiceName)
 	err = svc.Start(ctx)
 	assert.NoError(t, err)
 
 	// after closing and reopen the store the properties should still be there
-	readHist = svc.CapReadHistory(ctx, id1)
+	readHist = svc.CapReadHistory(ctx, thing1Addr)
 	props = readHist.GetProperties(ctx, []string{vocab.PropNameTemperature, vocab.PropNameSwitch})
 	assert.Equal(t, 2, len(props))
 	assert.Equal(t, props[0].Name, vocab.PropNameTemperature)
@@ -383,6 +389,7 @@ func TestAddPropertiesEvent(t *testing.T) {
 func TestGetLatest(t *testing.T) {
 	const count = 1000
 	const id1 = thingIDPrefix + "0" // matches a percentage of the random things
+	const thing1Addr = "urn:device1/" + id1
 	store, closeFn := newHistoryService(useTestCapnp)
 	defer closeFn()
 
@@ -392,7 +399,7 @@ func TestGetLatest(t *testing.T) {
 	// TODO: use different timezones
 	highestFromAdded := addHistory(store, count, 1, 3600*24*30)
 
-	readHistory := store.CapReadHistory(ctx, id1)
+	readHistory := store.CapReadHistory(ctx, thing1Addr)
 	values := readHistory.GetProperties(ctx, nil)
 	cursor := readHistory.GetEventHistory(ctx, "")
 	readHistory.Release()
@@ -423,6 +430,7 @@ func TestGetLatest(t *testing.T) {
 func TestPrevNext(t *testing.T) {
 	const count = 1000
 	const id0 = thingIDPrefix + "0" // matches a percentage of the random things
+	const thing0Addr = "urn:device1/" + id0
 	store, closeFn := newHistoryService(useTestCapnp)
 	defer closeFn()
 
@@ -432,7 +440,7 @@ func TestPrevNext(t *testing.T) {
 	// TODO: use different timezones
 	_ = addHistory(store, count, 1, 3600*24*30)
 
-	readHistory := store.CapReadHistory(ctx, id0)
+	readHistory := store.CapReadHistory(ctx, thing0Addr)
 	cursor := readHistory.GetEventHistory(ctx, "")
 	readHistory.Release()
 	readHistory = nil
@@ -477,6 +485,7 @@ func TestPrevNext(t *testing.T) {
 func TestPrevNextFiltered(t *testing.T) {
 	const count = 1000
 	const id0 = thingIDPrefix + "0" // matches a percentage of the random things
+	const thing0Addr = "urn:device1/" + id0
 	store, closeFn := newHistoryService(useTestCapnp)
 	defer closeFn()
 
@@ -487,7 +496,7 @@ func TestPrevNextFiltered(t *testing.T) {
 	_ = addHistory(store, count, 1, 3600*24*30)
 	propName := names[2] // names used to generate the history
 
-	readHistory := store.CapReadHistory(ctx, id0)
+	readHistory := store.CapReadHistory(ctx, thing0Addr)
 	values := readHistory.GetProperties(ctx, []string{propName})
 	cursor := readHistory.GetEventHistory(ctx, propName)
 	readHistory.Release()

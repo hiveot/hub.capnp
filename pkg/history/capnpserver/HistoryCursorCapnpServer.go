@@ -20,7 +20,7 @@ func (capsrv HistoryCursorCapnpServer) First(
 	if err == nil {
 		thingValueCapnp := caphelp.MarshalThingValue(thingValue)
 		res.SetValid(valid)
-		err = res.SetThingValue(thingValueCapnp)
+		err = res.SetTv(thingValueCapnp)
 	}
 	return err
 }
@@ -32,7 +32,7 @@ func (capsrv HistoryCursorCapnpServer) Last(
 	if err == nil {
 		res.SetValid(valid)
 		thingValueCapnp := caphelp.MarshalThingValue(thingValue)
-		err = res.SetThingValue(thingValueCapnp)
+		err = res.SetTv(thingValueCapnp)
 	}
 	return err
 }
@@ -44,7 +44,7 @@ func (capsrv HistoryCursorCapnpServer) Next(
 	if err == nil {
 		res.SetValid(valid)
 		thingValueCapnp := caphelp.MarshalThingValue(thingValue)
-		err = res.SetThingValue(thingValueCapnp)
+		err = res.SetTv(thingValueCapnp)
 	}
 	return err
 }
@@ -70,7 +70,7 @@ func (capsrv HistoryCursorCapnpServer) Prev(
 	if err == nil {
 		res.SetValid(valid)
 		thingValueCapnp := caphelp.MarshalThingValue(thingValue)
-		err = res.SetThingValue(thingValueCapnp)
+		err = res.SetTv(thingValueCapnp)
 	}
 	return err
 }
@@ -97,7 +97,7 @@ func (capsrv HistoryCursorCapnpServer) Seek(
 	if err == nil {
 		res.SetValid(valid)
 		thingValueCapnp := caphelp.MarshalThingValue(thingValue)
-		err = res.SetThingValue(thingValueCapnp)
+		err = res.SetTv(thingValueCapnp)
 	}
 	return err
 }

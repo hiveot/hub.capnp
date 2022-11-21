@@ -25,6 +25,7 @@ const storeFile = "directorystore.json"
 func main() {
 	logging.SetLogging("info", "")
 	ctx := context.Background()
+	hubID := "urn:hub" // FIXME: get HubID from the Hub somewhere
 
 	f := svcconfig.LoadServiceConfig(launcher.ServiceName, false, nil)
 	storePath := filepath.Join(f.Stores, directory.ServiceName, storeFile)
@@ -32,7 +33,7 @@ func main() {
 	// parse commandline and create server listening socket
 	srvListener := listener.CreateServiceListener(f.Run, directory.ServiceName)
 
-	svc := service.NewDirectoryService(ctx, storePath)
+	svc := service.NewDirectoryService(ctx, hubID, storePath)
 	err := svc.Start(ctx)
 	defer svc.Stop(ctx)
 

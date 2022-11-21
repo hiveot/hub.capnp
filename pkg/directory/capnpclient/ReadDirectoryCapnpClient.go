@@ -5,8 +5,8 @@ import (
 	"context"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
-	"github.com/hiveot/hub/pkg/bucketstore"
-	"github.com/hiveot/hub/pkg/bucketstore/capnpclient"
+	"github.com/hiveot/hub.go/pkg/thing"
+	"github.com/hiveot/hub/internal/caphelp"
 	"github.com/hiveot/hub/pkg/directory"
 )
 
@@ -18,51 +18,34 @@ type ReadDirectoryCapnpClient struct {
 }
 
 func (cl *ReadDirectoryCapnpClient) Cursor(
-	ctx context.Context) (cursor bucketstore.IBucketCursor) {
+	ctx context.Context) (cursor directory.IDirectoryCursor) {
 
 	// The use of a result 'future' avoids a round trip, making this more efficient
 	getCapMethod, release := cl.capability.Cursor(ctx, nil)
 	capCursor := getCapMethod.Cursor()
 	capability := capCursor.AddRef()
 	defer release()
-	cursor = capnpclient.NewBucketCursorCapnpClient(capability)
+	cursor = NewDirectoryCursorCapnpClient(capability)
 	return cursor
 }
 
-// GetTD returns the TD document for the given Thing ID in JSON format
-func (cl *ReadDirectoryCapnpClient) GetTD(ctx context.Context, thingID string) (tdJson []byte, err error) {
+// GetTD returns a thing value containing the TD document for the given Thing address
+func (cl *ReadDirectoryCapnpClient) GetTD(ctx context.Context, thingAddr string) (tv *thing.ThingValue, err error) {
 
 	method, release := cl.capability.GetTD(ctx,
 		func(params hubapi.CapReadDirectory_getTD_Params) error {
-			err2 := params.SetThingID(thingID)
+			err2 := params.SetThingAddr(thingAddr)
 			return err2
 		})
 	defer release()
 
 	resp, err := method.Struct()
 	if err == nil {
-		tdJson, err = resp.TdJson()
+		tvCapnp, _ := resp.Tv()
+		tv = caphelp.UnmarshalThingValue(tvCapnp)
 	}
-	return tdJson, err
+	return tv, err
 }
-
-// ListTDs returns all TD documents in JSON format
-//func (cl *ReadDirectoryCapnpClient) ListTDs(ctx context.Context, limit int, offset int) (tds []string, err error) {
-//	method, release := cl.capability.ListTDs(ctx,
-//		func(params hubapi.CapReadDirectory_listTDs_Params) error {
-//			params.SetLimit(int32(limit))
-//			params.SetOffset(int32(offset))
-//			return nil
-//		})
-//	defer release()
-//
-//	resp, err := method.Struct()
-//	if err == nil {
-//		capnpTDs, _ := resp.Tds()
-//		tds = caphelp.UnmarshalStringList(capnpTDs)
-//	}
-//	return tds, err
-//}
 
 // ListTDReceiver implements the capnp 'server' for receiving callbacks.
 // This is a capnp server for the client side.
@@ -71,64 +54,9 @@ type ListTDReceiver struct {
 	pogsHandler func(batch []string, isLast bool) error
 }
 
-// Handler is a capnp callback method invoked by the server to push the list of TD's in batches
-// This unmarshal's the arguments and pass it to the provided POGS handler.
-//func (receiver *ListTDReceiver) Handler(
-//	ctx context.Context, params hubapi.CapListCallback_handler) error {
-//	args := params.Args()
-//	tdsCapnp, _ := args.Tds()
-//	tds := caphelp.UnmarshalStringList(tdsCapnp)
-//	isLast := args.IsLast()
-//	_ = ctx
-//	receiver.pogsHandler(tds, isLast)
-//	return nil
-//}
-
-// ListTDcb provides all TD documents in JSON format
-//func (cl *ReadDirectoryCapnpClient) ListTDcb(
-//	ctx context.Context, pogsHandler func(batch []string, isLast bool) error) (err error) {
-//
-//	// The CapListCallback is a server that receives callbacks
-//	// This implements the CapListCallback API
-//	capHandler := &ListTDReceiver{pogsHandler: pogsHandler}
-//	// turn it into a capnp server
-//	capListCallback := hubapi.CapListCallback_ServerToClient(capHandler)
-//
-//	// request the TD docs and provide a callback to pass the result
-//	method, release := cl.capability.ListTDcb(ctx,
-//		func(params hubapi.CapReadDirectory_listTDcb_Params) error {
-//			params.SetCb(capListCallback)
-//			return nil
-//		})
-//	defer release()
-//
-//	_, err = method.Struct()
-//	return err
-//}
-
 func (cl *ReadDirectoryCapnpClient) Release() {
 	cl.capability.Release()
 }
-
-// QueryTDs returns the TD's filtered using JSONpath on the TD content
-// See 'docs/query-tds.md' for examples
-//func (cl *ReadDirectoryCapnpClient) QueryTDs(ctx context.Context, jsonPath string, limit int, offset int) (tds []string, err error) {
-//	method, release := cl.capability.QueryTDs(ctx,
-//		func(params hubapi.CapReadDirectory_queryTDs_Params) error {
-//			params.SetJsonPath(jsonPath)
-//			params.SetLimit(int32(limit))
-//			params.SetOffset(int32(offset))
-//			return nil
-//		})
-//	defer release()
-//	resp, err := method.Struct()
-//	if err == nil {
-//		capnpTDs, _ := resp.Tds()
-//		tds = caphelp.UnmarshalStringList(capnpTDs)
-//	}
-//	return tds, err
-//}
-
 func NewReadDirectoryCapnpClient(cap hubapi.CapReadDirectory) directory.IReadDirectory {
 	return &ReadDirectoryCapnpClient{
 		capability: cap,

@@ -13,16 +13,18 @@ import (
 // DirectoryService is a wrapper around the internal bucket store
 // This implements the IDirectory interface
 type DirectoryService struct {
-	store        *kvbtree.KVBTreeStore
+	store *kvbtree.KVBTreeStore
+	// hubID is the gatewayID of this Hub, used when publishing Things of Hub services
+	hubID        string
+	serviceID    string // thingID of the service
 	tdBucketName string
 }
 
 // Create a new Thing TD document describing this service
 func (srv *DirectoryService) createServiceTD() *thing.ThingDescription {
-	thingID := thing.CreateThingID("", directory.ServiceName, vocab.DeviceTypeService)
 	title := "Directory Store Service"
 	deviceType := vocab.DeviceTypeService
-	td := thing.CreateTD(thingID, title, deviceType)
+	td := thing.CreateTD(srv.serviceID, title, deviceType)
 
 	return td
 }
@@ -46,9 +48,10 @@ func (srv *DirectoryService) Start(ctx context.Context) error {
 	err := srv.store.Open()
 	if err == nil {
 		myTD := srv.createServiceTD()
-		myTDJson, _ := json.Marshal(myTD)
+		myTDJSON, _ := json.Marshal(myTD)
+		myTDAddr := srv.hubID + "/" + myTD.ID
 		ud := srv.CapUpdateDirectory(ctx)
-		err = ud.UpdateTD(ctx, myTD.ID, myTDJson)
+		err = ud.UpdateTD(ctx, myTDAddr, myTDJSON)
 		ud.Release()
 	}
 	return err
@@ -65,12 +68,14 @@ func (srv *DirectoryService) Stop(ctx context.Context) error {
 // This is using the KV bucket store.
 //
 //	thingStorePath is the file holding the directory data.
-func NewDirectoryService(ctx context.Context, thingStorePath string) *DirectoryService {
+func NewDirectoryService(ctx context.Context, hubID string, thingStorePath string) *DirectoryService {
 
 	kvStore := kvbtree.NewKVStore(directory.ServiceName, thingStorePath)
 	svc := &DirectoryService{
 		store:        kvStore,
+		hubID:        hubID,
 		tdBucketName: directory.TDBucketName,
+		serviceID:    "urn:" + directory.ServiceName,
 	}
 	return svc
 }

@@ -5,7 +5,7 @@ package directory
 import (
 	"context"
 
-	"github.com/hiveot/hub/pkg/bucketstore"
+	"github.com/hiveot/hub.go/pkg/thing"
 )
 
 // ServiceName is the name of the service to connect to
@@ -24,14 +24,35 @@ type IDirectory interface {
 	Stop(ctx context.Context) error
 }
 
+// IDirectoryCursor is a cursor to iterate the directory
+type IDirectoryCursor interface {
+	// First return the first directory entry.
+	//  ValueJSON contains the JSON encoded TD document
+	// Returns nil if the store is empty
+	First() (thingValue *thing.ThingValue, valid bool)
+
+	// Next returns the next directory entry
+	// Returns nil when trying to read past the last value
+	Next() (thingValue *thing.ThingValue, valid bool)
+
+	// NextN returns a batch of next directory entries
+	// Returns empty list when trying to read past the last value
+	// itemsRemaining is true as long as more items can be retrieved
+	NextN(steps uint) (batch []*thing.ThingValue, itemsRemaining bool)
+
+	// Release the cursor and resources
+	Release()
+}
+
 // IReadDirectory defines the capability of reading the Thing directory
 type IReadDirectory interface {
-	// Cursor returns an iterator for TD documents
-	Cursor(ctx context.Context) (cursor bucketstore.IBucketCursor)
+	// Cursor returns an iterator for ThingValue objects containing TD documents
+	Cursor(ctx context.Context) (cursor IDirectoryCursor)
 
-	// GetTD returns the TD document for the given Thing ID in JSON format
-	// Returns the JSON serialized TD, or nil if the thingID doesn't exist and an error if the store is not reachable.
-	GetTD(ctx context.Context, thingID string) (tdJson []byte, err error)
+	// GetTD returns the TD document for the given Gateway/Thing ID in JSON format.
+	// Returns the thingValue containing the JSON serialized TD,
+	// or nil if the thingID doesn't exist and an error if the store is not reachable.
+	GetTD(ctx context.Context, thingAddr string) (tv *thing.ThingValue, err error)
 
 	// QueryTDs returns the TD's filtered using JSONpath on the TD content
 	// See 'docs/query-tds.md' for examples
@@ -46,13 +67,12 @@ type IReadDirectory interface {
 type IUpdateDirectory interface {
 
 	// RemoveTD removes a TD document from the store
-	RemoveTD(ctx context.Context, thingID string) (err error)
+	RemoveTD(ctx context.Context, thingAddr string) (err error)
 
 	// UpdateTD updates the TD document in the directory
 	// If the TD with the given ID doesn't exist it will be added.
-	//  thingID is the full ID of the Thing whose TD to update
-	//  tdDoc is the JSON serialized TD document
-	UpdateTD(ctx context.Context, thingID string, tdDoc []byte) (err error)
+	//  tv is a ThingValue object containing the JSON serialized TD document
+	UpdateTD(ctx context.Context, thingAddr string, tdDoc []byte) (err error)
 
 	// Release this capability and allocated resources after its use
 	Release()

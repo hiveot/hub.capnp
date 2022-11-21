@@ -2,8 +2,8 @@ package service
 
 import (
 	"context"
+	"strings"
 
-	"github.com/hiveot/hub.go/pkg/thing"
 	"github.com/hiveot/hub/pkg/authz"
 	"github.com/hiveot/hub/pkg/authz/service/aclstore"
 )
@@ -93,9 +93,9 @@ func (vauthz *VerifyAuthz) Release() {
 
 // GetPermissions returns a list of permissions a client has for a Thing
 func (vauthz *VerifyAuthz) GetPermissions(
-	ctx context.Context, clientID string, thingID string) (permissions []string, err error) {
+	ctx context.Context, clientID string, thingAddr string) (permissions []string, err error) {
 
-	clientRole := vauthz.aclStore.GetRole(ctx, clientID, thingID)
+	clientRole := vauthz.aclStore.GetRole(ctx, clientID, thingAddr)
 	switch clientRole {
 	case authz.ClientRoleIotDevice:
 		permissions = []string{authz.PermReadAction, authz.PermPubEvent, authz.PermPubTD}
@@ -112,21 +112,20 @@ func (vauthz *VerifyAuthz) GetPermissions(
 	return permissions, nil
 }
 
-// IsPublisher checks if the deviceID is the publisher of the thingID.
-// This requires that the thingID is formatted as "urn[:zone][:publisherID]:thingID...""
+// IsPublisher checks if the deviceID is the publisher of the thingAddr.
+// This requires that the thingAddr is formatted as publisherID/thingID
 // Returns true if the deviceID is the publisher of the thingID, false if not.
-func (vauthz *VerifyAuthz) IsPublisher(ctx context.Context, deviceID string, thingID string) (bool, error) {
+func (vauthz *VerifyAuthz) IsPublisher(ctx context.Context, deviceID string, thingAddr string) (bool, error) {
 	_ = ctx
 
-	zone, publisherID, thingDeviceID, deviceType := thing.SplitThingID(thingID)
-	_ = zone
-	_ = thingDeviceID
-	_ = deviceType
-	return publisherID == deviceID, nil
+	// FIXME use a helper for this so the domain knownledge is concentraged
+	addrParts := strings.Split(thingAddr, "/")
+	return addrParts[0] == deviceID, nil
 }
 
 // NewVerifyAuthz creates an instance handler for verifying authorization.
-//  aclStore provides the functions to read and write authorization rules
+//
+//	aclStore provides the functions to read and write authorization rules
 func NewVerifyAuthz(aclStore *aclstore.AclFileStore) *VerifyAuthz {
 	vauthz := VerifyAuthz{
 		aclStore: aclStore,

@@ -15,11 +15,11 @@ type ManageAuthzCapnpClient struct {
 
 // AddThing adds a thing to a group
 func (authz *ManageAuthzCapnpClient) AddThing(
-	ctx context.Context, thingID, groupName string) (err error) {
+	ctx context.Context, thingAddr, groupName string) (err error) {
 
 	method, release := authz.capability.AddThing(ctx,
 		func(params hubapi.CapManageAuthz_addThing_Params) error {
-			err2 := params.SetThingID(thingID)
+			err2 := params.SetThingAddr(thingAddr)
 			_ = params.SetGroupName(groupName)
 			return err2
 		})
@@ -129,11 +129,11 @@ func (authz *ManageAuthzCapnpClient) RemoveClient(
 
 // RemoveThing removes a thing from a group
 func (authz *ManageAuthzCapnpClient) RemoveThing(
-	ctx context.Context, thingID string, groupName string) (err error) {
+	ctx context.Context, thingAddr string, groupName string) (err error) {
 
 	method, release := authz.capability.RemoveThing(ctx,
 		func(params hubapi.CapManageAuthz_removeThing_Params) error {
-			err2 := params.SetThingID(thingID)
+			err2 := params.SetThingAddr(thingAddr)
 			_ = params.SetGroupName(groupName)
 			return err2
 		})

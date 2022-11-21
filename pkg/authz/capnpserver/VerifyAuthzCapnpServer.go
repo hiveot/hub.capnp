@@ -18,27 +18,12 @@ func (capsrv *VerifyAuthzCapnpServer) GetPermissions(
 
 	args := call.Args()
 	clientID, _ := args.ClientID()
-	thingID, _ := args.ThingID()
-	permissions, err := capsrv.srv.GetPermissions(ctx, clientID, thingID)
+	thingAddr, _ := args.ThingAddr()
+	permissions, err := capsrv.srv.GetPermissions(ctx, clientID, thingAddr)
 	if err == nil {
 		res, err2 := call.AllocResults()
 		err = err2
 		_ = res.SetPermissions(caphelp.MarshalStringList(permissions))
-	}
-	return err
-}
-
-func (capsrv *VerifyAuthzCapnpServer) IsPublisher(
-	ctx context.Context, call hubapi.CapVerifyAuthz_isPublisher) (err error) {
-
-	args := call.Args()
-	deviceID, _ := args.DeviceID()
-	thingID, _ := args.ThingID()
-	isPub, err := capsrv.srv.IsPublisher(ctx, deviceID, thingID)
-	if err == nil {
-		res, err2 := call.AllocResults()
-		err = err2
-		res.SetIspub(isPub)
 	}
 	return err
 }

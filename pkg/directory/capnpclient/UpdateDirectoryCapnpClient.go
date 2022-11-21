@@ -19,10 +19,10 @@ func (cl *UpdateDirectoryCapnpClient) Release() {
 }
 
 // RemoveTD removes a TD document from the store
-func (cl *UpdateDirectoryCapnpClient) RemoveTD(ctx context.Context, thingID string) (err error) {
+func (cl *UpdateDirectoryCapnpClient) RemoveTD(ctx context.Context, thingAddr string) (err error) {
 	method, release := cl.capability.RemoveTD(ctx,
 		func(params hubapi.CapUpdateDirectory_removeTD_Params) error {
-			params.SetThingID(thingID)
+			params.SetThingAddr(thingAddr)
 			return nil
 		})
 	defer release()
@@ -32,10 +32,10 @@ func (cl *UpdateDirectoryCapnpClient) RemoveTD(ctx context.Context, thingID stri
 
 // UpdateTD updates the TD document in the directory
 // If the TD with the given ID doesn't exist it will be added.
-func (cl *UpdateDirectoryCapnpClient) UpdateTD(ctx context.Context, thingID string, tdDoc []byte) (err error) {
+func (cl *UpdateDirectoryCapnpClient) UpdateTD(ctx context.Context, thingAddr string, tdDoc []byte) (err error) {
 	method, release := cl.capability.UpdateTD(ctx,
 		func(params hubapi.CapUpdateDirectory_updateTD_Params) error {
-			params.SetThingID(thingID)
+			params.SetThingAddr(thingAddr)
 			err = params.SetTdDoc(tdDoc)
 			return err
 		})

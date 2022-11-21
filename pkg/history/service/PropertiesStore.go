@@ -20,27 +20,27 @@ type PropertiesStore struct {
 	// bucket to persist thing properties with a serialized property map for each thing
 	store bucketstore.IBucket
 
-	// in-memory cache of the latest thing values
+	// in-memory cache of the latest thing values by thing address
 	cache map[string]ThingPropertyValues
 	// mutex for read/writing the cache
 	cacheMux sync.RWMutex // mutex for the following two fields
-	// map if thingID's and their change status
+	// map o thing addresses and their change status
 	changedThings map[string]bool
 }
 
 // LoadProps loads the cached value of a Thing properties on demand.
 // To be invoked before reading and writing Thing properties to ensure the cache is loaded.
 // This immediately returns if a record for the Thing was already loaded.
-// Returns true if a cache value exists, false if the thingID was added to the cache
-func (srv *PropertiesStore) LoadProps(thingID string) (found bool) {
+// Returns true if a cache value exists, false if the thing address was added to the cache
+func (srv *PropertiesStore) LoadProps(thingAddr string) (found bool) {
 	srv.cacheMux.Lock()
-	props, found := srv.cache[thingID]
+	props, found := srv.cache[thingAddr]
 	defer srv.cacheMux.Unlock()
 
 	if found {
 		return
 	}
-	val, _ := srv.store.Get(thingID)
+	val, _ := srv.store.Get(thingAddr)
 
 	if val == nil {
 		// create a new record with thing properties
@@ -50,26 +50,27 @@ func (srv *PropertiesStore) LoadProps(thingID string) (found bool) {
 		err := json.Unmarshal(val, &props)
 		if err != nil {
 			logrus.Errorf("stored 'latest' properties of thing '%s' can't be unmarshalled: %s. Clean start.",
-				thingID, err)
+				thingAddr, err)
 			props = make(ThingPropertyValues)
 		}
 	}
-	srv.cache[thingID] = props
+	srv.cache[thingAddr] = props
 	return
 }
 
 // GetProperties returns the latest value of thing properties and events as a list of properties
 //
-//	names is optional and can be used to limit the resulting array of values. Use nil to get all properties.
-func (srv *PropertiesStore) GetProperties(thingID string, names []string) (propList []*thing.ThingValue) {
+//	 thingAddr is the address the thing is reachable at. Usually the publisherID/thingID.
+//		names is optional and can be used to limit the resulting array of values. Use nil to get all properties.
+func (srv *PropertiesStore) GetProperties(thingAddr string, names []string) (propList []*thing.ThingValue) {
 	propList = make([]*thing.ThingValue, 0)
 
 	// ensure this thing has its properties cache loaded
-	srv.LoadProps(thingID)
+	srv.LoadProps(thingAddr)
 
 	srv.cacheMux.RLock()
 	defer srv.cacheMux.RUnlock()
-	thingCache, _ := srv.cache[thingID]
+	thingCache, _ := srv.cache[thingAddr]
 	if names != nil && len(names) > 0 {
 		// get the requested property/event names
 		for _, name := range names {
@@ -93,7 +94,7 @@ func (srv *PropertiesStore) GetProperties(thingID string, names []string) (propL
 // isAction indicates the value is an action.
 func (srv *PropertiesStore) HandleAddValue(event *thing.ThingValue, isAction bool) {
 	// ensure the Thing has its properties cache loaded
-	srv.LoadProps(event.ThingID)
+	srv.LoadProps(event.ThingAddr)
 
 	srv.cacheMux.Lock()
 	defer srv.cacheMux.Unlock()
@@ -103,7 +104,7 @@ func (srv *PropertiesStore) HandleAddValue(event *thing.ThingValue, isAction boo
 	if isAction {
 		return
 	}
-	thingCache, _ := srv.cache[event.ThingID]
+	thingCache, _ := srv.cache[event.ThingAddr]
 
 	if event.Name == history.EventNameProperties {
 		// this is a properties event that holds a map of property name:values
@@ -115,7 +116,7 @@ func (srv *PropertiesStore) HandleAddValue(event *thing.ThingValue, isAction boo
 		// turn each value into a ThingValue object
 		for propName, propValue := range props {
 			tv := &thing.ThingValue{
-				ThingID:   event.ThingID,
+				ThingAddr: event.ThingAddr,
 				Name:      propName,
 				ValueJSON: propValue,
 				Created:   event.Created,
@@ -135,7 +136,7 @@ func (srv *PropertiesStore) HandleAddValue(event *thing.ThingValue, isAction boo
 			thingCache[event.Name] = event
 		}
 	}
-	srv.changedThings[event.ThingID] = true
+	srv.changedThings[event.ThingAddr] = true
 }
 
 // SaveChanges writes modified cached properties to the underlying store.
@@ -143,34 +144,34 @@ func (srv *PropertiesStore) HandleAddValue(event *thing.ThingValue, isAction boo
 func (srv *PropertiesStore) SaveChanges() (err error) {
 
 	// try to minimize the lock time for each Thing
-	// start with using a read lock to collect the thingIDs of Things that changed
+	// start with using a read lock to collect the addresses of Things that changed
 	var changedThings = []string{}
 	srv.cacheMux.RLock()
-	for thingID, hasChanged := range srv.changedThings {
+	for thingAddr, hasChanged := range srv.changedThings {
 		if hasChanged {
-			changedThings = append(changedThings, thingID)
+			changedThings = append(changedThings, thingAddr)
 		}
 	}
 	srv.cacheMux.RUnlock()
 
 	// next, iterate the changes and lock only to serialize the properties record
-	for _, thingID := range changedThings {
+	for _, thingAddr := range changedThings {
 		var propsJSON []byte
 		// lock only for marshalling the properties
 		srv.cacheMux.Lock()
-		props, found := srv.cache[thingID]
+		props, found := srv.cache[thingAddr]
 		if !found {
 			// Should never happen
-			logrus.Errorf("ThingsChanged is set for thingID '%s' but no properties are present. Ignored.", thingID)
+			logrus.Errorf("ThingsChanged is set for address '%s' but no properties are present. Ignored.", thingAddr)
 		} else {
 			propsJSON, _ = json.Marshal(props)
 		}
-		srv.changedThings[thingID] = false
+		srv.changedThings[thingAddr] = false
 		srv.cacheMux.Unlock()
 
 		// buckets manage their own locks
 		if propsJSON != nil {
-			err2 := srv.store.Set(thingID, propsJSON)
+			err2 := srv.store.Set(thingAddr, propsJSON)
 			if err2 != nil {
 				err = err2
 			}

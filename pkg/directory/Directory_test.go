@@ -26,15 +26,18 @@ const dirStoreFile = "/tmp/directorystore_test.json"
 const testAddress = "/tmp/dirstore_test.socket"
 const testUseCapnp = true
 
-// createNewStore returns an API to the directory store, optionally using capnp RPC
-func createNewStore(useCapnp bool) (directory.IDirectory, func(), error) {
+// startDirectory initializes a Directory service, optionally using capnp RPC
+func startDirectory(useCapnp bool) (directory.IDirectory, func()) {
 
 	ctx, cancelFunc := context.WithCancel(context.Background())
-	logrus.Infof("createNewStore start")
-	defer logrus.Infof("createNewStore ended")
+	logrus.Infof("startDirectory start")
+	defer logrus.Infof("startDirectory ended")
 	_ = os.Remove(dirStoreFile)
-	svc := service.NewDirectoryService(ctx, dirStoreFile)
-	_ = svc.Start(ctx)
+	svc := service.NewDirectoryService(ctx, "urn:hubtest", dirStoreFile)
+	err := svc.Start(ctx)
+	if err != nil {
+		panic("service fails to start")
+	}
 
 	// optionally test with capnp RPC
 	if useCapnp {
@@ -53,9 +56,9 @@ func createNewStore(useCapnp bool) (directory.IDirectory, func(), error) {
 			cancelFunc()
 			_ = capClient.Stop(ctx)
 			_ = svc.Stop(ctx)
-		}, err
+		}
 	}
-	return svc, func() { cancelFunc(); _ = svc.Stop(ctx) }, nil
+	return svc, func() { cancelFunc(); _ = svc.Stop(ctx) }
 }
 
 // generate a JSON serialized TD document
@@ -78,9 +81,8 @@ func TestMain(m *testing.M) {
 func TestStartStop(t *testing.T) {
 	logrus.Infof("--- TestStartStop start ---")
 	_ = os.Remove(dirStoreFile)
-	store, cancelFunc, err := createNewStore(testUseCapnp)
+	store, cancelFunc := startDirectory(testUseCapnp)
 	defer cancelFunc()
-	require.NoError(t, err)
 	assert.NotNil(t, store)
 	logrus.Infof("--- TestStartStop end ---")
 }
@@ -88,29 +90,30 @@ func TestStartStop(t *testing.T) {
 func TestAddRemoveTD(t *testing.T) {
 	logrus.Infof("--- TestRemoveTD start ---")
 	_ = os.Remove(dirStoreFile)
-	const thing1ID = "thing1"
+	const thing1ID = "urn:thing1"
+	const thing1Addr = "urn:test/" + thing1ID
 	const title1 = "title1"
 	ctx := context.Background()
-	store, cancelFunc, err := createNewStore(testUseCapnp)
+	store, cancelFunc := startDirectory(testUseCapnp)
 	defer cancelFunc()
-	require.NoError(t, err)
 	readCap := store.CapReadDirectory(ctx)
 	updateCap := store.CapUpdateDirectory(ctx)
 	require.NotNil(t, readCap)
 	require.NotNil(t, updateCap)
 
 	tdDoc1 := createTDDoc(thing1ID, title1)
-	err = updateCap.UpdateTD(ctx, thing1ID, tdDoc1)
+	err := updateCap.UpdateTD(ctx, thing1Addr, tdDoc1)
 	assert.NoError(t, err)
 
-	td2, err := readCap.GetTD(ctx, thing1ID)
+	tv2, err := readCap.GetTD(ctx, thing1Addr)
 	assert.NoError(t, err)
-	assert.NotNil(t, td2)
-	assert.Equal(t, tdDoc1, td2)
+	assert.NotNil(t, tv2)
+	assert.Equal(t, thing1Addr, tv2.ThingAddr)
+	assert.Equal(t, tdDoc1, tv2.ValueJSON)
 
-	err = updateCap.RemoveTD(ctx, thing1ID)
+	err = updateCap.RemoveTD(ctx, thing1Addr)
 	assert.NoError(t, err)
-	td3, err := readCap.GetTD(ctx, thing1ID)
+	td3, err := readCap.GetTD(ctx, thing1Addr)
 	assert.Nil(t, td3)
 
 	readCap.Release()
@@ -126,7 +129,7 @@ func TestAddRemoveTD(t *testing.T) {
 //	const title1 = "title1"
 //
 //	ctx := context.Background()
-//	store, cancelFunc, err := createNewStore(testUseCapnp)
+//	store, cancelFunc, err := startDirectory(testUseCapnp)
 //	defer cancelFunc()
 //	require.NoError(t, err)
 //
@@ -149,13 +152,13 @@ func TestAddRemoveTD(t *testing.T) {
 func TestCursor(t *testing.T) {
 	logrus.Infof("--- TestCursor start ---")
 	_ = os.Remove(dirStoreFile)
-	const thing1ID = "thing1"
+	const thing1ID = "urn:thing1"
+	const thing1Addr = "urn:test/" + thing1ID
 	const title1 = "title1"
 
 	ctx := context.Background()
-	store, cancelFunc, err := createNewStore(testUseCapnp)
+	store, cancelFunc := startDirectory(testUseCapnp)
 	defer cancelFunc()
-	require.NoError(t, err)
 
 	readCap := store.CapReadDirectory(ctx)
 	defer readCap.Release()
@@ -164,28 +167,27 @@ func TestCursor(t *testing.T) {
 
 	// add 1 doc. the service itself also has a doc
 	tdDoc1 := createTDDoc(thing1ID, title1)
-	err = updateCap.UpdateTD(ctx, thing1ID, tdDoc1)
+	err := updateCap.UpdateTD(ctx, thing1Addr, tdDoc1)
 	require.NoError(t, err)
 
-	// expect 2 docs
+	// expect 2 docs, the service itself and the one just added
 	cursor := readCap.Cursor(ctx)
 	assert.NoError(t, err)
 	defer cursor.Release()
 
-	k, v, valid := cursor.First()
+	tdValue, valid := cursor.First()
 	assert.True(t, valid)
-	assert.NotEmpty(t, k)
-	assert.NotEmpty(t, v)
+	assert.NotEmpty(t, tdValue)
+	assert.NotEmpty(t, tdValue.ValueJSON)
 
-	k, v, valid = cursor.Next() // second
+	tdValue, valid = cursor.Next() // second
 	assert.True(t, valid)
-	assert.NotEmpty(t, k)
-	assert.NotEmpty(t, v)
+	assert.NotEmpty(t, tdValue)
+	assert.NotEmpty(t, tdValue.ValueJSON)
 
-	k, v, valid = cursor.Next() // there is no third
+	tdValue, valid = cursor.Next() // there is no third
 	assert.False(t, valid)
-	assert.Empty(t, k)
-	assert.Empty(t, v)
+	assert.Empty(t, tdValue)
 
 	logrus.Infof("--- TestCursor end ---")
 }
@@ -197,7 +199,7 @@ func TestCursor(t *testing.T) {
 //	const title1 = "title1"
 //
 //	ctx := context.Background()
-//	store, cancelFunc, err := createNewStore(testUseCapnp)
+//	store, cancelFunc, err := startDirectory(testUseCapnp)
 //	defer cancelFunc()
 //	require.NoError(t, err)
 //	readCap := store.CapReadDirectory(ctx)
@@ -225,14 +227,15 @@ func TestCursor(t *testing.T) {
 func TestPerf(t *testing.T) {
 	logrus.Infof("--- start TestPerf ---")
 	_ = os.Remove(dirStoreFile)
-	const thing1ID = "thing1"
+	const gateway1ID = "test"
+	const thing1ID = "urn:thing1"
+	const thing1Addr = "urn:test/" + thing1ID
 	const title1 = "title1"
 	const count = 1000
 
 	ctx := context.Background()
-	store, cancelFunc, err := createNewStore(true)
+	store, cancelFunc := startDirectory(true)
 	defer cancelFunc()
-	require.NoError(t, err)
 	readCap := store.CapReadDirectory(ctx)
 	defer readCap.Release()
 	updateCap := store.CapUpdateDirectory(ctx)
@@ -242,8 +245,7 @@ func TestPerf(t *testing.T) {
 	t1 := time.Now()
 	for i := 0; i < count; i++ {
 		tdDoc1 := createTDDoc(thing1ID, title1)
-		//updateCap := store.CapUpdateDirectory()
-		err = updateCap.UpdateTD(ctx, thing1ID, tdDoc1)
+		err := updateCap.UpdateTD(ctx, thing1Addr, tdDoc1)
 		require.NoError(t, err)
 	}
 	d1 := time.Now().Sub(t1)
@@ -252,7 +254,7 @@ func TestPerf(t *testing.T) {
 	// test read
 	t2 := time.Now()
 	for i := 0; i < count; i++ {
-		td, err := readCap.GetTD(ctx, thing1ID)
+		td, err := readCap.GetTD(ctx, thing1Addr)
 		require.NoError(t, err)
 		assert.NotNil(t, td)
 	}

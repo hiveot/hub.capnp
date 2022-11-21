@@ -12,7 +12,7 @@ import (
 func UnmarshalThingValue(capValue hubapi.ThingValue) *thing.ThingValue {
 	thingValue := &thing.ThingValue{}
 	// errors are ignored. If these fails then there are bigger problems
-	thingValue.ThingID, _ = capValue.ThingID()
+	thingValue.ThingAddr, _ = capValue.ThingAddr()
 	thingValue.Name, _ = capValue.Name()
 	thingValue.ValueJSON, _ = capValue.ValueJSON()
 	thingValue.Created, _ = capValue.Created()
@@ -96,7 +96,7 @@ func MarshalThingValue(thingValue *thing.ThingValue) hubapi.ThingValue {
 	_, seg, _ := capnp.NewMessage(capnp.SingleSegment(nil))
 	capValue, err := hubapi.NewThingValue(seg)
 	if err == nil {
-		_ = capValue.SetThingID(thingValue.ThingID)
+		_ = capValue.SetThingAddr(thingValue.ThingAddr)
 		_ = capValue.SetName(thingValue.Name)
 		_ = capValue.SetValueJSON(thingValue.ValueJSON)
 		_ = capValue.SetCreated(thingValue.Created)

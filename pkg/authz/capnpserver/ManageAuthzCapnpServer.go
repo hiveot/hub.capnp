@@ -19,9 +19,9 @@ func (capsrv *ManageAuthzCapnpServer) AddThing(
 	ctx context.Context, call hubapi.CapManageAuthz_addThing) (err error) {
 
 	args := call.Args()
-	thingID, _ := args.ThingID()
+	thingAddr, _ := args.ThingAddr()
 	groupName, _ := args.GroupName()
-	err = capsrv.srv.AddThing(ctx, thingID, groupName)
+	err = capsrv.srv.AddThing(ctx, thingAddr, groupName)
 	return err
 }
 
@@ -93,9 +93,9 @@ func (capsrv *ManageAuthzCapnpServer) RemoveThing(
 	ctx context.Context, call hubapi.CapManageAuthz_removeThing) (err error) {
 
 	args := call.Args()
-	thingID, _ := args.ThingID()
+	thingAddr, _ := args.ThingAddr()
 	groupName, _ := args.GroupName()
-	err = capsrv.srv.RemoveClient(ctx, thingID, groupName)
+	err = capsrv.srv.RemoveClient(ctx, thingAddr, groupName)
 	return err
 }
 

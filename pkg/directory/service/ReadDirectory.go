@@ -2,7 +2,9 @@ package service
 
 import (
 	"context"
+	"encoding/json"
 
+	"github.com/hiveot/hub.go/pkg/thing"
 	"github.com/hiveot/hub/pkg/bucketstore"
 	"github.com/hiveot/hub/pkg/directory"
 )
@@ -15,15 +17,19 @@ type ReadDirectory struct {
 }
 
 // GetTD returns the TD document for the given Thing ID in JSON format
-func (svc *ReadDirectory) GetTD(ctx context.Context, thingID string) (tdJson []byte, err error) {
-	td, err := svc.bucket.Get(thingID)
-	return td, err
+func (svc *ReadDirectory) GetTD(_ context.Context, thingAddr string) (tdValue *thing.ThingValue, err error) {
+	// bucket keys are made of the gatewayID / thingID
+	raw, err := svc.bucket.Get(thingAddr)
+	if err == nil {
+		err = json.Unmarshal(raw, &tdValue)
+	}
+	return tdValue, err
 }
 
-// Cursor returns an iterator for TD documents
-func (svc *ReadDirectory) Cursor(ctx context.Context) (cursor bucketstore.IBucketCursor) {
-	bucketCursor := svc.bucket.Cursor()
-	return bucketCursor
+// Cursor returns an iterator for ThingValues containing a TD document
+func (svc *ReadDirectory) Cursor(_ context.Context) (cursor directory.IDirectoryCursor) {
+	dirCursor := NewDirectoryCursor(svc.bucket.Cursor())
+	return dirCursor
 
 }
 

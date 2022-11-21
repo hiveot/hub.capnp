@@ -95,28 +95,6 @@ func TestAuthzServiceBadStart(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestIsPublisher(t *testing.T) {
-	const testDevice1 = "device1ID"
-	logrus.Infof("---TestIsPublisher---")
-	thingID1 := "urn:zone:" + testDevice1 + ":sensor1:temperature"
-	thingID2 := "urn:zone:" + testDevice1 + ":sensor1"
-	thingID3 := "urn:zone:" + testDevice1 + ""
-
-	// setup
-	ctx := context.Background()
-	svc, stopFn := startTestAuthzService(testUseCapnp)
-	defer stopFn()
-	verifyAuthz := svc.CapVerifyAuthz(ctx)
-	defer verifyAuthz.Release()
-
-	isPublisher, _ := verifyAuthz.IsPublisher(ctx, testDevice1, thingID1)
-	assert.True(t, isPublisher)
-	isPublisher, _ = verifyAuthz.IsPublisher(ctx, testDevice1, thingID2)
-	assert.False(t, isPublisher)
-	isPublisher, _ = verifyAuthz.IsPublisher(ctx, testDevice1, thingID3)
-	assert.False(t, isPublisher)
-}
-
 // Test that devices have authorization to publish TDs and events
 func TestDeviceAuthorization(t *testing.T) {
 	logrus.Infof("---TestDeviceAuthorization---")

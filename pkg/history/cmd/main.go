@@ -31,23 +31,23 @@ func main() {
 	srvListener := listener.CreateServiceListener(f.Run, history.ServiceName)
 
 	// the service uses the bucket store
-	store := cmd.NewBucketStore(cfg.Directory, history.ServiceName, cfg.Backend)
+	store := cmd.NewBucketStore(cfg.Directory, cfg.ServiceID, cfg.Backend)
 	err := store.Open()
 	defer store.Close()
 
-	svc := service.NewHistoryService(store)
+	svc := service.NewHistoryService(store, "urn:"+cfg.ServiceID)
 	err = svc.Start(ctx)
 	if err != nil {
 		logrus.Panicf("unable launch the history service: %s", err)
 	}
 
-	// connections go via capnp RPC
+	// connections via capnp RPC
 	if err == nil {
 		logrus.Infof("HistoryServiceCapnpServer starting on: %s", srvListener.Addr())
 		_ = capnpserver.StartHistoryServiceCapnpServer(context.Background(), srvListener, svc)
 	}
 	if err != nil {
-		msg := fmt.Sprintf("ERROR: Service '%s' failed to start: %s\n", history.ServiceName, err)
+		msg := fmt.Sprintf("ERROR: Service '%s' failed to start: %s\n", cfg.ServiceID, err)
 		logrus.Fatal(msg)
 	}
 	logrus.Infof("History service ended gracefully")
