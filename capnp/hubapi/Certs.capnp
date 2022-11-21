@@ -60,7 +60,7 @@ interface CapServiceCerts {
 
   createServiceCert @0 (serviceID:Text, pubKeyPEM:Text, validityDays:Int32=0, names:List(Text)) -> (certPEM: Text, caCertPEM :Text);
   # Generate a hub service certificate
-  #  @serviceID to include in the certificate, for example hostname-servicename
+  #  @serviceID to include in the certificate, for example hubID/serviceName
   #  @pubKeyPEM with service public key in PEM format
   #  @validityDays validity of certificate in days. 0 to use the default
   #  @names contain the service DNS names or IP addresses the service can be reached at

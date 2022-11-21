@@ -37,7 +37,7 @@ const clientRoleManager :Text = "manager";
 const clientRoleIotDevice :Text = "iotdevice";
 # ClientRoleIotDevice for IoT devices that read/write for things it is the publisher of.
 # IoT Devices can publish events and updates for Things it the publisher of. This is determined
-# by the deviceID that is included in the thingID.
+# by the publisherID part of the thingAddr.
 #  Read permissions: readActions
 #  Write permissions: pubTD, pubEvent, emitAction
 
@@ -111,13 +111,13 @@ interface CapClientAuthz  {
 # Intended for services or clients
 
     # GetPermissions returns a list of the permissions the client has for a Thing
-    getPermissions @0 (thingID :Text) -> (permissions :List(Text));
+    getPermissions @0 (thingAddr :Text) -> (permissions :List(Text));
 }
 
 interface CapManageAuthz {
 # CapManageAuthz defines the capability for managing authorization groups.
 # Intended for use by administrators.
-	addThing @0 (thingID :Text, groupName :Text) -> ();
+	addThing @0 (thingAddr :Text, groupName :Text) -> ();
 	# AddThing adds a Thing to a group
 
     getGroup @1 (groupName :Text) -> (group :Group);
@@ -135,7 +135,7 @@ interface CapManageAuthz {
 	removeClient @5 (clientID :Text, groupName :Text) -> ();
 	# RemoveClient removes a client from a group
 
-	removeThing @6 (thingID :Text, groupName :Text) -> ();
+	removeThing @6 (thingAddr :Text, groupName :Text) -> ();
 	# RemoveThing removes a Thing from a group
 
 	setClientRole @7 (clientID :Text, groupName :Text, role :Text) -> ();
@@ -151,16 +151,14 @@ interface CapVerifyAuthz  {
 # CapVerifyAuthz defines the capability for verifying authorization.
 # Intended for services that provide access to Thing information.
 
-	#verify @0 (clientID :Text, thingID :Text, authType :Text) -> (authorized :Bool);
+	#verify @0 (clientID :Text, thingAddr :Text, authType :Text) -> (authorized :Bool);
 	# VerifyAuthorization verifies the client's authorization to access a Thing
 	#  clientID to authorize
-	#  thingID of the resources to access
+	#  thingAddr of the resources to access
 	#  authType of the permission to verify
 	# Returns true if permission is granted, false if denied
 
-    getPermissions @0 (clientID :Text, thingID :Text) -> (permissions :List(Text));
+    getPermissions @0 (clientID :Text, thingAddr :Text) -> (permissions :List(Text));
     # GetPermissions returns a list of the permissions the client has for a Thing
-
-    isPublisher @1 (deviceID :Text, thingID :Text) -> (ispub :Bool);
-    # Determine if the device is a publisher of the given thing
+    #  clientID is the login ID of the user
 }

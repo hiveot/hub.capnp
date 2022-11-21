@@ -10,274 +10,6 @@ import (
 	context "context"
 )
 
-type CapListCallback capnp.Client
-
-// CapListCallback_TypeID is the unique identifier for the type CapListCallback.
-const CapListCallback_TypeID = 0x9a3256ece4ea2b40
-
-func (c CapListCallback) Handler(ctx context.Context, params func(CapListCallback_handler_Params) error) (CapListCallback_handler_Results_Future, capnp.ReleaseFunc) {
-	s := capnp.Send{
-		Method: capnp.Method{
-			InterfaceID:   0x9a3256ece4ea2b40,
-			MethodID:      0,
-			InterfaceName: "hubapi/Directory.capnp:CapListCallback",
-			MethodName:    "handler",
-		},
-	}
-	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 8, PointerCount: 1}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapListCallback_handler_Params(s)) }
-	}
-	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapListCallback_handler_Results_Future{Future: ans.Future()}, release
-}
-
-func (c CapListCallback) AddRef() CapListCallback {
-	return CapListCallback(capnp.Client(c).AddRef())
-}
-
-func (c CapListCallback) Release() {
-	capnp.Client(c).Release()
-}
-
-func (c CapListCallback) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Client(c).EncodeAsPtr(seg)
-}
-
-func (CapListCallback) DecodeFromPtr(p capnp.Ptr) CapListCallback {
-	return CapListCallback(capnp.Client{}.DecodeFromPtr(p))
-}
-
-func (c CapListCallback) IsValid() bool {
-	return capnp.Client(c).IsValid()
-}
-
-// A CapListCallback_Server is a CapListCallback with a local implementation.
-type CapListCallback_Server interface {
-	Handler(context.Context, CapListCallback_handler) error
-}
-
-// CapListCallback_NewServer creates a new Server from an implementation of CapListCallback_Server.
-func CapListCallback_NewServer(s CapListCallback_Server) *server.Server {
-	c, _ := s.(server.Shutdowner)
-	return server.New(CapListCallback_Methods(nil, s), s, c)
-}
-
-// CapListCallback_ServerToClient creates a new Client from an implementation of CapListCallback_Server.
-// The caller is responsible for calling Release on the returned Client.
-func CapListCallback_ServerToClient(s CapListCallback_Server) CapListCallback {
-	return CapListCallback(capnp.NewClient(CapListCallback_NewServer(s)))
-}
-
-// CapListCallback_Methods appends Methods to a slice that invoke the methods on s.
-// This can be used to create a more complicated Server.
-func CapListCallback_Methods(methods []server.Method, s CapListCallback_Server) []server.Method {
-	if cap(methods) == 0 {
-		methods = make([]server.Method, 0, 1)
-	}
-
-	methods = append(methods, server.Method{
-		Method: capnp.Method{
-			InterfaceID:   0x9a3256ece4ea2b40,
-			MethodID:      0,
-			InterfaceName: "hubapi/Directory.capnp:CapListCallback",
-			MethodName:    "handler",
-		},
-		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.Handler(ctx, CapListCallback_handler{call})
-		},
-	})
-
-	return methods
-}
-
-// CapListCallback_handler holds the state for a server call to CapListCallback.handler.
-// See server.Call for documentation.
-type CapListCallback_handler struct {
-	*server.Call
-}
-
-// Args returns the call's arguments.
-func (c CapListCallback_handler) Args() CapListCallback_handler_Params {
-	return CapListCallback_handler_Params(c.Call.Args())
-}
-
-// AllocResults allocates the results struct.
-func (c CapListCallback_handler) AllocResults() (CapListCallback_handler_Results, error) {
-	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapListCallback_handler_Results(r), err
-}
-
-// CapListCallback_List is a list of CapListCallback.
-type CapListCallback_List = capnp.CapList[CapListCallback]
-
-// NewCapListCallback creates a new list of CapListCallback.
-func NewCapListCallback_List(s *capnp.Segment, sz int32) (CapListCallback_List, error) {
-	l, err := capnp.NewPointerList(s, sz)
-	return capnp.CapList[CapListCallback](l), err
-}
-
-type CapListCallback_handler_Params capnp.Struct
-
-// CapListCallback_handler_Params_TypeID is the unique identifier for the type CapListCallback_handler_Params.
-const CapListCallback_handler_Params_TypeID = 0xf0c65eded57feb4f
-
-func NewCapListCallback_handler_Params(s *capnp.Segment) (CapListCallback_handler_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1})
-	return CapListCallback_handler_Params(st), err
-}
-
-func NewRootCapListCallback_handler_Params(s *capnp.Segment) (CapListCallback_handler_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1})
-	return CapListCallback_handler_Params(st), err
-}
-
-func ReadRootCapListCallback_handler_Params(msg *capnp.Message) (CapListCallback_handler_Params, error) {
-	root, err := msg.Root()
-	return CapListCallback_handler_Params(root.Struct()), err
-}
-
-func (s CapListCallback_handler_Params) String() string {
-	str, _ := text.Marshal(0xf0c65eded57feb4f, capnp.Struct(s))
-	return str
-}
-
-func (s CapListCallback_handler_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapListCallback_handler_Params) DecodeFromPtr(p capnp.Ptr) CapListCallback_handler_Params {
-	return CapListCallback_handler_Params(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapListCallback_handler_Params) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapListCallback_handler_Params) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapListCallback_handler_Params) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapListCallback_handler_Params) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s CapListCallback_handler_Params) Tds() (capnp.TextList, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return capnp.TextList(p.List()), err
-}
-
-func (s CapListCallback_handler_Params) HasTds() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s CapListCallback_handler_Params) SetTds(v capnp.TextList) error {
-	return capnp.Struct(s).SetPtr(0, v.ToPtr())
-}
-
-// NewTds sets the tds field to a newly
-// allocated capnp.TextList, preferring placement in s's segment.
-func (s CapListCallback_handler_Params) NewTds(n int32) (capnp.TextList, error) {
-	l, err := capnp.NewTextList(capnp.Struct(s).Segment(), n)
-	if err != nil {
-		return capnp.TextList{}, err
-	}
-	err = capnp.Struct(s).SetPtr(0, l.ToPtr())
-	return l, err
-}
-
-func (s CapListCallback_handler_Params) IsLast() bool {
-	return capnp.Struct(s).Bit(0)
-}
-
-func (s CapListCallback_handler_Params) SetIsLast(v bool) {
-	capnp.Struct(s).SetBit(0, v)
-}
-
-// CapListCallback_handler_Params_List is a list of CapListCallback_handler_Params.
-type CapListCallback_handler_Params_List = capnp.StructList[CapListCallback_handler_Params]
-
-// NewCapListCallback_handler_Params creates a new list of CapListCallback_handler_Params.
-func NewCapListCallback_handler_Params_List(s *capnp.Segment, sz int32) (CapListCallback_handler_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1}, sz)
-	return capnp.StructList[CapListCallback_handler_Params](l), err
-}
-
-// CapListCallback_handler_Params_Future is a wrapper for a CapListCallback_handler_Params promised by a client call.
-type CapListCallback_handler_Params_Future struct{ *capnp.Future }
-
-func (p CapListCallback_handler_Params_Future) Struct() (CapListCallback_handler_Params, error) {
-	s, err := p.Future.Struct()
-	return CapListCallback_handler_Params(s), err
-}
-
-type CapListCallback_handler_Results capnp.Struct
-
-// CapListCallback_handler_Results_TypeID is the unique identifier for the type CapListCallback_handler_Results.
-const CapListCallback_handler_Results_TypeID = 0x94aee562eddcdc9a
-
-func NewCapListCallback_handler_Results(s *capnp.Segment) (CapListCallback_handler_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapListCallback_handler_Results(st), err
-}
-
-func NewRootCapListCallback_handler_Results(s *capnp.Segment) (CapListCallback_handler_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapListCallback_handler_Results(st), err
-}
-
-func ReadRootCapListCallback_handler_Results(msg *capnp.Message) (CapListCallback_handler_Results, error) {
-	root, err := msg.Root()
-	return CapListCallback_handler_Results(root.Struct()), err
-}
-
-func (s CapListCallback_handler_Results) String() string {
-	str, _ := text.Marshal(0x94aee562eddcdc9a, capnp.Struct(s))
-	return str
-}
-
-func (s CapListCallback_handler_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapListCallback_handler_Results) DecodeFromPtr(p capnp.Ptr) CapListCallback_handler_Results {
-	return CapListCallback_handler_Results(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapListCallback_handler_Results) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapListCallback_handler_Results) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapListCallback_handler_Results) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapListCallback_handler_Results) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-
-// CapListCallback_handler_Results_List is a list of CapListCallback_handler_Results.
-type CapListCallback_handler_Results_List = capnp.StructList[CapListCallback_handler_Results]
-
-// NewCapListCallback_handler_Results creates a new list of CapListCallback_handler_Results.
-func NewCapListCallback_handler_Results_List(s *capnp.Segment, sz int32) (CapListCallback_handler_Results_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
-	return capnp.StructList[CapListCallback_handler_Results](l), err
-}
-
-// CapListCallback_handler_Results_Future is a wrapper for a CapListCallback_handler_Results promised by a client call.
-type CapListCallback_handler_Results_Future struct{ *capnp.Future }
-
-func (p CapListCallback_handler_Results_Future) Struct() (CapListCallback_handler_Results, error) {
-	s, err := p.Future.Struct()
-	return CapListCallback_handler_Results(s), err
-}
-
 type CapDirectory capnp.Client
 
 // CapDirectory_TypeID is the unique identifier for the type CapDirectory.
@@ -734,6 +466,705 @@ func (p CapDirectory_capUpdateDirectory_Results_Future) Cap() CapUpdateDirectory
 	return CapUpdateDirectory(p.Future.Field(0, nil).Client())
 }
 
+type CapDirectoryCursor capnp.Client
+
+// CapDirectoryCursor_TypeID is the unique identifier for the type CapDirectoryCursor.
+const CapDirectoryCursor_TypeID = 0xb2aec1ed9963584e
+
+func (c CapDirectoryCursor) First(ctx context.Context, params func(CapDirectoryCursor_first_Params) error) (CapDirectoryCursor_first_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xb2aec1ed9963584e,
+			MethodID:      0,
+			InterfaceName: "hubapi/Directory.capnp:CapDirectoryCursor",
+			MethodName:    "first",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapDirectoryCursor_first_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapDirectoryCursor_first_Results_Future{Future: ans.Future()}, release
+}
+func (c CapDirectoryCursor) Next(ctx context.Context, params func(CapDirectoryCursor_next_Params) error) (CapDirectoryCursor_next_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xb2aec1ed9963584e,
+			MethodID:      1,
+			InterfaceName: "hubapi/Directory.capnp:CapDirectoryCursor",
+			MethodName:    "next",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapDirectoryCursor_next_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapDirectoryCursor_next_Results_Future{Future: ans.Future()}, release
+}
+func (c CapDirectoryCursor) NextN(ctx context.Context, params func(CapDirectoryCursor_nextN_Params) error) (CapDirectoryCursor_nextN_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xb2aec1ed9963584e,
+			MethodID:      2,
+			InterfaceName: "hubapi/Directory.capnp:CapDirectoryCursor",
+			MethodName:    "nextN",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 8, PointerCount: 0}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapDirectoryCursor_nextN_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapDirectoryCursor_nextN_Results_Future{Future: ans.Future()}, release
+}
+
+func (c CapDirectoryCursor) AddRef() CapDirectoryCursor {
+	return CapDirectoryCursor(capnp.Client(c).AddRef())
+}
+
+func (c CapDirectoryCursor) Release() {
+	capnp.Client(c).Release()
+}
+
+func (c CapDirectoryCursor) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Client(c).EncodeAsPtr(seg)
+}
+
+func (CapDirectoryCursor) DecodeFromPtr(p capnp.Ptr) CapDirectoryCursor {
+	return CapDirectoryCursor(capnp.Client{}.DecodeFromPtr(p))
+}
+
+func (c CapDirectoryCursor) IsValid() bool {
+	return capnp.Client(c).IsValid()
+}
+
+// A CapDirectoryCursor_Server is a CapDirectoryCursor with a local implementation.
+type CapDirectoryCursor_Server interface {
+	First(context.Context, CapDirectoryCursor_first) error
+
+	Next(context.Context, CapDirectoryCursor_next) error
+
+	NextN(context.Context, CapDirectoryCursor_nextN) error
+}
+
+// CapDirectoryCursor_NewServer creates a new Server from an implementation of CapDirectoryCursor_Server.
+func CapDirectoryCursor_NewServer(s CapDirectoryCursor_Server) *server.Server {
+	c, _ := s.(server.Shutdowner)
+	return server.New(CapDirectoryCursor_Methods(nil, s), s, c)
+}
+
+// CapDirectoryCursor_ServerToClient creates a new Client from an implementation of CapDirectoryCursor_Server.
+// The caller is responsible for calling Release on the returned Client.
+func CapDirectoryCursor_ServerToClient(s CapDirectoryCursor_Server) CapDirectoryCursor {
+	return CapDirectoryCursor(capnp.NewClient(CapDirectoryCursor_NewServer(s)))
+}
+
+// CapDirectoryCursor_Methods appends Methods to a slice that invoke the methods on s.
+// This can be used to create a more complicated Server.
+func CapDirectoryCursor_Methods(methods []server.Method, s CapDirectoryCursor_Server) []server.Method {
+	if cap(methods) == 0 {
+		methods = make([]server.Method, 0, 3)
+	}
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xb2aec1ed9963584e,
+			MethodID:      0,
+			InterfaceName: "hubapi/Directory.capnp:CapDirectoryCursor",
+			MethodName:    "first",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.First(ctx, CapDirectoryCursor_first{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xb2aec1ed9963584e,
+			MethodID:      1,
+			InterfaceName: "hubapi/Directory.capnp:CapDirectoryCursor",
+			MethodName:    "next",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.Next(ctx, CapDirectoryCursor_next{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xb2aec1ed9963584e,
+			MethodID:      2,
+			InterfaceName: "hubapi/Directory.capnp:CapDirectoryCursor",
+			MethodName:    "nextN",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.NextN(ctx, CapDirectoryCursor_nextN{call})
+		},
+	})
+
+	return methods
+}
+
+// CapDirectoryCursor_first holds the state for a server call to CapDirectoryCursor.first.
+// See server.Call for documentation.
+type CapDirectoryCursor_first struct {
+	*server.Call
+}
+
+// Args returns the call's arguments.
+func (c CapDirectoryCursor_first) Args() CapDirectoryCursor_first_Params {
+	return CapDirectoryCursor_first_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c CapDirectoryCursor_first) AllocResults() (CapDirectoryCursor_first_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapDirectoryCursor_first_Results(r), err
+}
+
+// CapDirectoryCursor_next holds the state for a server call to CapDirectoryCursor.next.
+// See server.Call for documentation.
+type CapDirectoryCursor_next struct {
+	*server.Call
+}
+
+// Args returns the call's arguments.
+func (c CapDirectoryCursor_next) Args() CapDirectoryCursor_next_Params {
+	return CapDirectoryCursor_next_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c CapDirectoryCursor_next) AllocResults() (CapDirectoryCursor_next_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapDirectoryCursor_next_Results(r), err
+}
+
+// CapDirectoryCursor_nextN holds the state for a server call to CapDirectoryCursor.nextN.
+// See server.Call for documentation.
+type CapDirectoryCursor_nextN struct {
+	*server.Call
+}
+
+// Args returns the call's arguments.
+func (c CapDirectoryCursor_nextN) Args() CapDirectoryCursor_nextN_Params {
+	return CapDirectoryCursor_nextN_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c CapDirectoryCursor_nextN) AllocResults() (CapDirectoryCursor_nextN_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapDirectoryCursor_nextN_Results(r), err
+}
+
+// CapDirectoryCursor_List is a list of CapDirectoryCursor.
+type CapDirectoryCursor_List = capnp.CapList[CapDirectoryCursor]
+
+// NewCapDirectoryCursor creates a new list of CapDirectoryCursor.
+func NewCapDirectoryCursor_List(s *capnp.Segment, sz int32) (CapDirectoryCursor_List, error) {
+	l, err := capnp.NewPointerList(s, sz)
+	return capnp.CapList[CapDirectoryCursor](l), err
+}
+
+type CapDirectoryCursor_first_Params capnp.Struct
+
+// CapDirectoryCursor_first_Params_TypeID is the unique identifier for the type CapDirectoryCursor_first_Params.
+const CapDirectoryCursor_first_Params_TypeID = 0xe060be8c78108e04
+
+func NewCapDirectoryCursor_first_Params(s *capnp.Segment) (CapDirectoryCursor_first_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapDirectoryCursor_first_Params(st), err
+}
+
+func NewRootCapDirectoryCursor_first_Params(s *capnp.Segment) (CapDirectoryCursor_first_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapDirectoryCursor_first_Params(st), err
+}
+
+func ReadRootCapDirectoryCursor_first_Params(msg *capnp.Message) (CapDirectoryCursor_first_Params, error) {
+	root, err := msg.Root()
+	return CapDirectoryCursor_first_Params(root.Struct()), err
+}
+
+func (s CapDirectoryCursor_first_Params) String() string {
+	str, _ := text.Marshal(0xe060be8c78108e04, capnp.Struct(s))
+	return str
+}
+
+func (s CapDirectoryCursor_first_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapDirectoryCursor_first_Params) DecodeFromPtr(p capnp.Ptr) CapDirectoryCursor_first_Params {
+	return CapDirectoryCursor_first_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapDirectoryCursor_first_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapDirectoryCursor_first_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapDirectoryCursor_first_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapDirectoryCursor_first_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+
+// CapDirectoryCursor_first_Params_List is a list of CapDirectoryCursor_first_Params.
+type CapDirectoryCursor_first_Params_List = capnp.StructList[CapDirectoryCursor_first_Params]
+
+// NewCapDirectoryCursor_first_Params creates a new list of CapDirectoryCursor_first_Params.
+func NewCapDirectoryCursor_first_Params_List(s *capnp.Segment, sz int32) (CapDirectoryCursor_first_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
+	return capnp.StructList[CapDirectoryCursor_first_Params](l), err
+}
+
+// CapDirectoryCursor_first_Params_Future is a wrapper for a CapDirectoryCursor_first_Params promised by a client call.
+type CapDirectoryCursor_first_Params_Future struct{ *capnp.Future }
+
+func (p CapDirectoryCursor_first_Params_Future) Struct() (CapDirectoryCursor_first_Params, error) {
+	s, err := p.Future.Struct()
+	return CapDirectoryCursor_first_Params(s), err
+}
+
+type CapDirectoryCursor_first_Results capnp.Struct
+
+// CapDirectoryCursor_first_Results_TypeID is the unique identifier for the type CapDirectoryCursor_first_Results.
+const CapDirectoryCursor_first_Results_TypeID = 0x947be10137c7170c
+
+func NewCapDirectoryCursor_first_Results(s *capnp.Segment) (CapDirectoryCursor_first_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapDirectoryCursor_first_Results(st), err
+}
+
+func NewRootCapDirectoryCursor_first_Results(s *capnp.Segment) (CapDirectoryCursor_first_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapDirectoryCursor_first_Results(st), err
+}
+
+func ReadRootCapDirectoryCursor_first_Results(msg *capnp.Message) (CapDirectoryCursor_first_Results, error) {
+	root, err := msg.Root()
+	return CapDirectoryCursor_first_Results(root.Struct()), err
+}
+
+func (s CapDirectoryCursor_first_Results) String() string {
+	str, _ := text.Marshal(0x947be10137c7170c, capnp.Struct(s))
+	return str
+}
+
+func (s CapDirectoryCursor_first_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapDirectoryCursor_first_Results) DecodeFromPtr(p capnp.Ptr) CapDirectoryCursor_first_Results {
+	return CapDirectoryCursor_first_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapDirectoryCursor_first_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapDirectoryCursor_first_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapDirectoryCursor_first_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapDirectoryCursor_first_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapDirectoryCursor_first_Results) Tv() (ThingValue, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return ThingValue(p.Struct()), err
+}
+
+func (s CapDirectoryCursor_first_Results) HasTv() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapDirectoryCursor_first_Results) SetTv(v ThingValue) error {
+	return capnp.Struct(s).SetPtr(0, capnp.Struct(v).ToPtr())
+}
+
+// NewTv sets the tv field to a newly
+// allocated ThingValue struct, preferring placement in s's segment.
+func (s CapDirectoryCursor_first_Results) NewTv() (ThingValue, error) {
+	ss, err := NewThingValue(capnp.Struct(s).Segment())
+	if err != nil {
+		return ThingValue{}, err
+	}
+	err = capnp.Struct(s).SetPtr(0, capnp.Struct(ss).ToPtr())
+	return ss, err
+}
+
+func (s CapDirectoryCursor_first_Results) Valid() bool {
+	return capnp.Struct(s).Bit(0)
+}
+
+func (s CapDirectoryCursor_first_Results) SetValid(v bool) {
+	capnp.Struct(s).SetBit(0, v)
+}
+
+// CapDirectoryCursor_first_Results_List is a list of CapDirectoryCursor_first_Results.
+type CapDirectoryCursor_first_Results_List = capnp.StructList[CapDirectoryCursor_first_Results]
+
+// NewCapDirectoryCursor_first_Results creates a new list of CapDirectoryCursor_first_Results.
+func NewCapDirectoryCursor_first_Results_List(s *capnp.Segment, sz int32) (CapDirectoryCursor_first_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1}, sz)
+	return capnp.StructList[CapDirectoryCursor_first_Results](l), err
+}
+
+// CapDirectoryCursor_first_Results_Future is a wrapper for a CapDirectoryCursor_first_Results promised by a client call.
+type CapDirectoryCursor_first_Results_Future struct{ *capnp.Future }
+
+func (p CapDirectoryCursor_first_Results_Future) Struct() (CapDirectoryCursor_first_Results, error) {
+	s, err := p.Future.Struct()
+	return CapDirectoryCursor_first_Results(s), err
+}
+
+func (p CapDirectoryCursor_first_Results_Future) Tv() ThingValue_Future {
+	return ThingValue_Future{Future: p.Future.Field(0, nil)}
+}
+
+type CapDirectoryCursor_next_Params capnp.Struct
+
+// CapDirectoryCursor_next_Params_TypeID is the unique identifier for the type CapDirectoryCursor_next_Params.
+const CapDirectoryCursor_next_Params_TypeID = 0xc8f8e3e5692c04c5
+
+func NewCapDirectoryCursor_next_Params(s *capnp.Segment) (CapDirectoryCursor_next_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapDirectoryCursor_next_Params(st), err
+}
+
+func NewRootCapDirectoryCursor_next_Params(s *capnp.Segment) (CapDirectoryCursor_next_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapDirectoryCursor_next_Params(st), err
+}
+
+func ReadRootCapDirectoryCursor_next_Params(msg *capnp.Message) (CapDirectoryCursor_next_Params, error) {
+	root, err := msg.Root()
+	return CapDirectoryCursor_next_Params(root.Struct()), err
+}
+
+func (s CapDirectoryCursor_next_Params) String() string {
+	str, _ := text.Marshal(0xc8f8e3e5692c04c5, capnp.Struct(s))
+	return str
+}
+
+func (s CapDirectoryCursor_next_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapDirectoryCursor_next_Params) DecodeFromPtr(p capnp.Ptr) CapDirectoryCursor_next_Params {
+	return CapDirectoryCursor_next_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapDirectoryCursor_next_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapDirectoryCursor_next_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapDirectoryCursor_next_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapDirectoryCursor_next_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+
+// CapDirectoryCursor_next_Params_List is a list of CapDirectoryCursor_next_Params.
+type CapDirectoryCursor_next_Params_List = capnp.StructList[CapDirectoryCursor_next_Params]
+
+// NewCapDirectoryCursor_next_Params creates a new list of CapDirectoryCursor_next_Params.
+func NewCapDirectoryCursor_next_Params_List(s *capnp.Segment, sz int32) (CapDirectoryCursor_next_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
+	return capnp.StructList[CapDirectoryCursor_next_Params](l), err
+}
+
+// CapDirectoryCursor_next_Params_Future is a wrapper for a CapDirectoryCursor_next_Params promised by a client call.
+type CapDirectoryCursor_next_Params_Future struct{ *capnp.Future }
+
+func (p CapDirectoryCursor_next_Params_Future) Struct() (CapDirectoryCursor_next_Params, error) {
+	s, err := p.Future.Struct()
+	return CapDirectoryCursor_next_Params(s), err
+}
+
+type CapDirectoryCursor_next_Results capnp.Struct
+
+// CapDirectoryCursor_next_Results_TypeID is the unique identifier for the type CapDirectoryCursor_next_Results.
+const CapDirectoryCursor_next_Results_TypeID = 0xd44a68020ee5bf22
+
+func NewCapDirectoryCursor_next_Results(s *capnp.Segment) (CapDirectoryCursor_next_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapDirectoryCursor_next_Results(st), err
+}
+
+func NewRootCapDirectoryCursor_next_Results(s *capnp.Segment) (CapDirectoryCursor_next_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapDirectoryCursor_next_Results(st), err
+}
+
+func ReadRootCapDirectoryCursor_next_Results(msg *capnp.Message) (CapDirectoryCursor_next_Results, error) {
+	root, err := msg.Root()
+	return CapDirectoryCursor_next_Results(root.Struct()), err
+}
+
+func (s CapDirectoryCursor_next_Results) String() string {
+	str, _ := text.Marshal(0xd44a68020ee5bf22, capnp.Struct(s))
+	return str
+}
+
+func (s CapDirectoryCursor_next_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapDirectoryCursor_next_Results) DecodeFromPtr(p capnp.Ptr) CapDirectoryCursor_next_Results {
+	return CapDirectoryCursor_next_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapDirectoryCursor_next_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapDirectoryCursor_next_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapDirectoryCursor_next_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapDirectoryCursor_next_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapDirectoryCursor_next_Results) Tv() (ThingValue, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return ThingValue(p.Struct()), err
+}
+
+func (s CapDirectoryCursor_next_Results) HasTv() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapDirectoryCursor_next_Results) SetTv(v ThingValue) error {
+	return capnp.Struct(s).SetPtr(0, capnp.Struct(v).ToPtr())
+}
+
+// NewTv sets the tv field to a newly
+// allocated ThingValue struct, preferring placement in s's segment.
+func (s CapDirectoryCursor_next_Results) NewTv() (ThingValue, error) {
+	ss, err := NewThingValue(capnp.Struct(s).Segment())
+	if err != nil {
+		return ThingValue{}, err
+	}
+	err = capnp.Struct(s).SetPtr(0, capnp.Struct(ss).ToPtr())
+	return ss, err
+}
+
+func (s CapDirectoryCursor_next_Results) Valid() bool {
+	return capnp.Struct(s).Bit(0)
+}
+
+func (s CapDirectoryCursor_next_Results) SetValid(v bool) {
+	capnp.Struct(s).SetBit(0, v)
+}
+
+// CapDirectoryCursor_next_Results_List is a list of CapDirectoryCursor_next_Results.
+type CapDirectoryCursor_next_Results_List = capnp.StructList[CapDirectoryCursor_next_Results]
+
+// NewCapDirectoryCursor_next_Results creates a new list of CapDirectoryCursor_next_Results.
+func NewCapDirectoryCursor_next_Results_List(s *capnp.Segment, sz int32) (CapDirectoryCursor_next_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1}, sz)
+	return capnp.StructList[CapDirectoryCursor_next_Results](l), err
+}
+
+// CapDirectoryCursor_next_Results_Future is a wrapper for a CapDirectoryCursor_next_Results promised by a client call.
+type CapDirectoryCursor_next_Results_Future struct{ *capnp.Future }
+
+func (p CapDirectoryCursor_next_Results_Future) Struct() (CapDirectoryCursor_next_Results, error) {
+	s, err := p.Future.Struct()
+	return CapDirectoryCursor_next_Results(s), err
+}
+
+func (p CapDirectoryCursor_next_Results_Future) Tv() ThingValue_Future {
+	return ThingValue_Future{Future: p.Future.Field(0, nil)}
+}
+
+type CapDirectoryCursor_nextN_Params capnp.Struct
+
+// CapDirectoryCursor_nextN_Params_TypeID is the unique identifier for the type CapDirectoryCursor_nextN_Params.
+const CapDirectoryCursor_nextN_Params_TypeID = 0x832c6f53dbceeb5b
+
+func NewCapDirectoryCursor_nextN_Params(s *capnp.Segment) (CapDirectoryCursor_nextN_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0})
+	return CapDirectoryCursor_nextN_Params(st), err
+}
+
+func NewRootCapDirectoryCursor_nextN_Params(s *capnp.Segment) (CapDirectoryCursor_nextN_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0})
+	return CapDirectoryCursor_nextN_Params(st), err
+}
+
+func ReadRootCapDirectoryCursor_nextN_Params(msg *capnp.Message) (CapDirectoryCursor_nextN_Params, error) {
+	root, err := msg.Root()
+	return CapDirectoryCursor_nextN_Params(root.Struct()), err
+}
+
+func (s CapDirectoryCursor_nextN_Params) String() string {
+	str, _ := text.Marshal(0x832c6f53dbceeb5b, capnp.Struct(s))
+	return str
+}
+
+func (s CapDirectoryCursor_nextN_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapDirectoryCursor_nextN_Params) DecodeFromPtr(p capnp.Ptr) CapDirectoryCursor_nextN_Params {
+	return CapDirectoryCursor_nextN_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapDirectoryCursor_nextN_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapDirectoryCursor_nextN_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapDirectoryCursor_nextN_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapDirectoryCursor_nextN_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapDirectoryCursor_nextN_Params) Steps() uint32 {
+	return capnp.Struct(s).Uint32(0)
+}
+
+func (s CapDirectoryCursor_nextN_Params) SetSteps(v uint32) {
+	capnp.Struct(s).SetUint32(0, v)
+}
+
+// CapDirectoryCursor_nextN_Params_List is a list of CapDirectoryCursor_nextN_Params.
+type CapDirectoryCursor_nextN_Params_List = capnp.StructList[CapDirectoryCursor_nextN_Params]
+
+// NewCapDirectoryCursor_nextN_Params creates a new list of CapDirectoryCursor_nextN_Params.
+func NewCapDirectoryCursor_nextN_Params_List(s *capnp.Segment, sz int32) (CapDirectoryCursor_nextN_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0}, sz)
+	return capnp.StructList[CapDirectoryCursor_nextN_Params](l), err
+}
+
+// CapDirectoryCursor_nextN_Params_Future is a wrapper for a CapDirectoryCursor_nextN_Params promised by a client call.
+type CapDirectoryCursor_nextN_Params_Future struct{ *capnp.Future }
+
+func (p CapDirectoryCursor_nextN_Params_Future) Struct() (CapDirectoryCursor_nextN_Params, error) {
+	s, err := p.Future.Struct()
+	return CapDirectoryCursor_nextN_Params(s), err
+}
+
+type CapDirectoryCursor_nextN_Results capnp.Struct
+
+// CapDirectoryCursor_nextN_Results_TypeID is the unique identifier for the type CapDirectoryCursor_nextN_Results.
+const CapDirectoryCursor_nextN_Results_TypeID = 0x9eca153b630ceaac
+
+func NewCapDirectoryCursor_nextN_Results(s *capnp.Segment) (CapDirectoryCursor_nextN_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapDirectoryCursor_nextN_Results(st), err
+}
+
+func NewRootCapDirectoryCursor_nextN_Results(s *capnp.Segment) (CapDirectoryCursor_nextN_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1})
+	return CapDirectoryCursor_nextN_Results(st), err
+}
+
+func ReadRootCapDirectoryCursor_nextN_Results(msg *capnp.Message) (CapDirectoryCursor_nextN_Results, error) {
+	root, err := msg.Root()
+	return CapDirectoryCursor_nextN_Results(root.Struct()), err
+}
+
+func (s CapDirectoryCursor_nextN_Results) String() string {
+	str, _ := text.Marshal(0x9eca153b630ceaac, capnp.Struct(s))
+	return str
+}
+
+func (s CapDirectoryCursor_nextN_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapDirectoryCursor_nextN_Results) DecodeFromPtr(p capnp.Ptr) CapDirectoryCursor_nextN_Results {
+	return CapDirectoryCursor_nextN_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapDirectoryCursor_nextN_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapDirectoryCursor_nextN_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapDirectoryCursor_nextN_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapDirectoryCursor_nextN_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapDirectoryCursor_nextN_Results) Batch() (ThingValue_List, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return ThingValue_List(p.List()), err
+}
+
+func (s CapDirectoryCursor_nextN_Results) HasBatch() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapDirectoryCursor_nextN_Results) SetBatch(v ThingValue_List) error {
+	return capnp.Struct(s).SetPtr(0, v.ToPtr())
+}
+
+// NewBatch sets the batch field to a newly
+// allocated ThingValue_List, preferring placement in s's segment.
+func (s CapDirectoryCursor_nextN_Results) NewBatch(n int32) (ThingValue_List, error) {
+	l, err := NewThingValue_List(capnp.Struct(s).Segment(), n)
+	if err != nil {
+		return ThingValue_List{}, err
+	}
+	err = capnp.Struct(s).SetPtr(0, l.ToPtr())
+	return l, err
+}
+
+func (s CapDirectoryCursor_nextN_Results) Valid() bool {
+	return capnp.Struct(s).Bit(0)
+}
+
+func (s CapDirectoryCursor_nextN_Results) SetValid(v bool) {
+	capnp.Struct(s).SetBit(0, v)
+}
+
+// CapDirectoryCursor_nextN_Results_List is a list of CapDirectoryCursor_nextN_Results.
+type CapDirectoryCursor_nextN_Results_List = capnp.StructList[CapDirectoryCursor_nextN_Results]
+
+// NewCapDirectoryCursor_nextN_Results creates a new list of CapDirectoryCursor_nextN_Results.
+func NewCapDirectoryCursor_nextN_Results_List(s *capnp.Segment, sz int32) (CapDirectoryCursor_nextN_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 1}, sz)
+	return capnp.StructList[CapDirectoryCursor_nextN_Results](l), err
+}
+
+// CapDirectoryCursor_nextN_Results_Future is a wrapper for a CapDirectoryCursor_nextN_Results promised by a client call.
+type CapDirectoryCursor_nextN_Results_Future struct{ *capnp.Future }
+
+func (p CapDirectoryCursor_nextN_Results_Future) Struct() (CapDirectoryCursor_nextN_Results, error) {
+	s, err := p.Future.Struct()
+	return CapDirectoryCursor_nextN_Results(s), err
+}
+
 type CapReadDirectory capnp.Client
 
 // CapReadDirectory_TypeID is the unique identifier for the type CapReadDirectory.
@@ -1000,16 +1431,16 @@ func (s CapReadDirectory_cursor_Results) Message() *capnp.Message {
 func (s CapReadDirectory_cursor_Results) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapReadDirectory_cursor_Results) Cursor() CapBucketCursor {
+func (s CapReadDirectory_cursor_Results) Cursor() CapDirectoryCursor {
 	p, _ := capnp.Struct(s).Ptr(0)
-	return CapBucketCursor(p.Interface().Client())
+	return CapDirectoryCursor(p.Interface().Client())
 }
 
 func (s CapReadDirectory_cursor_Results) HasCursor() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapReadDirectory_cursor_Results) SetCursor(v CapBucketCursor) error {
+func (s CapReadDirectory_cursor_Results) SetCursor(v CapDirectoryCursor) error {
 	if !v.IsValid() {
 		return capnp.Struct(s).SetPtr(0, capnp.Ptr{})
 	}
@@ -1035,8 +1466,8 @@ func (p CapReadDirectory_cursor_Results_Future) Struct() (CapReadDirectory_curso
 	return CapReadDirectory_cursor_Results(s), err
 }
 
-func (p CapReadDirectory_cursor_Results_Future) Cursor() CapBucketCursor {
-	return CapBucketCursor(p.Future.Field(0, nil).Client())
+func (p CapReadDirectory_cursor_Results_Future) Cursor() CapDirectoryCursor {
+	return CapDirectoryCursor(p.Future.Field(0, nil).Client())
 }
 
 type CapReadDirectory_getTD_Params capnp.Struct
@@ -1086,21 +1517,21 @@ func (s CapReadDirectory_getTD_Params) Message() *capnp.Message {
 func (s CapReadDirectory_getTD_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapReadDirectory_getTD_Params) ThingID() (string, error) {
+func (s CapReadDirectory_getTD_Params) ThingAddr() (string, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.Text(), err
 }
 
-func (s CapReadDirectory_getTD_Params) HasThingID() bool {
+func (s CapReadDirectory_getTD_Params) HasThingAddr() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapReadDirectory_getTD_Params) ThingIDBytes() ([]byte, error) {
+func (s CapReadDirectory_getTD_Params) ThingAddrBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.TextBytes(), err
 }
 
-func (s CapReadDirectory_getTD_Params) SetThingID(v string) error {
+func (s CapReadDirectory_getTD_Params) SetThingAddr(v string) error {
 	return capnp.Struct(s).SetText(0, v)
 }
 
@@ -1168,17 +1599,28 @@ func (s CapReadDirectory_getTD_Results) Message() *capnp.Message {
 func (s CapReadDirectory_getTD_Results) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapReadDirectory_getTD_Results) TdJson() ([]byte, error) {
+func (s CapReadDirectory_getTD_Results) Tv() (ThingValue, error) {
 	p, err := capnp.Struct(s).Ptr(0)
-	return []byte(p.Data()), err
+	return ThingValue(p.Struct()), err
 }
 
-func (s CapReadDirectory_getTD_Results) HasTdJson() bool {
+func (s CapReadDirectory_getTD_Results) HasTv() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapReadDirectory_getTD_Results) SetTdJson(v []byte) error {
-	return capnp.Struct(s).SetData(0, v)
+func (s CapReadDirectory_getTD_Results) SetTv(v ThingValue) error {
+	return capnp.Struct(s).SetPtr(0, capnp.Struct(v).ToPtr())
+}
+
+// NewTv sets the tv field to a newly
+// allocated ThingValue struct, preferring placement in s's segment.
+func (s CapReadDirectory_getTD_Results) NewTv() (ThingValue, error) {
+	ss, err := NewThingValue(capnp.Struct(s).Segment())
+	if err != nil {
+		return ThingValue{}, err
+	}
+	err = capnp.Struct(s).SetPtr(0, capnp.Struct(ss).ToPtr())
+	return ss, err
 }
 
 // CapReadDirectory_getTD_Results_List is a list of CapReadDirectory_getTD_Results.
@@ -1196,6 +1638,10 @@ type CapReadDirectory_getTD_Results_Future struct{ *capnp.Future }
 func (p CapReadDirectory_getTD_Results_Future) Struct() (CapReadDirectory_getTD_Results, error) {
 	s, err := p.Future.Struct()
 	return CapReadDirectory_getTD_Results(s), err
+}
+
+func (p CapReadDirectory_getTD_Results_Future) Tv() ThingValue_Future {
+	return ThingValue_Future{Future: p.Future.Field(0, nil)}
 }
 
 type CapUpdateDirectory capnp.Client
@@ -1399,21 +1845,21 @@ func (s CapUpdateDirectory_removeTD_Params) Message() *capnp.Message {
 func (s CapUpdateDirectory_removeTD_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapUpdateDirectory_removeTD_Params) ThingID() (string, error) {
+func (s CapUpdateDirectory_removeTD_Params) ThingAddr() (string, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.Text(), err
 }
 
-func (s CapUpdateDirectory_removeTD_Params) HasThingID() bool {
+func (s CapUpdateDirectory_removeTD_Params) HasThingAddr() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapUpdateDirectory_removeTD_Params) ThingIDBytes() ([]byte, error) {
+func (s CapUpdateDirectory_removeTD_Params) ThingAddrBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.TextBytes(), err
 }
 
-func (s CapUpdateDirectory_removeTD_Params) SetThingID(v string) error {
+func (s CapUpdateDirectory_removeTD_Params) SetThingAddr(v string) error {
 	return capnp.Struct(s).SetText(0, v)
 }
 
@@ -1546,21 +1992,21 @@ func (s CapUpdateDirectory_updateTD_Params) Message() *capnp.Message {
 func (s CapUpdateDirectory_updateTD_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapUpdateDirectory_updateTD_Params) ThingID() (string, error) {
+func (s CapUpdateDirectory_updateTD_Params) ThingAddr() (string, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.Text(), err
 }
 
-func (s CapUpdateDirectory_updateTD_Params) HasThingID() bool {
+func (s CapUpdateDirectory_updateTD_Params) HasThingAddr() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapUpdateDirectory_updateTD_Params) ThingIDBytes() ([]byte, error) {
+func (s CapUpdateDirectory_updateTD_Params) ThingAddrBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.TextBytes(), err
 }
 
-func (s CapUpdateDirectory_updateTD_Params) SetThingID(v string) error {
+func (s CapUpdateDirectory_updateTD_Params) SetThingAddr(v string) error {
 	return capnp.Struct(s).SetText(0, v)
 }
 
@@ -1659,88 +2105,102 @@ func (p CapUpdateDirectory_updateTD_Results_Future) Struct() (CapUpdateDirectory
 	return CapUpdateDirectory_updateTD_Results(s), err
 }
 
-const schema_c8da54a8b024bd49 = "x\xda\x9cU_h[\xe5\x1b~\xdfs\x92|\xa7\xd0" +
-	"\xb4\xfb~\xa7\xddO\x91Z\xac\x19[\xd5tKkQ" +
-	"\x03\x92\xb4\xcb\x90\x8e\xc9rb\xbb;\x07'\xc9\xa1\x8d" +
-	"\xa6M<\xe7\xa4\xb3\x17Z\xc5\x8d\xe2?p0\x06\x06" +
-	"az\xe5\x1f\xb0\xc8\xc0\x9b\x8a\xe0\xba\xb9\xb9\x0b\x11\xe6" +
-	"&tl\xbb\x90\x161:\x14\x87\x17N\xdc\x91\xef;" +
-	"\xf9\x92\xb3\xa6\xa6\xd9.\xf3}\xcf\xfb>\xcf\xf7<\xef" +
-	"{\xb2\xeb19\xee\x8b\x04\xcf\x05A\xd2\xde\xf7\x07\x9c" +
-	"\xa7\x0f\xa5\x0b\x95-\xdb\x0e\x03\xfd\xbf\xec\x8c}\x19\xfa" +
-	"\xec\xa3\xf1\xcb\xdf\x00\xe0\xd0\xf9@\x1f\xaa+\x01\x02\xa0" +
-	"^\x0a,\xa8\xc3\x84\x008\x8b\xea\x89k\x83\xc7\xcaG" +
-	"\x1a\xd0=$\x85j\x84a\xd40YP\x8fp\xf4\xf2" +
-	"\xce\xb5\xb7+\xb7\xfa\xdf\x04\xfa\x10\x02\xf8%\x0204" +
-	"M. \xa0\xfa*9\x04\xe8\x94\xaf\\\xb9\x9e^[" +
-	"<\x06t;\x02\xf8\xd8\xfdU\xb2\x84\xe0s\xe2\x0fW" +
-	"V\x7f=0Xn \xfa\x96DQ\xbd\xca\x89V\xc8" +
-	"S**\x8c\xa8\xe3\xe8\xe2\xe9\xd5\xf3\xe5\x0f\x1a\xd0?" +
-	"\x93QT\xff\xe2\xe8?\xc9\x82\xba\x87\xa3o\x1d\x08\x84" +
-	"\xbf\x189\xbe\x044\xc4d!\xa3\x0d+\x15&kD" +
-	"\x89\x01:\xd7'\xfe\xf7\xe2O\xfd\xdf-\xbb\x00.K" +
-	"W~d\xb2\xac\xe3\xca\xf2\xfe\xd3\x93g\xdc\x17\xf1\x9b" +
-	"\x09\xe52\xbb\xe9\xb2\x9eq\xd6N}\xfa\xb5\xb7\xe9\x98" +
-	"r\x935}\x967\xddr\xf2\xfe\xee\xcf\x9f\xf8\xf0\x9c" +
-	"\xa7\xe9K\xca\x1f\xac\xf4\xc1\xef\x8f\x9e8\\\xe9\xbb\x08" +
-	"t\x87\xb8yA9\xc9n\xce\x0c?W\x09N\x1d\\" +
-	"\xf1\xd0\xe9.\xdd\x0f#\xf9\xd5\x9b\xf7<\xb2Z\xb5\x16" +
-	"]%\xdc\xda\x1c\xa7\xdb\xff\xcb\xfc\xa5k\x07\xcf\xfe\x0e" +
-	"\xdav\xac!^gmQ}Wa\xe6\xbfU\x89\xff" +
-	"v\xf6\x9d\xf7n\xb8\xb4.\xc0\xdf\xb6\xc4\x00\xddm\xac" +
-	"\xc5\xd0\xa9\xe1\x8fg\x8b[\xff\xf6\x02\x86\xdbx\x87=" +
-	"\x1c0{\xe1bn\xebk\x93\xffx\x01F\xdb'\x0c" +
-	"Pj\x8b\xc1\x0dg\xaa\x94\xd6\x8b\xb9\x9d\x099g\x1a" +
-	"\x19\xbb`\xce\x0dd\xf4\xe2L1\xba[/&\xf8\x11" +
-	")\x98sIDM\x91\xfd\x005\xdfQ$D#o" +
-	"\x80D\xc3\x04\xeb\xf6\xa10\x9a>P\x06\x89\xf6\x10'" +
-	"\xa3\x17S\x86\x9eM\xa0 \x01\x88#;\x9d(fu" +
-	"\x1b\x0d\x97\xa9 \x9bsqL\"\xd6D\xf9\x1aE\xf1" +
-	"\x0aQ`\xa2G\x9a\xf0\x1bE$4\xb2\x17$\xda\xcf" +
-	"\xa4\x891G1\x1d\xb4\x87\xddu\x13\xc74\xa6\x0b\xb3" +
-	"\xc6x\x02\xb8\xa4\x12\xef^\xfd\xe5U\x12\xd8L\xc9\xdc" +
-	"\x80\xa8\x0d%uS\x9fFKSd\x1f\x80\x0f\x01h" +
-	"\xff(\x80\x16\x92Q\xdb%!E\xecbq\xd3\xf0 " +
-	"\x80\xb6CF\xedQ\x09\xe7\xed\xa9\xdc\xcc\xe4X\x02\xdb" +
-	"A\xc2v\xc0^;\x9b(d0\x08\x12\x06\xa1\xae\xc2" +
-	"\xdf\xa8b_\xce\xb2w\xeb\xf9|Z\xcf<?0\xa5" +
-	"\xcfd\xf3\x86\x19J\xc5\x0c\xab\x94\xb7\xadf\xe9\xba\x85" +
-	"1\xb7\x92\xb9\xe8\xe3.\x8a\xa1D\xb1\xf8\x94\x8e\x82D" +
-	"\xfdd\xbe\xda|\xd3\x84x\xd2\xb5\xa0\xeb\xf9\x88\x1dB" +
-	"1\xd54\x12\x05\x89nc\xf9\x881E1\xd0\xf4\xde" +
-	"A\x90h\x90\xc42%\xd3*\x98q\xec\x9d4\xec\xf1" +
-	"\xc4\xa6\xa1$\xbcG\xb7)\x09\xa5\x0c\xab\x93\x99\xa2\xf9" +
-	"j\xb9\x04\xfb\x004EF\xadKB\x92\xd1\x8bH\xeb" +
-	"\xdf)@\xa4p\xb7\\I\xdd$\xfa\xb4uW\xe3\x93" +
-	"b\xd9\xc9\xb6\xd52\xf5\xbaN\xb5\xf4\x9b?\xb4\xf6?" +
-	"q\x87\x0f]\xcf\x96\xece\xe3n5\x9b\xd1\xdb\xbc\x19" +
-	"p\x13m\xa8k\xc1\"\xb1\xab-Y\xf4\x9f\xc5b=" +
-	"=\xee\x8c\xd6\xddY\xbf\x89w\xbc{\xd5wy\xb7\xbf" +
-	"\xaf\xba\xfdq\x09\xc5\xf2?\x19\x05\xd0\x1e\x97QKH" +
-	"H\xec\xac\x85\x1d\x80I\x199k\x07`,g\xed\xd3" +
-	"-\x1b\x11$\xc4\xe6\"64w\xa3\x11\x88\xd6\x1fY" +
-	"\xdd*\xa4Ng\xfa\x95\xf6\x97\xbf\xba\xafa\xdc7%" +
-	"\xe2\xeb\x18J\x19\xbdMy\xec\xec^\xab0\xd3\xcaw" +
-	"l\xa3\xeeI\xbd\x93[\xd9ZR\xff\x06\x00\x00\xff\xff" +
-	"\xfe\xab\xd3&"
+const schema_c8da54a8b024bd49 = "x\xda\xbcVoh[\xd5\x1b~\xdf{or\xef\x0f" +
+	"\x92\xae\xe7w\xdbm\x0efhMa-m\xb7\xa6\x16" +
+	"\xb7Jij\xb3\x0f\x1bl\xe6f\xad(\x82x\x9b\xc4" +
+	"6\xd26\xe1\xde\xdb\xaeE\x04a\x93\xa2n\xe2d\x14" +
+	"\xac\xce\xb1\x0f2'Z\xb40\xb0\x15\x95v\xab\xdd\x04" +
+	"\x95\xcd2p\x828m\x15#EP\x047qW\xce" +
+	"INr\x9bt\xeb\x9f\x0f~\xcc=\xcfy\x9f\xe7\xbc" +
+	"\xefs\x9e\x93]MbPj\xf0\x9e\xfd\x1f\x08Z\xca" +
+	"\xe5\xb6\x1f\xff\xf5\xcbo\x0f%k\x8f\x80V\x83\x08 " +
+	"\xc9\x00\x8d\x93\xd2\x14\x02\xaa\x97\xa5V@\xfb\xc0\xe1\xae" +
+	"d\xba\xb4\xea(\x90-\xa2\xbd\xefc\xff\xfbow\\" +
+	"\xbf\x04\x80\x8d\xbfH\x95\xa8\xde\xa4\x1b\xd4?\xa5\x11\xb5" +
+	"\xd3%\x03\xd8\xe3\xea\xe9\xef\x02'\xc7\x9e/B\xb7\xb8" +
+	"\"\xa8j\x14\xa3\x1ep\x8d\xa8o1\xf4\xcc\xce\xc5\xe3" +
+	"\xe9\xdb\xd5/\x01\xa9A\x00\x97@\xc9\x8f\xbb\xaeR\xf2" +
+	"3\xae\xc3\x80\xb6g\xcb\xdc\x03x\xe3\x99\x93Yu." +
+	"\xa4\x08t\xcfP\x04qS\xc4\xbbiO\xf4\xc1\xf2\xcf" +
+	"\xdf\\\x86\xe8\xcb \x9ee\x88\x92\x13\xe3\x17\x16.\x8f" +
+	"\x9d)>\x80\xfb!To\xba\xd9\x01\xdc#\xea^\x99" +
+	"J:\xf8h\xf4\xb5\xa5\xe9\xf1\x89\"t\x9d\x1cA\xb5" +
+	"\x8db\xd4\x16yN=\xcf\xd0\xb7\x1fq\xd7}\xd46" +
+	":\x05\xc4\x9f#?%\xa7)\xf9\x072\xed\xdeR\xe7" +
+	"\xff\x87~\xae\xfej&\x03`\xdd\xbd\"\xff\x80 \xd9" +
+	"\xe6\xa82\xf3\xf0\x85\xee\x8b\x99\xb3\xb3\x95Y\xf9:]" +
+	")3\x0f\xd9\x8b\xd3\xef\xcd:\x8bN\xca\xb7h\xd1/" +
+	"X\xd1\xd2\x89{\xcb\xcf\xef9;\xe7(\xba$\xffN" +
+	"\xb7\xceJ\xb5\x89\xc5\x1f\xff\xba\xe4(zC\x9e\xa0+" +
+	"\xf7}}\xe2\xf4\xd1t\xe5<\x90\x1dy!l\xa5\xf2" +
+	"\xd3\xc5\x12\xa1g\xff\xfc\xb2\x0eN\xcb\xcc\x02Wd\xda" +
+	"\xc1\x8bMO\xa7\xbd=O|\xe3\xa8Z\xa70\xa9\xd2" +
+	"\xcb\xa5C\xc7>y\xf2{\xc7J\x852EW\xae\xb5" +
+	"\xf5.\xdc\xdaZ\xbb\x90\x1d-+J\x146\xda*\x85" +
+	"\x1e\xe2X:\xf8\xdbg\xaf\xbc\xf1GFP\x06\xb0O" +
+	"a\xac\x8f1@\xe3t\xd3\xb9\xc1\xd4\xe6\xbf\x9d\x80a" +
+	"e\x82\x02^`\x80\xc1\xab\xf3\x89\xcdG\xba\xffq\x02" +
+	"\xce)\xefP\xc0\xa4\xd2\x0a\xedv\xcf@\x97\x9eJ\xec" +
+	"\x0c\xb9\x12F<j%\x8d\xe1\xfa\xa8\x9e\xeaO5\xb7" +
+	"\xeb\xa9\x10\xff\xd4>`\x98I\xa3\xbe?>d\x1d\xf4" +
+	"\xb7\x86uC\xef35I\x94\x00$\x04 \xde\x00\x80" +
+	"\xa6\x88\xa8\x95\x09\xe83\xadx\xcaD\x05\x04T\x00s" +
+	"\xd5\xc5;U\x97\x93\xc6p\x18QSD\x17@\xce\x09" +
+	"\xc8=C\x1a^\x04\x81\xd4\xc9\x98\x1f(\xf2\xd1\x93\x8a" +
+	"1\x10\xc8v\xd9\x8e\xea\xa9H\\\x8f\x85\x90\x93\x00\x04" +
+	"\x91~\xedL\xc5t\x0b\xe3\xd9s\x88\xc6p\x10\xc3\x98" +
+	"\x17%\x15\x8bb;\xf8\x06\x03\x1d\xd2\xf8\xac\x90\x0f\x9a" +
+	"4\xec\x07\x81TSi\xfc\x8a\"\xf7+\xd9N\xd7\xca" +
+	"e\xdb\x88\xf7%\x07\xe3\x1d!`\x92\x06X\xf5\xec/" +
+	"\xa7\x12\xf7jJ\x86\xeb\xf9^?k?\x9a\x9a\x92\xeb" +
+	"\x7fu\x04@\xdb!\xa2v\xbf\x80\x04\xb1\x8c:\x944" +
+	"\xd0\xa1\xd4\x8a\xa8\xed\x16\xd0\xb6z\x12\xfd\xddm\xb1\x18" +
+	"\xa0\x81\x1e\x10\xd0\x03\xe8\xb3b\xa1d\x14\xbd \xa0\x17" +
+	"\xee\xaa\xa4\xd0\x06O%\x0c\xd3\xf2G\xe2\xe6@\xafe" +
+	"\x82S\xc76\x00\xcd/\xa2\xb6K@.\xa3.\x90\xd7" +
+	"&Z\x83Xj\xbf\xfa\xdc\xe8\x87\xa7~\xba\xf6:\x00" +
+	"b)\xa0oP\xefM\xc4\x10A@\\\x9f\x8e\x8c\x1d" +
+	"W\xd2\x11\xc8\xea\x08\xe6u\xb4\xd0o\xbbE\xd4B\x02" +
+	"\xfa\xbat+\xda\x83%\x80a\x11\x0b\x14\x95\xdcQ\xd1" +
+	"\x0ana\xae\xcb\x99.\xef\x15\x9e#\xc8\xef/ih" +
+	"\x06\x81TQ\xaf\xf0\x0b\x89\xfc\xea\x92{\x02 \x10\xaf" +
+	"\xdc\x1ae\xc7\x0a\xa2\xaf;nu\x84V\xb5\xea\xf2v" +
+	"\xa0A\xe9=\x8c\x9e\x07\x0e\xf2\x97\x81h\x94b/\xa5" +
+	"\xe7\xe1\x87<\xd1\xc8\x9e\x9a\xcc\x0d\x13r\xcf\x1c\xf2\xf7" +
+	"\x82T\x04\x98\x8d}l\xe4A\xdcD[\x1eD\x1f\xeb" +
+	"\xfc\xaa\x0e\x0e9?-k\x15\x1d\xda&:5g\x88" +
+	"T\xe6CD\x8e\xea)$\xf9G\x09\x10\x09l\x94+" +
+	"\xac\x1b\xb2\xdegn\xe8\xae1s\x89\x96\xb9f\xea\x82" +
+	"J\xfeHk\xc6\x9ew?h\xee\x0f\xc1:\x0fZ\xc8" +
+	"\x16\xf6\xb1h^o\xa6\xafe\xdf\xb2\x9e\xd6g\xac\xba" +
+	"a\xbe\\W\xfe\xb3\xec(\x9c0\xcf\xe5\xe2\x09\xbb\xd6" +
+	"\x1a\x80\xd9wpC\xac<\xc3\x1d\xae\xa0\x19\xee\x11Q" +
+	"\xdb\xbar\\\xaf{6+9\xaf9\xef\xbcl\xda " +
+	"\xc9\xff\x99+0\xdf\xaaD,\xa6\xfc\x91\xb8\xaf\x88g" +
+	"[\x9eg\xc5\xb9\xad\x97#\xaco*\xfc\xcb\xb1J\xbb" +
+	"\xfe\x0d\x00\x00\xff\xff1\xaa\x8f)"
 
 func init() {
 	schemas.Register(schema_c8da54a8b024bd49,
+		0x832c6f53dbceeb5b,
 		0x842510ea6f62774d,
 		0x859a9432de9f13ae,
 		0x8b29feea8de52fc2,
-		0x94aee562eddcdc9a,
-		0x9a3256ece4ea2b40,
+		0x947be10137c7170c,
+		0x9eca153b630ceaac,
 		0xa19ac9e4c3ae910e,
+		0xb2aec1ed9963584e,
 		0xba9641bb2d0656fe,
 		0xc2cf29e7781255ed,
 		0xc467c34fc2089673,
 		0xc5adc1e5ff537314,
 		0xc7a739b5151eb210,
+		0xc8f8e3e5692c04c5,
 		0xd422ea849f91d323,
+		0xd44a68020ee5bf22,
 		0xd95e680dea6a35c4,
+		0xe060be8c78108e04,
 		0xe42c18fae46c41d6,
-		0xf0c65eded57feb4f,
 		0xf39c90c6ef40ea8c,
 		0xfb167076a935c133,
 		0xfd67831669d4d276)

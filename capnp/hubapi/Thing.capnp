@@ -10,16 +10,19 @@ $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
 const goISO8601Format :Text = "2006-01-02T15:04:05.000-0700";
 
 struct ThingValue {
-    # Data containing an event or action value of a thing
+    # ThingValue holds events, actions or TD documents. Anything that comes from a Thing.
+    # It contains contextual information related to the Thing such as its publisher (gatewayID)
 
-    thingID @0 :Text;
-    # ID of the thing owning the value
+    thingAddr @0 :Text;
+    # Address of the thing owning the value.
+    # Usually publisherID/thingID, where publisherID is the thingID of the publishing device.
 
     name @1 :Text;
     # Name of event or action as described in the thing TD
+    # If the value holds a TD then this is 'td'
 
     valueJSON @2:Data;
-    # Value, JSON encoded []byte array
+    # Value, JSON encoded []byte array.
 
     created @3:Text;
     # Timestamp the value was created, in ISO8601 format (see above).

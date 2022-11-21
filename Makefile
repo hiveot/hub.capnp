@@ -15,6 +15,7 @@ go: .FORCE ## Compile cap'n proto to go (testing capnp)
 	$(CAPNP_GO)  ./capnp/hubapi/History.capnp
 	$(CAPNP_GO)  ./capnp/hubapi/Launcher.capnp
 	$(CAPNP_GO)  ./capnp/hubapi/Provisioning.capnp
+	$(CAPNP_GO)  ./capnp/hubapi/PubSub.capnp
 	$(CAPNP_GO)  ./capnp/hubapi/State.capnp
 	$(CAPNP_GO)  ./capnp/hubapi/Thing.capnp
 	$(CAPNP_GO)  ./capnp/vocab/HiveVocabulary.capnp

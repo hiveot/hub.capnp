@@ -5,7 +5,7 @@ $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
 
 
 struct KeyValueMap {
-  # capnp doesn't have map types. It uses a struct with dynamic keys.
+  # capnp doesn't support map types. It uses a struct with dynamic keys.
   # This compiles to an array in golang.
   entries @0 :List(Entry);
   struct Entry {
