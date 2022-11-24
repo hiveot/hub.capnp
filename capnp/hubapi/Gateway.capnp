@@ -5,29 +5,55 @@ using Go = import "/go.capnp";
 $Go.package("hubapi");
 $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
 
-using History = import "./History.capnp";
-using Provisioning = import "./Provisioning.capnp";
-using Directory = import "./Directory.capnp";
+using Service = import "Service.capnp";
 
-interface Gateway {
+
+#interface Service {};
+# generic interface of a service
+
+struct CapabilityInfo {
+    service @0 :Text;
+    name @1 :Text;
+    clientType @2 :List(Text);
+}
+
+
+struct GatewayInfo {
+# GatewayInfo describes the gateway's capabilities and capacity
+
+    capabilities @0 :List(CapabilityInfo);
+    url @1 :Text;
+    latency @2 :Int32;
+}
+
+#interface Capability(T) {
+# Return the capability of the given type
+#}
+
+interface CapGatewayService extends (Service.HiveService) {
     # The gateway is the main entrypoint for access to the Hub
     # It provides capabilities to clients, based on their role
 
-    login @0 (clientID:Text, password:Text) -> (cap :ClientCapabilities);
+    #login @0 (clientID:Text, password:Text) -> (cap :ClientCapabilities);
     # Login to the gateway and obtain the capabilities to use the gateway
 
-    capRequestProvisioning @1 () -> (cap :Provisioning.CapRequestProvisioning);
-    # obtain capability to request provisioning
-    # intended for use by IoT devices
-}
+    getCapability @0 (clientType :Text, service :Text) -> (cap :Service.HiveService);
+	# GetCapability obtains the capability of the service with the given name, if available
+	#
+	# This returns the client for that capability, or nil if the capability is not available. The result must be
+	# cast to the corresponding interface. (TBD: can we use generics?)
+	#
+	# All capabilities must be released after use. If the gateway capability is released or disconnected, then
+	# all capabilities obtained via the gateway are also released.
+	#
+	# The capabilities that are available depend on how the client is authenticated at and whether it is
+	# a device, service or end-user client.
+	#
+	#  clientType is the type of authenticated client
+	#  service is the name of the service providing capabilities
 
-interface ClientCapabilities {
-    # Result of login with available capabilities. Each is optional.
-    # TBD: change to a dynamic list of capabilities based on the user role
-    
-    readDirectoryCapability @0 () -> (cap :Directory.CapReadDirectory);
-    # Obtain capability to read from the Thing directory
+    getGatewayInfo @1 () -> (info :GatewayInfo);
 
-    readHistoryCapability @1 (thingAddr :Text) -> (cap :History.CapReadHistory);
-    # Obtain capability to iterate the history of a thing
+    ping @2 () -> (response :Text);
+
 }
