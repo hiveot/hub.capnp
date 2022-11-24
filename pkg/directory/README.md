@@ -4,11 +4,11 @@
 
 Manage the collection of available Thing Description documents for use by consumers.
 
-## Roadmap
+## Status
 
-1. TBD determine what other query features are needed, if any.
-2. TBD use the state store, depends on data size and what the backend supports.
+This service is functional.
 
+c
 ## Summary
 
 The Directory holds the collection of TD documents that describe available Things. The TD documents are defined by the [W3C Web of Things (WoT) working group](https://www.w3.org/TR/wot-thing-description11/). TD documents are stored in their JSON format as described in the WoT specification. 

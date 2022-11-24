@@ -26,7 +26,8 @@ func main() {
 
 	srvListener := listener.CreateServiceListener(f.Run, pubsub.ServiceName)
 
-	svc, err := service.StartPubSubService()
+	svc := service.NewPubSubService()
+	err := svc.Start()
 	if err != nil {
 		logrus.Panicf("unable launch the pubsub service: %s", err)
 	}

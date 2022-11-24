@@ -27,7 +27,8 @@ const testUseCapnp = true
 
 func startService(useCapnp bool) (pubsub.IPubSubService, func() error) {
 	ctx := context.Background()
-	svc, err := service.StartPubSubService()
+	svc := service.NewPubSubService()
+	err := svc.Start()
 	if err != nil {
 		logrus.Panicf("not happy: %s", err)
 	}

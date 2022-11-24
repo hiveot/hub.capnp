@@ -8,7 +8,7 @@ communication.
 
 Status: The status of the Hub is In Development. 
 
-Updated 2022-11-10: completed initial version of:
+Updated 2022-11-20: completed initial version of:
 ```
 - certs         certificate management to manage CA, IoT device, service and user certificates 
 - directory     thing directory store to persist TD, thing description, documents
@@ -18,12 +18,14 @@ Updated 2022-11-10: completed initial version of:
 - launcher      manage starting and stopping of services
 - authz         user authorization of capabilities
 - authn         user authentication management
+- pubsub        internal service to publish and subscribe to events and actions
 ```
 
 Todo in order to reach Alpha:
 ```
-- pubsub service          publish and subscribe to events and actions
-- user gateway service    provide https access to services
+- service discovery       authenticated services can connect to other services 
+- middleware              hooks to authorize, log, rate limit gateways
+- user gateway service    provide https/websocket access to services
 - iot gateway service     provide http/rpc access to IoT devices
 ```
 

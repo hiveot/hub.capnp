@@ -6,7 +6,8 @@ Protocol bindings can provide a bridge to 3rd party protocols such as MQTT and o
 
 ## Status
 
-This service is in the development stage.
+This service is in the development stage. It is functional but still needs:
+* queuing - IoT devices that reconnect receive new messages since last disconnect
 
 
 ## What problem does pub/sub solve?

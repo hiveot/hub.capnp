@@ -44,12 +44,21 @@ func (svc *PubSubService) Release() error {
 	return err
 }
 
-// StartPubSubService creates a new instance of the pubsub service and start it
+func (svc *PubSubService) Start() error {
+	err := svc.core.Start()
+	return err
+}
+func (svc *PubSubService) Stop() error {
+	err := svc.core.Stop()
+	return err
+}
+
+// NewPubSubService creates a new instance of the pubsub
 // returns an error if start fails
-func StartPubSubService() (*PubSubService, error) {
-	pubsubCore := core.StartPubSubCore()
+func NewPubSubService() *PubSubService {
+	pubsubCore := core.NewPubSubCore()
 	svc := &PubSubService{
 		core: pubsubCore,
 	}
-	return svc, nil
+	return svc
 }

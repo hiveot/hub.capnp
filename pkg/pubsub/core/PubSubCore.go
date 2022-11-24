@@ -61,6 +61,11 @@ func (psc *PubSubCore) Publish(topic string, message []byte) {
 	}
 }
 
+// Start a new core
+func (psc *PubSubCore) Start() (err error) {
+	return nil
+}
+
 // Stop ends remaining subscriptions and returns an error if subscriptions were remaining
 func (psc *PubSubCore) Stop() (err error) {
 	psc.submux.Lock()
@@ -120,8 +125,8 @@ func (psc *PubSubCore) Unsubscribe(subscriptionIDs []string) error {
 	return nil
 }
 
-// StartPubSubCore starts a new instance of the pubsub core
-func StartPubSubCore() *PubSubCore {
+// NewPubSubCore creates a new instance of the pubsub core
+func NewPubSubCore() *PubSubCore {
 	psc := PubSubCore{
 		subscribers: make([]*Subscription, 0),
 	}

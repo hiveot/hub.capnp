@@ -11,18 +11,17 @@ import (
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub.go/pkg/certsclient"
 	"github.com/hiveot/hub.go/pkg/logging"
+	"github.com/hiveot/hub/internal/listener"
 	"github.com/hiveot/hub/internal/svcconfig"
 	"github.com/hiveot/hub/pkg/certs"
 	"github.com/hiveot/hub/pkg/certs/capnpserver"
 	"github.com/hiveot/hub/pkg/certs/service/selfsigned"
-	"github.com/hiveot/hub/pkg/launcher"
-
-	"github.com/hiveot/hub/internal/listener"
 )
 
 // Start the certs service
-//  commandline options:
-//  --certs <certificate folder>
+//
+//	commandline options:
+//	--certs <certificate folder>
 func main() {
 	var caCert *x509.Certificate
 	var caKey *ecdsa.PrivateKey
@@ -31,7 +30,7 @@ func main() {
 	logging.SetLogging("info", "")
 
 	// Determine the folder layout and handle commandline options
-	f := svcconfig.LoadServiceConfig(launcher.ServiceName, false, nil)
+	f := svcconfig.LoadServiceConfig(certs.ServiceName, false, nil)
 
 	// This service needs the CA certificate and key to operate
 	caCertPath := path.Join(f.Certs, hubapi.DefaultCaCertFile)

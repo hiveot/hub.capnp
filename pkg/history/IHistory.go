@@ -69,6 +69,9 @@ type IHistoryService interface {
 	//
 	//  thingAddr is the gateway address of the thing, eg publisherID/thingID
 	CapReadHistory(ctx context.Context, thingAddr string) IReadHistory
+
+	// TBD: Subscribe to the pubsub service to receive events and actions
+	//Subscribe()
 }
 
 // IAddHistory defines the capability to add to a Thing's history

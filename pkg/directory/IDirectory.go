@@ -22,6 +22,9 @@ type IDirectory interface {
 
 	// Stop the service and free its resources
 	Stop(ctx context.Context) error
+
+	// TBD: Subscribe to the pubsub service to receive TDs
+	//Subscribe()
 }
 
 // IDirectoryCursor is a cursor to iterate the directory

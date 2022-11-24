@@ -4,6 +4,15 @@
 
 Provide historical reading of thing events and actions.
 
+## Status
+
+This service is functional.
+
+To be completed:
+* Enable pubsub subscription for events and actions to update the store when they are published.
+* Allow config to determine which store to use
+
+
 ## Summary
 
 History provides capture are restore of past events and actions.
