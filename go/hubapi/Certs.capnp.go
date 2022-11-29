@@ -5,9 +5,11 @@ package hubapi
 import (
 	capnp "capnproto.org/go/capnp/v3"
 	text "capnproto.org/go/capnp/v3/encoding/text"
+	fc "capnproto.org/go/capnp/v3/flowcontrol"
 	schemas "capnproto.org/go/capnp/v3/schemas"
 	server "capnproto.org/go/capnp/v3/server"
 	context "context"
+	fmt "fmt"
 )
 
 // Constants defined in Certs.capnp.
@@ -89,13 +91,67 @@ func (c CapCerts) CapVerifyCerts(ctx context.Context, params func(CapCerts_capVe
 	ans, release := capnp.Client(c).SendCall(ctx, s)
 	return CapCerts_capVerifyCerts_Results_Future{Future: ans.Future()}, release
 }
+func (c CapCerts) GetCapability(ctx context.Context, params func(CapHiveOTService_getCapability_Params) error) (CapHiveOTService_getCapability_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xe7182cfc5650a2c2,
+			MethodID:      0,
+			InterfaceName: "hubapi/Service.capnp:CapHiveOTService",
+			MethodName:    "getCapability",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 4}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapHiveOTService_getCapability_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapHiveOTService_getCapability_Results_Future{Future: ans.Future()}, release
+}
+func (c CapCerts) ListCapabilities(ctx context.Context, params func(CapHiveOTService_listCapabilities_Params) error) (CapHiveOTService_listCapabilities_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xe7182cfc5650a2c2,
+			MethodID:      1,
+			InterfaceName: "hubapi/Service.capnp:CapHiveOTService",
+			MethodName:    "listCapabilities",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapHiveOTService_listCapabilities_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapHiveOTService_listCapabilities_Results_Future{Future: ans.Future()}, release
+}
 
+// String returns a string that identifies this capability for debugging
+// purposes.  Its format should not be depended on: in particular, it
+// should not be used to compare clients.  Use IsSame to compare clients
+// for equality.
+func (c CapCerts) String() string {
+	return fmt.Sprintf("%T(%v)", c, capnp.Client(c))
+}
+
+// AddRef creates a new Client that refers to the same capability as c.
+// If c is nil or has resolved to null, then AddRef returns nil.
 func (c CapCerts) AddRef() CapCerts {
 	return CapCerts(capnp.Client(c).AddRef())
 }
 
+// Release releases a capability reference.  If this is the last
+// reference to the capability, then the underlying resources associated
+// with the capability will be released.
+//
+// Release will panic if c has already been released, but not if c is
+// nil or resolved to null.
 func (c CapCerts) Release() {
 	capnp.Client(c).Release()
+}
+
+// Resolve blocks until the capability is fully resolved or the Context
+// expires.
+func (c CapCerts) Resolve(ctx context.Context) error {
+	return capnp.Client(c).Resolve(ctx)
 }
 
 func (c CapCerts) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
@@ -106,11 +162,34 @@ func (CapCerts) DecodeFromPtr(p capnp.Ptr) CapCerts {
 	return CapCerts(capnp.Client{}.DecodeFromPtr(p))
 }
 
+// IsValid reports whether c is a valid reference to a capability.
+// A reference is invalid if it is nil, has resolved to null, or has
+// been released.
 func (c CapCerts) IsValid() bool {
 	return capnp.Client(c).IsValid()
 }
 
-// A CapCerts_Server is a CapCerts with a local implementation.
+// IsSame reports whether c and other refer to a capability created by the
+// same call to NewClient.  This can return false negatives if c or other
+// are not fully resolved: use Resolve if this is an issue.  If either
+// c or other are released, then IsSame panics.
+func (c CapCerts) IsSame(other CapCerts) bool {
+	return capnp.Client(c).IsSame(capnp.Client(other))
+}
+
+// Update the flowcontrol.FlowLimiter used to manage flow control for
+// this client. This affects all future calls, but not calls already
+// waiting to send. Passing nil sets the value to flowcontrol.NopLimiter,
+// which is also the default.
+func (c CapCerts) SetFlowLimiter(lim fc.FlowLimiter) {
+	capnp.Client(c).SetFlowLimiter(lim)
+}
+
+// Get the current flowcontrol.FlowLimiter used to manage flow control
+// for this client.
+func (c CapCerts) GetFlowLimiter() fc.FlowLimiter {
+	return capnp.Client(c).GetFlowLimiter()
+} // A CapCerts_Server is a CapCerts with a local implementation.
 type CapCerts_Server interface {
 	CapDeviceCerts(context.Context, CapCerts_capDeviceCerts) error
 
@@ -119,6 +198,10 @@ type CapCerts_Server interface {
 	CapUserCerts(context.Context, CapCerts_capUserCerts) error
 
 	CapVerifyCerts(context.Context, CapCerts_capVerifyCerts) error
+
+	GetCapability(context.Context, CapHiveOTService_getCapability) error
+
+	ListCapabilities(context.Context, CapHiveOTService_listCapabilities) error
 }
 
 // CapCerts_NewServer creates a new Server from an implementation of CapCerts_Server.
@@ -137,7 +220,7 @@ func CapCerts_ServerToClient(s CapCerts_Server) CapCerts {
 // This can be used to create a more complicated Server.
 func CapCerts_Methods(methods []server.Method, s CapCerts_Server) []server.Method {
 	if cap(methods) == 0 {
-		methods = make([]server.Method, 0, 4)
+		methods = make([]server.Method, 0, 6)
 	}
 
 	methods = append(methods, server.Method{
@@ -185,6 +268,30 @@ func CapCerts_Methods(methods []server.Method, s CapCerts_Server) []server.Metho
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
 			return s.CapVerifyCerts(ctx, CapCerts_capVerifyCerts{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xe7182cfc5650a2c2,
+			MethodID:      0,
+			InterfaceName: "hubapi/Service.capnp:CapHiveOTService",
+			MethodName:    "getCapability",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.GetCapability(ctx, CapHiveOTService_getCapability{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xe7182cfc5650a2c2,
+			MethodID:      1,
+			InterfaceName: "hubapi/Service.capnp:CapHiveOTService",
+			MethodName:    "listCapabilities",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.ListCapabilities(ctx, CapHiveOTService_listCapabilities{call})
 		},
 	})
 
@@ -328,9 +435,9 @@ func NewCapCerts_capDeviceCerts_Params_List(s *capnp.Segment, sz int32) (CapCert
 // CapCerts_capDeviceCerts_Params_Future is a wrapper for a CapCerts_capDeviceCerts_Params promised by a client call.
 type CapCerts_capDeviceCerts_Params_Future struct{ *capnp.Future }
 
-func (p CapCerts_capDeviceCerts_Params_Future) Struct() (CapCerts_capDeviceCerts_Params, error) {
-	s, err := p.Future.Struct()
-	return CapCerts_capDeviceCerts_Params(s), err
+func (f CapCerts_capDeviceCerts_Params_Future) Struct() (CapCerts_capDeviceCerts_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapCerts_capDeviceCerts_Params(p.Struct()), err
 }
 
 type CapCerts_capDeviceCerts_Results capnp.Struct
@@ -410,11 +517,10 @@ func NewCapCerts_capDeviceCerts_Results_List(s *capnp.Segment, sz int32) (CapCer
 // CapCerts_capDeviceCerts_Results_Future is a wrapper for a CapCerts_capDeviceCerts_Results promised by a client call.
 type CapCerts_capDeviceCerts_Results_Future struct{ *capnp.Future }
 
-func (p CapCerts_capDeviceCerts_Results_Future) Struct() (CapCerts_capDeviceCerts_Results, error) {
-	s, err := p.Future.Struct()
-	return CapCerts_capDeviceCerts_Results(s), err
+func (f CapCerts_capDeviceCerts_Results_Future) Struct() (CapCerts_capDeviceCerts_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapCerts_capDeviceCerts_Results(p.Struct()), err
 }
-
 func (p CapCerts_capDeviceCerts_Results_Future) Cap() CapDeviceCerts {
 	return CapDeviceCerts(p.Future.Field(0, nil).Client())
 }
@@ -479,9 +585,9 @@ func NewCapCerts_capServiceCerts_Params_List(s *capnp.Segment, sz int32) (CapCer
 // CapCerts_capServiceCerts_Params_Future is a wrapper for a CapCerts_capServiceCerts_Params promised by a client call.
 type CapCerts_capServiceCerts_Params_Future struct{ *capnp.Future }
 
-func (p CapCerts_capServiceCerts_Params_Future) Struct() (CapCerts_capServiceCerts_Params, error) {
-	s, err := p.Future.Struct()
-	return CapCerts_capServiceCerts_Params(s), err
+func (f CapCerts_capServiceCerts_Params_Future) Struct() (CapCerts_capServiceCerts_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapCerts_capServiceCerts_Params(p.Struct()), err
 }
 
 type CapCerts_capServiceCerts_Results capnp.Struct
@@ -561,11 +667,10 @@ func NewCapCerts_capServiceCerts_Results_List(s *capnp.Segment, sz int32) (CapCe
 // CapCerts_capServiceCerts_Results_Future is a wrapper for a CapCerts_capServiceCerts_Results promised by a client call.
 type CapCerts_capServiceCerts_Results_Future struct{ *capnp.Future }
 
-func (p CapCerts_capServiceCerts_Results_Future) Struct() (CapCerts_capServiceCerts_Results, error) {
-	s, err := p.Future.Struct()
-	return CapCerts_capServiceCerts_Results(s), err
+func (f CapCerts_capServiceCerts_Results_Future) Struct() (CapCerts_capServiceCerts_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapCerts_capServiceCerts_Results(p.Struct()), err
 }
-
 func (p CapCerts_capServiceCerts_Results_Future) Cap() CapServiceCerts {
 	return CapServiceCerts(p.Future.Field(0, nil).Client())
 }
@@ -630,9 +735,9 @@ func NewCapCerts_capUserCerts_Params_List(s *capnp.Segment, sz int32) (CapCerts_
 // CapCerts_capUserCerts_Params_Future is a wrapper for a CapCerts_capUserCerts_Params promised by a client call.
 type CapCerts_capUserCerts_Params_Future struct{ *capnp.Future }
 
-func (p CapCerts_capUserCerts_Params_Future) Struct() (CapCerts_capUserCerts_Params, error) {
-	s, err := p.Future.Struct()
-	return CapCerts_capUserCerts_Params(s), err
+func (f CapCerts_capUserCerts_Params_Future) Struct() (CapCerts_capUserCerts_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapCerts_capUserCerts_Params(p.Struct()), err
 }
 
 type CapCerts_capUserCerts_Results capnp.Struct
@@ -712,11 +817,10 @@ func NewCapCerts_capUserCerts_Results_List(s *capnp.Segment, sz int32) (CapCerts
 // CapCerts_capUserCerts_Results_Future is a wrapper for a CapCerts_capUserCerts_Results promised by a client call.
 type CapCerts_capUserCerts_Results_Future struct{ *capnp.Future }
 
-func (p CapCerts_capUserCerts_Results_Future) Struct() (CapCerts_capUserCerts_Results, error) {
-	s, err := p.Future.Struct()
-	return CapCerts_capUserCerts_Results(s), err
+func (f CapCerts_capUserCerts_Results_Future) Struct() (CapCerts_capUserCerts_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapCerts_capUserCerts_Results(p.Struct()), err
 }
-
 func (p CapCerts_capUserCerts_Results_Future) Cap() CapUserCerts {
 	return CapUserCerts(p.Future.Field(0, nil).Client())
 }
@@ -781,9 +885,9 @@ func NewCapCerts_capVerifyCerts_Params_List(s *capnp.Segment, sz int32) (CapCert
 // CapCerts_capVerifyCerts_Params_Future is a wrapper for a CapCerts_capVerifyCerts_Params promised by a client call.
 type CapCerts_capVerifyCerts_Params_Future struct{ *capnp.Future }
 
-func (p CapCerts_capVerifyCerts_Params_Future) Struct() (CapCerts_capVerifyCerts_Params, error) {
-	s, err := p.Future.Struct()
-	return CapCerts_capVerifyCerts_Params(s), err
+func (f CapCerts_capVerifyCerts_Params_Future) Struct() (CapCerts_capVerifyCerts_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapCerts_capVerifyCerts_Params(p.Struct()), err
 }
 
 type CapCerts_capVerifyCerts_Results capnp.Struct
@@ -863,11 +967,10 @@ func NewCapCerts_capVerifyCerts_Results_List(s *capnp.Segment, sz int32) (CapCer
 // CapCerts_capVerifyCerts_Results_Future is a wrapper for a CapCerts_capVerifyCerts_Results promised by a client call.
 type CapCerts_capVerifyCerts_Results_Future struct{ *capnp.Future }
 
-func (p CapCerts_capVerifyCerts_Results_Future) Struct() (CapCerts_capVerifyCerts_Results, error) {
-	s, err := p.Future.Struct()
-	return CapCerts_capVerifyCerts_Results(s), err
+func (f CapCerts_capVerifyCerts_Results_Future) Struct() (CapCerts_capVerifyCerts_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapCerts_capVerifyCerts_Results(p.Struct()), err
 }
-
 func (p CapCerts_capVerifyCerts_Results_Future) Cap() CapVerifyCerts {
 	return CapVerifyCerts(p.Future.Field(0, nil).Client())
 }
@@ -894,12 +997,34 @@ func (c CapDeviceCerts) CreateDeviceCert(ctx context.Context, params func(CapDev
 	return CapDeviceCerts_createDeviceCert_Results_Future{Future: ans.Future()}, release
 }
 
+// String returns a string that identifies this capability for debugging
+// purposes.  Its format should not be depended on: in particular, it
+// should not be used to compare clients.  Use IsSame to compare clients
+// for equality.
+func (c CapDeviceCerts) String() string {
+	return fmt.Sprintf("%T(%v)", c, capnp.Client(c))
+}
+
+// AddRef creates a new Client that refers to the same capability as c.
+// If c is nil or has resolved to null, then AddRef returns nil.
 func (c CapDeviceCerts) AddRef() CapDeviceCerts {
 	return CapDeviceCerts(capnp.Client(c).AddRef())
 }
 
+// Release releases a capability reference.  If this is the last
+// reference to the capability, then the underlying resources associated
+// with the capability will be released.
+//
+// Release will panic if c has already been released, but not if c is
+// nil or resolved to null.
 func (c CapDeviceCerts) Release() {
 	capnp.Client(c).Release()
+}
+
+// Resolve blocks until the capability is fully resolved or the Context
+// expires.
+func (c CapDeviceCerts) Resolve(ctx context.Context) error {
+	return capnp.Client(c).Resolve(ctx)
 }
 
 func (c CapDeviceCerts) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
@@ -910,11 +1035,34 @@ func (CapDeviceCerts) DecodeFromPtr(p capnp.Ptr) CapDeviceCerts {
 	return CapDeviceCerts(capnp.Client{}.DecodeFromPtr(p))
 }
 
+// IsValid reports whether c is a valid reference to a capability.
+// A reference is invalid if it is nil, has resolved to null, or has
+// been released.
 func (c CapDeviceCerts) IsValid() bool {
 	return capnp.Client(c).IsValid()
 }
 
-// A CapDeviceCerts_Server is a CapDeviceCerts with a local implementation.
+// IsSame reports whether c and other refer to a capability created by the
+// same call to NewClient.  This can return false negatives if c or other
+// are not fully resolved: use Resolve if this is an issue.  If either
+// c or other are released, then IsSame panics.
+func (c CapDeviceCerts) IsSame(other CapDeviceCerts) bool {
+	return capnp.Client(c).IsSame(capnp.Client(other))
+}
+
+// Update the flowcontrol.FlowLimiter used to manage flow control for
+// this client. This affects all future calls, but not calls already
+// waiting to send. Passing nil sets the value to flowcontrol.NopLimiter,
+// which is also the default.
+func (c CapDeviceCerts) SetFlowLimiter(lim fc.FlowLimiter) {
+	capnp.Client(c).SetFlowLimiter(lim)
+}
+
+// Get the current flowcontrol.FlowLimiter used to manage flow control
+// for this client.
+func (c CapDeviceCerts) GetFlowLimiter() fc.FlowLimiter {
+	return capnp.Client(c).GetFlowLimiter()
+} // A CapDeviceCerts_Server is a CapDeviceCerts with a local implementation.
 type CapDeviceCerts_Server interface {
 	CreateDeviceCert(context.Context, CapDeviceCerts_createDeviceCert) error
 }
@@ -1082,9 +1230,9 @@ func NewCapDeviceCerts_createDeviceCert_Params_List(s *capnp.Segment, sz int32) 
 // CapDeviceCerts_createDeviceCert_Params_Future is a wrapper for a CapDeviceCerts_createDeviceCert_Params promised by a client call.
 type CapDeviceCerts_createDeviceCert_Params_Future struct{ *capnp.Future }
 
-func (p CapDeviceCerts_createDeviceCert_Params_Future) Struct() (CapDeviceCerts_createDeviceCert_Params, error) {
-	s, err := p.Future.Struct()
-	return CapDeviceCerts_createDeviceCert_Params(s), err
+func (f CapDeviceCerts_createDeviceCert_Params_Future) Struct() (CapDeviceCerts_createDeviceCert_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapDeviceCerts_createDeviceCert_Params(p.Struct()), err
 }
 
 type CapDeviceCerts_createDeviceCert_Results capnp.Struct
@@ -1182,9 +1330,9 @@ func NewCapDeviceCerts_createDeviceCert_Results_List(s *capnp.Segment, sz int32)
 // CapDeviceCerts_createDeviceCert_Results_Future is a wrapper for a CapDeviceCerts_createDeviceCert_Results promised by a client call.
 type CapDeviceCerts_createDeviceCert_Results_Future struct{ *capnp.Future }
 
-func (p CapDeviceCerts_createDeviceCert_Results_Future) Struct() (CapDeviceCerts_createDeviceCert_Results, error) {
-	s, err := p.Future.Struct()
-	return CapDeviceCerts_createDeviceCert_Results(s), err
+func (f CapDeviceCerts_createDeviceCert_Results_Future) Struct() (CapDeviceCerts_createDeviceCert_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapDeviceCerts_createDeviceCert_Results(p.Struct()), err
 }
 
 type CapServiceCerts capnp.Client
@@ -1209,12 +1357,34 @@ func (c CapServiceCerts) CreateServiceCert(ctx context.Context, params func(CapS
 	return CapServiceCerts_createServiceCert_Results_Future{Future: ans.Future()}, release
 }
 
+// String returns a string that identifies this capability for debugging
+// purposes.  Its format should not be depended on: in particular, it
+// should not be used to compare clients.  Use IsSame to compare clients
+// for equality.
+func (c CapServiceCerts) String() string {
+	return fmt.Sprintf("%T(%v)", c, capnp.Client(c))
+}
+
+// AddRef creates a new Client that refers to the same capability as c.
+// If c is nil or has resolved to null, then AddRef returns nil.
 func (c CapServiceCerts) AddRef() CapServiceCerts {
 	return CapServiceCerts(capnp.Client(c).AddRef())
 }
 
+// Release releases a capability reference.  If this is the last
+// reference to the capability, then the underlying resources associated
+// with the capability will be released.
+//
+// Release will panic if c has already been released, but not if c is
+// nil or resolved to null.
 func (c CapServiceCerts) Release() {
 	capnp.Client(c).Release()
+}
+
+// Resolve blocks until the capability is fully resolved or the Context
+// expires.
+func (c CapServiceCerts) Resolve(ctx context.Context) error {
+	return capnp.Client(c).Resolve(ctx)
 }
 
 func (c CapServiceCerts) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
@@ -1225,11 +1395,34 @@ func (CapServiceCerts) DecodeFromPtr(p capnp.Ptr) CapServiceCerts {
 	return CapServiceCerts(capnp.Client{}.DecodeFromPtr(p))
 }
 
+// IsValid reports whether c is a valid reference to a capability.
+// A reference is invalid if it is nil, has resolved to null, or has
+// been released.
 func (c CapServiceCerts) IsValid() bool {
 	return capnp.Client(c).IsValid()
 }
 
-// A CapServiceCerts_Server is a CapServiceCerts with a local implementation.
+// IsSame reports whether c and other refer to a capability created by the
+// same call to NewClient.  This can return false negatives if c or other
+// are not fully resolved: use Resolve if this is an issue.  If either
+// c or other are released, then IsSame panics.
+func (c CapServiceCerts) IsSame(other CapServiceCerts) bool {
+	return capnp.Client(c).IsSame(capnp.Client(other))
+}
+
+// Update the flowcontrol.FlowLimiter used to manage flow control for
+// this client. This affects all future calls, but not calls already
+// waiting to send. Passing nil sets the value to flowcontrol.NopLimiter,
+// which is also the default.
+func (c CapServiceCerts) SetFlowLimiter(lim fc.FlowLimiter) {
+	capnp.Client(c).SetFlowLimiter(lim)
+}
+
+// Get the current flowcontrol.FlowLimiter used to manage flow control
+// for this client.
+func (c CapServiceCerts) GetFlowLimiter() fc.FlowLimiter {
+	return capnp.Client(c).GetFlowLimiter()
+} // A CapServiceCerts_Server is a CapServiceCerts with a local implementation.
 type CapServiceCerts_Server interface {
 	CreateServiceCert(context.Context, CapServiceCerts_createServiceCert) error
 }
@@ -1421,9 +1614,9 @@ func NewCapServiceCerts_createServiceCert_Params_List(s *capnp.Segment, sz int32
 // CapServiceCerts_createServiceCert_Params_Future is a wrapper for a CapServiceCerts_createServiceCert_Params promised by a client call.
 type CapServiceCerts_createServiceCert_Params_Future struct{ *capnp.Future }
 
-func (p CapServiceCerts_createServiceCert_Params_Future) Struct() (CapServiceCerts_createServiceCert_Params, error) {
-	s, err := p.Future.Struct()
-	return CapServiceCerts_createServiceCert_Params(s), err
+func (f CapServiceCerts_createServiceCert_Params_Future) Struct() (CapServiceCerts_createServiceCert_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapServiceCerts_createServiceCert_Params(p.Struct()), err
 }
 
 type CapServiceCerts_createServiceCert_Results capnp.Struct
@@ -1521,9 +1714,9 @@ func NewCapServiceCerts_createServiceCert_Results_List(s *capnp.Segment, sz int3
 // CapServiceCerts_createServiceCert_Results_Future is a wrapper for a CapServiceCerts_createServiceCert_Results promised by a client call.
 type CapServiceCerts_createServiceCert_Results_Future struct{ *capnp.Future }
 
-func (p CapServiceCerts_createServiceCert_Results_Future) Struct() (CapServiceCerts_createServiceCert_Results, error) {
-	s, err := p.Future.Struct()
-	return CapServiceCerts_createServiceCert_Results(s), err
+func (f CapServiceCerts_createServiceCert_Results_Future) Struct() (CapServiceCerts_createServiceCert_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapServiceCerts_createServiceCert_Results(p.Struct()), err
 }
 
 type CapUserCerts capnp.Client
@@ -1548,12 +1741,34 @@ func (c CapUserCerts) CreateUserCert(ctx context.Context, params func(CapUserCer
 	return CapUserCerts_createUserCert_Results_Future{Future: ans.Future()}, release
 }
 
+// String returns a string that identifies this capability for debugging
+// purposes.  Its format should not be depended on: in particular, it
+// should not be used to compare clients.  Use IsSame to compare clients
+// for equality.
+func (c CapUserCerts) String() string {
+	return fmt.Sprintf("%T(%v)", c, capnp.Client(c))
+}
+
+// AddRef creates a new Client that refers to the same capability as c.
+// If c is nil or has resolved to null, then AddRef returns nil.
 func (c CapUserCerts) AddRef() CapUserCerts {
 	return CapUserCerts(capnp.Client(c).AddRef())
 }
 
+// Release releases a capability reference.  If this is the last
+// reference to the capability, then the underlying resources associated
+// with the capability will be released.
+//
+// Release will panic if c has already been released, but not if c is
+// nil or resolved to null.
 func (c CapUserCerts) Release() {
 	capnp.Client(c).Release()
+}
+
+// Resolve blocks until the capability is fully resolved or the Context
+// expires.
+func (c CapUserCerts) Resolve(ctx context.Context) error {
+	return capnp.Client(c).Resolve(ctx)
 }
 
 func (c CapUserCerts) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
@@ -1564,11 +1779,34 @@ func (CapUserCerts) DecodeFromPtr(p capnp.Ptr) CapUserCerts {
 	return CapUserCerts(capnp.Client{}.DecodeFromPtr(p))
 }
 
+// IsValid reports whether c is a valid reference to a capability.
+// A reference is invalid if it is nil, has resolved to null, or has
+// been released.
 func (c CapUserCerts) IsValid() bool {
 	return capnp.Client(c).IsValid()
 }
 
-// A CapUserCerts_Server is a CapUserCerts with a local implementation.
+// IsSame reports whether c and other refer to a capability created by the
+// same call to NewClient.  This can return false negatives if c or other
+// are not fully resolved: use Resolve if this is an issue.  If either
+// c or other are released, then IsSame panics.
+func (c CapUserCerts) IsSame(other CapUserCerts) bool {
+	return capnp.Client(c).IsSame(capnp.Client(other))
+}
+
+// Update the flowcontrol.FlowLimiter used to manage flow control for
+// this client. This affects all future calls, but not calls already
+// waiting to send. Passing nil sets the value to flowcontrol.NopLimiter,
+// which is also the default.
+func (c CapUserCerts) SetFlowLimiter(lim fc.FlowLimiter) {
+	capnp.Client(c).SetFlowLimiter(lim)
+}
+
+// Get the current flowcontrol.FlowLimiter used to manage flow control
+// for this client.
+func (c CapUserCerts) GetFlowLimiter() fc.FlowLimiter {
+	return capnp.Client(c).GetFlowLimiter()
+} // A CapUserCerts_Server is a CapUserCerts with a local implementation.
 type CapUserCerts_Server interface {
 	CreateUserCert(context.Context, CapUserCerts_createUserCert) error
 }
@@ -1736,9 +1974,9 @@ func NewCapUserCerts_createUserCert_Params_List(s *capnp.Segment, sz int32) (Cap
 // CapUserCerts_createUserCert_Params_Future is a wrapper for a CapUserCerts_createUserCert_Params promised by a client call.
 type CapUserCerts_createUserCert_Params_Future struct{ *capnp.Future }
 
-func (p CapUserCerts_createUserCert_Params_Future) Struct() (CapUserCerts_createUserCert_Params, error) {
-	s, err := p.Future.Struct()
-	return CapUserCerts_createUserCert_Params(s), err
+func (f CapUserCerts_createUserCert_Params_Future) Struct() (CapUserCerts_createUserCert_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapUserCerts_createUserCert_Params(p.Struct()), err
 }
 
 type CapUserCerts_createUserCert_Results capnp.Struct
@@ -1836,9 +2074,9 @@ func NewCapUserCerts_createUserCert_Results_List(s *capnp.Segment, sz int32) (Ca
 // CapUserCerts_createUserCert_Results_Future is a wrapper for a CapUserCerts_createUserCert_Results promised by a client call.
 type CapUserCerts_createUserCert_Results_Future struct{ *capnp.Future }
 
-func (p CapUserCerts_createUserCert_Results_Future) Struct() (CapUserCerts_createUserCert_Results, error) {
-	s, err := p.Future.Struct()
-	return CapUserCerts_createUserCert_Results(s), err
+func (f CapUserCerts_createUserCert_Results_Future) Struct() (CapUserCerts_createUserCert_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapUserCerts_createUserCert_Results(p.Struct()), err
 }
 
 type CapVerifyCerts capnp.Client
@@ -1863,12 +2101,34 @@ func (c CapVerifyCerts) VerifyCert(ctx context.Context, params func(CapVerifyCer
 	return CapVerifyCerts_verifyCert_Results_Future{Future: ans.Future()}, release
 }
 
+// String returns a string that identifies this capability for debugging
+// purposes.  Its format should not be depended on: in particular, it
+// should not be used to compare clients.  Use IsSame to compare clients
+// for equality.
+func (c CapVerifyCerts) String() string {
+	return fmt.Sprintf("%T(%v)", c, capnp.Client(c))
+}
+
+// AddRef creates a new Client that refers to the same capability as c.
+// If c is nil or has resolved to null, then AddRef returns nil.
 func (c CapVerifyCerts) AddRef() CapVerifyCerts {
 	return CapVerifyCerts(capnp.Client(c).AddRef())
 }
 
+// Release releases a capability reference.  If this is the last
+// reference to the capability, then the underlying resources associated
+// with the capability will be released.
+//
+// Release will panic if c has already been released, but not if c is
+// nil or resolved to null.
 func (c CapVerifyCerts) Release() {
 	capnp.Client(c).Release()
+}
+
+// Resolve blocks until the capability is fully resolved or the Context
+// expires.
+func (c CapVerifyCerts) Resolve(ctx context.Context) error {
+	return capnp.Client(c).Resolve(ctx)
 }
 
 func (c CapVerifyCerts) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
@@ -1879,11 +2139,34 @@ func (CapVerifyCerts) DecodeFromPtr(p capnp.Ptr) CapVerifyCerts {
 	return CapVerifyCerts(capnp.Client{}.DecodeFromPtr(p))
 }
 
+// IsValid reports whether c is a valid reference to a capability.
+// A reference is invalid if it is nil, has resolved to null, or has
+// been released.
 func (c CapVerifyCerts) IsValid() bool {
 	return capnp.Client(c).IsValid()
 }
 
-// A CapVerifyCerts_Server is a CapVerifyCerts with a local implementation.
+// IsSame reports whether c and other refer to a capability created by the
+// same call to NewClient.  This can return false negatives if c or other
+// are not fully resolved: use Resolve if this is an issue.  If either
+// c or other are released, then IsSame panics.
+func (c CapVerifyCerts) IsSame(other CapVerifyCerts) bool {
+	return capnp.Client(c).IsSame(capnp.Client(other))
+}
+
+// Update the flowcontrol.FlowLimiter used to manage flow control for
+// this client. This affects all future calls, but not calls already
+// waiting to send. Passing nil sets the value to flowcontrol.NopLimiter,
+// which is also the default.
+func (c CapVerifyCerts) SetFlowLimiter(lim fc.FlowLimiter) {
+	capnp.Client(c).SetFlowLimiter(lim)
+}
+
+// Get the current flowcontrol.FlowLimiter used to manage flow control
+// for this client.
+func (c CapVerifyCerts) GetFlowLimiter() fc.FlowLimiter {
+	return capnp.Client(c).GetFlowLimiter()
+} // A CapVerifyCerts_Server is a CapVerifyCerts with a local implementation.
 type CapVerifyCerts_Server interface {
 	VerifyCert(context.Context, CapVerifyCerts_verifyCert) error
 }
@@ -2043,9 +2326,9 @@ func NewCapVerifyCerts_verifyCert_Params_List(s *capnp.Segment, sz int32) (CapVe
 // CapVerifyCerts_verifyCert_Params_Future is a wrapper for a CapVerifyCerts_verifyCert_Params promised by a client call.
 type CapVerifyCerts_verifyCert_Params_Future struct{ *capnp.Future }
 
-func (p CapVerifyCerts_verifyCert_Params_Future) Struct() (CapVerifyCerts_verifyCert_Params, error) {
-	s, err := p.Future.Struct()
-	return CapVerifyCerts_verifyCert_Params(s), err
+func (f CapVerifyCerts_verifyCert_Params_Future) Struct() (CapVerifyCerts_verifyCert_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapVerifyCerts_verifyCert_Params(p.Struct()), err
 }
 
 type CapVerifyCerts_verifyCert_Results capnp.Struct
@@ -2108,105 +2391,107 @@ func NewCapVerifyCerts_verifyCert_Results_List(s *capnp.Segment, sz int32) (CapV
 // CapVerifyCerts_verifyCert_Results_Future is a wrapper for a CapVerifyCerts_verifyCert_Results promised by a client call.
 type CapVerifyCerts_verifyCert_Results_Future struct{ *capnp.Future }
 
-func (p CapVerifyCerts_verifyCert_Results_Future) Struct() (CapVerifyCerts_verifyCert_Results, error) {
-	s, err := p.Future.Struct()
-	return CapVerifyCerts_verifyCert_Results(s), err
+func (f CapVerifyCerts_verifyCert_Results_Future) Struct() (CapVerifyCerts_verifyCert_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapVerifyCerts_verifyCert_Results(p.Struct()), err
 }
 
-const schema_cd6ed2180540008c = "x\xda\xbcWol\x14\xd5\x16?g\xeeLggh" +
-	")\x97)\xef=xDJ\x01\x05ck\x91\x16\x91h" +
-	"Z\xec\xb6\xb5`\xc9N\x97\x12\xc4T\x18\xb6\x83\x0c\xee" +
-	"n\x96\xddm\xcb\x96\x1a\x11\x14B%\x86\x10H\xb4|" +
-	"P\x88\x10\xc4\x08\x81\xa0\x09\x04\x82\xd1`BD\x130" +
-	"\x88\x90\x80\x01?\x18\x15\xa2\x98\x10#\x08c\xee\xcc\xce" +
-	"\xect\xd8B+\xc6o\xb3\xf7\x9e\xbf\xbf\xf3\xbb\xe7\x9c" +
-	"\xad,\xe2k\xf9\xa9E\xfbd\xe0\xd4\x1e\xa1\xc0|\xfe" +
-	"\xc4\x07\xdb\xe4\xca\xc3\xabA-E\x04\x108\x11`\xda" +
-	"S\xc2\x01\x04T\x9a\x85}\x80\xa6\xb4\xfe\x85\xf2\x8e\xef" +
-	"\xaa\xd7\x01\x1d\x8b\x00<\xbb\xbf&\xf4!\xf0\xe6\xe7;" +
-	"\xc8\xa2K\xdbg\xac\xb7o\x04dW\x97\xd8\x15*\xd7" +
-	"\x84\x1a@\xf3\xe5y+w\x7f\xf6\xf3\x7f\xdf\xf0\xa8\xd2" +
-	"\x82\xcdLu\xf2\x8c+\xa1U\x07\xab6\x81:\xc1r" +
-	"K\xd8\x1d\x16\\f\xba\xa3\x0a~\x004;\xf9I\xe7" +
-	"\xe2\xd7go\xf1\x1a\x17\xc4^K@\xb4\x8c\xafm+" +
-	":2\xe5\x93-@\xcb\x1c\xe3\xd5\xe2\x1ef\xfcJ\xcf" +
-	"\xefG\xf9\xda\xd7\xfb\xec\x1b;\xa5I\xe2\x0e\xa6Z-" +
-	"v\x01\x9a\x85\x8b\xbf\xe5\xde\x9b\xd7\xdb\x07T\xe1om" +
-	"\xac\x15\xfew:\xfe%\xe0\xb4\xadb/*\x1f\x8a\"" +
-	"@x\xb7H0|P\xe4\x10\xc0\xbc\xdd\xdc\xa1\xef\xaf" +
-	"\xeaz\x17\xd4\xb2\x1cD;\xc5\xd3\xcc\xde!\x91AT" +
-	"R\xfa\xd6;\xe3\xce\xbf\xba\xddg\xaf-\xd0\x8d\xca\x8a" +
-	"\x00\xb3\x17\x0d\x10\x0c\xaf\x0cX\xf6\x9e\x8b~\xbc\xb6\xd2" +
-	"x\x8dI\x13\x8f\xb4\x11\x18\x89J\x86I+\x1d\x81F" +
-	"e;\xfb2\x83\x0f\x9d=\x95\x19\xb5k/\xd0R\xd7" +
-	"\xf5\x86\xc0a\xe6\xfa\xed\x00K\xa5w\xdb\x9e\x86]\x7f" +
-	"V\xed\xf7\xb9\xfe#0\x06\x15Ib\xaey\x89`x" +
-	"\x84d\xb9^\x15\x9f>9\xb5s\xd1\x01\x9f\xb4$=" +
-	"\x8c\xcahK\xba\x84I\x97\xda\xd2\xff\xbf\xba\xf4\xf8\xaf" +
-	"/6\x1c\xe9\x1f\xa82Z\xba\xacLb\xc2\xd3\xc6K" +
-	"\"*\xa7\xd8\xa7)?.\x98\xd5\x997\x8fzJ}" +
-	"H\xb2J\x9d\x0ct\xd6\xc7\xda6\x1c\xf3\xa5\xfb\xbe\xc4" +
-	"\xa1\xf2\x11\xd3U\xf6K\x8d\xca\x05\xcb\xca\xad\xff\x94\xd4" +
-	"\x05\xbfh\xfe\xd4[\xf4\xe3\x92U\xb93\x12+\xfa\xc9" +
-	"c\xf1\x05\x17z\xf7\x9e\xf4%p]*CE\x90E" +
-	"\x80\x16\x99`\xb8P\xb6\xe2\x9f\xdb5\xbfo\xf5\xa1\xd1" +
-	"\xdf\xf8<\x0b\xf2HTF1a\x85\xca\x8d\xca,\xf6" +
-	"en\\\xb7\xe1\xab\xd9\xbf\x8d\xff\xd1gx\x8a\xbc\x19" +
-	"m\x89\xf0\x93\xcc\xf23\xb6\xe5u\xf1\x1b=\xc3\xaeu" +
-	"\xff\xe2\x8d\xf3\x09\xd9b~\x93\xcc\xe2<\xb1oo\x0f" +
-	"\xbeTx\xc3\x03\x87!\xafap\x9c\xddzp\xfa\xd8" +
-	"\x9d\x17o\x00\x9d\xe0V\xb4U\xfe\x89\xa9\x1a2\xab\xe8" +
-	"\xaa\xb3\xc7\x92\x17o\x92\x9b\xbe\xa8O\xc8cP9g" +
-	"E}FnT\x84a,\xea\xf6\x07w}?3\xf0" +
-	"\xf5m/\xd3\xaf\xca\xe7\x991\x1c\xd6\x05\xe5\xe6\xb2\x8e" +
-	"%Z\xc2x\xb4N\xd0\x93\xe9TEDK\xc4\x133" +
-	"\xeb\xb4DkJO\xd6\xd9GI]K\xeb\xce\xef\x89" +
-	"\xa1qZR\x8b\xa5\xd4B\xc2\x03\xf0\x08@\xebg\x03" +
-	"\xa8A\x82j\x88C\x8aX\xc2\x9e\x00mn\x01P\x9f" +
-	"%\xa8.\xe0\x10\xb9\x12\xe4\x10i\xebr\x00u\x1eA" +
-	"u1\x87f$j\xe8\xf1tS\x10\x00\xb0\x108," +
-	"\x044\x13\x1dK\xe6\xe8\x99P=`\xb3{\xd6\xa9E" +
-	"\x8dv#\x9d\x81\xe2\xa0\x96I!\x0f\x1c\xf2\x80\x03\x85" +
-	"]\xe7\xfc\x0c\xeb\xc9N#\xa2[\xbf'\x86\xb4\xa4F" +
-	"b\xa9{*\xcd\xd7\x93\xc6\xd2\x8c\xad\xd3\xa2\xa7:\xa2" +
-	"$\x9dRy7\xd1\xa22\x005@P-\xe1P\x8c" +
-	"h\x09\xa4\xb9\x97\x0a\x88t\x10a\x05\xf5\xfeQ\xc50" +
-	"\x17UA\x7f\x1do\x06\xd9\"x\x8e\x98\xb6\xc8\xea0" +
-	"\xc2\x0dOc\x90/&\xa8F=u0\xd8\xe12\x82" +
-	"j:W\x87\x15\xac\x0e\x09\x82j\x0f\x87\x94p%H" +
-	"\x00h\xe61\x005MP\xdd\xc4\xa1\x99\xb2\x1d5\x01" +
-	"\x06\xffFq\xc6\xc5\xb5\x98\x9e\xc2\xe1\x80!\x82\x96\xec" +
-	"\xf0A@\xe32\xce\x86>\x9d\x02\xb8;\xf6n\xdb\xb8" +
-	";\xf6\x9e\xa2Vt\xba\xdf\xccI1\xf32D5\x07" +
-	"\xf6\x80\x1b\xd9\x14F\xff\xc9\x04\xd5*\x0f\xecS\x9f\x06" +
-	"P\x1f!\xa8\xce\xc8O\xf5W\"z2\x1d\xaa\xcf!" +
-	"\x99/\x8av}\xa9\xd6\x11M\xe783?\x0b7\x03" +
-	"\x1b \x84\xc8\x10\xa7\xfc\x03\x1e}\x1f\x89<|\xcbr" +
-	"(w\xe2\x10\xf0\xbe\x9fr\xbbe\xf2\xbe\x9f2\x7fg" +
-	"\xea\x0e'\xec\xc4k\xec\xcc\xf3\xe6M\x06\xaa\x1e2y" +
-	"\x95'\x02\x80;\xf6\xd1\xd9\x0c(]\x08\x1c\x95D\xd3" +
-	"\xa90\x90d\xba\x16C\x88C\xee\x8b-56k\xbd" +
-	"\xcc`$\x98HP\xad\xf4\xa0Y\xde\x92c\xc6\x1d," +
-	"\x88hu\xd6\x89\x17\xb5|\x192\xbdl3\x98\xab\x91" +
-	"\x98\xce \xb1\xe5\x81\xe2\x12\x93]\xb3'\x0c\xa2\x11\xd1" +
-	"\xf3\x1a\xc8\xe2[g\xf9+n0\xa2\xfdM,\xccF" +
-	"R\x91\x00\xa2\xc7\\\x0b\x9c\xff\xe9\x8a\xc9\xb4\x05\xef\x08" +
-	"\x0b^g\x99Cg\xf8\xd1\x15\xdd\xc0QC\xc4\xdc\x8e" +
-	"\x88\xce\x00\xa7mk\x80\xa3\xad\"r\xee(Dg\xa3" +
-	"\xa3M\xcb\x81\xa3\xb3D$\xee\xd6\x80\xce*I\xab\x99" +
-	"\xcdr\xd1t\xba)\xd4\xd8\xfc\xaee\xf0\xd9]\x13\xb3" +
-	"\x94\x07\xfb\xcc\xaa\x11\x14\xe7\x84,v@M&\xabw" +
-	"\x97r\xe7\x1d\x0d\xfe\xc6M\x06\xa0\x08\xe4\x98\xe7,\xd1" +
-	"\xe8\xack\x94v\xdb\xccsh\x045\xb6\xd6\xe0\xc2\xe9" +
-	"7\xdeX\xbf\x14\xa3\xf7\x1aU\xee\xd6\xe0k\x97yi" +
-	"1G\xcf4\x88~V\xb4\x98\x11vQ\x91\xd0\x01c" +
-	"\x03e\x9f\xeb/\xde\x97\xe7l\xc8\xe8\xec#\x94\xf6\x02" +
-	"G\x8b\x9c\xfc\x83::j\x00\x03C\x90\x8d\xcf\x93\xbd" +
-	"\xa7%b\xfe\xce0\x98Q<\xb8a\xefn\x8b>\x04" +
-	"\x0b\xef9\xd1,\xc6\xa4\xc0Q\x18\xd2\xa0w\x06\xd5\xbf" +
-	"\xd2X\xfa\x85C\xd2\x9e\x0a:\xff\xc7\xd0YO)\xdd" +
-	"\xec\xad`XGG\x0f}$\x1e\xcaLr+\xf1\x0f" +
-	"g\xfbW\x00\x00\x00\xff\xff<\x93%e"
+const schema_cd6ed2180540008c = "x\xda\xbcW}h\x14g\x1a\x7f\x9eyg3\xbb;" +
+	"\x1b\xe3\xeb\xc4\xf3\xe3\xe4\xf4\xa2\xde\xe9ar\xf1L\xbc" +
+	"\x9c\x9c$\xb9l\x12\xa3\x17\xd9\xc9&Am\xad\x8e\x9b" +
+	"\xb1\xae\xdd]\xd6\xddM\xe2\xc6H\xfd\x16S)*\x16" +
+	"$R\xaa\xd2Hk[E\x91BE\xb1XZ\x90j" +
+	"\xa1\x96\xd6*\xadEK\xb1\x1fJkA\x0a~My" +
+	"gvf'\xe3F\x93Z\xfa\xdf\xce\xfb>\x9f\xbf\xe7" +
+	"\xf7>\xcf\xb3\xa5O\xf3U\xfc\xf4\xfcQ\xf9\xc0\xc9{" +
+	"\\y\xdaSg\xdf\xd8\xeb-=\xb1\x0e\xe4\x09\x88\x00" +
+	".N\x00\x98\xb1*\xef\x18\x02J\xeb\xf3\x8e\x00j\x9e" +
+	"\xad\xcf\x14\xb7\x7fU\xbe\x05\xe88\x04\xe0\xd9\xfdd\xa1" +
+	"\x17\x81\xd7>8@\x96\\\xdd_\xb1\xd5\xb8q!\xbb" +
+	"\x1a\xc9\xaeP\x9a,T\x02jk\x9bW\xbf\xf6\xde\x0f" +
+	"\xa3^\xb0\xa9\xd6\x0a\xbb\x98\xea\x94\x8a\x1b\x815\xc7\xcb" +
+	"v\x80<QwK\xd8]\xb9p\x8d\xe96\x08\xd7\x01" +
+	"\xb5\x0e~\xf2\xa5\xd8\xed\xb9\xbb\xed\xc6\xff\xe3\xee\xd1\x05" +
+	"\xdc\xba\xf1\x8d\x8b\xf3ON}w7\xd0\"\xd3x\xd8" +
+	"}\x88\x19\xbf\xd1\xfd\xcb)\xbejs\xafqc\xa4\xb4" +
+	"\xd0}\x80\xa9\x86\xdd\x9d\x80\x9ao\xe9\xe7\xdc\xab\xcd=" +
+	"\xbd@%\xfe\xfe\xf6*\xd7\xe8\x0b\xb1\xf3\x803\xce\xba" +
+	"{P\xba\xea\x16\x00\x82_\xb8\x09\x06\xbfus\x08\xa0" +
+	"=hlW\x8f\x96u\xee\x03\xb9(\x0b\xd1%\xf7\x05" +
+	"f\xef\xa6\x9bAT8a\xcf+\xe3/\xaf\xdf\xef\xb0" +
+	"\xb7\xd3\xd3\x85R\x9f\x87\xd9\xdb\xe7!\x18|\xd3\xa3\xdb" +
+	"[\x18y{cix\x13\x93&6\xe9\x97=#P" +
+	"z\x8bIK\xaf{\xea\xa5O\xd9/\xcd\xff\xf7\x8b\x1f" +
+	"\xa7G\x1e<\x0ct\x82\xe5\xfa\x94\xe7\x04s}\xde\xc3" +
+	"R\xe9\xd9{\xa8\xee\xe0\xbd\xb2\xa3\x0e\xd7\xc5\xde\xb1(" +
+	"\xcd\xf62\xd7\x15^\x82A\xbfWw\xbd&6sJ" +
+	"\xb2o\xc91\x87\xf4l\xef?Pj\xd4\xa5\xe70\xe9" +
+	"fC\xfa\xcf7\x97\xbf\xff\xd3\xb3u'\xfb\x07*5" +
+	"z\xafI\x0b\x99\xf0\x8c\x16\xaf\x80\x92K\x1c\x05\xa0y" +
+	"\xff\xed\xd2\xca\xd3/\x9e\xb2\x95\xfa\xb6W/u\xc2\xdd" +
+	"Q\x1b]\xbc\xed\xb4#\xddo\xbc\x1cJ\xb7\x98\x19\xe9" +
+	"\xa6\xb7^\x1a#\xb2t\xef\xff\xa9\xb0\xc6\xffa\xe3\x19" +
+	"{\xd1Q\xd4+GEV\xf4s\xa7c\x0b\xbe\xec9" +
+	"|\xce\x91\xc0t\xb1\x08\xa5jf\"\xf8_\x91`p" +
+	"\x8e\xa8'0\xbf\xb3\xb5w\xdd;c>s\xb8\xae\x16" +
+	"G\xa0$3i\xa9Q\xac\x97\xd6\xea\xae\xb7o\xd9\xf6" +
+	"\xd1\xdc\x9f\xff\xfa\x9d\xc3\xb2*\xeeBC\"\xb8\x9aY" +
+	"\xdedX\xde\x12\xbb\xd3-\xde\xea\xfa\xd1\x1eh\xbb\xa8" +
+	"S\x7f\xb3\x1e\xe8\xd9#\x87\xbb\xf19\xdf\x1d\x1b\x1e}" +
+	"\xe2\x06\x86\xc7\xc5\x97\x8e\xcf\x1c\xd7w\xe5\x0e\xd0\x89V" +
+	"Iw\x8a\xdf3\xd5>\x91\x95t\xcd\xc5\xd3\x89+w" +
+	"\xc9]G\xd4.\xdfX\x94F\xfaX\xd4\xd4W/U" +
+	"\xb3_Z\xdb\xdf\x0e~=\xcb\xfd\xc9\x03;\xd5\xa7\xfa" +
+	".3c\xb3}\x9d\xd0\xa5\xadh_\xa6\xc4\xc3\xff\xac" +
+	"q\xa9\x89T\xb2$\xa4\xc4c\xf1Y5J\xbc%\xa9" +
+	"&j\x8c\xa3\x84\xaa\xa4T\xf3{R`\xbc\x92P\xa2" +
+	"I\xd9Gx\x00\x1e\x01h\xed\\\x00\xd9OP\x0ep" +
+	"H\x11\x0b\xd9\x1b\xa0\x8dM\x00\xf2\xff\x09\xca\x0b8D" +
+	"\xae\x109D\xda\xb2\x12@n&(/\xe5P\x0bE" +
+	"\xc2j,\xd5\xe0\x07\x00\xf4\x01\x87>@-\xde\xbel" +
+	"\x9e\x9a\x0e\xd4\x026Zg\x1dJ$\xdc\x16N\xa5\xa1" +
+	"\xc0\xaf\xa4\x93\xc8\x03\x87<\xe0@a\xd7\x98\x9fA5" +
+	"\xd1\x11\x0e\xa9\xfa\xf7\xa4\x80\x92PH4\xf9X\xa5V" +
+	"5\x11^\x9e6t\x9a\xd4d{\x84\xa4\x922o%" +
+	"\x9a_\x04 \xbb\x09\xca\x85\x1c\x0a!%\x8e4\xfbT" +
+	"\x01\x91\x0e\",\xbf\xda?\xaa(f\xa3\xca\xeb\xafc" +
+	"\xcf S\x04\xdb\x11\xd3\x16X\x1d\x86[\xe1)\x0c\xf2" +
+	"\xa5\x04\xe5\x88\xad\x0eav\xb8\x82\xa0\x9c\xca\xd6a\x15" +
+	"\xabC\x9c\xa0\xdc\xcd!%\\!\x12\x00\x9a\xfe\x17\x80" +
+	"\x9c\"(\xef\xe0PK\x1a\x8e\x1a\x00\xfd\xbf\xa18\xe3" +
+	"cJTM\xe20\xc0\x00A]v\xd8 \xa0\xb1\x18" +
+	"g@\x9fJ\x02<\x1a{\xabo<\x1a{[QK" +
+	":\xac\xdf\xccI\x01\xf32D5\x13v\xb7\x15\xd9T" +
+	"F\xff)\x04\xe52\x1b\xec\xd3\xff\x07 O#(W" +
+	"\xe4\xa6\xfa\xf3!5\x91\x0a\xd4f\x91\xcc\x15E\x9b\xba" +
+	"\\i\x8f\xa4\xb2\x9ci\xcd\xc0\xcd\xc0\x06\x08 2\xc4" +
+	")\xff\x17\x9b\xbe\x83D6\xbee8\x94=1\x09\xf8" +
+	"\xc4O\xb9M7\xf9\xc4O\x99\x7f8u\x93\x13F\xe2" +
+	"\x95F\xe69\xf3&\x03U\x0f\x99\xbc\xcc\x13\x17\x805" +
+	"\xf7\xd1\\\x0d(]\x04\x1c\xf5\x08\x9aYa \x89T" +
+	"\x15\x06\x10\x87\xdc\x17\x9b*\x0d\xd6\xda\x99\xc1H0\x89" +
+	"\xa0\\jC\xb3\xb8)\xcb\x8c\x87X\x10Rj\xf4\x13" +
+	";j\xb92dz\x99f0_!Q\x95Ab\xc8" +
+	"\x03\xc5e\x1a\xbbfO\x18\x84pH\xcdi \x83o" +
+	"\x8d\xee\xaf\xa0.\x1c\xe9obQ&\x92\x928\x105" +
+	"jY\xe0\x9cOWH\xa4tx\x87\xeb\xf0\x9a\xdb\x1c" +
+	"\x9a\xc3\x8f\xae\xea\x02\x8e\x86\x05\xcc.\x89hNp\xba" +
+	"x\x03p\xb4E@\xce\x1a\x85h\xaet\xb4a%p" +
+	"\xb4Z@b\xad\x0dh\xee\x92\xb4\x9c\xd9,\x164\xb3" +
+	"\x9bB\xa5\xc1\xef*\x06\x9f\xd151Cy0\xce\xf4" +
+	"\x1aAAVHg\x07T\xa63z2\x8f\xa8\x9d9" +
+	"\x10h\xbd7m\xf4u\x00\x18\xd2\x9cpvq2\x00" +
+	"_ KCs\xa5Fsy\xa3\xb4\xcb\xa0\xa1\xc9)" +
+	"\xa84\xb4\x1eI\xc5\xdc\xb3\x8e5O!\xf2\xb8\xb9e" +
+	"\xad\x10\x8e\xde\x99\x93#\xf3\xd4t\x9d\xe0\xa4H\x93\x16" +
+	"b\x17%q\x150:P\xf6\xd9fc\x7f\x86\xe6\xbe" +
+	"\x8c\xe6rBi\x0fp4\xdf\xcc\xdf\xaf\xa2\xa9\x060" +
+	"0\x04\x99\xf8l\xd9\xdb\xfa#\xe6n\x13\x83\x99\xcb\x83" +
+	"\x9b\xfc\xd6\xea\xe8@\xd0\xf7\xd8\xf1\xa63&\x09\xa6\xc2" +
+	"\x90\xa6\xbe9\xb5\xfe\x90.\xd3/\x1c\x92\xb2U\xd0\xfc" +
+	"w\x86\xe6\xaeJ\xe9.{\x05\x83*\x9az\xe8 \xf1" +
+	"P\x06\x94U\x89\xdf9\xdb_\x03\x00\x00\xff\xff\x9f\x15" +
+	"-~"
 
 func init() {
 	schemas.Register(schema_cd6ed2180540008c,

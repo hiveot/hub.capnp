@@ -7,8 +7,9 @@ $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
 
 using Bucket = import "./Bucket.capnp";
 using Thing = import "./Thing.capnp";
+using Service = import "Service.capnp";
 
-interface CapPubSubService {
+interface CapPubSubService extends (Service.CapHiveOTService) {
 # CapPubSubService capabilities for publishing and subscribing to Thing messages
 
 	capDevicePubSub @0 (deviceID :Text) -> (cap :CapDevicePubSub);

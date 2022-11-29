@@ -139,9 +139,9 @@ func NewThingValue_List(s *capnp.Segment, sz int32) (ThingValue_List, error) {
 // ThingValue_Future is a wrapper for a ThingValue promised by a client call.
 type ThingValue_Future struct{ *capnp.Future }
 
-func (p ThingValue_Future) Struct() (ThingValue, error) {
-	s, err := p.Future.Struct()
-	return ThingValue(s), err
+func (f ThingValue_Future) Struct() (ThingValue, error) {
+	p, err := f.Future.Ptr()
+	return ThingValue(p.Struct()), err
 }
 
 type ThingValueMap capnp.Struct
@@ -227,9 +227,9 @@ func NewThingValueMap_List(s *capnp.Segment, sz int32) (ThingValueMap_List, erro
 // ThingValueMap_Future is a wrapper for a ThingValueMap promised by a client call.
 type ThingValueMap_Future struct{ *capnp.Future }
 
-func (p ThingValueMap_Future) Struct() (ThingValueMap, error) {
-	s, err := p.Future.Struct()
-	return ThingValueMap(s), err
+func (f ThingValueMap_Future) Struct() (ThingValueMap, error) {
+	p, err := f.Future.Ptr()
+	return ThingValueMap(p.Struct()), err
 }
 
 type ThingValueMap_Entry capnp.Struct
@@ -333,11 +333,10 @@ func NewThingValueMap_Entry_List(s *capnp.Segment, sz int32) (ThingValueMap_Entr
 // ThingValueMap_Entry_Future is a wrapper for a ThingValueMap_Entry promised by a client call.
 type ThingValueMap_Entry_Future struct{ *capnp.Future }
 
-func (p ThingValueMap_Entry_Future) Struct() (ThingValueMap_Entry, error) {
-	s, err := p.Future.Struct()
-	return ThingValueMap_Entry(s), err
+func (f ThingValueMap_Entry_Future) Struct() (ThingValueMap_Entry, error) {
+	p, err := f.Future.Ptr()
+	return ThingValueMap_Entry(p.Struct()), err
 }
-
 func (p ThingValueMap_Entry_Future) Value() ThingValue_Future {
 	return ThingValue_Future{Future: p.Future.Field(1, nil)}
 }

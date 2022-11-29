@@ -5,248 +5,12 @@ package hubapi
 import (
 	capnp "capnproto.org/go/capnp/v3"
 	text "capnproto.org/go/capnp/v3/encoding/text"
+	fc "capnproto.org/go/capnp/v3/flowcontrol"
 	schemas "capnproto.org/go/capnp/v3/schemas"
 	server "capnproto.org/go/capnp/v3/server"
 	context "context"
+	fmt "fmt"
 )
-
-type CapabilityInfo capnp.Struct
-
-// CapabilityInfo_TypeID is the unique identifier for the type CapabilityInfo.
-const CapabilityInfo_TypeID = 0xc21232abc35ddd5d
-
-func NewCapabilityInfo(s *capnp.Segment) (CapabilityInfo, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 3})
-	return CapabilityInfo(st), err
-}
-
-func NewRootCapabilityInfo(s *capnp.Segment) (CapabilityInfo, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 3})
-	return CapabilityInfo(st), err
-}
-
-func ReadRootCapabilityInfo(msg *capnp.Message) (CapabilityInfo, error) {
-	root, err := msg.Root()
-	return CapabilityInfo(root.Struct()), err
-}
-
-func (s CapabilityInfo) String() string {
-	str, _ := text.Marshal(0xc21232abc35ddd5d, capnp.Struct(s))
-	return str
-}
-
-func (s CapabilityInfo) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapabilityInfo) DecodeFromPtr(p capnp.Ptr) CapabilityInfo {
-	return CapabilityInfo(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapabilityInfo) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapabilityInfo) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapabilityInfo) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapabilityInfo) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s CapabilityInfo) Service() (string, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.Text(), err
-}
-
-func (s CapabilityInfo) HasService() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s CapabilityInfo) ServiceBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.TextBytes(), err
-}
-
-func (s CapabilityInfo) SetService(v string) error {
-	return capnp.Struct(s).SetText(0, v)
-}
-
-func (s CapabilityInfo) Name() (string, error) {
-	p, err := capnp.Struct(s).Ptr(1)
-	return p.Text(), err
-}
-
-func (s CapabilityInfo) HasName() bool {
-	return capnp.Struct(s).HasPtr(1)
-}
-
-func (s CapabilityInfo) NameBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(1)
-	return p.TextBytes(), err
-}
-
-func (s CapabilityInfo) SetName(v string) error {
-	return capnp.Struct(s).SetText(1, v)
-}
-
-func (s CapabilityInfo) ClientType() (capnp.TextList, error) {
-	p, err := capnp.Struct(s).Ptr(2)
-	return capnp.TextList(p.List()), err
-}
-
-func (s CapabilityInfo) HasClientType() bool {
-	return capnp.Struct(s).HasPtr(2)
-}
-
-func (s CapabilityInfo) SetClientType(v capnp.TextList) error {
-	return capnp.Struct(s).SetPtr(2, v.ToPtr())
-}
-
-// NewClientType sets the clientType field to a newly
-// allocated capnp.TextList, preferring placement in s's segment.
-func (s CapabilityInfo) NewClientType(n int32) (capnp.TextList, error) {
-	l, err := capnp.NewTextList(capnp.Struct(s).Segment(), n)
-	if err != nil {
-		return capnp.TextList{}, err
-	}
-	err = capnp.Struct(s).SetPtr(2, l.ToPtr())
-	return l, err
-}
-
-// CapabilityInfo_List is a list of CapabilityInfo.
-type CapabilityInfo_List = capnp.StructList[CapabilityInfo]
-
-// NewCapabilityInfo creates a new list of CapabilityInfo.
-func NewCapabilityInfo_List(s *capnp.Segment, sz int32) (CapabilityInfo_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 3}, sz)
-	return capnp.StructList[CapabilityInfo](l), err
-}
-
-// CapabilityInfo_Future is a wrapper for a CapabilityInfo promised by a client call.
-type CapabilityInfo_Future struct{ *capnp.Future }
-
-func (p CapabilityInfo_Future) Struct() (CapabilityInfo, error) {
-	s, err := p.Future.Struct()
-	return CapabilityInfo(s), err
-}
-
-type GatewayInfo capnp.Struct
-
-// GatewayInfo_TypeID is the unique identifier for the type GatewayInfo.
-const GatewayInfo_TypeID = 0x8f95e5d75a61cf74
-
-func NewGatewayInfo(s *capnp.Segment) (GatewayInfo, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2})
-	return GatewayInfo(st), err
-}
-
-func NewRootGatewayInfo(s *capnp.Segment) (GatewayInfo, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2})
-	return GatewayInfo(st), err
-}
-
-func ReadRootGatewayInfo(msg *capnp.Message) (GatewayInfo, error) {
-	root, err := msg.Root()
-	return GatewayInfo(root.Struct()), err
-}
-
-func (s GatewayInfo) String() string {
-	str, _ := text.Marshal(0x8f95e5d75a61cf74, capnp.Struct(s))
-	return str
-}
-
-func (s GatewayInfo) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (GatewayInfo) DecodeFromPtr(p capnp.Ptr) GatewayInfo {
-	return GatewayInfo(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s GatewayInfo) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s GatewayInfo) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s GatewayInfo) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s GatewayInfo) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s GatewayInfo) Capabilities() (CapabilityInfo_List, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return CapabilityInfo_List(p.List()), err
-}
-
-func (s GatewayInfo) HasCapabilities() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s GatewayInfo) SetCapabilities(v CapabilityInfo_List) error {
-	return capnp.Struct(s).SetPtr(0, v.ToPtr())
-}
-
-// NewCapabilities sets the capabilities field to a newly
-// allocated CapabilityInfo_List, preferring placement in s's segment.
-func (s GatewayInfo) NewCapabilities(n int32) (CapabilityInfo_List, error) {
-	l, err := NewCapabilityInfo_List(capnp.Struct(s).Segment(), n)
-	if err != nil {
-		return CapabilityInfo_List{}, err
-	}
-	err = capnp.Struct(s).SetPtr(0, l.ToPtr())
-	return l, err
-}
-
-func (s GatewayInfo) Url() (string, error) {
-	p, err := capnp.Struct(s).Ptr(1)
-	return p.Text(), err
-}
-
-func (s GatewayInfo) HasUrl() bool {
-	return capnp.Struct(s).HasPtr(1)
-}
-
-func (s GatewayInfo) UrlBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(1)
-	return p.TextBytes(), err
-}
-
-func (s GatewayInfo) SetUrl(v string) error {
-	return capnp.Struct(s).SetText(1, v)
-}
-
-func (s GatewayInfo) Latency() int32 {
-	return int32(capnp.Struct(s).Uint32(0))
-}
-
-func (s GatewayInfo) SetLatency(v int32) {
-	capnp.Struct(s).SetUint32(0, uint32(v))
-}
-
-// GatewayInfo_List is a list of GatewayInfo.
-type GatewayInfo_List = capnp.StructList[GatewayInfo]
-
-// NewGatewayInfo creates a new list of GatewayInfo.
-func NewGatewayInfo_List(s *capnp.Segment, sz int32) (GatewayInfo_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 2}, sz)
-	return capnp.StructList[GatewayInfo](l), err
-}
-
-// GatewayInfo_Future is a wrapper for a GatewayInfo promised by a client call.
-type GatewayInfo_Future struct{ *capnp.Future }
-
-func (p GatewayInfo_Future) Struct() (GatewayInfo, error) {
-	s, err := p.Future.Struct()
-	return GatewayInfo(s), err
-}
 
 type CapGatewayService capnp.Client
 
@@ -263,33 +27,49 @@ func (c CapGatewayService) GetCapability(ctx context.Context, params func(CapGat
 		},
 	}
 	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 2}
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 4}
 		s.PlaceArgs = func(s capnp.Struct) error { return params(CapGatewayService_getCapability_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
 	return CapGatewayService_getCapability_Results_Future{Future: ans.Future()}, release
 }
-func (c CapGatewayService) GetGatewayInfo(ctx context.Context, params func(CapGatewayService_getGatewayInfo_Params) error) (CapGatewayService_getGatewayInfo_Results_Future, capnp.ReleaseFunc) {
+func (c CapGatewayService) ListCapabilities(ctx context.Context, params func(CapGatewayService_listCapabilities_Params) error) (CapGatewayService_listCapabilities_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
 			InterfaceID:   0xb9b4da4b9fdf8788,
 			MethodID:      1,
 			InterfaceName: "hubapi/Gateway.capnp:CapGatewayService",
-			MethodName:    "getGatewayInfo",
+			MethodName:    "listCapabilities",
 		},
 	}
 	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapGatewayService_getGatewayInfo_Params(s)) }
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapGatewayService_listCapabilities_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapGatewayService_getGatewayInfo_Results_Future{Future: ans.Future()}, release
+	return CapGatewayService_listCapabilities_Results_Future{Future: ans.Future()}, release
+}
+func (c CapGatewayService) Login(ctx context.Context, params func(CapGatewayService_login_Params) error) (CapGatewayService_login_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xb9b4da4b9fdf8788,
+			MethodID:      2,
+			InterfaceName: "hubapi/Gateway.capnp:CapGatewayService",
+			MethodName:    "login",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 2}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapGatewayService_login_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapGatewayService_login_Results_Future{Future: ans.Future()}, release
 }
 func (c CapGatewayService) Ping(ctx context.Context, params func(CapGatewayService_ping_Params) error) (CapGatewayService_ping_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
 			InterfaceID:   0xb9b4da4b9fdf8788,
-			MethodID:      2,
+			MethodID:      3,
 			InterfaceName: "hubapi/Gateway.capnp:CapGatewayService",
 			MethodName:    "ping",
 		},
@@ -302,12 +82,34 @@ func (c CapGatewayService) Ping(ctx context.Context, params func(CapGatewayServi
 	return CapGatewayService_ping_Results_Future{Future: ans.Future()}, release
 }
 
+// String returns a string that identifies this capability for debugging
+// purposes.  Its format should not be depended on: in particular, it
+// should not be used to compare clients.  Use IsSame to compare clients
+// for equality.
+func (c CapGatewayService) String() string {
+	return fmt.Sprintf("%T(%v)", c, capnp.Client(c))
+}
+
+// AddRef creates a new Client that refers to the same capability as c.
+// If c is nil or has resolved to null, then AddRef returns nil.
 func (c CapGatewayService) AddRef() CapGatewayService {
 	return CapGatewayService(capnp.Client(c).AddRef())
 }
 
+// Release releases a capability reference.  If this is the last
+// reference to the capability, then the underlying resources associated
+// with the capability will be released.
+//
+// Release will panic if c has already been released, but not if c is
+// nil or resolved to null.
 func (c CapGatewayService) Release() {
 	capnp.Client(c).Release()
+}
+
+// Resolve blocks until the capability is fully resolved or the Context
+// expires.
+func (c CapGatewayService) Resolve(ctx context.Context) error {
+	return capnp.Client(c).Resolve(ctx)
 }
 
 func (c CapGatewayService) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
@@ -318,15 +120,40 @@ func (CapGatewayService) DecodeFromPtr(p capnp.Ptr) CapGatewayService {
 	return CapGatewayService(capnp.Client{}.DecodeFromPtr(p))
 }
 
+// IsValid reports whether c is a valid reference to a capability.
+// A reference is invalid if it is nil, has resolved to null, or has
+// been released.
 func (c CapGatewayService) IsValid() bool {
 	return capnp.Client(c).IsValid()
 }
 
-// A CapGatewayService_Server is a CapGatewayService with a local implementation.
+// IsSame reports whether c and other refer to a capability created by the
+// same call to NewClient.  This can return false negatives if c or other
+// are not fully resolved: use Resolve if this is an issue.  If either
+// c or other are released, then IsSame panics.
+func (c CapGatewayService) IsSame(other CapGatewayService) bool {
+	return capnp.Client(c).IsSame(capnp.Client(other))
+}
+
+// Update the flowcontrol.FlowLimiter used to manage flow control for
+// this client. This affects all future calls, but not calls already
+// waiting to send. Passing nil sets the value to flowcontrol.NopLimiter,
+// which is also the default.
+func (c CapGatewayService) SetFlowLimiter(lim fc.FlowLimiter) {
+	capnp.Client(c).SetFlowLimiter(lim)
+}
+
+// Get the current flowcontrol.FlowLimiter used to manage flow control
+// for this client.
+func (c CapGatewayService) GetFlowLimiter() fc.FlowLimiter {
+	return capnp.Client(c).GetFlowLimiter()
+} // A CapGatewayService_Server is a CapGatewayService with a local implementation.
 type CapGatewayService_Server interface {
 	GetCapability(context.Context, CapGatewayService_getCapability) error
 
-	GetGatewayInfo(context.Context, CapGatewayService_getGatewayInfo) error
+	ListCapabilities(context.Context, CapGatewayService_listCapabilities) error
+
+	Login(context.Context, CapGatewayService_login) error
 
 	Ping(context.Context, CapGatewayService_ping) error
 }
@@ -347,7 +174,7 @@ func CapGatewayService_ServerToClient(s CapGatewayService_Server) CapGatewayServ
 // This can be used to create a more complicated Server.
 func CapGatewayService_Methods(methods []server.Method, s CapGatewayService_Server) []server.Method {
 	if cap(methods) == 0 {
-		methods = make([]server.Method, 0, 3)
+		methods = make([]server.Method, 0, 4)
 	}
 
 	methods = append(methods, server.Method{
@@ -367,10 +194,10 @@ func CapGatewayService_Methods(methods []server.Method, s CapGatewayService_Serv
 			InterfaceID:   0xb9b4da4b9fdf8788,
 			MethodID:      1,
 			InterfaceName: "hubapi/Gateway.capnp:CapGatewayService",
-			MethodName:    "getGatewayInfo",
+			MethodName:    "listCapabilities",
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.GetGatewayInfo(ctx, CapGatewayService_getGatewayInfo{call})
+			return s.ListCapabilities(ctx, CapGatewayService_listCapabilities{call})
 		},
 	})
 
@@ -378,6 +205,18 @@ func CapGatewayService_Methods(methods []server.Method, s CapGatewayService_Serv
 		Method: capnp.Method{
 			InterfaceID:   0xb9b4da4b9fdf8788,
 			MethodID:      2,
+			InterfaceName: "hubapi/Gateway.capnp:CapGatewayService",
+			MethodName:    "login",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.Login(ctx, CapGatewayService_login{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xb9b4da4b9fdf8788,
+			MethodID:      3,
 			InterfaceName: "hubapi/Gateway.capnp:CapGatewayService",
 			MethodName:    "ping",
 		},
@@ -406,21 +245,38 @@ func (c CapGatewayService_getCapability) AllocResults() (CapGatewayService_getCa
 	return CapGatewayService_getCapability_Results(r), err
 }
 
-// CapGatewayService_getGatewayInfo holds the state for a server call to CapGatewayService.getGatewayInfo.
+// CapGatewayService_listCapabilities holds the state for a server call to CapGatewayService.listCapabilities.
 // See server.Call for documentation.
-type CapGatewayService_getGatewayInfo struct {
+type CapGatewayService_listCapabilities struct {
 	*server.Call
 }
 
 // Args returns the call's arguments.
-func (c CapGatewayService_getGatewayInfo) Args() CapGatewayService_getGatewayInfo_Params {
-	return CapGatewayService_getGatewayInfo_Params(c.Call.Args())
+func (c CapGatewayService_listCapabilities) Args() CapGatewayService_listCapabilities_Params {
+	return CapGatewayService_listCapabilities_Params(c.Call.Args())
 }
 
 // AllocResults allocates the results struct.
-func (c CapGatewayService_getGatewayInfo) AllocResults() (CapGatewayService_getGatewayInfo_Results, error) {
+func (c CapGatewayService_listCapabilities) AllocResults() (CapGatewayService_listCapabilities_Results, error) {
 	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapGatewayService_getGatewayInfo_Results(r), err
+	return CapGatewayService_listCapabilities_Results(r), err
+}
+
+// CapGatewayService_login holds the state for a server call to CapGatewayService.login.
+// See server.Call for documentation.
+type CapGatewayService_login struct {
+	*server.Call
+}
+
+// Args returns the call's arguments.
+func (c CapGatewayService_login) Args() CapGatewayService_login_Params {
+	return CapGatewayService_login_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c CapGatewayService_login) AllocResults() (CapGatewayService_login_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 8, PointerCount: 0})
+	return CapGatewayService_login_Results(r), err
 }
 
 // CapGatewayService_ping holds the state for a server call to CapGatewayService.ping.
@@ -455,12 +311,12 @@ type CapGatewayService_getCapability_Params capnp.Struct
 const CapGatewayService_getCapability_Params_TypeID = 0xb1e7d4a7ee65cb64
 
 func NewCapGatewayService_getCapability_Params(s *capnp.Segment) (CapGatewayService_getCapability_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4})
 	return CapGatewayService_getCapability_Params(st), err
 }
 
 func NewRootCapGatewayService_getCapability_Params(s *capnp.Segment) (CapGatewayService_getCapability_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4})
 	return CapGatewayService_getCapability_Params(st), err
 }
 
@@ -496,40 +352,82 @@ func (s CapGatewayService_getCapability_Params) Message() *capnp.Message {
 func (s CapGatewayService_getCapability_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapGatewayService_getCapability_Params) ClientType() (string, error) {
+func (s CapGatewayService_getCapability_Params) ClientID() (string, error) {
 	p, err := capnp.Struct(s).Ptr(0)
+	return p.Text(), err
+}
+
+func (s CapGatewayService_getCapability_Params) HasClientID() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapGatewayService_getCapability_Params) ClientIDBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.TextBytes(), err
+}
+
+func (s CapGatewayService_getCapability_Params) SetClientID(v string) error {
+	return capnp.Struct(s).SetText(0, v)
+}
+
+func (s CapGatewayService_getCapability_Params) ClientType() (string, error) {
+	p, err := capnp.Struct(s).Ptr(1)
 	return p.Text(), err
 }
 
 func (s CapGatewayService_getCapability_Params) HasClientType() bool {
-	return capnp.Struct(s).HasPtr(0)
+	return capnp.Struct(s).HasPtr(1)
 }
 
 func (s CapGatewayService_getCapability_Params) ClientTypeBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(0)
+	p, err := capnp.Struct(s).Ptr(1)
 	return p.TextBytes(), err
 }
 
 func (s CapGatewayService_getCapability_Params) SetClientType(v string) error {
-	return capnp.Struct(s).SetText(0, v)
+	return capnp.Struct(s).SetText(1, v)
 }
 
-func (s CapGatewayService_getCapability_Params) Service() (string, error) {
-	p, err := capnp.Struct(s).Ptr(1)
+func (s CapGatewayService_getCapability_Params) CapabilityName() (string, error) {
+	p, err := capnp.Struct(s).Ptr(2)
 	return p.Text(), err
 }
 
-func (s CapGatewayService_getCapability_Params) HasService() bool {
-	return capnp.Struct(s).HasPtr(1)
+func (s CapGatewayService_getCapability_Params) HasCapabilityName() bool {
+	return capnp.Struct(s).HasPtr(2)
 }
 
-func (s CapGatewayService_getCapability_Params) ServiceBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(1)
+func (s CapGatewayService_getCapability_Params) CapabilityNameBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(2)
 	return p.TextBytes(), err
 }
 
-func (s CapGatewayService_getCapability_Params) SetService(v string) error {
-	return capnp.Struct(s).SetText(1, v)
+func (s CapGatewayService_getCapability_Params) SetCapabilityName(v string) error {
+	return capnp.Struct(s).SetText(2, v)
+}
+
+func (s CapGatewayService_getCapability_Params) Args() (capnp.TextList, error) {
+	p, err := capnp.Struct(s).Ptr(3)
+	return capnp.TextList(p.List()), err
+}
+
+func (s CapGatewayService_getCapability_Params) HasArgs() bool {
+	return capnp.Struct(s).HasPtr(3)
+}
+
+func (s CapGatewayService_getCapability_Params) SetArgs(v capnp.TextList) error {
+	return capnp.Struct(s).SetPtr(3, v.ToPtr())
+}
+
+// NewArgs sets the args field to a newly
+// allocated capnp.TextList, preferring placement in s's segment.
+func (s CapGatewayService_getCapability_Params) NewArgs(n int32) (capnp.TextList, error) {
+	l, err := capnp.NewTextList(capnp.Struct(s).Segment(), n)
+	if err != nil {
+		return capnp.TextList{}, err
+	}
+	err = capnp.Struct(s).SetPtr(3, l.ToPtr())
+	return l, err
 }
 
 // CapGatewayService_getCapability_Params_List is a list of CapGatewayService_getCapability_Params.
@@ -537,16 +435,16 @@ type CapGatewayService_getCapability_Params_List = capnp.StructList[CapGatewaySe
 
 // NewCapGatewayService_getCapability_Params creates a new list of CapGatewayService_getCapability_Params.
 func NewCapGatewayService_getCapability_Params_List(s *capnp.Segment, sz int32) (CapGatewayService_getCapability_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4}, sz)
 	return capnp.StructList[CapGatewayService_getCapability_Params](l), err
 }
 
 // CapGatewayService_getCapability_Params_Future is a wrapper for a CapGatewayService_getCapability_Params promised by a client call.
 type CapGatewayService_getCapability_Params_Future struct{ *capnp.Future }
 
-func (p CapGatewayService_getCapability_Params_Future) Struct() (CapGatewayService_getCapability_Params, error) {
-	s, err := p.Future.Struct()
-	return CapGatewayService_getCapability_Params(s), err
+func (f CapGatewayService_getCapability_Params_Future) Struct() (CapGatewayService_getCapability_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapGatewayService_getCapability_Params(p.Struct()), err
 }
 
 type CapGatewayService_getCapability_Results capnp.Struct
@@ -596,21 +494,21 @@ func (s CapGatewayService_getCapability_Results) Message() *capnp.Message {
 func (s CapGatewayService_getCapability_Results) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapGatewayService_getCapability_Results) Cap() HiveService {
+func (s CapGatewayService_getCapability_Results) Capability() capnp.Client {
 	p, _ := capnp.Struct(s).Ptr(0)
-	return HiveService(p.Interface().Client())
+	return p.Interface().Client()
 }
 
-func (s CapGatewayService_getCapability_Results) HasCap() bool {
+func (s CapGatewayService_getCapability_Results) HasCapability() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapGatewayService_getCapability_Results) SetCap(v HiveService) error {
-	if !v.IsValid() {
+func (s CapGatewayService_getCapability_Results) SetCapability(c capnp.Client) error {
+	if !c.IsValid() {
 		return capnp.Struct(s).SetPtr(0, capnp.Ptr{})
 	}
 	seg := s.Segment()
-	in := capnp.NewInterface(seg, seg.Message().AddCap(capnp.Client(v)))
+	in := capnp.NewInterface(seg, seg.Message().AddCap(c))
 	return capnp.Struct(s).SetPtr(0, in.ToPtr())
 }
 
@@ -626,176 +524,360 @@ func NewCapGatewayService_getCapability_Results_List(s *capnp.Segment, sz int32)
 // CapGatewayService_getCapability_Results_Future is a wrapper for a CapGatewayService_getCapability_Results promised by a client call.
 type CapGatewayService_getCapability_Results_Future struct{ *capnp.Future }
 
-func (p CapGatewayService_getCapability_Results_Future) Struct() (CapGatewayService_getCapability_Results, error) {
-	s, err := p.Future.Struct()
-	return CapGatewayService_getCapability_Results(s), err
+func (f CapGatewayService_getCapability_Results_Future) Struct() (CapGatewayService_getCapability_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapGatewayService_getCapability_Results(p.Struct()), err
+}
+func (p CapGatewayService_getCapability_Results_Future) Capability() capnp.Client {
+	return p.Future.Field(0, nil).Client()
 }
 
-func (p CapGatewayService_getCapability_Results_Future) Cap() HiveService {
-	return HiveService(p.Future.Field(0, nil).Client())
+type CapGatewayService_listCapabilities_Params capnp.Struct
+
+// CapGatewayService_listCapabilities_Params_TypeID is the unique identifier for the type CapGatewayService_listCapabilities_Params.
+const CapGatewayService_listCapabilities_Params_TypeID = 0xee390bf7678d972a
+
+func NewCapGatewayService_listCapabilities_Params(s *capnp.Segment) (CapGatewayService_listCapabilities_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapGatewayService_listCapabilities_Params(st), err
 }
 
-type CapGatewayService_getGatewayInfo_Params capnp.Struct
-
-// CapGatewayService_getGatewayInfo_Params_TypeID is the unique identifier for the type CapGatewayService_getGatewayInfo_Params.
-const CapGatewayService_getGatewayInfo_Params_TypeID = 0xee390bf7678d972a
-
-func NewCapGatewayService_getGatewayInfo_Params(s *capnp.Segment) (CapGatewayService_getGatewayInfo_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapGatewayService_getGatewayInfo_Params(st), err
+func NewRootCapGatewayService_listCapabilities_Params(s *capnp.Segment) (CapGatewayService_listCapabilities_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapGatewayService_listCapabilities_Params(st), err
 }
 
-func NewRootCapGatewayService_getGatewayInfo_Params(s *capnp.Segment) (CapGatewayService_getGatewayInfo_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapGatewayService_getGatewayInfo_Params(st), err
-}
-
-func ReadRootCapGatewayService_getGatewayInfo_Params(msg *capnp.Message) (CapGatewayService_getGatewayInfo_Params, error) {
+func ReadRootCapGatewayService_listCapabilities_Params(msg *capnp.Message) (CapGatewayService_listCapabilities_Params, error) {
 	root, err := msg.Root()
-	return CapGatewayService_getGatewayInfo_Params(root.Struct()), err
+	return CapGatewayService_listCapabilities_Params(root.Struct()), err
 }
 
-func (s CapGatewayService_getGatewayInfo_Params) String() string {
+func (s CapGatewayService_listCapabilities_Params) String() string {
 	str, _ := text.Marshal(0xee390bf7678d972a, capnp.Struct(s))
 	return str
 }
 
-func (s CapGatewayService_getGatewayInfo_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapGatewayService_listCapabilities_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapGatewayService_getGatewayInfo_Params) DecodeFromPtr(p capnp.Ptr) CapGatewayService_getGatewayInfo_Params {
-	return CapGatewayService_getGatewayInfo_Params(capnp.Struct{}.DecodeFromPtr(p))
+func (CapGatewayService_listCapabilities_Params) DecodeFromPtr(p capnp.Ptr) CapGatewayService_listCapabilities_Params {
+	return CapGatewayService_listCapabilities_Params(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapGatewayService_getGatewayInfo_Params) ToPtr() capnp.Ptr {
+func (s CapGatewayService_listCapabilities_Params) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapGatewayService_getGatewayInfo_Params) IsValid() bool {
+func (s CapGatewayService_listCapabilities_Params) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapGatewayService_getGatewayInfo_Params) Message() *capnp.Message {
+func (s CapGatewayService_listCapabilities_Params) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapGatewayService_getGatewayInfo_Params) Segment() *capnp.Segment {
+func (s CapGatewayService_listCapabilities_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-
-// CapGatewayService_getGatewayInfo_Params_List is a list of CapGatewayService_getGatewayInfo_Params.
-type CapGatewayService_getGatewayInfo_Params_List = capnp.StructList[CapGatewayService_getGatewayInfo_Params]
-
-// NewCapGatewayService_getGatewayInfo_Params creates a new list of CapGatewayService_getGatewayInfo_Params.
-func NewCapGatewayService_getGatewayInfo_Params_List(s *capnp.Segment, sz int32) (CapGatewayService_getGatewayInfo_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
-	return capnp.StructList[CapGatewayService_getGatewayInfo_Params](l), err
+func (s CapGatewayService_listCapabilities_Params) ClientType() (string, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.Text(), err
 }
 
-// CapGatewayService_getGatewayInfo_Params_Future is a wrapper for a CapGatewayService_getGatewayInfo_Params promised by a client call.
-type CapGatewayService_getGatewayInfo_Params_Future struct{ *capnp.Future }
-
-func (p CapGatewayService_getGatewayInfo_Params_Future) Struct() (CapGatewayService_getGatewayInfo_Params, error) {
-	s, err := p.Future.Struct()
-	return CapGatewayService_getGatewayInfo_Params(s), err
+func (s CapGatewayService_listCapabilities_Params) HasClientType() bool {
+	return capnp.Struct(s).HasPtr(0)
 }
 
-type CapGatewayService_getGatewayInfo_Results capnp.Struct
+func (s CapGatewayService_listCapabilities_Params) ClientTypeBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.TextBytes(), err
+}
 
-// CapGatewayService_getGatewayInfo_Results_TypeID is the unique identifier for the type CapGatewayService_getGatewayInfo_Results.
-const CapGatewayService_getGatewayInfo_Results_TypeID = 0x84aca6aa73b2217c
+func (s CapGatewayService_listCapabilities_Params) SetClientType(v string) error {
+	return capnp.Struct(s).SetText(0, v)
+}
 
-func NewCapGatewayService_getGatewayInfo_Results(s *capnp.Segment) (CapGatewayService_getGatewayInfo_Results, error) {
+// CapGatewayService_listCapabilities_Params_List is a list of CapGatewayService_listCapabilities_Params.
+type CapGatewayService_listCapabilities_Params_List = capnp.StructList[CapGatewayService_listCapabilities_Params]
+
+// NewCapGatewayService_listCapabilities_Params creates a new list of CapGatewayService_listCapabilities_Params.
+func NewCapGatewayService_listCapabilities_Params_List(s *capnp.Segment, sz int32) (CapGatewayService_listCapabilities_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[CapGatewayService_listCapabilities_Params](l), err
+}
+
+// CapGatewayService_listCapabilities_Params_Future is a wrapper for a CapGatewayService_listCapabilities_Params promised by a client call.
+type CapGatewayService_listCapabilities_Params_Future struct{ *capnp.Future }
+
+func (f CapGatewayService_listCapabilities_Params_Future) Struct() (CapGatewayService_listCapabilities_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapGatewayService_listCapabilities_Params(p.Struct()), err
+}
+
+type CapGatewayService_listCapabilities_Results capnp.Struct
+
+// CapGatewayService_listCapabilities_Results_TypeID is the unique identifier for the type CapGatewayService_listCapabilities_Results.
+const CapGatewayService_listCapabilities_Results_TypeID = 0x84aca6aa73b2217c
+
+func NewCapGatewayService_listCapabilities_Results(s *capnp.Segment) (CapGatewayService_listCapabilities_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapGatewayService_getGatewayInfo_Results(st), err
+	return CapGatewayService_listCapabilities_Results(st), err
 }
 
-func NewRootCapGatewayService_getGatewayInfo_Results(s *capnp.Segment) (CapGatewayService_getGatewayInfo_Results, error) {
+func NewRootCapGatewayService_listCapabilities_Results(s *capnp.Segment) (CapGatewayService_listCapabilities_Results, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapGatewayService_getGatewayInfo_Results(st), err
+	return CapGatewayService_listCapabilities_Results(st), err
 }
 
-func ReadRootCapGatewayService_getGatewayInfo_Results(msg *capnp.Message) (CapGatewayService_getGatewayInfo_Results, error) {
+func ReadRootCapGatewayService_listCapabilities_Results(msg *capnp.Message) (CapGatewayService_listCapabilities_Results, error) {
 	root, err := msg.Root()
-	return CapGatewayService_getGatewayInfo_Results(root.Struct()), err
+	return CapGatewayService_listCapabilities_Results(root.Struct()), err
 }
 
-func (s CapGatewayService_getGatewayInfo_Results) String() string {
+func (s CapGatewayService_listCapabilities_Results) String() string {
 	str, _ := text.Marshal(0x84aca6aa73b2217c, capnp.Struct(s))
 	return str
 }
 
-func (s CapGatewayService_getGatewayInfo_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapGatewayService_listCapabilities_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapGatewayService_getGatewayInfo_Results) DecodeFromPtr(p capnp.Ptr) CapGatewayService_getGatewayInfo_Results {
-	return CapGatewayService_getGatewayInfo_Results(capnp.Struct{}.DecodeFromPtr(p))
+func (CapGatewayService_listCapabilities_Results) DecodeFromPtr(p capnp.Ptr) CapGatewayService_listCapabilities_Results {
+	return CapGatewayService_listCapabilities_Results(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapGatewayService_getGatewayInfo_Results) ToPtr() capnp.Ptr {
+func (s CapGatewayService_listCapabilities_Results) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapGatewayService_getGatewayInfo_Results) IsValid() bool {
+func (s CapGatewayService_listCapabilities_Results) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapGatewayService_getGatewayInfo_Results) Message() *capnp.Message {
+func (s CapGatewayService_listCapabilities_Results) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapGatewayService_getGatewayInfo_Results) Segment() *capnp.Segment {
+func (s CapGatewayService_listCapabilities_Results) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapGatewayService_getGatewayInfo_Results) Info() (GatewayInfo, error) {
+func (s CapGatewayService_listCapabilities_Results) InfoList() (CapabilityInfo_List, error) {
 	p, err := capnp.Struct(s).Ptr(0)
-	return GatewayInfo(p.Struct()), err
+	return CapabilityInfo_List(p.List()), err
 }
 
-func (s CapGatewayService_getGatewayInfo_Results) HasInfo() bool {
+func (s CapGatewayService_listCapabilities_Results) HasInfoList() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapGatewayService_getGatewayInfo_Results) SetInfo(v GatewayInfo) error {
-	return capnp.Struct(s).SetPtr(0, capnp.Struct(v).ToPtr())
+func (s CapGatewayService_listCapabilities_Results) SetInfoList(v CapabilityInfo_List) error {
+	return capnp.Struct(s).SetPtr(0, v.ToPtr())
 }
 
-// NewInfo sets the info field to a newly
-// allocated GatewayInfo struct, preferring placement in s's segment.
-func (s CapGatewayService_getGatewayInfo_Results) NewInfo() (GatewayInfo, error) {
-	ss, err := NewGatewayInfo(capnp.Struct(s).Segment())
+// NewInfoList sets the infoList field to a newly
+// allocated CapabilityInfo_List, preferring placement in s's segment.
+func (s CapGatewayService_listCapabilities_Results) NewInfoList(n int32) (CapabilityInfo_List, error) {
+	l, err := NewCapabilityInfo_List(capnp.Struct(s).Segment(), n)
 	if err != nil {
-		return GatewayInfo{}, err
+		return CapabilityInfo_List{}, err
 	}
-	err = capnp.Struct(s).SetPtr(0, capnp.Struct(ss).ToPtr())
-	return ss, err
+	err = capnp.Struct(s).SetPtr(0, l.ToPtr())
+	return l, err
 }
 
-// CapGatewayService_getGatewayInfo_Results_List is a list of CapGatewayService_getGatewayInfo_Results.
-type CapGatewayService_getGatewayInfo_Results_List = capnp.StructList[CapGatewayService_getGatewayInfo_Results]
+// CapGatewayService_listCapabilities_Results_List is a list of CapGatewayService_listCapabilities_Results.
+type CapGatewayService_listCapabilities_Results_List = capnp.StructList[CapGatewayService_listCapabilities_Results]
 
-// NewCapGatewayService_getGatewayInfo_Results creates a new list of CapGatewayService_getGatewayInfo_Results.
-func NewCapGatewayService_getGatewayInfo_Results_List(s *capnp.Segment, sz int32) (CapGatewayService_getGatewayInfo_Results_List, error) {
+// NewCapGatewayService_listCapabilities_Results creates a new list of CapGatewayService_listCapabilities_Results.
+func NewCapGatewayService_listCapabilities_Results_List(s *capnp.Segment, sz int32) (CapGatewayService_listCapabilities_Results_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapGatewayService_getGatewayInfo_Results](l), err
+	return capnp.StructList[CapGatewayService_listCapabilities_Results](l), err
 }
 
-// CapGatewayService_getGatewayInfo_Results_Future is a wrapper for a CapGatewayService_getGatewayInfo_Results promised by a client call.
-type CapGatewayService_getGatewayInfo_Results_Future struct{ *capnp.Future }
+// CapGatewayService_listCapabilities_Results_Future is a wrapper for a CapGatewayService_listCapabilities_Results promised by a client call.
+type CapGatewayService_listCapabilities_Results_Future struct{ *capnp.Future }
 
-func (p CapGatewayService_getGatewayInfo_Results_Future) Struct() (CapGatewayService_getGatewayInfo_Results, error) {
-	s, err := p.Future.Struct()
-	return CapGatewayService_getGatewayInfo_Results(s), err
+func (f CapGatewayService_listCapabilities_Results_Future) Struct() (CapGatewayService_listCapabilities_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapGatewayService_listCapabilities_Results(p.Struct()), err
 }
 
-func (p CapGatewayService_getGatewayInfo_Results_Future) Info() GatewayInfo_Future {
-	return GatewayInfo_Future{Future: p.Future.Field(0, nil)}
+type CapGatewayService_login_Params capnp.Struct
+
+// CapGatewayService_login_Params_TypeID is the unique identifier for the type CapGatewayService_login_Params.
+const CapGatewayService_login_Params_TypeID = 0xb3bdac89b9126cf5
+
+func NewCapGatewayService_login_Params(s *capnp.Segment) (CapGatewayService_login_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	return CapGatewayService_login_Params(st), err
+}
+
+func NewRootCapGatewayService_login_Params(s *capnp.Segment) (CapGatewayService_login_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	return CapGatewayService_login_Params(st), err
+}
+
+func ReadRootCapGatewayService_login_Params(msg *capnp.Message) (CapGatewayService_login_Params, error) {
+	root, err := msg.Root()
+	return CapGatewayService_login_Params(root.Struct()), err
+}
+
+func (s CapGatewayService_login_Params) String() string {
+	str, _ := text.Marshal(0xb3bdac89b9126cf5, capnp.Struct(s))
+	return str
+}
+
+func (s CapGatewayService_login_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapGatewayService_login_Params) DecodeFromPtr(p capnp.Ptr) CapGatewayService_login_Params {
+	return CapGatewayService_login_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapGatewayService_login_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapGatewayService_login_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapGatewayService_login_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapGatewayService_login_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapGatewayService_login_Params) ClientID() (string, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.Text(), err
+}
+
+func (s CapGatewayService_login_Params) HasClientID() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapGatewayService_login_Params) ClientIDBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.TextBytes(), err
+}
+
+func (s CapGatewayService_login_Params) SetClientID(v string) error {
+	return capnp.Struct(s).SetText(0, v)
+}
+
+func (s CapGatewayService_login_Params) Password() (string, error) {
+	p, err := capnp.Struct(s).Ptr(1)
+	return p.Text(), err
+}
+
+func (s CapGatewayService_login_Params) HasPassword() bool {
+	return capnp.Struct(s).HasPtr(1)
+}
+
+func (s CapGatewayService_login_Params) PasswordBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(1)
+	return p.TextBytes(), err
+}
+
+func (s CapGatewayService_login_Params) SetPassword(v string) error {
+	return capnp.Struct(s).SetText(1, v)
+}
+
+// CapGatewayService_login_Params_List is a list of CapGatewayService_login_Params.
+type CapGatewayService_login_Params_List = capnp.StructList[CapGatewayService_login_Params]
+
+// NewCapGatewayService_login_Params creates a new list of CapGatewayService_login_Params.
+func NewCapGatewayService_login_Params_List(s *capnp.Segment, sz int32) (CapGatewayService_login_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
+	return capnp.StructList[CapGatewayService_login_Params](l), err
+}
+
+// CapGatewayService_login_Params_Future is a wrapper for a CapGatewayService_login_Params promised by a client call.
+type CapGatewayService_login_Params_Future struct{ *capnp.Future }
+
+func (f CapGatewayService_login_Params_Future) Struct() (CapGatewayService_login_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapGatewayService_login_Params(p.Struct()), err
+}
+
+type CapGatewayService_login_Results capnp.Struct
+
+// CapGatewayService_login_Results_TypeID is the unique identifier for the type CapGatewayService_login_Results.
+const CapGatewayService_login_Results_TypeID = 0xabc4f6c44f8a0ce7
+
+func NewCapGatewayService_login_Results(s *capnp.Segment) (CapGatewayService_login_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0})
+	return CapGatewayService_login_Results(st), err
+}
+
+func NewRootCapGatewayService_login_Results(s *capnp.Segment) (CapGatewayService_login_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0})
+	return CapGatewayService_login_Results(st), err
+}
+
+func ReadRootCapGatewayService_login_Results(msg *capnp.Message) (CapGatewayService_login_Results, error) {
+	root, err := msg.Root()
+	return CapGatewayService_login_Results(root.Struct()), err
+}
+
+func (s CapGatewayService_login_Results) String() string {
+	str, _ := text.Marshal(0xabc4f6c44f8a0ce7, capnp.Struct(s))
+	return str
+}
+
+func (s CapGatewayService_login_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapGatewayService_login_Results) DecodeFromPtr(p capnp.Ptr) CapGatewayService_login_Results {
+	return CapGatewayService_login_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapGatewayService_login_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapGatewayService_login_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapGatewayService_login_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapGatewayService_login_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapGatewayService_login_Results) Success() bool {
+	return capnp.Struct(s).Bit(0)
+}
+
+func (s CapGatewayService_login_Results) SetSuccess(v bool) {
+	capnp.Struct(s).SetBit(0, v)
+}
+
+// CapGatewayService_login_Results_List is a list of CapGatewayService_login_Results.
+type CapGatewayService_login_Results_List = capnp.StructList[CapGatewayService_login_Results]
+
+// NewCapGatewayService_login_Results creates a new list of CapGatewayService_login_Results.
+func NewCapGatewayService_login_Results_List(s *capnp.Segment, sz int32) (CapGatewayService_login_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0}, sz)
+	return capnp.StructList[CapGatewayService_login_Results](l), err
+}
+
+// CapGatewayService_login_Results_Future is a wrapper for a CapGatewayService_login_Results promised by a client call.
+type CapGatewayService_login_Results_Future struct{ *capnp.Future }
+
+func (f CapGatewayService_login_Results_Future) Struct() (CapGatewayService_login_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapGatewayService_login_Results(p.Struct()), err
 }
 
 type CapGatewayService_ping_Params capnp.Struct
 
 // CapGatewayService_ping_Params_TypeID is the unique identifier for the type CapGatewayService_ping_Params.
-const CapGatewayService_ping_Params_TypeID = 0xb3bdac89b9126cf5
+const CapGatewayService_ping_Params_TypeID = 0xd96fd51ce635fe36
 
 func NewCapGatewayService_ping_Params(s *capnp.Segment) (CapGatewayService_ping_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
@@ -813,7 +895,7 @@ func ReadRootCapGatewayService_ping_Params(msg *capnp.Message) (CapGatewayServic
 }
 
 func (s CapGatewayService_ping_Params) String() string {
-	str, _ := text.Marshal(0xb3bdac89b9126cf5, capnp.Struct(s))
+	str, _ := text.Marshal(0xd96fd51ce635fe36, capnp.Struct(s))
 	return str
 }
 
@@ -852,15 +934,15 @@ func NewCapGatewayService_ping_Params_List(s *capnp.Segment, sz int32) (CapGatew
 // CapGatewayService_ping_Params_Future is a wrapper for a CapGatewayService_ping_Params promised by a client call.
 type CapGatewayService_ping_Params_Future struct{ *capnp.Future }
 
-func (p CapGatewayService_ping_Params_Future) Struct() (CapGatewayService_ping_Params, error) {
-	s, err := p.Future.Struct()
-	return CapGatewayService_ping_Params(s), err
+func (f CapGatewayService_ping_Params_Future) Struct() (CapGatewayService_ping_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapGatewayService_ping_Params(p.Struct()), err
 }
 
 type CapGatewayService_ping_Results capnp.Struct
 
 // CapGatewayService_ping_Results_TypeID is the unique identifier for the type CapGatewayService_ping_Results.
-const CapGatewayService_ping_Results_TypeID = 0xabc4f6c44f8a0ce7
+const CapGatewayService_ping_Results_TypeID = 0xf8edd72c204cd0d4
 
 func NewCapGatewayService_ping_Results(s *capnp.Segment) (CapGatewayService_ping_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
@@ -878,7 +960,7 @@ func ReadRootCapGatewayService_ping_Results(msg *capnp.Message) (CapGatewayServi
 }
 
 func (s CapGatewayService_ping_Results) String() string {
-	str, _ := text.Marshal(0xabc4f6c44f8a0ce7, capnp.Struct(s))
+	str, _ := text.Marshal(0xf8edd72c204cd0d4, capnp.Struct(s))
 	return str
 }
 
@@ -934,68 +1016,68 @@ func NewCapGatewayService_ping_Results_List(s *capnp.Segment, sz int32) (CapGate
 // CapGatewayService_ping_Results_Future is a wrapper for a CapGatewayService_ping_Results promised by a client call.
 type CapGatewayService_ping_Results_Future struct{ *capnp.Future }
 
-func (p CapGatewayService_ping_Results_Future) Struct() (CapGatewayService_ping_Results, error) {
-	s, err := p.Future.Struct()
-	return CapGatewayService_ping_Results(s), err
+func (f CapGatewayService_ping_Results_Future) Struct() (CapGatewayService_ping_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapGatewayService_ping_Results(p.Struct()), err
 }
 
-const schema_dd3a962266ddd0e3 = "x\xda\x9cTOHtU\x14?\xbf{\xef|\xef\xa3" +
-	"\xc6o\xbc\x8eR\x9b\x12'\xa1\x1cB3\x0bJ\x12\x87" +
-	"\xccd\xd2h\xae\xb5\x08I\xe8:\xbe\xd1\x173o\x1e" +
-	"\xf3\xde(\x13E\x9b\xa0? \xd1\xa2\x82 \xa2\x16\x05" +
-	")\x84\x15\x88\x84\x81%\xb5hQ\x8b \x08$(B" +
-	"0p\x11T\xcb\x17w\xfe>'\xa4\xfcv\xc3y\xe7" +
-	"\xfe\xce\xf9\xfd9s\xd7\xd7\xc8\x88\xf1\x9e\xb1\x181\xf5" +
-	"@\xecJ\xf8\xdc\xd0'\xfeG\x1f\xec\xbcH\xf2v\x10" +
-	"\xc5`\x11M<\xcf\xfe\x00!\xf9:\x9b&\x84\xc1w" +
-	"z\xe9\xc7\xdf\xdex\x8d\xd4\x00\x10\xfe\xfa\xfdq!\xf5" +
-	"\xe6\xe41\xc5\x98\xe9\xdce7 yh~&\x0f\xd8" +
-	"\xc7\x84\xf0$\xfe\xeacG\x7f\x1dmG\xe1\x1c\xfe\xbe" +
-	"\x81\xabq\x03\xb7\xfa\xad}\xf6\xe1\x0f'\xbb\xcd\x86:" +
-	"\xca;\xfc\x17\xd3\xb0\xcb7\x09\xe1\x9f\xc5\xbe\xfdWv" +
-	"\x0e>m4\x08\xf3]\x8a\xb7A\"|\xf9\xa5\x9f\xdf" +
-	"\x9d\xff\xe9\xb3}\x92\x03\xbc\xb3\x08a\x02b\x12Ii" +
-	"Z\x93=\xe2\x9b\xe4\x96\xb8\x89(\xdc\xb8uojo" +
-	"h\xff\x8bs\xc4\xc4i\x9d\x980\x9b,\x1f/\x7f\xb5" +
-	"}w\xdf\x97$\x07\xa2\xbcx\x9d\x97H!yXG" +
-	"<\x10\x86W\xfa\xad\xad\xb5\xbfo\xbc\xff,\xb2\x95\x13" +
-	";\x05=\x1c\xaeWW\xb4\xe7\x8c\xcd]\xd1\x81\xbd\xa9" +
-	"k\xa3y\xed\xb9\xde\xe4\x8c\xf6\xe6\x1a\x85\xc7\xed\xca\x86" +
-	"\x93\xb7G\xd7\xec\xa0Y\xc9\xba\x85\xf2\xf0\xa2=\xe8W" +
-	"\x8b\x81\xaf\x04\x17D\x02D\xb2'M\xa4\xaer\xa8~" +
-	"\x86\x84\xe3\x16\xca\xe8\xed\xa8O@/\xa1=\x8d\x9f\x9b" +
-	"\x16\x01&\xca\x01*\xde\x06\x9d}\x86H=\xc4\xa1\x9e" +
-	"f\x90@?Lq9E\xa4\x9e\xe4P\xab\x0c`\xfd" +
-	"`DR?H\xa4\x9e\xe2P\xeb\x0ca^{z\xc5" +
-	"):\x94\x08\x1c\xdb\xc75B\x8e\x03\xbd\x1d\xcd\x08\xa6" +
-	"hU+E\xc4\x89!Nx\xa1\xa8\x03\xdb\xcd\xd7 " +
-	"\x88ADV\x8d\xfd\x870\x9e\xe3\xae\x0d/\xda~\xd5" +
-	"\xea\x92\xe3\x11\"\x15\xe7P73\x84\x15\xdb\xf7\xca\xae" +
-	"o\x13Qk\xe0e\x94\x9fi\xf2\x09j\xc39]\xb1" +
-	"t\xc9WW\xdb\x83F\x96\x88\xd4\x1d\x1c\xea\x9e\x88D" +
-	"\xe3F\x8e;9\xd4}F\x8e\xa2c\xbb\xc1\x135\xe2" +
-	"\x9e\xdd\xe6\xeb7\xe0\xff\xb5\xce\xff\xe2\x9b\xd3\x15\xcdK" +
-	"\xfe\x05~F\x1eM7^5L\x8d\x11\xb5\x0f\x08\xad" +
-	"\x80KU!&\xb3\x16:)E\xeb\xaa\xe5\xd4\xb3\xc4" +
-	"\xe4\xbd\x16X\xfb\xae\xd0:Q9\x92&&o\xb1\xc2" +
-	"\x96>4XW(\x83\xb0\x95U\x9an\x84*\x83\x84" +
-	"\xd9:\x03%\x80pv\xfe\xbd\xcfo+\xfc~HD" +
-	"\xd7\xe9\xc1\xa2\xed'\xba\xc3\x9f\xea\x84\xdf\xcak\x0f2" +
-	"2\x07\x90\x17f\xbf\x03\x9b\xb5\xdcB\xb9+\xfd\xc6\xc5" +
-	"\x0c\x87Z\x88X\x9bM7O\"\xc7 Y3\xfe\x8f" +
-	"\x9a\x10,4\xe2\xdfmm\xc2\xd5\xa5\x8e\xcf\xe7\xc2\xd0" +
-	"\xbc\x0c\xf3\xed\xda\xe5\"\x19\xfd3\xc8\xe9DE\x97\xfc" +
-	"\x7f\x02\x00\x00\xff\xffr\x96\x97\xb7"
+const schema_dd3a962266ddd0e3 = "x\xda\x9cTMH\x15k\x18~\xdf\xef\x9bq\xbc\xdc" +
+	"\xe3\xd5\xcfs.\xdc\xc5\xe5z\xbdx\xf1\xa7\xf0'3" +
+	"H\x8cs\xcaB4\xcb\xf3U\x9b\x8c\xa0\xf18\x1e\x07" +
+	"\xce\xcfx\xbeQ9\xa1\xb4\x11*!\xa8MA\x9b\xa0" +
+	"E\x81\xb9\xe9\x07\xc4E\xadlS\x1b\x17\x8a\x14HP" +
+	"\x90\x10\xe4\xce\xfe\x16M|\xe3\x99q(\xc5l\xfb\xce" +
+	"\xf3\xbd\xcf\xf3\xbe\xef\xf3L\xe3\x12\xc6\x94\xa6\x92\x06\x15" +
+	"\x08oS\x8b\x9c\xb1\xca\x07b\xea\xce\xf4\x04\xb0j\x04" +
+	"PQ\x03h\x1e'\x84\x00\x86\xaf\x91(\xa0\xb3\x12\x9a" +
+	"\xec\x99\xfb0w\x0fx5\"\x80\"\x01O\xc9\x14\x02" +
+	"\x86\x17]@\xffsc\xf5\xee\xc2\xca\xfdB\x07\x17\xb0" +
+	"F^K\xc0ot\x05\xd0YK\x95\xcf^\x9e~\xfc" +
+	"\xb0\x00 \x12\xf0\x99\xdev\x01\xca(\xa0s\xe9\xe2\xab" +
+	"[G_>\x9a\x05\xf6'u\xde\xcc/\x0f\xfcw\xbd" +
+	"u\x19\x00\x9b\xd3J+\x86\xc7\xdd\x8eyE\xc3\xf0\xff" +
+	"\xaa\x06\xe0\x8c\xfc3s`\xa6r\xf6IPr\x89\xfa" +
+	"N\xf6\xabT\xa5\xa2}_[\xde\xfe\xbd\x98}\xb1\x0e" +
+	"p\x9f\x1fQo\"(N\xdd\x8d+\xc9\x8f\xbf\xef_" +
+	"\x0d>mQ\xbf\xc8\xa7\x9d\xee\xd3\x85\xf9\xee\x7fw/" +
+	"\xbd\xff\x14\x04\xa4UW\xeb\xb8\x1a\x85vgp\xb8O" +
+	"\xb7\xcc\x86\x0eM\xb7\x8dQ=_\x9f\xd0\xad\x8c\xd5\xda" +
+	"\xae[\x1d\xeb\x85\x93Fn\xc4L\x18\xf5)S\xd8\xed" +
+	"\xba\xa5\xf7\x99)\xd36\x0dQu\xc2\x10\xc3)[\x00" +
+	"W\xa8\x02\xa0 \x00+\xe9\x02\xe0!\x8a\xbc\x86\xa0c" +
+	"f\x06\xb2\xdd\xa6\xb0\x01\x00\xff\x00\x8cS\xc42\xe7\xd9" +
+	".\xbbgj\xfe\xcc\x04\x00\xca\xa2\xcf\xaen\xc7\x9eM" +
+	"\x9a\x19IY*9\x83\x94\x87\x00x1E\x1e!x" +
+	"A\x0c'\x12\x86\x10\x88@\x10\x03\xdd\x8b\xb6\xe9\x9e4" +
+	"6F\xcbW\xc5\xf5\x9c\xa6\xa7\x05/\xf3It9\xd7" +
+	"9\x8a<E\x90!F\xa4o\x98\xd9\x0b\xc0\x07)r" +
+	"\x9b #$\x82\x04\x80\x0d\x9d\x07\xe0\x16E>F\x90" +
+	"Q\x1aA\x0a\xc0\xf2u\x00\xdc\xa6\xc8\xaf\x12t\x12)" +
+	"\xd3\xc8\xd8\x9d\x87\xe5ZB@0\x04^\xedT\x1e\xa8" +
+	"el\x14\x0b\x8a j\xe7\x8f\xebi\xffC\xa9\x9eK" +
+	"\x0ao\xa3\xb2\xb6\xf3=z\x13\x16\xfb\x13\xd6\xca\x09k" +
+	"(\xf2\xbd\x81\x09\x9bd\xb1\x91\"o\xdbB\xb7\xa5\x0b" +
+	"1\x9a\xcd\xf5\x07k\x9e\x12\xba\x95\x92\xe8\xba\x948\"" +
+	"/\xa3*\x80\x9f7\xf4r\xc0\x86r@\x98\xa9!\xfa" +
+	"\xfeF/\xd6\xec\xec$\x10vZC\xe2\xc7\x10\xbdD" +
+	"\xb3c{\x80\xb0\x83\x1aR?1\xe8\xf9\x9f\xb5\xd4\x01" +
+	"a\xb5\x9a\xe3\xdd\x1a*\xdck\xc7\xd0\xf1\x9c\x8d\x9e\xb5" +
+	"\x01bX\xe1n*\x86\xa5\x96\x99I\xc60\x8e\xbf\xea" +
+	"\xa6\xcd<\xdb[\x88\xc9_$pfj\xe7\xb1\\\xa1" +
+	"\x80X\xbe\x83\x83Jy\xf2\x9e:M\x8b\x9fV\xf8C" +
+	"\x96\xa3\xb2Czk\x8d\x9b\xf9sG\x0a\xe5\xcfB\xfb" +
+	"n\x0b]\x01\x86\x9c!\xaclF\x18\x01'}\x0b\x00" +
+	"\x00\xff\xff\x0b\xee\xa5v"
 
 func init() {
 	schemas.Register(schema_dd3a962266ddd0e3,
 		0x84aca6aa73b2217c,
-		0x8f95e5d75a61cf74,
 		0xabc4f6c44f8a0ce7,
 		0xb1e7d4a7ee65cb64,
 		0xb3bdac89b9126cf5,
 		0xb9b4da4b9fdf8788,
 		0xbeb921b73db71e76,
-		0xc21232abc35ddd5d,
-		0xee390bf7678d972a)
+		0xd96fd51ce635fe36,
+		0xee390bf7678d972a,
+		0xf8edd72c204cd0d4)
 }

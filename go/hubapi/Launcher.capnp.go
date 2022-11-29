@@ -5,9 +5,11 @@ package hubapi
 import (
 	capnp "capnproto.org/go/capnp/v3"
 	text "capnproto.org/go/capnp/v3/encoding/text"
+	fc "capnproto.org/go/capnp/v3/flowcontrol"
 	schemas "capnproto.org/go/capnp/v3/schemas"
 	server "capnproto.org/go/capnp/v3/server"
 	context "context"
+	fmt "fmt"
 )
 
 type ServiceInfo capnp.Struct
@@ -233,9 +235,9 @@ func NewServiceInfo_List(s *capnp.Segment, sz int32) (ServiceInfo_List, error) {
 // ServiceInfo_Future is a wrapper for a ServiceInfo promised by a client call.
 type ServiceInfo_Future struct{ *capnp.Future }
 
-func (p ServiceInfo_Future) Struct() (ServiceInfo, error) {
-	s, err := p.Future.Struct()
-	return ServiceInfo(s), err
+func (f ServiceInfo_Future) Struct() (ServiceInfo, error) {
+	p, err := f.Future.Ptr()
+	return ServiceInfo(p.Struct()), err
 }
 
 type CapLauncher capnp.Client
@@ -307,13 +309,67 @@ func (c CapLauncher) StopAll(ctx context.Context, params func(CapLauncher_stopAl
 	ans, release := capnp.Client(c).SendCall(ctx, s)
 	return CapLauncher_stopAll_Results_Future{Future: ans.Future()}, release
 }
+func (c CapLauncher) GetCapability(ctx context.Context, params func(CapHiveOTService_getCapability_Params) error) (CapHiveOTService_getCapability_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xe7182cfc5650a2c2,
+			MethodID:      0,
+			InterfaceName: "hubapi/Service.capnp:CapHiveOTService",
+			MethodName:    "getCapability",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 4}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapHiveOTService_getCapability_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapHiveOTService_getCapability_Results_Future{Future: ans.Future()}, release
+}
+func (c CapLauncher) ListCapabilities(ctx context.Context, params func(CapHiveOTService_listCapabilities_Params) error) (CapHiveOTService_listCapabilities_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xe7182cfc5650a2c2,
+			MethodID:      1,
+			InterfaceName: "hubapi/Service.capnp:CapHiveOTService",
+			MethodName:    "listCapabilities",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapHiveOTService_listCapabilities_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapHiveOTService_listCapabilities_Results_Future{Future: ans.Future()}, release
+}
 
+// String returns a string that identifies this capability for debugging
+// purposes.  Its format should not be depended on: in particular, it
+// should not be used to compare clients.  Use IsSame to compare clients
+// for equality.
+func (c CapLauncher) String() string {
+	return fmt.Sprintf("%T(%v)", c, capnp.Client(c))
+}
+
+// AddRef creates a new Client that refers to the same capability as c.
+// If c is nil or has resolved to null, then AddRef returns nil.
 func (c CapLauncher) AddRef() CapLauncher {
 	return CapLauncher(capnp.Client(c).AddRef())
 }
 
+// Release releases a capability reference.  If this is the last
+// reference to the capability, then the underlying resources associated
+// with the capability will be released.
+//
+// Release will panic if c has already been released, but not if c is
+// nil or resolved to null.
 func (c CapLauncher) Release() {
 	capnp.Client(c).Release()
+}
+
+// Resolve blocks until the capability is fully resolved or the Context
+// expires.
+func (c CapLauncher) Resolve(ctx context.Context) error {
+	return capnp.Client(c).Resolve(ctx)
 }
 
 func (c CapLauncher) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
@@ -324,11 +380,34 @@ func (CapLauncher) DecodeFromPtr(p capnp.Ptr) CapLauncher {
 	return CapLauncher(capnp.Client{}.DecodeFromPtr(p))
 }
 
+// IsValid reports whether c is a valid reference to a capability.
+// A reference is invalid if it is nil, has resolved to null, or has
+// been released.
 func (c CapLauncher) IsValid() bool {
 	return capnp.Client(c).IsValid()
 }
 
-// A CapLauncher_Server is a CapLauncher with a local implementation.
+// IsSame reports whether c and other refer to a capability created by the
+// same call to NewClient.  This can return false negatives if c or other
+// are not fully resolved: use Resolve if this is an issue.  If either
+// c or other are released, then IsSame panics.
+func (c CapLauncher) IsSame(other CapLauncher) bool {
+	return capnp.Client(c).IsSame(capnp.Client(other))
+}
+
+// Update the flowcontrol.FlowLimiter used to manage flow control for
+// this client. This affects all future calls, but not calls already
+// waiting to send. Passing nil sets the value to flowcontrol.NopLimiter,
+// which is also the default.
+func (c CapLauncher) SetFlowLimiter(lim fc.FlowLimiter) {
+	capnp.Client(c).SetFlowLimiter(lim)
+}
+
+// Get the current flowcontrol.FlowLimiter used to manage flow control
+// for this client.
+func (c CapLauncher) GetFlowLimiter() fc.FlowLimiter {
+	return capnp.Client(c).GetFlowLimiter()
+} // A CapLauncher_Server is a CapLauncher with a local implementation.
 type CapLauncher_Server interface {
 	List(context.Context, CapLauncher_list) error
 
@@ -337,6 +416,10 @@ type CapLauncher_Server interface {
 	Stop(context.Context, CapLauncher_stop) error
 
 	StopAll(context.Context, CapLauncher_stopAll) error
+
+	GetCapability(context.Context, CapHiveOTService_getCapability) error
+
+	ListCapabilities(context.Context, CapHiveOTService_listCapabilities) error
 }
 
 // CapLauncher_NewServer creates a new Server from an implementation of CapLauncher_Server.
@@ -355,7 +438,7 @@ func CapLauncher_ServerToClient(s CapLauncher_Server) CapLauncher {
 // This can be used to create a more complicated Server.
 func CapLauncher_Methods(methods []server.Method, s CapLauncher_Server) []server.Method {
 	if cap(methods) == 0 {
-		methods = make([]server.Method, 0, 4)
+		methods = make([]server.Method, 0, 6)
 	}
 
 	methods = append(methods, server.Method{
@@ -403,6 +486,30 @@ func CapLauncher_Methods(methods []server.Method, s CapLauncher_Server) []server
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
 			return s.StopAll(ctx, CapLauncher_stopAll{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xe7182cfc5650a2c2,
+			MethodID:      0,
+			InterfaceName: "hubapi/Service.capnp:CapHiveOTService",
+			MethodName:    "getCapability",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.GetCapability(ctx, CapHiveOTService_getCapability{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xe7182cfc5650a2c2,
+			MethodID:      1,
+			InterfaceName: "hubapi/Service.capnp:CapHiveOTService",
+			MethodName:    "listCapabilities",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.ListCapabilities(ctx, CapHiveOTService_listCapabilities{call})
 		},
 	})
 
@@ -553,9 +660,9 @@ func NewCapLauncher_list_Params_List(s *capnp.Segment, sz int32) (CapLauncher_li
 // CapLauncher_list_Params_Future is a wrapper for a CapLauncher_list_Params promised by a client call.
 type CapLauncher_list_Params_Future struct{ *capnp.Future }
 
-func (p CapLauncher_list_Params_Future) Struct() (CapLauncher_list_Params, error) {
-	s, err := p.Future.Struct()
-	return CapLauncher_list_Params(s), err
+func (f CapLauncher_list_Params_Future) Struct() (CapLauncher_list_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapLauncher_list_Params(p.Struct()), err
 }
 
 type CapLauncher_list_Results capnp.Struct
@@ -641,9 +748,9 @@ func NewCapLauncher_list_Results_List(s *capnp.Segment, sz int32) (CapLauncher_l
 // CapLauncher_list_Results_Future is a wrapper for a CapLauncher_list_Results promised by a client call.
 type CapLauncher_list_Results_Future struct{ *capnp.Future }
 
-func (p CapLauncher_list_Results_Future) Struct() (CapLauncher_list_Results, error) {
-	s, err := p.Future.Struct()
-	return CapLauncher_list_Results(s), err
+func (f CapLauncher_list_Results_Future) Struct() (CapLauncher_list_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapLauncher_list_Results(p.Struct()), err
 }
 
 type CapLauncher_start_Params capnp.Struct
@@ -723,9 +830,9 @@ func NewCapLauncher_start_Params_List(s *capnp.Segment, sz int32) (CapLauncher_s
 // CapLauncher_start_Params_Future is a wrapper for a CapLauncher_start_Params promised by a client call.
 type CapLauncher_start_Params_Future struct{ *capnp.Future }
 
-func (p CapLauncher_start_Params_Future) Struct() (CapLauncher_start_Params, error) {
-	s, err := p.Future.Struct()
-	return CapLauncher_start_Params(s), err
+func (f CapLauncher_start_Params_Future) Struct() (CapLauncher_start_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapLauncher_start_Params(p.Struct()), err
 }
 
 type CapLauncher_start_Results capnp.Struct
@@ -811,11 +918,10 @@ func NewCapLauncher_start_Results_List(s *capnp.Segment, sz int32) (CapLauncher_
 // CapLauncher_start_Results_Future is a wrapper for a CapLauncher_start_Results promised by a client call.
 type CapLauncher_start_Results_Future struct{ *capnp.Future }
 
-func (p CapLauncher_start_Results_Future) Struct() (CapLauncher_start_Results, error) {
-	s, err := p.Future.Struct()
-	return CapLauncher_start_Results(s), err
+func (f CapLauncher_start_Results_Future) Struct() (CapLauncher_start_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapLauncher_start_Results(p.Struct()), err
 }
-
 func (p CapLauncher_start_Results_Future) Info() ServiceInfo_Future {
 	return ServiceInfo_Future{Future: p.Future.Field(0, nil)}
 }
@@ -897,9 +1003,9 @@ func NewCapLauncher_stop_Params_List(s *capnp.Segment, sz int32) (CapLauncher_st
 // CapLauncher_stop_Params_Future is a wrapper for a CapLauncher_stop_Params promised by a client call.
 type CapLauncher_stop_Params_Future struct{ *capnp.Future }
 
-func (p CapLauncher_stop_Params_Future) Struct() (CapLauncher_stop_Params, error) {
-	s, err := p.Future.Struct()
-	return CapLauncher_stop_Params(s), err
+func (f CapLauncher_stop_Params_Future) Struct() (CapLauncher_stop_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapLauncher_stop_Params(p.Struct()), err
 }
 
 type CapLauncher_stop_Results capnp.Struct
@@ -985,11 +1091,10 @@ func NewCapLauncher_stop_Results_List(s *capnp.Segment, sz int32) (CapLauncher_s
 // CapLauncher_stop_Results_Future is a wrapper for a CapLauncher_stop_Results promised by a client call.
 type CapLauncher_stop_Results_Future struct{ *capnp.Future }
 
-func (p CapLauncher_stop_Results_Future) Struct() (CapLauncher_stop_Results, error) {
-	s, err := p.Future.Struct()
-	return CapLauncher_stop_Results(s), err
+func (f CapLauncher_stop_Results_Future) Struct() (CapLauncher_stop_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapLauncher_stop_Results(p.Struct()), err
 }
-
 func (p CapLauncher_stop_Results_Future) Info() ServiceInfo_Future {
 	return ServiceInfo_Future{Future: p.Future.Field(0, nil)}
 }
@@ -1054,9 +1159,9 @@ func NewCapLauncher_stopAll_Params_List(s *capnp.Segment, sz int32) (CapLauncher
 // CapLauncher_stopAll_Params_Future is a wrapper for a CapLauncher_stopAll_Params promised by a client call.
 type CapLauncher_stopAll_Params_Future struct{ *capnp.Future }
 
-func (p CapLauncher_stopAll_Params_Future) Struct() (CapLauncher_stopAll_Params, error) {
-	s, err := p.Future.Struct()
-	return CapLauncher_stopAll_Params(s), err
+func (f CapLauncher_stopAll_Params_Future) Struct() (CapLauncher_stopAll_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapLauncher_stopAll_Params(p.Struct()), err
 }
 
 type CapLauncher_stopAll_Results capnp.Struct
@@ -1119,67 +1224,68 @@ func NewCapLauncher_stopAll_Results_List(s *capnp.Segment, sz int32) (CapLaunche
 // CapLauncher_stopAll_Results_Future is a wrapper for a CapLauncher_stopAll_Results promised by a client call.
 type CapLauncher_stopAll_Results_Future struct{ *capnp.Future }
 
-func (p CapLauncher_stopAll_Results_Future) Struct() (CapLauncher_stopAll_Results, error) {
-	s, err := p.Future.Struct()
-	return CapLauncher_stopAll_Results(s), err
+func (f CapLauncher_stopAll_Results_Future) Struct() (CapLauncher_stopAll_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapLauncher_stopAll_Results(p.Struct()), err
 }
 
-const schema_e42f87955bd521e9 = "x\xda\xac\x94Oh\x1c\xe5\x1f\xc6\x9f\xe7\x9d\x7f\xf9\xd7" +
-	"_2\x9d\xa1\xfc\x10k1\xe4\xd0\x06l\xdaDEJ" +
-	"e\x93\xe6\xa0\x09\x11\xb3;\x15\xad\x9a\xc34\x99\xb8#" +
-	"\xbb\xb3\xd3\x9d\x99\xd2\x94\x96\xd6\xd2\xa2\x16\xffc\xa5\"" +
-	"\x85\x1e\x8aU<\x8aTEQ\x10o\x1eT\xac\x82=" +
-	"\x88\xd0\x8b\x07\x11\xf5\xe2EF\xbe\xb3N\xb2\x95VR" +
-	"\xf0\xb4;\x9f\xf7\xf9>\xf3\xfd\xbe\xef\xf3\xce\x8e\xbb\xd5" +
-	"\xa4\xbes\xc3w:T\xf5\x1e\xc3\xcc\xdf\xf9p\xe2\x96" +
-	"K\x9f\x9e?\x8d\xea&\x1a\xf9O\xb7_~\xec\xcc\xd3" +
-	"cWa\x98\x160QU\x1b\xe9\xf8J\xfe.\xa8\x1f" +
-	"\x14\x98\x7f\xbd\xef\x8d\x0fj\xd3\xb5\xd7`o\xd2\xd6\xd4" +
-	"\xe0\xc4\x82\xb1\x91N\xd3\x10ihXtz\xc5 \xff" +
-	"\xde\xef{\xd1\x1f\xff\xf2\x1c\xeca\x02\x06e\xf9W\xe3" +
-	"0A\xe7O\xa3\x02\xe6\xf7\x8f\xfd\xf1zx\xf0\xb7\x0b" +
-	"\xdd\x82\xcdf[\x04\xdbL\x11\xbc\xf5\xee\xecG\xfd\xb7" +
-	"\xbe\x7f\xb1[0c\x16\x0e\x0f\x15\x82\xdbf>y\xf8" +
-	"\xbe+W.u\x04\xba\xac?k\xbeB\xe89\xef\xad" +
-	"\xebG\xfd\xdd\xdf\xa0:\xccri\xa5\xe3}\xaa(}" +
-	"p\xf1\xc7\xf1\x1d;\xcdo\xbb\xbd\xdf\xeex\xbfW\x08" +
-	".\xbey\xe23\x7f\xf7\xefW\xbb\xbc/\x9b\xa7\xc5\xfb" +
-	"\xe7\x8f_\xd8\xfa\xc5\xcb\xc1/\xdd\xa5\x9f\x9b'\xa4\xf4" +
-	"+\xb3\x82;\xf2z\xb6\xdf\x8f\xc3\xb19\xcd\xcf\xa2\xc5" +
-	"z\xd0\xde\xbe\xe8\xc7Q\xbc\xcb\x0b\xda\x07\xc3\xc5`&" +
-	"Zfk\x9e\xac\xde\xa9\xe9\x80N\xc0Y\xe00\xe0=" +
-	"B\x8d\xde\x12\x15m\xd2\x95\xae\x1d\xbf\xe0\x8f\x0b\xafS" +
-	"\x91\xca\xa5\x02\x9c\x80O\x02\xde\x92\xe0X\xe4\x1a]j" +
-	"\x80\xd3\xe4(\xe0\xd5\x85\xa7\xc2u\xe5R\x07\x9c\x03\x05" +
-	"o\x08?$\xdc\xa0K\x03p\xb2\xc2>\x16~D\xb8" +
-	"y\xdc\xa5\x098+\xdc\x03x\xa9\xf0\xe3\xc2-\xcd\x95" +
-	"!\x9d\xa3\x85\xcf!\xe1'\x85\xf7h.{\x00\xe7)" +
-	"\xee\x02\xbc#\xc2\x9f\x11\xdek\xb8\xec\x05\x9cS|\x14" +
-	"\xf0N\x0a\x7fIx\x9f\xee\xb2\x0fp\x9eg\x0d\xf0\x9e" +
-	"\x13~Vx\xbf\xe1\xb2\x1fp\xcep\x16\xf0^\x15~" +
-	"^\xf8@\x8f\xcb\x01\xc09W\xf8\x9f\x15~\x81\x8a\xd6" +
-	"b\x9cQ\x87\xa2\x0eZ\xed$\xa1\x01E\x03\xcc\x9b\xad" +
-	"\xa5p9\x0c\x960\xb87l\x06\x1c\x80\xe2\x008\x18" +
-	"\xf9]\x0f\xb1\x9f\xd6\xcb\x07+\x0e\x97J\xa3c\xed," +
-	"\x8a\xc2\xe8\x09\x12\x8a\x04\x07\x93\xf0pP:W\x92\xd4" +
-	"O\xb3\xa4\xac\xcb\x93\xd4o\xa7\xd3\xad\x0cZ\x94\x96\x06" +
-	"\x1d\xb87l\x82A\x97\xb0\x15K/\x00JV\xc9\xe2" +
-	"T\xba+\xcbn\x10\x96i?\x9e\xeb\x10\xb6%,C" +
-	"\x9a\x01\xac\xc6\x9a\xe5\xd5\xb0\x0f\x8cB\xd9\x81E\xae\xde" +
-	"7\x96\xf9\xb4\xf7\x8dC\xd9\x0fXT\xabW\x8de\xec" +
-	"\xed)\xa9\xbb\xcb\xa2\xb6\x1at\x96\xb7\xc9\xde\xb6\x07\xca" +
-	"\xdel\x0d6\xc2$\x9d\xe4\x96b\xb0I\x0e\xca0\x93" +
-	"<&?S\x8d\xc6$\xe7\xb9\xd6\xbd~\xa3\xee\xdb\xdb" +
-	"\x8b\xf2\x91\xca\xbc\xdf\xf6\x9bIU/Coo\x18\x05" +
-	"\xaa=\x1a\xab\xae\xba\xf6\x8c\xd6g\xda\x8aG\xe6\xb7\xfc" +
-	"\xa7\x9e2\xeeH\xad\x12$Y#\xbd\xc6t\x16\xa8\x0e" +
-	"h\xacnU\xcc\xc3h\xb95\x17&\xa9\x9c\xe8\xff\xc0" +
-	"y\x8d\x1cZ\xfb\x90\x82\x02W_f\xfc\xfb\x00S\x8d" +
-	"\xc6H\xadx\x1d\x93u7x\x9d\xa1\xf7\xff\xdd\xdf\xff" +
-	"\x15\xf3V\xd4X\xa9eQ\x04\xab+\xcc\xeb\xde\xd1\xeb" +
-	"M\xdf\xbd\xa52\xfd?\xe6\x1d\xba\xb9y;1\x00\xd6" +
-	"W#\xc9\xe9\xecP\x82\x9b\xeb\xe9\xaf\x00\x00\x00\xff\xff" +
-	"o3\xb2\x9a"
+const schema_e42f87955bd521e9 = "x\xda\xac\x94Mh\x1cu\x18\xc6\x9f\xe7?3;\xdb" +
+	"&1\x99\xceP\x8b\xa8\xc5\x90C\x0d\xda\xb4\x89\x1e," +
+	"-\x9b4\x07m\x88\x98\xdd\x0dj\xfc8L\x93\x89;" +
+	"\xb2;;\xdd\x99-mhi-\x0dJ\xf1+b\xa4" +
+	"\"\x81*\xc5\x0a\x1eE\xaa\xa2\xf8\x857\x0f\"\xea\xc1" +
+	"\x1eD\xa8\x88\x07\x11\xf5\xe2A\x18yg\x9d\xedTZ" +
+	"M\xc1S2\xbf\xff\xfb>\xf3>\xffy\xde\xdd\xb1\xac" +
+	"\xc6\xf5\x9d}%\x13\xaa<k\x14\x927\xdf\x1b\xbb\xe1" +
+	"\xfcGgN\xa1\xbc\x99F\xf2\xd3-_?\xbc\xfa\xe4" +
+	"\xc8E\x18\x05\x13\x18[\xd66\xd1^\xd5\xe4\xdf\x15\xed" +
+	";\x05&_\xce\xbd\xf2ne\xb2\xf2\x12\xac\xcd\xda\xa5" +
+	"jpl\xa5\xb0\x89\xf6\xabi\xd7Z\xc1\xa4\xbd\xc7\xbc" +
+	"\x1eH\xbeu7>\xe7\x8e~\xb1\x06k\x90\x80A9" +
+	"\xbe\xdd\\\"h\xdfe\x96\xc0\xe4\x9e\x91?^\xf6\x0f" +
+	"\xfev6_0g\xb6\xa4\xc0K\x0b\xdexk\xea\xfd" +
+	"\x9e\x1b\xdf9\x97/X\xee(\xac\xa4\x057\xef\xfb\xf0" +
+	"\x81\xbb/\\8\xdf)\xd0\xe5\xfc3\xf3\x05BO\xb8" +
+	"\xa7\xa6\x1fuw\x7f\x85\xf2 \xb3\xa3\xb7;\xda\x1f\xa7" +
+	"\xad\xf7\xcd\x7f?\xbacg\xe1\x9b\xbc\xf6\x0f\x1d\xed_" +
+	"\xd3\x82s\xaf\x9f\xf8\xd4\xdd\xfd\xfb\xc5\x9c\xb6U<%" +
+	"\xda?\x7f\xf0\xec\xb6\xcfW\xbc_\xf2\xad,\x9e\x90\xd6" +
+	"\xbeb\x09KI\xad\xbd\xdf\x0d\xfd\x91i\xcdm\x07\xf3" +
+	"5\xaf\xb5}\xde\x0d\x83pW\xd5k\x1d\xf4\xe7\xbd}" +
+	"\xc1\"\x9b3d\xf9\x0eM\x07t\x02\xf6\xa3\x1c\x04\xaa" +
+	"\x0fRcu\x81\x8a\x16\xe9\xc8\xd4\xb6\x9b\xf2G\x84\xd7" +
+	"\xa8H\xe5P\x01\xb6\xc7\xc7\x81\xea\x82\xe0P\xca5:" +
+	"\xd4\x00\xbb\xc1a\xa0Z\x13\x1e\x0b\xd7\x95C\x1d\xb0\x0f" +
+	"\xa4\xbc.\xfc\x90p\x83\x0e\x0d\xc0n\xa7\xf2\xa1\xf0#" +
+	"\xc2\x0b\xc7\x1d\x16\x00\xfb0\xf7\x02\xd5X\xf8q\xe1\xa6" +
+	"\xe6\x88I\xfbh\xaasH\xf8I\xe1E\xcda\x11\xb0" +
+	"\x9f\xe0.\xa0zD\xf8S\xc27\x18\x0e7\x00\xf62" +
+	"\x1f\x02\xaa'\x85?/|\xa3\xeep#`?\xc3\x0a" +
+	"P}Z\xf8i\xe1=\x86\xc3\x1e\xc0^\xe5\x14P}" +
+	"Q\xf8\x19\xe1\xbdE\x87\xbd\x80\xbd\x96\xea\x9f\x16~\x96" +
+	"\x8a\xe6|\xd8\xa6\x0eE\x1d4[QD\x03\x8a\x06\x98" +
+	"4\x9a\x0b\xfe\xa2\xef-\xa0\x7f\xd6ox\xec\x85b/" +
+	"\xd8\x1f\xb8\xb9\x87\xd0\x8dk\xd9\x83\x19\xfa\x0b\x99\xd0\xb1" +
+	"V;\x08\xfc\xe01\x12\x8a\x04\xfb#\x7f\xc9\xcb\x94K" +
+	"Q\xec\xc6\xed(\xebK\xa2\xd8m\xc5\x93\xcd6\xb4 " +
+	"\xce\x04:p\xd6o\x80^\xae\xb0\x19\xca,\x002V" +
+	"j\x87\xb1L\x97\xb5]%,\x93n8\xdd!lI" +
+	"X\x064\x03\xe8\xc6\x9a\xd9jX\x07\x86\xa1,\xcf$" +
+	"\xbb\xfb\xc6,\x9f\xd6\xdc(\x94u\xafI\xd5]5f" +
+	"\xb1\xb7&\xa4\xefN\x93Z7\xe8\xcc\xb6\xc9\xbau/" +
+	"\x94u\x93\xd9_\xf7\xa3x\x9c[Sc\xe3\xec\x173" +
+	"\xe3<&\x7f&\xea\xf5q\x96u2\xf9\xe4\xb5\x99\xfb" +
+	"\xff\xbcm\xcb\x8f\x00\xbaV\xf4\xabYimO\xb5\x86" +
+	"J3n\xcbmDe=\xdb\x00\xabo\x18(\x175" +
+	"\x96\x1du\xf9\x07[\x9fh3\x1c\x9a\xd9\xfa\xbfj\x8a" +
+	"\xf7\xa1J\xc9\x8b\xda\xf5\xf82\xd1)\xa0\xdc\xab\xb1\xbc" +
+	"M1\xf1\x83\xc5\xe6\xb4\x1f\xc5\xf2y\xaf\x03g4r" +
+	"\xe0\xd2\xaf*(\xb0\xfb2\xe3\xdf\x0dL\xd4\xebC\x95" +
+	"\xf4u\x8c\xd6=\xe0\x15L\xef\xff{\xbe-\x8aI3" +
+	"\xa8\x1f\xae\xb4\x83\x00f.\xd9\xeb\xbe\xd1+\xb9\xcf_" +
+	"\xa9\xb8\xff\x87\xdf\x81k\xf3\xdb\x89A.9\xc6\x7f%" +
+	"\xa7sC\x11\xaem\xa6\xbf\x02\x00\x00\xff\xffp\xa0\xb7" +
+	"\xd0"
 
 func init() {
 	schemas.Register(schema_e42f87955bd521e9,

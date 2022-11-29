@@ -5,9 +5,11 @@ package hubapi
 import (
 	capnp "capnproto.org/go/capnp/v3"
 	text "capnproto.org/go/capnp/v3/encoding/text"
+	fc "capnproto.org/go/capnp/v3/flowcontrol"
 	schemas "capnproto.org/go/capnp/v3/schemas"
 	server "capnproto.org/go/capnp/v3/server"
 	context "context"
+	fmt "fmt"
 )
 
 type KeyValueMap capnp.Struct
@@ -93,9 +95,9 @@ func NewKeyValueMap_List(s *capnp.Segment, sz int32) (KeyValueMap_List, error) {
 // KeyValueMap_Future is a wrapper for a KeyValueMap promised by a client call.
 type KeyValueMap_Future struct{ *capnp.Future }
 
-func (p KeyValueMap_Future) Struct() (KeyValueMap, error) {
-	s, err := p.Future.Struct()
-	return KeyValueMap(s), err
+func (f KeyValueMap_Future) Struct() (KeyValueMap, error) {
+	p, err := f.Future.Ptr()
+	return KeyValueMap(p.Struct()), err
 }
 
 type KeyValueMap_Entry capnp.Struct
@@ -188,9 +190,9 @@ func NewKeyValueMap_Entry_List(s *capnp.Segment, sz int32) (KeyValueMap_Entry_Li
 // KeyValueMap_Entry_Future is a wrapper for a KeyValueMap_Entry promised by a client call.
 type KeyValueMap_Entry_Future struct{ *capnp.Future }
 
-func (p KeyValueMap_Entry_Future) Struct() (KeyValueMap_Entry, error) {
-	s, err := p.Future.Struct()
-	return KeyValueMap_Entry(s), err
+func (f KeyValueMap_Entry_Future) Struct() (KeyValueMap_Entry, error) {
+	p, err := f.Future.Ptr()
+	return KeyValueMap_Entry(p.Struct()), err
 }
 
 type BucketStoreInfo capnp.Struct
@@ -304,9 +306,9 @@ func NewBucketStoreInfo_List(s *capnp.Segment, sz int32) (BucketStoreInfo_List, 
 // BucketStoreInfo_Future is a wrapper for a BucketStoreInfo promised by a client call.
 type BucketStoreInfo_Future struct{ *capnp.Future }
 
-func (p BucketStoreInfo_Future) Struct() (BucketStoreInfo, error) {
-	s, err := p.Future.Struct()
-	return BucketStoreInfo(s), err
+func (f BucketStoreInfo_Future) Struct() (BucketStoreInfo, error) {
+	p, err := f.Future.Ptr()
+	return BucketStoreInfo(p.Struct()), err
 }
 
 type CapBucketCursor capnp.Client
@@ -427,12 +429,34 @@ func (c CapBucketCursor) Seek(ctx context.Context, params func(CapBucketCursor_s
 	return CapBucketCursor_seek_Results_Future{Future: ans.Future()}, release
 }
 
+// String returns a string that identifies this capability for debugging
+// purposes.  Its format should not be depended on: in particular, it
+// should not be used to compare clients.  Use IsSame to compare clients
+// for equality.
+func (c CapBucketCursor) String() string {
+	return fmt.Sprintf("%T(%v)", c, capnp.Client(c))
+}
+
+// AddRef creates a new Client that refers to the same capability as c.
+// If c is nil or has resolved to null, then AddRef returns nil.
 func (c CapBucketCursor) AddRef() CapBucketCursor {
 	return CapBucketCursor(capnp.Client(c).AddRef())
 }
 
+// Release releases a capability reference.  If this is the last
+// reference to the capability, then the underlying resources associated
+// with the capability will be released.
+//
+// Release will panic if c has already been released, but not if c is
+// nil or resolved to null.
 func (c CapBucketCursor) Release() {
 	capnp.Client(c).Release()
+}
+
+// Resolve blocks until the capability is fully resolved or the Context
+// expires.
+func (c CapBucketCursor) Resolve(ctx context.Context) error {
+	return capnp.Client(c).Resolve(ctx)
 }
 
 func (c CapBucketCursor) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
@@ -443,11 +467,34 @@ func (CapBucketCursor) DecodeFromPtr(p capnp.Ptr) CapBucketCursor {
 	return CapBucketCursor(capnp.Client{}.DecodeFromPtr(p))
 }
 
+// IsValid reports whether c is a valid reference to a capability.
+// A reference is invalid if it is nil, has resolved to null, or has
+// been released.
 func (c CapBucketCursor) IsValid() bool {
 	return capnp.Client(c).IsValid()
 }
 
-// A CapBucketCursor_Server is a CapBucketCursor with a local implementation.
+// IsSame reports whether c and other refer to a capability created by the
+// same call to NewClient.  This can return false negatives if c or other
+// are not fully resolved: use Resolve if this is an issue.  If either
+// c or other are released, then IsSame panics.
+func (c CapBucketCursor) IsSame(other CapBucketCursor) bool {
+	return capnp.Client(c).IsSame(capnp.Client(other))
+}
+
+// Update the flowcontrol.FlowLimiter used to manage flow control for
+// this client. This affects all future calls, but not calls already
+// waiting to send. Passing nil sets the value to flowcontrol.NopLimiter,
+// which is also the default.
+func (c CapBucketCursor) SetFlowLimiter(lim fc.FlowLimiter) {
+	capnp.Client(c).SetFlowLimiter(lim)
+}
+
+// Get the current flowcontrol.FlowLimiter used to manage flow control
+// for this client.
+func (c CapBucketCursor) GetFlowLimiter() fc.FlowLimiter {
+	return capnp.Client(c).GetFlowLimiter()
+} // A CapBucketCursor_Server is a CapBucketCursor with a local implementation.
 type CapBucketCursor_Server interface {
 	First(context.Context, CapBucketCursor_first) error
 
@@ -758,9 +805,9 @@ func NewCapBucketCursor_first_Params_List(s *capnp.Segment, sz int32) (CapBucket
 // CapBucketCursor_first_Params_Future is a wrapper for a CapBucketCursor_first_Params promised by a client call.
 type CapBucketCursor_first_Params_Future struct{ *capnp.Future }
 
-func (p CapBucketCursor_first_Params_Future) Struct() (CapBucketCursor_first_Params, error) {
-	s, err := p.Future.Struct()
-	return CapBucketCursor_first_Params(s), err
+func (f CapBucketCursor_first_Params_Future) Struct() (CapBucketCursor_first_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapBucketCursor_first_Params(p.Struct()), err
 }
 
 type CapBucketCursor_first_Results capnp.Struct
@@ -861,9 +908,9 @@ func NewCapBucketCursor_first_Results_List(s *capnp.Segment, sz int32) (CapBucke
 // CapBucketCursor_first_Results_Future is a wrapper for a CapBucketCursor_first_Results promised by a client call.
 type CapBucketCursor_first_Results_Future struct{ *capnp.Future }
 
-func (p CapBucketCursor_first_Results_Future) Struct() (CapBucketCursor_first_Results, error) {
-	s, err := p.Future.Struct()
-	return CapBucketCursor_first_Results(s), err
+func (f CapBucketCursor_first_Results_Future) Struct() (CapBucketCursor_first_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapBucketCursor_first_Results(p.Struct()), err
 }
 
 type CapBucketCursor_last_Params capnp.Struct
@@ -926,9 +973,9 @@ func NewCapBucketCursor_last_Params_List(s *capnp.Segment, sz int32) (CapBucketC
 // CapBucketCursor_last_Params_Future is a wrapper for a CapBucketCursor_last_Params promised by a client call.
 type CapBucketCursor_last_Params_Future struct{ *capnp.Future }
 
-func (p CapBucketCursor_last_Params_Future) Struct() (CapBucketCursor_last_Params, error) {
-	s, err := p.Future.Struct()
-	return CapBucketCursor_last_Params(s), err
+func (f CapBucketCursor_last_Params_Future) Struct() (CapBucketCursor_last_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapBucketCursor_last_Params(p.Struct()), err
 }
 
 type CapBucketCursor_last_Results capnp.Struct
@@ -1029,9 +1076,9 @@ func NewCapBucketCursor_last_Results_List(s *capnp.Segment, sz int32) (CapBucket
 // CapBucketCursor_last_Results_Future is a wrapper for a CapBucketCursor_last_Results promised by a client call.
 type CapBucketCursor_last_Results_Future struct{ *capnp.Future }
 
-func (p CapBucketCursor_last_Results_Future) Struct() (CapBucketCursor_last_Results, error) {
-	s, err := p.Future.Struct()
-	return CapBucketCursor_last_Results(s), err
+func (f CapBucketCursor_last_Results_Future) Struct() (CapBucketCursor_last_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapBucketCursor_last_Results(p.Struct()), err
 }
 
 type CapBucketCursor_next_Params capnp.Struct
@@ -1094,9 +1141,9 @@ func NewCapBucketCursor_next_Params_List(s *capnp.Segment, sz int32) (CapBucketC
 // CapBucketCursor_next_Params_Future is a wrapper for a CapBucketCursor_next_Params promised by a client call.
 type CapBucketCursor_next_Params_Future struct{ *capnp.Future }
 
-func (p CapBucketCursor_next_Params_Future) Struct() (CapBucketCursor_next_Params, error) {
-	s, err := p.Future.Struct()
-	return CapBucketCursor_next_Params(s), err
+func (f CapBucketCursor_next_Params_Future) Struct() (CapBucketCursor_next_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapBucketCursor_next_Params(p.Struct()), err
 }
 
 type CapBucketCursor_next_Results capnp.Struct
@@ -1197,9 +1244,9 @@ func NewCapBucketCursor_next_Results_List(s *capnp.Segment, sz int32) (CapBucket
 // CapBucketCursor_next_Results_Future is a wrapper for a CapBucketCursor_next_Results promised by a client call.
 type CapBucketCursor_next_Results_Future struct{ *capnp.Future }
 
-func (p CapBucketCursor_next_Results_Future) Struct() (CapBucketCursor_next_Results, error) {
-	s, err := p.Future.Struct()
-	return CapBucketCursor_next_Results(s), err
+func (f CapBucketCursor_next_Results_Future) Struct() (CapBucketCursor_next_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapBucketCursor_next_Results(p.Struct()), err
 }
 
 type CapBucketCursor_nextN_Params capnp.Struct
@@ -1269,9 +1316,9 @@ func NewCapBucketCursor_nextN_Params_List(s *capnp.Segment, sz int32) (CapBucket
 // CapBucketCursor_nextN_Params_Future is a wrapper for a CapBucketCursor_nextN_Params promised by a client call.
 type CapBucketCursor_nextN_Params_Future struct{ *capnp.Future }
 
-func (p CapBucketCursor_nextN_Params_Future) Struct() (CapBucketCursor_nextN_Params, error) {
-	s, err := p.Future.Struct()
-	return CapBucketCursor_nextN_Params(s), err
+func (f CapBucketCursor_nextN_Params_Future) Struct() (CapBucketCursor_nextN_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapBucketCursor_nextN_Params(p.Struct()), err
 }
 
 type CapBucketCursor_nextN_Results capnp.Struct
@@ -1365,11 +1412,10 @@ func NewCapBucketCursor_nextN_Results_List(s *capnp.Segment, sz int32) (CapBucke
 // CapBucketCursor_nextN_Results_Future is a wrapper for a CapBucketCursor_nextN_Results promised by a client call.
 type CapBucketCursor_nextN_Results_Future struct{ *capnp.Future }
 
-func (p CapBucketCursor_nextN_Results_Future) Struct() (CapBucketCursor_nextN_Results, error) {
-	s, err := p.Future.Struct()
-	return CapBucketCursor_nextN_Results(s), err
+func (f CapBucketCursor_nextN_Results_Future) Struct() (CapBucketCursor_nextN_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapBucketCursor_nextN_Results(p.Struct()), err
 }
-
 func (p CapBucketCursor_nextN_Results_Future) Docs() KeyValueMap_Future {
 	return KeyValueMap_Future{Future: p.Future.Field(0, nil)}
 }
@@ -1434,9 +1480,9 @@ func NewCapBucketCursor_prev_Params_List(s *capnp.Segment, sz int32) (CapBucketC
 // CapBucketCursor_prev_Params_Future is a wrapper for a CapBucketCursor_prev_Params promised by a client call.
 type CapBucketCursor_prev_Params_Future struct{ *capnp.Future }
 
-func (p CapBucketCursor_prev_Params_Future) Struct() (CapBucketCursor_prev_Params, error) {
-	s, err := p.Future.Struct()
-	return CapBucketCursor_prev_Params(s), err
+func (f CapBucketCursor_prev_Params_Future) Struct() (CapBucketCursor_prev_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapBucketCursor_prev_Params(p.Struct()), err
 }
 
 type CapBucketCursor_prev_Results capnp.Struct
@@ -1537,9 +1583,9 @@ func NewCapBucketCursor_prev_Results_List(s *capnp.Segment, sz int32) (CapBucket
 // CapBucketCursor_prev_Results_Future is a wrapper for a CapBucketCursor_prev_Results promised by a client call.
 type CapBucketCursor_prev_Results_Future struct{ *capnp.Future }
 
-func (p CapBucketCursor_prev_Results_Future) Struct() (CapBucketCursor_prev_Results, error) {
-	s, err := p.Future.Struct()
-	return CapBucketCursor_prev_Results(s), err
+func (f CapBucketCursor_prev_Results_Future) Struct() (CapBucketCursor_prev_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapBucketCursor_prev_Results(p.Struct()), err
 }
 
 type CapBucketCursor_prevN_Params capnp.Struct
@@ -1609,9 +1655,9 @@ func NewCapBucketCursor_prevN_Params_List(s *capnp.Segment, sz int32) (CapBucket
 // CapBucketCursor_prevN_Params_Future is a wrapper for a CapBucketCursor_prevN_Params promised by a client call.
 type CapBucketCursor_prevN_Params_Future struct{ *capnp.Future }
 
-func (p CapBucketCursor_prevN_Params_Future) Struct() (CapBucketCursor_prevN_Params, error) {
-	s, err := p.Future.Struct()
-	return CapBucketCursor_prevN_Params(s), err
+func (f CapBucketCursor_prevN_Params_Future) Struct() (CapBucketCursor_prevN_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapBucketCursor_prevN_Params(p.Struct()), err
 }
 
 type CapBucketCursor_prevN_Results capnp.Struct
@@ -1705,11 +1751,10 @@ func NewCapBucketCursor_prevN_Results_List(s *capnp.Segment, sz int32) (CapBucke
 // CapBucketCursor_prevN_Results_Future is a wrapper for a CapBucketCursor_prevN_Results promised by a client call.
 type CapBucketCursor_prevN_Results_Future struct{ *capnp.Future }
 
-func (p CapBucketCursor_prevN_Results_Future) Struct() (CapBucketCursor_prevN_Results, error) {
-	s, err := p.Future.Struct()
-	return CapBucketCursor_prevN_Results(s), err
+func (f CapBucketCursor_prevN_Results_Future) Struct() (CapBucketCursor_prevN_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapBucketCursor_prevN_Results(p.Struct()), err
 }
-
 func (p CapBucketCursor_prevN_Results_Future) Docs() KeyValueMap_Future {
 	return KeyValueMap_Future{Future: p.Future.Field(0, nil)}
 }
@@ -1791,9 +1836,9 @@ func NewCapBucketCursor_seek_Params_List(s *capnp.Segment, sz int32) (CapBucketC
 // CapBucketCursor_seek_Params_Future is a wrapper for a CapBucketCursor_seek_Params promised by a client call.
 type CapBucketCursor_seek_Params_Future struct{ *capnp.Future }
 
-func (p CapBucketCursor_seek_Params_Future) Struct() (CapBucketCursor_seek_Params, error) {
-	s, err := p.Future.Struct()
-	return CapBucketCursor_seek_Params(s), err
+func (f CapBucketCursor_seek_Params_Future) Struct() (CapBucketCursor_seek_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapBucketCursor_seek_Params(p.Struct()), err
 }
 
 type CapBucketCursor_seek_Results capnp.Struct
@@ -1894,9 +1939,9 @@ func NewCapBucketCursor_seek_Results_List(s *capnp.Segment, sz int32) (CapBucket
 // CapBucketCursor_seek_Results_Future is a wrapper for a CapBucketCursor_seek_Results promised by a client call.
 type CapBucketCursor_seek_Results_Future struct{ *capnp.Future }
 
-func (p CapBucketCursor_seek_Results_Future) Struct() (CapBucketCursor_seek_Results, error) {
-	s, err := p.Future.Struct()
-	return CapBucketCursor_seek_Results(s), err
+func (f CapBucketCursor_seek_Results_Future) Struct() (CapBucketCursor_seek_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapBucketCursor_seek_Results(p.Struct()), err
 }
 
 const schema_893d996fbc85a1c3 = "x\xda\xccV_h\x1c\xd5\x17>\xdf\xbd3;\xbb\xf9" +

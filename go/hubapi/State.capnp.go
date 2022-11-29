@@ -5,9 +5,11 @@ package hubapi
 import (
 	capnp "capnproto.org/go/capnp/v3"
 	text "capnproto.org/go/capnp/v3/encoding/text"
+	fc "capnproto.org/go/capnp/v3/flowcontrol"
 	schemas "capnproto.org/go/capnp/v3/schemas"
 	server "capnproto.org/go/capnp/v3/server"
 	context "context"
+	fmt "fmt"
 )
 
 type CapState capnp.Client
@@ -31,13 +33,67 @@ func (c CapState) CapClientState(ctx context.Context, params func(CapState_capCl
 	ans, release := capnp.Client(c).SendCall(ctx, s)
 	return CapState_capClientState_Results_Future{Future: ans.Future()}, release
 }
+func (c CapState) GetCapability(ctx context.Context, params func(CapHiveOTService_getCapability_Params) error) (CapHiveOTService_getCapability_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xe7182cfc5650a2c2,
+			MethodID:      0,
+			InterfaceName: "hubapi/Service.capnp:CapHiveOTService",
+			MethodName:    "getCapability",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 4}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapHiveOTService_getCapability_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapHiveOTService_getCapability_Results_Future{Future: ans.Future()}, release
+}
+func (c CapState) ListCapabilities(ctx context.Context, params func(CapHiveOTService_listCapabilities_Params) error) (CapHiveOTService_listCapabilities_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xe7182cfc5650a2c2,
+			MethodID:      1,
+			InterfaceName: "hubapi/Service.capnp:CapHiveOTService",
+			MethodName:    "listCapabilities",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapHiveOTService_listCapabilities_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapHiveOTService_listCapabilities_Results_Future{Future: ans.Future()}, release
+}
 
+// String returns a string that identifies this capability for debugging
+// purposes.  Its format should not be depended on: in particular, it
+// should not be used to compare clients.  Use IsSame to compare clients
+// for equality.
+func (c CapState) String() string {
+	return fmt.Sprintf("%T(%v)", c, capnp.Client(c))
+}
+
+// AddRef creates a new Client that refers to the same capability as c.
+// If c is nil or has resolved to null, then AddRef returns nil.
 func (c CapState) AddRef() CapState {
 	return CapState(capnp.Client(c).AddRef())
 }
 
+// Release releases a capability reference.  If this is the last
+// reference to the capability, then the underlying resources associated
+// with the capability will be released.
+//
+// Release will panic if c has already been released, but not if c is
+// nil or resolved to null.
 func (c CapState) Release() {
 	capnp.Client(c).Release()
+}
+
+// Resolve blocks until the capability is fully resolved or the Context
+// expires.
+func (c CapState) Resolve(ctx context.Context) error {
+	return capnp.Client(c).Resolve(ctx)
 }
 
 func (c CapState) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
@@ -48,13 +104,40 @@ func (CapState) DecodeFromPtr(p capnp.Ptr) CapState {
 	return CapState(capnp.Client{}.DecodeFromPtr(p))
 }
 
+// IsValid reports whether c is a valid reference to a capability.
+// A reference is invalid if it is nil, has resolved to null, or has
+// been released.
 func (c CapState) IsValid() bool {
 	return capnp.Client(c).IsValid()
 }
 
-// A CapState_Server is a CapState with a local implementation.
+// IsSame reports whether c and other refer to a capability created by the
+// same call to NewClient.  This can return false negatives if c or other
+// are not fully resolved: use Resolve if this is an issue.  If either
+// c or other are released, then IsSame panics.
+func (c CapState) IsSame(other CapState) bool {
+	return capnp.Client(c).IsSame(capnp.Client(other))
+}
+
+// Update the flowcontrol.FlowLimiter used to manage flow control for
+// this client. This affects all future calls, but not calls already
+// waiting to send. Passing nil sets the value to flowcontrol.NopLimiter,
+// which is also the default.
+func (c CapState) SetFlowLimiter(lim fc.FlowLimiter) {
+	capnp.Client(c).SetFlowLimiter(lim)
+}
+
+// Get the current flowcontrol.FlowLimiter used to manage flow control
+// for this client.
+func (c CapState) GetFlowLimiter() fc.FlowLimiter {
+	return capnp.Client(c).GetFlowLimiter()
+} // A CapState_Server is a CapState with a local implementation.
 type CapState_Server interface {
 	CapClientState(context.Context, CapState_capClientState) error
+
+	GetCapability(context.Context, CapHiveOTService_getCapability) error
+
+	ListCapabilities(context.Context, CapHiveOTService_listCapabilities) error
 }
 
 // CapState_NewServer creates a new Server from an implementation of CapState_Server.
@@ -73,7 +156,7 @@ func CapState_ServerToClient(s CapState_Server) CapState {
 // This can be used to create a more complicated Server.
 func CapState_Methods(methods []server.Method, s CapState_Server) []server.Method {
 	if cap(methods) == 0 {
-		methods = make([]server.Method, 0, 1)
+		methods = make([]server.Method, 0, 3)
 	}
 
 	methods = append(methods, server.Method{
@@ -85,6 +168,30 @@ func CapState_Methods(methods []server.Method, s CapState_Server) []server.Metho
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
 			return s.CapClientState(ctx, CapState_capClientState{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xe7182cfc5650a2c2,
+			MethodID:      0,
+			InterfaceName: "hubapi/Service.capnp:CapHiveOTService",
+			MethodName:    "getCapability",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.GetCapability(ctx, CapHiveOTService_getCapability{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xe7182cfc5650a2c2,
+			MethodID:      1,
+			InterfaceName: "hubapi/Service.capnp:CapHiveOTService",
+			MethodName:    "listCapabilities",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.ListCapabilities(ctx, CapHiveOTService_listCapabilities{call})
 		},
 	})
 
@@ -212,9 +319,9 @@ func NewCapState_capClientState_Params_List(s *capnp.Segment, sz int32) (CapStat
 // CapState_capClientState_Params_Future is a wrapper for a CapState_capClientState_Params promised by a client call.
 type CapState_capClientState_Params_Future struct{ *capnp.Future }
 
-func (p CapState_capClientState_Params_Future) Struct() (CapState_capClientState_Params, error) {
-	s, err := p.Future.Struct()
-	return CapState_capClientState_Params(s), err
+func (f CapState_capClientState_Params_Future) Struct() (CapState_capClientState_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapState_capClientState_Params(p.Struct()), err
 }
 
 type CapState_capClientState_Results capnp.Struct
@@ -294,11 +401,10 @@ func NewCapState_capClientState_Results_List(s *capnp.Segment, sz int32) (CapSta
 // CapState_capClientState_Results_Future is a wrapper for a CapState_capClientState_Results promised by a client call.
 type CapState_capClientState_Results_Future struct{ *capnp.Future }
 
-func (p CapState_capClientState_Results_Future) Struct() (CapState_capClientState_Results, error) {
-	s, err := p.Future.Struct()
-	return CapState_capClientState_Results(s), err
+func (f CapState_capClientState_Results_Future) Struct() (CapState_capClientState_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapState_capClientState_Results(p.Struct()), err
 }
-
 func (p CapState_capClientState_Results_Future) Cap() CapClientState {
 	return CapClientState(p.Future.Field(0, nil).Client())
 }
@@ -405,12 +511,34 @@ func (c CapClientState) SetMultiple(ctx context.Context, params func(CapClientSt
 	return CapClientState_setMultiple_Results_Future{Future: ans.Future()}, release
 }
 
+// String returns a string that identifies this capability for debugging
+// purposes.  Its format should not be depended on: in particular, it
+// should not be used to compare clients.  Use IsSame to compare clients
+// for equality.
+func (c CapClientState) String() string {
+	return fmt.Sprintf("%T(%v)", c, capnp.Client(c))
+}
+
+// AddRef creates a new Client that refers to the same capability as c.
+// If c is nil or has resolved to null, then AddRef returns nil.
 func (c CapClientState) AddRef() CapClientState {
 	return CapClientState(capnp.Client(c).AddRef())
 }
 
+// Release releases a capability reference.  If this is the last
+// reference to the capability, then the underlying resources associated
+// with the capability will be released.
+//
+// Release will panic if c has already been released, but not if c is
+// nil or resolved to null.
 func (c CapClientState) Release() {
 	capnp.Client(c).Release()
+}
+
+// Resolve blocks until the capability is fully resolved or the Context
+// expires.
+func (c CapClientState) Resolve(ctx context.Context) error {
+	return capnp.Client(c).Resolve(ctx)
 }
 
 func (c CapClientState) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
@@ -421,11 +549,34 @@ func (CapClientState) DecodeFromPtr(p capnp.Ptr) CapClientState {
 	return CapClientState(capnp.Client{}.DecodeFromPtr(p))
 }
 
+// IsValid reports whether c is a valid reference to a capability.
+// A reference is invalid if it is nil, has resolved to null, or has
+// been released.
 func (c CapClientState) IsValid() bool {
 	return capnp.Client(c).IsValid()
 }
 
-// A CapClientState_Server is a CapClientState with a local implementation.
+// IsSame reports whether c and other refer to a capability created by the
+// same call to NewClient.  This can return false negatives if c or other
+// are not fully resolved: use Resolve if this is an issue.  If either
+// c or other are released, then IsSame panics.
+func (c CapClientState) IsSame(other CapClientState) bool {
+	return capnp.Client(c).IsSame(capnp.Client(other))
+}
+
+// Update the flowcontrol.FlowLimiter used to manage flow control for
+// this client. This affects all future calls, but not calls already
+// waiting to send. Passing nil sets the value to flowcontrol.NopLimiter,
+// which is also the default.
+func (c CapClientState) SetFlowLimiter(lim fc.FlowLimiter) {
+	capnp.Client(c).SetFlowLimiter(lim)
+}
+
+// Get the current flowcontrol.FlowLimiter used to manage flow control
+// for this client.
+func (c CapClientState) GetFlowLimiter() fc.FlowLimiter {
+	return capnp.Client(c).GetFlowLimiter()
+} // A CapClientState_Server is a CapClientState with a local implementation.
 type CapClientState_Server interface {
 	Delete(context.Context, CapClientState_delete) error
 
@@ -722,9 +873,9 @@ func NewCapClientState_delete_Params_List(s *capnp.Segment, sz int32) (CapClient
 // CapClientState_delete_Params_Future is a wrapper for a CapClientState_delete_Params promised by a client call.
 type CapClientState_delete_Params_Future struct{ *capnp.Future }
 
-func (p CapClientState_delete_Params_Future) Struct() (CapClientState_delete_Params, error) {
-	s, err := p.Future.Struct()
-	return CapClientState_delete_Params(s), err
+func (f CapClientState_delete_Params_Future) Struct() (CapClientState_delete_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapClientState_delete_Params(p.Struct()), err
 }
 
 type CapClientState_delete_Results capnp.Struct
@@ -787,9 +938,9 @@ func NewCapClientState_delete_Results_List(s *capnp.Segment, sz int32) (CapClien
 // CapClientState_delete_Results_Future is a wrapper for a CapClientState_delete_Results promised by a client call.
 type CapClientState_delete_Results_Future struct{ *capnp.Future }
 
-func (p CapClientState_delete_Results_Future) Struct() (CapClientState_delete_Results, error) {
-	s, err := p.Future.Struct()
-	return CapClientState_delete_Results(s), err
+func (f CapClientState_delete_Results_Future) Struct() (CapClientState_delete_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapClientState_delete_Results(p.Struct()), err
 }
 
 type CapClientState_get_Params capnp.Struct
@@ -869,9 +1020,9 @@ func NewCapClientState_get_Params_List(s *capnp.Segment, sz int32) (CapClientSta
 // CapClientState_get_Params_Future is a wrapper for a CapClientState_get_Params promised by a client call.
 type CapClientState_get_Params_Future struct{ *capnp.Future }
 
-func (p CapClientState_get_Params_Future) Struct() (CapClientState_get_Params, error) {
-	s, err := p.Future.Struct()
-	return CapClientState_get_Params(s), err
+func (f CapClientState_get_Params_Future) Struct() (CapClientState_get_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapClientState_get_Params(p.Struct()), err
 }
 
 type CapClientState_get_Results capnp.Struct
@@ -946,9 +1097,9 @@ func NewCapClientState_get_Results_List(s *capnp.Segment, sz int32) (CapClientSt
 // CapClientState_get_Results_Future is a wrapper for a CapClientState_get_Results promised by a client call.
 type CapClientState_get_Results_Future struct{ *capnp.Future }
 
-func (p CapClientState_get_Results_Future) Struct() (CapClientState_get_Results, error) {
-	s, err := p.Future.Struct()
-	return CapClientState_get_Results(s), err
+func (f CapClientState_get_Results_Future) Struct() (CapClientState_get_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapClientState_get_Results(p.Struct()), err
 }
 
 type CapClientState_getMultiple_Params capnp.Struct
@@ -1034,9 +1185,9 @@ func NewCapClientState_getMultiple_Params_List(s *capnp.Segment, sz int32) (CapC
 // CapClientState_getMultiple_Params_Future is a wrapper for a CapClientState_getMultiple_Params promised by a client call.
 type CapClientState_getMultiple_Params_Future struct{ *capnp.Future }
 
-func (p CapClientState_getMultiple_Params_Future) Struct() (CapClientState_getMultiple_Params, error) {
-	s, err := p.Future.Struct()
-	return CapClientState_getMultiple_Params(s), err
+func (f CapClientState_getMultiple_Params_Future) Struct() (CapClientState_getMultiple_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapClientState_getMultiple_Params(p.Struct()), err
 }
 
 type CapClientState_getMultiple_Results capnp.Struct
@@ -1122,11 +1273,10 @@ func NewCapClientState_getMultiple_Results_List(s *capnp.Segment, sz int32) (Cap
 // CapClientState_getMultiple_Results_Future is a wrapper for a CapClientState_getMultiple_Results promised by a client call.
 type CapClientState_getMultiple_Results_Future struct{ *capnp.Future }
 
-func (p CapClientState_getMultiple_Results_Future) Struct() (CapClientState_getMultiple_Results, error) {
-	s, err := p.Future.Struct()
-	return CapClientState_getMultiple_Results(s), err
+func (f CapClientState_getMultiple_Results_Future) Struct() (CapClientState_getMultiple_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapClientState_getMultiple_Results(p.Struct()), err
 }
-
 func (p CapClientState_getMultiple_Results_Future) Docs() KeyValueMap_Future {
 	return KeyValueMap_Future{Future: p.Future.Field(0, nil)}
 }
@@ -1191,9 +1341,9 @@ func NewCapClientState_cursor_Params_List(s *capnp.Segment, sz int32) (CapClient
 // CapClientState_cursor_Params_Future is a wrapper for a CapClientState_cursor_Params promised by a client call.
 type CapClientState_cursor_Params_Future struct{ *capnp.Future }
 
-func (p CapClientState_cursor_Params_Future) Struct() (CapClientState_cursor_Params, error) {
-	s, err := p.Future.Struct()
-	return CapClientState_cursor_Params(s), err
+func (f CapClientState_cursor_Params_Future) Struct() (CapClientState_cursor_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapClientState_cursor_Params(p.Struct()), err
 }
 
 type CapClientState_cursor_Results capnp.Struct
@@ -1273,11 +1423,10 @@ func NewCapClientState_cursor_Results_List(s *capnp.Segment, sz int32) (CapClien
 // CapClientState_cursor_Results_Future is a wrapper for a CapClientState_cursor_Results promised by a client call.
 type CapClientState_cursor_Results_Future struct{ *capnp.Future }
 
-func (p CapClientState_cursor_Results_Future) Struct() (CapClientState_cursor_Results, error) {
-	s, err := p.Future.Struct()
-	return CapClientState_cursor_Results(s), err
+func (f CapClientState_cursor_Results_Future) Struct() (CapClientState_cursor_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapClientState_cursor_Results(p.Struct()), err
 }
-
 func (p CapClientState_cursor_Results_Future) Cap() CapBucketCursor {
 	return CapBucketCursor(p.Future.Field(0, nil).Client())
 }
@@ -1372,9 +1521,9 @@ func NewCapClientState_set_Params_List(s *capnp.Segment, sz int32) (CapClientSta
 // CapClientState_set_Params_Future is a wrapper for a CapClientState_set_Params promised by a client call.
 type CapClientState_set_Params_Future struct{ *capnp.Future }
 
-func (p CapClientState_set_Params_Future) Struct() (CapClientState_set_Params, error) {
-	s, err := p.Future.Struct()
-	return CapClientState_set_Params(s), err
+func (f CapClientState_set_Params_Future) Struct() (CapClientState_set_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapClientState_set_Params(p.Struct()), err
 }
 
 type CapClientState_set_Results capnp.Struct
@@ -1437,9 +1586,9 @@ func NewCapClientState_set_Results_List(s *capnp.Segment, sz int32) (CapClientSt
 // CapClientState_set_Results_Future is a wrapper for a CapClientState_set_Results promised by a client call.
 type CapClientState_set_Results_Future struct{ *capnp.Future }
 
-func (p CapClientState_set_Results_Future) Struct() (CapClientState_set_Results, error) {
-	s, err := p.Future.Struct()
-	return CapClientState_set_Results(s), err
+func (f CapClientState_set_Results_Future) Struct() (CapClientState_set_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapClientState_set_Results(p.Struct()), err
 }
 
 type CapClientState_setMultiple_Params capnp.Struct
@@ -1525,11 +1674,10 @@ func NewCapClientState_setMultiple_Params_List(s *capnp.Segment, sz int32) (CapC
 // CapClientState_setMultiple_Params_Future is a wrapper for a CapClientState_setMultiple_Params promised by a client call.
 type CapClientState_setMultiple_Params_Future struct{ *capnp.Future }
 
-func (p CapClientState_setMultiple_Params_Future) Struct() (CapClientState_setMultiple_Params, error) {
-	s, err := p.Future.Struct()
-	return CapClientState_setMultiple_Params(s), err
+func (f CapClientState_setMultiple_Params_Future) Struct() (CapClientState_setMultiple_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapClientState_setMultiple_Params(p.Struct()), err
 }
-
 func (p CapClientState_setMultiple_Params_Future) Docs() KeyValueMap_Future {
 	return KeyValueMap_Future{Future: p.Future.Field(0, nil)}
 }
@@ -1594,67 +1742,68 @@ func NewCapClientState_setMultiple_Results_List(s *capnp.Segment, sz int32) (Cap
 // CapClientState_setMultiple_Results_Future is a wrapper for a CapClientState_setMultiple_Results promised by a client call.
 type CapClientState_setMultiple_Results_Future struct{ *capnp.Future }
 
-func (p CapClientState_setMultiple_Results_Future) Struct() (CapClientState_setMultiple_Results, error) {
-	s, err := p.Future.Struct()
-	return CapClientState_setMultiple_Results(s), err
+func (f CapClientState_setMultiple_Results_Future) Struct() (CapClientState_setMultiple_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapClientState_setMultiple_Results(p.Struct()), err
 }
 
-const schema_9a80401eba6f7fe3 = "x\xda\xacU]H,e\x18~\xdf\x99\xd9\xfd\xe6\x94" +
-	"{\xf6|\xcd\x01\x83N\x19\xb2\xf4s\xe8\xf8\x93)j" +
-	"\xc9nh\x88\x81\xb1\xe3\xb2\x17\xde\x14\xe3:\xd8\xb6\xab" +
-	"N;\xb3\x85A\xfe\x15H\xc6\x12HR.A-\xa1" +
-	"\x85 \xb9\x8a\x10\x82\x14y\x93F\x17\xf6s\x15\x16(" +
-	"BP\x14\x15\x16]\xd8\xc47\xeb\xcc\x8e\xe6\xea\x0a\xdd" +
-	"\xe9\xbe\xcf\xf7\xbc\xcf\xf7\xbc\xf3~O]\x15\x1f\x12\xea" +
-	"}\x95>\xe0\xe4\xb7=^squ\xf0\xabo;o" +
-	"{\x05h5\x02x\x90\x004<\xef\x9dF@i\xc2" +
-	"\x1b\x044\xe9\xd6\xbd\xef|=E^u\x03r\xdeI" +
-	"\x06X\xb2\x00\xdf\x7f\xf4\xd6\xce\xe7\x7f\xcc\xcc\x02\xbd\xe1" +
-	"\x00\xbe\xf4f\x19`\xd7\x02t\xac|\xf2X\xe5\xebb" +
-	"\xd6\xcdp\xe4]d\x00\x1fa\x80w\x1f\x1d]~\xc6" +
-	"\xbb\x96s\x03n\x91\x14\x03\xb4X\x80\x99\xa3\x0f~\x89" +
-	"\xfe8\xb7\xec\x06\xf4\x92\x15\x06\x88[\x80\xa6\x1f\xfc\xbf" +
-	"\xb6D\xf9\xbc\x1b\xf0\x1ay\x8e\x01f-\x80\xe7\xef\xf8" +
-	"\x82\x7f\xa3\xf6\xb3\x02@`\xf55F \x98\xb1\xfb7" +
-	"\xfe\xdc\x8c\xc8[\xee\xa3\xf3\xc4R\xb7f\x1d\xdd}o" +
-	".\xbb\xbd\xba\xf7\xc51\x80c\x80\x83\x02\xf7o\xe4E" +
-	"@\xf3\xe7\x9a\x95\xa7\x12\xf9\xbbw\x80J\xbc\xb9?6" +
-	"\xbc~Oh<\x0b\x80R\xb7\xb8'\xf5\x8a\x04@\x8a" +
-	"\x8a\x9d\xd2\x04\xfb\xcb\x94\xbac\x1f\xfe\xd3\xf6\xe67." +
-	"!qq\x92\x09\xf9n},\xd38Y\xb9\xef\xaaD" +
-	"\xc5iV\xb9\xaf\x0d\xb7\x9f\xd66\x0f\\\x95'\xc4\x14" +
-	"\xab\xd4\xdeh^\x88\xdd\\\xff\xe9\xd8{K[\xbd8" +
-	"\xc3\xb4=.2mo\xec&\xa6s\xefg\xfe:\xad" +
-	"\xad!'\xde\x81R\x9eIjX\x12\xa7P\x9a\xbfB" +
-	"\xe0w\xf3\xd9t\x9f\xa2\xc5k#\x1eC1\xd4\x9a\x98" +
-	"\xa2\x0di\xad\xed\x8a\xd6\x9e\x8c\xabCF\xa4\xf0c:" +
-	"\xa5\x0f\xa7\x02=\xaa\x9eN\x1a:\x80,\xf0\x02\x80\x80" +
-	"\x00\xd4W\x0d \x8b<\xca\xd79$1ECj\xfa" +
-	"\xfb\xc6+F?\xbd+\x07\x80H\x01\xcbi\xd0\xaf&" +
-	"UC\x0d\x84\x95\x942\xa8\x97\xa4O\xa8#X\x01\x1c" +
-	"V\x94&\x8d\xd8\xff\xba\xd8\x0b\xbayC?_\xb6c" +
-	"[\xf9\xb2u\xd5\xe8N'\x8d\xb8\x96d\xda\xfdL\xbc" +
-	"\xbb\xc7\xcdb\x0f\x7f\xffpL\xc7k\xe6\xcb\x99\xa1\xa6" +
-	"\xde\xc3\x8f\x0fY\x93k\xae&B\xe9&\x03\xaa\x11\xe8" +
-	"Q\xab,\xeb\xdd\xec\x0f\x17\xd9\xab^P\x92i\x15}" +
-	"\xc0\xa1\xaf<\xe5\x03.\xe5g\x91\xff\x7f\xd2\xcf\xf0\xe5" +
-	"\x923-\xe5\xb8\xad\xfb\xb2\xf7=gR\x01\x0e\xfd\x09" +
-	"uD\xc7\xab\x80a\x1e-eW\xcb\xbb\xab\xee\xba\xab" +
-	"\xe80?\xc8\xee\x1a\xe0Q\xae\xe3\x90\"^G\xf6\xe3" +
-	"-6\xba\x07x\x94\x1f9i@\x891r\xa7?q" +
-	"\xa2\x18j\x18Q\x16x\x0f\x80\xf3\x1e\xa0\xfd(S\xfa" +
-	"\x12p\xf4\x0a1\xed5\x80`Ac\x08\xc3X\xa4\xbd" +
-	"\xfd\xc2}?^G\xfb\xc0\x85\xeb\xeb\xbc\x0f\xe5\xfau" +
-	"\xd1\x04\xcf\xdcfK\x15\x9e0\xf9\xc9\xa2\x9f\x8e\xc9\xf5" +
-	"\xcc\xe4\x87x\x94\x9b94c\xd6\xf9\xae\x0e\x00p\xcc" +
-	"V4\xad\xab\xe3?\xdf\x1e_J1Z\x96\xdfiY" +
-	"n\xe7#\xda\xef7\xcd\xb7\x02G\xe7\x09\x16c\x09\xed" +
-	"\x84\xa3s\xd5\xc0\xd1\x0cA\xce\xc9\x1d\xb4\xc3\x8dN\xf4" +
-	"\x01GG\x08\xf2NH\xa0\x9d\xcet\x90q*\x04\x05" +
-	"'\x8e\xd0N\x05\x1ae\x9c]\x04=N\xd2\xa2\x1dw" +
-	"\xb4\x8dq6\x92`a*!$\x03\xaa\x11B\xd3^" +
-	"\x01 ZR\x0da\xb00\xe4\x10\x12\xdd*\xeb'\xcb" +
-	"a\xc4\x7f\x03\x00\x00\xff\xff\xb6\xc6X\xed"
+const schema_9a80401eba6f7fe3 = "x\xda\xacU]h\x1cU\x14>gf\xb6w\xa6f" +
+	"\xbb\xbdN!\x15\xab\x95\xb0\xfe\x95\xda4\xd6\x96Z\x0d" +
+	"\xbb\xd2@\x89P\xd9\xe9\x12\xc1\x17e\xb2\x1d\xe2\xba?" +
+	"\x19vf\x95\x08\xf9U\x08F\x161(\x92E\xd1(" +
+	"\x89\x92\x17\xf3c@\x02AI^L|\x8a\x9a\x07\x91" +
+	"(I\x10\x0d\xfe=H\x14A\x1d\xb9w3\xb3\x93\x98" +
+	"M6\xd0\xc7\xdd\xf3\xdd\xef|\xf7;s\xeew6+" +
+	"F\xa5\x86`w\x08\x04\xed\xa3\xc0!gl*\xf3\xc5" +
+	"\xf2\x95\xc3/\x00\xadC\x80\x00\x12\x80s#d\x00\x01" +
+	"\xd5i\x12\x01t\xe8\xc2\x1do~\xd9O^\xf4\x03\x96" +
+	"I\x1f\x03\xacr\xc0\xb7\x1f\xbe\xb1\xf4\xd9\xef\x83\xaf\x03" +
+	"=\xe1\x01P.2\x00\x95\x19\xa0i\xf2\x93\x87k_" +
+	"\x96\x8b~\x86\x06y\x8c\x01\x1e\xe1\x80\xb7\x1f\xea\x1a\x7f" +
+	"\xea\xd0\xf4\xb0\x1f\xa0\xcb9\x06\xc8p\xc0\xe0?\xef\xff" +
+	"\xda\xf2\xe3\xd0\xb8\x1fP\x90'\x19\xe0-\x0e\xb8\xf0]" +
+	"\xe8\xb7\x07[\xc4\x09?`V~\x86\x01\x168 \xf0" +
+	"Wr44[?W\x02H\xac\xbe\xc1\x08$'q" +
+	"\xf7\xec\x1f\xf3qm\xc1\x7f\xf4\xeb\x92\xba\x0d~t\xe5" +
+	"\x9d\xa1\xe2\xe2\xd4\xda\xe7[\x00\x81\x01nQ8\xf7\x9d" +
+	"\xcas\x80\xce\xcfg&\x1fKM\xdc\xb6\x04T\x15\x9d" +
+	"\xf5\xee\xf6\x99\xdb\xa3=E\x00T{\x955\xb5\xa0\x10" +
+	"\x00\xf5%\xe5\x8a:\xad\xd4\x028\xea\xd5\xc4\x07\xff6" +
+	"\xbe\xf6\x95O\xc8\x88\xd2\xc7\x84|3\xd3]8\xdfW" +
+	"\xbb\xee\xab\xbc\xaa\x0c\xb0\xca]\x8d\xb8\xf8\xa49\xff\xbd" +
+	"\xaf\xd2\xab\xe4X\xa5\xfe\xc4\xc5\xd1\xc4\xa9\x99\x9f\xb6\xbc" +
+	"\xe7\xda2\xca \xd3\xd6\xc9\xb5\xbd\xb2\x92\x1a\x18~\xaf" +
+	"\xf0\xe7Nm\xe7V\x94\x9bQ\xfdE\xe1F(\xfd\xa8" +
+	"\xae\x1e&\xe0@\xc4y:\xdf\xaa\x9b\xc9\xfax\xc0\xd6" +
+	"m\xe3LB7\xb3\xe6\xa5\xcb\xbay9\x9d4\xb2v" +
+	"\xbc\xf4g>g\xb5\xe7\xc2\xd7\x0c+\x9f\xb6-\x00M" +
+	"\x12%\x00\x09\x01h\xb0\x0e@\x93E\xd4\x8e\x09H\x12" +
+	"\xba\x89\xd4\x09\xb5\xf6\xd4t}z\xeb0\x00\"\x05\xac" +
+	"\xa6\xc1u#m\xd8F8\xa6\xe7\xf4\x8cU\x91>e" +
+	"t`\x0d\x08XS\x994\xee\xfe\xf4\xb1\x97t\x8b\xb6" +
+	"\xb5\xb7l\xcf\xb8\xeae[\x86}5\x9f\xb6\x93f\x9a" +
+	"i\x0f1\xf1\xfe\x1e\xa7\xca=B\xd7\xdb\x13\x16\x1eu" +
+	":\x0b\xd9\x0bOl~\xbc\xc9\x9a\x1c\xf55\x91*7" +
+	"i3\xec\xf05\xe3$\xb7\xde\xcf~\x7f\x99\xfd\xe4\xb3" +
+	"z:o`\x10\x04\x0cV\xa7\xbc\xcd\xa7|7\xf2\x1b" +
+	"'}\x17_\x0e8\xd3J\x8e\xbb\xba\x0fz\xdf=&" +
+	"\x15\x160\x942:,<\x02\x18\x13\x91+;R\xdd" +
+	"]-\xdf]e\x8f\xf9^v\xd7\xb0\x88\xdaY\x01)" +
+	"\xe21d\x7f\xde\xc7Fw\x8f\x88\xda\x03\xdb\x0d\xa80" +
+	"Fa\xe7'Nt\xdb\x88!j\x92\x18\x00\xf0^\x04" +
+	"t\x9feJ\x9f\x07\x81*\xc4q\xd7\x00\"%\x8dQ" +
+	"\xd4$Dg\xee\xdd\xd8\xe3\x7f\x9f>\xfe\x03\x00x=" +
+	"n\xdaw\xf9\xb7v\xd3=\xb0\xef.{\x8fE\xb5\xe6" +
+	"\xed7\xce]W\x9b\xab\xc2m\x8e?Z6\xd7s\xbc" +
+	"\x819~ZD\xed\xa2\x80N\x82\x9fon\x02\x00\xcf" +
+	"y\xdd4\x9b\x9b\xfe\xf7!\x8a\x95\x14#\xf7\xff8\xf7" +
+	"\xdf\x8dKt\x9fs:q\x09\x04:B\xb0\x9cR\xe8" +
+	"\x06\x1e\x1d\xaa\x03\x81\x16\x08\x0a^\x0c\xa1\x9bu\xb4\xb7" +
+	"\x15\x04\xdaAP\xf42\x03\xdd\xb0\xa6\x19\xc6\xa9\x13\x94" +
+	"\xbctB7$h\x0b\xe3l&\x18\xf0\x82\x17\xdd\xf4" +
+	"\xa3\x8d\x8c\xf3<\x89\x94\xa6\x12E\xd2f\xd8Qt\xdc" +
+	"}\x00b\xa6\x8d(FJC\x8e\"\xb1x\xd9\xda^" +
+	"\x8e!\xfe\x17\x00\x00\xff\xffI\x1ba@"
 
 func init() {
 	schemas.Register(schema_9a80401eba6f7fe3,

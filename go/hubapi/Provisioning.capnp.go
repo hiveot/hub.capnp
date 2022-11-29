@@ -5,9 +5,11 @@ package hubapi
 import (
 	capnp "capnproto.org/go/capnp/v3"
 	text "capnproto.org/go/capnp/v3/encoding/text"
+	fc "capnproto.org/go/capnp/v3/flowcontrol"
 	schemas "capnproto.org/go/capnp/v3/schemas"
 	server "capnproto.org/go/capnp/v3/server"
 	context "context"
+	fmt "fmt"
 )
 
 type OOBSecret capnp.Struct
@@ -105,9 +107,9 @@ func NewOOBSecret_List(s *capnp.Segment, sz int32) (OOBSecret_List, error) {
 // OOBSecret_Future is a wrapper for a OOBSecret promised by a client call.
 type OOBSecret_Future struct{ *capnp.Future }
 
-func (p OOBSecret_Future) Struct() (OOBSecret, error) {
-	s, err := p.Future.Struct()
-	return OOBSecret(s), err
+func (f OOBSecret_Future) Struct() (OOBSecret, error) {
+	p, err := f.Future.Ptr()
+	return OOBSecret(p.Struct()), err
 }
 
 type ProvisionStatus capnp.Struct
@@ -275,9 +277,9 @@ func NewProvisionStatus_List(s *capnp.Segment, sz int32) (ProvisionStatus_List, 
 // ProvisionStatus_Future is a wrapper for a ProvisionStatus promised by a client call.
 type ProvisionStatus_Future struct{ *capnp.Future }
 
-func (p ProvisionStatus_Future) Struct() (ProvisionStatus, error) {
-	s, err := p.Future.Struct()
-	return ProvisionStatus(s), err
+func (f ProvisionStatus_Future) Struct() (ProvisionStatus, error) {
+	p, err := f.Future.Ptr()
+	return ProvisionStatus(p.Struct()), err
 }
 
 type CapProvisioning capnp.Client
@@ -333,13 +335,67 @@ func (c CapProvisioning) CapRefreshProvisioning(ctx context.Context, params func
 	ans, release := capnp.Client(c).SendCall(ctx, s)
 	return CapProvisioning_capRefreshProvisioning_Results_Future{Future: ans.Future()}, release
 }
+func (c CapProvisioning) GetCapability(ctx context.Context, params func(CapHiveOTService_getCapability_Params) error) (CapHiveOTService_getCapability_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xe7182cfc5650a2c2,
+			MethodID:      0,
+			InterfaceName: "hubapi/Service.capnp:CapHiveOTService",
+			MethodName:    "getCapability",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 4}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapHiveOTService_getCapability_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapHiveOTService_getCapability_Results_Future{Future: ans.Future()}, release
+}
+func (c CapProvisioning) ListCapabilities(ctx context.Context, params func(CapHiveOTService_listCapabilities_Params) error) (CapHiveOTService_listCapabilities_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xe7182cfc5650a2c2,
+			MethodID:      1,
+			InterfaceName: "hubapi/Service.capnp:CapHiveOTService",
+			MethodName:    "listCapabilities",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapHiveOTService_listCapabilities_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapHiveOTService_listCapabilities_Results_Future{Future: ans.Future()}, release
+}
 
+// String returns a string that identifies this capability for debugging
+// purposes.  Its format should not be depended on: in particular, it
+// should not be used to compare clients.  Use IsSame to compare clients
+// for equality.
+func (c CapProvisioning) String() string {
+	return fmt.Sprintf("%T(%v)", c, capnp.Client(c))
+}
+
+// AddRef creates a new Client that refers to the same capability as c.
+// If c is nil or has resolved to null, then AddRef returns nil.
 func (c CapProvisioning) AddRef() CapProvisioning {
 	return CapProvisioning(capnp.Client(c).AddRef())
 }
 
+// Release releases a capability reference.  If this is the last
+// reference to the capability, then the underlying resources associated
+// with the capability will be released.
+//
+// Release will panic if c has already been released, but not if c is
+// nil or resolved to null.
 func (c CapProvisioning) Release() {
 	capnp.Client(c).Release()
+}
+
+// Resolve blocks until the capability is fully resolved or the Context
+// expires.
+func (c CapProvisioning) Resolve(ctx context.Context) error {
+	return capnp.Client(c).Resolve(ctx)
 }
 
 func (c CapProvisioning) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
@@ -350,17 +406,44 @@ func (CapProvisioning) DecodeFromPtr(p capnp.Ptr) CapProvisioning {
 	return CapProvisioning(capnp.Client{}.DecodeFromPtr(p))
 }
 
+// IsValid reports whether c is a valid reference to a capability.
+// A reference is invalid if it is nil, has resolved to null, or has
+// been released.
 func (c CapProvisioning) IsValid() bool {
 	return capnp.Client(c).IsValid()
 }
 
-// A CapProvisioning_Server is a CapProvisioning with a local implementation.
+// IsSame reports whether c and other refer to a capability created by the
+// same call to NewClient.  This can return false negatives if c or other
+// are not fully resolved: use Resolve if this is an issue.  If either
+// c or other are released, then IsSame panics.
+func (c CapProvisioning) IsSame(other CapProvisioning) bool {
+	return capnp.Client(c).IsSame(capnp.Client(other))
+}
+
+// Update the flowcontrol.FlowLimiter used to manage flow control for
+// this client. This affects all future calls, but not calls already
+// waiting to send. Passing nil sets the value to flowcontrol.NopLimiter,
+// which is also the default.
+func (c CapProvisioning) SetFlowLimiter(lim fc.FlowLimiter) {
+	capnp.Client(c).SetFlowLimiter(lim)
+}
+
+// Get the current flowcontrol.FlowLimiter used to manage flow control
+// for this client.
+func (c CapProvisioning) GetFlowLimiter() fc.FlowLimiter {
+	return capnp.Client(c).GetFlowLimiter()
+} // A CapProvisioning_Server is a CapProvisioning with a local implementation.
 type CapProvisioning_Server interface {
 	CapManageProvisioning(context.Context, CapProvisioning_capManageProvisioning) error
 
 	CapRequestProvisioning(context.Context, CapProvisioning_capRequestProvisioning) error
 
 	CapRefreshProvisioning(context.Context, CapProvisioning_capRefreshProvisioning) error
+
+	GetCapability(context.Context, CapHiveOTService_getCapability) error
+
+	ListCapabilities(context.Context, CapHiveOTService_listCapabilities) error
 }
 
 // CapProvisioning_NewServer creates a new Server from an implementation of CapProvisioning_Server.
@@ -379,7 +462,7 @@ func CapProvisioning_ServerToClient(s CapProvisioning_Server) CapProvisioning {
 // This can be used to create a more complicated Server.
 func CapProvisioning_Methods(methods []server.Method, s CapProvisioning_Server) []server.Method {
 	if cap(methods) == 0 {
-		methods = make([]server.Method, 0, 3)
+		methods = make([]server.Method, 0, 5)
 	}
 
 	methods = append(methods, server.Method{
@@ -415,6 +498,30 @@ func CapProvisioning_Methods(methods []server.Method, s CapProvisioning_Server) 
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
 			return s.CapRefreshProvisioning(ctx, CapProvisioning_capRefreshProvisioning{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xe7182cfc5650a2c2,
+			MethodID:      0,
+			InterfaceName: "hubapi/Service.capnp:CapHiveOTService",
+			MethodName:    "getCapability",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.GetCapability(ctx, CapHiveOTService_getCapability{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xe7182cfc5650a2c2,
+			MethodID:      1,
+			InterfaceName: "hubapi/Service.capnp:CapHiveOTService",
+			MethodName:    "listCapabilities",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.ListCapabilities(ctx, CapHiveOTService_listCapabilities{call})
 		},
 	})
 
@@ -541,9 +648,9 @@ func NewCapProvisioning_capManageProvisioning_Params_List(s *capnp.Segment, sz i
 // CapProvisioning_capManageProvisioning_Params_Future is a wrapper for a CapProvisioning_capManageProvisioning_Params promised by a client call.
 type CapProvisioning_capManageProvisioning_Params_Future struct{ *capnp.Future }
 
-func (p CapProvisioning_capManageProvisioning_Params_Future) Struct() (CapProvisioning_capManageProvisioning_Params, error) {
-	s, err := p.Future.Struct()
-	return CapProvisioning_capManageProvisioning_Params(s), err
+func (f CapProvisioning_capManageProvisioning_Params_Future) Struct() (CapProvisioning_capManageProvisioning_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapProvisioning_capManageProvisioning_Params(p.Struct()), err
 }
 
 type CapProvisioning_capManageProvisioning_Results capnp.Struct
@@ -623,11 +730,10 @@ func NewCapProvisioning_capManageProvisioning_Results_List(s *capnp.Segment, sz 
 // CapProvisioning_capManageProvisioning_Results_Future is a wrapper for a CapProvisioning_capManageProvisioning_Results promised by a client call.
 type CapProvisioning_capManageProvisioning_Results_Future struct{ *capnp.Future }
 
-func (p CapProvisioning_capManageProvisioning_Results_Future) Struct() (CapProvisioning_capManageProvisioning_Results, error) {
-	s, err := p.Future.Struct()
-	return CapProvisioning_capManageProvisioning_Results(s), err
+func (f CapProvisioning_capManageProvisioning_Results_Future) Struct() (CapProvisioning_capManageProvisioning_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapProvisioning_capManageProvisioning_Results(p.Struct()), err
 }
-
 func (p CapProvisioning_capManageProvisioning_Results_Future) Cap() CapManageProvisioning {
 	return CapManageProvisioning(p.Future.Field(0, nil).Client())
 }
@@ -692,9 +798,9 @@ func NewCapProvisioning_capRequestProvisioning_Params_List(s *capnp.Segment, sz 
 // CapProvisioning_capRequestProvisioning_Params_Future is a wrapper for a CapProvisioning_capRequestProvisioning_Params promised by a client call.
 type CapProvisioning_capRequestProvisioning_Params_Future struct{ *capnp.Future }
 
-func (p CapProvisioning_capRequestProvisioning_Params_Future) Struct() (CapProvisioning_capRequestProvisioning_Params, error) {
-	s, err := p.Future.Struct()
-	return CapProvisioning_capRequestProvisioning_Params(s), err
+func (f CapProvisioning_capRequestProvisioning_Params_Future) Struct() (CapProvisioning_capRequestProvisioning_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapProvisioning_capRequestProvisioning_Params(p.Struct()), err
 }
 
 type CapProvisioning_capRequestProvisioning_Results capnp.Struct
@@ -774,11 +880,10 @@ func NewCapProvisioning_capRequestProvisioning_Results_List(s *capnp.Segment, sz
 // CapProvisioning_capRequestProvisioning_Results_Future is a wrapper for a CapProvisioning_capRequestProvisioning_Results promised by a client call.
 type CapProvisioning_capRequestProvisioning_Results_Future struct{ *capnp.Future }
 
-func (p CapProvisioning_capRequestProvisioning_Results_Future) Struct() (CapProvisioning_capRequestProvisioning_Results, error) {
-	s, err := p.Future.Struct()
-	return CapProvisioning_capRequestProvisioning_Results(s), err
+func (f CapProvisioning_capRequestProvisioning_Results_Future) Struct() (CapProvisioning_capRequestProvisioning_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapProvisioning_capRequestProvisioning_Results(p.Struct()), err
 }
-
 func (p CapProvisioning_capRequestProvisioning_Results_Future) Cap() CapRequestProvisioning {
 	return CapRequestProvisioning(p.Future.Field(0, nil).Client())
 }
@@ -843,9 +948,9 @@ func NewCapProvisioning_capRefreshProvisioning_Params_List(s *capnp.Segment, sz 
 // CapProvisioning_capRefreshProvisioning_Params_Future is a wrapper for a CapProvisioning_capRefreshProvisioning_Params promised by a client call.
 type CapProvisioning_capRefreshProvisioning_Params_Future struct{ *capnp.Future }
 
-func (p CapProvisioning_capRefreshProvisioning_Params_Future) Struct() (CapProvisioning_capRefreshProvisioning_Params, error) {
-	s, err := p.Future.Struct()
-	return CapProvisioning_capRefreshProvisioning_Params(s), err
+func (f CapProvisioning_capRefreshProvisioning_Params_Future) Struct() (CapProvisioning_capRefreshProvisioning_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapProvisioning_capRefreshProvisioning_Params(p.Struct()), err
 }
 
 type CapProvisioning_capRefreshProvisioning_Results capnp.Struct
@@ -925,11 +1030,10 @@ func NewCapProvisioning_capRefreshProvisioning_Results_List(s *capnp.Segment, sz
 // CapProvisioning_capRefreshProvisioning_Results_Future is a wrapper for a CapProvisioning_capRefreshProvisioning_Results promised by a client call.
 type CapProvisioning_capRefreshProvisioning_Results_Future struct{ *capnp.Future }
 
-func (p CapProvisioning_capRefreshProvisioning_Results_Future) Struct() (CapProvisioning_capRefreshProvisioning_Results, error) {
-	s, err := p.Future.Struct()
-	return CapProvisioning_capRefreshProvisioning_Results(s), err
+func (f CapProvisioning_capRefreshProvisioning_Results_Future) Struct() (CapProvisioning_capRefreshProvisioning_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapProvisioning_capRefreshProvisioning_Results(p.Struct()), err
 }
-
 func (p CapProvisioning_capRefreshProvisioning_Results_Future) Cap() CapRefreshProvisioning {
 	return CapRefreshProvisioning(p.Future.Field(0, nil).Client())
 }
@@ -1004,12 +1108,34 @@ func (c CapManageProvisioning) GetPendingRequests(ctx context.Context, params fu
 	return CapManageProvisioning_getPendingRequests_Results_Future{Future: ans.Future()}, release
 }
 
+// String returns a string that identifies this capability for debugging
+// purposes.  Its format should not be depended on: in particular, it
+// should not be used to compare clients.  Use IsSame to compare clients
+// for equality.
+func (c CapManageProvisioning) String() string {
+	return fmt.Sprintf("%T(%v)", c, capnp.Client(c))
+}
+
+// AddRef creates a new Client that refers to the same capability as c.
+// If c is nil or has resolved to null, then AddRef returns nil.
 func (c CapManageProvisioning) AddRef() CapManageProvisioning {
 	return CapManageProvisioning(capnp.Client(c).AddRef())
 }
 
+// Release releases a capability reference.  If this is the last
+// reference to the capability, then the underlying resources associated
+// with the capability will be released.
+//
+// Release will panic if c has already been released, but not if c is
+// nil or resolved to null.
 func (c CapManageProvisioning) Release() {
 	capnp.Client(c).Release()
+}
+
+// Resolve blocks until the capability is fully resolved or the Context
+// expires.
+func (c CapManageProvisioning) Resolve(ctx context.Context) error {
+	return capnp.Client(c).Resolve(ctx)
 }
 
 func (c CapManageProvisioning) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
@@ -1020,11 +1146,34 @@ func (CapManageProvisioning) DecodeFromPtr(p capnp.Ptr) CapManageProvisioning {
 	return CapManageProvisioning(capnp.Client{}.DecodeFromPtr(p))
 }
 
+// IsValid reports whether c is a valid reference to a capability.
+// A reference is invalid if it is nil, has resolved to null, or has
+// been released.
 func (c CapManageProvisioning) IsValid() bool {
 	return capnp.Client(c).IsValid()
 }
 
-// A CapManageProvisioning_Server is a CapManageProvisioning with a local implementation.
+// IsSame reports whether c and other refer to a capability created by the
+// same call to NewClient.  This can return false negatives if c or other
+// are not fully resolved: use Resolve if this is an issue.  If either
+// c or other are released, then IsSame panics.
+func (c CapManageProvisioning) IsSame(other CapManageProvisioning) bool {
+	return capnp.Client(c).IsSame(capnp.Client(other))
+}
+
+// Update the flowcontrol.FlowLimiter used to manage flow control for
+// this client. This affects all future calls, but not calls already
+// waiting to send. Passing nil sets the value to flowcontrol.NopLimiter,
+// which is also the default.
+func (c CapManageProvisioning) SetFlowLimiter(lim fc.FlowLimiter) {
+	capnp.Client(c).SetFlowLimiter(lim)
+}
+
+// Get the current flowcontrol.FlowLimiter used to manage flow control
+// for this client.
+func (c CapManageProvisioning) GetFlowLimiter() fc.FlowLimiter {
+	return capnp.Client(c).GetFlowLimiter()
+} // A CapManageProvisioning_Server is a CapManageProvisioning with a local implementation.
 type CapManageProvisioning_Server interface {
 	AddOOBSecrets(context.Context, CapManageProvisioning_addOOBSecrets) error
 
@@ -1265,9 +1414,9 @@ func NewCapManageProvisioning_addOOBSecrets_Params_List(s *capnp.Segment, sz int
 // CapManageProvisioning_addOOBSecrets_Params_Future is a wrapper for a CapManageProvisioning_addOOBSecrets_Params promised by a client call.
 type CapManageProvisioning_addOOBSecrets_Params_Future struct{ *capnp.Future }
 
-func (p CapManageProvisioning_addOOBSecrets_Params_Future) Struct() (CapManageProvisioning_addOOBSecrets_Params, error) {
-	s, err := p.Future.Struct()
-	return CapManageProvisioning_addOOBSecrets_Params(s), err
+func (f CapManageProvisioning_addOOBSecrets_Params_Future) Struct() (CapManageProvisioning_addOOBSecrets_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapManageProvisioning_addOOBSecrets_Params(p.Struct()), err
 }
 
 type CapManageProvisioning_addOOBSecrets_Results capnp.Struct
@@ -1330,9 +1479,9 @@ func NewCapManageProvisioning_addOOBSecrets_Results_List(s *capnp.Segment, sz in
 // CapManageProvisioning_addOOBSecrets_Results_Future is a wrapper for a CapManageProvisioning_addOOBSecrets_Results promised by a client call.
 type CapManageProvisioning_addOOBSecrets_Results_Future struct{ *capnp.Future }
 
-func (p CapManageProvisioning_addOOBSecrets_Results_Future) Struct() (CapManageProvisioning_addOOBSecrets_Results, error) {
-	s, err := p.Future.Struct()
-	return CapManageProvisioning_addOOBSecrets_Results(s), err
+func (f CapManageProvisioning_addOOBSecrets_Results_Future) Struct() (CapManageProvisioning_addOOBSecrets_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapManageProvisioning_addOOBSecrets_Results(p.Struct()), err
 }
 
 type CapManageProvisioning_approveRequest_Params capnp.Struct
@@ -1412,9 +1561,9 @@ func NewCapManageProvisioning_approveRequest_Params_List(s *capnp.Segment, sz in
 // CapManageProvisioning_approveRequest_Params_Future is a wrapper for a CapManageProvisioning_approveRequest_Params promised by a client call.
 type CapManageProvisioning_approveRequest_Params_Future struct{ *capnp.Future }
 
-func (p CapManageProvisioning_approveRequest_Params_Future) Struct() (CapManageProvisioning_approveRequest_Params, error) {
-	s, err := p.Future.Struct()
-	return CapManageProvisioning_approveRequest_Params(s), err
+func (f CapManageProvisioning_approveRequest_Params_Future) Struct() (CapManageProvisioning_approveRequest_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapManageProvisioning_approveRequest_Params(p.Struct()), err
 }
 
 type CapManageProvisioning_approveRequest_Results capnp.Struct
@@ -1477,9 +1626,9 @@ func NewCapManageProvisioning_approveRequest_Results_List(s *capnp.Segment, sz i
 // CapManageProvisioning_approveRequest_Results_Future is a wrapper for a CapManageProvisioning_approveRequest_Results promised by a client call.
 type CapManageProvisioning_approveRequest_Results_Future struct{ *capnp.Future }
 
-func (p CapManageProvisioning_approveRequest_Results_Future) Struct() (CapManageProvisioning_approveRequest_Results, error) {
-	s, err := p.Future.Struct()
-	return CapManageProvisioning_approveRequest_Results(s), err
+func (f CapManageProvisioning_approveRequest_Results_Future) Struct() (CapManageProvisioning_approveRequest_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapManageProvisioning_approveRequest_Results(p.Struct()), err
 }
 
 type CapManageProvisioning_getApprovedRequests_Params capnp.Struct
@@ -1542,9 +1691,9 @@ func NewCapManageProvisioning_getApprovedRequests_Params_List(s *capnp.Segment, 
 // CapManageProvisioning_getApprovedRequests_Params_Future is a wrapper for a CapManageProvisioning_getApprovedRequests_Params promised by a client call.
 type CapManageProvisioning_getApprovedRequests_Params_Future struct{ *capnp.Future }
 
-func (p CapManageProvisioning_getApprovedRequests_Params_Future) Struct() (CapManageProvisioning_getApprovedRequests_Params, error) {
-	s, err := p.Future.Struct()
-	return CapManageProvisioning_getApprovedRequests_Params(s), err
+func (f CapManageProvisioning_getApprovedRequests_Params_Future) Struct() (CapManageProvisioning_getApprovedRequests_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapManageProvisioning_getApprovedRequests_Params(p.Struct()), err
 }
 
 type CapManageProvisioning_getApprovedRequests_Results capnp.Struct
@@ -1630,9 +1779,9 @@ func NewCapManageProvisioning_getApprovedRequests_Results_List(s *capnp.Segment,
 // CapManageProvisioning_getApprovedRequests_Results_Future is a wrapper for a CapManageProvisioning_getApprovedRequests_Results promised by a client call.
 type CapManageProvisioning_getApprovedRequests_Results_Future struct{ *capnp.Future }
 
-func (p CapManageProvisioning_getApprovedRequests_Results_Future) Struct() (CapManageProvisioning_getApprovedRequests_Results, error) {
-	s, err := p.Future.Struct()
-	return CapManageProvisioning_getApprovedRequests_Results(s), err
+func (f CapManageProvisioning_getApprovedRequests_Results_Future) Struct() (CapManageProvisioning_getApprovedRequests_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapManageProvisioning_getApprovedRequests_Results(p.Struct()), err
 }
 
 type CapManageProvisioning_getPendingRequests_Params capnp.Struct
@@ -1695,9 +1844,9 @@ func NewCapManageProvisioning_getPendingRequests_Params_List(s *capnp.Segment, s
 // CapManageProvisioning_getPendingRequests_Params_Future is a wrapper for a CapManageProvisioning_getPendingRequests_Params promised by a client call.
 type CapManageProvisioning_getPendingRequests_Params_Future struct{ *capnp.Future }
 
-func (p CapManageProvisioning_getPendingRequests_Params_Future) Struct() (CapManageProvisioning_getPendingRequests_Params, error) {
-	s, err := p.Future.Struct()
-	return CapManageProvisioning_getPendingRequests_Params(s), err
+func (f CapManageProvisioning_getPendingRequests_Params_Future) Struct() (CapManageProvisioning_getPendingRequests_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapManageProvisioning_getPendingRequests_Params(p.Struct()), err
 }
 
 type CapManageProvisioning_getPendingRequests_Results capnp.Struct
@@ -1783,9 +1932,9 @@ func NewCapManageProvisioning_getPendingRequests_Results_List(s *capnp.Segment, 
 // CapManageProvisioning_getPendingRequests_Results_Future is a wrapper for a CapManageProvisioning_getPendingRequests_Results promised by a client call.
 type CapManageProvisioning_getPendingRequests_Results_Future struct{ *capnp.Future }
 
-func (p CapManageProvisioning_getPendingRequests_Results_Future) Struct() (CapManageProvisioning_getPendingRequests_Results, error) {
-	s, err := p.Future.Struct()
-	return CapManageProvisioning_getPendingRequests_Results(s), err
+func (f CapManageProvisioning_getPendingRequests_Results_Future) Struct() (CapManageProvisioning_getPendingRequests_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapManageProvisioning_getPendingRequests_Results(p.Struct()), err
 }
 
 type CapRequestProvisioning capnp.Client
@@ -1810,12 +1959,34 @@ func (c CapRequestProvisioning) SubmitProvisioningRequest(ctx context.Context, p
 	return CapRequestProvisioning_submitProvisioningRequest_Results_Future{Future: ans.Future()}, release
 }
 
+// String returns a string that identifies this capability for debugging
+// purposes.  Its format should not be depended on: in particular, it
+// should not be used to compare clients.  Use IsSame to compare clients
+// for equality.
+func (c CapRequestProvisioning) String() string {
+	return fmt.Sprintf("%T(%v)", c, capnp.Client(c))
+}
+
+// AddRef creates a new Client that refers to the same capability as c.
+// If c is nil or has resolved to null, then AddRef returns nil.
 func (c CapRequestProvisioning) AddRef() CapRequestProvisioning {
 	return CapRequestProvisioning(capnp.Client(c).AddRef())
 }
 
+// Release releases a capability reference.  If this is the last
+// reference to the capability, then the underlying resources associated
+// with the capability will be released.
+//
+// Release will panic if c has already been released, but not if c is
+// nil or resolved to null.
 func (c CapRequestProvisioning) Release() {
 	capnp.Client(c).Release()
+}
+
+// Resolve blocks until the capability is fully resolved or the Context
+// expires.
+func (c CapRequestProvisioning) Resolve(ctx context.Context) error {
+	return capnp.Client(c).Resolve(ctx)
 }
 
 func (c CapRequestProvisioning) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
@@ -1826,11 +1997,34 @@ func (CapRequestProvisioning) DecodeFromPtr(p capnp.Ptr) CapRequestProvisioning 
 	return CapRequestProvisioning(capnp.Client{}.DecodeFromPtr(p))
 }
 
+// IsValid reports whether c is a valid reference to a capability.
+// A reference is invalid if it is nil, has resolved to null, or has
+// been released.
 func (c CapRequestProvisioning) IsValid() bool {
 	return capnp.Client(c).IsValid()
 }
 
-// A CapRequestProvisioning_Server is a CapRequestProvisioning with a local implementation.
+// IsSame reports whether c and other refer to a capability created by the
+// same call to NewClient.  This can return false negatives if c or other
+// are not fully resolved: use Resolve if this is an issue.  If either
+// c or other are released, then IsSame panics.
+func (c CapRequestProvisioning) IsSame(other CapRequestProvisioning) bool {
+	return capnp.Client(c).IsSame(capnp.Client(other))
+}
+
+// Update the flowcontrol.FlowLimiter used to manage flow control for
+// this client. This affects all future calls, but not calls already
+// waiting to send. Passing nil sets the value to flowcontrol.NopLimiter,
+// which is also the default.
+func (c CapRequestProvisioning) SetFlowLimiter(lim fc.FlowLimiter) {
+	capnp.Client(c).SetFlowLimiter(lim)
+}
+
+// Get the current flowcontrol.FlowLimiter used to manage flow control
+// for this client.
+func (c CapRequestProvisioning) GetFlowLimiter() fc.FlowLimiter {
+	return capnp.Client(c).GetFlowLimiter()
+} // A CapRequestProvisioning_Server is a CapRequestProvisioning with a local implementation.
 type CapRequestProvisioning_Server interface {
 	SubmitProvisioningRequest(context.Context, CapRequestProvisioning_submitProvisioningRequest) error
 }
@@ -2008,9 +2202,9 @@ func NewCapRequestProvisioning_submitProvisioningRequest_Params_List(s *capnp.Se
 // CapRequestProvisioning_submitProvisioningRequest_Params_Future is a wrapper for a CapRequestProvisioning_submitProvisioningRequest_Params promised by a client call.
 type CapRequestProvisioning_submitProvisioningRequest_Params_Future struct{ *capnp.Future }
 
-func (p CapRequestProvisioning_submitProvisioningRequest_Params_Future) Struct() (CapRequestProvisioning_submitProvisioningRequest_Params, error) {
-	s, err := p.Future.Struct()
-	return CapRequestProvisioning_submitProvisioningRequest_Params(s), err
+func (f CapRequestProvisioning_submitProvisioningRequest_Params_Future) Struct() (CapRequestProvisioning_submitProvisioningRequest_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapRequestProvisioning_submitProvisioningRequest_Params(p.Struct()), err
 }
 
 type CapRequestProvisioning_submitProvisioningRequest_Results capnp.Struct
@@ -2096,11 +2290,10 @@ func NewCapRequestProvisioning_submitProvisioningRequest_Results_List(s *capnp.S
 // CapRequestProvisioning_submitProvisioningRequest_Results_Future is a wrapper for a CapRequestProvisioning_submitProvisioningRequest_Results promised by a client call.
 type CapRequestProvisioning_submitProvisioningRequest_Results_Future struct{ *capnp.Future }
 
-func (p CapRequestProvisioning_submitProvisioningRequest_Results_Future) Struct() (CapRequestProvisioning_submitProvisioningRequest_Results, error) {
-	s, err := p.Future.Struct()
-	return CapRequestProvisioning_submitProvisioningRequest_Results(s), err
+func (f CapRequestProvisioning_submitProvisioningRequest_Results_Future) Struct() (CapRequestProvisioning_submitProvisioningRequest_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapRequestProvisioning_submitProvisioningRequest_Results(p.Struct()), err
 }
-
 func (p CapRequestProvisioning_submitProvisioningRequest_Results_Future) Status() ProvisionStatus_Future {
 	return ProvisionStatus_Future{Future: p.Future.Field(0, nil)}
 }
@@ -2127,12 +2320,34 @@ func (c CapRefreshProvisioning) RefreshDeviceCert(ctx context.Context, params fu
 	return CapRefreshProvisioning_refreshDeviceCert_Results_Future{Future: ans.Future()}, release
 }
 
+// String returns a string that identifies this capability for debugging
+// purposes.  Its format should not be depended on: in particular, it
+// should not be used to compare clients.  Use IsSame to compare clients
+// for equality.
+func (c CapRefreshProvisioning) String() string {
+	return fmt.Sprintf("%T(%v)", c, capnp.Client(c))
+}
+
+// AddRef creates a new Client that refers to the same capability as c.
+// If c is nil or has resolved to null, then AddRef returns nil.
 func (c CapRefreshProvisioning) AddRef() CapRefreshProvisioning {
 	return CapRefreshProvisioning(capnp.Client(c).AddRef())
 }
 
+// Release releases a capability reference.  If this is the last
+// reference to the capability, then the underlying resources associated
+// with the capability will be released.
+//
+// Release will panic if c has already been released, but not if c is
+// nil or resolved to null.
 func (c CapRefreshProvisioning) Release() {
 	capnp.Client(c).Release()
+}
+
+// Resolve blocks until the capability is fully resolved or the Context
+// expires.
+func (c CapRefreshProvisioning) Resolve(ctx context.Context) error {
+	return capnp.Client(c).Resolve(ctx)
 }
 
 func (c CapRefreshProvisioning) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
@@ -2143,11 +2358,34 @@ func (CapRefreshProvisioning) DecodeFromPtr(p capnp.Ptr) CapRefreshProvisioning 
 	return CapRefreshProvisioning(capnp.Client{}.DecodeFromPtr(p))
 }
 
+// IsValid reports whether c is a valid reference to a capability.
+// A reference is invalid if it is nil, has resolved to null, or has
+// been released.
 func (c CapRefreshProvisioning) IsValid() bool {
 	return capnp.Client(c).IsValid()
 }
 
-// A CapRefreshProvisioning_Server is a CapRefreshProvisioning with a local implementation.
+// IsSame reports whether c and other refer to a capability created by the
+// same call to NewClient.  This can return false negatives if c or other
+// are not fully resolved: use Resolve if this is an issue.  If either
+// c or other are released, then IsSame panics.
+func (c CapRefreshProvisioning) IsSame(other CapRefreshProvisioning) bool {
+	return capnp.Client(c).IsSame(capnp.Client(other))
+}
+
+// Update the flowcontrol.FlowLimiter used to manage flow control for
+// this client. This affects all future calls, but not calls already
+// waiting to send. Passing nil sets the value to flowcontrol.NopLimiter,
+// which is also the default.
+func (c CapRefreshProvisioning) SetFlowLimiter(lim fc.FlowLimiter) {
+	capnp.Client(c).SetFlowLimiter(lim)
+}
+
+// Get the current flowcontrol.FlowLimiter used to manage flow control
+// for this client.
+func (c CapRefreshProvisioning) GetFlowLimiter() fc.FlowLimiter {
+	return capnp.Client(c).GetFlowLimiter()
+} // A CapRefreshProvisioning_Server is a CapRefreshProvisioning with a local implementation.
 type CapRefreshProvisioning_Server interface {
 	RefreshDeviceCert(context.Context, CapRefreshProvisioning_refreshDeviceCert) error
 }
@@ -2289,9 +2527,9 @@ func NewCapRefreshProvisioning_refreshDeviceCert_Params_List(s *capnp.Segment, s
 // CapRefreshProvisioning_refreshDeviceCert_Params_Future is a wrapper for a CapRefreshProvisioning_refreshDeviceCert_Params promised by a client call.
 type CapRefreshProvisioning_refreshDeviceCert_Params_Future struct{ *capnp.Future }
 
-func (p CapRefreshProvisioning_refreshDeviceCert_Params_Future) Struct() (CapRefreshProvisioning_refreshDeviceCert_Params, error) {
-	s, err := p.Future.Struct()
-	return CapRefreshProvisioning_refreshDeviceCert_Params(s), err
+func (f CapRefreshProvisioning_refreshDeviceCert_Params_Future) Struct() (CapRefreshProvisioning_refreshDeviceCert_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapRefreshProvisioning_refreshDeviceCert_Params(p.Struct()), err
 }
 
 type CapRefreshProvisioning_refreshDeviceCert_Results capnp.Struct
@@ -2377,109 +2615,109 @@ func NewCapRefreshProvisioning_refreshDeviceCert_Results_List(s *capnp.Segment, 
 // CapRefreshProvisioning_refreshDeviceCert_Results_Future is a wrapper for a CapRefreshProvisioning_refreshDeviceCert_Results promised by a client call.
 type CapRefreshProvisioning_refreshDeviceCert_Results_Future struct{ *capnp.Future }
 
-func (p CapRefreshProvisioning_refreshDeviceCert_Results_Future) Struct() (CapRefreshProvisioning_refreshDeviceCert_Results, error) {
-	s, err := p.Future.Struct()
-	return CapRefreshProvisioning_refreshDeviceCert_Results(s), err
+func (f CapRefreshProvisioning_refreshDeviceCert_Results_Future) Struct() (CapRefreshProvisioning_refreshDeviceCert_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapRefreshProvisioning_refreshDeviceCert_Results(p.Struct()), err
 }
-
 func (p CapRefreshProvisioning_refreshDeviceCert_Results_Future) Status() ProvisionStatus_Future {
 	return ProvisionStatus_Future{Future: p.Future.Field(0, nil)}
 }
 
-const schema_9579ece206ee504b = "x\xda\xacV\x7fhU\xe5\x1b\x7f\x9e\xf7=g\xe7\x1e" +
-	"\xd8t\xef\xf7L\xf8\xa6\xd9P\x16\xa91\xdb\x9c\x92J" +
-	"\xb2\xdd\xcd!\xd3\x86\xe7\xdci\x98(tv\xef\xeb\xbc" +
-	"\xb0\x1fw\xe7\x9c\xbbZPR\xa6\xb1\x91\x05\x96\x14F" +
-	"\x05\x92\x04ATZ\x96\xd9\xc4\xfcQ&\x05*eF" +
-	"V\xba\xb2RLQ\x12#\x8c\x13\xef9;gg\xbb" +
-	"\x9b\xde\x96\xff\x1d\xce\xf3y\x9f\x1f\x9f\xe7g\xc5\x9f\xb4" +
-	"F\xaa,zC\x05bd\xe4\x02\xb7\xe7\xe5\x93\x07\x9d" +
-	"\xfeg\xd6\x03\xab@\x00I\x01\xa8\xda-\xcd\" \xb9" +
-	";_\x8a\xa7\xce\xaf~\xfc\xa9\x88\xe4])!$\xbd" +
-	"\xb37\xef\xdd\xbf\xe3R/\xb0\x19\x81\xe4-\xa9VH" +
-	"\x8e\xbdX6\xa9\xe1\x95\x03\xcf\xfaod\x14\xa2\xed\xd2" +
-	"\x0c\x02\xa8\xf5I\xd5\x80n\xe61g\xf27\x19\xf9\x05" +
-	"`\x13\xa9\xbbD\xbfX\xd0\x7f\xa1{\x0b\x00V]\x96" +
-	"zQSe\x05@\x93\xe5E\xda\x1c\xf1\xe5\xeeMV" +
-	"\x1d\xb9\xa4\xd8;r\xd0\x93\xe5\x04j\x95\x1e\xba\\\xfe" +
-	"L\xeb\xf3\xd0w(\x17\xc7o\xdf$}0\xc4\xb8<" +
-	"\xcb3.\x0b\xe3\x7f}\xbf\xe1\x97\xe2\x13\xea\x10\xc0\x19" +
-	"y\xa5\x00\xfc\xed\x01\xcaR_\x97\xef\xdawj\x0f\xb0" +
-	"J\x01\xa0\x02PY\xb0Y\x00\x8c\x82\xb7\x01\xdd\xd7O" +
-	"\xde\xfd\xc0\xfa\xdd\x15\xfbr\x1c\xbaZ\xd0\x8bZ\x91\"" +
-	"\x1cR\x95E\xda\x02\xf1\xe5~\xba*\xb5\xfb\xda\x02\xe7" +
-	"\xc0\x80:\xcf\xde\x9d\xcaV\xa1\xae^\x11\xf6\xf6\xbc\xb6" +
-	"\xff\x87\xdb\xfa\x8e\x1c\xcaQ\xc7\x95'Q\xeb\x16J\xaa" +
-	"\xb2\x8a\x82ZyL\xe8\xdb\xa2\xd8\xca\x8a\xe5\xf3ND" +
-	"x\x9f\x10\xf3x\xbf6\xe5\x7f\xb53w\xd6\x7f\x17\xb5" +
-	"T\x14\xf3\"\x9b\x1e\x13\x96\x1a{\x8f\xc5\xcf\xael;" +
-	"\x1dIf\x83\x90K\xaev\xfc\x93U\x1f:\x9d\xa7\xa3" +
-	"O\xebc\x09\xf1\xd4\xf4\x9e\xceP\xf5\xb9\xad\x13Z\xfb" +
-	"#O\x9f\x88\xcd\x17O\xb7\xc5\x7f\x8c\xf7=\xbd\xfa\xa7" +
-	"(\x9f\xdd\xb1f\xf1t\x8b\xf7\xf4\xc2\xc6i\xbb~=" +
-	"\xba\xecw\xdfa\x1f\xf0yl\xb1\x00\x9c\xf5\x00\xda\xa1" +
-	"s=M\xcfo\xba\x12\x05\xc8\xaa\x07\x98\xa2\x0a\xc0\xf1" +
-	"+s\x95w\xbe \x7fD\x01q\xb5V\x00\x1e\xf4\x00" +
-	"\x17_e\x13\xf6\xdc\xf5\xc8U`\x13q\x90B\x99x" +
-	"\xbe\xa8SQ\xebQER6\xa8\x0f\x03\xba\xf36N" +
-	":w\x9e\xde{=B\xe09\xd5\x0b%\xf5\xe6oK" +
-	"\xfbw\xf6\\\x07c\"F\xf5\xc8^\x8d\xa8\x09\xd4\xae" +
-	"\x0a=U\x97\xd5\xe7\x10\xca\xdd\xb5\xd9f3\x93\xbeG" +
-	"W\xac\x8e\xae\xb4\x9d\xeehO\xb7\xb7\xccL\x9a\x99\xf6" +
-	"\xcc\xfc:3\xd3h\xb6\x9b-\\\x8f\xca\xccTj\xe9" +
-	"\xd2\xda&\x9e\xb4\xb8c\x97%x\xa9\x9dmu\xecP" +
-	"O,_=-\xdc\xd1y{*\xdd\xde\x92\xe0\x9dY" +
-	"n;v\x99nZf\x1b\x0e\xea*\x1eQ\x97>\xec" +
-	"o\x82\xaf\xb1\xb8\xbd6\xfa\xdb\xd7dC\xa0hl\xb1" +
-	"\xe9\xe6x\xa1\xc5\x90\xa8\x04 !\x00+Z\x09`\x14" +
-	"R4\xa6\x11t;:\x9a=$P\xc7\xc6q\x80:" +
-	"E,\x1e\xcc\"\xa0\xf8\x19\xc6\"\x8f\xe8\xc3\x08\xbe\x03" +
-	"\xe8\x88\x86De\x80\xb0\xa21\xe8\x0a\xc66\x03aE" +
-	"\x8ak\xf9\x0f\x17\"\xefJ'y\x1d\xb7\xd0\xa9A\x1d" +
-	"\x07\xedI7\xe3\x0e[\x84\x9dB\xcfNPM\x18\x14" +
-	")3v\x00a\x8d\x0ab\xd8\xaa\x18T8\x8b\x7f\x04" +
-	"\x84-P\x90\x84\xe3\x13\x83\xf6`\x95BV\xae\xb8\xc9" +
-	"\x01~1 \xb8\xd4\xf3\xa4\x06]/c\x9dY\x8e\xb6" +
-	"\xe3\x8b\xaa\xd3CDk,\x8e\x01#\xa1(\x1aY\xfe" +
-	"\x95\x9a\xc9X\x1d]|\xa0\xbc\xca\xf4Rsx:\x17" +
-	"\x0f\xa4\xf3\xff\x04\xdd\x94\xc7d\xc3B\x00\xc0B X" +
-	"\x18I\xde\x7f)\xea\x04\xb7\xb3\xad\xd4\x19\xd1\xae(#" +
-	"k\x00(\xec\x86U\x146\xf1\xb0*RG\xa9\"O" +
-	"\xc5\x10O\xecls[z\xc8\xaf\x90\x07\xbf\xcb\x8c\xc2" +
-	"\xd0\x9fz\xe1\xcfB\x8a\x86N\x90!\x96\xa0\xf8\xd9\x98" +
-	"\x000\xee\xa7h\xac \xc8\x08)A\x02\xc0\x96\x8b\x9f" +
-	"\xcb(\x1a\x0f\x8d\xc2X[j\x8e\xdf\x14\xe8\x84\xff2" +
-	"\xd9\xe6%\xbc[\xaf\x07l\xccaV\xce7\xa0h[" +
-	"\x04\xcb\x0d\x83\xb5\xc4\xd8q \x8c)n\x105\x19\x1e" +
-	"\xf6\xf0\xf6\xb8\x15D\x8e\x94\xd9\xf9\x00F\x8c\xa2QB" +
-	"\xb0\xdavL'k\x0f\xcbf\xf1M\x83\xcf-+/" +
-	"\xf4b/\xf4\xe0,\xc1\xe0\xdaa\x9d\x16\x10\x96\x16\x9d" +
-	"\x1a\\\x0d\x18\xec9\xb6\xfaQ l\xb9\xe8\xd4`k" +
-	"b\xb0\xe9X\xc36 \xac^A\x1a\x9eG\x18\\\x15" +
-	"l\xdeV l\x8e\xe2\x06\xf3\x10J\xbd\x89X\x83n" +
-	"\xd0SP\xed\x93P\x83n\x0bw\xe2\xe2/v\xf1\x94" +
-	"G\x8db{\xd0\xa0\x170`\x8c\x8a\xdf\xd1$\xb0<" +
-	"\xe7{NR\xf2\x9a\xef#\xcc\xd6\x99\xc1\xd8\x0c\xa6\xe6" +
-	"-H\xe2\xbf\x99\x0dq\x9f\xbd\xd4\x90\x8dG\xdbn\xb6" +
-	"=\xf3\x8b$\xe8\xebH \xb5\x83\x81\xacKr\xcb\xd1" +
-	"\xebs;p\xac\xe34Q\xcd\xc7\xbe\xf9s\x88\x10i" +
-	"PZo\xd1\x94\x8c\x8d\xf9nH\xf81\x01D\xfd\x98" +
-	":\xc8\xa2\x9243\xc8\x06o\x7f@dc0\x9c[" +
-	"\xd0y\x1a\x0e\xaf\xf61\x19\xce\xcdEh\xf7\xc6f\xc3" +
-	"\xeb~\x98Y\x9ak\xd6\xbf\x9f\x14\x8b;bh\xc5B" +
-	"\xad\xd3E6\xa7Q4fGvL\xa5X'\x15\x14" +
-	"\x8d\xfbFY'\xe1\x8d\x15Y'7.\xdc<b\xae" +
-	"\xf6\xa7\xc7\x8dN\xa5\x10\xdf$\xda\x1fm\x11\xcb\xeda" +
-	",\xef\x8bX\xde\xa3h\xec\x8b\xc4\xd2'b\xf9\x98\xa2" +
-	"q8\xb2/\x0fY\x00\xc6A\x8a\xc6Q\x82HK\x90" +
-	"\x02\xb0/EW\x1e\xa6h|E\x90I\xb4\x04%\x00" +
-	"vL\xbc>J\xd18E\x90\x15`\x09\xca\x88\xec[" +
-	"a\xe7$E\xe3g\x82L\x96J\xb0\x00\x80\x9di\x06" +
-	"0NS4.\x8c\xc2Y\xd2\xac\xf3Z=\xban\x93" +
-	"\xadi\xde\xee\xd4q(\x1d2\x04\xd6e\xfcc\x05\x11" +
-	"\x08\xe2(\xab\xda\xe2\x8e\xd5\xdd\xc4\x93\xc2\x86\x04\xa4R" +
-	"*\x1e\x07aC.\x03%\xdd\xc6\x03\xec?\x01\x00\x00" +
-	"\xff\xffU'\xcbK"
+const schema_9579ece206ee504b = "x\xda\xacW{l\x14\xd5\x1a\xff\xbesfvv\xdb" +
+	"\x02=wK.\x17.\xb7\x81\x94\\D\xc1\x96B\xa4" +
+	"D\xd2nKC\x0a6\xccl\x81\x10B\x13\xa7\xbb\x87" +
+	"\xb2I\x1f\xdb\x99\xd9jI\x90 \x82\xa1\x01MP\xa2" +
+	"\xc1\xa0\x91\xe8?\xfe\xa3\x82\xa0\x88%\xbc\xaa\x84hB" +
+	"\x89\"DT\xa8\"Bx\x04\xa2!\x1a\x921g\xa6" +
+	"3\x9dv[\xa8\x95\xff&\xe7\xfc\xce\xf7\xf8}\xcf)" +
+	"^$UH%c\xc6\xe5\x01\xd1\xb6\xc9!{\xeb\x1b" +
+	"\xe7NX\xbd\xdb6\x01+F\x00I\x01(\xbd!\xcf" +
+	"& \xd9\xfb^\x8f%\xaf\xd5?\xf7B\xe0\xe6\xb2\x1c" +
+	"\x177\x9dsv\x1c>\xb6\xf7V'\xb0\x19\xde\xcd%" +
+	"\xb9R\xdc\xf4\xbcV4\xa9f\xf7\xf1\x97\xdc72\x8a" +
+	"\xab\xf3\xf2\x0c\x02\x18\xbd-\x97\x03\xda\xe9\xf5\xd6\xe4o" +
+	"\xd3\xf2\xab\xc0&R{\x89z3\xd4{\xbdc'\x00" +
+	"\x96N\x0bubtAH\x01\x88\x96\x85\x16ES\xe2" +
+	"\xcb>\x9c(=uK1\xf7f\xa1\xb5P\x1c\xa3\xdc" +
+	"A\xeb\xa1/\xa2\xb7C\xff\x06\xb0\xff\xa7\xdc\x1c\xf7\xee" +
+	"v\xe9\xe3\xa0\xf2K\xa1\xd9B\xf9\x1f!\xa1\xfc\xcf\xef" +
+	"7\xff\x92\x7f62\x000YY%\x00e\x8a\x00\x14" +
+	"%\xbf\x99y\xe0\xc8\x85C\xc0J\x04\x80\x0a@\xb3\xb2" +
+	"C\x00\xb6+\xef\x03\xda\xef\x9c{t\xc5\xa6\x83\xc5G" +
+	"\xb2\x0c*\x09wb\xb4&,\x0c\xaa\x0e/\x8av\x88" +
+	"/\xfb\xf3\xd5\xc9\x83w\x17X\xc7\xfb\xc49\xfa\xf4\xf0" +
+	".!ncX\xe8;\xf4\xd6\xb1\x1f\xfe\xd3u\xaa;" +
+	"K\xdc\xdb\xe1\xe71\xba_\x08)\xfd0\xac`4\x15" +
+	"\x11\xf2v*\xa6\xb2ry\xd9\xd9\x00\xefZ\xc4\xe1\xfd" +
+	"\xee\x94\x7fU\xce\xdaW\xfd]PSM\xc4\xf1\x8cG" +
+	"\x84\xa6\xda\xce\x9e\xd8\xe5U\xcd\x17\x03\xc1\xdc,\xee%" +
+	";z\xe6\xe8\xeaO\xac\xb6\x8b\xc1\xa7\x1b#q\xf1t" +
+	"\xb7\xf3tFD\x9d\xd74\xbe\xa97\xf0\xb4+2_" +
+	"<\xdd\x13\xfb1\xd6\xf5b\xfdOA>\xf7G\x1a\xc4" +
+	"\xd3\x1e\xe7\xe9\xf5-\xd3\x0f\\9\xbd\xec\x86k\xb0\x0b" +
+	"\x90s\x16\x0b\xc0\x94\x1c\x01\x88v_\xddZ\xf7\xca\xf6" +
+	";A@\xcc\x05\xd4;\x803w\xe6)\x1f|I~" +
+	"\x0b\x02\xd6\xe7T\x0a\xc0N\x07p\xf3M6\xfe\xd0\xff" +
+	"\x9f\xfd\x1d\xd8D\xec\xa7P&\x8e-9S1\xda\x9d" +
+	"#\x82r4\xe7\x19@\xbbl\xcb\xa4\xab\xd7\xe8\x13\xf7" +
+	"\x02\x04N\xcbu\\I\xbe\xf7\xeb\xd2\xde}[\xef\x81" +
+	"6\x11\x83rd'Gr\xe3\x18-\xc9\x15\x9f3s" +
+	"_FXg\xaf\xcd4\xe8\xe9\xd4\xe3\xaab\xb4\xb6\xa7" +
+	"\xccTkK\xaa\xa5qVBO\xb7\xa4\xe7W\xe9\xe9" +
+	"Z\xbdEo\xe4j\xf0NO&\x97.\xad\xac\xe3\x09" +
+	"\x83[fQ\x9c\x17\x9a\x99&\xcb\xf4\xe5\x84G*\xa7" +
+	"\x91[*oI\xa6Z\x1a\xe3\xbc-\xc3M\xcb,R" +
+	"uCo\xc6~Y\xf9C\xcaR\x07\x9d\xc6\xf9\x1a\x83" +
+	"\x9bk\x83\xc7\xae$\x13<A\xa3\xf3M\xd5\xc7\x09)" +
+	"\x9aD%\x00\x09\x01\xd8\x98U\x00Z\x1eEm:A" +
+	"\xbb\xb5\xb5\xc1A\x02\xb5L\x1c\x0b\xa8R\xc4\xfc\xfe(" +
+	"\x02\x8aC\xdf\x17yH\x1b\x86\xb0\x1d@E\xd4$*" +
+	"\x03\xf8\x19\x8d^U0\xb6\x03\x08\x1b\xa3\xd8\x86\xfbp" +
+	"!\xf2\xf6T\x82Wq\x03\xad\x0aT\xb1_\x9f\xf4 " +
+	"\xee\xb0Q\xe8\xc9s\xf4x\xd9\x84^\x922m/\x10" +
+	"V\xab \xfa\xa5\x8a^\x86\xb3\xd8\xa7@\xd8\x02\x05\x89" +
+	"\xdf>\xd1+\x0fV\"\xeef*v\xa2\x8f_\xf4\x08" +
+	".t,\xa9@\xdb\x89X[\x86\xa3i\xb9W\xe5\xa9" +
+	"\x01Wk\x0c\x8e\x1e#\xfe\x95&!\xda\xc7\xf6\xa8+" +
+	"\xee=6\xe1\x0a\x00\x8c\"m\xd3i\xa3\xb5\x9d\xf7\xe5" +
+	"Z\x91Z\xa8\x0f\x8e\xed\xe2\xbe\xd8N h'\x1dZ" +
+	"k\x16\x02\x00\xe6\x01\xc1\xbc@$\xffI\x86\xc7\xb9\x99" +
+	"i\xa2\xd6\x90zEN\x19}@\xa1\xd7O)\xbf\xa2" +
+	"\x07\xa5Td\x98\x94rD\x0c\xb0\xc4\xcc44\xa7\x06" +
+	"\x1c\xf9<\xb8%\xa7\xe5\xf9\xf6T\x0b{\x16R\xd4T" +
+	"\x82\x0c\xb1\x00\xc5am\x1c@{\x8a\xa2\xb6\x92 #" +
+	"\xa4\x00\x09\x00[.\x0e\x97Q\xd4\x9e\x1e\x86\xb1\xe6\xe4" +
+	"\\\xb7B\xd0\xf2\xcf\xd2\x99\x86%\xbcC\xad\x06\xac\xcd" +
+	"bV\x1e\xa9C\xc1\x1a\xf1&\x1dz3\x8a\xb13@" +
+	"\x18Sl\xcfk2\xd8\xed\xc1\xb5\xf20\x88\x1c*\xb2" +
+	"\xf3\x01\xb40E\xad\x80`\xb9i\xe9V\xc6\x1c\x14\xcd" +
+	"\xfc\x07:\x9f\x9dV\x8e\xeb\xf9\x8e\xeb\xde\x8e\x82\xde\xea" +
+	"\xc3\xda\x0c ,%\xca\xd6[!\xd0\x1bz\xac~\x1d" +
+	"\x10\xb6\\\x94\xad7B\xd1\x1b{\xacf\x0f\x10V\xad" +
+	" \xf5w%\xf4V\x0cV\xb6\x0b\x08\x9b\xab\xd8^s" +
+	"\x84B\xa7=V\xa0\xed\xd5\x14\x94\xbb$T\xa0\xdd\xc8" +
+	"\xad\x988\xc5v\x9et\xa8QL\x07\xea\xd5\x02z\x8c" +
+	"Qq\x1c\x0c\x02\x1ba\xb3\xcf\x0a\xca\x88\x9a\xfd\x10\x8d" +
+	"v\x96\xd7C\xbd\x16\xfa\x10\x82\xf8wzC\xcce/" +
+	"9`\xfc\xd1\xe6\x07\x8d\xd2\x91y\xe2\xd5u\xc0\x91\xca" +
+	"~G6$\xb8a\xa9\xd5\xd9\x158\xdav\x1a/\xe7" +
+	"\xa3_\x03\xb2\x88\x10aP\x9a\x1eR\x97\x0c\x8fz\x89" +
+	"\x88\xbb>\x01\x04\xed\x98\xda\xcf\xa2\x92\xd0\xd3\xc8\xfa\x7f" +
+	"\x04\x00\x91\x8dBqvB\x8fP\xb1\xbf\xc2\x8fJq" +
+	"v,|\xbd\xf7W\xeb\xaf\xfa\x83\xd4\xd2l\xb5\xee2" +
+	"\xa5\x18\xdc\x12M+\xecK}DDs:EmN" +
+	"`\xc6\x94\x88qRLQ{r\x98q\xe2/\\\x81" +
+	"qr\xff\xc4\x1d\x81\xcf\xe5n\xf7\xb8\xdf\xde\xe4\xe3\xeb" +
+	"D\xf9\xa3)|\xf9\xaf\xef\xcb~\xe1\xcbG\x14\xb5#" +
+	"\x01_\xba\x84/\x9fQ\xd4N\x06\xe6e\xb7\x01\xa0\x9d" +
+	"\xa0\xa8\x9d&\x88\xb4\x00)\x00\xfbJT\xe5I\x8a\xda" +
+	"\xd7\x04\x99D\x0bP\x02`=\xe2\xf5i\x8a\xda\x05\x82" +
+	",\x84\x05(#\xb2\xf3B\xcf9\x8a\xda\xcf\x04\x99," +
+	"\x15`\x08\x80]j\x00\xd0.R\xd4\xae\x0f\xc3YB" +
+	"\xafrJ=8n\x13M)\xdebUq(\x1c\xd0" +
+	"\x046\xa4\xdde\x05\x11\x08\xe20\xa3\xda\xe0\x96\xd1Q" +
+	"\xc7\x13B\x87\x04\xa4D\xca\x1f\x0b~A.\x03%\xd5" +
+	"\xcc=\xec_\x01\x00\x00\xff\xff4<\xd1}"
 
 func init() {
 	schemas.Register(schema_9579ece206ee504b,

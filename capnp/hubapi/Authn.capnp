@@ -4,7 +4,7 @@
 using Go = import "/go.capnp";
 $Go.package("hubapi");
 $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
-
+using Service = import "Service.capnp";
 
 const serviceName :Text = "authn";
 # ServiceName of the service used for logging and connecting
@@ -26,7 +26,7 @@ struct UserProfile {
 }
 
 
-interface CapAuthn {
+interface CapAuthn extends (Service.CapHiveOTService){
 # CapAuthn defines the interface for simple user management and authentication
 
 	capUserAuthn @0 (clientID :Text) -> (cap :CapUserAuthn);

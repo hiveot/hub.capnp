@@ -4,6 +4,7 @@
 using Go = import "/go.capnp";
 $Go.package("hubapi");
 $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
+using Service = import "Service.capnp";
 
 const certServiceName :Text = "certservice";
 # Service name for use in logging and connectivity
@@ -24,10 +25,7 @@ const defaultDeviceCertValidityDays :Int32 = 30;
 # Default validity of generated device certificates
 
 
-interface CapCerts {
-# TBD: is this the best way to break down capabilities that can be handed out?
-# or should this move to a gateway that issues capability based on auth?
-
+interface CapCerts extends (Service.CapHiveOTService){
 # Certificate service for providing capabilities
 # For management of the CA, use the CLI.
 

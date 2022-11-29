@@ -5,9 +5,11 @@ package hubapi
 import (
 	capnp "capnproto.org/go/capnp/v3"
 	text "capnproto.org/go/capnp/v3/encoding/text"
+	fc "capnproto.org/go/capnp/v3/flowcontrol"
 	schemas "capnproto.org/go/capnp/v3/schemas"
 	server "capnproto.org/go/capnp/v3/server"
 	context "context"
+	fmt "fmt"
 )
 
 // Constants defined in Authz.capnp.
@@ -111,9 +113,9 @@ func NewRoleMap_List(s *capnp.Segment, sz int32) (RoleMap_List, error) {
 // RoleMap_Future is a wrapper for a RoleMap promised by a client call.
 type RoleMap_Future struct{ *capnp.Future }
 
-func (p RoleMap_Future) Struct() (RoleMap, error) {
-	s, err := p.Future.Struct()
-	return RoleMap(s), err
+func (f RoleMap_Future) Struct() (RoleMap, error) {
+	p, err := f.Future.Ptr()
+	return RoleMap(p.Struct()), err
 }
 
 type RoleMap_Entry capnp.Struct
@@ -211,9 +213,9 @@ func NewRoleMap_Entry_List(s *capnp.Segment, sz int32) (RoleMap_Entry_List, erro
 // RoleMap_Entry_Future is a wrapper for a RoleMap_Entry promised by a client call.
 type RoleMap_Entry_Future struct{ *capnp.Future }
 
-func (p RoleMap_Entry_Future) Struct() (RoleMap_Entry, error) {
-	s, err := p.Future.Struct()
-	return RoleMap_Entry(s), err
+func (f RoleMap_Entry_Future) Struct() (RoleMap_Entry, error) {
+	p, err := f.Future.Ptr()
+	return RoleMap_Entry(p.Struct()), err
 }
 
 type Group capnp.Struct
@@ -317,11 +319,10 @@ func NewGroup_List(s *capnp.Segment, sz int32) (Group_List, error) {
 // Group_Future is a wrapper for a Group promised by a client call.
 type Group_Future struct{ *capnp.Future }
 
-func (p Group_Future) Struct() (Group, error) {
-	s, err := p.Future.Struct()
-	return Group(s), err
+func (f Group_Future) Struct() (Group, error) {
+	p, err := f.Future.Ptr()
+	return Group(p.Struct()), err
 }
-
 func (p Group_Future) MemberRoles() RoleMap_Future {
 	return RoleMap_Future{Future: p.Future.Field(1, nil)}
 }
@@ -379,13 +380,67 @@ func (c CapAuthz) CapVerifyAuthz(ctx context.Context, params func(CapAuthz_capVe
 	ans, release := capnp.Client(c).SendCall(ctx, s)
 	return CapAuthz_capVerifyAuthz_Results_Future{Future: ans.Future()}, release
 }
+func (c CapAuthz) GetCapability(ctx context.Context, params func(CapHiveOTService_getCapability_Params) error) (CapHiveOTService_getCapability_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xe7182cfc5650a2c2,
+			MethodID:      0,
+			InterfaceName: "hubapi/Service.capnp:CapHiveOTService",
+			MethodName:    "getCapability",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 4}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapHiveOTService_getCapability_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapHiveOTService_getCapability_Results_Future{Future: ans.Future()}, release
+}
+func (c CapAuthz) ListCapabilities(ctx context.Context, params func(CapHiveOTService_listCapabilities_Params) error) (CapHiveOTService_listCapabilities_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xe7182cfc5650a2c2,
+			MethodID:      1,
+			InterfaceName: "hubapi/Service.capnp:CapHiveOTService",
+			MethodName:    "listCapabilities",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapHiveOTService_listCapabilities_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapHiveOTService_listCapabilities_Results_Future{Future: ans.Future()}, release
+}
 
+// String returns a string that identifies this capability for debugging
+// purposes.  Its format should not be depended on: in particular, it
+// should not be used to compare clients.  Use IsSame to compare clients
+// for equality.
+func (c CapAuthz) String() string {
+	return fmt.Sprintf("%T(%v)", c, capnp.Client(c))
+}
+
+// AddRef creates a new Client that refers to the same capability as c.
+// If c is nil or has resolved to null, then AddRef returns nil.
 func (c CapAuthz) AddRef() CapAuthz {
 	return CapAuthz(capnp.Client(c).AddRef())
 }
 
+// Release releases a capability reference.  If this is the last
+// reference to the capability, then the underlying resources associated
+// with the capability will be released.
+//
+// Release will panic if c has already been released, but not if c is
+// nil or resolved to null.
 func (c CapAuthz) Release() {
 	capnp.Client(c).Release()
+}
+
+// Resolve blocks until the capability is fully resolved or the Context
+// expires.
+func (c CapAuthz) Resolve(ctx context.Context) error {
+	return capnp.Client(c).Resolve(ctx)
 }
 
 func (c CapAuthz) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
@@ -396,17 +451,44 @@ func (CapAuthz) DecodeFromPtr(p capnp.Ptr) CapAuthz {
 	return CapAuthz(capnp.Client{}.DecodeFromPtr(p))
 }
 
+// IsValid reports whether c is a valid reference to a capability.
+// A reference is invalid if it is nil, has resolved to null, or has
+// been released.
 func (c CapAuthz) IsValid() bool {
 	return capnp.Client(c).IsValid()
 }
 
-// A CapAuthz_Server is a CapAuthz with a local implementation.
+// IsSame reports whether c and other refer to a capability created by the
+// same call to NewClient.  This can return false negatives if c or other
+// are not fully resolved: use Resolve if this is an issue.  If either
+// c or other are released, then IsSame panics.
+func (c CapAuthz) IsSame(other CapAuthz) bool {
+	return capnp.Client(c).IsSame(capnp.Client(other))
+}
+
+// Update the flowcontrol.FlowLimiter used to manage flow control for
+// this client. This affects all future calls, but not calls already
+// waiting to send. Passing nil sets the value to flowcontrol.NopLimiter,
+// which is also the default.
+func (c CapAuthz) SetFlowLimiter(lim fc.FlowLimiter) {
+	capnp.Client(c).SetFlowLimiter(lim)
+}
+
+// Get the current flowcontrol.FlowLimiter used to manage flow control
+// for this client.
+func (c CapAuthz) GetFlowLimiter() fc.FlowLimiter {
+	return capnp.Client(c).GetFlowLimiter()
+} // A CapAuthz_Server is a CapAuthz with a local implementation.
 type CapAuthz_Server interface {
 	CapClientAuthz(context.Context, CapAuthz_capClientAuthz) error
 
 	CapManageAuthz(context.Context, CapAuthz_capManageAuthz) error
 
 	CapVerifyAuthz(context.Context, CapAuthz_capVerifyAuthz) error
+
+	GetCapability(context.Context, CapHiveOTService_getCapability) error
+
+	ListCapabilities(context.Context, CapHiveOTService_listCapabilities) error
 }
 
 // CapAuthz_NewServer creates a new Server from an implementation of CapAuthz_Server.
@@ -425,7 +507,7 @@ func CapAuthz_ServerToClient(s CapAuthz_Server) CapAuthz {
 // This can be used to create a more complicated Server.
 func CapAuthz_Methods(methods []server.Method, s CapAuthz_Server) []server.Method {
 	if cap(methods) == 0 {
-		methods = make([]server.Method, 0, 3)
+		methods = make([]server.Method, 0, 5)
 	}
 
 	methods = append(methods, server.Method{
@@ -461,6 +543,30 @@ func CapAuthz_Methods(methods []server.Method, s CapAuthz_Server) []server.Metho
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
 			return s.CapVerifyAuthz(ctx, CapAuthz_capVerifyAuthz{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xe7182cfc5650a2c2,
+			MethodID:      0,
+			InterfaceName: "hubapi/Service.capnp:CapHiveOTService",
+			MethodName:    "getCapability",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.GetCapability(ctx, CapHiveOTService_getCapability{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xe7182cfc5650a2c2,
+			MethodID:      1,
+			InterfaceName: "hubapi/Service.capnp:CapHiveOTService",
+			MethodName:    "listCapabilities",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.ListCapabilities(ctx, CapHiveOTService_listCapabilities{call})
 		},
 	})
 
@@ -604,9 +710,9 @@ func NewCapAuthz_capClientAuthz_Params_List(s *capnp.Segment, sz int32) (CapAuth
 // CapAuthz_capClientAuthz_Params_Future is a wrapper for a CapAuthz_capClientAuthz_Params promised by a client call.
 type CapAuthz_capClientAuthz_Params_Future struct{ *capnp.Future }
 
-func (p CapAuthz_capClientAuthz_Params_Future) Struct() (CapAuthz_capClientAuthz_Params, error) {
-	s, err := p.Future.Struct()
-	return CapAuthz_capClientAuthz_Params(s), err
+func (f CapAuthz_capClientAuthz_Params_Future) Struct() (CapAuthz_capClientAuthz_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapAuthz_capClientAuthz_Params(p.Struct()), err
 }
 
 type CapAuthz_capClientAuthz_Results capnp.Struct
@@ -686,11 +792,10 @@ func NewCapAuthz_capClientAuthz_Results_List(s *capnp.Segment, sz int32) (CapAut
 // CapAuthz_capClientAuthz_Results_Future is a wrapper for a CapAuthz_capClientAuthz_Results promised by a client call.
 type CapAuthz_capClientAuthz_Results_Future struct{ *capnp.Future }
 
-func (p CapAuthz_capClientAuthz_Results_Future) Struct() (CapAuthz_capClientAuthz_Results, error) {
-	s, err := p.Future.Struct()
-	return CapAuthz_capClientAuthz_Results(s), err
+func (f CapAuthz_capClientAuthz_Results_Future) Struct() (CapAuthz_capClientAuthz_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapAuthz_capClientAuthz_Results(p.Struct()), err
 }
-
 func (p CapAuthz_capClientAuthz_Results_Future) Cap() CapClientAuthz {
 	return CapClientAuthz(p.Future.Field(0, nil).Client())
 }
@@ -755,9 +860,9 @@ func NewCapAuthz_capManageAuthz_Params_List(s *capnp.Segment, sz int32) (CapAuth
 // CapAuthz_capManageAuthz_Params_Future is a wrapper for a CapAuthz_capManageAuthz_Params promised by a client call.
 type CapAuthz_capManageAuthz_Params_Future struct{ *capnp.Future }
 
-func (p CapAuthz_capManageAuthz_Params_Future) Struct() (CapAuthz_capManageAuthz_Params, error) {
-	s, err := p.Future.Struct()
-	return CapAuthz_capManageAuthz_Params(s), err
+func (f CapAuthz_capManageAuthz_Params_Future) Struct() (CapAuthz_capManageAuthz_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapAuthz_capManageAuthz_Params(p.Struct()), err
 }
 
 type CapAuthz_capManageAuthz_Results capnp.Struct
@@ -837,11 +942,10 @@ func NewCapAuthz_capManageAuthz_Results_List(s *capnp.Segment, sz int32) (CapAut
 // CapAuthz_capManageAuthz_Results_Future is a wrapper for a CapAuthz_capManageAuthz_Results promised by a client call.
 type CapAuthz_capManageAuthz_Results_Future struct{ *capnp.Future }
 
-func (p CapAuthz_capManageAuthz_Results_Future) Struct() (CapAuthz_capManageAuthz_Results, error) {
-	s, err := p.Future.Struct()
-	return CapAuthz_capManageAuthz_Results(s), err
+func (f CapAuthz_capManageAuthz_Results_Future) Struct() (CapAuthz_capManageAuthz_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapAuthz_capManageAuthz_Results(p.Struct()), err
 }
-
 func (p CapAuthz_capManageAuthz_Results_Future) Cap() CapManageAuthz {
 	return CapManageAuthz(p.Future.Field(0, nil).Client())
 }
@@ -906,9 +1010,9 @@ func NewCapAuthz_capVerifyAuthz_Params_List(s *capnp.Segment, sz int32) (CapAuth
 // CapAuthz_capVerifyAuthz_Params_Future is a wrapper for a CapAuthz_capVerifyAuthz_Params promised by a client call.
 type CapAuthz_capVerifyAuthz_Params_Future struct{ *capnp.Future }
 
-func (p CapAuthz_capVerifyAuthz_Params_Future) Struct() (CapAuthz_capVerifyAuthz_Params, error) {
-	s, err := p.Future.Struct()
-	return CapAuthz_capVerifyAuthz_Params(s), err
+func (f CapAuthz_capVerifyAuthz_Params_Future) Struct() (CapAuthz_capVerifyAuthz_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapAuthz_capVerifyAuthz_Params(p.Struct()), err
 }
 
 type CapAuthz_capVerifyAuthz_Results capnp.Struct
@@ -988,11 +1092,10 @@ func NewCapAuthz_capVerifyAuthz_Results_List(s *capnp.Segment, sz int32) (CapAut
 // CapAuthz_capVerifyAuthz_Results_Future is a wrapper for a CapAuthz_capVerifyAuthz_Results promised by a client call.
 type CapAuthz_capVerifyAuthz_Results_Future struct{ *capnp.Future }
 
-func (p CapAuthz_capVerifyAuthz_Results_Future) Struct() (CapAuthz_capVerifyAuthz_Results, error) {
-	s, err := p.Future.Struct()
-	return CapAuthz_capVerifyAuthz_Results(s), err
+func (f CapAuthz_capVerifyAuthz_Results_Future) Struct() (CapAuthz_capVerifyAuthz_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapAuthz_capVerifyAuthz_Results(p.Struct()), err
 }
-
 func (p CapAuthz_capVerifyAuthz_Results_Future) Cap() CapVerifyAuthz {
 	return CapVerifyAuthz(p.Future.Field(0, nil).Client())
 }
@@ -1019,12 +1122,34 @@ func (c CapClientAuthz) GetPermissions(ctx context.Context, params func(CapClien
 	return CapClientAuthz_getPermissions_Results_Future{Future: ans.Future()}, release
 }
 
+// String returns a string that identifies this capability for debugging
+// purposes.  Its format should not be depended on: in particular, it
+// should not be used to compare clients.  Use IsSame to compare clients
+// for equality.
+func (c CapClientAuthz) String() string {
+	return fmt.Sprintf("%T(%v)", c, capnp.Client(c))
+}
+
+// AddRef creates a new Client that refers to the same capability as c.
+// If c is nil or has resolved to null, then AddRef returns nil.
 func (c CapClientAuthz) AddRef() CapClientAuthz {
 	return CapClientAuthz(capnp.Client(c).AddRef())
 }
 
+// Release releases a capability reference.  If this is the last
+// reference to the capability, then the underlying resources associated
+// with the capability will be released.
+//
+// Release will panic if c has already been released, but not if c is
+// nil or resolved to null.
 func (c CapClientAuthz) Release() {
 	capnp.Client(c).Release()
+}
+
+// Resolve blocks until the capability is fully resolved or the Context
+// expires.
+func (c CapClientAuthz) Resolve(ctx context.Context) error {
+	return capnp.Client(c).Resolve(ctx)
 }
 
 func (c CapClientAuthz) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
@@ -1035,11 +1160,34 @@ func (CapClientAuthz) DecodeFromPtr(p capnp.Ptr) CapClientAuthz {
 	return CapClientAuthz(capnp.Client{}.DecodeFromPtr(p))
 }
 
+// IsValid reports whether c is a valid reference to a capability.
+// A reference is invalid if it is nil, has resolved to null, or has
+// been released.
 func (c CapClientAuthz) IsValid() bool {
 	return capnp.Client(c).IsValid()
 }
 
-// A CapClientAuthz_Server is a CapClientAuthz with a local implementation.
+// IsSame reports whether c and other refer to a capability created by the
+// same call to NewClient.  This can return false negatives if c or other
+// are not fully resolved: use Resolve if this is an issue.  If either
+// c or other are released, then IsSame panics.
+func (c CapClientAuthz) IsSame(other CapClientAuthz) bool {
+	return capnp.Client(c).IsSame(capnp.Client(other))
+}
+
+// Update the flowcontrol.FlowLimiter used to manage flow control for
+// this client. This affects all future calls, but not calls already
+// waiting to send. Passing nil sets the value to flowcontrol.NopLimiter,
+// which is also the default.
+func (c CapClientAuthz) SetFlowLimiter(lim fc.FlowLimiter) {
+	capnp.Client(c).SetFlowLimiter(lim)
+}
+
+// Get the current flowcontrol.FlowLimiter used to manage flow control
+// for this client.
+func (c CapClientAuthz) GetFlowLimiter() fc.FlowLimiter {
+	return capnp.Client(c).GetFlowLimiter()
+} // A CapClientAuthz_Server is a CapClientAuthz with a local implementation.
 type CapClientAuthz_Server interface {
 	GetPermissions(context.Context, CapClientAuthz_getPermissions) error
 }
@@ -1181,9 +1329,9 @@ func NewCapClientAuthz_getPermissions_Params_List(s *capnp.Segment, sz int32) (C
 // CapClientAuthz_getPermissions_Params_Future is a wrapper for a CapClientAuthz_getPermissions_Params promised by a client call.
 type CapClientAuthz_getPermissions_Params_Future struct{ *capnp.Future }
 
-func (p CapClientAuthz_getPermissions_Params_Future) Struct() (CapClientAuthz_getPermissions_Params, error) {
-	s, err := p.Future.Struct()
-	return CapClientAuthz_getPermissions_Params(s), err
+func (f CapClientAuthz_getPermissions_Params_Future) Struct() (CapClientAuthz_getPermissions_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapClientAuthz_getPermissions_Params(p.Struct()), err
 }
 
 type CapClientAuthz_getPermissions_Results capnp.Struct
@@ -1269,9 +1417,9 @@ func NewCapClientAuthz_getPermissions_Results_List(s *capnp.Segment, sz int32) (
 // CapClientAuthz_getPermissions_Results_Future is a wrapper for a CapClientAuthz_getPermissions_Results promised by a client call.
 type CapClientAuthz_getPermissions_Results_Future struct{ *capnp.Future }
 
-func (p CapClientAuthz_getPermissions_Results_Future) Struct() (CapClientAuthz_getPermissions_Results, error) {
-	s, err := p.Future.Struct()
-	return CapClientAuthz_getPermissions_Results(s), err
+func (f CapClientAuthz_getPermissions_Results_Future) Struct() (CapClientAuthz_getPermissions_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapClientAuthz_getPermissions_Results(p.Struct()), err
 }
 
 type CapManageAuthz capnp.Client
@@ -1408,12 +1556,34 @@ func (c CapManageAuthz) SetClientRole(ctx context.Context, params func(CapManage
 	return CapManageAuthz_setClientRole_Results_Future{Future: ans.Future()}, release
 }
 
+// String returns a string that identifies this capability for debugging
+// purposes.  Its format should not be depended on: in particular, it
+// should not be used to compare clients.  Use IsSame to compare clients
+// for equality.
+func (c CapManageAuthz) String() string {
+	return fmt.Sprintf("%T(%v)", c, capnp.Client(c))
+}
+
+// AddRef creates a new Client that refers to the same capability as c.
+// If c is nil or has resolved to null, then AddRef returns nil.
 func (c CapManageAuthz) AddRef() CapManageAuthz {
 	return CapManageAuthz(capnp.Client(c).AddRef())
 }
 
+// Release releases a capability reference.  If this is the last
+// reference to the capability, then the underlying resources associated
+// with the capability will be released.
+//
+// Release will panic if c has already been released, but not if c is
+// nil or resolved to null.
 func (c CapManageAuthz) Release() {
 	capnp.Client(c).Release()
+}
+
+// Resolve blocks until the capability is fully resolved or the Context
+// expires.
+func (c CapManageAuthz) Resolve(ctx context.Context) error {
+	return capnp.Client(c).Resolve(ctx)
 }
 
 func (c CapManageAuthz) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
@@ -1424,11 +1594,34 @@ func (CapManageAuthz) DecodeFromPtr(p capnp.Ptr) CapManageAuthz {
 	return CapManageAuthz(capnp.Client{}.DecodeFromPtr(p))
 }
 
+// IsValid reports whether c is a valid reference to a capability.
+// A reference is invalid if it is nil, has resolved to null, or has
+// been released.
 func (c CapManageAuthz) IsValid() bool {
 	return capnp.Client(c).IsValid()
 }
 
-// A CapManageAuthz_Server is a CapManageAuthz with a local implementation.
+// IsSame reports whether c and other refer to a capability created by the
+// same call to NewClient.  This can return false negatives if c or other
+// are not fully resolved: use Resolve if this is an issue.  If either
+// c or other are released, then IsSame panics.
+func (c CapManageAuthz) IsSame(other CapManageAuthz) bool {
+	return capnp.Client(c).IsSame(capnp.Client(other))
+}
+
+// Update the flowcontrol.FlowLimiter used to manage flow control for
+// this client. This affects all future calls, but not calls already
+// waiting to send. Passing nil sets the value to flowcontrol.NopLimiter,
+// which is also the default.
+func (c CapManageAuthz) SetFlowLimiter(lim fc.FlowLimiter) {
+	capnp.Client(c).SetFlowLimiter(lim)
+}
+
+// Get the current flowcontrol.FlowLimiter used to manage flow control
+// for this client.
+func (c CapManageAuthz) GetFlowLimiter() fc.FlowLimiter {
+	return capnp.Client(c).GetFlowLimiter()
+} // A CapManageAuthz_Server is a CapManageAuthz with a local implementation.
 type CapManageAuthz_Server interface {
 	AddThing(context.Context, CapManageAuthz_addThing) error
 
@@ -1805,9 +1998,9 @@ func NewCapManageAuthz_addThing_Params_List(s *capnp.Segment, sz int32) (CapMana
 // CapManageAuthz_addThing_Params_Future is a wrapper for a CapManageAuthz_addThing_Params promised by a client call.
 type CapManageAuthz_addThing_Params_Future struct{ *capnp.Future }
 
-func (p CapManageAuthz_addThing_Params_Future) Struct() (CapManageAuthz_addThing_Params, error) {
-	s, err := p.Future.Struct()
-	return CapManageAuthz_addThing_Params(s), err
+func (f CapManageAuthz_addThing_Params_Future) Struct() (CapManageAuthz_addThing_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapManageAuthz_addThing_Params(p.Struct()), err
 }
 
 type CapManageAuthz_addThing_Results capnp.Struct
@@ -1870,9 +2063,9 @@ func NewCapManageAuthz_addThing_Results_List(s *capnp.Segment, sz int32) (CapMan
 // CapManageAuthz_addThing_Results_Future is a wrapper for a CapManageAuthz_addThing_Results promised by a client call.
 type CapManageAuthz_addThing_Results_Future struct{ *capnp.Future }
 
-func (p CapManageAuthz_addThing_Results_Future) Struct() (CapManageAuthz_addThing_Results, error) {
-	s, err := p.Future.Struct()
-	return CapManageAuthz_addThing_Results(s), err
+func (f CapManageAuthz_addThing_Results_Future) Struct() (CapManageAuthz_addThing_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapManageAuthz_addThing_Results(p.Struct()), err
 }
 
 type CapManageAuthz_getGroup_Params capnp.Struct
@@ -1952,9 +2145,9 @@ func NewCapManageAuthz_getGroup_Params_List(s *capnp.Segment, sz int32) (CapMana
 // CapManageAuthz_getGroup_Params_Future is a wrapper for a CapManageAuthz_getGroup_Params promised by a client call.
 type CapManageAuthz_getGroup_Params_Future struct{ *capnp.Future }
 
-func (p CapManageAuthz_getGroup_Params_Future) Struct() (CapManageAuthz_getGroup_Params, error) {
-	s, err := p.Future.Struct()
-	return CapManageAuthz_getGroup_Params(s), err
+func (f CapManageAuthz_getGroup_Params_Future) Struct() (CapManageAuthz_getGroup_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapManageAuthz_getGroup_Params(p.Struct()), err
 }
 
 type CapManageAuthz_getGroup_Results capnp.Struct
@@ -2040,11 +2233,10 @@ func NewCapManageAuthz_getGroup_Results_List(s *capnp.Segment, sz int32) (CapMan
 // CapManageAuthz_getGroup_Results_Future is a wrapper for a CapManageAuthz_getGroup_Results promised by a client call.
 type CapManageAuthz_getGroup_Results_Future struct{ *capnp.Future }
 
-func (p CapManageAuthz_getGroup_Results_Future) Struct() (CapManageAuthz_getGroup_Results, error) {
-	s, err := p.Future.Struct()
-	return CapManageAuthz_getGroup_Results(s), err
+func (f CapManageAuthz_getGroup_Results_Future) Struct() (CapManageAuthz_getGroup_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapManageAuthz_getGroup_Results(p.Struct()), err
 }
-
 func (p CapManageAuthz_getGroup_Results_Future) Group() Group_Future {
 	return Group_Future{Future: p.Future.Field(0, nil)}
 }
@@ -2126,9 +2318,9 @@ func NewCapManageAuthz_getGroupRoles_Params_List(s *capnp.Segment, sz int32) (Ca
 // CapManageAuthz_getGroupRoles_Params_Future is a wrapper for a CapManageAuthz_getGroupRoles_Params promised by a client call.
 type CapManageAuthz_getGroupRoles_Params_Future struct{ *capnp.Future }
 
-func (p CapManageAuthz_getGroupRoles_Params_Future) Struct() (CapManageAuthz_getGroupRoles_Params, error) {
-	s, err := p.Future.Struct()
-	return CapManageAuthz_getGroupRoles_Params(s), err
+func (f CapManageAuthz_getGroupRoles_Params_Future) Struct() (CapManageAuthz_getGroupRoles_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapManageAuthz_getGroupRoles_Params(p.Struct()), err
 }
 
 type CapManageAuthz_getGroupRoles_Results capnp.Struct
@@ -2214,11 +2406,10 @@ func NewCapManageAuthz_getGroupRoles_Results_List(s *capnp.Segment, sz int32) (C
 // CapManageAuthz_getGroupRoles_Results_Future is a wrapper for a CapManageAuthz_getGroupRoles_Results promised by a client call.
 type CapManageAuthz_getGroupRoles_Results_Future struct{ *capnp.Future }
 
-func (p CapManageAuthz_getGroupRoles_Results_Future) Struct() (CapManageAuthz_getGroupRoles_Results, error) {
-	s, err := p.Future.Struct()
-	return CapManageAuthz_getGroupRoles_Results(s), err
+func (f CapManageAuthz_getGroupRoles_Results_Future) Struct() (CapManageAuthz_getGroupRoles_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapManageAuthz_getGroupRoles_Results(p.Struct()), err
 }
-
 func (p CapManageAuthz_getGroupRoles_Results_Future) Roles() RoleMap_Future {
 	return RoleMap_Future{Future: p.Future.Field(0, nil)}
 }
@@ -2298,9 +2489,9 @@ func NewCapManageAuthz_listGroups_Params_List(s *capnp.Segment, sz int32) (CapMa
 // CapManageAuthz_listGroups_Params_Future is a wrapper for a CapManageAuthz_listGroups_Params promised by a client call.
 type CapManageAuthz_listGroups_Params_Future struct{ *capnp.Future }
 
-func (p CapManageAuthz_listGroups_Params_Future) Struct() (CapManageAuthz_listGroups_Params, error) {
-	s, err := p.Future.Struct()
-	return CapManageAuthz_listGroups_Params(s), err
+func (f CapManageAuthz_listGroups_Params_Future) Struct() (CapManageAuthz_listGroups_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapManageAuthz_listGroups_Params(p.Struct()), err
 }
 
 type CapManageAuthz_listGroups_Results capnp.Struct
@@ -2386,9 +2577,9 @@ func NewCapManageAuthz_listGroups_Results_List(s *capnp.Segment, sz int32) (CapM
 // CapManageAuthz_listGroups_Results_Future is a wrapper for a CapManageAuthz_listGroups_Results promised by a client call.
 type CapManageAuthz_listGroups_Results_Future struct{ *capnp.Future }
 
-func (p CapManageAuthz_listGroups_Results_Future) Struct() (CapManageAuthz_listGroups_Results, error) {
-	s, err := p.Future.Struct()
-	return CapManageAuthz_listGroups_Results(s), err
+func (f CapManageAuthz_listGroups_Results_Future) Struct() (CapManageAuthz_listGroups_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapManageAuthz_listGroups_Results(p.Struct()), err
 }
 
 type CapManageAuthz_removeAll_Params capnp.Struct
@@ -2468,9 +2659,9 @@ func NewCapManageAuthz_removeAll_Params_List(s *capnp.Segment, sz int32) (CapMan
 // CapManageAuthz_removeAll_Params_Future is a wrapper for a CapManageAuthz_removeAll_Params promised by a client call.
 type CapManageAuthz_removeAll_Params_Future struct{ *capnp.Future }
 
-func (p CapManageAuthz_removeAll_Params_Future) Struct() (CapManageAuthz_removeAll_Params, error) {
-	s, err := p.Future.Struct()
-	return CapManageAuthz_removeAll_Params(s), err
+func (f CapManageAuthz_removeAll_Params_Future) Struct() (CapManageAuthz_removeAll_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapManageAuthz_removeAll_Params(p.Struct()), err
 }
 
 type CapManageAuthz_removeAll_Results capnp.Struct
@@ -2533,9 +2724,9 @@ func NewCapManageAuthz_removeAll_Results_List(s *capnp.Segment, sz int32) (CapMa
 // CapManageAuthz_removeAll_Results_Future is a wrapper for a CapManageAuthz_removeAll_Results promised by a client call.
 type CapManageAuthz_removeAll_Results_Future struct{ *capnp.Future }
 
-func (p CapManageAuthz_removeAll_Results_Future) Struct() (CapManageAuthz_removeAll_Results, error) {
-	s, err := p.Future.Struct()
-	return CapManageAuthz_removeAll_Results(s), err
+func (f CapManageAuthz_removeAll_Results_Future) Struct() (CapManageAuthz_removeAll_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapManageAuthz_removeAll_Results(p.Struct()), err
 }
 
 type CapManageAuthz_removeClient_Params capnp.Struct
@@ -2633,9 +2824,9 @@ func NewCapManageAuthz_removeClient_Params_List(s *capnp.Segment, sz int32) (Cap
 // CapManageAuthz_removeClient_Params_Future is a wrapper for a CapManageAuthz_removeClient_Params promised by a client call.
 type CapManageAuthz_removeClient_Params_Future struct{ *capnp.Future }
 
-func (p CapManageAuthz_removeClient_Params_Future) Struct() (CapManageAuthz_removeClient_Params, error) {
-	s, err := p.Future.Struct()
-	return CapManageAuthz_removeClient_Params(s), err
+func (f CapManageAuthz_removeClient_Params_Future) Struct() (CapManageAuthz_removeClient_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapManageAuthz_removeClient_Params(p.Struct()), err
 }
 
 type CapManageAuthz_removeClient_Results capnp.Struct
@@ -2698,9 +2889,9 @@ func NewCapManageAuthz_removeClient_Results_List(s *capnp.Segment, sz int32) (Ca
 // CapManageAuthz_removeClient_Results_Future is a wrapper for a CapManageAuthz_removeClient_Results promised by a client call.
 type CapManageAuthz_removeClient_Results_Future struct{ *capnp.Future }
 
-func (p CapManageAuthz_removeClient_Results_Future) Struct() (CapManageAuthz_removeClient_Results, error) {
-	s, err := p.Future.Struct()
-	return CapManageAuthz_removeClient_Results(s), err
+func (f CapManageAuthz_removeClient_Results_Future) Struct() (CapManageAuthz_removeClient_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapManageAuthz_removeClient_Results(p.Struct()), err
 }
 
 type CapManageAuthz_removeThing_Params capnp.Struct
@@ -2798,9 +2989,9 @@ func NewCapManageAuthz_removeThing_Params_List(s *capnp.Segment, sz int32) (CapM
 // CapManageAuthz_removeThing_Params_Future is a wrapper for a CapManageAuthz_removeThing_Params promised by a client call.
 type CapManageAuthz_removeThing_Params_Future struct{ *capnp.Future }
 
-func (p CapManageAuthz_removeThing_Params_Future) Struct() (CapManageAuthz_removeThing_Params, error) {
-	s, err := p.Future.Struct()
-	return CapManageAuthz_removeThing_Params(s), err
+func (f CapManageAuthz_removeThing_Params_Future) Struct() (CapManageAuthz_removeThing_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapManageAuthz_removeThing_Params(p.Struct()), err
 }
 
 type CapManageAuthz_removeThing_Results capnp.Struct
@@ -2863,9 +3054,9 @@ func NewCapManageAuthz_removeThing_Results_List(s *capnp.Segment, sz int32) (Cap
 // CapManageAuthz_removeThing_Results_Future is a wrapper for a CapManageAuthz_removeThing_Results promised by a client call.
 type CapManageAuthz_removeThing_Results_Future struct{ *capnp.Future }
 
-func (p CapManageAuthz_removeThing_Results_Future) Struct() (CapManageAuthz_removeThing_Results, error) {
-	s, err := p.Future.Struct()
-	return CapManageAuthz_removeThing_Results(s), err
+func (f CapManageAuthz_removeThing_Results_Future) Struct() (CapManageAuthz_removeThing_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapManageAuthz_removeThing_Results(p.Struct()), err
 }
 
 type CapManageAuthz_setClientRole_Params capnp.Struct
@@ -2981,9 +3172,9 @@ func NewCapManageAuthz_setClientRole_Params_List(s *capnp.Segment, sz int32) (Ca
 // CapManageAuthz_setClientRole_Params_Future is a wrapper for a CapManageAuthz_setClientRole_Params promised by a client call.
 type CapManageAuthz_setClientRole_Params_Future struct{ *capnp.Future }
 
-func (p CapManageAuthz_setClientRole_Params_Future) Struct() (CapManageAuthz_setClientRole_Params, error) {
-	s, err := p.Future.Struct()
-	return CapManageAuthz_setClientRole_Params(s), err
+func (f CapManageAuthz_setClientRole_Params_Future) Struct() (CapManageAuthz_setClientRole_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapManageAuthz_setClientRole_Params(p.Struct()), err
 }
 
 type CapManageAuthz_setClientRole_Results capnp.Struct
@@ -3046,9 +3237,9 @@ func NewCapManageAuthz_setClientRole_Results_List(s *capnp.Segment, sz int32) (C
 // CapManageAuthz_setClientRole_Results_Future is a wrapper for a CapManageAuthz_setClientRole_Results promised by a client call.
 type CapManageAuthz_setClientRole_Results_Future struct{ *capnp.Future }
 
-func (p CapManageAuthz_setClientRole_Results_Future) Struct() (CapManageAuthz_setClientRole_Results, error) {
-	s, err := p.Future.Struct()
-	return CapManageAuthz_setClientRole_Results(s), err
+func (f CapManageAuthz_setClientRole_Results_Future) Struct() (CapManageAuthz_setClientRole_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapManageAuthz_setClientRole_Results(p.Struct()), err
 }
 
 type CapVerifyAuthz capnp.Client
@@ -3073,12 +3264,34 @@ func (c CapVerifyAuthz) GetPermissions(ctx context.Context, params func(CapVerif
 	return CapVerifyAuthz_getPermissions_Results_Future{Future: ans.Future()}, release
 }
 
+// String returns a string that identifies this capability for debugging
+// purposes.  Its format should not be depended on: in particular, it
+// should not be used to compare clients.  Use IsSame to compare clients
+// for equality.
+func (c CapVerifyAuthz) String() string {
+	return fmt.Sprintf("%T(%v)", c, capnp.Client(c))
+}
+
+// AddRef creates a new Client that refers to the same capability as c.
+// If c is nil or has resolved to null, then AddRef returns nil.
 func (c CapVerifyAuthz) AddRef() CapVerifyAuthz {
 	return CapVerifyAuthz(capnp.Client(c).AddRef())
 }
 
+// Release releases a capability reference.  If this is the last
+// reference to the capability, then the underlying resources associated
+// with the capability will be released.
+//
+// Release will panic if c has already been released, but not if c is
+// nil or resolved to null.
 func (c CapVerifyAuthz) Release() {
 	capnp.Client(c).Release()
+}
+
+// Resolve blocks until the capability is fully resolved or the Context
+// expires.
+func (c CapVerifyAuthz) Resolve(ctx context.Context) error {
+	return capnp.Client(c).Resolve(ctx)
 }
 
 func (c CapVerifyAuthz) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
@@ -3089,11 +3302,34 @@ func (CapVerifyAuthz) DecodeFromPtr(p capnp.Ptr) CapVerifyAuthz {
 	return CapVerifyAuthz(capnp.Client{}.DecodeFromPtr(p))
 }
 
+// IsValid reports whether c is a valid reference to a capability.
+// A reference is invalid if it is nil, has resolved to null, or has
+// been released.
 func (c CapVerifyAuthz) IsValid() bool {
 	return capnp.Client(c).IsValid()
 }
 
-// A CapVerifyAuthz_Server is a CapVerifyAuthz with a local implementation.
+// IsSame reports whether c and other refer to a capability created by the
+// same call to NewClient.  This can return false negatives if c or other
+// are not fully resolved: use Resolve if this is an issue.  If either
+// c or other are released, then IsSame panics.
+func (c CapVerifyAuthz) IsSame(other CapVerifyAuthz) bool {
+	return capnp.Client(c).IsSame(capnp.Client(other))
+}
+
+// Update the flowcontrol.FlowLimiter used to manage flow control for
+// this client. This affects all future calls, but not calls already
+// waiting to send. Passing nil sets the value to flowcontrol.NopLimiter,
+// which is also the default.
+func (c CapVerifyAuthz) SetFlowLimiter(lim fc.FlowLimiter) {
+	capnp.Client(c).SetFlowLimiter(lim)
+}
+
+// Get the current flowcontrol.FlowLimiter used to manage flow control
+// for this client.
+func (c CapVerifyAuthz) GetFlowLimiter() fc.FlowLimiter {
+	return capnp.Client(c).GetFlowLimiter()
+} // A CapVerifyAuthz_Server is a CapVerifyAuthz with a local implementation.
 type CapVerifyAuthz_Server interface {
 	GetPermissions(context.Context, CapVerifyAuthz_getPermissions) error
 }
@@ -3253,9 +3489,9 @@ func NewCapVerifyAuthz_getPermissions_Params_List(s *capnp.Segment, sz int32) (C
 // CapVerifyAuthz_getPermissions_Params_Future is a wrapper for a CapVerifyAuthz_getPermissions_Params promised by a client call.
 type CapVerifyAuthz_getPermissions_Params_Future struct{ *capnp.Future }
 
-func (p CapVerifyAuthz_getPermissions_Params_Future) Struct() (CapVerifyAuthz_getPermissions_Params, error) {
-	s, err := p.Future.Struct()
-	return CapVerifyAuthz_getPermissions_Params(s), err
+func (f CapVerifyAuthz_getPermissions_Params_Future) Struct() (CapVerifyAuthz_getPermissions_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapVerifyAuthz_getPermissions_Params(p.Struct()), err
 }
 
 type CapVerifyAuthz_getPermissions_Results capnp.Struct
@@ -3341,163 +3577,163 @@ func NewCapVerifyAuthz_getPermissions_Results_List(s *capnp.Segment, sz int32) (
 // CapVerifyAuthz_getPermissions_Results_Future is a wrapper for a CapVerifyAuthz_getPermissions_Results promised by a client call.
 type CapVerifyAuthz_getPermissions_Results_Future struct{ *capnp.Future }
 
-func (p CapVerifyAuthz_getPermissions_Results_Future) Struct() (CapVerifyAuthz_getPermissions_Results, error) {
-	s, err := p.Future.Struct()
-	return CapVerifyAuthz_getPermissions_Results(s), err
+func (f CapVerifyAuthz_getPermissions_Results_Future) Struct() (CapVerifyAuthz_getPermissions_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapVerifyAuthz_getPermissions_Results(p.Struct()), err
 }
 
-const schema_ae2da827da0eecef = "x\xda\xb4X}pT\xd5\x15?\xe7\xbd\x0dow\xb3" +
-	"\x9b\xdd\xc7\xa3H\xaa\xb0\x90\x89-DB\x11\x84\xa1\x99" +
-	"\xdaM$)\x0d-\xb8\x1f\x09\x88\x03c_\xd8G\xb2" +
-	"q\xbf\xd8}!\x84\x11\xd0\x11f\x1a*\x0a\xd4\x0e\xea" +
-	"P[\xd0Qp&\x80B,\xd82\x03\x96\x80|\xa4" +
-	"\xe5\xa3\x9d\x02\xd3\x0e\x8av,\x14T\xd0\x88\x14\xe4u" +
-	"\xee}yo\xef\xee&d\xa1\xf5\xbf\xddw\xcf\xfd\xdd" +
-	"\xdf\xf9\xdds\xee\xb9\xe7\x8e\x7fzP\xa5\xe5~\xe7s" +
-	"\"p\xfe\xa3\x05\x83\xb4\x91\x9b\xee~l\xfd/\xbex" +
-	"\x0aD\xc9\xa2}z\xb1\xe8\xccw7\x97o\x05\xc0\x89" +
-	"\x1d\xd6\xc1(\xed\xb1\x0a\x00\xc1]V\x1e\x83\xfb\xad\x1c" +
-	"\x02hSb\xc7\xc2?\x1f\xb4\xfdi\x10K\x10\xc0\"" +
-	"\x00L\xdcm}\x09\xc1\xa2M\x9c|r\x96\xbb}r" +
-	";\x88\xf7 @\x01\x92\xa1-d\x08\xa5\xddV/\xa0" +
-	"\xb6{{\xdd\xb0\xa5'\x95U\xba\x01\x9dz\xda\xba\x8e" +
-	"L\xed*U\xb7|2\xa6\xf0Y\xf0\x97\xa01t\xc8" +
-	"\xba\x89L=mm\x05\xd4\x8e~\xee\xbc\x8a\xf53\x9e" +
-	"\xd3W\xd5\xb1'\xd9\x0e\x13\x83Z\x9b\x17\xf0\xfa'\x9f" +
-	"\xcd\xe9Z\xe8^#J|\x86\x13Km\x83QZm" +
-	"\x13\x00\xa4v\xdb4\xa9\x93\xfc\xd2\xfe\x10z\xf6)\xdb" +
-	"K\xddkX\xb0_\xdb\xde%`\x1d\x04Ls|\xf0" +
-	"XU\xe2\x95\xee\xb5\x8c\x8f\xdd\xb6\xb7\x08Q\xf7\xe2\x85" +
-	"\x07\xde\xfc\xe3\x88u\xec\xd4=\xb6udj7\x9d\xea" +
-	"\xbbv15\xfb\xcc\xba_\xe6\xc8y\xd9V\x81\x12\xda" +
-	"\x89\x9c7l<\x06\xadv*\xe7]\xae\x1f\xbd\xf7\xd5" +
-	"}c\x9fg\x01\xd1N\xb9\x88v\x02\xd8\xf3\xc4\xfef" +
-	"[\xc5\xb0\xf5 \xde\x8d\xda{\xc7kCCG\xd4\xbc" +
-	"\x0c\x05\x1cU\xc0nG\xa9\x86`JUv\"S8" +
-	"v\xe0\xea\xca\x9aM/dxf\xa7[\xd0A\xd1&" +
-	"\x9f\x1f\xb9:v\xea\xa3\x0d\xd9\xf4\xa4n\xfb\x05\xe94" +
-	"e\xf7\x17;\x8f\xc1\xf7uv\xe6z\xa2\x84is\x8a" +
-	"+\x9d\xb6\x9f\x91\xfei\xbf\x0b@\xbaD\xa1w<\x19" +
-	"+]u\xe4\xca\xcb9\x9e\x0f/\x9c\x80Ry!\xc1" +
-	"\x1e]\xc8c\xf0\x81B\x8a\xdd\xda\xba\xb8:\xb0\xe1g" +
-	"\xbfaD./|\x97\x88|\xeaz\xec\xf3\xd7.\x15" +
-	"\xbf\xd2\xeb\x05uux!\x15\xb9\xbc\x90\xb8\xf9\xe7\xbf" +
-	"\xb7\x8f\x08\xad\xba\xb4\x955X[\xf8\x161\xd8H\x0d" +
-	"V\xfem\xe7\xe4n\x1c\xb5\x835(pPU\xbf\xe5" +
-	" \x06\x09\xfb\xf1a\xff\x99\xfa\xfc\xce\x1c\xb2m\x8e\x12" +
-	"\x94\xda\x1d\x84\xec\x0a\x07\x8f\xc15\x0eB\xf6&?\xb6" +
-	"\xeb\xcb\xeft\xecd\"{\xa5\x83\xca\xfa+\x07\xf1=" +
-	"\xb1c[}\xe2d{g\x0e\\\xa7\xa3\x0c\xa5.\x0a" +
-	"\xb7\x97\xc0\x1d\xa5p\x9a\x8d\x9f3m\xdb\x1b\x1f\xff\x9e" +
-	"\xdd\xa7C\x8ewh\xbcS\xc0\xab\x8b\xe5\x9f\xb4v," +
-	"\xdf\x9b\x03\xf8\xb5c0JN'\x01\xb4:y\x0c\x0e" +
-	"qR\xc0\xab_\x15\x87\xf7\xad\xfd\xe1\xbe\x1c{\xa7\xb3" +
-	"\x0c\xa5\xe1\xd4~\x18\xb1/\xd5\xed\xdf?6\xf6\x99\xf5" +
-	"MO\x1cfs\xb5\xd8I=\x1a\xe3$\x04\x1e\xffb" +
-	"\xf1\xabu?.\xef\xce\x01\xacur(\xd5S@\x1f" +
-	"\x01\x9c\xab\x03.\xf3\xbf~\xa3\xe7\xf8\xaa?\xb1\x8a\xd7" +
-	";\xdf \x80\x8a\xb3\x15\xf0\xe6\xf1be\xe8\xd9\x0f\x8e" +
-	"\xa7S\xff\x90\x93\xa4\xfe\xf5\xed\xcb~\xfb\xf6\xbc\xf3'" +
-	"\x98\xd3\xc4\xb9\x89\x04\x81\x14\xac\xde\xf5\xf0\xd9+'r" +
-	"\x08lq\x96\xa0\xb4\x9b\x12\xd8I\x08\xec\xedU`\xc4" +
-	"\xef:\x0fF\x8f\x9cd=\xeat\xd2\xa0\xe9\xa2\x1e\x1d" +
-	"\xb9o\xc1\xfe\xb1\xf5\xd6\xd3\x90}F\x9cw\x0eF\xe9" +
-	"\x1a\x01\x94z\x9c\xd3\xa4QE\xe4\x8c\x18q\xe0\x91I" +
-	"]\xe7\x96}\xc4\xee\x90\xad\x88\x0aT\\D\xe0vN" +
-	"\xdf\xd03\xfb\xc6\xe6\x8f\xb3\xe1\xa4\x07\x8b\xceI\xb5\x04" +
-	"C\xaa):(\x1d\xa2h\xcd\xebC\x9b?=\xf7\xda" +
-	"\xbf\xb2\xf2\x88\xa8$\xbdYtX\xdaC\xedw\x17\x91" +
-	"\xd0<v\xf1\xd5\x0f\xb7\x0f}\xe1B\x0e\xcfb\xd7`" +
-	"\x94\xc6\xb8\x08\x93{]\x02'\xadt\x13\xe8\x8a{\xe6" +
-	"nl\x0fl\xbd\x90\xa3S\xd4\xcd\xa1\xd4Fl\x82\xaa" +
-	"\x9b\xc7\xe0\x93n\xaa\xd3\xdc\x9b\x9f}\xfb\xcb\x89\xcf\\" +
-	"d\x1dkq\xd3\x93\xb4\xddM\x1c[\xde<\xfb\xf5\xf8" +
-	"\x95+\x97\x98\xbc\xdc\xe3~\x87l\xc9\xb1\xb2\x90\xfa}" +
-	"\xad\xe7Rn\xa9p\x93RA\x97\xdaE\x96\xda\xaf/" +
-	"ux^\xf3\x94\xb3\xd2\xc1\xcb\xbdK\xf1&\x14J\xdd" +
-	"\xeem\x80\xda\x87%\xffn\xf4];\xd1\x93\xcb]\xb4" +
-	"\xa3\xb4T$\x80\x8bE\x1e\x83+D\x0aX\xdd4\xbc" +
-	"z\xce\xdam7rN\xaf\xa5\xe2\x15\xa9\x9d\x9a\xaf " +
-	"\xe6kt\xf3{O\xbd]2q\xfd\x82\xafYW\xdb" +
-	"E\x1a\x93/\x8a^(\xd7\x9aZ\x1a\xe4D\xf8{U" +
-	"|\x8b\xda\xb4d\xdc|9\x11KT\xcc\x8f\x84\x95\x98" +
-	"\x1a\x88G\x94\x99\xf1\x18*>Dt\x00\x87\x0e\x00\x11" +
-	"\xcb\\\xb1xL1\xa7\x150\xd3\xa6\xca\x89\x19rL" +
-	"nT\xaa\xe8G9\x14\xaak\x0a\xc7\x1aK\x03J\xaa" +
-	"%\xc2\xab\xa9\xfe&U\x19\x7f\xa7\xd2u\xe9_s\x92" +
-	"\xdf\xc2[\x00,\x08 :K\x00\xfcV\x1e\xfdC8" +
-	"\x14\xe6\xcb\x09\x14\x8d\x92\x07\x88\"\xe0\x80\xf8\xb3\x94d" +
-	"xA\x9b\x8e\xef\x93\x93r\x14S\xf98\x12\x09\xa7\xd4" +
-	"i\xc9xK\"Ef\x09r4\xe5\xb7\x9a\xa4\xc6L" +
-	"\x00\xf0\x97\xf2\xe8\x1f\xcf\xa1\x888\x84\xd4n\xb1\xbc\x02" +
-	"\xc0?\x9aG\xff\x03\x1cz\"\xe1hXE\x0bph" +
-	"\x01\xf4\xc6\x17,H)\xe6_s\xf9A\x99\xcb3J" +
-	"\x8ckTT\x9f\x92\x8c\x86S\xa9p<\x96\xd2\x85Q" +
-	"S\x00\xac2\x0d\x00~\x07\x8f\xfe\xd1\x1cj\x89^c" +
-	"\x10\xe2\xb1\x14\x16\x01\xfax}\xff\x8a\x98\xf5\xf8\xfe\xd6" +
-	"\xc3%>D\xbf\x85/`\x0a3\x1aW\x0fQ\\\x02" +
-	"\x9ch\x134\x83\x13xuV\x95\xe8\xc3~\x9da\xb5" +
-	"lTt)Ip\xa5}a]\x99\x90\xdedO\x92" +
-	"X\xa1;]\x83\x01\xd1\xdd\xffF\xb3\x0b%\x95h|" +
-	"\x91b\x04\xa0\x87\xae\x93\xcf<\x83\xa0\x11 ,\xb5@" +
-	"\xaf\xca\xc38\xd4\x1a\x89\xd1L9\x0a\xa8\xf4&\x07\x0e" +
-	"\x90K\xb5q\xd5[\xad,\x0a\xcf\xcfL\xa8\x80\x16\x8e" +
-	"\xab!\xf2\x1dP\xb9\x83x\xa0<3%dy\xaaD" +
-	"\x81\xaaP\x080yK\x9e\x84\xe1\x0c91\xae&\xa6" +
-	"&\xdb\x00H\x100A^\xd2W\x90\x97\xa5\x83\\x" +
-	"\\i3\xe0]d\xd7r\xd6\xcaG\xf2\xber\x9e\x0d" +
-	"\x07\xaa9\xba\xd3\xa5$+\x1c8f\x0d\x92\x05>W" +
-	"KC]u\x86\xdaI\x9a\x1e\xbe\x96\x86\x08x\xc2\xa9" +
-	"\xa6\xba\xea>'S1x9\xe1\xb7 {\xfb\xc4\x09" +
-	"\x1e*\x0f\xcb\xef\xa1^~\xa5\x1c.Wbj2\xac" +
-	"\x989\xe7NO\x05\xec7\xfb\xd2\x01\xf2pB\xf1$" +
-	"e5\x9e\xcc`<]\x8b'\x14\xfa\x19\x00L\x04G" +
-	"\xffr\xa6\x14u\xaa\x89i\xa6\x9811\x8f\xf3\xda\x88" +
-	"|f\xff\x03\xe9\xad6\xf7\xff~\xf2q<\x8f\xfe\x1f" +
-	"\xf4\x13f\xb7J\x91\x013Ww\xa1\xd4\xe7\xa1\xe1\xcd" +
-	"r\x99>\x10\x17]\xd1\xdaj\x00\xc8\x8bKV\xae1" +
-	"U\xa2\xbf\\\xfb_\xd9\xe4\x9b\x94\xe9\xd8\x98\x15V\x84" +
-	"V%32*\xbc\x8b\xc2J\xab\x92\x1c\xb0\xee1\xea" +
-	"\xe6WW\xd3\x17\xb0\xac\xca\xcage\xd8\xecdXU" +
-	"|\xc9x\xc2\xa5$\xd5\xb6\x0cv\xeb4\xc3\x00\xa9\x85" +
-	"\x92T\xb1\xedv\x8e\x03\xbdDxu\xcdY\xba\xd3\x99" +
-	"\xe3\xad/u\xfb#[\x13\x0d\xabU\xf3\xd5p\x1cc" +
-	"\x19L\x97h\xc6(x\xe9xl\x80\xcd\x98!\xc7\\" +
-	"rc\xd6n<\xb4<J\x9dH\xde\xd65$\xbf\xed" +
-	"0\xef\xed\x03l\x87\xaf\xa5\xa1f\x91\x12S!\x83Y" +
-	"\xb3q\xe6\xd5\x80\x8b\x8c\xden\xf9\xf4\xc9\xae\xec\x1c\xfc" +
-	"\xa6\xcf\x83>C\xf76\xael:\xfd\xaaH\x84\x0a," +
-	"\xb0\xb5\x9f\xd5L&\xbf\x83J\x92\x14\xe5\x99\x82\x1c\xcd" +
-	"\xac\xcc\x13<t\xfc\xb6\xae\xad}\xdc\x1a\xee$\\3" +
-	"\x8e!\xf6Jft\xf5h\xf40y^\xc9\xf2\xd2\x8a" +
-	"\x90\xe7\xef,\xd7\xb8lm\x04\xb5\x89\xd2vP\xdaF" +
-	"g\x8a\xc6\x03\x99\xe8'\xb4k\x054\xbbb\xf3}\xe1" +
-	"A22I@\xce|,C\xa3U\x17\xc7\x90\xb1Q" +
-	"\x82f\xa8\x0e^]\xf7J\xd4\x8c`\x01\xaf\xc2|\xa2" +
-	"*\x82\xb7\xad\xf7\x13+\x09K\x99\x1e89\xb7\x9e\xb2" +
-	"\xben=\xe4\xaa=\x96G\xff\x14\x0e]19\x9a\x0e" +
-	"\xe5\xa8\x12mP\x92\x818\x08\xb7\xbe\xb4\xf2\xfdm\x85" +
-	"\xbe\xcf#\xa9`\xc6\xfb\x0f\x1ao\x8d\xe2\xe5\xe9\xc0\x89" +
-	"\xe7\x05D\xf3\x01\x0e\x8d\xa7.\xf1\x1fd\xec\xafD2" +
-	"\xe3U\x05\x8d\x07>\xf1P\x128q\x9f\x80\xbc\xf9\xc2" +
-	"\x88FS(v>\x0a\x9c\xd8!\xa0\xc5\xec\xf5q\xfb" +
-	"2\xd0\x1f#6\x06\x80\x13_\x14\xb0\xc0|jB\xa3" +
-	"-\x16W7\x03'\xae\x14p\x90\xf9\xe6\x81\xc6{\xa1" +
-	"\xd8\xd6\x00\x9c\xb8P@\xc1\xec}\xd1x\xe6\x12\x15\xc2" +
-	"e\x9e\xa0\x19W\x0d\x00\xa8D\xcd8\xf0\xb3\xfeyh" +
-	"\x01\xa8D\xcd\xe8\xbf\x80O\x90\xbfF\xbc\x02F\xcc\x7f" +
-	"S#\xe0\"\xc1i~\xa8k\x02!\x1ck\xacD\xcd" +
-	"\xb8\x0e\x81\x87\x9e\xdd\x991\x90q\x18D\"\xd3zO" +
-	"(%\xf3\x00-\x11\xe4H\xe4\x0e\xae\x0b\xff\x9fV-" +
-	"\xdf\xabR\xc0\xabdv9\xd9\xd5!\xa0\xc8\xa1\xfe\xeb" +
-	"\x1f\x19\xcd\xa9\x7f\x05\xf9^3\x8d2\xed0\x1d\xad!" +
-	"GG5\x8f~\x1f\x93=3H\x8d\xf8)\x8f\xfeG" +
-	"8\x149n\x08r\x00b=\xc93\x1f\x8f\xfe\xb9\xf9" +
-	"_\xde\xfan2\xfa\xf2X/\x88\xd0G\x17@=\xf6" +
-	"\xd4d\x94\xc4\xec\x16\"\xe0Q\xe4PV\x0f\xf1hz" +
-	"6\xcf4\x10\xf9\xbd \x04\x94\x94\x8b\xec\x12\x1b\x12\x15" +
-	"\xe9\x1e\xc2K}eZ\x08\xb6\xd7)\x02\xfco\x00\x00" +
-	"\x00\xff\xffo\x9f=\xf4"
+const schema_ae2da827da0eecef = "x\xda\xb4X{l\x14\xd7\xd5?gf\xcd\xb0\xf6>" +
+	"<;(\x81/\x09\x0b\x96\xf358\x86\xf2(\x88X" +
+	"\xa4k\x07\xbb\x04\x1a\x93\x9d\xb5\xcd#\x02\xa5cv\xb0" +
+	"\xd7\xd9\x17\xbbc\x8cQ\x80F-RM\x93\x14h$" +
+	"\x92\x08\xa5\x0d\x89\x12\x12\x090\x01\xd2\x90&\x12P\x0c" +
+	"\x09\x84\x16\x83P)*\xa2\x90H`\x8a\x93@p\xc0" +
+	"\xe51\xd5\xbd\xe3\x99\xbd\xbbk\xe3\x85\xb6\xff\xed\xce=" +
+	"\xf7\xdc\xdf\xf9\x9ds\xee9\xe7\x8e?6\xa4\xdc6\xc1" +
+	"yM\x02N\xbe\x907D\x1f\xb5\xe9\x81g7\xfc\xfa" +
+	"\xea\x0b J6\xfd\x9bK\xaeS?\xd8<v+\x00" +
+	"N:k\xf7\xa0t\xd9.\x00\xd4\\\xb2\xf3Xs\xdd" +
+	"\xce!\x80>5z4\xf4\xab!\xed\xbf\x00\xb1\x08\x01" +
+	"l\x02\xc0\xa4n\xfb\xeb\x086}\xd2\x94\xe3s\x0a\xdb" +
+	"\xa6\xb4\x81\xf8 \x02\xe4!Y:M\x96P\xea\xb6\xfb" +
+	"\x00\xf5\xdd\xed\xb5\xc3W\x1cW\xd7\x18\x02t\xab3\x7f" +
+	"=\xd9\xdaQ\xac\xbd\xf7\xf5\x98\x82\x97A.Bs\xe9" +
+	"\x96}\x13\xd9\xea\xcco\x01\xd4\xbf\xf8\xcey\x0d\xeb\xaa" +
+	"\x7fc\x9cj\xe8\x0e\xe5\x1f\"\x02+\xf2}\x807\xbe" +
+	"\xfev~\xc7\x92\xc2\xb5\xa2\xc4\xa7\x19\xb1=\xdf\x83\xd2" +
+	"\xde|\x01@\xfa4\x7f\x86\xd4E~\xe9\x9f\x04_~" +
+	"\xc1\xfe\xfa\x91\xb5\xac\xb2\xce\xfc}D\xd9Y\xa2Lw" +
+	"\x9c}\xb6\"\xfe\xd6\x91u\x8c\x8dX\xf0\x01\x01Z\xb8" +
+	"l\xc9\x81\xed\x7f\x1a\xb9\x9e\xddz\x99\xd8\x80\x12\x16\x90" +
+	"\xad\xfe\xdeK\xc9\xb9\xa7\xd6\xff6\x8b\xce\x87\x0b\xcaP" +
+	"\x9a\\@\xe8\x1c_\xc0c\xcd\xb4\x02J\xe7\xfd\xee\x9f" +
+	"|v\xfd\xd1\xd2WX\x85\x93\x0b(\x96*\xaa\xb0\xe7" +
+	"\xf9\xfdM\xf6\xb2\xe1\x1b@|\x00\xf5\xcf:g\x06\xef" +
+	"\x1bY\xf5\x06\xe4q\x94\x81\x82|\x94Z\x89N\xa9\xb9" +
+	"\x80\xd0\x14\x8a\x1e\xb8\xb6\xbaj\xd3\xabi\x96\x15P\x17" +
+	"\x9c\xa5\xda\xa6t\x8dz)z\xf2\xab\x8d\x99\xf0$t" +
+	"\\\x94\x9c\x0e\x82n\xa8\x83\xc7\x9aa\x0e\x8a\xce:O" +
+	"\x940%N\xf5JN\xc7)i\x84\xe3~\x00i\xb4" +
+	"\x83\xa8\xde\xf1\xf3h\xf1\x9a\xc3W\xde\xc8\xb2\\vL" +
+	"DI\xa1\xba\x17\x10\xdd\x8d\x86\xee\x96\x96e\x95\x81\x8d" +
+	"?\xfb\x1dC\xb2\xe2\xd8GH>y#\xfa\xdd;\xdd" +
+	"#\xde\xea\xb3\x82\x9a*;(\xc9\x8a\x83\x98\xf9\x97\xbf" +
+	"\xb7\x8d\x0c\xae\xe9\xde\xca\x0at8> \x02'\xa8\xc0" +
+	"\xea\xbf\xee\x9cr\x04G\xef`\x05\x1esRVg:" +
+	"\x89@<\xbfs\xf8\xbf\xa6\xbf\xb23\x0b\xec\x16g\x11" +
+	"J\x9f:\x09\xd8\x8f\x9c<\xd6\xecw\x12\xb0\xb7\xf9\xd2" +
+	"\x8e\xef\xff\x7f\xcbN&\xb2w;)\xad\x9f;\x89\xed" +
+	"\xf1\x1d\xdb\xea\xe2\xc7\xdbve\xa9\xebr\x96\xa0\xd4K" +
+	"\xd5]u\xf2\x18pQ\xd3\xed\xfc\xfc\x19\xdb\xde?\xff" +
+	"G\xd6M\xb7\x9c\x1f\xd3pw\x11}\xd7\x96)?m" +
+	"\xd9\xb2jO\x96\xbe\x09.\x0fJ\x15.\xa2o\x9a\x8b" +
+	"\xc7\x9a'\x0d\x85\xd7\xae\x8f\x08\xed]\xf7\xe3\xbdY\xf2" +
+	"\x15\xae\x12\x94d*\xff\x14\x91\x9fg\xc8\xff\xe3h\xe9" +
+	"\x8b\x1b\x1a\x9f?\xc4\xa6j\xb5\x8b\x1a\xb4\x90\x02x\xee" +
+	"\xea\xb2\xb7k\x9f\x1c{$K\xe1\x0a\x17\x87R\x1bU" +
+	"\xf8K\xa2p\xad\xa1p\xa5\xfc\xee\xcd\x9e\xce5\x7ff" +
+	"\x09os\xbdO\x14\xbe\xe6j\x01\xbc\xdd9B\xbd\xef" +
+	"\xcc\xd9\xceT\xe6\xdfr\x91\xcc\xbf\xd1\xbe\xf2\xf7\x1f." +
+	"\xec:\xc6\\&\xaeM$\x06\xa4\x9a\xca\x8f\x9e>s" +
+	"\xe5X\x16\x80\xd3\xae\"\x94\xba)\x80\x0b\x04\xc0\xd5>" +
+	"\x06F\xfea\xd7\xc1\xc8\xe1\xe3\xacE].\x1a3\xbd" +
+	"\xd4\xa2\xc3\x8f.\xde_Z7\xf4o\x90yE<\xe4" +
+	"\xf6\xa04\xd6MBz\x8c{\x86TG~\xe9#\x0f" +
+	"\xcc\x9b\xdcqn\xe5W\xac\x87\x1ewS\x82\xaa\xddD" +
+	"\xdd\xceY\x1b{\xe6\xde\xdc|>S\x9d\xb4\xc4}N" +
+	"ZA\xb5\xb5\xba\x0fJ\xb7\xdc\xf7\x03\xe8M\x1b\x82\x9b" +
+	"\xbf9\xf7\xce\x85\x8c4\",I\xdd\xeeCR/\x95" +
+	"\xefq\x93\xc8<z\xe9\xed/\xdb\xef{\xf5b\x16\xce" +
+	"\xbaB\x0fJj!\xcd\x93B\x81\x93\xf6\x8a\x04h\xd9" +
+	"\x83\x0b\xdel\x0bl\xbd\x98\xc5\xd3{\"\x87\xd2.\"" +
+	"S\xd3.\xf2X\xf3\x89HyZp\xfb\xdb\xff\xfb~" +
+	"\xd2\x8b\x97X\xc3\xb6\x8b\xf4\"\xed\x10\x89a\xab\x9a\xe6" +
+	"\xbe\x1b\xbbr\xa5\x9bI\xcb^\xf1c\xe2\x92\xa3%A" +
+	"\xed1\xbd\xa7;;\xc8E\x0fJ\xbd\xf4\xa8\xab\"\x8f" +
+	"\x01\x0f=\xe9\xd0\xc2\xa6\xa9g\xa4\x83\x97\xfbN\xe2-" +
+	"M(\xd9=\xdb\x00\xf5/\x8b\xfe\xd9\xe0\xef=\xd6\x93" +
+	"\x0d\xdd\x93\x8f\xd2n\x0f\xd1\xb7\xd3\xc3c\xcd\x1eCa" +
+	"e\xe3C\x95\xf3\xd7m\xbb\x99uw\xed\xf6\\\x91:" +
+	"\xa8\xf8\x1e\"\xfe\x85!\xfe\xf0\xc9\x0f\x8b&mX|" +
+	"\x8b\xb5\xb4\xc3CC\xf2\x84\xc7\x07\xcb\xf5\xc6\xe6z%" +
+	"\x1e\xfaa\x05\xdf\xac5.\x1f\xb7H\x89G\xe3e\x8b" +
+	"\xc2!5\xaa\x05bauv,\x8a\xaa\x1f\x11\x1d\xc0" +
+	"\xa1\x03@\xc4\x12w4\x16U\xadmy\xcc\xb6\xe9J" +
+	"\xbcZ\x89*\x0dj\x05\xfd\xa8\x04\x83\xb5\x8d\xa1hC" +
+	"q@M6\x87y-9\xd0\xa6\x0a\xf3\xeftz." +
+	"\xfdkm\x92m\xbc\x0d\xc0\x86\x00\xa2\xb3\x08@\x1e\xca" +
+	"\xa3<\x8cCa\x91\x12G\xd1,x\x80(\x02\x0e\xaa" +
+	"\x7f\x8e\x9a\x08-n5\xf4\xfb\x95\x84\x12\xc1d.\x86" +
+	"\x84CImF\"\xd6\x1cO\x92]\x82\x12I\xcaC" +
+	"-Pc&\x02\xc8\xc5<\xca\xe39\x14\x11\x87\x91\xca" +
+	"-\x8e-\x03\x90\x1f\xe1Q\xfe\x11\x87\xdep(\x12\xd2" +
+	"\xd0\x06\x1c\xda\x00}\xb1\xc5\x8b\x93\xaa\xf5\xd7:~H" +
+	"\xfa\xf1\x0c\x13\xe3\x1aT\xcd\xaf&\"\xa1d2\x14\x8b" +
+	"&\x0db\xb4$\x00\xcbL=\x80\xec\xe0Q~\x84C" +
+	"=\xde'\x0cB,\x9aD\x17\xa0\x9f7\xfc\xe7b\xce" +
+	"\xe3\x07:\x0f\x97\xfb\x11e\x1b\x9f\xc7\x94e4\x1b\x0f" +
+	"Q\\\x0e\x9ch\x17t\x13\x13\xf8\x0cT\xe5\xe8\xc7\x01" +
+	"\x8da\xb9lP\x0d*Ip\xa5laM\x99\x98r" +
+	"\xb27A\xa4\xb00U\x81\x01\xb1p`G\xb3\x07%" +
+	"\xd4Hl\xa9j\x06\xa0\x97\x9e\x93\xcb>\x13\xa0\x19 " +
+	",\xb4@\x1f\xcb\xc39\xd4\x1b\x88\xd0l%\x02\xa8\xf6" +
+	"%\x07\x0e\x92K3c\x9a\xafR]\x1aZ\x94\x9eP" +
+	"\x01=\x14\xd3\x82\xe4;\xa0z\x0f\xf1@q\xa6S\xc8" +
+	"\xe2\xd4\x08\x03\x15\xc1 `\xe2\x8e8\x09\xc2j%>" +
+	"\xae*\xaa%Z\x01H\x100A^\xd4_\x90\x97\xa4" +
+	"\x82\\xNm5\xd5\xbb\x89\xd7\xb2\xce\xca\x85\xf2\xfe" +
+	"r\x9e\x0d\x07\xca9\x16\xa6*IF8p\xcc\x19$" +
+	"\x0b\xfc\xee\xe6\xfa\xda\xca4\xb6\x134=\xfc\xcd\xf5a" +
+	"\xf0\x86\x92\x8d\xb5\x95\xfdn\xa6d\xf0J\\\xb6!\xdb" +
+	"{\xe2D/\xa5\x87\xc5\xf7D\x1f\xbeb\x0eW\xa9Q" +
+	"-\x11R\xad\x9c+Lm\x05\x1c0\xfbR\x01\xf2t" +
+	"\\\xf5&\x14-\x96HC<K\x8f\xc5U\xfa\x19\x00" +
+	",\x0d\x8e\x81\xe9L\xaa\xdatK\xa7\x95b\xe6\xc6\x1c" +
+	"\xeek3\xf2\x19\xff\x07R\xae\xb6\xfc?\x81|\x1c\xcf" +
+	"\xa3<m\x800\xbbS\x8a\x0c\x9a\xb9\x86\x09\xc5~/" +
+	"\x0do\x16\xcb\xac\xc1\xb0\x18\x8c\xce\xac\x04\x80\x9c\xb0d" +
+	"\xe4\x1aS%\x06\xca\xb5\xff\x14M\xaeI\x99\x8a\x8d9" +
+	"!UhQ\xd3#\xa3\xcc\xb74\xa4\xb6\xa8\x89A\xeb" +
+	"\x1e\xc3nnu5\xd5\x7feTV>#\xc3\xe6&" +
+	"B\x9a\xeaO\xc4\xe2n5\xa1\xb5\xa6\xa1[\xaf\x9b\x02" +
+	"H%\xd4\x84\x86\xadws\x1d\x18%\xc2gp\xce\xc2" +
+	"\x9d\xc5\\o\xfd\xb1;\x10\xd8\xaaHH\xabX\xa4\x85" +
+	"b\x18MC\xba\\7W\xc1G\xd7\xa3\x838\xa3Z" +
+	"\x89\xba\x95\x86\x0co<\xb1*B\x8dH\xdcU\x1b\x92" +
+	"\x9b;\xac\xb6}\x10w\xf8\x9b\xeb\xab\x96\xaaQ\x0d\xd2" +
+	"\x905\x99w^\x15\xb8\xc9\xea\xdd\x96O\xbf\xe2\xce\xcc" +
+	"\xc1\xff\xf5}\xd0o\xe8\xdeE\xcbf\xc0\xaf\x08\x87)" +
+	"\xc1\x02[\xfbY\xce\x14\xf2\xbbFM\x90\xa2<[P" +
+	"\"\xe9\x95y\xa2\x97\xae\xdfU\xdb\xdaO\xd7p/\xe1" +
+	"\x9av\x0d\xb1-\x999\xd3\xa39\xc2\xe4\xd8\x92\xe5\xc4" +
+	"\x15\x01\xcf\xdf[\xaeq\x99\xdc\x08Z#\x85\xed\xa0\xb0" +
+	"\xcd\xc1\x14\xcd\xe71Q&\xb0g\x0ah\x0d\xc5\xd6\xeb" +
+	"\xc2\xe3de\xb2\x80\x9c\xf5T\x86\xe6\xa4.\x8e!k" +
+	"\xa3\x05\xddd\x1d|\x06\xef\xe5\xa8\x9b\xc1\x02>\x95\xf9" +
+	"DY\x04_k\xdf'Z\xd0\xf7m\xf2\xcf\xb9Y:" +
+	"\xfc<[OY\xfc\xf4\xf6\xc9j\x81J\xfak\x81H" +
+	"\xdf]\xca\xa3<\x95CwT\x89\xa4\xe2:\xa2F\xea" +
+	"\xd5D \x06\xc2\x9d;X~ \xbf\x18N\x1fE\xd9" +
+	"3\x9f\x82\xd0|v\x14/\xcf\x02N\xec\x12\x10\xad\xb7" +
+	"84_\xbd\xc4\xd3d\xed\x04\xe1\xcf|aA\xf3\xad" +
+	"O\xfc<\x01\x9c\xb8W@\xdezlDsB\x14w" +
+	"=\x03\x9c\xb8E@\x9b5\xf7c\xfbJ0\x1e&\xde" +
+	"\x0c\x00'\xbe&`\x9e\xf5\xea\x84\xe6\x88,\xbe\xd4\x04" +
+	"\x9c\xb8Z\xc0!\xd6\xfb\x07\x9aO\x87bk=p\xe2" +
+	"\x12\x01\x05k\x10F\xf3\xc5KT\x09\x96\x85\x82n\xf6" +
+	"\x1d\x00P\x8e\xbay\xfbg\xfc\xf3\xd2jP\x8e\xba9" +
+	"\x8c\x01\x1f'\x7f\xcd\xe0\x05\x0c[\xff\xa6\x87\xc1M\"" +
+	"\xd5\xfaP\xdb\x08B(\xdaP\x8e\xba\xd9\x1b\x81\x97^" +
+	"\xe4\xe99\x92v3\x84\xc33\xfa\xae+5\xfd6-" +
+	"\x12\x94p\xf8\x1ez\x87\xff\xce\xdc\x96k\xdf\x14\xf0\xa9" +
+	"\xe9#Of\xa9\x08\xa8Jp\xe0bHV\xb3\x8aa" +
+	"^\xae=\xa7Y\xb3\x1d\x96\xa1U\xe4\x1e\xa9\xe4Q\xf6" +
+	"3\xd9SM\x0a\xc6S<\xca\xf38\x149n\x18r" +
+	"\x00b\x1d\xc93?\x8f\xf2\x82\xdc;\xb9\xfe'\x8e\xfe" +
+	",6\xaa#\xf43\x12P\x8b\xbdUi\xf51s\x9e" +
+	"\x08xU%\x981P<\x93\xda\xcd3\xd3Dn\xcf" +
+	"\x09\x015\xe9&^bC\xa2,5P\xf8\xa8\xad\xcc" +
+	"<\xc1\x0e>.\xc0\x7f\x07\x00\x00\xff\xff\xee\x95Jt"
 
 func init() {
 	schemas.Register(schema_ae2da827da0eecef,

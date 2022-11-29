@@ -4,6 +4,7 @@
 using Go = import "/go.capnp";
 $Go.package("hubapi");
 $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
+using Service = import "Service.capnp";
 
 struct ServiceInfo {
 	cpu @0 :Int32;
@@ -46,7 +47,7 @@ struct ServiceInfo {
 	# uptime time the service is running in seconds.
 }
 
-interface CapLauncher {
+interface CapLauncher extends (Service.CapHiveOTService) {
   # Service launching capabilities
 
   list @0 (onlyRunning :Bool) -> (infoList :List(ServiceInfo));
