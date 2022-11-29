@@ -38,20 +38,17 @@ type IStateService interface {
 	// CapBucketStore provides the capability to access storage for a client
 	//CapBucketStore(ctx context.Context, clientID string) bucketstore.IBucketStore
 
-	// CapClientBucket provides the capability to store and retrieve application state.
+	// CapClientState provides the capability to store and retrieve application state.
 	// The caller must verify that the clientID is properly authenticated to ensure the
 	// capability is handed out to a valid client.
 	// Buckets allow clients to have multiple stores with different types of data.
 	//
 	//  clientID is the service that represents the application. Each client uses a separate DB.
 	//  bucketID is the name of the bucket in the store. Eg a separate table.
-	CapClientBucket(ctx context.Context, clientID string, bucketID string) (cap IClientState, err error)
+	CapClientState(ctx context.Context, clientID string, bucketID string) (cap IClientState, err error)
 
 	// CapManageStateStore provides the capability to manage the state store
 	//CapManageStateStore(ctx context.Context) IManageStateStore
-
-	// Stop the service and free its resources
-	Stop() error
 }
 
 // IManageStateStore defines a capability to manage the state store

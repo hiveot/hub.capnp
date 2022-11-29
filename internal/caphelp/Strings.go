@@ -6,7 +6,13 @@ import (
 )
 
 // MarshalStringList convert a string array to a capnp TextList
+//
+//	Returns empty list if arr is nil
 func MarshalStringList(arr []string) capnp.TextList {
+	if arr == nil {
+		//logrus.Errorf("array is nil")
+		return capnp.TextList{}
+	}
 
 	_, seg, _ := capnp.NewMessage(capnp.SingleSegment(nil))
 	tlist, _ := capnp.NewTextList(seg, int32(len(arr)))

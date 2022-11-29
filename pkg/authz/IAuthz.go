@@ -1,6 +1,8 @@
 package authz
 
-import "context"
+import (
+	"context"
+)
 
 // ServiceName of the service used for logging and connection
 const ServiceName = "authz"
@@ -92,6 +94,7 @@ func NewGroup(groupName string) Group {
 
 // IAuthz defines the interface of the authorization service
 type IAuthz interface {
+
 	// CapClientAuthz provides the capability to verify a client's authorization
 	CapClientAuthz(ctx context.Context, clientID string) IClientAuthz
 

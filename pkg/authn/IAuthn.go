@@ -1,6 +1,8 @@
 package authn
 
-import "context"
+import (
+	"context"
+)
 
 // ServiceName of the service used for logging and connecting
 const ServiceName = "authn"

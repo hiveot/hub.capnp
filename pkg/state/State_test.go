@@ -116,7 +116,7 @@ func TestSetGet(t *testing.T) {
 	ctx := context.Background()
 	store, stopFn, err := createStateService(testUseCapnp)
 	require.NoError(t, err)
-	clientState, err := store.CapClientBucket(ctx, clientID1, appID)
+	clientState, err := store.CapClientState(ctx, clientID1, appID)
 	assert.NoError(t, err)
 
 	err = clientState.Set(ctx, key1, val1)
@@ -127,7 +127,7 @@ func TestSetGet(t *testing.T) {
 	assert.Equal(t, val1, val2)
 
 	// check if it persists
-	clientState2, err2 := store.CapClientBucket(ctx, clientID1, appID)
+	clientState2, err2 := store.CapClientState(ctx, clientID1, appID)
 	assert.NoError(t, err2)
 	val3, err := clientState2.Get(ctx, key1)
 	assert.NoError(t, err)
@@ -153,7 +153,7 @@ func TestSetGetMultiple(t *testing.T) {
 
 	ctx := context.Background()
 	store, stopFn, err := createStateService(testUseCapnp)
-	clientState, err := store.CapClientBucket(ctx, clientID1, appID)
+	clientState, err := store.CapClientState(ctx, clientID1, appID)
 
 	// write multiple
 	err = clientState.SetMultiple(ctx, data)
@@ -181,7 +181,7 @@ func TestDelete(t *testing.T) {
 	ctx := context.Background()
 	store, stopFn, err := createStateService(testUseCapnp)
 	require.NoError(t, err)
-	clientState, err := store.CapClientBucket(ctx, clientID1, appID)
+	clientState, err := store.CapClientState(ctx, clientID1, appID)
 	if assert.NoError(t, err) {
 		_ = clientState.Set(ctx, key1, val1)
 
@@ -207,7 +207,7 @@ func TestGetDifferentClientBuckets(t *testing.T) {
 	ctx := context.Background()
 	store, stopFn, err := createStateService(testUseCapnp)
 	assert.NoError(t, err)
-	clientState, err := store.CapClientBucket(ctx, clientID1, appID)
+	clientState, err := store.CapClientState(ctx, clientID1, appID)
 	assert.NoError(t, err)
 
 	err = clientState.Set(ctx, key1, val1)
@@ -215,7 +215,7 @@ func TestGetDifferentClientBuckets(t *testing.T) {
 	clientState.Release()
 
 	// second client
-	clientStore2, err2 := store.CapClientBucket(ctx, clientID2, appID)
+	clientStore2, err2 := store.CapClientState(ctx, clientID2, appID)
 	assert.NoError(t, err2)
 	val2, err := clientStore2.Get(ctx, key1)
 	assert.NotEqual(t, val1, val2)
@@ -240,7 +240,7 @@ func TestCursor(t *testing.T) {
 
 	ctx := context.Background()
 	svc, stopFn, err := createStateService(testUseCapnp)
-	clientState, err := svc.CapClientBucket(ctx, clientID1, appID)
+	clientState, err := svc.CapClientState(ctx, clientID1, appID)
 
 	// write multiple
 	err = clientState.SetMultiple(ctx, data)

@@ -16,8 +16,9 @@ import (
 // This implements the capnproto generated interface Provisioning_Server
 // See hub.capnp/go/hubapi/Provisioning.capnp.go for the interface.
 type ProvisioningCapnpServer struct {
+	caphelp.HiveOTServiceCapnpServer
 	// the plain-old-go-object provisioning server
-	srv provisioning.IProvisioning
+	svc provisioning.IProvisioning
 }
 
 func (capsrv *ProvisioningCapnpServer) CapManageProvisioning(
@@ -25,7 +26,7 @@ func (capsrv *ProvisioningCapnpServer) CapManageProvisioning(
 
 	// create the service instance for this request
 	mngCapSrv := &ManageProvisioningCapnpServer{
-		pogosrv: capsrv.srv.CapManageProvisioning(ctx),
+		pogosrv: capsrv.svc.CapManageProvisioning(ctx),
 	}
 
 	// wrap it with a capnp proxy
@@ -44,7 +45,7 @@ func (capsrv *ProvisioningCapnpServer) CapRefreshProvisioning(
 	// create the service instance for this request
 	// TODO: restrict it to the deviceID of the caller
 	refreshCapSrv := &RefreshProvisioningCapnpServer{
-		pogosrv: capsrv.srv.CapRefreshProvisioning(ctx),
+		pogosrv: capsrv.svc.CapRefreshProvisioning(ctx),
 	}
 
 	// wrap it with a capnp proxy
@@ -60,7 +61,7 @@ func (capsrv *ProvisioningCapnpServer) CapRequestProvisioning(
 	ctx context.Context, call hubapi.CapProvisioning_capRequestProvisioning) error {
 	// create the service instance for this request
 	reqCapSrv := &RequestProvisioningCapnpServer{
-		pogosrv: capsrv.srv.CapRequestProvisioning(ctx),
+		pogosrv: capsrv.svc.CapRequestProvisioning(ctx),
 	}
 
 	// wrap it with a capnp proxy
@@ -74,13 +75,21 @@ func (capsrv *ProvisioningCapnpServer) CapRequestProvisioning(
 
 // StartProvisioningCapnpServer starts the capnp server for the provisioning service
 func StartProvisioningCapnpServer(
-	ctx context.Context, lis net.Listener, srv provisioning.IProvisioning) error {
+	ctx context.Context, lis net.Listener, svc provisioning.IProvisioning) error {
 
 	logrus.Infof("Starting provisioning service capnp adapter on: %s", lis.Addr())
 
-	main := hubapi.CapProvisioning_ServerToClient(&ProvisioningCapnpServer{
-		srv: srv,
-	})
+	srv := &ProvisioningCapnpServer{
+		HiveOTServiceCapnpServer: caphelp.NewHiveOTServiceCapnpServer(provisioning.ServiceName),
+		svc:                      svc,
+	}
+	srv.RegisterKnownMethods(hubapi.CapProvisioning_Methods(nil, srv))
+	srv.ExportCapability("capManageProvisioning", []string{hubapi.ClientTypeService})
+	srv.ExportCapability("capRequestProvisioning", []string{hubapi.ClientTypeService, hubapi.ClientTypeIotDevice})
+	srv.ExportCapability("capRefreshProvisioning", []string{hubapi.ClientTypeService, hubapi.ClientTypeIotDevice})
 
-	return caphelp.CapServe(ctx, provisioning.ServiceName, lis, capnp.Client(main))
+	//
+	main := hubapi.CapProvisioning_ServerToClient(srv)
+	err := caphelp.CapServe(ctx, provisioning.ServiceName, lis, capnp.Client(main))
+	return err
 }

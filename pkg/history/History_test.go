@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"net"
 	"os"
+	"path"
 	"strconv"
 	"syscall"
 	"testing"
@@ -32,8 +33,9 @@ import (
 const thingIDPrefix = "urn:thing-"
 
 // when testing using the capnp RPC
-const testAddress = "/tmp/histstore_test.socket"
-const testStoreDirectory = "/tmp/test-history"
+var testFolder = path.Join(os.TempDir(), "test-history")
+var testSocket = path.Join(testFolder, history.ServiceName+".socket")
+
 const testClientID = "testclient"
 const useTestCapnp = true
 const HistoryStoreBackend = bucketstore.BackendKVBTree
@@ -54,11 +56,11 @@ var names = []string{"temperature", "humidity", "pressure", "wind", "speed", "sw
 
 // Create a new store, delete if it already exists
 func newHistoryService(useCapnp bool) (history.IHistoryService, func() error) {
-	svcConfig := config.NewHistoryConfig(testStoreDirectory)
+	svcConfig := config.NewHistoryConfig(testFolder)
 
 	// create a new empty store to use
 	_ = os.RemoveAll(svcConfig.Directory)
-	store := cmd.NewBucketStore(testStoreDirectory, testClientID, HistoryStoreBackend)
+	store := cmd.NewBucketStore(testFolder, testClientID, HistoryStoreBackend)
 	err := store.Open()
 	if err != nil {
 		logrus.Fatalf("Unable to open test store: %s", err)
@@ -73,11 +75,12 @@ func newHistoryService(useCapnp bool) (history.IHistoryService, func() error) {
 
 	// optionally test with capnp RPC
 	if useCapnp {
-		_ = syscall.Unlink(testAddress)
-		srvListener, _ := net.Listen("unix", testAddress)
+		_ = syscall.Unlink(testSocket)
+		srvListener, _ := net.Listen("unix", testSocket)
 		go capnpserver.StartHistoryServiceCapnpServer(ctx, srvListener, svc)
+
 		// connect the client to the server above
-		clConn, _ := net.Dial("unix", testAddress)
+		clConn, _ := net.Dial("unix", testSocket)
 		cl, err := capnpclient.NewHistoryCapnpClient(ctx, clConn)
 		if err != nil {
 			logrus.Fatalf("Failed starting capnp client: %s", err)
@@ -162,6 +165,8 @@ func addHistory(svc history.IHistoryService, count int, nrThings int, timespanSe
 
 func TestMain(m *testing.M) {
 	logging.SetLogging("info", "")
+	os.RemoveAll(testFolder)
+	os.MkdirAll(testFolder, 0700)
 
 	res := m.Run()
 	os.Exit(res)
@@ -171,7 +176,7 @@ func TestMain(m *testing.M) {
 // This requires a local unsecured MongoDB instance
 func TestStartStop(t *testing.T) {
 	ctx := context.Background()
-	cfg := config.NewHistoryConfig(testStoreDirectory)
+	cfg := config.NewHistoryConfig(testFolder)
 
 	//store := NewBucketStore()
 	store := cmd.NewBucketStore(cfg.Directory, testClientID, bucketstore.BackendKVBTree)
@@ -364,7 +369,7 @@ func TestAddPropertiesEvent(t *testing.T) {
 	addHist.Release()
 	err = closeFn()
 	assert.NoError(t, err)
-	backend := cmd.NewBucketStore(testStoreDirectory, testClientID, HistoryStoreBackend)
+	backend := cmd.NewBucketStore(testFolder, testClientID, HistoryStoreBackend)
 	err = backend.Open()
 	assert.NoError(t, err)
 	svc := service.NewHistoryService(backend, history.ServiceName)

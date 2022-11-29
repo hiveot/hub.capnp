@@ -14,8 +14,8 @@ import (
 // DirectoryCapnpClient provides the POGS wrapper around the capnp client API
 // This implements the IDirectory interface
 type DirectoryCapnpClient struct {
-	connection *rpc.Conn           // connection to capnp server
-	capability hubapi.CapDirectory // capnp client of the directory
+	connection *rpc.Conn                  // connection to capnp server
+	capability hubapi.CapDirectoryService // capnp client of the directory
 }
 
 // CapReadDirectory returns the capability to read the directory
@@ -53,7 +53,7 @@ func NewDirectoryCapnpClient(ctx context.Context, connection net.Conn) (*Directo
 	var cl *DirectoryCapnpClient
 	transport := rpc.NewStreamTransport(connection)
 	rpcConn := rpc.NewConn(transport, nil)
-	capability := hubapi.CapDirectory(rpcConn.Bootstrap(ctx))
+	capability := hubapi.CapDirectoryService(rpcConn.Bootstrap(ctx))
 
 	cl = &DirectoryCapnpClient{
 		connection: rpcConn,

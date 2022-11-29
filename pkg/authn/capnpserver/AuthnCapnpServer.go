@@ -17,7 +17,8 @@ import (
 // This implements the capnproto generated interface Authn_Server
 // See hub.capnp/go/hubapi/Authn.capnp.go for the interface.
 type AuthnCapnpServer struct {
-	srv authn.IAuthn
+	caphelp.HiveOTServiceCapnpServer
+	svc authn.IAuthn
 }
 
 func (capsrv *AuthnCapnpServer) CapUserAuthn(
@@ -25,7 +26,7 @@ func (capsrv *AuthnCapnpServer) CapUserAuthn(
 
 	clientID, _ := call.Args().ClientID()
 	userAuthnCapSrv := &UserAuthnCapnpServer{
-		svc: capsrv.srv.CapUserAuthn(ctx, clientID),
+		svc: capsrv.svc.CapUserAuthn(ctx, clientID),
 	}
 	capability := hubapi.CapUserAuthn_ServerToClient(userAuthnCapSrv)
 
@@ -39,7 +40,7 @@ func (capsrv *AuthnCapnpServer) CapUserAuthn(
 
 func (capsrv *AuthnCapnpServer) CapManageAuthn(ctx context.Context, call hubapi.CapAuthn_capManageAuthn) error {
 	manageAuthnCapSrv := &ManageAuthnCapnpServer{
-		svc: capsrv.srv.CapManageAuthn(ctx),
+		svc: capsrv.svc.CapManageAuthn(ctx),
 	}
 	capability := hubapi.CapManageAuthn_ServerToClient(manageAuthnCapSrv)
 	res, err := call.AllocResults()
@@ -50,14 +51,21 @@ func (capsrv *AuthnCapnpServer) CapManageAuthn(ctx context.Context, call hubapi.
 }
 
 // StartAuthnCapnpServer starts the capnp protocol server for the authentication service
-func StartAuthnCapnpServer(ctx context.Context, lis net.Listener, srv authn.IAuthn) error {
+func StartAuthnCapnpServer(ctx context.Context, lis net.Listener, svc authn.IAuthn) error {
 
 	logrus.Infof("Starting Authn service capnp adapter on: %s", lis.Addr())
+	srv := &AuthnCapnpServer{
+		svc: svc,
+	}
+	// register the methods available through getCapability
+	srv.RegisterKnownMethods(hubapi.CapAuthn_Methods(nil, srv))
+	srv.ExportCapability("CapUserAuthn",
+		[]string{hubapi.ClientTypeService, hubapi.ClientTypeUser, hubapi.ClientTypeUnauthenticated})
+	srv.ExportCapability("CapManageAuthn",
+		[]string{hubapi.ClientTypeService})
 
-	main := hubapi.CapAuthn_ServerToClient(&AuthnCapnpServer{
-		srv: srv,
-	})
-
+	//
+	main := hubapi.CapAuthn_ServerToClient(srv)
 	err := caphelp.CapServe(ctx, authn.ServiceName, lis, capnp.Client(main))
 	return err
 }

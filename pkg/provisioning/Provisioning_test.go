@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"path"
 	"syscall"
 	"testing"
 
@@ -24,7 +25,9 @@ import (
 )
 
 // when testing using the capnp RPC
-const testAddress = "/tmp/provisioning_test.socket"
+var testFolder = path.Join(os.TempDir(), "test-provisioning")
+var testSocket = path.Join(testFolder, provisioning.ServiceName+".socket")
+
 const useTestCapnp = true
 
 // provide the capability to create and verify device certificates
@@ -35,31 +38,42 @@ func getCertCap() certs.ICerts {
 	return certCap
 }
 
-func newServer(useCapnp bool) (svc provisioning.IProvisioning, closeFn func()) {
+func newServer(useCapnp bool) (provSvc provisioning.IProvisioning, closeFn func() error) {
 	certCap := getCertCap()
 	ctx, cancelFunc := context.WithCancel(context.Background())
 
-	provSvc := service.NewProvisioningService(ctx, certCap.CapDeviceCerts(), certCap.CapVerifyCerts())
+	svc := service.NewProvisioningService(ctx, certCap.CapDeviceCerts(), certCap.CapVerifyCerts())
 
 	// optionally test with capnp RPC
 	if useCapnp {
-		_ = syscall.Unlink(testAddress)
-		lis, _ := net.Listen("unix", testAddress)
-		go capnpserver.StartProvisioningCapnpServer(ctx, lis, provSvc)
+		_ = syscall.Unlink(testSocket)
+		lis, _ := net.Listen("unix", testSocket)
+		go capnpserver.StartProvisioningCapnpServer(ctx, lis, svc)
+
 		// connect the client to the server above
-		clConn, _ := net.Dial("unix", testAddress)
+		clConn, _ := net.Dial("unix", testSocket)
 		cl, err := capnpclient.NewProvisioningCapnpClient(ctx, clConn)
 		if err != nil {
 			logrus.Fatalf("Failed starting capnp client: %s", err)
 		}
-		return cl, cancelFunc
+		return cl, func() error {
+			cancelFunc()
+			err = svc.Stop(ctx)
+			return err
+		}
 	}
-	return provSvc, cancelFunc
+	return svc, func() error {
+		cancelFunc()
+		err := svc.Stop(ctx)
+		return err
+	}
 }
 
 func TestMain(m *testing.M) {
 	logging.SetLogging("info", "")
 
+	os.RemoveAll(testFolder)
+	os.MkdirAll(testFolder, 0700)
 	res := m.Run()
 	os.Exit(res)
 }

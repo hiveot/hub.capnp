@@ -49,7 +49,7 @@ func (capsrv *ReadDirectoryCapnpServer) GetTD(ctx context.Context, call hubapi.C
 //	args := call.Args()
 //	limit := args.Limit()
 //	offset := args.Offset()
-//	tdList, err = capsrv.srv.ListTDs(ctx, int(limit), int(offset))
+//	tdList, err = capsrv.svc.ListTDs(ctx, int(limit), int(offset))
 //	if err == nil {
 //		res, _ := call.AllocResults()
 //		textList, _ := res.NewTds(int32(len(tdList)))
@@ -66,7 +66,7 @@ func (capsrv *ReadDirectoryCapnpServer) GetTD(ctx context.Context, call hubapi.C
 //	cb := args.Cb()
 //
 //	// the provided function implements the callback interface
-//	err = capsrv.srv.ListTDcb(ctx, func(batch []string, isLast bool) error {
+//	err = capsrv.svc.ListTDcb(ctx, func(batch []string, isLast bool) error {
 //		// send batches of TDs to the caller
 //		// TODO: Do we need to create a new method for each batch? Can the callback be invoked repeatedly?
 //		method, release := cb.Handler(ctx,
@@ -93,7 +93,7 @@ func (capsrv *ReadDirectoryCapnpServer) GetTD(ctx context.Context, call hubapi.C
 //	offset := args.Offset()
 //	jsonPath, err = args.JsonPath()
 //	if err == nil {
-//		tdList, err = capsrv.srv.QueryTDs(ctx, jsonPath, int(limit), int(offset))
+//		tdList, err = capsrv.svc.QueryTDs(ctx, jsonPath, int(limit), int(offset))
 //	}
 //	if err == nil {
 //		res, _ := call.AllocResults()

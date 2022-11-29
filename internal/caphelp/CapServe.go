@@ -14,8 +14,9 @@ import (
 
 // CapServe starts serving requests using the given listener and capnp capability client
 // The function ends when the connection is closed or the context is done
-// This creates a new client instance for each incoming connection
-func CapServe(parentCtx context.Context, serviceName string, lis net.Listener, client capnp.Client) error {
+// capnpService is the capnp server obtained with Xyz_ServerToClient that implements the
+// knownMethods defined in the capnp schema for interface Xyz.
+func CapServe(parentCtx context.Context, serviceName string, lis net.Listener, capnpService capnp.Client) error {
 	ctx := listener.ExitOnSignal(parentCtx, serviceName, nil)
 	//var contextDone = false
 
@@ -26,7 +27,6 @@ func CapServe(parentCtx context.Context, serviceName string, lis net.Listener, c
 			logrus.Infof("%s: Context of exitonsignal cancelled. Closing connection.", serviceName)
 			_ = lis.Close()
 		}
-
 	}()
 
 	// Listen for new connections
@@ -51,7 +51,7 @@ func CapServe(parentCtx context.Context, serviceName string, lis net.Listener, c
 
 			transport := rpc.NewStreamTransport(rwc)
 			conn := rpc.NewConn(transport, &rpc.Options{
-				BootstrapClient: client.AddRef(),
+				BootstrapClient: capnpService.AddRef(),
 			})
 			//defer conn.Close()
 			// Wait for connection to abort or context to cancel

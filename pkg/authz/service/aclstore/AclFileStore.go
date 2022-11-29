@@ -159,7 +159,7 @@ func (aclStore *AclFileStore) Open(ctx context.Context) error {
 	logrus.Infof("AclFileStore.Open: serviceID='%s'", aclStore.serviceID)
 
 	// create the acl store folder if it doesn't exist
-	storeFolder := path.Base(aclStore.storePath)
+	storeFolder := path.Dir(aclStore.storePath)
 	if _, err := os.Stat(storeFolder); os.IsNotExist(err) {
 		logrus.Infof("Creating store folder %s", storeFolder)
 		os.MkdirAll(storeFolder, 0700)
@@ -224,8 +224,10 @@ func (aclStore *AclFileStore) Reload(ctx context.Context) error {
 }
 
 // Remove removes a client from a group and update the store.
-//  serviceID login name to assign the role
-//  groupID  group where the role applies.
+//
+//	serviceID login name to assign the role
+//	groupID  group where the role applies.
+//
 // returns an error if the group doesn't exist or saving the update fails
 func (aclStore *AclFileStore) Remove(ctx context.Context, clientID string, groupID string) error {
 
@@ -252,7 +254,8 @@ func (aclStore *AclFileStore) Remove(ctx context.Context, clientID string, group
 }
 
 // RemoveAll removes a client from all groups and update the store.
-//  clientID user or thingID to remove from all groups
+//
+//	clientID user or thingID to remove from all groups
 func (aclStore *AclFileStore) RemoveAll(ctx context.Context, clientID string) error {
 
 	for key := range aclStore.groups {
@@ -263,9 +266,10 @@ func (aclStore *AclFileStore) RemoveAll(ctx context.Context, clientID string) er
 
 // SetRole sets a user ACL and update the store.
 // This updates the user's role, saves it to a temp file and move the result to the store file.
-//  clientID   client to assign the role
-//  groupName  group where the role applies
-//  role     one of ClientRoleViewer, ClientRoleOperator, ClientRoleManager, ClientRoleThing or ClientRoleNone to remove the role
+//
+//	clientID   client to assign the role
+//	groupName  group where the role applies
+//	role     one of ClientRoleViewer, ClientRoleOperator, ClientRoleManager, ClientRoleThing or ClientRoleNone to remove the role
 func (aclStore *AclFileStore) SetRole(ctx context.Context, clientID string, groupName string, role string) error {
 
 	// Prevent concurrently running Reload and SetRole
@@ -330,8 +334,9 @@ func (aclStore *AclFileStore) Save() error {
 }
 
 // NewAclFileStore creates an instance of a file based ACL store
-//  filepath is the location of the store. See also DefaultAclFilename for the recommended name.
-//  serviceID is for logging which authservice is accessing it
+//
+//	filepath is the location of the store. See also DefaultAclFilename for the recommended name.
+//	serviceID is for logging which authservice is accessing it
 func NewAclFileStore(filepath string, serviceID string) *AclFileStore {
 	store := &AclFileStore{
 		serviceID:        serviceID,

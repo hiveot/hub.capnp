@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"path"
 	"syscall"
 	"testing"
 	"time"
@@ -22,8 +23,10 @@ import (
 	"github.com/hiveot/hub/pkg/directory/service"
 )
 
-const dirStoreFile = "/tmp/directorystore_test.json"
-const testAddress = "/tmp/dirstore_test.socket"
+var testFolder = path.Join(os.TempDir(), "test-directory")
+var testStoreFile = path.Join(testFolder, "directory.json")
+var testSocket = path.Join(testFolder, "dirstore.socket")
+
 const testUseCapnp = true
 
 // startDirectory initializes a Directory service, optionally using capnp RPC
@@ -32,8 +35,8 @@ func startDirectory(useCapnp bool) (directory.IDirectory, func()) {
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	logrus.Infof("startDirectory start")
 	defer logrus.Infof("startDirectory ended")
-	_ = os.Remove(dirStoreFile)
-	svc := service.NewDirectoryService(ctx, "urn:hubtest", dirStoreFile)
+	_ = os.Remove(testStoreFile)
+	svc := service.NewDirectoryService(ctx, "urn:hubtest", testStoreFile)
 	err := svc.Start(ctx)
 	if err != nil {
 		panic("service fails to start")
@@ -42,15 +45,15 @@ func startDirectory(useCapnp bool) (directory.IDirectory, func()) {
 	// optionally test with capnp RPC
 	if useCapnp {
 		// start the server
-		_ = syscall.Unlink(testAddress)
-		srvListener, err := net.Listen("unix", testAddress)
+		_ = syscall.Unlink(testSocket)
+		srvListener, err := net.Listen("unix", testSocket)
 		if err != nil {
 			logrus.Panic("Unable to create a listener, can't run test")
 		}
-		go capnpserver.StartDirectoryCapnpServer(ctx, srvListener, svc)
+		go capnpserver.StartDirectoryServiceCapnpServer(ctx, srvListener, svc)
 
 		// connect the client to the server above
-		clConn, _ := net.Dial("unix", testAddress)
+		clConn, _ := net.Dial("unix", testSocket)
 		capClient, err := capnpclient.NewDirectoryCapnpClient(ctx, clConn)
 		return capClient, func() {
 			cancelFunc()
@@ -73,6 +76,9 @@ func createTDDoc(thingID string, title string) []byte {
 
 func TestMain(m *testing.M) {
 	logging.SetLogging("info", "")
+	// clean start
+	os.RemoveAll(testFolder)
+	os.MkdirAll(testFolder, 0700)
 
 	res := m.Run()
 	os.Exit(res)
@@ -80,7 +86,7 @@ func TestMain(m *testing.M) {
 
 func TestStartStop(t *testing.T) {
 	logrus.Infof("--- TestStartStop start ---")
-	_ = os.Remove(dirStoreFile)
+	_ = os.Remove(testStoreFile)
 	store, cancelFunc := startDirectory(testUseCapnp)
 	defer cancelFunc()
 	assert.NotNil(t, store)
@@ -89,7 +95,7 @@ func TestStartStop(t *testing.T) {
 
 func TestAddRemoveTD(t *testing.T) {
 	logrus.Infof("--- TestRemoveTD start ---")
-	_ = os.Remove(dirStoreFile)
+	_ = os.Remove(testStoreFile)
 	const thing1ID = "urn:thing1"
 	const thing1Addr = "urn:test/" + thing1ID
 	const title1 = "title1"
@@ -151,7 +157,7 @@ func TestAddRemoveTD(t *testing.T) {
 
 func TestCursor(t *testing.T) {
 	logrus.Infof("--- TestCursor start ---")
-	_ = os.Remove(dirStoreFile)
+	_ = os.Remove(testStoreFile)
 	const thing1ID = "urn:thing1"
 	const thing1Addr = "urn:test/" + thing1ID
 	const title1 = "title1"
@@ -188,6 +194,10 @@ func TestCursor(t *testing.T) {
 	tdValue, valid = cursor.Next() // there is no third
 	assert.False(t, valid)
 	assert.Empty(t, tdValue)
+
+	tdValues, valid := cursor.NextN(10) // still no third
+	assert.False(t, valid)
+	assert.Empty(t, tdValues)
 
 	logrus.Infof("--- TestCursor end ---")
 }
@@ -226,7 +236,7 @@ func TestCursor(t *testing.T) {
 // simple performance test update/read, comparing direct vs capnp access
 func TestPerf(t *testing.T) {
 	logrus.Infof("--- start TestPerf ---")
-	_ = os.Remove(dirStoreFile)
+	_ = os.Remove(testStoreFile)
 	const gateway1ID = "test"
 	const thing1ID = "urn:thing1"
 	const thing1Addr = "urn:test/" + thing1ID

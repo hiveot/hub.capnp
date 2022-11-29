@@ -2,50 +2,79 @@ package gateway_test
 
 import (
 	"context"
+	"crypto/ecdsa"
 	"net"
 	"os"
 	"path"
 	"syscall"
 	"testing"
-	"time"
 
-	"capnproto.org/go/capnp/v3"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub.go/pkg/certsclient"
 	"github.com/hiveot/hub.go/pkg/logging"
+	"github.com/hiveot/hub/internal/listener"
+	"github.com/hiveot/hub/pkg/certs"
+	capnpclient2 "github.com/hiveot/hub/pkg/certs/capnpclient"
+	capnpserverCerts "github.com/hiveot/hub/pkg/certs/capnpserver"
+	"github.com/hiveot/hub/pkg/certs/service/selfsigned"
 	"github.com/hiveot/hub/pkg/gateway"
 	"github.com/hiveot/hub/pkg/gateway/capnpclient"
 	"github.com/hiveot/hub/pkg/gateway/capnpserver"
 	"github.com/hiveot/hub/pkg/gateway/service"
 )
 
-const configDir = "/tmp/test-gateway"
+const testSocketDir = "/tmp/test-gateway"
+const testClientID = "client1"
 const testUseCapnp = true
-const testMethodName = "ping"
-const testService = gateway.ServiceName // testing using this service
-var testSocket = path.Join(configDir, gateway.ServiceName+".socket")
 
-// capability of the gateway service for testing
-const config1 = `
-capabilities:
-  Ping:
-    clientType:
-      - iotdevice
-      - service
-      - users
-`
+var testSocket = path.Join(testSocketDir, gateway.ServiceName+".socket")
+var testCACert string
+var testClientKeys *ecdsa.PrivateKey
+var testClientCertPem string
+var testClientPubKeyPem string
+
+// this creates a test instance of the certificate service
+func startCertService(ctx context.Context) certs.ICerts {
+	var err error
+	caCert, caKey, _ := selfsigned.CreateHubCA(1)
+	certCap := selfsigned.NewSelfSignedCertsService(caCert, caKey)
+	srvListener := listener.CreateServiceListener(testSocketDir, certs.ServiceName)
+
+	logrus.Infof("CertServiceCapnpServer starting on: %s", srvListener.Addr())
+	svc := selfsigned.NewSelfSignedCertsService(caCert, caKey)
+	go capnpserverCerts.StartCertsCapnpServer(ctx, srvListener, svc)
+
+	cuc := certCap.CapUserCerts()
+
+	testclientKeys := certsclient.CreateECDSAKeys()
+	testClientPubKeyPem, _ = certsclient.PublicKeyToPEM(&testclientKeys.PublicKey)
+	testClientCertPem, testCACert, err = cuc.CreateUserCert(ctx, testClientID, testClientPubKeyPem, 1)
+	if err != nil {
+		panic(err)
+	}
+	cuc.Release()
+
+	return certCap
+}
 
 func startService(useCapnp bool) (gateway.IGatewayService, func() error) {
 	ctx, cancelFunc := context.WithCancel(context.Background())
-	_ = os.RemoveAll(configDir)
-	err := os.MkdirAll(configDir, 0700)
+	_ = os.RemoveAll(testSocketDir)
+	err := os.MkdirAll(testSocketDir, 0700)
 
-	svc := service.NewGatewayService(configDir, configDir)
+	// start with the authn service capabilities
+	certSvc := startCertService(ctx)
+	_ = certSvc
+
+	//
+	svc := service.NewGatewayService(testSocketDir)
 	err = svc.Start(ctx)
 	if err != nil {
-		logrus.Panicf("Failed to start with configdir %s", configDir)
+		logrus.Panicf("Failed to start with socket dir %s", testSocketDir)
 	}
 	// optionally test with capnp RPC
 	if useCapnp {
@@ -55,7 +84,7 @@ func startService(useCapnp bool) (gateway.IGatewayService, func() error) {
 		if err != nil {
 			logrus.Panic("Unable to create a listener, can't run test")
 		}
-		go capnpserver.StartGatewayServiceCapnpServer(ctx, srvListener, svc, configDir)
+		go capnpserver.StartGatewayServiceCapnpServer(ctx, srvListener, svc, testSocketDir)
 
 		// connect the client to the server above
 		clConn, _ := net.Dial("unix", testSocket)
@@ -63,12 +92,16 @@ func startService(useCapnp bool) (gateway.IGatewayService, func() error) {
 		return capClient, func() error {
 			cancelFunc()
 			//_ = capClient.Stop(ctx)
-			return svc.Stop(ctx)
+			err = svc.Stop(ctx)
+			//_ = certSvc.Stop(ctx)
+			return err
 		}
 	}
 	return svc, func() error {
 		cancelFunc()
-		return svc.Stop(ctx)
+		err = svc.Stop(ctx)
+		//_ = certSvc.Stop(ctx)
+		return err
 	}
 }
 func TestMain(m *testing.M) {
@@ -79,14 +112,15 @@ func TestMain(m *testing.M) {
 }
 
 func TestStartStop(t *testing.T) {
-	ctx, stopFn := context.WithCancel(context.Background())
-	err := os.MkdirAll(configDir, 0700)
-	require.NoError(t, err)
-	svc := service.NewGatewayService(configDir, configDir)
-	err = svc.Start(ctx)
-	assert.NoError(t, err)
+	//ctx, stopFn := context.WithCancel(context.Background())
+	//err := os.MkdirAll(testSocketDir, 0700)
+	//require.NoError(t, err)
+	//svc := service.NewGatewayService(testSocketDir)
+	//err = svc.Start(ctx)
+	//assert.NoError(t, err)
+	ctx := context.Background()
+	svc, stopFn := startService(testUseCapnp)
 
-	time.Sleep(time.Millisecond)
 	pong, err := svc.Ping(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, "pong", pong)
@@ -96,77 +130,71 @@ func TestStartStop(t *testing.T) {
 	stopFn()
 }
 
-func TestExtractCapConfig(t *testing.T) {
-	const service1 = "service1"
-	ctx, stopFn := context.WithCancel(context.Background())
-	err := os.MkdirAll(configDir, 0700)
-	require.NoError(t, err)
-
-	svc := service.NewGatewayService(configDir, configDir)
-	err = svc.Start(ctx)
-	assert.NoError(t, err)
-	// extract capabilities
-	caps := svc.ExtractCapabilitiesFromConfig(service1, []byte(config1))
-	assert.Equal(t, 1, len(caps))
-	assert.Equal(t, 3, len(caps[0].ClientType))
-	err = svc.Stop(ctx)
-	assert.NoError(t, err)
-	stopFn()
-}
+//
+//func TestExtractCapConfig(t *testing.T) {
+//	const service1 = "service1"
+//	ctx, stopFn := context.WithCancel(context.Background())
+//	err := os.MkdirAll(testSocketDir, 0700)
+//	require.NoError(t, err)
+//
+//	svc := service.NewGatewayService(testSocketDir)
+//	err = svc.Start(ctx)
+//	assert.NoError(t, err)
+//	// extract capabilities
+//	caps := svc.ExtractCapabilitiesFromConfig(service1, []byte(config1))
+//	assert.Equal(t, 1, len(caps))
+//	assert.Equal(t, 3, len(caps[0].ClientType))
+//	err = svc.Stop(ctx)
+//	assert.NoError(t, err)
+//	stopFn()
+//}
 
 func TestGetInfo(t *testing.T) {
 
 	ctx := context.Background()
 	svc, stopFn := startService(testUseCapnp)
 
-	// create a service configuration file with a capabilities section
-	// the service config watcher should pick this up
-	configFile := path.Join(configDir, testService+".yaml")
-	err := os.WriteFile(configFile, []byte(config1), 0600)
+	// use gateway service itself to get its capability
+	caps, err := svc.ListCapabilities(ctx, hubapi.ClientTypeService)
 	assert.NoError(t, err)
-	// let the watcher renew
-	time.Sleep(time.Millisecond)
-
-	// expect 1 capability from testconfig
-	info, err := svc.GetGatewayInfo(ctx)
-	assert.NoError(t, err)
-	require.Equal(t, 1, len(info.Capabilities))
-	capInfo0 := info.Capabilities[0]
-	assert.Equal(t, testMethodName, capInfo0.Name)
+	assert.Equal(t, 4, len(caps))
 
 	err = stopFn()
 	assert.NoError(t, err)
 }
 
 func TestGetCapability(t *testing.T) {
+	const clientType = hubapi.ClientTypeService
 	ctx := context.Background()
 
 	svc, stopFn := startService(testUseCapnp)
-	// create a service configuration file with a capabilities section
-	configFile := path.Join(configDir, testService+".yaml")
-	err := os.WriteFile(configFile, []byte(config1), 0600)
-	assert.NoError(t, err)
 
-	// give the service some time to load the new config
-	time.Sleep(time.Millisecond)
-
-	// The 'Ping' capability should be accessible
-	capability, err := svc.GetCapability(ctx,
-		gateway.ClientTypeIotDevice, gateway.ServiceName)
+	// list capabilites, get the service capability and invoke 'Ping'
+	capList, err := svc.ListCapabilities(ctx, clientType)
 	assert.NoError(t, err)
+	require.Equal(t, 4, len(capList))
+	//assert.Equal(t, "capVerifyCerts", capList[0].CapabilityName)
+
+	// the connection method determines the client type. In this case service.
+	capability, err := svc.GetCapability(ctx, testClientID, clientType, "capVerifyCerts", nil)
+	require.NoError(t, err)
 	assert.NotNil(t, capability)
 
-	// this applies to all services. Just using the gateway service itself for testing
-	gwSvc := capnpclient.NewGatewayServiceFromCapability(capability.(capnp.Client))
-	resp, err := gwSvc.Ping(ctx)
+	// cast the capability to that of the gateway.
+	// Just using the gateway service itself for testing
+	verifyCapabilityCapnp := hubapi.CapVerifyCerts(capability)
+	verifyCapability := capnpclient2.NewVerifyCertsCapnpClient(verifyCapabilityCapnp)
+	err = verifyCapability.VerifyCert(ctx, testClientID, testClientCertPem)
 	assert.NoError(t, err)
-	assert.Equal(t, "pong", resp)
 
 	// get capability that doesn't exist
-	capability, err = svc.GetCapability(ctx, gateway.ClientTypeIotDevice, "notaservice")
+	capability, err = svc.GetCapability(ctx, testClientID, clientType, "notacapability", nil)
 	assert.Error(t, err)
-	assert.Nil(t, capability)
 
 	err = stopFn()
 	assert.NoError(t, err)
+}
+
+func TestLogin(t *testing.T) {
+	//TODO
 }

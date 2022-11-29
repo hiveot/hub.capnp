@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"net"
 	"os"
+	"path"
 	"syscall"
 	"testing"
 
@@ -19,11 +20,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//var tempFolder string
-//var certFolder string
-
 const useCapnp = true
-const testAddress = "/tmp/certservice_test.socket"
+
+var testFolder = path.Join(os.TempDir(), "test-certs")
+var testSocket = path.Join(testFolder, "certs.socket")
 
 // removeCerts easy cleanup for existing device certificate
 //func removeServerCerts() {
@@ -33,31 +33,36 @@ const testAddress = "/tmp/certservice_test.socket"
 // Factory for creating service instance. Currently the only implementation is selfsigned.
 func NewService() (svc certs.ICerts, closeFunc func()) {
 	// use selfsigned to create a new CA for these tests
-	ctx, closeFunc := context.WithCancel(context.Background())
+	ctx, cancelFunc := context.WithCancel(context.Background())
 	caCert, caKey, _ := selfsigned.CreateHubCA(1)
-	svc = selfsigned.NewSelfSignedCertsService(caCert, caKey)
+	certSvc := selfsigned.NewSelfSignedCertsService(caCert, caKey)
 	// when using capnp, return a client instance instead the svc
 	if useCapnp {
 		// remove stale handle
-		_ = syscall.Unlink(testAddress)
-		srvListener, _ := net.Listen("unix", testAddress)
-		go capnpserver.StartCertsCapnpServer(ctx, srvListener, svc)
+		_ = syscall.Unlink(testSocket)
+		srvListener, _ := net.Listen("unix", testSocket)
+		go capnpserver.StartCertsCapnpServer(ctx, srvListener, certSvc)
 		// connect the client to the server above
-		clConn, _ := net.Dial("unix", testAddress)
+		clConn, _ := net.Dial("unix", testSocket)
 		capClient, _ := capnpclient.NewCertServiceCapnpClient(ctx, clConn)
-		return capClient, closeFunc
+		return capClient, func() {
+			cancelFunc()
+			capClient.Release()
+			certSvc.Stop()
+		}
 	}
-	return svc, closeFunc
+	return certSvc, func() {
+		cancelFunc()
+		certSvc.Stop()
+	}
 }
 
 // TestMain clears the certs folder for clean testing
 func TestMain(m *testing.M) {
 	logging.SetLogging("info", "")
-	//tempFolder := path.Join(os.TempDir(), "hiveot-certs-test")
 	// clean start
-	//os.RemoveAll(tempFolder)
-	//certFolder = path.Join(tempFolder, "certs")
-	//_ = os.MkdirAll(certFolder, 0700)
+	os.RemoveAll(testFolder)
+	_ = os.MkdirAll(testFolder, 0700)
 	logging.SetLogging("info", "")
 	//removeServerCerts()
 

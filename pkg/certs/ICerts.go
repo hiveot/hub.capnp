@@ -25,6 +25,7 @@ const ServiceName = "certs"
 // This approach is experimental and intended to improve security by providing capabilities based on
 // user credentials, enforced by the capnp protocol.
 type ICerts interface {
+
 	// CapDeviceCerts provides the capability to manage device certificates
 	CapDeviceCerts() IDeviceCerts
 

@@ -14,6 +14,7 @@ const TDBucketName = "td"
 
 // IDirectory defines the capability to use the thing directory
 type IDirectory interface {
+
 	// CapReadDirectory provides the capability to read and query the thing directory
 	CapReadDirectory(ctx context.Context) IReadDirectory
 

@@ -9,77 +9,84 @@ import (
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/internal/caphelp"
-	"github.com/hiveot/hub/pkg/gateway"
 )
 
 type GatewayServiceCapnpClient struct {
+	// implement the IHiveOTService interface
+	//caphelp.HiveOTServiceCapnpClient
 	connection *rpc.Conn                // connection to capnp server
 	capability hubapi.CapGatewayService // capnp client of the gateway service
 }
 
-// GetCapability obtains the capability with the given name, if available
-// This returns the remote capability that still has to be wrapped in the POGS client for
-// that capability.
-//
-// for example:
-//
-//	cap, err := GetCapability(ctx, gateway.ClientTypeService, pubsub.ServiceName, "CapServicePubSub", "urn:myservicename")
-//	servicePubSub := NewServicePubSubCapnpClient(cap)  // IServicePubSub
+// GetCapability obtains the capability with the given name.
+// The caller must release the capability when done.
 func (cl *GatewayServiceCapnpClient) GetCapability(ctx context.Context,
-	clientType string, service string) (interface{}, error) {
+	clientID string, clientType string, capabilityName string, args []string) (
+	capabilityRef capnp.Client, err error) {
 
 	method, release := cl.capability.GetCapability(ctx,
 		func(params hubapi.CapGatewayService_getCapability_Params) error {
-			_ = params.SetService(service)
-			err := params.SetClientType(clientType)
+			_ = params.SetClientID(clientID)
+			_ = params.SetClientType(clientType)
+			_ = params.SetCapabilityName(capabilityName)
+			if args != nil {
+				err = params.SetArgs(caphelp.MarshalStringList(args))
+			}
+			return err
+		})
+	defer release()
+	// return a future. Caller must release
+	//capability = method.Cap().AddRef()
+
+	// Just return the actual capability instead of a future, so the error is obtained if it isn't available.
+	// Would be nice to return the future but this is an infrequent call anyways.
+	resp, err := method.Struct()
+	if err == nil {
+		capability := resp.Capability().AddRef()
+		capabilityRef = capability
+	}
+	return capabilityRef, err
+}
+
+// ListCapabilities lists the available capabilities of the service
+// Returns a list of capabilities that can be obtained through the service
+func (cl *GatewayServiceCapnpClient) ListCapabilities(
+	ctx context.Context, clientType string) (infoList []caphelp.CapabilityInfo, err error) {
+
+	infoList = make([]caphelp.CapabilityInfo, 0)
+	method, release := cl.capability.ListCapabilities(ctx,
+		func(params hubapi.CapGatewayService_listCapabilities_Params) error {
+			err = params.SetClientType(clientType)
 			return err
 		})
 	defer release()
 	resp, err := method.Struct()
-	if err != nil {
-		return nil, err
-	}
-	capability := resp.Cap()
-	capclient := capnp.Client(capability.AddRef())
-	return capclient, err
-}
-
-// GetGatewayInfo describes the capabilities and capacity of the gateway
-func (cl *GatewayServiceCapnpClient) GetGatewayInfo(
-	ctx context.Context) (gwInfo gateway.GatewayInfo, err error) {
-
-	method, release := cl.capability.GetGatewayInfo(ctx, nil)
-	defer release()
-
-	resp, err := method.Struct()
 	if err == nil {
-		infoCapnp, err2 := resp.Info()
-		err = err2
-		if err2 == nil {
-			// Unmarshal the gateway info
-			gwInfo.URL, _ = infoCapnp.Url()
-			gwInfo.Latency = int(infoCapnp.Latency())
-			gwInfo.Capabilities = make([]gateway.CapabilityInfo, 0)
-			//
-			infoList, err2 := infoCapnp.Capabilities()
-			err = err2
-			if err2 == nil {
-				for i := 0; i < infoList.Len(); i++ {
-					capInfoCapnp := infoList.At(i)
-					service, _ := capInfoCapnp.Service()
-					name, _ := capInfoCapnp.Name()
-					clientType, _ := capInfoCapnp.ClientType()
-					capInfoPogs := gateway.CapabilityInfo{
-						Service:    service,
-						Name:       name,
-						ClientType: caphelp.UnmarshalStringList(clientType),
-					}
-					gwInfo.Capabilities = append(gwInfo.Capabilities, capInfoPogs)
-				}
-			}
+		infoListCapnp, err2 := resp.InfoList()
+		if err = err2; err == nil {
+			infoList = caphelp.UnmarshalCapabilities(infoListCapnp)
 		}
 	}
-	return gwInfo, err
+	return infoList, err
+}
+
+// Login to the gateway
+func (cl *GatewayServiceCapnpClient) Login(ctx context.Context,
+	clientID string, password string) (success bool, err error) {
+
+	success = false
+	method, release := cl.capability.Login(ctx,
+		func(params hubapi.CapGatewayService_login_Params) error {
+			err = params.SetClientID(clientID)
+			params.SetPassword(password)
+			return err
+		})
+	defer release()
+	resp, err := method.Struct()
+	if err == nil {
+		success = resp.Success()
+	}
+	return success, err
 }
 
 // Ping performs a ping test
@@ -108,19 +115,25 @@ func NewGatewayServiceCapnpClient(ctx context.Context,
 
 	transport := rpc.NewStreamTransport(connection)
 	rpcConn := rpc.NewConn(transport, nil)
-	capability := hubapi.CapGatewayService(rpcConn.Bootstrap(ctx))
+	capGatewayService := hubapi.CapGatewayService(rpcConn.Bootstrap(ctx))
+	//capHiveOTService := hubapi.CapHiveOTService(capGatewayService)
 
 	cl = &GatewayServiceCapnpClient{
+		//HiveOTServiceCapnpClient: *caphelp.NewHiveOTServiceCapnpClient(capHiveOTService),
 		connection: rpcConn,
-		capability: capability,
+		capability: capGatewayService,
 	}
 	return cl, nil
 }
 
-func NewGatewayServiceFromCapability(capability capnp.Client) (cl *GatewayServiceCapnpClient) {
+// NewGatewayServiceFromCapability creates a capnp client of the gateway service
+// capability is the gateway CapGatewayService obtained through getCapability.
+func NewGatewayServiceFromCapability(capability hubapi.CapGatewayService) (cl *GatewayServiceCapnpClient) {
+	//capHiveOTService := hubapi.CapHiveOTService(capability)
 
 	cl = &GatewayServiceCapnpClient{
 		capability: hubapi.CapGatewayService(capability),
+		//HiveOTServiceCapnpClient: *caphelp.NewHiveOTServiceCapnpClient(capHiveOTService),
 	}
 	return cl
 }

@@ -3,7 +3,7 @@ module github.com/hiveot/hub
 go 1.18
 
 require (
-	capnproto.org/go/capnp/v3 v3.0.0-alpha.8
+	capnproto.org/go/capnp/v3 v3.0.0-alpha.9
 	github.com/alexedwards/argon2id v0.0.0-20211130144151-3585854a6387
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
 	github.com/cockroachdb/pebble v0.0.0-20221102214136-948d4a013a69

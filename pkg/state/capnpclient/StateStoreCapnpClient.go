@@ -19,7 +19,7 @@ type StateServiceCapnpClient struct {
 	ctx        context.Context
 }
 
-func (cl *StateServiceCapnpClient) CapClientBucket(
+func (cl *StateServiceCapnpClient) CapClientState(
 	ctx context.Context, clientID string, appID string) (state.IClientState, error) {
 
 	method, release := cl.capability.CapClientState(ctx,
@@ -41,8 +41,9 @@ func (cl *StateServiceCapnpClient) Stop() error {
 }
 
 // NewStateCapnpClient returns a state store client using the capnp protocol
-//  ctx is the context for retrieving capabilities
-//  connection is the client connection to the capnp RPC server
+//
+//	ctx is the context for retrieving capabilities
+//	connection is the client connection to the capnp RPC server
 func NewStateCapnpClient(ctx context.Context, connection net.Conn) (*StateServiceCapnpClient, error) {
 	var cl *StateServiceCapnpClient
 	transport := rpc.NewStreamTransport(connection)

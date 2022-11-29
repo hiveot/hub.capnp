@@ -11,10 +11,12 @@ import (
 
 // SelfSignedCertsService creates certificates for use by services, devices and admin users.
 //
-// This implements the ICertsService interface
+// # This implements the ICertsService interface
 //
 // Note that this service does not support certificate revocation.
-//   See also: https://www.imperialviolet.org/2014/04/19/revchecking.html
+//
+//	See also: https://www.imperialviolet.org/2014/04/19/revchecking.html
+//
 // Issued certificates are short-lived and must be renewed before they expire.
 type SelfSignedCertsService struct {
 	deviceCertsService  certs.IDeviceCerts
@@ -55,8 +57,9 @@ func (srv *SelfSignedCertsService) Stop() {
 }
 
 // NewSelfSignedCertsService returns a new instance of the selfsigned certificate service
-//  caCert is the CA certificate used to created certificates
-//  caKey is the CA private key used to created certificates
+//
+//	caCert is the CA certificate used to created certificates
+//	caKey is the CA private key used to created certificates
 func NewSelfSignedCertsService(caCert *x509.Certificate, caKey *ecdsa.PrivateKey) *SelfSignedCertsService {
 	caCertPool := x509.NewCertPool()
 	caCertPool.AddCert(caCert)

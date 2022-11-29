@@ -21,7 +21,7 @@ const DefaultBucketID = "default"
 func addRecords(store state.IStateService, clientID, bucketID string, count int) {
 	const batchSize = 50000
 	ctx := context.Background()
-	client, _ := store.CapClientBucket(ctx, clientID, bucketID)
+	client, _ := store.CapClientState(ctx, clientID, bucketID)
 	nrBatches := (count / batchSize) + 1
 
 	// Don't exceed the max transaction size
@@ -130,7 +130,7 @@ func BenchmarkSetState(b *testing.B) {
 		store, stopFn, err := createStateService(testUseCapnp)
 		require.NoError(b, err)
 		addRecords(store, clientID1, appID, tbl.dataSize)
-		clientState, err := store.CapClientBucket(ctx, clientID1, appID)
+		clientState, err := store.CapClientState(ctx, clientID1, appID)
 
 		b.Run(fmt.Sprintf("SetState. Datasize=%d, #sets=%d", tbl.dataSize, tbl.nrSets),
 			func(b *testing.B) {
@@ -173,7 +173,7 @@ func BenchmarkSetMultiple(b *testing.B) {
 			multiple[td.key] = td.val
 		}
 
-		clientState, err := store.CapClientBucket(ctx, clientID1, appID)
+		clientState, err := store.CapClientState(ctx, clientID1, appID)
 
 		b.Run(fmt.Sprintf("SetMultiple. Datasize=%d, #sets=%d", tbl.dataSize, tbl.nrSets),
 			func(b *testing.B) {
@@ -205,7 +205,7 @@ func BenchmarkGetState(b *testing.B) {
 		store, stopFn, err := createStateService(testUseCapnp)
 		require.NoError(b, err)
 		addRecords(store, clientID1, appID, v.dataSize)
-		clientState, err := store.CapClientBucket(ctx, clientID1, appID)
+		clientState, err := store.CapClientState(ctx, clientID1, appID)
 		clientState.Set(ctx, key1, val1)
 
 		// create the client, update and close

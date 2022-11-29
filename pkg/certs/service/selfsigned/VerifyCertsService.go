@@ -27,8 +27,10 @@ func (srv *VerifyCertsService) VerifyCert(
 		KeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
 	}
 	cert, err := certsclient.X509CertFromPEM(certPEM)
-	if cert.Subject.CommonName != clientID {
-		err = fmt.Errorf("client ID '%s' doesn't match certificate name '%s'", clientID, cert.Subject.CommonName)
+	if err == nil {
+		if cert.Subject.CommonName != clientID {
+			err = fmt.Errorf("client ID '%s' doesn't match certificate name '%s'", clientID, cert.Subject.CommonName)
+		}
 	}
 	//if err == nil {
 	//	x509Cert, err := x509.ParseCertificate(clientCert.Certificate[0])
@@ -47,7 +49,8 @@ func (srv *VerifyCertsService) Release() {
 }
 
 // NewVerifyCertsService returns a new instance of the certificate verification service
-//  caCert is the CA certificate to verify against
+//
+//	caCert is the CA certificate to verify against
 func NewVerifyCertsService(caCert *x509.Certificate) *VerifyCertsService {
 	caCertPool := x509.NewCertPool()
 	caCertPool.AddCert(caCert)

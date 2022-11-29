@@ -16,6 +16,8 @@ import (
 // This implements the capnproto generated interface PubSubService_Server
 // See hub.capnp/go/hubapi/PubSubService.capnp.go for the interface.
 type PubSubCapnpServer struct {
+	// getCapability and listCapabilities
+	caphelp.HiveOTServiceCapnpServer
 	svc pubsub.IPubSubService
 }
 
@@ -77,9 +79,20 @@ func StartPubSubCapnpServer(
 	ctx context.Context, lis net.Listener, svc pubsub.IPubSubService) error {
 
 	logrus.Infof("Starting pubsub service capnp adapter on: %s", lis.Addr())
-	main := hubapi.CapPubSubService_ServerToClient(&PubSubCapnpServer{
-		svc: svc,
-	})
+	capsrv := &PubSubCapnpServer{
+		HiveOTServiceCapnpServer: caphelp.NewHiveOTServiceCapnpServer(pubsub.ServiceName),
+		svc:                      svc,
+	}
+	// register the methods available through getCapability
+	capsrv.RegisterKnownMethods(hubapi.CapPubSubService_Methods(nil, capsrv))
+	capsrv.ExportCapability("capDevicePubSub",
+		[]string{hubapi.ClientTypeService, hubapi.ClientTypeIotDevice})
+	capsrv.ExportCapability("capServicePubSub",
+		[]string{hubapi.ClientTypeService})
+	capsrv.ExportCapability("capUserPubSub",
+		[]string{hubapi.ClientTypeService, hubapi.ClientTypeUser})
+
+	main := hubapi.CapPubSubService_ServerToClient(capsrv)
 
 	err := caphelp.CapServe(ctx, pubsub.ServiceName, lis, capnp.Client(main))
 	return err

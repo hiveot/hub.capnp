@@ -56,7 +56,7 @@ func TestMain(m *testing.M) {
 	logging.SetLogging("info", "")
 
 	// a working folder for the data
-	tempFolder = path.Join(os.TempDir(), "hiveot-authn-test")
+	tempFolder = path.Join(os.TempDir(), "test-authn")
 	_ = os.MkdirAll(tempFolder, 0700)
 
 	// the password file to use

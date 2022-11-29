@@ -16,14 +16,15 @@ import (
 // This implements the capnproto generated interface Authz_Server
 // See hub.capnp/go/hubapi/Authz.capnp.go for the interface.
 type AuthzCapnpServer struct {
-	srv authz.IAuthz
+	caphelp.HiveOTServiceCapnpServer
+	svc authz.IAuthz
 }
 
 func (capsrv *AuthzCapnpServer) CapClientAuthz(
 	ctx context.Context, call hubapi.CapAuthz_capClientAuthz) error {
 
 	clientID, _ := call.Args().ClientID()
-	capClientAuthz := capsrv.srv.CapClientAuthz(ctx, clientID)
+	capClientAuthz := capsrv.svc.CapClientAuthz(ctx, clientID)
 	capClientAuthzCapnp := &ClientAuthzCapnpServer{
 		srv: capClientAuthz,
 	}
@@ -39,7 +40,7 @@ func (capsrv *AuthzCapnpServer) CapClientAuthz(
 
 func (capsrv *AuthzCapnpServer) CapManageAuthz(ctx context.Context, call hubapi.CapAuthz_capManageAuthz) error {
 	manageAuthzCapSrv := &ManageAuthzCapnpServer{
-		srv: capsrv.srv.CapManageAuthz(ctx),
+		srv: capsrv.svc.CapManageAuthz(ctx),
 	}
 	capability := hubapi.CapManageAuthz_ServerToClient(manageAuthzCapSrv)
 	res, err := call.AllocResults()
@@ -51,7 +52,7 @@ func (capsrv *AuthzCapnpServer) CapManageAuthz(ctx context.Context, call hubapi.
 
 func (capsrv *AuthzCapnpServer) CapVerifyAuthz(ctx context.Context, call hubapi.CapAuthz_capVerifyAuthz) error {
 	verifyAuthzSrv := &VerifyAuthzCapnpServer{
-		srv: capsrv.srv.CapVerifyAuthz(ctx),
+		srv: capsrv.svc.CapVerifyAuthz(ctx),
 	}
 	capability := hubapi.CapVerifyAuthz_ServerToClient(verifyAuthzSrv)
 	res, err := call.AllocResults()
@@ -62,14 +63,23 @@ func (capsrv *AuthzCapnpServer) CapVerifyAuthz(ctx context.Context, call hubapi.
 }
 
 // StartAuthzCapnpServer starts the capnp protocol server for the authentication service
-func StartAuthzCapnpServer(ctx context.Context, lis net.Listener, srv authz.IAuthz) error {
+func StartAuthzCapnpServer(ctx context.Context, lis net.Listener, svc authz.IAuthz) error {
 
 	logrus.Infof("Starting authz service capnp adapter on: %s", lis.Addr())
+	srv := &AuthzCapnpServer{
+		HiveOTServiceCapnpServer: caphelp.NewHiveOTServiceCapnpServer(authz.ServiceName),
+		svc:                      svc,
+	}
+	// register the methods available through getCapability
+	srv.RegisterKnownMethods(hubapi.CapAuthz_Methods(nil, srv))
+	srv.ExportCapability("capClientAuthz",
+		[]string{hubapi.ClientTypeService, hubapi.ClientTypeUser})
+	srv.ExportCapability("capManageAuthz",
+		[]string{hubapi.ClientTypeService})
+	srv.ExportCapability("capVerifyAuthz",
+		[]string{hubapi.ClientTypeService})
 
-	main := hubapi.CapAuthz_ServerToClient(&AuthzCapnpServer{
-		srv: srv,
-	})
-
+	main := hubapi.CapAuthz_ServerToClient(srv)
 	err := caphelp.CapServe(ctx, authz.ServiceName, lis, capnp.Client(main))
 	return err
 }

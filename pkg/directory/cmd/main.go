@@ -38,8 +38,8 @@ func main() {
 	defer svc.Stop(ctx)
 
 	if err == nil {
-		logrus.Infof("DirectoryCapnpServer starting on: %s", srvListener.Addr())
-		err = capnpserver.StartDirectoryCapnpServer(ctx, srvListener, svc)
+		logrus.Infof("DirectoryServiceCapnpServer starting on: %s", srvListener.Addr())
+		err = capnpserver.StartDirectoryServiceCapnpServer(ctx, srvListener, svc)
 	}
 	if err != nil {
 		msg := fmt.Sprintf("ERROR: Service '%s' failed to start: %s\n", directory.ServiceName, err)

@@ -19,10 +19,11 @@ import (
 	"github.com/hiveot/hub/pkg/authz/service"
 )
 
-const aclFileName = "test-authz.acl" // auth_opt_aclFile
 const testUseCapnp = true
-const testAddress = "/tmp/authz_test.socket"
 
+var testFolder = path.Join(os.TempDir(), "test-authz")
+var testSocket = "authz.socket"
+var aclFilename = "authz.acl"
 var aclFilePath string
 
 var tempFolder string
@@ -40,15 +41,16 @@ func startTestAuthzService(useCapnp bool) (svc authz.IAuthz, closeFn func()) {
 	}
 	if useCapnp {
 		// start the capnp server
-		_ = syscall.Unlink(testAddress)
-		srvListener, err := net.Listen("unix", testAddress)
+		socketPath := path.Join(testFolder, testSocket)
+		_ = syscall.Unlink(socketPath)
+		srvListener, err := net.Listen("unix", socketPath)
 		if err != nil {
 			logrus.Panic("Unable to create a listener, can't run test")
 		}
 		go capnpserver.StartAuthzCapnpServer(ctx, srvListener, authSvc)
 
 		// connect the client to the server above
-		clConn, _ := net.Dial("unix", testAddress)
+		clConn, _ := net.Dial("unix", socketPath)
 		capClient, _ := capnpclient.NewAuthzCapnpClient(ctx, clConn)
 		return capClient, func() { cancelFunc(); authSvc.Stop() }
 	}
@@ -58,10 +60,9 @@ func startTestAuthzService(useCapnp bool) (svc authz.IAuthz, closeFn func()) {
 // TestMain for all authn tests, setup of default folders and filenames
 func TestMain(m *testing.M) {
 	logging.SetLogging("info", "")
-	tempFolder = path.Join(os.TempDir(), "hiveot-authz-test")
-	_ = os.MkdirAll(tempFolder, 0700)
-
-	aclFilePath = path.Join(tempFolder, aclFileName)
+	os.RemoveAll(testFolder)
+	_ = os.MkdirAll(testFolder, 0700)
+	aclFilePath = path.Join(testFolder, aclFilename)
 
 	res := m.Run()
 	if res == 0 {

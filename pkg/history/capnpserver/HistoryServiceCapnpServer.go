@@ -15,6 +15,7 @@ import (
 // This implements the capnproto generated interface History_Server
 // See hub.capnp/go/hubapi/HistoryStore.capnp.go for the interface.
 type HistoryServiceCapnpServer struct {
+	caphelp.HiveOTServiceCapnpServer
 	svc history.IHistoryService
 }
 
@@ -87,10 +88,19 @@ func (capsrv *HistoryServiceCapnpServer) CapReadHistory(
 // StartHistoryServiceCapnpServer returns the capnp protocol server for the history store
 func StartHistoryServiceCapnpServer(ctx context.Context, listener net.Listener, svc history.IHistoryService) error {
 
-	// Create the capnp handler to receive requests
-	main := hubapi.CapHistoryService_ServerToClient(&HistoryServiceCapnpServer{
-		svc: svc,
-	})
+	capsrv := &HistoryServiceCapnpServer{
+		HiveOTServiceCapnpServer: caphelp.NewHiveOTServiceCapnpServer(history.ServiceName),
+		svc:                      svc,
+	}
+	// register the methods available through getCapability
+	capsrv.RegisterKnownMethods(hubapi.CapHistoryService_Methods(nil, capsrv))
+	capsrv.ExportCapability("capAddHistory", []string{hubapi.ClientTypeService})
+	capsrv.ExportCapability("capAddAnyThing", []string{hubapi.ClientTypeService})
+	capsrv.ExportCapability("capReadHistory",
+		[]string{hubapi.ClientTypeService, hubapi.ClientTypeUser})
 
-	return caphelp.CapServe(ctx, history.ServiceName, listener, capnp.Client(main))
+	// Create the capnp handler to receive requests
+	main := hubapi.CapHistoryService_ServerToClient(capsrv)
+	err := caphelp.CapServe(ctx, history.ServiceName, listener, capnp.Client(main))
+	return err
 }

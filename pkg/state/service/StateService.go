@@ -32,9 +32,9 @@ type StateService struct {
 	mux     sync.Mutex
 }
 
-// CapClientBucket returns a new instance of the capability to store client state in a bucket.
+// CapClientState returns a new instance of the capability to store client state in a bucket.
 // This opens a store for the client if one doesn't yet exist.
-func (srv *StateService) CapClientBucket(_ context.Context,
+func (srv *StateService) CapClientState(_ context.Context,
 	clientID string, bucketID string) (cap state.IClientState, err error) {
 
 	srv.mux.Lock()

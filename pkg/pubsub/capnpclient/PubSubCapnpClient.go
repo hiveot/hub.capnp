@@ -7,11 +7,14 @@ import (
 	"capnproto.org/go/capnp/v3/rpc"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/internal/caphelp"
 	"github.com/hiveot/hub/pkg/pubsub"
 )
 
 // PubSubCapnpClient is the capnp client for the pubsub service
 type PubSubCapnpClient struct {
+	caphelp.HiveOTServiceCapnpClient // for getting capabilities by gateway
+
 	connection *rpc.Conn               // connection to capnp server
 	capability hubapi.CapPubSubService // capnp client of the directory
 }
@@ -71,11 +74,13 @@ func StartPubSubCapnpClient(ctx context.Context, connection net.Conn) (*PubSubCa
 	var cl *PubSubCapnpClient
 	transport := rpc.NewStreamTransport(connection)
 	rpcConn := rpc.NewConn(transport, nil)
-	capability := hubapi.CapPubSubService(rpcConn.Bootstrap(ctx))
+	capPubSub := hubapi.CapPubSubService(rpcConn.Bootstrap(ctx))
+	capHiveOTService := hubapi.CapHiveOTService(capPubSub)
 
 	cl = &PubSubCapnpClient{
-		connection: rpcConn,
-		capability: capability,
+		HiveOTServiceCapnpClient: *caphelp.NewHiveOTServiceCapnpClient(capHiveOTService),
+		connection:               rpcConn,
+		capability:               capPubSub,
 	}
 	return cl, nil
 }
