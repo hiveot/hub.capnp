@@ -130,6 +130,6 @@ func StartGatewayServiceCapnpServer(
 	//srv.ExportCapability("getPingCap", []string{hubapi.ClientTypeUser, hubapi.ClientTypeService, hubapi.ClientTypeIotDevice, hubapi.ClientTypeUnauthenticated})
 
 	main := hubapi.CapGatewayService_ServerToClient(srv)
-	err := caphelp.CapServe(ctx, gateway.ServiceName, lis, capnp.Client(main))
+	err := caphelp.Serve(lis, capnp.Client(main))
 	return err
 }

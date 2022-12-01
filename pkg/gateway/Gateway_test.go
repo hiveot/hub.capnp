@@ -46,9 +46,9 @@ func startCertService(ctx context.Context) certs.ICerts {
 
 	logrus.Infof("CertServiceCapnpServer starting on: %s", srvListener.Addr())
 	svc := selfsigned.NewSelfSignedCertsService(caCert, caKey)
-	go capnpserverCerts.StartCertsCapnpServer(ctx, srvListener, svc)
+	go capnpserverCerts.StartCertsCapnpServer(srvListener, svc)
 
-	cuc := certCap.CapUserCerts()
+	cuc := certCap.CapUserCerts(ctx)
 
 	testclientKeys := certsclient.CreateECDSAKeys()
 	testClientPubKeyPem, _ = certsclient.PublicKeyToPEM(&testclientKeys.PublicKey)

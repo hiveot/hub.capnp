@@ -27,16 +27,16 @@ const ServiceName = "certs"
 type ICerts interface {
 
 	// CapDeviceCerts provides the capability to manage device certificates
-	CapDeviceCerts() IDeviceCerts
+	CapDeviceCerts(ctx context.Context) IDeviceCerts
 
 	// CapServiceCerts provides the capability to manage service certificates
-	CapServiceCerts() IServiceCerts
+	CapServiceCerts(ctx context.Context) IServiceCerts
 
 	// CapUserCerts provides the capability to manage user certificates
-	CapUserCerts() IUserCerts
+	CapUserCerts(ctx context.Context) IUserCerts
 
 	// CapVerifyCerts provides the capability to verify certificates
-	CapVerifyCerts() IVerifyCerts
+	CapVerifyCerts(ctx context.Context) IVerifyCerts
 }
 
 // IDeviceCerts defines the POGS based capability to create device certificates

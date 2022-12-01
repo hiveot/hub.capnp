@@ -77,7 +77,7 @@ func newHistoryService(useCapnp bool) (history.IHistoryService, func() error) {
 	if useCapnp {
 		_ = syscall.Unlink(testSocket)
 		srvListener, _ := net.Listen("unix", testSocket)
-		go capnpserver.StartHistoryServiceCapnpServer(ctx, srvListener, svc)
+		go capnpserver.StartHistoryServiceCapnpServer(srvListener, svc)
 
 		// connect the client to the server above
 		clConn, _ := net.Dial("unix", testSocket)

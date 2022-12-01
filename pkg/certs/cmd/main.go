@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"crypto/ecdsa"
 	"crypto/x509"
 	"path"
@@ -51,5 +50,5 @@ func main() {
 
 	logrus.Infof("CertServiceCapnpServer starting on: %s", srvListener.Addr())
 	svc := selfsigned.NewSelfSignedCertsService(caCert, caKey)
-	_ = capnpserver.StartCertsCapnpServer(context.Background(), srvListener, svc)
+	_ = capnpserver.StartCertsCapnpServer(srvListener, svc)
 }

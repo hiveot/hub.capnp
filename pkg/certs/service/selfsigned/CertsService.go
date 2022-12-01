@@ -1,6 +1,7 @@
 package selfsigned
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"crypto/x509"
 
@@ -26,22 +27,26 @@ type SelfSignedCertsService struct {
 }
 
 // CapDeviceCerts provides the capability to manage device certificates
-func (srv *SelfSignedCertsService) CapDeviceCerts() certs.IDeviceCerts {
+func (srv *SelfSignedCertsService) CapDeviceCerts(ctx context.Context) certs.IDeviceCerts {
+	// FIXME: return a new instance
 	return srv.deviceCertsService
 }
 
 // CapServiceCerts provides the capability to manage service certificates
-func (srv *SelfSignedCertsService) CapServiceCerts() certs.IServiceCerts {
+func (srv *SelfSignedCertsService) CapServiceCerts(ctx context.Context) certs.IServiceCerts {
+	// FIXME: return a new instance
 	return srv.serviceCertsService
 }
 
 // CapUserCerts provides the capability to manage user certificates
-func (srv *SelfSignedCertsService) CapUserCerts() certs.IUserCerts {
+func (srv *SelfSignedCertsService) CapUserCerts(ctx context.Context) certs.IUserCerts {
+	// FIXME: return a new instance
 	return srv.userCertsService
 }
 
 // CapVerifyCerts provides the capability to verify certificates
-func (srv *SelfSignedCertsService) CapVerifyCerts() certs.IVerifyCerts {
+func (srv *SelfSignedCertsService) CapVerifyCerts(ctx context.Context) certs.IVerifyCerts {
+	// FIXME: return a new instance
 	return srv.verifyCertsService
 }
 

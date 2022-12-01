@@ -70,3 +70,5 @@ require (
 replace github.com/hiveot/hub.go => ../hub.go
 
 replace github.com/hiveot/hub.capnp => ../hub.capnp
+
+replace capnproto.org/go/capnp/v3 => ../../go-capnproto2

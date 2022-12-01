@@ -66,6 +66,6 @@ func StartAuthnCapnpServer(ctx context.Context, lis net.Listener, svc authn.IAut
 
 	//
 	main := hubapi.CapAuthn_ServerToClient(srv)
-	err := caphelp.CapServe(ctx, authn.ServiceName, lis, capnp.Client(main))
+	err := caphelp.Serve(lis, capnp.Client(main))
 	return err
 }

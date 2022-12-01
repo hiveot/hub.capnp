@@ -94,6 +94,6 @@ func StartPubSubCapnpServer(
 
 	main := hubapi.CapPubSubService_ServerToClient(capsrv)
 
-	err := caphelp.CapServe(ctx, pubsub.ServiceName, lis, capnp.Client(main))
+	err := caphelp.Serve(lis, capnp.Client(main))
 	return err
 }

@@ -86,7 +86,7 @@ func (capsrv *HistoryServiceCapnpServer) CapReadHistory(
 //}
 
 // StartHistoryServiceCapnpServer returns the capnp protocol server for the history store
-func StartHistoryServiceCapnpServer(ctx context.Context, listener net.Listener, svc history.IHistoryService) error {
+func StartHistoryServiceCapnpServer(listener net.Listener, svc history.IHistoryService) error {
 
 	capsrv := &HistoryServiceCapnpServer{
 		HiveOTServiceCapnpServer: caphelp.NewHiveOTServiceCapnpServer(history.ServiceName),
@@ -101,6 +101,6 @@ func StartHistoryServiceCapnpServer(ctx context.Context, listener net.Listener, 
 
 	// Create the capnp handler to receive requests
 	main := hubapi.CapHistoryService_ServerToClient(capsrv)
-	err := caphelp.CapServe(ctx, history.ServiceName, listener, capnp.Client(main))
+	err := caphelp.Serve(listener, capnp.Client(main))
 	return err
 }

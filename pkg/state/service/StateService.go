@@ -4,13 +4,14 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path"
 	"sync"
 
 	"github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
 
 	"github.com/hiveot/hub/pkg/bucketstore"
-	"github.com/hiveot/hub/pkg/bucketstore/cmd"
+	"github.com/hiveot/hub/pkg/bucketstore/kvbtree"
 	"github.com/hiveot/hub/pkg/state"
 	"github.com/hiveot/hub/pkg/state/config"
 )
@@ -47,11 +48,11 @@ func (srv *StateService) CapClientState(_ context.Context,
 	clientStore := srv.clientStores[clientID]
 	// create the store instance for the client if one doesn't yet exist
 	if clientStore == nil {
-		clientStore = cmd.NewBucketStore(srv.cfg.StoreDirectory, clientID, srv.cfg.Backend)
+		//clientStore = cmd.NewBucketStore(srv.cfg.StoreDirectory, clientID, srv.cfg.Backend)
 		//if srv.cfg.Backend == config.StateBackendKVStore {
-		//	logrus.Infof("opening kv store for client '%s' bucket '%s", clientID, bucketID)
-		//	storePath := path.Join(srv.cfg.StoreDirectory, clientID+".json")
-		//	clientStore = kvbtree.NewKVStore(clientID, storePath)
+		logrus.Infof("opening kv store for client '%s' bucket '%s", clientID, bucketID)
+		storePath := path.Join(srv.cfg.StoreDirectory, clientID+".json")
+		clientStore = kvbtree.NewKVStore(clientID, storePath)
 		//} else if srv.cfg.Backend == config.StateBackendBBolt {
 		//	logrus.Infof("opening boltDB store for client '%s' bucket '%s", clientID, bucketID)
 		//	storePath := path.Join(srv.cfg.StoreDirectory, clientID+".boltdb")

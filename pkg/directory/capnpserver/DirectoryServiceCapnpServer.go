@@ -5,6 +5,7 @@ import (
 	"net"
 
 	"capnproto.org/go/capnp/v3"
+	"capnproto.org/go/capnp/v3/rpc"
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
@@ -66,6 +67,6 @@ func StartDirectoryServiceCapnpServer(ctx context.Context, lis net.Listener, svc
 	srv.ExportCapability("capUpdateDirectory", []string{hubapi.ClientTypeService})
 
 	main := hubapi.CapDirectoryService_ServerToClient(srv)
-	err := caphelp.CapServe(ctx, directory.ServiceName, lis, capnp.Client(main))
+	err := rpc.Serve(lis, capnp.Client(main))
 	return err
 }

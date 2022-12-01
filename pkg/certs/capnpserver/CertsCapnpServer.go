@@ -7,6 +7,7 @@ import (
 	"net"
 
 	"capnproto.org/go/capnp/v3"
+	"capnproto.org/go/capnp/v3/rpc"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/internal/caphelp"
@@ -29,7 +30,7 @@ func (capsrv *CertsCapnpServer) CapDeviceCerts(
 	// Create the capnp proxy that provides the capability to create device certificates
 	// TODO: use context to identify caller and include as part of restrictions?
 	deviceCertsSrv := &DeviceCertsCapnpServer{
-		srv: capsrv.svc.CapDeviceCerts(),
+		srv: capsrv.svc.CapDeviceCerts(ctx),
 	}
 
 	capability := hubapi.CapDeviceCerts_ServerToClient(deviceCertsSrv)
@@ -44,11 +45,11 @@ func (capsrv *CertsCapnpServer) CapDeviceCerts(
 // CapServiceCerts provides the service certificate capability
 // TBD, auth for handing out this capability
 func (capsrv *CertsCapnpServer) CapServiceCerts(
-	_ context.Context, call hubapi.CapCerts_capServiceCerts) error {
+	ctx context.Context, call hubapi.CapCerts_capServiceCerts) error {
 
 	// Create the capnp proxy that provides the capability to create certificates
 	serviceCertsSrv := &ServiceCertsCapnpServer{
-		srv: capsrv.svc.CapServiceCerts(),
+		srv: capsrv.svc.CapServiceCerts(ctx),
 	}
 
 	capability := hubapi.CapServiceCerts_ServerToClient(serviceCertsSrv)
@@ -62,11 +63,11 @@ func (capsrv *CertsCapnpServer) CapServiceCerts(
 // CapUserCerts provides the service certificate capability
 // TBD, auth for handing out this capability
 func (capsrv *CertsCapnpServer) CapUserCerts(
-	_ context.Context, call hubapi.CapCerts_capUserCerts) error {
+	ctx context.Context, call hubapi.CapCerts_capUserCerts) error {
 
 	// Create the capnp proxy that provides the capability to create certificates
 	userCertsSrv := &UserCertsCapnpServer{
-		srv: capsrv.svc.CapUserCerts(),
+		srv: capsrv.svc.CapUserCerts(ctx),
 	}
 
 	capability := hubapi.CapUserCerts_ServerToClient(userCertsSrv)
@@ -84,7 +85,7 @@ func (capsrv *CertsCapnpServer) CapVerifyCerts(
 
 	// Create the capnp proxy that provides the capability to create certificates
 	verifyCertsSrv := &VerifyCertsCapnpServer{
-		srv: capsrv.svc.CapVerifyCerts(),
+		srv: capsrv.svc.CapVerifyCerts(ctx),
 	}
 
 	capability := hubapi.CapVerifyCerts_ServerToClient(verifyCertsSrv)
@@ -96,7 +97,7 @@ func (capsrv *CertsCapnpServer) CapVerifyCerts(
 }
 
 // StartCertsCapnpServer starts the capnp protocol server for the certificates service
-func StartCertsCapnpServer(ctx context.Context, lis net.Listener, svc certs.ICerts) error {
+func StartCertsCapnpServer(lis net.Listener, svc certs.ICerts) error {
 
 	log.Printf("Starting certs service capnp server on: %s", lis.Addr())
 
@@ -118,7 +119,8 @@ func StartCertsCapnpServer(ctx context.Context, lis net.Listener, svc certs.ICer
 
 	// Create the capnp server proxy that provides the certificate capability
 	main := hubapi.CapCerts_ServerToClient(srv)
-	err := caphelp.CapServe(ctx, certs.ServiceName, lis, capnp.Client(main))
+	//err := caphelp.ServeCapnp(lis, capnp.Client(main))
+	err := rpc.Serve(lis, capnp.Client(main))
 
 	log.Printf("Certs service capnp server stopped")
 	return err

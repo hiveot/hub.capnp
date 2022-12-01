@@ -33,7 +33,7 @@ var testSocket = path.Join(testFolder, "certs.socket")
 // Factory for creating service instance. Currently the only implementation is selfsigned.
 func NewService() (svc certs.ICerts, closeFunc func()) {
 	// use selfsigned to create a new CA for these tests
-	ctx, cancelFunc := context.WithCancel(context.Background())
+	//ctx, cancelFunc := context.WithCancel(context.Background())
 	caCert, caKey, _ := selfsigned.CreateHubCA(1)
 	certSvc := selfsigned.NewSelfSignedCertsService(caCert, caKey)
 	// when using capnp, return a client instance instead the svc
@@ -41,18 +41,16 @@ func NewService() (svc certs.ICerts, closeFunc func()) {
 		// remove stale handle
 		_ = syscall.Unlink(testSocket)
 		srvListener, _ := net.Listen("unix", testSocket)
-		go capnpserver.StartCertsCapnpServer(ctx, srvListener, certSvc)
+		go capnpserver.StartCertsCapnpServer(srvListener, certSvc)
 		// connect the client to the server above
 		clConn, _ := net.Dial("unix", testSocket)
-		capClient, _ := capnpclient.NewCertServiceCapnpClient(ctx, clConn)
+		capClient, _ := capnpclient.NewCertServiceCapnpClient(clConn)
 		return capClient, func() {
-			cancelFunc()
 			capClient.Release()
 			certSvc.Stop()
 		}
 	}
 	return certSvc, func() {
-		cancelFunc()
 		certSvc.Stop()
 	}
 }
@@ -88,7 +86,7 @@ func TestCreateDeviceCert(t *testing.T) {
 	keys := certsclient.CreateECDSAKeys()
 	pubKeyPEM, _ := certsclient.PublicKeyToPEM(&keys.PublicKey)
 
-	deviceCertsSvc := svc.CapDeviceCerts()
+	deviceCertsSvc := svc.CapDeviceCerts(ctx)
 	defer deviceCertsSvc.Release()
 	deviceCertPEM, caCertPEM, err := deviceCertsSvc.CreateDeviceCert(
 		ctx, deviceID, pubKeyPEM, 1)
@@ -102,7 +100,7 @@ func TestCreateDeviceCert(t *testing.T) {
 	require.NotNil(t, caCert2)
 
 	// verify certificate
-	verifyCertsSvc := svc.CapVerifyCerts()
+	verifyCertsSvc := svc.CapVerifyCerts(ctx)
 	defer verifyCertsSvc.Release()
 	err = verifyCertsSvc.VerifyCert(ctx, deviceID, deviceCertPEM)
 	assert.NoError(t, err)
@@ -128,7 +126,7 @@ func TestDeviceCertBadParms(t *testing.T) {
 	// test creating hub certificate
 	svc, cancelFunc := NewService()
 	defer cancelFunc()
-	deviceCertsSvc := svc.CapDeviceCerts()
+	deviceCertsSvc := svc.CapDeviceCerts(ctx)
 	defer deviceCertsSvc.Release()
 
 	keys := certsclient.CreateECDSAKeys()
@@ -156,7 +154,7 @@ func TestCreateServiceCert(t *testing.T) {
 	defer cancelFunc()
 	keys := certsclient.CreateECDSAKeys()
 	pubKeyPEM, _ := certsclient.PublicKeyToPEM(&keys.PublicKey)
-	serviceCertsSvc := svc.CapServiceCerts()
+	serviceCertsSvc := svc.CapServiceCerts(ctx)
 	defer serviceCertsSvc.Release()
 
 	serviceCertPEM, caCertPEM, err := serviceCertsSvc.CreateServiceCert(
@@ -168,7 +166,7 @@ func TestCreateServiceCert(t *testing.T) {
 	require.NoError(t, err)
 
 	// verify service certificate against CA
-	verifyCertsSvc := svc.CapVerifyCerts()
+	verifyCertsSvc := svc.CapVerifyCerts(ctx)
 	defer verifyCertsSvc.Release()
 
 	err = verifyCertsSvc.VerifyCert(ctx, serviceID, serviceCertPEM)
@@ -207,7 +205,7 @@ func TestServiceCertBadParms(t *testing.T) {
 
 	// missing service ID
 	svc := selfsigned.NewSelfSignedCertsService(caCert, caKey)
-	capServiceCerts := svc.CapServiceCerts()
+	capServiceCerts := svc.CapServiceCerts(ctx)
 	defer capServiceCerts.Release()
 	serviceCertPEM, _, err := capServiceCerts.CreateServiceCert(
 		ctx, "", pubKeyPEM, hostnames, 1)
@@ -232,9 +230,9 @@ func TestCreateUserCert(t *testing.T) {
 	keys := certsclient.CreateECDSAKeys()
 	pubKeyPEM, _ := certsclient.PublicKeyToPEM(&keys.PublicKey)
 
-	capUserCert := svc.CapUserCerts()
+	capUserCert := svc.CapUserCerts(ctx)
 	defer capUserCert.Release()
-	userCertPEM, caCertPEM, err := svc.CapUserCerts().CreateUserCert(
+	userCertPEM, caCertPEM, err := svc.CapUserCerts(ctx).CreateUserCert(
 		ctx, userID, pubKeyPEM, 0)
 	require.NoError(t, err)
 
@@ -246,7 +244,7 @@ func TestCreateUserCert(t *testing.T) {
 	require.NotNil(t, caCert2)
 
 	// verify service certificate against CA
-	capVerifyCerts := svc.CapVerifyCerts()
+	capVerifyCerts := svc.CapVerifyCerts(ctx)
 	defer capVerifyCerts.Release()
 	err = capVerifyCerts.VerifyCert(ctx, userID, userCertPEM)
 	assert.NoError(t, err)

@@ -17,7 +17,7 @@ import (
 // This implements the capnproto generated interface Launcher_Server
 // See hub.capnp/go/hubapi/launcher.capnp.go for the interface.
 type LauncherCapnpServer struct {
-	// the plain-old-go-object launcher server
+	caphelp.HiveOTServiceCapnpServer
 	pogo launcher.ILauncher
 }
 
@@ -58,10 +58,11 @@ func (capsrv *LauncherCapnpServer) StopAll(ctx context.Context, call hubapi.CapL
 }
 
 // StartLauncherCapnpServer starts the capnp server for the launcher service
-//  ctx is the context for serving capabilities
-//  lis is the socket server from whom to accept connections
-//  srv is the instance of the launcher service
-//  lc holds the launcher configuration
+//
+//	ctx is the context for serving capabilities
+//	lis is the socket server from whom to accept connections
+//	srv is the instance of the launcher service
+//	lc holds the launcher configuration
 func StartLauncherCapnpServer(
 	ctx context.Context, lis net.Listener, srv launcher.ILauncher) error {
 
@@ -70,5 +71,5 @@ func StartLauncherCapnpServer(
 	main := hubapi.CapLauncher_ServerToClient(&LauncherCapnpServer{
 		pogo: srv,
 	})
-	return caphelp.CapServe(ctx, launcher.ServiceName, lis, capnp.Client(main))
+	return caphelp.Serve(lis, capnp.Client(main))
 }
