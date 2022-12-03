@@ -37,6 +37,11 @@ func (cl *LauncherCapnpClient) List(ctx context.Context, onlyRunning bool) (info
 	return infoList, err
 }
 
+// Release the capability
+func (cl *LauncherCapnpClient) Release() {
+	cl.capability.Release()
+}
+
 // Start a service
 func (cl *LauncherCapnpClient) Start(
 	ctx context.Context, name string) (serviceInfo launcher.ServiceInfo, err error) {
@@ -51,6 +56,15 @@ func (cl *LauncherCapnpClient) Start(
 	serviceInfoCapnp, _ := resp.Info()
 	serviceInfo = capserializer.UnmarshalServiceInfo(serviceInfoCapnp)
 	return serviceInfo, err
+}
+
+// StartAll services
+func (cl *LauncherCapnpClient) StartAll(ctx context.Context) (err error) {
+
+	method, release := cl.capability.StartAll(ctx, nil)
+	defer release()
+	_, err = method.Struct()
+	return err
 }
 
 // Stop a running service
@@ -79,8 +93,9 @@ func (cl *LauncherCapnpClient) StopAll(ctx context.Context) (err error) {
 }
 
 // NewLauncherCapnpClient returns a service client using the capnp protocol
-//  ctx is the context for obtaining capabilities
-//  connection is the connection to the capnp RPC server
+//
+//	ctx is the context for obtaining capabilities
+//	connection is the connection to the capnp RPC server
 func NewLauncherCapnpClient(ctx context.Context, connection net.Conn) (*LauncherCapnpClient, error) {
 	var cl *LauncherCapnpClient
 	transport := rpc.NewStreamTransport(connection)

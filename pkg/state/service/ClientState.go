@@ -46,6 +46,7 @@ func (svc *ClientState) Get(_ context.Context, key string) (value []byte, err er
 // The document can be any text.
 func (svc *ClientState) GetMultiple(
 	_ context.Context, keys []string) (docs map[string][]byte, err error) {
+	logrus.Infof("--- GetMultiple")
 	docs = make(map[string][]byte)
 	docs, err = svc.bucket.GetMultiple(keys)
 	return docs, err
@@ -64,14 +65,17 @@ func (svc *ClientState) Release() {
 	svc.onReleaseCB(svc.clientID)
 }
 
-// Set writes a document with the given key
+// Set writes a document with the given key.
+// Set takes ownership of value.
 func (svc *ClientState) Set(_ context.Context, key string, value []byte) error {
 	err := svc.bucket.Set(key, value)
 	return err
 }
 
-// SetMultiple writes a batch of key-values
+// SetMultiple writes a batch of key-values.
+// SetMultiple takes ownership of value.
 func (svc *ClientState) SetMultiple(_ context.Context, docs map[string][]byte) (err error) {
+	logrus.Infof("--- SetMultiple")
 	err = svc.bucket.SetMultiple(docs)
 	return err
 }

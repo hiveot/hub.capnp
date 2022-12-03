@@ -38,9 +38,9 @@ func (cl *DirectoryCapnpClient) CapUpdateDirectory(ctx context.Context) director
 	return NewUpdateDirectoryCapnpClient(capability.AddRef())
 }
 
-// Stop the storage server and flush changes to disk
-func (cl *DirectoryCapnpClient) Stop(ctx context.Context) error {
-	_ = ctx
+// Release the client capability
+// Release MUST be called after use
+func (cl *DirectoryCapnpClient) Release(_ context.Context) error {
 	cl.capability.Release()
 	return nil
 }

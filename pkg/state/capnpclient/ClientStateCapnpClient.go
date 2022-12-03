@@ -62,6 +62,7 @@ func (cl *ClientStateCapnpClient) Get(ctx context.Context, key string) ([]byte, 
 	resp, err := method.Struct()
 	if err == nil {
 		val, err = resp.Value()
+		val = caphelp.Clone(val)
 	}
 	return val, err
 }

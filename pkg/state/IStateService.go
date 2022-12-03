@@ -85,9 +85,11 @@ type IClientState interface {
 	//Keys(ctx context.Context) (keys []string, err error)
 
 	// Set sets a document with the given key
+	// This takes ownership of value
 	Set(ctx context.Context, key string, value []byte) error
 
 	// SetMultiple sets multiple documents in a batch update
+	// This takes ownership of value map
 	SetMultiple(ctx context.Context, docs map[string][]byte) (err error)
 
 	// Status returns the application state status

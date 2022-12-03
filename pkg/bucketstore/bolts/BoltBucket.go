@@ -108,7 +108,7 @@ func (bb *BoltBucket) Get(key string) (val []byte, err error) {
 	err = bb.bucketTransaction(false, func(bboltBucket *bbolt.Bucket) error {
 		v := bboltBucket.Get([]byte(key))
 		if v != nil {
-			byteValue = bytes.NewBuffer(v).Bytes()
+			byteValue = bytes.NewBuffer(v).Bytes() //copy the buffer
 		}
 		return nil
 	})

@@ -18,20 +18,18 @@ import (
 // Serve will take ownership of bootstrapClient and release it after the listener closes.
 //
 // Serve exits with the listener error if the listener is closed by the owner.
-func Serve(lis net.Listener, bootstrapClient capnp.Client) error {
-	if !bootstrapClient.IsValid() {
+func Serve(lis net.Listener, boot capnp.Client) error {
+	if !boot.IsValid() {
 		err := errors.New("BootstrapClient is not valid")
 		return err
 	}
 	// Accept incoming connections
-	defer bootstrapClient.Release()
+	defer boot.Release()
 	for {
 		conn, err := lis.Accept()
 		if err != nil {
 			// Since we took ownership of the bootstrap client, release it after we're done.
-			if !bootstrapClient.IsValid() {
-				err = errors.New("the bootstrap client was already released")
-			}
+			boot.Release()
 			return err
 		}
 		connID := getConnectionID(conn)
@@ -42,17 +40,11 @@ func Serve(lis net.Listener, bootstrapClient capnp.Client) error {
 		// the RPC connection takes ownership of the bootstrap interface and will release it when the connection
 		// exits, so use AddRef to avoid releasing the provided bootstrap client capability.
 		opts := rpc.Options{
-			BootstrapClient: bootstrapClient.AddRef(),
+			BootstrapClient: boot.AddRef(),
 		}
-
 		// For each new incoming connection, create a new RPC transport connection that will serve incoming RPC requests
-		// rpc.Options will contain the bootstrap capability
-		go func() {
-			transport := rpc.NewStreamTransport(conn)
-			conn := rpc.NewConn(transport, &opts)
-			<-conn.Done()
-			// Remote client connection closed
-		}()
+		transport := rpc.NewStreamTransport(conn)
+		_ = rpc.NewConn(transport, &opts)
 	}
 }
 
@@ -67,11 +59,11 @@ func Serve(lis net.Listener, bootstrapClient capnp.Client) error {
 //
 // serverCert is this server's TLS certificate, signed by the CA.
 // caCert is the CA certificate that has signed the server certificate
-func ServeTLS(lis net.Listener, bootstrapClient capnp.Client,
+func ServeTLS(lis net.Listener, boot capnp.Client,
 	serverCert *tls.Certificate, caCert *x509.Certificate) error {
 
-	if !bootstrapClient.IsValid() {
-		err := errors.New("BootstrapClient is not valid")
+	if !boot.IsValid() {
+		err := errors.New("bootstrap client is not valid")
 		return err
 	}
 
@@ -86,14 +78,12 @@ func ServeTLS(lis net.Listener, bootstrapClient capnp.Client,
 	}
 
 	// Accept incoming connections
-	defer bootstrapClient.Release()
+	defer boot.Release()
 	for {
 		conn, err := lis.Accept()
 		if err != nil {
 			// Since we took ownership of the bootstrap client, release it after we're done.
-			if !bootstrapClient.IsValid() {
-				err = errors.New("the bootstrap client was already released")
-			}
+			boot.Release()
 			return err
 		}
 		connID := getConnectionID(conn)
@@ -102,21 +92,16 @@ func ServeTLS(lis net.Listener, bootstrapClient capnp.Client,
 
 		// turn the transport into a TLS connection
 		tlsConn := tls.Server(conn, tlsConfig)
-		// For each new incoming connection, create a new RPC transport connection that
-		// will serve incoming RPC requests
-		transport := rpc.NewStreamTransport(tlsConn)
 
 		// the RPC connection takes ownership of the bootstrap interface and will release it when the connection
 		// exits, so use AddRef to avoid releasing the provided bootstrap client capability.
 		opts := rpc.Options{
-			BootstrapClient: bootstrapClient.AddRef(),
+			BootstrapClient: boot.AddRef(),
 		}
-
-		go func() {
-			rpcConn := rpc.NewConn(transport, &opts)
-			<-rpcConn.Done()
-			// Remote client connection closed
-		}()
+		// For each new incoming connection, create a new RPC transport connection that
+		// will serve incoming RPC requests
+		transport := rpc.NewStreamTransport(tlsConn)
+		_ = rpc.NewConn(transport, &opts)
 	}
 }
 

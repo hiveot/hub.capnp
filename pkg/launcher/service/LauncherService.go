@@ -212,6 +212,21 @@ func (ls *LauncherService) Start(
 	return *serviceInfo, err
 }
 
+// StartAll starts all enabled services
+func (ls *LauncherService) StartAll(ctx context.Context) (err error) {
+	logrus.Infof("Starting all enabled services")
+
+	for svcName, svcInfo := range ls.services {
+		if !svcInfo.Running {
+			_, err2 := ls.Start(ctx, svcName)
+			if err2 != nil {
+				err = err2
+			}
+		}
+	}
+	return err
+}
+
 // Stop a service
 func (ls *LauncherService) Stop(_ context.Context, name string) (info launcher.ServiceInfo, err error) {
 	logrus.Infof("Stopping service %s", name)
@@ -235,9 +250,9 @@ func (ls *LauncherService) Stop(_ context.Context, name string) (info launcher.S
 
 // StopAll stops all running services
 func (ls *LauncherService) StopAll(ctx context.Context) (err error) {
-	logrus.Infof("Stopping all (%d) services", len(ls.cmds))
 
 	ls.mux.Lock()
+	logrus.Infof("Stopping all (%d) services", len(ls.cmds))
 	// get the list of running services
 	names := make([]string, 0)
 	for name := range ls.cmds {

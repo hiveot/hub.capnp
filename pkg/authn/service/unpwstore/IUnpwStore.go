@@ -8,6 +8,9 @@ const (
 	PWHASH_BCRYPT   = "bcrypt" // fallback in case argon2i cannot be used
 )
 
+// DefaultPasswordFile is the recommended password filename for Hub authentication
+const DefaultPasswordFile = "hub.passwd"
+
 // PasswordEntry containing hash and other user info
 type PasswordEntry struct {
 	LoginID      string

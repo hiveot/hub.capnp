@@ -8,6 +8,7 @@ import (
 
 	"github.com/hiveot/hub.go/pkg/thing"
 	"github.com/hiveot/hub.go/pkg/vocab"
+	"github.com/hiveot/hub/internal/caphelp"
 	"github.com/hiveot/hub/pkg/pubsub"
 	"github.com/hiveot/hub/pkg/pubsub/core"
 )
@@ -29,7 +30,8 @@ func (dps *DevicePubSub) PubEvent(
 	_ context.Context, thingID, name string, value []byte) (err error) {
 
 	thingAddr := thing.MakeThingAddr(dps.publisherID, thingID)
-	tv := thing.NewThingValue(thingAddr, name, value)
+	tv := thing.NewThingValue(thingAddr, name, caphelp.Clone(value))
+	// note that marshal will copy the value so its buffer can be reused by capnp
 	tvSerialized, _ := json.Marshal(tv)
 	topic := MakeThingTopic(thingAddr, pubsub.MessageTypeEvent, name)
 	go dps.core.Publish(topic, tvSerialized)
@@ -44,6 +46,7 @@ func (dps *DevicePubSub) PubProperties(
 	thingAddr := thing.MakeThingAddr(dps.publisherID, thingID)
 	propsValue, _ := json.Marshal(props)
 	tv := thing.NewThingValue(thingAddr, vocab.WoTProperties, propsValue)
+	// note that marshal will copy the props map so its buffer can be reused by capnp
 	tvSerialized, _ := json.Marshal(tv)
 	topic := MakeThingTopic(thingAddr, pubsub.MessageTypeEvent, vocab.WoTProperties)
 	dps.core.Publish(topic, tvSerialized)
@@ -57,6 +60,7 @@ func (dps *DevicePubSub) PubTD(_ context.Context,
 
 	thingAddr := thing.MakeThingAddr(dps.publisherID, thingID)
 	tv := thing.NewThingValue(thingAddr, pubsub.MessageTypeTD, td)
+	// note that marshal will copy the TD so its buffer can be reused by capnp
 	tvSerialized, _ := json.Marshal(tv)
 	topic := MakeThingTopic(thingAddr, pubsub.MessageTypeTD, deviceType)
 	dps.core.Publish(topic, tvSerialized)

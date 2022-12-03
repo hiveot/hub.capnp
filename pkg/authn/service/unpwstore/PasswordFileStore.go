@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 	"sync"
@@ -18,9 +17,6 @@ import (
 
 	"github.com/hiveot/hub.go/pkg/watcher"
 )
-
-// DefaultPasswordFile is the recommended password filename for Hub authentication
-//const DefaultPasswordFile = "hub.passwd"
 
 // PasswordFileStore hashes and stores a list of user login name, hashed password and display name
 // It includes a file watcher to automatically reload on update.
@@ -99,7 +95,9 @@ func (pwStore *PasswordFileStore) Open(ctx context.Context) (err error) {
 }
 
 // Reload the password store from file and subscribe to file changes
-//  File format:  <loginID>:bcrypt(passwd):<username>:updated
+//
+//	File format:  <loginID>:bcrypt(passwd):<username>:updated
+//
 // If the file does not exist, it will be created.
 // Returns an error if the file could not be opened/created.
 func (pwStore *PasswordFileStore) Reload(ctx context.Context) error {
@@ -109,7 +107,7 @@ func (pwStore *PasswordFileStore) Reload(ctx context.Context) error {
 	_ = ctx
 
 	entries := make(map[string]PasswordEntry)
-	dataBytes, err := ioutil.ReadFile(pwStore.storePath)
+	dataBytes, err := os.ReadFile(pwStore.storePath)
 	if errors.Is(err, os.ErrNotExist) {
 		logrus.Infof("password file doesn't yet exist. Creating empty file for the watcher.")
 		err = pwStore.save()
@@ -147,10 +145,13 @@ func (pwStore *PasswordFileStore) Remove(loginID string) (err error) {
 }
 
 // save the password data to file
+// if the storage folder doesn't exist it will be created
 // not concurrent save
 func (pwStore *PasswordFileStore) save() error {
 
 	folder := path.Dir(pwStore.storePath)
+	// ensure the location exists
+	os.MkdirAll(folder, 0700)
 	tmpPath, err := WritePasswordsToTempFile(folder, pwStore.entries)
 	if err != nil {
 		err = fmt.Errorf("writing password file to temp failed: %s", err)
@@ -279,7 +280,8 @@ func WritePasswordsToTempFile(
 // Call Open/Release to start/stop using this store.
 // Note: this store is intended for one writer and many readers.
 // Multiple concurrent writes are not supported and might lead to one write being ignored.
-//  filepath location of the file store. See also DefaultPasswordFile for the recommended name
+//
+//	filepath location of the file store. See also DefaultPasswordFile for the recommended name
 func NewPasswordFileStore(filepath string) *PasswordFileStore {
 	store := &PasswordFileStore{
 		storePath: filepath,

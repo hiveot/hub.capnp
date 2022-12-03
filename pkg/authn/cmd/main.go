@@ -23,10 +23,10 @@ func Main() {
 
 // main entry point to start the authentication service
 func main() {
-	// with defaults
-	authServiceConfig := config.AuthnConfig{}
-	//authServiceConfig.ConfigStoreEnabled = true
-	f := svcconfig.LoadServiceConfig(authn.ServiceName, false, &authServiceConfig)
+	// get defaults
+	f := svcconfig.GetFolders("", false)
+	authServiceConfig := config.NewAuthnConfig(f.Stores)
+	f = svcconfig.LoadServiceConfig(authn.ServiceName, false, &authServiceConfig)
 
 	// parse commandline and create server listening socket
 	srvListener := listener.CreateServiceListener(f.Run, authn.ServiceName)

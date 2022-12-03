@@ -15,7 +15,6 @@ import (
 	"github.com/hiveot/hub/pkg/directory"
 	"github.com/hiveot/hub/pkg/directory/capnpserver"
 	"github.com/hiveot/hub/pkg/directory/service"
-	"github.com/hiveot/hub/pkg/launcher"
 )
 
 // name of the storage file
@@ -27,7 +26,7 @@ func main() {
 	ctx := context.Background()
 	hubID := "urn:hub" // FIXME: get HubID from the Hub somewhere
 
-	f := svcconfig.LoadServiceConfig(launcher.ServiceName, false, nil)
+	f := svcconfig.LoadServiceConfig(directory.ServiceName, false, nil)
 	storePath := filepath.Join(f.Stores, directory.ServiceName, storeFile)
 
 	// parse commandline and create server listening socket

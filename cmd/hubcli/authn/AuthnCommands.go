@@ -85,7 +85,7 @@ func AuthnRemoveUserCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Co
 // HandleAddUser adds a user
 func HandleAddUser(ctx context.Context, f svcconfig.AppFolders, loginID, userName string) error {
 	var err error
-	var authnClient authn.IAuthn
+	var authnClient authn.IAuthnService
 	var manageAuthn authn.IManageAuthn
 
 	conn, err := listener.CreateClientConnection(f.Run, authn.ServiceName)
@@ -112,7 +112,7 @@ func HandleAddUser(ctx context.Context, f svcconfig.AppFolders, loginID, userNam
 // HandleListUsers shows a list of user profiles
 func HandleListUsers(ctx context.Context, f svcconfig.AppFolders) error {
 	var err error
-	var authnClient authn.IAuthn
+	var authnClient authn.IAuthnService
 	var manageAuthn authn.IManageAuthn
 
 	conn, err := listener.CreateClientConnection(f.Run, authn.ServiceName)
@@ -142,7 +142,7 @@ func HandleListUsers(ctx context.Context, f svcconfig.AppFolders) error {
 // HandleRemoveUser removes a user
 func HandleRemoveUser(ctx context.Context, f svcconfig.AppFolders, loginID string) error {
 	var err error
-	var authnClient authn.IAuthn
+	var authnClient authn.IAuthnService
 	var manageAuthn authn.IManageAuthn
 
 	conn, err := listener.CreateClientConnection(f.Run, authn.ServiceName)

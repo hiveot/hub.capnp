@@ -12,10 +12,12 @@ import (
 func UnmarshalThingValue(capValue hubapi.ThingValue) *thing.ThingValue {
 	thingValue := &thing.ThingValue{}
 	// errors are ignored. If these fails then there are bigger problems
+	vj, _ := capValue.ValueJSON()
 	thingValue.ThingAddr, _ = capValue.ThingAddr()
 	thingValue.Name, _ = capValue.Name()
-	thingValue.ValueJSON, _ = capValue.ValueJSON()
+	thingValue.ValueJSON = Clone(vj) // copy the buffer
 	thingValue.Created, _ = capValue.Created()
+
 	return thingValue
 }
 

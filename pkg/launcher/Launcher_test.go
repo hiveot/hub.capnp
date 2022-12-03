@@ -5,7 +5,6 @@ import (
 	"net"
 	"os"
 	"path"
-	"syscall"
 	"testing"
 	"time"
 
@@ -23,8 +22,7 @@ import (
 )
 
 // when testing using the capnp RPC
-const testAddress = "/tmp/launcher_test.socket"
-const useTestCapnp = true
+const testUseCapnp = true
 
 var homeFolder string = "/tmp"
 var logFolder string = "/tmp"
@@ -48,19 +46,26 @@ func newServer(useCapnp bool) (l launcher.ILauncher, stopFn func()) {
 
 	// optionally test with capnp RPC
 	if useCapnp {
-		_ = syscall.Unlink(testAddress)
-		srvListener, _ := net.Listen("unix", testAddress)
+		srvListener, _ := net.Listen("tcp", ":0")
 		go capnpserver.StartLauncherCapnpServer(ctx, srvListener, svc)
+
 		// connect the client to the server above
-		clConn, _ := net.Dial("unix", testAddress)
+		clConn, _ := net.Dial("tcp", srvListener.Addr().String())
 		cl, err := capnpclient.NewLauncherCapnpClient(ctx, clConn)
 		if err != nil {
 			logrus.Fatalf("Failed starting capnp client: %s", err)
 		}
-		// FIXME: time.second needed to prevent race with next test init logging and service logging during shutdown.
-		return cl, func() { cancelFunc(); svc.StopAll(ctx) }
+		return cl, func() {
+			cl.Release()
+			_ = clConn.Close()
+			cancelFunc()
+			_ = svc.StopAll(ctx)
+		}
 	}
-	return svc, func() { cancelFunc(); svc.StopAll(ctx) }
+	return svc, func() {
+		cancelFunc()
+		_ = svc.StopAll(ctx)
+	}
 }
 
 func TestMain(m *testing.M) {
@@ -71,14 +76,14 @@ func TestMain(m *testing.M) {
 }
 
 func TestStartStop(t *testing.T) {
-	svc, cancelFunc := newServer(useTestCapnp)
+	svc, cancelFunc := newServer(testUseCapnp)
 	defer cancelFunc()
 	assert.NotNil(t, svc)
 }
 
 func TestList(t *testing.T) {
 	ctx := context.Background()
-	svc, cancelFunc := newServer(useTestCapnp)
+	svc, cancelFunc := newServer(testUseCapnp)
 	defer cancelFunc()
 	require.NotNil(t, svc)
 	info, err := svc.List(ctx, false)
@@ -93,7 +98,7 @@ func TestStartYes(t *testing.T) {
 
 	//
 	ctx := context.Background()
-	svc, cancelFunc := newServer(useTestCapnp)
+	svc, cancelFunc := newServer(testUseCapnp)
 	defer cancelFunc()
 
 	assert.NotNil(t, svc)
@@ -113,7 +118,7 @@ func TestStartYes(t *testing.T) {
 
 func TestStartBadName(t *testing.T) {
 	ctx := context.Background()
-	svc, cancelFunc := newServer(useTestCapnp)
+	svc, cancelFunc := newServer(testUseCapnp)
 	defer cancelFunc()
 	assert.NotNil(t, svc)
 
@@ -126,7 +131,7 @@ func TestStartBadName(t *testing.T) {
 
 func TestStartStopTwice(t *testing.T) {
 	ctx := context.Background()
-	svc, cancelFunc := newServer(useTestCapnp)
+	svc, cancelFunc := newServer(testUseCapnp)
 	defer cancelFunc()
 	assert.NotNil(t, svc)
 
@@ -152,7 +157,7 @@ func TestStartStopTwice(t *testing.T) {
 
 func TestStartStopAll(t *testing.T) {
 	ctx, _ := context.WithTimeout(context.Background(), time.Second*3)
-	svc, cancelFunc := newServer(useTestCapnp)
+	svc, cancelFunc := newServer(testUseCapnp)
 	defer cancelFunc()
 	assert.NotNil(t, svc)
 

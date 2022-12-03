@@ -360,9 +360,9 @@ func TestAddPropertiesEvent(t *testing.T) {
 	// verify named properties from different sources
 	props := readHist.GetProperties(ctx, []string{vocab.PropNameTemperature, vocab.PropNameSwitch})
 	assert.Equal(t, 2, len(props))
-	assert.Equal(t, props[0].Name, vocab.PropNameTemperature)
-	assert.Equal(t, props[0].ValueJSON, []byte(temp1))
-	assert.Equal(t, props[1].Name, vocab.PropNameSwitch)
+	assert.Equal(t, vocab.PropNameTemperature, props[0].Name)
+	assert.Equal(t, []byte(temp1), props[0].ValueJSON)
+	assert.Equal(t, vocab.PropNameSwitch, props[1].Name)
 
 	// restart
 	readHist.Release()

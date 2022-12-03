@@ -78,7 +78,7 @@ func (capsrv *ClientStateCapnpServer) Set(
 	ctx context.Context, call hubapi.CapClientState_set) error {
 	args := call.Args()
 	key, _ := args.Key()
-	value, _ := args.Value()
+	value, _ := args.Value() // value points to capnp buffer so copy it
 	err := capsrv.srv.Set(ctx, key, value)
 	return err
 }

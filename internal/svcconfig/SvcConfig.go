@@ -2,7 +2,7 @@ package svcconfig
 
 import (
 	"flag"
-	"io/ioutil"
+	"os"
 	"path"
 
 	"github.com/sirupsen/logrus"
@@ -13,18 +13,19 @@ import (
 // This invokes Fatal if the configuration file is invalid, or required but not found.
 //
 // This invokes flag.Parse(). Flag commandline options added are:
-//   -c configFile
-//   --home directory
-//   --certs directory
-//   --services directory
-//   --logs directory
-//   --run directory
 //
-//  If a 'cfg' interface is provided, the configuration is loaded from file and parsed as yaml.
+//	 -c configFile
+//	 --home directory
+//	 --certs directory
+//	 --services directory
+//	 --logs directory
+//	 --run directory
 //
-//  serviceName is used for the configuration file with the '.yaml' extension
-//  required returns an error if the configuration file doesn't exist
-//  cfg is the interface to the configuration object. nil to ignore configuration and just load the folders.
+//	If a 'cfg' interface is provided, the configuration is loaded from file and parsed as yaml.
+//
+//	serviceName is used for the configuration file with the '.yaml' extension
+//	required returns an error if the configuration file doesn't exist
+//	cfg is the interface to the configuration object. nil to ignore configuration and just load the folders.
 func LoadServiceConfig(serviceName string, required bool, cfg interface{}) AppFolders {
 	// run the commandline options
 	var err error
@@ -70,7 +71,7 @@ func LoadServiceConfig(serviceName string, required bool, cfg interface{}) AppFo
 
 	// ignore configuration file if no destination interface is given
 	if cfg != nil {
-		cfgData, err = ioutil.ReadFile(cfgFile)
+		cfgData, err = os.ReadFile(cfgFile)
 		if err == nil {
 			logrus.Infof("Loaded configuration file: %s", cfgFile)
 			err = yaml.Unmarshal(cfgData, cfg)

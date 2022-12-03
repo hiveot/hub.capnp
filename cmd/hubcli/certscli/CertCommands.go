@@ -159,10 +159,10 @@ func CertsShowInfoCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comm
 // HandleCreateDeviceCert creates an IoT device certificate and optionally private/public keypair
 // This prints the certificate to stdout.
 //
-//  certFolder where to find the CA certificate and key used to sign the client certificate.
-//  deviceID for the CN of the certificate. Used to identify the device.
-//  keyFile with path to the client's public or private key
-//  validity in days. 0 to use certconfig.DefaultClientCertDurationDays
+//	certFolder where to find the CA certificate and key used to sign the client certificate.
+//	deviceID for the CN of the certificate. Used to identify the device.
+//	keyFile with path to the client's public or private key
+//	validity in days. 0 to use certconfig.DefaultClientCertDurationDays
 func HandleCreateDeviceCert(ctx context.Context, f svcconfig.AppFolders, deviceID string, keyFile string, validityDays int) error {
 	var pubKeyPEM string
 	var generatedPrivKey *ecdsa.PrivateKey
@@ -172,10 +172,10 @@ func HandleCreateDeviceCert(ctx context.Context, f svcconfig.AppFolders, deviceI
 
 	conn, err := listener.CreateClientConnection(f.Run, certs.ServiceName)
 	if err == nil {
-		cc, err = capnpclient.NewCertServiceCapnpClient(ctx, conn)
+		cc, err = capnpclient.NewCertServiceCapnpClient(conn)
 	}
 	if err == nil {
-		dc = cc.CapDeviceCerts()
+		dc = cc.CapDeviceCerts(ctx)
 	}
 	if err != nil {
 		return err
@@ -204,11 +204,11 @@ func HandleCreateDeviceCert(ctx context.Context, f svcconfig.AppFolders, deviceI
 // HandleCreateServiceCert creates a Hub service certificate and optionally private/public keypair
 // This prints the certificate to stdout. The certificate is valid for localhost.
 //
-//  f.Certs where to find the CA certificate and key used to sign the certificate.
-//  serviceID for the CN of the certificate. Used to identify the service.
-//  ipAddr optional IP address in addition to localhost
-//  keyFile with path to the client's public or private key
-//  validity in days. 0 to use certconfig.DefaultClientCertDurationDays
+//	f.Certs where to find the CA certificate and key used to sign the certificate.
+//	serviceID for the CN of the certificate. Used to identify the service.
+//	ipAddr optional IP address in addition to localhost
+//	keyFile with path to the client's public or private key
+//	validity in days. 0 to use certconfig.DefaultClientCertDurationDays
 func HandleCreateServiceCert(ctx context.Context, f svcconfig.AppFolders,
 	serviceID string, ipAddr string, keyFile string, validityDays int) error {
 
@@ -221,10 +221,10 @@ func HandleCreateServiceCert(ctx context.Context, f svcconfig.AppFolders,
 
 	conn, err := listener.CreateClientConnection(f.Run, certs.ServiceName)
 	if err == nil {
-		cc, err = capnpclient.NewCertServiceCapnpClient(ctx, conn)
+		cc, err = capnpclient.NewCertServiceCapnpClient(conn)
 	}
 	if err == nil {
-		sc = cc.CapServiceCerts()
+		sc = cc.CapServiceCerts(ctx)
 	}
 	if err != nil {
 		return err
@@ -253,10 +253,10 @@ func HandleCreateServiceCert(ctx context.Context, f svcconfig.AppFolders,
 // HandleCreateUserCert creates a consumer client certificate and optionally private/public keypair
 // This prints the certificate to stdout.
 //
-//  certFolder where to find the CA certificate and key used to sign the client certificate.
-//  clientID for the CN of the client certificate. Used to identify the consumer.
-//  keyFile with path to the client's public or private key
-//  validity in days. 0 to use certconfig.DefaultClientCertDurationDays
+//	certFolder where to find the CA certificate and key used to sign the client certificate.
+//	clientID for the CN of the client certificate. Used to identify the consumer.
+//	keyFile with path to the client's public or private key
+//	validity in days. 0 to use certconfig.DefaultClientCertDurationDays
 func HandleCreateUserCert(ctx context.Context, f svcconfig.AppFolders, clientID string, keyFile string, validityDays int) error {
 	var pubKeyPEM string
 	var generatedPrivKey *ecdsa.PrivateKey
@@ -266,10 +266,10 @@ func HandleCreateUserCert(ctx context.Context, f svcconfig.AppFolders, clientID 
 
 	conn, err := listener.CreateClientConnection(f.Run, certs.ServiceName)
 	if err == nil {
-		cc, err = capnpclient.NewCertServiceCapnpClient(ctx, conn)
+		cc, err = capnpclient.NewCertServiceCapnpClient(conn)
 	}
 	if err == nil {
-		uc = cc.CapUserCerts()
+		uc = cc.CapUserCerts(ctx)
 	}
 	if err != nil {
 		return err
@@ -298,7 +298,7 @@ func HandleCreateUserCert(ctx context.Context, f svcconfig.AppFolders, clientID 
 // HandleShowCertInfo shows certificate details
 // Simplified version of openssl x509 -in cert -noout -text
 //
-//  certFile certificate to get info for
+//	certFile certificate to get info for
 func HandleShowCertInfo(ctx context.Context, certFile string) error {
 	cmd := exec.Command("openssl", "x509", "-in", certFile, "-noout", "-text")
 	var stderr bytes.Buffer

@@ -65,8 +65,8 @@ func HandleListDirectory(ctx context.Context, f svcconfig.AppFolders, limit int,
 	cursor := rd.Cursor(ctx)
 	fmt.Println("Thing ID                            Modified                       type       props  events  actions")
 	fmt.Println("--------                            -------                        ----       -----  ------  -------")
-	for k, v := cursor.First(); k != ""; k, v = cursor.Next() {
-		err = json.Unmarshal(v, &tdDoc)
+	for tv, valid := cursor.First(); valid; tv, valid = cursor.Next() {
+		err = json.Unmarshal(tv.ValueJSON, &tdDoc)
 
 		utime, err := dateparse.ParseAny(tdDoc.Modified)
 		if err != nil {

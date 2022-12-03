@@ -16,7 +16,6 @@ import (
 	"github.com/hiveot/hub/pkg/history/capnpserver"
 	"github.com/hiveot/hub/pkg/history/config"
 	"github.com/hiveot/hub/pkg/history/service"
-	"github.com/hiveot/hub/pkg/launcher"
 )
 
 // Start the history store service
@@ -26,7 +25,7 @@ func main() {
 
 	f := svcconfig.GetFolders("", false)
 	cfg := config.NewHistoryConfig(f.Stores)
-	f = svcconfig.LoadServiceConfig(launcher.ServiceName, false, &cfg)
+	f = svcconfig.LoadServiceConfig(history.ServiceName, false, &cfg)
 
 	srvListener := listener.CreateServiceListener(f.Run, history.ServiceName)
 

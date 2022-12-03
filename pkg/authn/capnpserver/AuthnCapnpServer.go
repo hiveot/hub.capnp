@@ -18,7 +18,7 @@ import (
 // See hub.capnp/go/hubapi/Authn.capnp.go for the interface.
 type AuthnCapnpServer struct {
 	caphelp.HiveOTServiceCapnpServer
-	svc authn.IAuthn
+	svc authn.IAuthnService
 }
 
 func (capsrv *AuthnCapnpServer) CapUserAuthn(
@@ -51,17 +51,18 @@ func (capsrv *AuthnCapnpServer) CapManageAuthn(ctx context.Context, call hubapi.
 }
 
 // StartAuthnCapnpServer starts the capnp protocol server for the authentication service
-func StartAuthnCapnpServer(ctx context.Context, lis net.Listener, svc authn.IAuthn) error {
+func StartAuthnCapnpServer(ctx context.Context, lis net.Listener, svc authn.IAuthnService) error {
 
 	logrus.Infof("Starting Authn service capnp adapter on: %s", lis.Addr())
 	srv := &AuthnCapnpServer{
-		svc: svc,
+		HiveOTServiceCapnpServer: caphelp.NewHiveOTServiceCapnpServer(authn.ServiceName),
+		svc:                      svc,
 	}
 	// register the methods available through getCapability
 	srv.RegisterKnownMethods(hubapi.CapAuthn_Methods(nil, srv))
-	srv.ExportCapability("CapUserAuthn",
+	srv.ExportCapability("capUserAuthn",
 		[]string{hubapi.ClientTypeService, hubapi.ClientTypeUser, hubapi.ClientTypeUnauthenticated})
-	srv.ExportCapability("CapManageAuthn",
+	srv.ExportCapability("capManageAuthn",
 		[]string{hubapi.ClientTypeService})
 
 	//

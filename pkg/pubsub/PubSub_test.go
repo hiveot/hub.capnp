@@ -46,9 +46,11 @@ func startService(useCapnp bool) (pubsub.IPubSubService, func() error) {
 
 		return capClient, func() error {
 			// allow ongoing releases to finish
-			time.Sleep(time.Millisecond * 10)
-			err = capClient.Release()
+			time.Sleep(time.Millisecond * 1)
 			err2 := svc.Release()
+			time.Sleep(time.Millisecond * 1)
+			// catch missing releases
+			err = capClient.Release()
 			if err == nil {
 				err = err2
 			}

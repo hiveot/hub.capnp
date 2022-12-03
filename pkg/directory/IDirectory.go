@@ -22,7 +22,7 @@ type IDirectory interface {
 	CapUpdateDirectory(ctx context.Context) IUpdateDirectory
 
 	// Stop the service and free its resources
-	Stop(ctx context.Context) error
+	//Stop(ctx context.Context) error
 
 	// TBD: Subscribe to the pubsub service to receive TDs
 	//Subscribe()

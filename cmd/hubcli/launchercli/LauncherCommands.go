@@ -42,13 +42,12 @@ func LauncherListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comma
 	}
 }
 
-// LauncherStartCommand
 func LauncherStartCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 
 	return &cli.Command{
 		Name:      "start",
-		Usage:     "Start service",
-		ArgsUsage: "start <serviceName>",
+		Usage:     "Start a service or all services",
+		ArgsUsage: "start <serviceName> | all",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 1 {
 				return fmt.Errorf("expected service name")
@@ -59,12 +58,11 @@ func LauncherStartCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comm
 	}
 }
 
-// LauncherStopCommand
 func LauncherStopCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 
 	return &cli.Command{
 		Name:      "stop",
-		Usage:     "Stop a running service",
+		Usage:     "Stop a running service or all services",
 		ArgsUsage: "stop <serviceName> | all",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 1 {
@@ -126,12 +124,23 @@ func HandleStartService(ctx context.Context, f svcconfig.AppFolders, serviceName
 		return err
 	}
 
-	info, err := ls.Start(ctx, serviceName)
-	if err != nil {
-		fmt.Println("Start failed:", err)
-		return err
+	if serviceName == "all" {
+		err = ls.StartAll(ctx)
+
+		if err != nil {
+			fmt.Println("Start all failed with: ", err)
+			return err
+		}
+		fmt.Printf("All services started\n")
+	} else {
+		info, err2 := ls.Start(ctx, serviceName)
+
+		if err2 != nil {
+			fmt.Println("Start failed:", err2)
+			return err2
+		}
+		fmt.Printf("Service '%s' started\n", info.Name)
 	}
-	fmt.Printf("Service '%s' started\n", info.Name)
 	// last, show a list of running services
 	HandleListServices(ctx, f)
 	return nil

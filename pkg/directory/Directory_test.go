@@ -7,7 +7,6 @@ import (
 	"net"
 	"os"
 	"path"
-	"syscall"
 	"testing"
 	"time"
 
@@ -25,12 +24,11 @@ import (
 
 var testFolder = path.Join(os.TempDir(), "test-directory")
 var testStoreFile = path.Join(testFolder, "directory.json")
-var testSocket = path.Join(testFolder, "dirstore.socket")
 
 const testUseCapnp = true
 
 // startDirectory initializes a Directory service, optionally using capnp RPC
-func startDirectory(useCapnp bool) (directory.IDirectory, func()) {
+func startDirectory(useCapnp bool) (directory.IDirectory, func() error) {
 
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	logrus.Infof("startDirectory start")
@@ -45,23 +43,24 @@ func startDirectory(useCapnp bool) (directory.IDirectory, func()) {
 	// optionally test with capnp RPC
 	if useCapnp {
 		// start the server
-		_ = syscall.Unlink(testSocket)
-		srvListener, err := net.Listen("unix", testSocket)
+		srvListener, err := net.Listen("tcp", ":0")
 		if err != nil {
 			logrus.Panic("Unable to create a listener, can't run test")
 		}
 		go capnpserver.StartDirectoryServiceCapnpServer(ctx, srvListener, svc)
 
 		// connect the client to the server above
-		clConn, _ := net.Dial("unix", testSocket)
+		clConn, _ := net.Dial("tcp", srvListener.Addr().String())
 		capClient, err := capnpclient.NewDirectoryCapnpClient(ctx, clConn)
-		return capClient, func() {
+		return capClient, func() error {
 			cancelFunc()
-			_ = capClient.Stop(ctx)
-			_ = svc.Stop(ctx)
+			_ = capClient.Release(ctx)
+			_ = clConn.Close()
+			err = svc.Stop(ctx)
+			return err
 		}
 	}
-	return svc, func() { cancelFunc(); _ = svc.Stop(ctx) }
+	return svc, func() error { cancelFunc(); return svc.Stop(ctx) }
 }
 
 // generate a JSON serialized TD document
@@ -87,9 +86,10 @@ func TestMain(m *testing.M) {
 func TestStartStop(t *testing.T) {
 	logrus.Infof("--- TestStartStop start ---")
 	_ = os.Remove(testStoreFile)
-	store, cancelFunc := startDirectory(testUseCapnp)
-	defer cancelFunc()
+	store, stopFunc := startDirectory(testUseCapnp)
 	assert.NotNil(t, store)
+	err := stopFunc()
+	assert.NoError(t, err)
 	logrus.Infof("--- TestStartStop end ---")
 }
 
@@ -100,8 +100,7 @@ func TestAddRemoveTD(t *testing.T) {
 	const thing1Addr = "urn:test/" + thing1ID
 	const title1 = "title1"
 	ctx := context.Background()
-	store, cancelFunc := startDirectory(testUseCapnp)
-	defer cancelFunc()
+	store, stopFunc := startDirectory(testUseCapnp)
 	readCap := store.CapReadDirectory(ctx)
 	updateCap := store.CapUpdateDirectory(ctx)
 	require.NotNil(t, readCap)
@@ -124,6 +123,8 @@ func TestAddRemoveTD(t *testing.T) {
 
 	readCap.Release()
 	updateCap.Release()
+	err = stopFunc()
+	assert.NoError(t, err)
 
 	logrus.Infof("--- TestRemoveTD end ---")
 }
@@ -163,8 +164,7 @@ func TestCursor(t *testing.T) {
 	const title1 = "title1"
 
 	ctx := context.Background()
-	store, cancelFunc := startDirectory(testUseCapnp)
-	defer cancelFunc()
+	store, stopFunc := startDirectory(testUseCapnp)
 
 	readCap := store.CapReadDirectory(ctx)
 	defer readCap.Release()
@@ -199,6 +199,8 @@ func TestCursor(t *testing.T) {
 	assert.False(t, valid)
 	assert.Empty(t, tdValues)
 
+	err = stopFunc()
+	assert.NoError(t, err)
 	logrus.Infof("--- TestCursor end ---")
 }
 
@@ -244,12 +246,9 @@ func TestPerf(t *testing.T) {
 	const count = 1000
 
 	ctx := context.Background()
-	store, cancelFunc := startDirectory(true)
-	defer cancelFunc()
+	store, stopFunc := startDirectory(true)
 	readCap := store.CapReadDirectory(ctx)
-	defer readCap.Release()
 	updateCap := store.CapUpdateDirectory(ctx)
-	defer updateCap.Release()
 
 	// test update
 	t1 := time.Now()
@@ -270,5 +269,10 @@ func TestPerf(t *testing.T) {
 	}
 	d2 := time.Now().Sub(t2)
 	fmt.Printf("Duration for read %d iterations: %d msec\n", count, int(d2.Milliseconds()))
+
+	readCap.Release()
+	updateCap.Release()
+	err := stopFunc()
+	assert.NoError(t, err)
 	logrus.Infof("--- end TestPerf ---")
 }

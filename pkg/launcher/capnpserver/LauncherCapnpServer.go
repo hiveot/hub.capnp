@@ -41,6 +41,11 @@ func (capsrv *LauncherCapnpServer) Start(ctx context.Context, call hubapi.CapLau
 	_ = res.SetInfo(svcInfoCapnp)
 	return err
 }
+
+func (capsrv *LauncherCapnpServer) StartAll(ctx context.Context, call hubapi.CapLauncher_startAll) error {
+	err := capsrv.pogo.StartAll(ctx)
+	return err
+}
 func (capsrv *LauncherCapnpServer) Stop(ctx context.Context, call hubapi.CapLauncher_stop) error {
 	args := call.Args()
 	serviceName, _ := args.Name()

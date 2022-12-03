@@ -3,27 +3,26 @@ package authn_test
 import (
 	"context"
 	"fmt"
+	"net"
 	"os"
 	"path"
 	"testing"
 	"time"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/hiveot/hub.go/pkg/logging"
 	"github.com/hiveot/hub/pkg/authn"
+	"github.com/hiveot/hub/pkg/authn/capnpclient"
+	"github.com/hiveot/hub/pkg/authn/capnpserver"
 	"github.com/hiveot/hub/pkg/authn/config"
 	"github.com/hiveot/hub/pkg/authn/service"
 )
 
-// var serverPort uint = 9881
-// var testCerts testenv.TestCerts
 var passwordFile string // set in TestMain
 const testUseCapnp = true
-
-//var serverCertFolder string
-//var clientHostPort strings
 
 var tempFolder string
 
@@ -32,7 +31,7 @@ var testpass1 = "secret11" // set at start
 
 // create a new authn service and set the password for testuser1
 // containing a password for testuser1
-func startTestAuthnService(useCapnp bool) (svc *service.AuthnService, closeFn func(), err error) {
+func startTestAuthnService(useCapnp bool) (authSvc authn.IAuthnService, stopFn func() error, err error) {
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	_ = os.Remove(passwordFile)
 	cfg := config.AuthnConfig{
@@ -40,14 +39,35 @@ func startTestAuthnService(useCapnp bool) (svc *service.AuthnService, closeFn fu
 		AccessTokenValiditySec:  10,
 		RefreshTokenValiditySec: 120,
 	}
-	svc = service.NewAuthnService(ctx, cfg)
+	svc := service.NewAuthnService(ctx, cfg)
 	err = svc.Start(ctx)
 	if err == nil {
 		mng := svc.CapManageAuthn(ctx)
 		defer mng.Release()
 		testpass1, err = mng.AddUser(ctx, testuser1, "test user")
 	}
-	return svc, func() { cancelFunc(); _ = svc.Stop(ctx) }, err
+	if useCapnp {
+		// start the server
+		srvListener, err := net.Listen("tcp", ":0")
+		if err != nil {
+			logrus.Panic("Unable to create a listener, can't run test")
+		}
+		go capnpserver.StartAuthnCapnpServer(ctx, srvListener, svc)
+
+		// connect the client to the server above
+		clConn, _ := net.Dial("tcp", srvListener.Addr().String())
+		capClient, err := capnpclient.NewAuthnCapnpClient(ctx, clConn)
+		return capClient, func() error {
+			cancelFunc()
+			capClient.Release()
+			_ = clConn.Close()
+			return svc.Stop(ctx)
+		}, err
+	}
+	return svc, func() error {
+		cancelFunc()
+		return svc.Stop(ctx)
+	}, err
 }
 
 // TestMain creates a test environment
@@ -73,36 +93,30 @@ func TestMain(m *testing.M) {
 
 // Create and verify a JWT token
 func TestStartStop(t *testing.T) {
-	//testuser1 := "testuser1"
-	ctx := context.Background()
 	srv, closeFn, err := startTestAuthnService(testUseCapnp)
-	defer closeFn()
 	require.NoError(t, err)
+	assert.NotNil(t, srv)
 
-	err = srv.Stop(ctx)
+	err = closeFn()
 	assert.NoError(t, err)
 }
 
 // Create and verify a JWT token
 func TestStartTwice(t *testing.T) {
-	//testuser1 := "testuser1"
-	ctx := context.Background()
-	svc, closeFn, err := startTestAuthnService(testUseCapnp)
-	defer closeFn()
+	svc, stopFn, err := startTestAuthnService(testUseCapnp)
 	require.NoError(t, err)
 	require.NotNil(t, svc)
 
-	// starting again should fail
-	err = svc.Start(ctx)
-	assert.Error(t, err)
+	err = stopFn()
+	assert.NoError(t, err)
 }
 
 // Create manage users
 func TestManageUser(t *testing.T) {
 
 	ctx := context.Background()
-	svc, closeFn, err := startTestAuthnService(testUseCapnp)
-	defer closeFn()
+	svc, stopFn, err := startTestAuthnService(testUseCapnp)
+	defer stopFn()
 	require.NoError(t, err)
 	mng := svc.CapManageAuthn(ctx)
 	defer mng.Release()
@@ -143,8 +157,8 @@ func TestLoginRefreshLogout(t *testing.T) {
 	var rt2 string
 	count := 100
 	ctx := context.Background()
-	svc, closeFn, err := startTestAuthnService(testUseCapnp)
-	defer closeFn()
+	svc, stopFn, err := startTestAuthnService(testUseCapnp)
+	defer stopFn()
 	require.NoError(t, err)
 
 	// login and get tokens
@@ -181,8 +195,8 @@ func TestLoginRefreshLogout(t *testing.T) {
 
 func TestLoginFail(t *testing.T) {
 	ctx := context.Background()
-	svc, closeFn, err := startTestAuthnService(testUseCapnp)
-	defer closeFn()
+	svc, stopFn, err := startTestAuthnService(testUseCapnp)
+	defer stopFn()
 	require.NoError(t, err)
 
 	// login and get tokens
@@ -196,8 +210,8 @@ func TestLoginFail(t *testing.T) {
 
 func TestProfile(t *testing.T) {
 	ctx := context.Background()
-	svc, closeFn, err := startTestAuthnService(testUseCapnp)
-	defer closeFn()
+	svc, stopFn, err := startTestAuthnService(testUseCapnp)
+	defer stopFn()
 	require.NoError(t, err)
 	clauth := svc.CapUserAuthn(ctx, testuser1)
 	defer clauth.Release()

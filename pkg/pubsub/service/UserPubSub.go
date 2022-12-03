@@ -26,6 +26,7 @@ func (cap *UserPubSub) PubAction(
 
 	topic := MakeThingTopic(thingAddr, pubsub.MessageTypeAction, actionName)
 	tv := thing.NewThingValue(thingAddr, actionName, value)
+	// note that marshal will copy the values so changes to the buffer containing value will not affect it
 	message, _ := json.Marshal(tv)
 	cap.core.Publish(topic, message)
 	return

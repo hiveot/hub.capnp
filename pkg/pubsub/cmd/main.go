@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	"context"
@@ -23,7 +23,6 @@ func main() {
 	f := svcconfig.GetFolders("", false)
 	//cfg := NewPubSubConfig(f.Stores)
 	//f = svcconfig.LoadServiceConfig(launcher.ServiceName, false, &cfg)
-
 	srvListener := listener.CreateServiceListener(f.Run, pubsub.ServiceName)
 
 	svc := service.NewPubSubService()

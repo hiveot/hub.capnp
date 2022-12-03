@@ -115,12 +115,9 @@ func (srv *PropertiesStore) HandleAddValue(event *thing.ThingValue, isAction boo
 		}
 		// turn each value into a ThingValue object
 		for propName, propValue := range props {
-			tv := &thing.ThingValue{
-				ThingAddr: event.ThingAddr,
-				Name:      propName,
-				ValueJSON: propValue,
-				Created:   event.Created,
-			}
+			tv := thing.NewThingValue(event.ThingAddr, propName, propValue)
+			tv.Created = event.Created
+
 			// in case events arrive out of order, only update if the event is newer
 			existingLatest, found := thingCache[propName]
 			// FIXME. This will be wrong with different timezones

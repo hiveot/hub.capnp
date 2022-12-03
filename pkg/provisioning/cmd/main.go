@@ -3,13 +3,14 @@ package main
 
 import (
 	"context"
-	"log"
 
+	"github.com/sirupsen/logrus"
+
+	"github.com/hiveot/hub.go/pkg/logging"
 	"github.com/hiveot/hub/internal/listener"
 	"github.com/hiveot/hub/internal/svcconfig"
 	"github.com/hiveot/hub/pkg/certs"
 	certsclient "github.com/hiveot/hub/pkg/certs/capnpclient"
-	"github.com/hiveot/hub/pkg/launcher"
 	"github.com/hiveot/hub/pkg/provisioning"
 	"github.com/hiveot/hub/pkg/provisioning/capnpserver"
 	"github.com/hiveot/hub/pkg/provisioning/service"
@@ -24,8 +25,9 @@ func main() {
 	var certsClient certs.ICerts
 	ctx, _ := context.WithCancel(context.Background())
 
+	logging.SetLogging("info", "")
 	// Determine the folder layout and handle commandline options
-	f := svcconfig.LoadServiceConfig(launcher.ServiceName, false, nil)
+	f := svcconfig.LoadServiceConfig(provisioning.ServiceName, false, nil)
 
 	// connect to the certificate service to get its capability for issuing device certificates
 	certConn, err := listener.CreateClientConnection(f.Run, certs.ServiceName)
@@ -44,6 +46,6 @@ func main() {
 		err = capnpserver.StartProvisioningCapnpServer(srvListener, svc)
 	}
 	if err != nil {
-		log.Fatalf("Service '%s' failed to start: %s", provisioning.ServiceName, err)
+		logrus.Fatalf("Service '%s' failed to start: %s", provisioning.ServiceName, err)
 	}
 }

@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"capnproto.org/go/capnp/v3"
 	"capnproto.org/go/capnp/v3/rpc"
@@ -117,6 +118,7 @@ func (svc *GatewayService) ListCapabilities(_ context.Context, clientType string
 	svc.capsMutex.RLock()
 	defer svc.capsMutex.RUnlock()
 
+	logrus.Infof("listing %d services", len(svc.servicesCapabilities))
 	for _, serviceCaps := range svc.servicesCapabilities {
 		for _, capInfo := range serviceCaps {
 			// only include client types that are allowed
@@ -145,6 +147,7 @@ func (svc *GatewayService) Ping(_ context.Context) (string, error) {
 // This first adds the gateway as a capability then scans the sockets, makes a connection
 // and read the available capabilities from the connection.
 func (svc *GatewayService) Refresh(ctx context.Context) error {
+	logrus.Infof("refreshing gateway using '%s' as socket dir", svc.socketDir)
 	newCapabilityMap := make(map[string][]caphelp.CapabilityInfo)
 	svc.refreshMutex.Lock()
 	defer svc.refreshMutex.Unlock()
@@ -158,9 +161,12 @@ func (svc *GatewayService) Refresh(ctx context.Context) error {
 		socketName := socketFile.Name()
 		socketPath := path.Join(svc.socketDir, socketName)
 		serviceName := strings.TrimSuffix(socketName, filepath.Ext(socketName))
-		capList, err := svc.scanService(ctx, serviceName, socketPath)
-		if err == nil {
-			newCapabilityMap[serviceName] = capList
+		// don't recurse into ourselves. That will deadlock.
+		if serviceName != gateway.ServiceName {
+			capList, err := svc.scanService(ctx, serviceName, socketPath)
+			if err == nil {
+				newCapabilityMap[serviceName] = capList
+			}
 		}
 	}
 	svc.capsMutex.Lock()
@@ -175,12 +181,15 @@ func (svc *GatewayService) Refresh(ctx context.Context) error {
 // The connection is stored and can be used for obtaining capabilities of the service.
 func (svc *GatewayService) scanService(ctx context.Context,
 	serviceName string, socketPath string) (newCaps []caphelp.CapabilityInfo, err error) {
+	ctxWT, _ := context.WithTimeout(ctx, time.Second)
 
+	logrus.Infof("scanning capabilities of service '%s'", serviceName)
 	newCaps = make([]caphelp.CapabilityInfo, 0)
 
 	// Validate the last established connection if it exists
 	capHiveOTService, found := svc.connectedServices[serviceName]
 	if found && !capHiveOTService.IsValid() {
+		logrus.Infof("connection to '%s' is no longer valid. Cleaning up", serviceName)
 		// is releasing still needed?
 		capHiveOTService.Release()
 		capHiveOTService = nil
@@ -188,33 +197,38 @@ func (svc *GatewayService) scanService(ctx context.Context,
 	}
 	// establish a connection if it doesn't exist
 	if capHiveOTService == nil {
-		udsConn, err := net.Dial("unix", socketPath)
+		udsConn, err := net.DialTimeout("unix", socketPath, time.Second)
 		if err != nil {
 			err = fmt.Errorf("connection to service on socket '%s failed: %s",
 				socketPath, err)
+			logrus.Error(err)
 			return nil, err
+		} else {
+			//logrus.Infof("connection with '%s' established", serviceName)
 		}
 		transport := rpc.NewStreamTransport(udsConn)
 		rpcConn := rpc.NewConn(transport, nil)
 
 		// use the service bootstrap capability
-		bootCap := hubapi.CapHiveOTService(rpcConn.Bootstrap(ctx))
+		bootCap := hubapi.CapHiveOTService(rpcConn.Bootstrap(ctxWT))
 		capHiveOTService = &bootCap
 		svc.connectedServices[serviceName] = capHiveOTService
 	}
 	// with a valid connection, query the capabilities
 	if capHiveOTService != nil {
-		method, release := capHiveOTService.ListCapabilities(ctx, nil)
+		logrus.Infof("requesting capabilities from '%s'", serviceName)
+		method, release := capHiveOTService.ListCapabilities(ctxWT, nil)
 		defer release()
 		resp, err2 := method.Struct()
+		logrus.Infof("done. err=%s", err2)
 		if err = err2; err == nil {
 			capInfoList, err2 := resp.InfoList()
 			if err = err2; err2 == nil {
 				newCaps = caphelp.UnmarshalCapabilities(capInfoList)
-
 			}
 		}
 	}
+	logrus.Infof("found '%d' capabilities on '%s'", len(newCaps), serviceName)
 	return newCaps, err
 }
 

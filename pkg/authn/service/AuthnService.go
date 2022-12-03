@@ -4,6 +4,8 @@ import (
 	"context"
 	"crypto/ecdsa"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/hiveot/hub.go/pkg/signing"
 	"github.com/hiveot/hub/pkg/authn"
 	"github.com/hiveot/hub/pkg/authn/config"
@@ -12,7 +14,7 @@ import (
 )
 
 // AuthnService provides the capabilities to manage and use authentication services
-// This implements the IAuthn interface
+// This implements the IAuthnService interface
 type AuthnService struct {
 	config config.AuthnConfig
 	// key used for signing of JWT tokens
@@ -36,9 +38,11 @@ func (svc *AuthnService) CapManageAuthn(ctx context.Context) authn.IManageAuthn 
 }
 
 func (svc *AuthnService) Start(ctx context.Context) error {
+	logrus.Info("starting authn service using '%s' for password store", svc.config.PasswordFile)
 	return svc.pwStore.Open(ctx)
 }
 func (svc *AuthnService) Stop(ctx context.Context) error {
+	logrus.Info("stopping service")
 	svc.pwStore.Close()
 	return nil
 }

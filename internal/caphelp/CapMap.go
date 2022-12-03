@@ -18,7 +18,7 @@ func UnmarshalKeyValueMap(capMap hubapi.KeyValueMap) (valueMap map[string][]byte
 		capEntry := entries.At(i)
 		capKey, _ := capEntry.Key()
 		capValue, _ := capEntry.Value()
-		valueMap[capKey] = capValue
+		valueMap[capKey] = Clone(capValue)
 	}
 	return valueMap
 }

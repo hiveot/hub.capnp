@@ -5,7 +5,6 @@ import (
 	"net"
 
 	"capnproto.org/go/capnp/v3"
-	"capnproto.org/go/capnp/v3/rpc"
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
@@ -68,6 +67,6 @@ func StartStateCapnpServer(ctx context.Context, lis net.Listener, svc state.ISta
 		[]string{hubapi.ClientTypeService, hubapi.ClientTypeUser})
 
 	main := hubapi.CapState_ServerToClient(capsrv)
-	err := rpc.Serve(lis, capnp.Client(main))
+	err := caphelp.Serve(lis, capnp.Client(main))
 	return err
 }

@@ -26,6 +26,8 @@ func (cl *BucketCursorCapnpClient) First() (key string, value []byte, valid bool
 		key, _ = resp.Key()
 		value, _ = resp.Value()
 		valid = resp.Valid()
+		// clone value as the capnp buffer is reused
+		value = caphelp.Clone(value)
 	}
 	return
 }
@@ -40,6 +42,8 @@ func (cl *BucketCursorCapnpClient) Last() (key string, value []byte, valid bool)
 		key, _ = resp.Key()
 		value, _ = resp.Value()
 		valid = resp.Valid()
+		// clone value as the capnp buffer is reused
+		value = caphelp.Clone(value)
 	}
 	return
 }
@@ -54,6 +58,8 @@ func (cl *BucketCursorCapnpClient) Next() (key string, value []byte, valid bool)
 		key, _ = resp.Key()
 		value, _ = resp.Value()
 		valid = resp.Valid()
+		// clone value as the capnp buffer is reused
+		value = caphelp.Clone(value)
 	}
 	return
 }
@@ -87,6 +93,8 @@ func (cl *BucketCursorCapnpClient) Prev() (key string, value []byte, valid bool)
 		key, _ = resp.Key()
 		value, _ = resp.Value()
 		valid = resp.Valid()
+		// clone value as the capnp buffer is reused
+		value = caphelp.Clone(value)
 	}
 	return
 }
@@ -130,6 +138,8 @@ func (cl *BucketCursorCapnpClient) Seek(searchKey string) (key string, value []b
 		key, _ = resp.Key()
 		value, _ = resp.Value()
 		valid = resp.Valid()
+		// clone value as the capnp buffer is reused
+		value = caphelp.Clone(value)
 	}
 	return
 

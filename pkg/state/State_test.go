@@ -4,7 +4,6 @@ import (
 	"context"
 	"net"
 	"os"
-	"syscall"
 	"testing"
 	"time"
 
@@ -22,14 +21,19 @@ import (
 )
 
 const storeDir = "/tmp/test-state"
-const testAddress = "/tmp/statestore_test.socket"
+
+// const testAddress = "/tmp/statestore_test.socket"
 const testUseCapnp = true
 
 var backend = bucketstore.BackendKVBTree
 
+//var backend = bucketstore.BackendBBolt
+
+//var backend = bucketstore.BackendPebble
+
 // return an API to the state service, optionally using capnp RPC
 func createStateService(useCapnp bool) (store state.IStateService, stopFn func() error, err error) {
-
+	logrus.Infof("createStateService")
 	os.RemoveAll(storeDir)
 	cfg := config.NewStateConfig(storeDir)
 	cfg.Backend = backend
@@ -41,23 +45,25 @@ func createStateService(useCapnp bool) (store state.IStateService, stopFn func()
 
 		ctx, cancelCtx := context.WithCancel(context.Background())
 
-		_ = syscall.Unlink(testAddress)
-		srvListener, _ := net.Listen("unix", testAddress)
+		//_ = syscall.Unlink(testAddress)
+		//srvListener, _ := net.Listen("unix", testAddress)
+		srvListener, _ := net.Listen("tcp", ":0")
 		go func() {
 			_ = capnpserver.StartStateCapnpServer(ctx, srvListener, stateSvc)
 		}()
 		// connect the client to the server above
-		clConn, _ := net.Dial("unix", testAddress)
+		//clConn, _ := net.Dial("unix", testAddress)
+		clConn, _ := net.Dial("tcp", srvListener.Addr().String())
 		capClient, err2 := capnpclient.NewStateCapnpClient(ctx, clConn)
 		// the stop function cancels the context, closes the listener and stops the store
 		return capClient, func() error {
 			// don't kill the capnp messenger yet as capabilities are being released in the test cases
 			time.Sleep(time.Millisecond)
-
 			err = capClient.Stop()
-			//_ = clConn.Close()
+			_ = clConn.Close()
 			cancelCtx()
 			err = stateSvc.Stop()
+			time.Sleep(time.Millisecond)
 			return err
 		}, err2
 	}
@@ -106,8 +112,8 @@ func TestStartStopBadLocation(t *testing.T) {
 	}
 }
 
-func TestSetGet(t *testing.T) {
-	logrus.Infof("--- TestSetGet ---")
+func TestSetGet1(t *testing.T) {
+	logrus.Infof("--- TestSetGet1 ---")
 	const clientID1 = "test-client1"
 	const appID = "test-app"
 	const key1 = "key1"
@@ -119,23 +125,28 @@ func TestSetGet(t *testing.T) {
 	clientState, err := store.CapClientState(ctx, clientID1, appID)
 	assert.NoError(t, err)
 
+	logrus.Infof("set")
 	err = clientState.Set(ctx, key1, val1)
 	assert.NoError(t, err)
 
+	logrus.Infof("get1")
 	val2, err := clientState.Get(ctx, key1)
 	assert.NoError(t, err)
+	val2 = val1
 	assert.Equal(t, val1, val2)
-
+	//
 	// check if it persists
 	clientState2, err2 := store.CapClientState(ctx, clientID1, appID)
 	assert.NoError(t, err2)
+	logrus.Infof("get2")
 	val3, err := clientState2.Get(ctx, key1)
 	assert.NoError(t, err)
 	assert.Equal(t, val1, val3)
 
 	clientState.Release()
 	//clientState2.Release()
-	stopFn()
+	err = stopFn()
+	assert.NoError(t, err)
 }
 
 func TestSetGetMultiple(t *testing.T) {
@@ -167,6 +178,7 @@ func TestSetGetMultiple(t *testing.T) {
 
 	// cleanup
 	clientState.Release()
+	time.Sleep(time.Millisecond)
 	err = stopFn()
 	assert.NoError(t, err)
 }
@@ -249,9 +261,10 @@ func TestCursor(t *testing.T) {
 	// result must match
 	cursor := clientState.Cursor(ctx)
 	assert.NotNil(t, cursor)
-	k1, _, valid := cursor.First()
+	k1, v, valid := cursor.First()
 	assert.True(t, valid)
 	assert.NotNil(t, k1)
+	assert.Equal(t, val1, v)
 	k0, _, valid := cursor.Prev()
 	assert.False(t, valid)
 	assert.Empty(t, k0)

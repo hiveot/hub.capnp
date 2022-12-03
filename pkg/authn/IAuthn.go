@@ -23,8 +23,8 @@ type UserProfile struct {
 	Updated int64
 }
 
-// IAuthn defines the interface for simple user management and authentication
-type IAuthn interface {
+// IAuthnService defines the interface for simple user management and authentication
+type IAuthnService interface {
 	// CapUserAuthn provides the authentication capabilities for unauthenticated users.
 	CapUserAuthn(ctx context.Context, clientID string) IUserAuthn
 

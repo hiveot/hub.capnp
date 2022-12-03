@@ -92,10 +92,12 @@ type IBucket interface {
 	Info() *BucketStoreInfo
 
 	// Set sets a document with the given key
+	// This stores a copy of value.
 	// An error is returned if either the bucketID or the key is empty
 	Set(key string, value []byte) error
 
 	// SetMultiple sets multiple documents in a batch update
+	// This stores a copy of docs.
 	// If the transaction fails an error is returned and no changes are made.
 	SetMultiple(docs map[string][]byte) (err error)
 

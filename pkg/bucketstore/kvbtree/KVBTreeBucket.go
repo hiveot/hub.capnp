@@ -2,12 +2,14 @@
 package kvbtree
 
 import (
+	"bytes"
 	"fmt"
 	"sync"
 
 	"github.com/sirupsen/logrus"
 	"github.com/tidwall/btree"
 
+	"github.com/hiveot/hub/internal/caphelp"
 	"github.com/hiveot/hub/pkg/bucketstore"
 )
 
@@ -246,6 +248,7 @@ func (bucket *KVBTreeBucket) Info() (info *bucketstore.BucketStoreInfo) {
 }
 
 // Set writes a document to the store. If the document exists it is replaced.
+// This will store a copy of doc
 //
 //	A background process periodically checks the change count. When increased:
 //	1. Lock the store while copying the index. Unlock when done.
@@ -256,10 +259,12 @@ func (bucket *KVBTreeBucket) Set(key string, doc []byte) error {
 		return fmt.Errorf("missing key")
 	}
 
+	//docCopy := bytes.NewBuffer(doc).Bytes()
+	//docCopy := []byte(string(doc))
 	// store the document and object
 	bucket.mutex.Lock()
 	defer bucket.mutex.Unlock()
-	bucket.kvtree.Set(key, doc)
+	bucket.kvtree.Set(key, caphelp.Clone(doc))
 	bucket.updated(bucket)
 	return nil
 }
@@ -269,12 +274,13 @@ func (bucket *KVBTreeBucket) setUpdateHandler(handler func(bucket *KVBTreeBucket
 }
 
 // SetMultiple writes a batch of key-values
+// Values are copied
 func (bucket *KVBTreeBucket) SetMultiple(docs map[string][]byte) (err error) {
 	// store the document and object
 	bucket.mutex.Lock()
 	defer bucket.mutex.Unlock()
 	for k, v := range docs {
-		bucket.kvtree.Set(k, v)
+		bucket.kvtree.Set(k, bytes.NewBuffer(v).Bytes())
 	}
 	bucket.updated(bucket)
 	return nil
