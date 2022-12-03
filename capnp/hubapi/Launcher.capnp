@@ -10,20 +10,20 @@ struct ServiceInfo {
 	cpu @0 :Int32;
 	# CPU usage in %. 0 when not running
 
-	rss @1 :Int64;
-	# RSS (Real) Memory usage in bytes. 0 when not running
-
-	modifiedTime @2 :Text;
+	modifiedTime @1 :Text;
 	# Service modified time ISO8601
 
-	name @3 :Text;
+	name @2 :Text;
 	# name of the service
 
-	path @4 :Text;
+	path @3 :Text;
 	# path to service executable
 
-	pid @5 :Int32;
+	pid @4 :Int32;
 	# Program PID when started. This remains after stopping.
+
+	rss @5 :Int64;
+	# RSS (Real) Memory usage in bytes. 0 when not running
 
 	running @6 :Bool;
 	# Service is currently running
@@ -56,9 +56,12 @@ interface CapLauncher extends (Service.CapHiveOTService) {
   start @1 (name :Text) -> (info :ServiceInfo);
   # Start the service with the given name. The service must exist in the result of List.
 
-  stop @2 (name :Text) -> (info :ServiceInfo);
+  startAll @2 () -> ();
+  # Start all services
+
+  stop @3 (name :Text) -> (info :ServiceInfo);
   # Stop a service that was previously started.
 
-  stopAll @3 () -> ();
+  stopAll @4 () -> ();
   # Stop all running services
 }

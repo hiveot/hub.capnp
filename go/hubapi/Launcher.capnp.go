@@ -67,14 +67,6 @@ func (s ServiceInfo) SetCpu(v int32) {
 	capnp.Struct(s).SetUint32(0, uint32(v))
 }
 
-func (s ServiceInfo) Rss() int64 {
-	return int64(capnp.Struct(s).Uint64(8))
-}
-
-func (s ServiceInfo) SetRss(v int64) {
-	capnp.Struct(s).SetUint64(8, uint64(v))
-}
-
 func (s ServiceInfo) ModifiedTime() (string, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.Text(), err
@@ -135,6 +127,14 @@ func (s ServiceInfo) Pid() int32 {
 
 func (s ServiceInfo) SetPid(v int32) {
 	capnp.Struct(s).SetUint32(4, uint32(v))
+}
+
+func (s ServiceInfo) Rss() int64 {
+	return int64(capnp.Struct(s).Uint64(8))
+}
+
+func (s ServiceInfo) SetRss(v int64) {
+	capnp.Struct(s).SetUint64(8, uint64(v))
 }
 
 func (s ServiceInfo) Running() bool {
@@ -277,11 +277,27 @@ func (c CapLauncher) Start(ctx context.Context, params func(CapLauncher_start_Pa
 	ans, release := capnp.Client(c).SendCall(ctx, s)
 	return CapLauncher_start_Results_Future{Future: ans.Future()}, release
 }
-func (c CapLauncher) Stop(ctx context.Context, params func(CapLauncher_stop_Params) error) (CapLauncher_stop_Results_Future, capnp.ReleaseFunc) {
+func (c CapLauncher) StartAll(ctx context.Context, params func(CapLauncher_startAll_Params) error) (CapLauncher_startAll_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
 			InterfaceID:   0x96524352b99b59d2,
 			MethodID:      2,
+			InterfaceName: "hubapi/Launcher.capnp:CapLauncher",
+			MethodName:    "startAll",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapLauncher_startAll_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapLauncher_startAll_Results_Future{Future: ans.Future()}, release
+}
+func (c CapLauncher) Stop(ctx context.Context, params func(CapLauncher_stop_Params) error) (CapLauncher_stop_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0x96524352b99b59d2,
+			MethodID:      3,
 			InterfaceName: "hubapi/Launcher.capnp:CapLauncher",
 			MethodName:    "stop",
 		},
@@ -297,7 +313,7 @@ func (c CapLauncher) StopAll(ctx context.Context, params func(CapLauncher_stopAl
 	s := capnp.Send{
 		Method: capnp.Method{
 			InterfaceID:   0x96524352b99b59d2,
-			MethodID:      3,
+			MethodID:      4,
 			InterfaceName: "hubapi/Launcher.capnp:CapLauncher",
 			MethodName:    "stopAll",
 		},
@@ -413,6 +429,8 @@ type CapLauncher_Server interface {
 
 	Start(context.Context, CapLauncher_start) error
 
+	StartAll(context.Context, CapLauncher_startAll) error
+
 	Stop(context.Context, CapLauncher_stop) error
 
 	StopAll(context.Context, CapLauncher_stopAll) error
@@ -438,7 +456,7 @@ func CapLauncher_ServerToClient(s CapLauncher_Server) CapLauncher {
 // This can be used to create a more complicated Server.
 func CapLauncher_Methods(methods []server.Method, s CapLauncher_Server) []server.Method {
 	if cap(methods) == 0 {
-		methods = make([]server.Method, 0, 6)
+		methods = make([]server.Method, 0, 7)
 	}
 
 	methods = append(methods, server.Method{
@@ -470,6 +488,18 @@ func CapLauncher_Methods(methods []server.Method, s CapLauncher_Server) []server
 			InterfaceID:   0x96524352b99b59d2,
 			MethodID:      2,
 			InterfaceName: "hubapi/Launcher.capnp:CapLauncher",
+			MethodName:    "startAll",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.StartAll(ctx, CapLauncher_startAll{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0x96524352b99b59d2,
+			MethodID:      3,
+			InterfaceName: "hubapi/Launcher.capnp:CapLauncher",
 			MethodName:    "stop",
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
@@ -480,7 +510,7 @@ func CapLauncher_Methods(methods []server.Method, s CapLauncher_Server) []server
 	methods = append(methods, server.Method{
 		Method: capnp.Method{
 			InterfaceID:   0x96524352b99b59d2,
-			MethodID:      3,
+			MethodID:      4,
 			InterfaceName: "hubapi/Launcher.capnp:CapLauncher",
 			MethodName:    "stopAll",
 		},
@@ -548,6 +578,23 @@ func (c CapLauncher_start) Args() CapLauncher_start_Params {
 func (c CapLauncher_start) AllocResults() (CapLauncher_start_Results, error) {
 	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
 	return CapLauncher_start_Results(r), err
+}
+
+// CapLauncher_startAll holds the state for a server call to CapLauncher.startAll.
+// See server.Call for documentation.
+type CapLauncher_startAll struct {
+	*server.Call
+}
+
+// Args returns the call's arguments.
+func (c CapLauncher_startAll) Args() CapLauncher_startAll_Params {
+	return CapLauncher_startAll_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c CapLauncher_startAll) AllocResults() (CapLauncher_startAll_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapLauncher_startAll_Results(r), err
 }
 
 // CapLauncher_stop holds the state for a server call to CapLauncher.stop.
@@ -926,10 +973,140 @@ func (p CapLauncher_start_Results_Future) Info() ServiceInfo_Future {
 	return ServiceInfo_Future{Future: p.Future.Field(0, nil)}
 }
 
+type CapLauncher_startAll_Params capnp.Struct
+
+// CapLauncher_startAll_Params_TypeID is the unique identifier for the type CapLauncher_startAll_Params.
+const CapLauncher_startAll_Params_TypeID = 0xa4f2766999f82f48
+
+func NewCapLauncher_startAll_Params(s *capnp.Segment) (CapLauncher_startAll_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapLauncher_startAll_Params(st), err
+}
+
+func NewRootCapLauncher_startAll_Params(s *capnp.Segment) (CapLauncher_startAll_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapLauncher_startAll_Params(st), err
+}
+
+func ReadRootCapLauncher_startAll_Params(msg *capnp.Message) (CapLauncher_startAll_Params, error) {
+	root, err := msg.Root()
+	return CapLauncher_startAll_Params(root.Struct()), err
+}
+
+func (s CapLauncher_startAll_Params) String() string {
+	str, _ := text.Marshal(0xa4f2766999f82f48, capnp.Struct(s))
+	return str
+}
+
+func (s CapLauncher_startAll_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapLauncher_startAll_Params) DecodeFromPtr(p capnp.Ptr) CapLauncher_startAll_Params {
+	return CapLauncher_startAll_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapLauncher_startAll_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapLauncher_startAll_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapLauncher_startAll_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapLauncher_startAll_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+
+// CapLauncher_startAll_Params_List is a list of CapLauncher_startAll_Params.
+type CapLauncher_startAll_Params_List = capnp.StructList[CapLauncher_startAll_Params]
+
+// NewCapLauncher_startAll_Params creates a new list of CapLauncher_startAll_Params.
+func NewCapLauncher_startAll_Params_List(s *capnp.Segment, sz int32) (CapLauncher_startAll_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
+	return capnp.StructList[CapLauncher_startAll_Params](l), err
+}
+
+// CapLauncher_startAll_Params_Future is a wrapper for a CapLauncher_startAll_Params promised by a client call.
+type CapLauncher_startAll_Params_Future struct{ *capnp.Future }
+
+func (f CapLauncher_startAll_Params_Future) Struct() (CapLauncher_startAll_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapLauncher_startAll_Params(p.Struct()), err
+}
+
+type CapLauncher_startAll_Results capnp.Struct
+
+// CapLauncher_startAll_Results_TypeID is the unique identifier for the type CapLauncher_startAll_Results.
+const CapLauncher_startAll_Results_TypeID = 0xd606313032e1634f
+
+func NewCapLauncher_startAll_Results(s *capnp.Segment) (CapLauncher_startAll_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapLauncher_startAll_Results(st), err
+}
+
+func NewRootCapLauncher_startAll_Results(s *capnp.Segment) (CapLauncher_startAll_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapLauncher_startAll_Results(st), err
+}
+
+func ReadRootCapLauncher_startAll_Results(msg *capnp.Message) (CapLauncher_startAll_Results, error) {
+	root, err := msg.Root()
+	return CapLauncher_startAll_Results(root.Struct()), err
+}
+
+func (s CapLauncher_startAll_Results) String() string {
+	str, _ := text.Marshal(0xd606313032e1634f, capnp.Struct(s))
+	return str
+}
+
+func (s CapLauncher_startAll_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapLauncher_startAll_Results) DecodeFromPtr(p capnp.Ptr) CapLauncher_startAll_Results {
+	return CapLauncher_startAll_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapLauncher_startAll_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapLauncher_startAll_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapLauncher_startAll_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapLauncher_startAll_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+
+// CapLauncher_startAll_Results_List is a list of CapLauncher_startAll_Results.
+type CapLauncher_startAll_Results_List = capnp.StructList[CapLauncher_startAll_Results]
+
+// NewCapLauncher_startAll_Results creates a new list of CapLauncher_startAll_Results.
+func NewCapLauncher_startAll_Results_List(s *capnp.Segment, sz int32) (CapLauncher_startAll_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
+	return capnp.StructList[CapLauncher_startAll_Results](l), err
+}
+
+// CapLauncher_startAll_Results_Future is a wrapper for a CapLauncher_startAll_Results promised by a client call.
+type CapLauncher_startAll_Results_Future struct{ *capnp.Future }
+
+func (f CapLauncher_startAll_Results_Future) Struct() (CapLauncher_startAll_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapLauncher_startAll_Results(p.Struct()), err
+}
+
 type CapLauncher_stop_Params capnp.Struct
 
 // CapLauncher_stop_Params_TypeID is the unique identifier for the type CapLauncher_stop_Params.
-const CapLauncher_stop_Params_TypeID = 0xa4f2766999f82f48
+const CapLauncher_stop_Params_TypeID = 0xe4f33c61c382a6a7
 
 func NewCapLauncher_stop_Params(s *capnp.Segment) (CapLauncher_stop_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
@@ -947,7 +1124,7 @@ func ReadRootCapLauncher_stop_Params(msg *capnp.Message) (CapLauncher_stop_Param
 }
 
 func (s CapLauncher_stop_Params) String() string {
-	str, _ := text.Marshal(0xa4f2766999f82f48, capnp.Struct(s))
+	str, _ := text.Marshal(0xe4f33c61c382a6a7, capnp.Struct(s))
 	return str
 }
 
@@ -1011,7 +1188,7 @@ func (f CapLauncher_stop_Params_Future) Struct() (CapLauncher_stop_Params, error
 type CapLauncher_stop_Results capnp.Struct
 
 // CapLauncher_stop_Results_TypeID is the unique identifier for the type CapLauncher_stop_Results.
-const CapLauncher_stop_Results_TypeID = 0xd606313032e1634f
+const CapLauncher_stop_Results_TypeID = 0xb7dbdb4757bf491e
 
 func NewCapLauncher_stop_Results(s *capnp.Segment) (CapLauncher_stop_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
@@ -1029,7 +1206,7 @@ func ReadRootCapLauncher_stop_Results(msg *capnp.Message) (CapLauncher_stop_Resu
 }
 
 func (s CapLauncher_stop_Results) String() string {
-	str, _ := text.Marshal(0xd606313032e1634f, capnp.Struct(s))
+	str, _ := text.Marshal(0xb7dbdb4757bf491e, capnp.Struct(s))
 	return str
 }
 
@@ -1102,7 +1279,7 @@ func (p CapLauncher_stop_Results_Future) Info() ServiceInfo_Future {
 type CapLauncher_stopAll_Params capnp.Struct
 
 // CapLauncher_stopAll_Params_TypeID is the unique identifier for the type CapLauncher_stopAll_Params.
-const CapLauncher_stopAll_Params_TypeID = 0xe4f33c61c382a6a7
+const CapLauncher_stopAll_Params_TypeID = 0x97fd81fe4e5a7de8
 
 func NewCapLauncher_stopAll_Params(s *capnp.Segment) (CapLauncher_stopAll_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
@@ -1120,7 +1297,7 @@ func ReadRootCapLauncher_stopAll_Params(msg *capnp.Message) (CapLauncher_stopAll
 }
 
 func (s CapLauncher_stopAll_Params) String() string {
-	str, _ := text.Marshal(0xe4f33c61c382a6a7, capnp.Struct(s))
+	str, _ := text.Marshal(0x97fd81fe4e5a7de8, capnp.Struct(s))
 	return str
 }
 
@@ -1167,7 +1344,7 @@ func (f CapLauncher_stopAll_Params_Future) Struct() (CapLauncher_stopAll_Params,
 type CapLauncher_stopAll_Results capnp.Struct
 
 // CapLauncher_stopAll_Results_TypeID is the unique identifier for the type CapLauncher_stopAll_Results.
-const CapLauncher_stopAll_Results_TypeID = 0xb7dbdb4757bf491e
+const CapLauncher_stopAll_Results_TypeID = 0xe272876d68537114
 
 func NewCapLauncher_stopAll_Results(s *capnp.Segment) (CapLauncher_stopAll_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
@@ -1185,7 +1362,7 @@ func ReadRootCapLauncher_stopAll_Results(msg *capnp.Message) (CapLauncher_stopAl
 }
 
 func (s CapLauncher_stopAll_Results) String() string {
-	str, _ := text.Marshal(0xb7dbdb4757bf491e, capnp.Struct(s))
+	str, _ := text.Marshal(0xe272876d68537114, capnp.Struct(s))
 	return str
 }
 
@@ -1229,74 +1406,80 @@ func (f CapLauncher_stopAll_Results_Future) Struct() (CapLauncher_stopAll_Result
 	return CapLauncher_stopAll_Results(p.Struct()), err
 }
 
-const schema_e42f87955bd521e9 = "x\xda\xac\x94Mh\x1cu\x18\xc6\x9f\xe7?3;\xdb" +
-	"&1\x99\xceP\x8b\xa8\xc5\x90C\x0d\xda\xb4\x89\x1e," +
-	"-\x9b4\x07m\x88\x98\xdd\x0dj\xfc8L\x93\x89;" +
-	"\xb2;;\xdd\x99-mhi-\x0dJ\xf1+b\xa4" +
-	"\"\x81*\xc5\x0a\x1eE\xaa\xa2\xf8\x857\x0f\"\xea\xc1" +
-	"\x1eD\xa8\x88\x07\x11\xf5\xe2A\x18yg\x9d\xedTZ" +
-	"M\xc1S2\xbf\xff\xfb>\xf3>\xffy\xde\xdd\xb1\xac" +
-	"\xc6\xf5\x9d}%\x13\xaa<k\x14\x927\xdf\x1b\xbb\xe1" +
-	"\xfcGgN\xa1\xbc\x99F\xf2\xd3-_?\xbc\xfa\xe4" +
-	"\xc8E\x18\x05\x13\x18[\xd66\xd1^\xd5\xe4\xdf\x15\xed" +
-	";\x05&_\xce\xbd\xf2ne\xb2\xf2\x12\xac\xcd\xda\xa5" +
-	"jpl\xa5\xb0\x89\xf6\xabi\xd7Z\xc1\xa4\xbd\xc7\xbc" +
-	"\x1eH\xbeu7>\xe7\x8e~\xb1\x06k\x90\x80A9" +
-	"\xbe\xdd\\\"h\xdfe\x96\xc0\xe4\x9e\x91?^\xf6\x0f" +
-	"\xfev6_0g\xb6\xa4\xc0K\x0b\xdexk\xea\xfd" +
-	"\x9e\x1b\xdf9\x97/X\xee(\xac\xa4\x057\xef\xfb\xf0" +
-	"\x81\xbb/\\8\xdf)\xd0\xe5\xfc3\xf3\x05BO\xb8" +
-	"\xa7\xa6\x1fuw\x7f\x85\xf2 \xb3\xa3\xb7;\xda\x1f\xa7" +
-	"\xad\xf7\xcd\x7f?\xbacg\xe1\x9b\xbc\xf6\x0f\x1d\xed_" +
-	"\xd3\x82s\xaf\x9f\xf8\xd4\xdd\xfd\xfb\xc5\x9c\xb6U<%" +
-	"\xda?\x7f\xf0\xec\xb6\xcfW\xbc_\xf2\xad,\x9e\x90\xd6" +
-	"\xbeb\x09KI\xad\xbd\xdf\x0d\xfd\x91i\xcdm\x07\xf3" +
-	"5\xaf\xb5}\xde\x0d\x83pW\xd5k\x1d\xf4\xe7\xbd}" +
-	"\xc1\"\x9b3d\xf9\x0eM\x07t\x02\xf6\xa3\x1c\x04\xaa" +
-	"\x0fRcu\x81\x8a\x16\xe9\xc8\xd4\xb6\x9b\xf2G\x84\xd7" +
-	"\xa8H\xe5P\x01\xb6\xc7\xc7\x81\xea\x82\xe0P\xca5:" +
-	"\xd4\x00\xbb\xc1a\xa0Z\x13\x1e\x0b\xd7\x95C\x1d\xb0\x0f" +
-	"\xa4\xbc.\xfc\x90p\x83\x0e\x0d\xc0n\xa7\xf2\xa1\xf0#" +
-	"\xc2\x0b\xc7\x1d\x16\x00\xfb0\xf7\x02\xd5X\xf8q\xe1\xa6" +
-	"\xe6\x88I\xfbh\xaasH\xf8I\xe1E\xcda\x11\xb0" +
-	"\x9f\xe0.\xa0zD\xf8S\xc27\x18\x0e7\x00\xf62" +
-	"\x1f\x02\xaa'\x85?/|\xa3\xeep#`?\xc3\x0a" +
-	"P}Z\xf8i\xe1=\x86\xc3\x1e\xc0^\xe5\x14P}" +
-	"Q\xf8\x19\xe1\xbdE\x87\xbd\x80\xbd\x96\xea\x9f\x16~\x96" +
-	"\x8a\xe6|\xd8\xa6\x0eE\x1d4[QD\x03\x8a\x06\x98" +
-	"4\x9a\x0b\xfe\xa2\xef-\xa0\x7f\xd6ox\xec\x85b/" +
-	"\xd8\x1f\xb8\xb9\x87\xd0\x8dk\xd9\x83\x19\xfa\x0b\x99\xd0\xb1" +
-	"V;\x08\xfc\xe01\x12\x8a\x04\xfb#\x7f\xc9\xcb\x94K" +
-	"Q\xec\xc6\xed(\xebK\xa2\xd8m\xc5\x93\xcd6\xb4 " +
-	"\xce\x04:p\xd6o\x80^\xae\xb0\x19\xca,\x002V" +
-	"j\x87\xb1L\x97\xb5]%,\x93n8\xdd!lI" +
-	"X\x064\x03\xe8\xc6\x9a\xd9jX\x07\x86\xa1,\xcf$" +
-	"\xbb\xfb\xc6,\x9f\xd6\xdc(\x94u\xafI\xd5]5f" +
-	"\xb1\xb7&\xa4\xefN\x93Z7\xe8\xcc\xb6\xc9\xbau/" +
-	"\x94u\x93\xd9_\xf7\xa3x\x9c[Sc\xe3\xec\x173" +
-	"\xe3<&\x7f&\xea\xf5q\x96u2\xf9\xe4\xb5\x99\xfb" +
-	"\xff\xbcm\xcb\x8f\x00\xbaV\xf4\xabYimO\xb5\x86" +
-	"J3n\xcbmDe=\xdb\x00\xabo\x18(\x175" +
-	"\x96\x1du\xf9\x07[\x9fh3\x1c\x9a\xd9\xfa\xbfj\x8a" +
-	"\xf7\xa1J\xc9\x8b\xda\xf5\xf82\xd1)\xa0\xdc\xab\xb1\xbc" +
-	"M1\xf1\x83\xc5\xe6\xb4\x1f\xc5\xf2y\xaf\x03g4r" +
-	"\xe0\xd2\xaf*(\xb0\xfb2\xe3\xdf\x0dL\xd4\xebC\x95" +
-	"\xf4u\x8c\xd6=\xe0\x15L\xef\xff{\xbe-\x8aI3" +
-	"\xa8\x1f\xae\xb4\x83\x00f.\xd9\xeb\xbe\xd1+\xb9\xcf_" +
-	"\xa9\xb8\xff\x87\xdf\x81k\xf3\xdb\x89A.9\xc6\x7f%" +
-	"\xa7sC\x11\xaem\xa6\xbf\x02\x00\x00\xff\xffp\xa0\xb7" +
-	"\xd0"
+const schema_e42f87955bd521e9 = "x\xda\xa4\x94[h\x1cu\x14\xc6\xbfo.;\xdb6" +
+	"5\x9d\xceP\x8b\x88\xc5\x90\x876H\xd3&\xf6\xc1R" +
+	"\xd9M\x83\xd4\x84\xa8\xd9\xdd\xa2\xa6*8M6\xee\xc8" +
+	"\xee\xecdg\xb64\xa1\xa1\x17Z*\xc5[\xc5jU" +
+	"\x0aU\x8a\x15\xc4\x07Q\xa8\x8a\xc5\xdb\x93\xa0 \xa2>" +
+	"XD\x94\x82\xe6\xa1\x14\x14A\xc1:rf3\xdb\xa9" +
+	"\xb6\x92\xe0\xd3\xee\xff\xf7?\xdf\xf9\x9f\xef\xec9\xbb\xe1" +
+	"m%\xafm\\~\xd1\x80RxP\xcfD\xaf\xbf\xd7" +
+	"\x7f\xc3\x99\x0fO\x1eAa\x15\xf5h\xee\xe6\xaf\x1f8" +
+	"v\xb8\xf7<\xf4\x8c\x01\xf4\x7f\xa7\xae\xa4uA\x95\xaf" +
+	"s\xea\xf7\x0a\x18}9\xf6\xd2\xbb\xc5\xc1\xe2s0W" +
+	"\xa9\x97\xa3\xc1\xfe\xb9\xccJZ\x7f\xc4\xaa\xdf2\xdbh" +
+	"}d\\\x0fD?\xcf\xee\xb8\xfb\xaf\xfd\x97\x9e\x87\xd9" +
+	"E@\x93\xdb7\x8d#\x84\x16}\xeb,}\xca\xe9\xfb" +
+	"\xe2D\xebF\xa7\\\xbdl\xcc\x10\xb4\xde0r`t" +
+	"g\xef\xef/\xb8\xbb~9\x95\x92~n<#\xd2\xd7" +
+	"\xde\x1a~\x7f\xd9\x8d\xef\x9cNK\xcf\xb6\xa4\x9f\xc6\xd2" +
+	"\x9b\x86>\xb8o\xdb\xb9sg\xd2\x01\x97Z\x01K\xb2" +
+	"\x12\xc0\xdb+\xda\xac\xb3\xe5+\x14\xba\x98$_\x97m" +
+	"H\xc0\xa68\xe0\x9e\xf1\x1f\xfa6l\xcc|\x93z|" +
+	",\xfb\xa2<nO\x95*\xb5\xc3\x8d\x1fS7C\xd9" +
+	"\xb8\xac\xd3\xaf\x1e\xf8\xc4\xd9\xf2\xeb\xf9\xf4\xab\xb7\xb5\x92" +
+	"\xde\x11'\xbdp\xf6\xc9\xb5\x9f\x1d-_L\x07\x94\xb3" +
+	"\x07$`*\x9b\xc3LTi\xeet|\xb7wDu" +
+	"\x9a\xdex\xa5\xdcX?\xee\xf8\x9e\xbf\xb9Tn\xecr" +
+	"\xc7\xcbC\xde$\xeb\xa3d\xe1VU\x034\x02\xd6C" +
+	"\xec\x02J\xf7Sei\x82\x0aI[\xecX\x0e\x1f\x05" +
+	"J\x0f\x0b\xaeR\xa1\xa9\xd0\xa6\x02X.{\x80\xd2\x84" +
+	"p_\xb8\xaa\xd8T\x01\xab\x16\xf3\x8a\xf0P\xb8F\x9b" +
+	"\x1a`M\xc5\xe9\xab\xc2w\x0b\xd7iS\x07\xacf\xcc" +
+	"}\xe1{\x84g\xf6\xd9\xcc\x00\xd64\xb7\x02\xa5P\xf8" +
+	">\xe1\x86j\x8bIk6\xce\xbf[\xf8A\xe1Y\xd5" +
+	"f\x16\xb0\xf6s3P\xda#\xfc1\xe1Kt\x9bK" +
+	"\x00\xeb\x10w\x00\xa5\x83\xc2\x9f\x16\xbeT\xb3\xb9\x14\xb0" +
+	"\x9e`\x11(=.\xfc\xb8\xf0e\xba\xcde\x80u\x8c" +
+	"\xc3@\xe9Y\xe1'\x85wdmv\x00\xd6\x898\xff" +
+	"q\xe1\xa7\xa8\xd0\x18\xf7\x9b\xd4\xa0P\x03\xa3Z}\xc2" +
+	"\x9dt\xcb\x13\xe8\xdc\xee\xd6\xca\xec\x80\xc2\x0e\xb0\xd3s" +
+	"R\x07\xdf\x09+\xc9\xc1\xf0\xdd\x89Dl4\x82\x80:" +
+	"\x14\xea\xe0\xdeF\xd3\xf3\\\xef\x11\x12\x0a\x09v\x06\xee" +
+	"L9\xb9\xcc\x05\xa1\x136\x83$G\x14\x84N#\x1c" +
+	"\xac7\xa1za\xbb\x92\x18nwk`9\x15X\xf7" +
+	"\xa5.\x00\x09\xcb5\xfdP*Md\xd7\x18\x96A\xc7" +
+	"\x1fi\x116dXlU\x07\xda\x03\xcfdw\xcc\xa3" +
+	"=P\xccC\x06\xd9\xdeD&\xf3iN\xf7A1k" +
+	"\x06\x95\xf6\x122Y\x08\xd3\x19\x86b\x8e\x19T\xdb\xf3" +
+	"\xced\xdd\xcc\xbb$\xe7\x80A\xad\xbd\xf7L\xd6\xc5\xdc" +
+	"\xb4\x15\x8a\xb9\xce\xe8\xac\xbaA\x98\xe7\x9a\xd8t~\xde" +
+	"\xfc@\xb5\x0a \xcfN\xb1\x9d\xe7^\xf9\x18\xa8V\xf3" +
+	",hd\xf4\xf1+\xa3\xf7\xfey\xcb\xea\x9f\x00\xb4M" +
+	"\xeb\xd72\xddX?/\xee\x1eu\x1aN-Hi\xb4" +
+	"\xff\xd28\x8d\xb0;\xd7\x92\x14\xb4d\xbf\xcc\xe5=@" +
+	"!\xab\xb2`+W\x8e\xc6\xc2\x0aiYkU\xc2`" +
+	"!\x85Hw\xba\x8b\xb9r\xd0\xac\x86W\x142\x0c\x14" +
+	":T\x16\xd6*\x8c\\o\xb2>\xe2\x06\xa1\x0c\xc7u" +
+	"\xe0\xa8J\xae\xb8\xfc?\x0e\x0a\\\x98\xeb\xba\x7f\xd5\xc7" +
+	"\xd2\xae\xe5\xb1\x7f\xa4_\xb1\xb0\xf4\xb1\x97\xd15\xff\xea" +
+	"\xe9\xcey+\xab\x15Fu\xaf:]lz\x1e\x8c\xd4" +
+	"\x0a-\xaa\xb9E)_\x0d\x83\xc5\x8cF\xac\x09\x17\xf6" +
+	"\x8b\xc4M\xba\x8a\x8b\xff=\x19\xf3U\x04X\\\xe7\xff" +
+	"\x0e\x00\x00\xff\xff\xbb4\x01\x9b"
 
 func init() {
 	schemas.Register(schema_e42f87955bd521e9,
 		0x8aa0c0b71a33baab,
 		0x96524352b99b59d2,
+		0x97fd81fe4e5a7de8,
 		0x9dd032618f0a61da,
 		0xa4f2766999f82f48,
 		0xa7b81c0bbc4ab3a8,
 		0xb7dbdb4757bf491e,
 		0xd43c617d04683d01,
 		0xd606313032e1634f,
+		0xe272876d68537114,
 		0xe4f33c61c382a6a7,
 		0xef6591cc288ebded)
 }
