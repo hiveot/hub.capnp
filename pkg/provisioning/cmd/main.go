@@ -3,10 +3,8 @@ package main
 
 import (
 	"context"
+	"net"
 
-	"github.com/sirupsen/logrus"
-
-	"github.com/hiveot/hub.go/pkg/logging"
 	"github.com/hiveot/hub/internal/listener"
 	"github.com/hiveot/hub/internal/svcconfig"
 	"github.com/hiveot/hub/pkg/certs"
@@ -17,7 +15,7 @@ import (
 )
 
 // Start the provisioning service
-// This must be run from a properly setup environment. See GetFolders for details.
+// - dependent on certs service
 func main() {
 	var svc *service.ProvisioningService
 	var deviceCap certs.IDeviceCerts
@@ -25,7 +23,6 @@ func main() {
 	var certsClient certs.ICerts
 	ctx, _ := context.WithCancel(context.Background())
 
-	logging.SetLogging("info", "")
 	// Determine the folder layout and handle commandline options
 	f := svcconfig.LoadServiceConfig(provisioning.ServiceName, false, nil)
 
@@ -38,14 +35,20 @@ func main() {
 	if err == nil {
 		deviceCap = certsClient.CapDeviceCerts(ctx)
 		verifyCap = certsClient.CapVerifyCerts(ctx)
+		svc = service.NewProvisioningService(deviceCap, verifyCap)
 	}
-	// now we have the capability to create certificates, create the service and start listening for capnp clients
-	if err == nil {
-		svc = service.NewProvisioningService(ctx, deviceCap, verifyCap)
-		srvListener := listener.CreateServiceListener(f.Run, provisioning.ServiceName)
-		err = capnpserver.StartProvisioningCapnpServer(srvListener, svc)
-	}
-	if err != nil {
-		logrus.Fatalf("Service '%s' failed to start: %s", provisioning.ServiceName, err)
-	}
+	// now we have the capability to create certificates, start the service and start listening for capnp clients
+	listener.RunService(provisioning.ServiceName, f.Run,
+		func(ctx context.Context, lis net.Listener) error {
+			// startup
+			err := svc.Start(ctx)
+			if err == nil {
+				err = capnpserver.StartProvisioningCapnpServer(ctx, lis, svc)
+			}
+			return err
+		}, func() error {
+			// shutdown
+			err := svc.Stop()
+			return err
+		})
 }

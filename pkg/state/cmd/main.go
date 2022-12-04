@@ -2,44 +2,36 @@ package main
 
 import (
 	"context"
-
-	"github.com/sirupsen/logrus"
+	"net"
 
 	"github.com/hiveot/hub/internal/listener"
 	"github.com/hiveot/hub/internal/svcconfig"
 	"github.com/hiveot/hub/pkg/bucketstore"
-	"github.com/hiveot/hub/pkg/certs"
-	"github.com/hiveot/hub/pkg/launcher"
 	"github.com/hiveot/hub/pkg/state"
 	"github.com/hiveot/hub/pkg/state/capnpserver"
 	"github.com/hiveot/hub/pkg/state/config"
 	statekvstore "github.com/hiveot/hub/pkg/state/service"
 )
 
-// Start the launcher service
+// Start the service
 func main() {
-	var err error
-	var svc state.IStateService
-	var ctx = context.Background()
-
-	logrus.SetLevel(logrus.InfoLevel)
-	// this is a service so go 2 levels up
 	f := svcconfig.GetFolders("", false)
-	var stateConfig = config.NewStateConfig(f.Stores)
-	stateConfig.Backend = bucketstore.BackendKVBTree
-	//stateConfig.Backend = bucketstore.BackendBBolt
-	//stateConfig.Backend = bucketstore.BackendPebble
+	// set config defaults
+	var config = config.NewStateConfig(f.Stores)
+	config.Backend = bucketstore.BackendKVBTree
+	f = svcconfig.LoadServiceConfig(state.ServiceName, false, &config)
 
-	// option to override the location of the store itself. Intended for testing
-	//flag.StringVar(&stateConfig.DatabaseURL, "DB", stateConfig.DatabaseURL, "State store file")
-	f = svcconfig.LoadServiceConfig(launcher.ServiceName, false, &stateConfig)
+	svc := statekvstore.NewStateStoreService(config)
 
-	srvListener := listener.CreateServiceListener(f.Run, certs.ServiceName)
-
-	if err == nil {
-		svc = statekvstore.NewStateStoreService(stateConfig)
-	}
-	if err == nil {
-		err = capnpserver.StartStateCapnpServer(ctx, srvListener, svc)
-	}
+	listener.RunService(state.ServiceName, f.Run,
+		func(ctx context.Context, lis net.Listener) error {
+			// startup
+			err := svc.Start(ctx)
+			err = capnpserver.StartStateCapnpServer(ctx, lis, svc)
+			return err
+		}, func() error {
+			// shutdown
+			err := svc.Stop()
+			return err
+		})
 }

@@ -30,14 +30,14 @@ func (srv *DirectoryService) createServiceTD() *thing.ThingDescription {
 }
 
 // CapReadDirectory provides the service to read the directory
-func (srv *DirectoryService) CapReadDirectory(ctx context.Context) directory.IReadDirectory {
+func (srv *DirectoryService) CapReadDirectory(_ context.Context) directory.IReadDirectory {
 	bucket := srv.store.GetBucket(srv.tdBucketName)
 	rd := NewReadDirectory(bucket)
 	return rd
 }
 
 // CapUpdateDirectory provides the service to update the directory
-func (srv *DirectoryService) CapUpdateDirectory(ctx context.Context) directory.IUpdateDirectory {
+func (srv *DirectoryService) CapUpdateDirectory(_ context.Context) directory.IUpdateDirectory {
 	bucket := srv.store.GetBucket(srv.tdBucketName)
 	ud := NewUpdateDirectory(bucket)
 	return ud
@@ -58,8 +58,7 @@ func (srv *DirectoryService) Start(ctx context.Context) error {
 }
 
 // Stop the storage server and flush changes to disk
-func (srv *DirectoryService) Stop(ctx context.Context) error {
-	_ = ctx
+func (srv *DirectoryService) Stop() error {
 	err := srv.store.Close()
 	return err
 }
@@ -68,7 +67,7 @@ func (srv *DirectoryService) Stop(ctx context.Context) error {
 // This is using the KV bucket store.
 //
 //	thingStorePath is the file holding the directory data.
-func NewDirectoryService(ctx context.Context, hubID string, thingStorePath string) *DirectoryService {
+func NewDirectoryService(hubID string, thingStorePath string) *DirectoryService {
 
 	kvStore := kvbtree.NewKVStore(directory.ServiceName, thingStorePath)
 	svc := &DirectoryService{

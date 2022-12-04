@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -112,7 +113,7 @@ func (svc *GatewayService) GetCapability(ctx context.Context, clientID, clientTy
 	return capability, err
 }
 
-// ListCapabilities returns an aggregated list of capabilities of all connected services
+// ListCapabilities returns list of capabilities of all connected services sorted by service and capability names
 func (svc *GatewayService) ListCapabilities(_ context.Context, clientType string) ([]caphelp.CapabilityInfo, error) {
 	capList := make([]caphelp.CapabilityInfo, 0)
 	svc.capsMutex.RLock()
@@ -129,6 +130,11 @@ func (svc *GatewayService) ListCapabilities(_ context.Context, clientType string
 			}
 		}
 	}
+	sort.Slice(capList, func(i, j int) bool {
+		iName := capList[i].ServiceName + capList[i].CapabilityName
+		jName := capList[j].ServiceName + capList[j].CapabilityName
+		return iName < jName
+	})
 	return capList, nil
 }
 
@@ -266,7 +272,7 @@ func (svc *GatewayService) Start(ctx context.Context) error {
 }
 
 // Stop releases the connections
-func (svc *GatewayService) Stop(_ context.Context) (err error) {
+func (svc *GatewayService) Stop() (err error) {
 	logrus.Infof("Stopping gateway service")
 	if svc.running {
 		svc.running = false

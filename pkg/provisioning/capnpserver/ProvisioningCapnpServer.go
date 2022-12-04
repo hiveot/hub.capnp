@@ -74,7 +74,7 @@ func (capsrv *ProvisioningCapnpServer) CapRequestProvisioning(
 }
 
 // StartProvisioningCapnpServer starts the capnp server for the provisioning service
-func StartProvisioningCapnpServer(lis net.Listener, svc provisioning.IProvisioning) error {
+func StartProvisioningCapnpServer(_ context.Context, lis net.Listener, svc provisioning.IProvisioning) error {
 
 	logrus.Infof("Starting provisioning service capnp adapter on: %s", lis.Addr())
 

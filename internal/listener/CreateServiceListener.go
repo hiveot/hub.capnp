@@ -14,8 +14,9 @@ import (
 // By convention, HiveOT Hub Services listen on Unix Sockets on address {runFolder}/{serviceName}.socket.
 // Remote clients must use the gateway to connect to the service.
 //
-//  runFolder provides the Hub sockets folder
-//  serviceName provides the name of the socket
+//	runFolder provides the Hub sockets folder
+//	serviceName provides the name of the socket
+//
 // This returns a listening socket for accepting incoming connections
 func CreateServiceListener(runFolder, serviceName string) net.Listener {
 	var address = "localhost"

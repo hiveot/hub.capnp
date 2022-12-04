@@ -62,7 +62,4 @@ type IGatewayService interface {
 
 	// Ping helps determine if the service is reachable
 	Ping(ctx context.Context) (reply string, err error)
-
-	// Stop the service and free its resources
-	Stop(ctx context.Context) error
 }

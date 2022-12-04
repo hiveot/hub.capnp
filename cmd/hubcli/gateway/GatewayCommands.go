@@ -42,14 +42,14 @@ func GatewayListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comman
 }
 
 func HandleListGateway(ctx context.Context, f svcconfig.AppFolders) error {
-	var gw gateway.IGatewayService
+	var gw *capnpclient.GatewayServiceCapnpClient //gateway.IGatewayService
 	//logrus.Infof("Contacting gateway on '%s'", f.Run)
 	ctx2, _ := context.WithTimeout(ctx, time.Second*10)
 	conn, err := listener.CreateClientConnection(f.Run, gateway.ServiceName)
 	if err == nil {
 		//logrus.Infof("Connection established")
 		gw, err = capnpclient.NewGatewayServiceCapnpClient(ctx2, conn)
-		defer gw.Stop(ctx2)
+		defer gw.Release()
 	}
 	if err != nil {
 		return err

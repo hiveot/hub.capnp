@@ -43,8 +43,9 @@ func (authzService *AuthzService) CapVerifyAuthz(ctx context.Context) authz.IVer
 }
 
 // Stop closes the service and release resources
-func (authzService *AuthzService) Stop() {
+func (authzService *AuthzService) Stop() error {
 	authzService.aclStore.Close()
+	return nil
 }
 
 // Start the ACL store for reading
@@ -58,9 +59,9 @@ func (authzService *AuthzService) Start(ctx context.Context) error {
 }
 
 // NewAuthzService creates a new instance of the authorization service.
-//  aclStore provides the functions to read and write authorization rules
-func NewAuthzService(ctx context.Context, aclStorePath string) *AuthzService {
-	_ = ctx
+//
+//	aclStore provides the functions to read and write authorization rules
+func NewAuthzService(aclStorePath string) *AuthzService {
 	aclStore := aclstore.NewAclFileStore(aclStorePath, authz.ServiceName)
 
 	authzService := AuthzService{

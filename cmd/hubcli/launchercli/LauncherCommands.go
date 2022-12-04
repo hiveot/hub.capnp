@@ -86,8 +86,8 @@ func HandleListServices(ctx context.Context, f svcconfig.AppFolders) error {
 		return err
 	}
 
-	fmt.Println("Service                      Size   Starts      PID    CPU   Memory   Status    Last Error")
-	fmt.Println("-------                      ----   ------   ------   ----   ------   -------   -----------")
+	fmt.Println("Service                      Size   Starts       PID    CPU   Memory   Status    Last Error")
+	fmt.Println("-------                      ----   ------   -------   ----   ------   -------   -----------")
 	entries, _ := ls.List(ctx, false)
 	for _, entry := range entries {
 		status := "stopped"
@@ -133,7 +133,7 @@ func HandleStartService(ctx context.Context, f svcconfig.AppFolders, serviceName
 		}
 		fmt.Printf("All services started\n")
 	} else {
-		info, err2 := ls.Start(ctx, serviceName)
+		info, err2 := ls.StartService(ctx, serviceName)
 
 		if err2 != nil {
 			fmt.Println("Start failed:", err2)
@@ -167,7 +167,7 @@ func HandleStopService(ctx context.Context, f svcconfig.AppFolders, serviceName 
 		fmt.Printf("All services stopped\n")
 
 	} else {
-		info, err := ls.Stop(ctx, serviceName)
+		info, err := ls.StopService(ctx, serviceName)
 		if err != nil {
 			fmt.Printf("Stop %s failed: %s\n", serviceName, err)
 			return err

@@ -15,8 +15,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/struCoder/pidusage"
 
-	"github.com/hiveot/hub.go/pkg/logging"
-	proc2 "github.com/hiveot/hub.go/pkg/proc"
+	"github.com/hiveot/hub.go/pkg/proc"
 	"github.com/hiveot/hub/internal/svcconfig"
 	"github.com/hiveot/hub/pkg/launcher"
 	"github.com/hiveot/hub/pkg/launcher/config"
@@ -98,7 +97,7 @@ func (ls *LauncherService) List(_ context.Context, onlyRunning bool) ([]launcher
 }
 
 // Start a service
-func (ls *LauncherService) Start(
+func (ls *LauncherService) StartService(
 	_ context.Context, name string) (info launcher.ServiceInfo, err error) {
 	ls.mux.Lock()
 	defer ls.mux.Unlock()
@@ -218,7 +217,7 @@ func (ls *LauncherService) StartAll(ctx context.Context) (err error) {
 
 	for svcName, svcInfo := range ls.services {
 		if !svcInfo.Running {
-			_, err2 := ls.Start(ctx, svcName)
+			_, err2 := ls.StartService(ctx, svcName)
 			if err2 != nil {
 				err = err2
 			}
@@ -227,8 +226,7 @@ func (ls *LauncherService) StartAll(ctx context.Context) (err error) {
 	return err
 }
 
-// Stop a service
-func (ls *LauncherService) Stop(_ context.Context, name string) (info launcher.ServiceInfo, err error) {
+func (ls *LauncherService) StopService(_ context.Context, name string) (info launcher.ServiceInfo, err error) {
 	logrus.Infof("Stopping service %s", name)
 
 	serviceInfo, found := ls.services[name]
@@ -238,7 +236,7 @@ func (ls *LauncherService) Stop(_ context.Context, name string) (info launcher.S
 		logrus.Error(err)
 		return info, err
 	}
-	err = proc2.Stop(serviceInfo.Name, serviceInfo.PID)
+	err = proc.Stop(serviceInfo.Name, serviceInfo.PID)
 	if err == nil {
 		ls.mux.Lock()
 		defer ls.mux.Unlock()
@@ -262,7 +260,7 @@ func (ls *LauncherService) StopAll(ctx context.Context) (err error) {
 
 	// stop each service
 	for _, name := range names {
-		_, _ = ls.Stop(ctx, name)
+		_, _ = ls.StopService(ctx, name)
 		delete(ls.cmds, name)
 	}
 	time.Sleep(time.Millisecond)
@@ -314,32 +312,40 @@ func (ls *LauncherService) updateStatus(svcInfo *launcher.ServiceInfo) {
 
 }
 
+// Start the launcher service
+func (ls *LauncherService) Start(ctx context.Context) error {
+	err := ls.findServices(ls.f.Services)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+
+	// autostart the services
+	for _, name := range ls.cfg.Autostart {
+		_, err2 := ls.StartService(ctx, name)
+		if err2 != nil {
+			err = err2
+		}
+	}
+	return err
+}
+
+// Stop the launcher and all running services
+func (ls *LauncherService) Stop() error {
+	return ls.StopAll(context.Background())
+}
+
 // NewLauncherService returns a new launcher instance for the services in the given services folder.
 // This scans the folder for executables, adds these to the list of available services and autostarts services
 // Logging will be enabled based on LauncherConfig.
-func NewLauncherService(
-	ctx context.Context, f svcconfig.AppFolders, cfg config.LauncherConfig) (*LauncherService, error) {
+func NewLauncherService(f svcconfig.AppFolders, cfg config.LauncherConfig) *LauncherService {
 
-	logFile := path.Join(f.Logs, launcher.ServiceName+".log")
-	logging.SetLogging(cfg.LogLevel, logFile)
-
-	logrus.Infof("creating new launcher service with serviceFolder %s", f.Services)
 	ls := &LauncherService{
 		f:        f,
 		cfg:      cfg,
 		services: make(map[string]*launcher.ServiceInfo),
 		cmds:     make(map[string]*exec.Cmd),
 	}
-	err := ls.findServices(f.Services)
-	if err != nil {
-		logrus.Error(err)
-		return ls, err
-	}
 
-	// autostart the services
-	for _, name := range cfg.Autostart {
-		_, _ = ls.Start(ctx, name)
-	}
-
-	return ls, nil
+	return ls
 }

@@ -34,7 +34,7 @@ func startTestAuthzService(useCapnp bool) (svc authz.IAuthz, closeFn func()) {
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	_ = cancelFunc
 	_ = os.Remove(aclFilePath)
-	authSvc := service.NewAuthzService(ctx, aclFilePath)
+	authSvc := service.NewAuthzService(aclFilePath)
 	err := authSvc.Start(ctx)
 	if err != nil {
 		return nil, nil
@@ -83,7 +83,7 @@ func TestAuthzServiceBadStart(t *testing.T) {
 	logrus.Infof("---TestAuthzServiceBadStart---")
 	ctx := context.Background()
 	badAclFilePath := "/bad/aclstore/path"
-	svc := service.NewAuthzService(ctx, badAclFilePath)
+	svc := service.NewAuthzService(badAclFilePath)
 
 	// opening the acl store should fail
 	err := svc.Start(ctx)
@@ -91,7 +91,7 @@ func TestAuthzServiceBadStart(t *testing.T) {
 	svc.Stop()
 
 	// missing store should not panic
-	svc = service.NewAuthzService(ctx, "")
+	svc = service.NewAuthzService("")
 	err = svc.Start(ctx)
 	assert.Error(t, err)
 }

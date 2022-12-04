@@ -86,7 +86,7 @@ func (capsrv *HistoryServiceCapnpServer) CapReadHistory(
 //}
 
 // StartHistoryServiceCapnpServer returns the capnp protocol server for the history store
-func StartHistoryServiceCapnpServer(listener net.Listener, svc history.IHistoryService) error {
+func StartHistoryServiceCapnpServer(_ context.Context, listener net.Listener, svc history.IHistoryService) error {
 
 	capsrv := &HistoryServiceCapnpServer{
 		HiveOTServiceCapnpServer: caphelp.NewHiveOTServiceCapnpServer(history.ServiceName),

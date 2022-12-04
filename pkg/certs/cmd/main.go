@@ -1,15 +1,16 @@
 package main
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"crypto/x509"
+	"net"
 	"path"
 
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub.go/pkg/certsclient"
-	"github.com/hiveot/hub.go/pkg/logging"
 	"github.com/hiveot/hub/internal/listener"
 	"github.com/hiveot/hub/internal/svcconfig"
 	"github.com/hiveot/hub/pkg/certs"
@@ -26,9 +27,6 @@ func main() {
 	var caKey *ecdsa.PrivateKey
 	var err error
 
-	logging.SetLogging("info", "")
-
-	// Determine the folder layout and handle commandline options
 	f := svcconfig.LoadServiceConfig(certs.ServiceName, false, nil)
 
 	// This service needs the CA certificate and key to operate
@@ -45,10 +43,19 @@ func main() {
 		logrus.Fatalf("Error loading CA key from '%s': %v", caKeyPath, err)
 	}
 
-	// check commandline and create a listener
-	srvListener := listener.CreateServiceListener(f.Run, certs.ServiceName)
-
-	logrus.Infof("CertServiceCapnpServer starting on: %s", srvListener.Addr())
 	svc := selfsigned.NewSelfSignedCertsService(caCert, caKey)
-	_ = capnpserver.StartCertsCapnpServer(srvListener, svc)
+
+	listener.RunService(certs.ServiceName, f.Run,
+		func(ctx context.Context, lis net.Listener) error {
+			// startup
+			err = svc.Start()
+			if err == nil {
+				err = capnpserver.StartCertsCapnpServer(ctx, lis, svc)
+			}
+			return err
+		}, func() error {
+			// shutdown
+			err := svc.Stop()
+			return err
+		})
 }

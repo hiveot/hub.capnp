@@ -43,11 +43,11 @@ func (cl *LauncherCapnpClient) Release() {
 }
 
 // Start a service
-func (cl *LauncherCapnpClient) Start(
+func (cl *LauncherCapnpClient) StartService(
 	ctx context.Context, name string) (serviceInfo launcher.ServiceInfo, err error) {
 
-	method, release := cl.capability.Start(ctx,
-		func(params hubapi.CapLauncher_start_Params) error {
+	method, release := cl.capability.StartService(ctx,
+		func(params hubapi.CapLauncher_startService_Params) error {
 			err := params.SetName(name)
 			return err
 		})
@@ -67,12 +67,11 @@ func (cl *LauncherCapnpClient) StartAll(ctx context.Context) (err error) {
 	return err
 }
 
-// Stop a running service
-func (cl *LauncherCapnpClient) Stop(
+func (cl *LauncherCapnpClient) StopService(
 	ctx context.Context, name string) (serviceInfo launcher.ServiceInfo, err error) {
 
-	method, release := cl.capability.Stop(ctx,
-		func(params hubapi.CapLauncher_stop_Params) error {
+	method, release := cl.capability.StopService(ctx,
+		func(params hubapi.CapLauncher_stopService_Params) error {
 			err := params.SetName(name)
 			return err
 		})

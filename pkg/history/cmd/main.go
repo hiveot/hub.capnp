@@ -3,12 +3,8 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"os"
+	"net"
 
-	"github.com/sirupsen/logrus"
-
-	"github.com/hiveot/hub.go/pkg/logging"
 	"github.com/hiveot/hub/internal/listener"
 	"github.com/hiveot/hub/internal/svcconfig"
 	"github.com/hiveot/hub/pkg/bucketstore/cmd"
@@ -20,36 +16,34 @@ import (
 
 // Start the history store service
 func main() {
-	logging.SetLogging("info", "")
-	ctx := context.Background()
 
 	f := svcconfig.GetFolders("", false)
 	cfg := config.NewHistoryConfig(f.Stores)
 	f = svcconfig.LoadServiceConfig(history.ServiceName, false, &cfg)
 
-	srvListener := listener.CreateServiceListener(f.Run, history.ServiceName)
-
 	// the service uses the bucket store
 	store := cmd.NewBucketStore(cfg.Directory, cfg.ServiceID, cfg.Backend)
-	err := store.Open()
-	defer store.Close()
-
 	svc := service.NewHistoryService(store, "urn:"+cfg.ServiceID)
-	err = svc.Start(ctx)
-	if err != nil {
-		logrus.Panicf("unable launch the history service: %s", err)
-	}
 
-	// connections via capnp RPC
-	if err == nil {
-		logrus.Infof("HistoryServiceCapnpServer starting on: %s", srvListener.Addr())
-		_ = capnpserver.StartHistoryServiceCapnpServer(srvListener, svc)
-	}
-	if err != nil {
-		msg := fmt.Sprintf("ERROR: Service '%s' failed to start: %s\n", cfg.ServiceID, err)
-		logrus.Fatal(msg)
-	}
-	logrus.Infof("History service ended gracefully")
-	err = svc.Stop(ctx)
-	os.Exit(0)
+	listener.RunService(history.ServiceName, f.Run,
+		func(ctx context.Context, lis net.Listener) error {
+			// startup
+			err := store.Open()
+			if err == nil {
+				err = svc.Start(ctx)
+			}
+			if err == nil {
+				err = capnpserver.StartHistoryServiceCapnpServer(ctx, lis, svc)
+			}
+			return err
+		}, func() error {
+			// shutdown
+			err := svc.Stop()
+			err2 := store.Close()
+			if err == nil {
+				err = err2
+			}
+			return err
+		})
+
 }

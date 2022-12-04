@@ -77,7 +77,7 @@ func newHistoryService(useCapnp bool) (history.IHistoryService, func() error) {
 	if useCapnp {
 		_ = syscall.Unlink(testSocket)
 		srvListener, _ := net.Listen("unix", testSocket)
-		go capnpserver.StartHistoryServiceCapnpServer(srvListener, svc)
+		go capnpserver.StartHistoryServiceCapnpServer(ctx, srvListener, svc)
 
 		// connect the client to the server above
 		clConn, _ := net.Dial("unix", testSocket)
@@ -87,14 +87,14 @@ func newHistoryService(useCapnp bool) (history.IHistoryService, func() error) {
 		}
 		return cl, func() error {
 			cancelFn()
-			_ = svc.Stop(ctx)
+			_ = svc.Stop()
 			err = store.Close()
 			return err
 		}
 	}
 
 	return svc, func() error {
-		_ = svc.Stop(ctx)
+		_ = svc.Stop()
 		err = store.Close()
 		cancelFn()
 		return err
@@ -187,7 +187,7 @@ func TestStartStop(t *testing.T) {
 	err = svc.Start(ctx)
 	assert.NoError(t, err)
 
-	err = svc.Stop(ctx)
+	err = svc.Stop()
 	assert.NoError(t, err)
 
 	err = store.Close()
@@ -283,7 +283,6 @@ func TestAddGetEvent(t *testing.T) {
 }
 
 func TestAddPropertiesEvent(t *testing.T) {
-	const count = 1000
 	const id1 = "urn:" + thingIDPrefix + "0" // matches a percentage of the random things
 	const thing1Addr = "urn:device1/" + id1
 	const temp1 = "55"
@@ -384,7 +383,7 @@ func TestAddPropertiesEvent(t *testing.T) {
 	assert.Equal(t, props[0].ValueJSON, []byte(temp1))
 	assert.Equal(t, props[1].Name, vocab.PropNameSwitch)
 
-	err = svc.Stop(ctx)
+	err = svc.Stop()
 	assert.NoError(t, err)
 	err = backend.Close()
 	assert.NoError(t, err)

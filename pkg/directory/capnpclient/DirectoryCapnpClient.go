@@ -40,7 +40,7 @@ func (cl *DirectoryCapnpClient) CapUpdateDirectory(ctx context.Context) director
 
 // Release the client capability
 // Release MUST be called after use
-func (cl *DirectoryCapnpClient) Release(_ context.Context) error {
+func (cl *DirectoryCapnpClient) Release() error {
 	cl.capability.Release()
 	return nil
 }

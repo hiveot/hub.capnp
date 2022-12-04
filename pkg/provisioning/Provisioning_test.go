@@ -42,13 +42,13 @@ func newServer(useCapnp bool) (provSvc provisioning.IProvisioning, closeFn func(
 	certCap := getCertCap()
 	ctx, cancelFunc := context.WithCancel(context.Background())
 
-	svc := service.NewProvisioningService(ctx, certCap.CapDeviceCerts(ctx), certCap.CapVerifyCerts(ctx))
+	svc := service.NewProvisioningService(certCap.CapDeviceCerts(ctx), certCap.CapVerifyCerts(ctx))
 
 	// optionally test with capnp RPC
 	if useCapnp {
 		_ = syscall.Unlink(testSocket)
 		lis, _ := net.Listen("unix", testSocket)
-		go capnpserver.StartProvisioningCapnpServer(lis, svc)
+		go capnpserver.StartProvisioningCapnpServer(ctx, lis, svc)
 
 		// connect the client to the server above
 		clConn, _ := net.Dial("unix", testSocket)
@@ -58,13 +58,13 @@ func newServer(useCapnp bool) (provSvc provisioning.IProvisioning, closeFn func(
 		}
 		return cl, func() error {
 			cancelFunc()
-			err = svc.Stop(ctx)
+			err = svc.Stop()
 			return err
 		}
 	}
 	return svc, func() error {
 		cancelFunc()
-		err := svc.Stop(ctx)
+		err := svc.Stop()
 		return err
 	}
 }

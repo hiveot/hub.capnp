@@ -61,7 +61,7 @@ type IPubSubService interface {
 	// Release the capability and end subscriptions
 	// If this is an RPC client this just ends the client connection to the service
 	// If this is a server instance then the server stops
-	Release() error
+	//Release() error
 }
 
 // IDevicePubSub available to an IoT device

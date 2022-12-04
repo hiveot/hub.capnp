@@ -39,7 +39,8 @@ func newServer(useCapnp bool) (l launcher.ILauncher, stopFn func()) {
 	f.Logs = logFolder
 
 	ctx, cancelFunc := context.WithCancel(context.Background())
-	svc, err := service.NewLauncherService(ctx, f, launcherConfig)
+	svc := service.NewLauncherService(f, launcherConfig)
+	err := svc.Start(ctx)
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -102,14 +103,14 @@ func TestStartYes(t *testing.T) {
 	defer cancelFunc()
 
 	assert.NotNil(t, svc)
-	info, err := svc.Start(ctx, "yes")
+	info, err := svc.StartService(ctx, "yes")
 	require.NoError(t, err)
 	assert.True(t, info.Running)
 	assert.True(t, info.PID > 0)
 	assert.True(t, info.StartTime != "")
 	assert.FileExists(t, logFile)
 
-	info2, err := svc.Stop(ctx, "yes")
+	info2, err := svc.StopService(ctx, "yes")
 	time.Sleep(time.Millisecond * 10)
 	assert.NoError(t, err)
 	assert.False(t, info2.Running)
@@ -122,10 +123,10 @@ func TestStartBadName(t *testing.T) {
 	defer cancelFunc()
 	assert.NotNil(t, svc)
 
-	_, err := svc.Start(ctx, "notaservicename")
+	_, err := svc.StartService(ctx, "notaservicename")
 	require.Error(t, err)
 	//
-	_, err = svc.Stop(ctx, "notaservicename")
+	_, err = svc.StopService(ctx, "notaservicename")
 	require.Error(t, err)
 }
 
@@ -135,21 +136,21 @@ func TestStartStopTwice(t *testing.T) {
 	defer cancelFunc()
 	assert.NotNil(t, svc)
 
-	info, err := svc.Start(ctx, "yes")
+	info, err := svc.StartService(ctx, "yes")
 	assert.NoError(t, err)
 	// again
-	info2, err := svc.Start(ctx, "yes")
+	info2, err := svc.StartService(ctx, "yes")
 	assert.Error(t, err)
 	_ = info2
 	//assert.Equal(t, info.PID, info2.PID)
 
 	// stop twice
-	info3, err := svc.Stop(ctx, "yes")
+	info3, err := svc.StopService(ctx, "yes")
 	assert.NoError(t, err)
 	assert.False(t, info3.Running)
 	assert.Equal(t, info.PID, info3.PID)
 	// stopping is idempotent
-	info4, err := svc.Stop(ctx, "yes")
+	info4, err := svc.StopService(ctx, "yes")
 	assert.NoError(t, err)
 	assert.False(t, info3.Running)
 	assert.Equal(t, info.PID, info4.PID)
@@ -161,7 +162,7 @@ func TestStartStopAll(t *testing.T) {
 	defer cancelFunc()
 	assert.NotNil(t, svc)
 
-	_, err := svc.Start(ctx, "yes")
+	_, err := svc.StartService(ctx, "yes")
 	assert.NoError(t, err)
 
 	// result should be 1 service running

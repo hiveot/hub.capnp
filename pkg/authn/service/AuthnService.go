@@ -41,7 +41,7 @@ func (svc *AuthnService) Start(ctx context.Context) error {
 	logrus.Info("starting authn service using '%s' for password store", svc.config.PasswordFile)
 	return svc.pwStore.Open(ctx)
 }
-func (svc *AuthnService) Stop(ctx context.Context) error {
+func (svc *AuthnService) Stop() error {
 	logrus.Info("stopping service")
 	svc.pwStore.Close()
 	return nil
@@ -49,7 +49,7 @@ func (svc *AuthnService) Stop(ctx context.Context) error {
 
 // NewAuthnService creates new instance of the service.
 // Call Start before using the service.
-func NewAuthnService(ctx context.Context, cfg config.AuthnConfig) *AuthnService {
+func NewAuthnService(cfg config.AuthnConfig) *AuthnService {
 	signingKey := signing.CreateECDSAKeys()
 	pwStore := unpwstore.NewPasswordFileStore(cfg.PasswordFile)
 	svc := &AuthnService{

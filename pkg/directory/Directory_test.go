@@ -34,7 +34,7 @@ func startDirectory(useCapnp bool) (directory.IDirectory, func() error) {
 	logrus.Infof("startDirectory start")
 	defer logrus.Infof("startDirectory ended")
 	_ = os.Remove(testStoreFile)
-	svc := service.NewDirectoryService(ctx, "urn:hubtest", testStoreFile)
+	svc := service.NewDirectoryService("urn:hubtest", testStoreFile)
 	err := svc.Start(ctx)
 	if err != nil {
 		panic("service fails to start")
@@ -54,13 +54,16 @@ func startDirectory(useCapnp bool) (directory.IDirectory, func() error) {
 		capClient, err := capnpclient.NewDirectoryCapnpClient(ctx, clConn)
 		return capClient, func() error {
 			cancelFunc()
-			_ = capClient.Release(ctx)
+			_ = capClient.Release()
 			_ = clConn.Close()
-			err = svc.Stop(ctx)
+			err = svc.Stop()
 			return err
 		}
 	}
-	return svc, func() error { cancelFunc(); return svc.Stop(ctx) }
+	return svc, func() error {
+		cancelFunc()
+		return svc.Stop()
+	}
 }
 
 // generate a JSON serialized TD document

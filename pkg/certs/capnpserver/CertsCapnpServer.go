@@ -97,7 +97,7 @@ func (capsrv *CertsCapnpServer) CapVerifyCerts(
 }
 
 // StartCertsCapnpServer starts the capnp protocol server for the certificates service
-func StartCertsCapnpServer(lis net.Listener, svc certs.ICerts) error {
+func StartCertsCapnpServer(_ context.Context, lis net.Listener, svc certs.ICerts) error {
 
 	log.Printf("Starting certs service capnp server on: %s", lis.Addr())
 

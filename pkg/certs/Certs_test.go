@@ -36,12 +36,13 @@ func NewService() (svc certs.ICerts, closeFunc func()) {
 	//ctx, cancelFunc := context.WithCancel(context.Background())
 	caCert, caKey, _ := selfsigned.CreateHubCA(1)
 	certSvc := selfsigned.NewSelfSignedCertsService(caCert, caKey)
+	ctx := context.Background()
 	// when using capnp, return a client instance instead the svc
 	if useCapnp {
 		// remove stale handle
 		_ = syscall.Unlink(testSocket)
 		srvListener, _ := net.Listen("unix", testSocket)
-		go capnpserver.StartCertsCapnpServer(srvListener, certSvc)
+		go capnpserver.StartCertsCapnpServer(ctx, srvListener, certSvc)
 		// connect the client to the server above
 		clConn, _ := net.Dial("unix", testSocket)
 		capClient, _ := capnpclient.NewCertServiceCapnpClient(clConn)

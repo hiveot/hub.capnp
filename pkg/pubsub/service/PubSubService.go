@@ -39,10 +39,10 @@ func (svc *PubSubService) CapUserPubSub(ctx context.Context, userID string) (pub
 }
 
 // Release the service and free its resources
-func (svc *PubSubService) Release() error {
-	err := svc.core.Stop()
-	return err
-}
+//func (svc *PubSubService) Release() error {
+//	err := svc.core.Stop()
+//	return err
+//}
 
 func (svc *PubSubService) Start() error {
 	err := svc.core.Start()

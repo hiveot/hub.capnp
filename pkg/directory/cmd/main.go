@@ -3,13 +3,9 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"os"
+	"net"
 	"path/filepath"
 
-	"github.com/sirupsen/logrus"
-
-	"github.com/hiveot/hub.go/pkg/logging"
 	"github.com/hiveot/hub/internal/listener"
 	"github.com/hiveot/hub/internal/svcconfig"
 	"github.com/hiveot/hub/pkg/directory"
@@ -20,30 +16,25 @@ import (
 // name of the storage file
 const storeFile = "directorystore.json"
 
-// Use the commandline option -f path/to/store.json for the storage file
+// Start the service
 func main() {
-	logging.SetLogging("info", "")
-	ctx := context.Background()
 	hubID := "urn:hub" // FIXME: get HubID from the Hub somewhere
-
 	f := svcconfig.LoadServiceConfig(directory.ServiceName, false, nil)
+
 	storePath := filepath.Join(f.Stores, directory.ServiceName, storeFile)
+	svc := service.NewDirectoryService(hubID, storePath)
 
-	// parse commandline and create server listening socket
-	srvListener := listener.CreateServiceListener(f.Run, directory.ServiceName)
-
-	svc := service.NewDirectoryService(ctx, hubID, storePath)
-	err := svc.Start(ctx)
-	defer svc.Stop(ctx)
-
-	if err == nil {
-		logrus.Infof("DirectoryServiceCapnpServer starting on: %s", srvListener.Addr())
-		err = capnpserver.StartDirectoryServiceCapnpServer(ctx, srvListener, svc)
-	}
-	if err != nil {
-		msg := fmt.Sprintf("ERROR: Service '%s' failed to start: %s\n", directory.ServiceName, err)
-		logrus.Fatal(msg)
-	}
-	logrus.Infof("Directory service ended gracefully")
-	os.Exit(0)
+	listener.RunService(directory.ServiceName, f.Run,
+		func(ctx context.Context, lis net.Listener) error {
+			// startup
+			err := svc.Start(ctx)
+			if err == nil {
+				err = capnpserver.StartDirectoryServiceCapnpServer(ctx, lis, svc)
+			}
+			return err
+		}, func() error {
+			// shutdown
+			err := svc.Stop()
+			return err
+		})
 }

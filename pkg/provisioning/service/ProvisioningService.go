@@ -56,7 +56,11 @@ func (svc *ProvisioningService) CapRequestProvisioning(ctx context.Context) prov
 	return svc
 }
 
-func (svc *ProvisioningService) Stop(ctx context.Context) error {
+func (svc *ProvisioningService) Start(_ context.Context) error {
+	return nil
+}
+
+func (svc *ProvisioningService) Stop() error {
 	logrus.Infof("Stopping Provisioning service")
 	svc.certCapability.Release()
 	svc.verifyCapability.Release()
@@ -66,7 +70,7 @@ func (svc *ProvisioningService) Stop(ctx context.Context) error {
 // NewProvisioningService creates a new provisioning service instance
 // This requires the capability to obtain and verify device certificates
 // Invoke 'Stop' when done to close the provided certCap and verifyCap capabilities
-func NewProvisioningService(ctx context.Context, certCap certs.IDeviceCerts, verifyCap certs.IVerifyCerts) *ProvisioningService {
+func NewProvisioningService(certCap certs.IDeviceCerts, verifyCap certs.IVerifyCerts) *ProvisioningService {
 	svc := &ProvisioningService{
 		certCapability:   certCap,
 		verifyCapability: verifyCap,

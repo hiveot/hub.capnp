@@ -33,17 +33,17 @@ var backend = bucketstore.BackendKVBTree
 
 // return an API to the state service, optionally using capnp RPC
 func createStateService(useCapnp bool) (store state.IStateService, stopFn func() error, err error) {
+	ctx, cancelCtx := context.WithCancel(context.Background())
+	defer cancelCtx()
 	logrus.Infof("createStateService")
 	os.RemoveAll(storeDir)
 	cfg := config.NewStateConfig(storeDir)
 	cfg.Backend = backend
 	stateSvc := service.NewStateStoreService(cfg)
-	err = stateSvc.Start()
+	err = stateSvc.Start(ctx)
 
 	// optionally test with capnp RPC
 	if err == nil && useCapnp {
-
-		ctx, cancelCtx := context.WithCancel(context.Background())
 
 		//_ = syscall.Unlink(testAddress)
 		//srvListener, _ := net.Listen("unix", testAddress)
@@ -94,7 +94,7 @@ func TestStartStopBadLocation(t *testing.T) {
 	cfg.Backend = backend
 	cfg.StoreDirectory = "/var"
 	stateSvc := service.NewStateStoreService(cfg)
-	err := stateSvc.Start()
+	err := stateSvc.Start(context.Background())
 	if !assert.Error(t, err) {
 		stateSvc.Stop()
 	}
@@ -106,7 +106,7 @@ func TestStartStopBadLocation(t *testing.T) {
 	// not a folder
 	cfg.StoreDirectory = "/not/a/folder"
 	stateSvc = service.NewStateStoreService(cfg)
-	err = stateSvc.Start()
+	err = stateSvc.Start(context.Background())
 	if !assert.Error(t, err) {
 		stateSvc.Stop()
 	}

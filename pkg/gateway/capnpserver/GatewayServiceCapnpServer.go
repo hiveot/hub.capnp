@@ -117,7 +117,7 @@ func (capsrv *GatewayServiceCapnpServer) Login(
 }
 
 func StartGatewayServiceCapnpServer(
-	ctx context.Context, lis net.Listener, svc gateway.IGatewayService, socketFolder string) error {
+	_ context.Context, lis net.Listener, svc gateway.IGatewayService, socketFolder string) error {
 
 	srv := &GatewayServiceCapnpServer{
 		//HiveOTServiceCapnpServer: caphelp.NewHiveOTServiceCapnpServer(gateway.ServiceName),

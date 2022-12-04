@@ -57,8 +57,9 @@ func (srv *SelfSignedCertsService) Start() error {
 }
 
 // Stop the service
-func (srv *SelfSignedCertsService) Stop() {
+func (srv *SelfSignedCertsService) Stop() error {
 	// nothing to do here
+	return nil
 }
 
 // NewSelfSignedCertsService returns a new instance of the selfsigned certificate service

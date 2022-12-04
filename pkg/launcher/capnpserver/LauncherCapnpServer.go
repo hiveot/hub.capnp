@@ -32,10 +32,11 @@ func (capsrv *LauncherCapnpServer) List(ctx context.Context, call hubapi.CapLaun
 	}
 	return err
 }
-func (capsrv *LauncherCapnpServer) Start(ctx context.Context, call hubapi.CapLauncher_start) error {
+func (capsrv *LauncherCapnpServer) StartService(ctx context.Context,
+	call hubapi.CapLauncher_startService) error {
 	args := call.Args()
 	serviceName, _ := args.Name()
-	serviceInfo, err := capsrv.pogo.Start(ctx, serviceName)
+	serviceInfo, err := capsrv.pogo.StartService(ctx, serviceName)
 	res, _ := call.AllocResults()
 	svcInfoCapnp := capserializer.MarshalServiceInfo(serviceInfo)
 	_ = res.SetInfo(svcInfoCapnp)
@@ -46,10 +47,10 @@ func (capsrv *LauncherCapnpServer) StartAll(ctx context.Context, call hubapi.Cap
 	err := capsrv.pogo.StartAll(ctx)
 	return err
 }
-func (capsrv *LauncherCapnpServer) Stop(ctx context.Context, call hubapi.CapLauncher_stop) error {
+func (capsrv *LauncherCapnpServer) StopService(ctx context.Context, call hubapi.CapLauncher_stopService) error {
 	args := call.Args()
 	serviceName, _ := args.Name()
-	serviceInfo, err := capsrv.pogo.Stop(ctx, serviceName)
+	serviceInfo, err := capsrv.pogo.StopService(ctx, serviceName)
 	res, _ := call.AllocResults()
 	svcInfoCapnp := capserializer.MarshalServiceInfo(serviceInfo)
 	_ = res.SetInfo(svcInfoCapnp)

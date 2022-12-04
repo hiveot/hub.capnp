@@ -49,7 +49,7 @@ func (srv *HistoryService) Start(_ context.Context) error {
 }
 
 // Stop using the history service and release resources
-func (srv *HistoryService) Stop(_ context.Context) error {
+func (srv *HistoryService) Stop() error {
 	err := srv.propsStore.SaveChanges()
 	return err
 }

@@ -7,6 +7,8 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
+
+	"github.com/hiveot/hub.go/pkg/logging"
 )
 
 // LoadServiceConfig Load a configuration file from the config folder and applies commandline options.
@@ -14,27 +16,29 @@ import (
 //
 // This invokes flag.Parse(). Flag commandline options added are:
 //
-//	 -c configFile
-//	 --home directory
-//	 --certs directory
-//	 --services directory
-//	 --logs directory
-//	 --run directory
+//		 -c configFile
+//		 --home directory
+//		 --certs directory
+//		 --services directory
+//		 --logs directory
+//	  --loglevel info|warning
+//		 --run directory
 //
-//	If a 'cfg' interface is provided, the configuration is loaded from file and parsed as yaml.
+//		If a 'cfg' interface is provided, the configuration is loaded from file and parsed as yaml.
 //
-//	serviceName is used for the configuration file with the '.yaml' extension
-//	required returns an error if the configuration file doesn't exist
-//	cfg is the interface to the configuration object. nil to ignore configuration and just load the folders.
+//		serviceName is used for the configuration file with the '.yaml' extension
+//		required returns an error if the configuration file doesn't exist
+//		cfg is the interface to the configuration object. nil to ignore configuration and just load the folders.
 func LoadServiceConfig(serviceName string, required bool, cfg interface{}) AppFolders {
 	// run the commandline options
 	var err error
 	var cfgData []byte
-	var homeFolder = ""
 	var certsFolder = ""
+	var homeFolder = ""
+	var logLevel = "info"
+	var logsFolder = ""
 	var runFolder = ""
 	var servicesFolder = ""
-	var logsFolder = ""
 	var storesFolder = ""
 
 	f := GetFolders(homeFolder, false)
@@ -46,6 +50,7 @@ func LoadServiceConfig(serviceName string, required bool, cfg interface{}) AppFo
 	flag.StringVar(&certsFolder, "certs", f.Certs, "Certificates directory")
 	flag.StringVar(&servicesFolder, "services", f.Services, "Application services directory")
 	flag.StringVar(&logsFolder, "logs", f.Logs, "Service log files directory")
+	flag.StringVar(&logLevel, "loglevel", logLevel, "Loglevel info|warning. Default is warning")
 	flag.StringVar(&runFolder, "run", f.Run, "Runtime directory for sockets and pid files")
 	flag.StringVar(&storesFolder, "stores", f.Stores, "Storage directory")
 	flag.Parse()
@@ -68,6 +73,12 @@ func LoadServiceConfig(serviceName string, required bool, cfg interface{}) AppFo
 	if storesFolder != f.Stores {
 		f2.Stores = storesFolder
 	}
+	if logsFolder != "" {
+		logFile := path.Join(logsFolder, serviceName+".log")
+		logging.SetLogging(logLevel, logFile)
+	} else {
+		logging.SetLogging(logLevel, "")
+	}
 
 	// ignore configuration file if no destination interface is given
 	if cfg != nil {
@@ -85,5 +96,6 @@ func LoadServiceConfig(serviceName string, required bool, cfg interface{}) AppFo
 			logrus.Fatalf("Configuration file '%s' not found but required.", cfgFile)
 		}
 	}
+
 	return f2
 }

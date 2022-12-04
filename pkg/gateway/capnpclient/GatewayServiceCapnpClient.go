@@ -101,8 +101,8 @@ func (cl *GatewayServiceCapnpClient) Ping(ctx context.Context) (response string,
 	return response, err
 }
 
-// Stop the service and release its resources
-func (cl *GatewayServiceCapnpClient) Stop(_ context.Context) (err error) {
+// Release the client
+func (cl *GatewayServiceCapnpClient) Release() (err error) {
 	cl.capability.Release()
 	if cl.connection != nil {
 		err = cl.connection.Close()

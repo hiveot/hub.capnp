@@ -54,15 +54,15 @@ type ILauncher interface {
 	// List services
 	List(ctx context.Context, onlyRunning bool) ([]ServiceInfo, error)
 
-	// Start a service
-	Start(ctx context.Context, name string) (ServiceInfo, error)
+	// StartService start a service
+	StartService(ctx context.Context, name string) (ServiceInfo, error)
 
 	// StartAll starts all enabled services
 	// This returns the error from the last service that could not be started
 	StartAll(ctx context.Context) error
 
-	// Stop a running service
-	Stop(ctx context.Context, name string) (ServiceInfo, error)
+	// StopService stops a running service
+	StopService(ctx context.Context, name string) (ServiceInfo, error)
 
 	// StopAll running services
 	StopAll(ctx context.Context) error

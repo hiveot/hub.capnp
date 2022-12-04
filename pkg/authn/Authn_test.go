@@ -39,7 +39,7 @@ func startTestAuthnService(useCapnp bool) (authSvc authn.IAuthnService, stopFn f
 		AccessTokenValiditySec:  10,
 		RefreshTokenValiditySec: 120,
 	}
-	svc := service.NewAuthnService(ctx, cfg)
+	svc := service.NewAuthnService(cfg)
 	err = svc.Start(ctx)
 	if err == nil {
 		mng := svc.CapManageAuthn(ctx)
@@ -61,12 +61,12 @@ func startTestAuthnService(useCapnp bool) (authSvc authn.IAuthnService, stopFn f
 			cancelFunc()
 			capClient.Release()
 			_ = clConn.Close()
-			return svc.Stop(ctx)
+			return svc.Stop()
 		}, err
 	}
 	return svc, func() error {
 		cancelFunc()
-		return svc.Stop(ctx)
+		return svc.Stop()
 	}, err
 }
 

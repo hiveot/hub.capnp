@@ -2,10 +2,7 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"os"
-
-	"github.com/sirupsen/logrus"
+	"net"
 
 	"github.com/hiveot/hub/internal/listener"
 	"github.com/hiveot/hub/internal/svcconfig"
@@ -28,24 +25,19 @@ func main() {
 	authServiceConfig := config.NewAuthnConfig(f.Stores)
 	f = svcconfig.LoadServiceConfig(authn.ServiceName, false, &authServiceConfig)
 
-	// parse commandline and create server listening socket
-	srvListener := listener.CreateServiceListener(f.Run, authn.ServiceName)
-	ctx := context.Background()
+	svc := service.NewAuthnService(authServiceConfig)
 
-	svc := service.NewAuthnService(ctx, authServiceConfig)
-	err := svc.Start(ctx)
-	if err == nil {
-		defer svc.Stop(ctx)
-	}
-	if err == nil {
-		logrus.Infof("AuthnCapnpServer starting on: %s", srvListener.Addr())
-		err = capnpserver.StartAuthnCapnpServer(ctx, srvListener, svc)
-	}
-	if err != nil {
-		msg := fmt.Sprintf("ERROR: Service '%s' failed to start: %s\n", authn.ServiceName, err)
-		logrus.Fatal(msg)
-	}
-	logrus.Warningf("Authn service ended gracefully")
-
-	os.Exit(0)
+	listener.RunService(authn.ServiceName, f.Run,
+		func(ctx context.Context, lis net.Listener) error {
+			// startup
+			err := svc.Start(ctx)
+			if err == nil {
+				err = capnpserver.StartAuthnCapnpServer(ctx, lis, svc)
+			}
+			return err
+		}, func() error {
+			// shutdown
+			err := svc.Stop()
+			return err
+		})
 }

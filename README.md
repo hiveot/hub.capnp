@@ -24,24 +24,30 @@ Updated 2022-11-26: completed initial version of:
 
 Todo in order to reach Alpha:
 ```
-- authentication          authenticate the connection to the gateway 
-- middleware              hooks to authorize, log, rate limit gateways
-- user gateway service    provide https/websocket access to services
-- iot gateway service     provide http/rpc access to IoT devices
+- directory and history    should subscribe to td and value events
+- certificate auth         client certificate authenticate
+- http jwt auth            http JWT token authentication 
+- middleware               hooks to authorize, log, rate limit gateways
+- http gateway service     provide https/websocket access to web client 
+- basic web client         vue3 or svelvte
+                           - login page
+                           - accounts page list publishers and device Things
+                           - subscribe to device updates
+                           - dashboard with text cards 
+- one working IoT service  options: weather, owserver, snmp, echo, cpumon, inetping
 ```
 
 Stretch goal:
 ```
+- queued actions          allow IoT devices to use just http by polling queued actions
 - service discovery       discover of remote capabilities 
-- bucketstore             add support for mongodb
-- bucketstore             add support for SQLite
-- history store           add support for bucket store with time range queries [complete]
+- bucketstore             add support for mongodb and SQLite
 ```
 
 
 ## Audience
 
-This project is aimed at software developers and system implementors that are working on secure IoT solutions. HiveOT users subscribe to the security mandate that IoT devices should be isolated from the internet and end-users should not have direct access to IoT devices. Instead all access operates via the Hub.
+This project is aimed at software developers and system implementors that are working on secure IoT solutions. HiveOT users subscribe to the security mandate that IoT devices should be isolated from the internet and end-users should not have direct access to IoT devices. Instead, all access operates via the Hub.
 
 ## Objectives
 
