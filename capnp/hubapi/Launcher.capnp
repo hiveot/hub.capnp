@@ -53,13 +53,13 @@ interface CapLauncher extends (Service.CapHiveOTService) {
   list @0 (onlyRunning :Bool) -> (infoList :List(ServiceInfo));
   # List all available or only the running services and their status
 
-  start @1 (name :Text) -> (info :ServiceInfo);
+  startService @1 (name :Text) -> (info :ServiceInfo);
   # Start the service with the given name. The service must exist in the result of List.
 
   startAll @2 () -> ();
   # Start all services
 
-  stop @3 (name :Text) -> (info :ServiceInfo);
+  stopService @3 (name :Text) -> (info :ServiceInfo);
   # Stop a service that was previously started.
 
   stopAll @4 () -> ();
