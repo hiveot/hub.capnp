@@ -1,0 +1,96 @@
+package capnpclient
+
+import (
+	"context"
+	"net"
+	"time"
+
+	"capnproto.org/go/capnp/v3/rpc"
+	"github.com/sirupsen/logrus"
+
+	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/pkg/resolver"
+)
+
+type ResolverSessionCapnpClient struct {
+	rpcConn    *rpc.Conn                 // connection to capnp server
+	capability hubapi.CapResolverSession // capnp client of the service
+}
+
+// CapProvider provides capabilities to clients
+func (cl *ResolverSessionCapnpClient) CapProvider(
+	ctx context.Context, clientID string, clientType string) resolver.ICapProvider {
+
+	method, release := cl.capability.CapProvider(ctx,
+		func(params hubapi.CapResolverSession_capProvider_Params) error {
+			params.SetClientID(clientID)
+			err := params.SetClientType(clientType)
+			return err
+		})
+	defer release()
+	capability := method.Cap().AddRef()
+	capProvider := NewCapProviderCapnpClient(ctx, capability)
+	return capProvider
+}
+
+// CapRegistration is used to register capabilities with the resolver
+func (cl *ResolverServiceCapnpClient) CapRegistration(
+	ctx context.Context, clientID string, clientType string) resolver.ICapRegistration {
+
+	method, release := cl.capability.CapRegistration(ctx,
+		func(params hubapi.CapResolverService_capRegistration_Params) error {
+			params.SetClientID(clientID)
+			err := params.SetClientType(clientType)
+			return err
+		})
+	defer release()
+	capability := method.Cap().AddRef()
+	capRegistration := NewCapRegistrationCapnpClient(ctx, capability)
+	return capRegistration
+}
+
+// OnIncomingConnection is not applicable to the capnp client so this panics
+func (cl *ResolverServiceCapnpClient) OnIncomingConnection(rpcConn *rpc.Conn) {
+	panic("should never get here")
+}
+
+// Release this client and close the connection
+// If capabilities provided by this client are still in use then do not release the client
+// as the connection is used by the provided capabilities.
+func (cl *ResolverServiceCapnpClient) Release() {
+	cl.capability.Release()
+	if cl.rpcConn != nil {
+		err := cl.rpcConn.Close()
+		if err != nil {
+			logrus.Warning(err)
+		}
+	}
+}
+
+// NewResolverCapnpClient create a new resolver client for obtaining capnp capabilities.
+//
+// The provided connection is optional and intended for testing or running multiple resolvers.
+// It is taken over by the client and closed when the client is released.
+// In most cases simply pass nil to use the standard socket path.
+//
+//	conn is the optional network connection interface to use. nil to auto resolve.
+func NewResolverCapnpClient(ctx context.Context, conn net.Conn) (cl *ResolverSessionCapnpClient, err error) {
+
+	// if no connection is provided use the local socket to connect to the service
+	if conn == nil {
+		conn, err = net.DialTimeout("unix", resolver.DefaultResolverPath, time.Second)
+		if err != nil {
+			logrus.Errorf("unable to connect to the resolver: %s", err)
+			return nil, err
+		}
+	}
+	transport := rpc.NewStreamTransport(conn)
+	rpcConn := rpc.NewConn(transport, nil)
+	capResolver := hubapi.CapResolverSession(rpcConn.Bootstrap(ctx))
+
+	cl = &ResolverSessionCapnpClient{
+		rpcConn:    rpcConn,
+		capability: capResolver,
+	}
+	return cl, nil
+}

@@ -9,23 +9,23 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// RunService implements the boilerplate for running and shutting down a service
+// RunService implements the boilerplate for running and shutting down a service using UDS sockets
 //
-//		serviceName used to create a UDS listening socket
-//		socketFolder contains the location of service socket file
-//	 logsFolder to set logging to, or "" to not set logging output
-//		startup is the method that starts the service and launches the capnp server
-//		shutdown stops the service after the listener closes
+//	serviceName used to create a UDS listening socket
+//	socketFolder contains the location of service socket file
+//	logsFolder to set logging to, or "" to not set logging output
+//	startup is the method that starts the service and launches the capnp server
+//	shutdown stops the service after the listener closes
 func RunService(serviceName string, socketFolder string,
 	startup func(ctx context.Context, lis net.Listener) error,
 	shutdown func() error) {
 	var err error
 
 	// parse commandline and create server listening socket
-	lis := CreateServiceListener(socketFolder, serviceName)
+	lis := CreateUDSServiceListener(socketFolder, serviceName)
 
 	ctx := ExitOnSignal(context.Background(), func() {
-		lis.Close()
+		_ = lis.Close()
 		_ = os.Remove(lis.Addr().String())
 		err = shutdown()
 	})
