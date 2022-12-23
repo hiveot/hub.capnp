@@ -4,7 +4,6 @@
 using Go = import "/go.capnp";
 $Go.package("hubapi");
 $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
-using Service = import "Service.capnp";
 
 const certServiceName :Text = "certservice";
 # Service name for use in logging and connectivity
@@ -25,7 +24,7 @@ const defaultDeviceCertValidityDays :Int32 = 30;
 # Default validity of generated device certificates
 
 
-interface CapCerts extends (Service.CapHiveOTService){
+interface CapCerts {
 # Certificate service for providing capabilities
 # For management of the CA, use the CLI.
 

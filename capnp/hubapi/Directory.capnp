@@ -4,12 +4,11 @@
 using Go = import "/go.capnp";
 $Go.package("hubapi");
 $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
-using Service = import "Service.capnp";
 
 using Bucket = import "./Bucket.capnp";
 using Thing = import "./Thing.capnp";
 
-interface CapDirectoryService extends (Service.CapHiveOTService){
+interface CapDirectoryService {
   # Available Thing directory capabilities
 
   capReadDirectory @0 () -> (cap :CapReadDirectory);

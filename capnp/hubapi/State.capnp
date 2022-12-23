@@ -6,11 +6,9 @@ $Go.package("hubapi");
 $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
 
 using Bucket = import "./Bucket.capnp";
-using Service = import "Service.capnp";
 
 
-
-interface CapState extends (Service.CapHiveOTService){
+interface CapState {
   # State storage
 
     capClientState @0 (clientID :Text, appID :Text) -> (cap :CapClientState);

@@ -5,27 +5,42 @@ using Go = import "/go.capnp";
 $Go.package("hubapi");
 $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
 
-using Service = import "Service.capnp";
+using Resolver = import "Resolver.capnp";
+
+struct ClientInfo {
+# ClientInfo contains client info as seen by the gateway
+# Intended for diagnostics and troubleshooting
+
+  clientID @0 :Text;
+  # ClientID that is connected. loginID, serviceID, or IoT device ID
+
+  clientType @1 :Text;
+  # ClientType identifies how the client is authenticated. See also the resolver
+  #  ClientTypeUnauthenticated   - client is not authenticated
+  #  ClientTypeUser              - client is authenticated as a user with login/password
+  #  ClientTypeIoTDevice         - client is authenticated as an IoT device with certificate
+  #  ClientTypeService           - client is authenticated as a service with certificate
+  # The available capabilities depend on the client type.
+}
 
 
-interface CapGatewayService   {
-    # The gateway is the main entrypoint for access to the Hub.
-    # It provides capabilities to clients, based on their role.
+interface CapGatewaySession extends (Resolver.CapResolverSession) {
+    # The gateway session provides Hub capabilities to connected clients
+    # Each client receives its own session which is used to track authentication state.
+    #
     # Clients can authenticate with a signed client certificate or using the login method.
 
-	getCapability @0 (clientID :Text, clientType :Text, capabilityName :Text, args :List(Text)) -> (capability :Capability);
-	# GetCapability returns the capnp capability of the given name
-	# The client login determines what capabilities are available.
-	#  clientID of the client requesting the capability
-	#  args is optional in case the capability has additional parameters
+    login @0 (clientID:Text, password:Text) -> (authToken :Text, refreshToken :Text);
+    # Login to the gateway as a user in order to get additional capabilities.
+    # This returns an authToken and refreshToken that can be used with services that require
+    # authentication.
+    # If the authentication token has expired then call refresh.
 
-	listCapabilities @1 (clientType :Text) -> (infoList :List(Service.CapabilityInfo));
-	# ListCapabilities returns the aggregated list of capabilities from all connected services
-	# This list is reduced to capabilities available to the client based on its authentication method
-
-    login @2 (clientID:Text, password:Text) -> (success :Bool);
     # User login to the gateway to use its capabilities. This is intended for end-users only
 
-    ping @3 () -> (response :Text);
+    ping @1 () -> (reply :ClientInfo);
     # ping the gateway, no authentication is required
+
+    refresh @2 (refreshToken :Text) -> (authToken :Text, refreshToken :Text);
+    # Refresh the token pair obtained at login
 }

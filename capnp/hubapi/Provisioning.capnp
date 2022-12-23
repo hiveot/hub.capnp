@@ -4,7 +4,6 @@
 using Go = import "/go.capnp";
 $Go.package("hubapi");
 $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
-using Service = import "Service.capnp";
 
 struct OOBSecret {
     # OOBSecret holds a device's Out Of Band secret for automated provisioning
@@ -43,7 +42,7 @@ struct ProvisionStatus {
     # Recommended delay before retrying if the request is pending
 }
 
-interface CapProvisioning extends (Service.CapHiveOTService) {
+interface CapProvisioning {
 # Capabilities for provisioning of IoT devices
 
     capManageProvisioning @0 () -> (cap :CapManageProvisioning);

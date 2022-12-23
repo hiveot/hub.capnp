@@ -53,40 +53,19 @@ struct CapabilityInfo  {
 	# optional direct access address; socket path or network address
 }
 
-interface CapResolverSession  {
-# CapResolverSession is a client of the resolver service using to access and register capabilities.
+interface CapResolverService {
+	capProvider @0 (clientID :Text, clientType :Text) -> (cap :CapProvider);
+	# CapProvider provides capabilities to clients
 
-	getCapability @0 (clientID :Text, clientType :Text, capName :Text, args :List(Text)) -> (capability :Capability);
-	# GetCapability returns a capability that was registered with the resolver.
-	#
-    # Peers MUST provide the clientID and type of the client requesting the capability. Clients that
-    # request capabilities on behalf of others must be authenticated and the clientType must be provided.
-    #
-    # The capability that is returned must be released after use by the remote peer.
-	#
-	#  clientID is the ID of the authenticated client requesting the capability.
-	#  clientType is the verified type of client.
-	#  capName is the capability name as published in RegisterCapabilities.
-	#  args is optional list of arguments when needed for the requested capability.
-	#
-	# This returns the capability or an error if the capability is not available.
-	# The error types are ResolveDenied when the client is not allowed access to the capability, and ResolveUnavailable
-	# if the capability is not available.
-
-	listCapabilities @1 () -> (infoList :List(CapabilityInfo));
-	# ListCapabilities returns the list of capabilities available on the resolver
-
-    registerCapabilities @2 (serviceID :Text, capInfo :List(CapabilityInfo), provider :CapProvider) -> ();
-	# RegisterCapabilities is invoked by services that register capabilities.
-	# provider is the callback interface of the service for obtaining the capabilities.
+	capRegistration @1 (clientID :Text, clientType :Text) -> (cap :CapRegistration);
+	# CapRegistration lets services register their capabilities with the resolver
 }
 
 interface CapProvider {
-# CapProvider provides capabilities from service providers.
-# This is the callback provided with RegisterCapabilities and implemented by all services.
+# CapProvider provides requested capabilities
 
 	getCapability @0 (clientID :Text, clientType :Text, capabilityName :Text, args :List(Text)) -> (capability :Capability);
-	# GetCapability returns the requested capability.
+	# GetCapability returns a capability
 	#
     # Peers MUST provide the clientID and type of the client requesting the capability. Clients that
     # request capabilities on behalf of others must be authenticated and the clientType must be provided.
@@ -98,10 +77,18 @@ interface CapProvider {
 	#  clientType is the verified type of client.
 	#  args is optional list of arguments when needed for the requested capability.
 	#
-	# This returns the capability or an error if the capability is not available on the provider.
+	# This returns the capability or an error if the capability is not available.
 	# The error types are ResolveDenied when the client is not allowed access to the capability, and ResolveUnavailable
 	# if the capability is not available.
 
 	listCapabilities @1 () -> (infoList :List(CapabilityInfo));
 	# ListCapabilities returns the list of provided capabilities
+}
+
+interface CapRegistration  {
+    # The resolver capability is used to provide capabilities for use by clients
+
+    registerCapabilities @0 (serviceID :Text, capInfo :List(CapabilityInfo), provider :CapProvider) -> ();
+	# RegisterCapabilities is invoked by services that register capabilities
+	# provider is the callback interface of the service for obtaining the capabilities.
 }

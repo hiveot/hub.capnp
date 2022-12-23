@@ -6,10 +6,9 @@ $Go.package("hubapi");
 $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
 using Thing = import "./Thing.capnp";
 using Bucket = import "./Bucket.capnp";
-using Service = import "Service.capnp";
 
 
-interface CapHistoryService extends (Service.CapHiveOTService) {
+interface CapHistoryService {
 # Available History store capabilities
 
   capAddHistory @0 (thingAddr :Text) -> (cap :CapAddHistory);

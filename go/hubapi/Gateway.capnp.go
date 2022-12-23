@@ -12,88 +12,220 @@ import (
 	fmt "fmt"
 )
 
-type CapGatewayService capnp.Client
+type ClientInfo capnp.Struct
 
-// CapGatewayService_TypeID is the unique identifier for the type CapGatewayService.
-const CapGatewayService_TypeID = 0xb9b4da4b9fdf8788
+// ClientInfo_TypeID is the unique identifier for the type ClientInfo.
+const ClientInfo_TypeID = 0xa84de8606bebcb5f
 
-func (c CapGatewayService) GetCapability(ctx context.Context, params func(CapGatewayService_getCapability_Params) error) (CapGatewayService_getCapability_Results_Future, capnp.ReleaseFunc) {
+func NewClientInfo(s *capnp.Segment) (ClientInfo, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	return ClientInfo(st), err
+}
+
+func NewRootClientInfo(s *capnp.Segment) (ClientInfo, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	return ClientInfo(st), err
+}
+
+func ReadRootClientInfo(msg *capnp.Message) (ClientInfo, error) {
+	root, err := msg.Root()
+	return ClientInfo(root.Struct()), err
+}
+
+func (s ClientInfo) String() string {
+	str, _ := text.Marshal(0xa84de8606bebcb5f, capnp.Struct(s))
+	return str
+}
+
+func (s ClientInfo) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (ClientInfo) DecodeFromPtr(p capnp.Ptr) ClientInfo {
+	return ClientInfo(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s ClientInfo) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s ClientInfo) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s ClientInfo) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s ClientInfo) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s ClientInfo) ClientID() (string, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.Text(), err
+}
+
+func (s ClientInfo) HasClientID() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s ClientInfo) ClientIDBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.TextBytes(), err
+}
+
+func (s ClientInfo) SetClientID(v string) error {
+	return capnp.Struct(s).SetText(0, v)
+}
+
+func (s ClientInfo) ClientType() (string, error) {
+	p, err := capnp.Struct(s).Ptr(1)
+	return p.Text(), err
+}
+
+func (s ClientInfo) HasClientType() bool {
+	return capnp.Struct(s).HasPtr(1)
+}
+
+func (s ClientInfo) ClientTypeBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(1)
+	return p.TextBytes(), err
+}
+
+func (s ClientInfo) SetClientType(v string) error {
+	return capnp.Struct(s).SetText(1, v)
+}
+
+// ClientInfo_List is a list of ClientInfo.
+type ClientInfo_List = capnp.StructList[ClientInfo]
+
+// NewClientInfo creates a new list of ClientInfo.
+func NewClientInfo_List(s *capnp.Segment, sz int32) (ClientInfo_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
+	return capnp.StructList[ClientInfo](l), err
+}
+
+// ClientInfo_Future is a wrapper for a ClientInfo promised by a client call.
+type ClientInfo_Future struct{ *capnp.Future }
+
+func (f ClientInfo_Future) Struct() (ClientInfo, error) {
+	p, err := f.Future.Ptr()
+	return ClientInfo(p.Struct()), err
+}
+
+type CapGatewaySession capnp.Client
+
+// CapGatewaySession_TypeID is the unique identifier for the type CapGatewaySession.
+const CapGatewaySession_TypeID = 0xc50a0c4801768ab0
+
+func (c CapGatewaySession) Login(ctx context.Context, params func(CapGatewaySession_login_Params) error) (CapGatewaySession_login_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
-			InterfaceID:   0xb9b4da4b9fdf8788,
+			InterfaceID:   0xc50a0c4801768ab0,
 			MethodID:      0,
-			InterfaceName: "hubapi/Gateway.capnp:CapGatewayService",
-			MethodName:    "getCapability",
-		},
-	}
-	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 4}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapGatewayService_getCapability_Params(s)) }
-	}
-	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapGatewayService_getCapability_Results_Future{Future: ans.Future()}, release
-}
-func (c CapGatewayService) ListCapabilities(ctx context.Context, params func(CapGatewayService_listCapabilities_Params) error) (CapGatewayService_listCapabilities_Results_Future, capnp.ReleaseFunc) {
-	s := capnp.Send{
-		Method: capnp.Method{
-			InterfaceID:   0xb9b4da4b9fdf8788,
-			MethodID:      1,
-			InterfaceName: "hubapi/Gateway.capnp:CapGatewayService",
-			MethodName:    "listCapabilities",
-		},
-	}
-	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapGatewayService_listCapabilities_Params(s)) }
-	}
-	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapGatewayService_listCapabilities_Results_Future{Future: ans.Future()}, release
-}
-func (c CapGatewayService) Login(ctx context.Context, params func(CapGatewayService_login_Params) error) (CapGatewayService_login_Results_Future, capnp.ReleaseFunc) {
-	s := capnp.Send{
-		Method: capnp.Method{
-			InterfaceID:   0xb9b4da4b9fdf8788,
-			MethodID:      2,
-			InterfaceName: "hubapi/Gateway.capnp:CapGatewayService",
+			InterfaceName: "hubapi/Gateway.capnp:CapGatewaySession",
 			MethodName:    "login",
 		},
 	}
 	if params != nil {
 		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 2}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapGatewayService_login_Params(s)) }
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapGatewaySession_login_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapGatewayService_login_Results_Future{Future: ans.Future()}, release
+	return CapGatewaySession_login_Results_Future{Future: ans.Future()}, release
 }
-func (c CapGatewayService) Ping(ctx context.Context, params func(CapGatewayService_ping_Params) error) (CapGatewayService_ping_Results_Future, capnp.ReleaseFunc) {
+func (c CapGatewaySession) Ping(ctx context.Context, params func(CapGatewaySession_ping_Params) error) (CapGatewaySession_ping_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
-			InterfaceID:   0xb9b4da4b9fdf8788,
-			MethodID:      3,
-			InterfaceName: "hubapi/Gateway.capnp:CapGatewayService",
+			InterfaceID:   0xc50a0c4801768ab0,
+			MethodID:      1,
+			InterfaceName: "hubapi/Gateway.capnp:CapGatewaySession",
 			MethodName:    "ping",
 		},
 	}
 	if params != nil {
 		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapGatewayService_ping_Params(s)) }
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapGatewaySession_ping_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapGatewayService_ping_Results_Future{Future: ans.Future()}, release
+	return CapGatewaySession_ping_Results_Future{Future: ans.Future()}, release
+}
+func (c CapGatewaySession) Refresh(ctx context.Context, params func(CapGatewaySession_refresh_Params) error) (CapGatewaySession_refresh_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xc50a0c4801768ab0,
+			MethodID:      2,
+			InterfaceName: "hubapi/Gateway.capnp:CapGatewaySession",
+			MethodName:    "refresh",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapGatewaySession_refresh_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapGatewaySession_refresh_Results_Future{Future: ans.Future()}, release
+}
+func (c CapGatewaySession) GetCapability(ctx context.Context, params func(CapResolverSession_getCapability_Params) error) (CapResolverSession_getCapability_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xeebfa8ca367eed60,
+			MethodID:      0,
+			InterfaceName: "hubapi/Resolver.capnp:CapResolverSession",
+			MethodName:    "getCapability",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 4}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapResolverSession_getCapability_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapResolverSession_getCapability_Results_Future{Future: ans.Future()}, release
+}
+func (c CapGatewaySession) ListCapabilities(ctx context.Context, params func(CapResolverSession_listCapabilities_Params) error) (CapResolverSession_listCapabilities_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xeebfa8ca367eed60,
+			MethodID:      1,
+			InterfaceName: "hubapi/Resolver.capnp:CapResolverSession",
+			MethodName:    "listCapabilities",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapResolverSession_listCapabilities_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapResolverSession_listCapabilities_Results_Future{Future: ans.Future()}, release
+}
+func (c CapGatewaySession) RegisterCapabilities(ctx context.Context, params func(CapResolverSession_registerCapabilities_Params) error) (CapResolverSession_registerCapabilities_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xeebfa8ca367eed60,
+			MethodID:      2,
+			InterfaceName: "hubapi/Resolver.capnp:CapResolverSession",
+			MethodName:    "registerCapabilities",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 3}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapResolverSession_registerCapabilities_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapResolverSession_registerCapabilities_Results_Future{Future: ans.Future()}, release
 }
 
 // String returns a string that identifies this capability for debugging
 // purposes.  Its format should not be depended on: in particular, it
 // should not be used to compare clients.  Use IsSame to compare clients
 // for equality.
-func (c CapGatewayService) String() string {
+func (c CapGatewaySession) String() string {
 	return fmt.Sprintf("%T(%v)", c, capnp.Client(c))
 }
 
 // AddRef creates a new Client that refers to the same capability as c.
 // If c is nil or has resolved to null, then AddRef returns nil.
-func (c CapGatewayService) AddRef() CapGatewayService {
-	return CapGatewayService(capnp.Client(c).AddRef())
+func (c CapGatewaySession) AddRef() CapGatewaySession {
+	return CapGatewaySession(capnp.Client(c).AddRef())
 }
 
 // Release releases a capability reference.  If this is the last
@@ -102,28 +234,28 @@ func (c CapGatewayService) AddRef() CapGatewayService {
 //
 // Release will panic if c has already been released, but not if c is
 // nil or resolved to null.
-func (c CapGatewayService) Release() {
+func (c CapGatewaySession) Release() {
 	capnp.Client(c).Release()
 }
 
 // Resolve blocks until the capability is fully resolved or the Context
 // expires.
-func (c CapGatewayService) Resolve(ctx context.Context) error {
+func (c CapGatewaySession) Resolve(ctx context.Context) error {
 	return capnp.Client(c).Resolve(ctx)
 }
 
-func (c CapGatewayService) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (c CapGatewaySession) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Client(c).EncodeAsPtr(seg)
 }
 
-func (CapGatewayService) DecodeFromPtr(p capnp.Ptr) CapGatewayService {
-	return CapGatewayService(capnp.Client{}.DecodeFromPtr(p))
+func (CapGatewaySession) DecodeFromPtr(p capnp.Ptr) CapGatewaySession {
+	return CapGatewaySession(capnp.Client{}.DecodeFromPtr(p))
 }
 
 // IsValid reports whether c is a valid reference to a capability.
 // A reference is invalid if it is nil, has resolved to null, or has
 // been released.
-func (c CapGatewayService) IsValid() bool {
+func (c CapGatewaySession) IsValid() bool {
 	return capnp.Client(c).IsValid()
 }
 
@@ -131,7 +263,7 @@ func (c CapGatewayService) IsValid() bool {
 // same call to NewClient.  This can return false negatives if c or other
 // are not fully resolved: use Resolve if this is an issue.  If either
 // c or other are released, then IsSame panics.
-func (c CapGatewayService) IsSame(other CapGatewayService) bool {
+func (c CapGatewaySession) IsSame(other CapGatewaySession) bool {
 	return capnp.Client(c).IsSame(capnp.Client(other))
 }
 
@@ -139,945 +271,768 @@ func (c CapGatewayService) IsSame(other CapGatewayService) bool {
 // this client. This affects all future calls, but not calls already
 // waiting to send. Passing nil sets the value to flowcontrol.NopLimiter,
 // which is also the default.
-func (c CapGatewayService) SetFlowLimiter(lim fc.FlowLimiter) {
+func (c CapGatewaySession) SetFlowLimiter(lim fc.FlowLimiter) {
 	capnp.Client(c).SetFlowLimiter(lim)
 }
 
 // Get the current flowcontrol.FlowLimiter used to manage flow control
 // for this client.
-func (c CapGatewayService) GetFlowLimiter() fc.FlowLimiter {
+func (c CapGatewaySession) GetFlowLimiter() fc.FlowLimiter {
 	return capnp.Client(c).GetFlowLimiter()
-} // A CapGatewayService_Server is a CapGatewayService with a local implementation.
-type CapGatewayService_Server interface {
-	GetCapability(context.Context, CapGatewayService_getCapability) error
+} // A CapGatewaySession_Server is a CapGatewaySession with a local implementation.
+type CapGatewaySession_Server interface {
+	Login(context.Context, CapGatewaySession_login) error
 
-	ListCapabilities(context.Context, CapGatewayService_listCapabilities) error
+	Ping(context.Context, CapGatewaySession_ping) error
 
-	Login(context.Context, CapGatewayService_login) error
+	Refresh(context.Context, CapGatewaySession_refresh) error
 
-	Ping(context.Context, CapGatewayService_ping) error
+	GetCapability(context.Context, CapResolverSession_getCapability) error
+
+	ListCapabilities(context.Context, CapResolverSession_listCapabilities) error
+
+	RegisterCapabilities(context.Context, CapResolverSession_registerCapabilities) error
 }
 
-// CapGatewayService_NewServer creates a new Server from an implementation of CapGatewayService_Server.
-func CapGatewayService_NewServer(s CapGatewayService_Server) *server.Server {
+// CapGatewaySession_NewServer creates a new Server from an implementation of CapGatewaySession_Server.
+func CapGatewaySession_NewServer(s CapGatewaySession_Server) *server.Server {
 	c, _ := s.(server.Shutdowner)
-	return server.New(CapGatewayService_Methods(nil, s), s, c)
+	return server.New(CapGatewaySession_Methods(nil, s), s, c)
 }
 
-// CapGatewayService_ServerToClient creates a new Client from an implementation of CapGatewayService_Server.
+// CapGatewaySession_ServerToClient creates a new Client from an implementation of CapGatewaySession_Server.
 // The caller is responsible for calling Release on the returned Client.
-func CapGatewayService_ServerToClient(s CapGatewayService_Server) CapGatewayService {
-	return CapGatewayService(capnp.NewClient(CapGatewayService_NewServer(s)))
+func CapGatewaySession_ServerToClient(s CapGatewaySession_Server) CapGatewaySession {
+	return CapGatewaySession(capnp.NewClient(CapGatewaySession_NewServer(s)))
 }
 
-// CapGatewayService_Methods appends Methods to a slice that invoke the methods on s.
+// CapGatewaySession_Methods appends Methods to a slice that invoke the methods on s.
 // This can be used to create a more complicated Server.
-func CapGatewayService_Methods(methods []server.Method, s CapGatewayService_Server) []server.Method {
+func CapGatewaySession_Methods(methods []server.Method, s CapGatewaySession_Server) []server.Method {
 	if cap(methods) == 0 {
-		methods = make([]server.Method, 0, 4)
+		methods = make([]server.Method, 0, 6)
 	}
 
 	methods = append(methods, server.Method{
 		Method: capnp.Method{
-			InterfaceID:   0xb9b4da4b9fdf8788,
+			InterfaceID:   0xc50a0c4801768ab0,
 			MethodID:      0,
-			InterfaceName: "hubapi/Gateway.capnp:CapGatewayService",
-			MethodName:    "getCapability",
-		},
-		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.GetCapability(ctx, CapGatewayService_getCapability{call})
-		},
-	})
-
-	methods = append(methods, server.Method{
-		Method: capnp.Method{
-			InterfaceID:   0xb9b4da4b9fdf8788,
-			MethodID:      1,
-			InterfaceName: "hubapi/Gateway.capnp:CapGatewayService",
-			MethodName:    "listCapabilities",
-		},
-		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.ListCapabilities(ctx, CapGatewayService_listCapabilities{call})
-		},
-	})
-
-	methods = append(methods, server.Method{
-		Method: capnp.Method{
-			InterfaceID:   0xb9b4da4b9fdf8788,
-			MethodID:      2,
-			InterfaceName: "hubapi/Gateway.capnp:CapGatewayService",
+			InterfaceName: "hubapi/Gateway.capnp:CapGatewaySession",
 			MethodName:    "login",
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.Login(ctx, CapGatewayService_login{call})
+			return s.Login(ctx, CapGatewaySession_login{call})
 		},
 	})
 
 	methods = append(methods, server.Method{
 		Method: capnp.Method{
-			InterfaceID:   0xb9b4da4b9fdf8788,
-			MethodID:      3,
-			InterfaceName: "hubapi/Gateway.capnp:CapGatewayService",
+			InterfaceID:   0xc50a0c4801768ab0,
+			MethodID:      1,
+			InterfaceName: "hubapi/Gateway.capnp:CapGatewaySession",
 			MethodName:    "ping",
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.Ping(ctx, CapGatewayService_ping{call})
+			return s.Ping(ctx, CapGatewaySession_ping{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xc50a0c4801768ab0,
+			MethodID:      2,
+			InterfaceName: "hubapi/Gateway.capnp:CapGatewaySession",
+			MethodName:    "refresh",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.Refresh(ctx, CapGatewaySession_refresh{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xeebfa8ca367eed60,
+			MethodID:      0,
+			InterfaceName: "hubapi/Resolver.capnp:CapResolverSession",
+			MethodName:    "getCapability",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.GetCapability(ctx, CapResolverSession_getCapability{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xeebfa8ca367eed60,
+			MethodID:      1,
+			InterfaceName: "hubapi/Resolver.capnp:CapResolverSession",
+			MethodName:    "listCapabilities",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.ListCapabilities(ctx, CapResolverSession_listCapabilities{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xeebfa8ca367eed60,
+			MethodID:      2,
+			InterfaceName: "hubapi/Resolver.capnp:CapResolverSession",
+			MethodName:    "registerCapabilities",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.RegisterCapabilities(ctx, CapResolverSession_registerCapabilities{call})
 		},
 	})
 
 	return methods
 }
 
-// CapGatewayService_getCapability holds the state for a server call to CapGatewayService.getCapability.
+// CapGatewaySession_login holds the state for a server call to CapGatewaySession.login.
 // See server.Call for documentation.
-type CapGatewayService_getCapability struct {
+type CapGatewaySession_login struct {
 	*server.Call
 }
 
 // Args returns the call's arguments.
-func (c CapGatewayService_getCapability) Args() CapGatewayService_getCapability_Params {
-	return CapGatewayService_getCapability_Params(c.Call.Args())
+func (c CapGatewaySession_login) Args() CapGatewaySession_login_Params {
+	return CapGatewaySession_login_Params(c.Call.Args())
 }
 
 // AllocResults allocates the results struct.
-func (c CapGatewayService_getCapability) AllocResults() (CapGatewayService_getCapability_Results, error) {
+func (c CapGatewaySession_login) AllocResults() (CapGatewaySession_login_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	return CapGatewaySession_login_Results(r), err
+}
+
+// CapGatewaySession_ping holds the state for a server call to CapGatewaySession.ping.
+// See server.Call for documentation.
+type CapGatewaySession_ping struct {
+	*server.Call
+}
+
+// Args returns the call's arguments.
+func (c CapGatewaySession_ping) Args() CapGatewaySession_ping_Params {
+	return CapGatewaySession_ping_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c CapGatewaySession_ping) AllocResults() (CapGatewaySession_ping_Results, error) {
 	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapGatewayService_getCapability_Results(r), err
+	return CapGatewaySession_ping_Results(r), err
 }
 
-// CapGatewayService_listCapabilities holds the state for a server call to CapGatewayService.listCapabilities.
+// CapGatewaySession_refresh holds the state for a server call to CapGatewaySession.refresh.
 // See server.Call for documentation.
-type CapGatewayService_listCapabilities struct {
+type CapGatewaySession_refresh struct {
 	*server.Call
 }
 
 // Args returns the call's arguments.
-func (c CapGatewayService_listCapabilities) Args() CapGatewayService_listCapabilities_Params {
-	return CapGatewayService_listCapabilities_Params(c.Call.Args())
+func (c CapGatewaySession_refresh) Args() CapGatewaySession_refresh_Params {
+	return CapGatewaySession_refresh_Params(c.Call.Args())
 }
 
 // AllocResults allocates the results struct.
-func (c CapGatewayService_listCapabilities) AllocResults() (CapGatewayService_listCapabilities_Results, error) {
-	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapGatewayService_listCapabilities_Results(r), err
+func (c CapGatewaySession_refresh) AllocResults() (CapGatewaySession_refresh_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	return CapGatewaySession_refresh_Results(r), err
 }
 
-// CapGatewayService_login holds the state for a server call to CapGatewayService.login.
-// See server.Call for documentation.
-type CapGatewayService_login struct {
-	*server.Call
-}
+// CapGatewaySession_List is a list of CapGatewaySession.
+type CapGatewaySession_List = capnp.CapList[CapGatewaySession]
 
-// Args returns the call's arguments.
-func (c CapGatewayService_login) Args() CapGatewayService_login_Params {
-	return CapGatewayService_login_Params(c.Call.Args())
-}
-
-// AllocResults allocates the results struct.
-func (c CapGatewayService_login) AllocResults() (CapGatewayService_login_Results, error) {
-	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 8, PointerCount: 0})
-	return CapGatewayService_login_Results(r), err
-}
-
-// CapGatewayService_ping holds the state for a server call to CapGatewayService.ping.
-// See server.Call for documentation.
-type CapGatewayService_ping struct {
-	*server.Call
-}
-
-// Args returns the call's arguments.
-func (c CapGatewayService_ping) Args() CapGatewayService_ping_Params {
-	return CapGatewayService_ping_Params(c.Call.Args())
-}
-
-// AllocResults allocates the results struct.
-func (c CapGatewayService_ping) AllocResults() (CapGatewayService_ping_Results, error) {
-	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapGatewayService_ping_Results(r), err
-}
-
-// CapGatewayService_List is a list of CapGatewayService.
-type CapGatewayService_List = capnp.CapList[CapGatewayService]
-
-// NewCapGatewayService creates a new list of CapGatewayService.
-func NewCapGatewayService_List(s *capnp.Segment, sz int32) (CapGatewayService_List, error) {
+// NewCapGatewaySession creates a new list of CapGatewaySession.
+func NewCapGatewaySession_List(s *capnp.Segment, sz int32) (CapGatewaySession_List, error) {
 	l, err := capnp.NewPointerList(s, sz)
-	return capnp.CapList[CapGatewayService](l), err
+	return capnp.CapList[CapGatewaySession](l), err
 }
 
-type CapGatewayService_getCapability_Params capnp.Struct
+type CapGatewaySession_login_Params capnp.Struct
 
-// CapGatewayService_getCapability_Params_TypeID is the unique identifier for the type CapGatewayService_getCapability_Params.
-const CapGatewayService_getCapability_Params_TypeID = 0xb1e7d4a7ee65cb64
+// CapGatewaySession_login_Params_TypeID is the unique identifier for the type CapGatewaySession_login_Params.
+const CapGatewaySession_login_Params_TypeID = 0xf1a76030917cce82
 
-func NewCapGatewayService_getCapability_Params(s *capnp.Segment) (CapGatewayService_getCapability_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4})
-	return CapGatewayService_getCapability_Params(st), err
-}
-
-func NewRootCapGatewayService_getCapability_Params(s *capnp.Segment) (CapGatewayService_getCapability_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4})
-	return CapGatewayService_getCapability_Params(st), err
-}
-
-func ReadRootCapGatewayService_getCapability_Params(msg *capnp.Message) (CapGatewayService_getCapability_Params, error) {
-	root, err := msg.Root()
-	return CapGatewayService_getCapability_Params(root.Struct()), err
-}
-
-func (s CapGatewayService_getCapability_Params) String() string {
-	str, _ := text.Marshal(0xb1e7d4a7ee65cb64, capnp.Struct(s))
-	return str
-}
-
-func (s CapGatewayService_getCapability_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapGatewayService_getCapability_Params) DecodeFromPtr(p capnp.Ptr) CapGatewayService_getCapability_Params {
-	return CapGatewayService_getCapability_Params(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapGatewayService_getCapability_Params) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapGatewayService_getCapability_Params) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapGatewayService_getCapability_Params) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapGatewayService_getCapability_Params) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s CapGatewayService_getCapability_Params) ClientID() (string, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.Text(), err
-}
-
-func (s CapGatewayService_getCapability_Params) HasClientID() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s CapGatewayService_getCapability_Params) ClientIDBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.TextBytes(), err
-}
-
-func (s CapGatewayService_getCapability_Params) SetClientID(v string) error {
-	return capnp.Struct(s).SetText(0, v)
-}
-
-func (s CapGatewayService_getCapability_Params) ClientType() (string, error) {
-	p, err := capnp.Struct(s).Ptr(1)
-	return p.Text(), err
-}
-
-func (s CapGatewayService_getCapability_Params) HasClientType() bool {
-	return capnp.Struct(s).HasPtr(1)
-}
-
-func (s CapGatewayService_getCapability_Params) ClientTypeBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(1)
-	return p.TextBytes(), err
-}
-
-func (s CapGatewayService_getCapability_Params) SetClientType(v string) error {
-	return capnp.Struct(s).SetText(1, v)
-}
-
-func (s CapGatewayService_getCapability_Params) CapabilityName() (string, error) {
-	p, err := capnp.Struct(s).Ptr(2)
-	return p.Text(), err
-}
-
-func (s CapGatewayService_getCapability_Params) HasCapabilityName() bool {
-	return capnp.Struct(s).HasPtr(2)
-}
-
-func (s CapGatewayService_getCapability_Params) CapabilityNameBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(2)
-	return p.TextBytes(), err
-}
-
-func (s CapGatewayService_getCapability_Params) SetCapabilityName(v string) error {
-	return capnp.Struct(s).SetText(2, v)
-}
-
-func (s CapGatewayService_getCapability_Params) Args() (capnp.TextList, error) {
-	p, err := capnp.Struct(s).Ptr(3)
-	return capnp.TextList(p.List()), err
-}
-
-func (s CapGatewayService_getCapability_Params) HasArgs() bool {
-	return capnp.Struct(s).HasPtr(3)
-}
-
-func (s CapGatewayService_getCapability_Params) SetArgs(v capnp.TextList) error {
-	return capnp.Struct(s).SetPtr(3, v.ToPtr())
-}
-
-// NewArgs sets the args field to a newly
-// allocated capnp.TextList, preferring placement in s's segment.
-func (s CapGatewayService_getCapability_Params) NewArgs(n int32) (capnp.TextList, error) {
-	l, err := capnp.NewTextList(capnp.Struct(s).Segment(), n)
-	if err != nil {
-		return capnp.TextList{}, err
-	}
-	err = capnp.Struct(s).SetPtr(3, l.ToPtr())
-	return l, err
-}
-
-// CapGatewayService_getCapability_Params_List is a list of CapGatewayService_getCapability_Params.
-type CapGatewayService_getCapability_Params_List = capnp.StructList[CapGatewayService_getCapability_Params]
-
-// NewCapGatewayService_getCapability_Params creates a new list of CapGatewayService_getCapability_Params.
-func NewCapGatewayService_getCapability_Params_List(s *capnp.Segment, sz int32) (CapGatewayService_getCapability_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4}, sz)
-	return capnp.StructList[CapGatewayService_getCapability_Params](l), err
-}
-
-// CapGatewayService_getCapability_Params_Future is a wrapper for a CapGatewayService_getCapability_Params promised by a client call.
-type CapGatewayService_getCapability_Params_Future struct{ *capnp.Future }
-
-func (f CapGatewayService_getCapability_Params_Future) Struct() (CapGatewayService_getCapability_Params, error) {
-	p, err := f.Future.Ptr()
-	return CapGatewayService_getCapability_Params(p.Struct()), err
-}
-
-type CapGatewayService_getCapability_Results capnp.Struct
-
-// CapGatewayService_getCapability_Results_TypeID is the unique identifier for the type CapGatewayService_getCapability_Results.
-const CapGatewayService_getCapability_Results_TypeID = 0xbeb921b73db71e76
-
-func NewCapGatewayService_getCapability_Results(s *capnp.Segment) (CapGatewayService_getCapability_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapGatewayService_getCapability_Results(st), err
-}
-
-func NewRootCapGatewayService_getCapability_Results(s *capnp.Segment) (CapGatewayService_getCapability_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapGatewayService_getCapability_Results(st), err
-}
-
-func ReadRootCapGatewayService_getCapability_Results(msg *capnp.Message) (CapGatewayService_getCapability_Results, error) {
-	root, err := msg.Root()
-	return CapGatewayService_getCapability_Results(root.Struct()), err
-}
-
-func (s CapGatewayService_getCapability_Results) String() string {
-	str, _ := text.Marshal(0xbeb921b73db71e76, capnp.Struct(s))
-	return str
-}
-
-func (s CapGatewayService_getCapability_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapGatewayService_getCapability_Results) DecodeFromPtr(p capnp.Ptr) CapGatewayService_getCapability_Results {
-	return CapGatewayService_getCapability_Results(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapGatewayService_getCapability_Results) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapGatewayService_getCapability_Results) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapGatewayService_getCapability_Results) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapGatewayService_getCapability_Results) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s CapGatewayService_getCapability_Results) Capability() capnp.Client {
-	p, _ := capnp.Struct(s).Ptr(0)
-	return p.Interface().Client()
-}
-
-func (s CapGatewayService_getCapability_Results) HasCapability() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s CapGatewayService_getCapability_Results) SetCapability(c capnp.Client) error {
-	if !c.IsValid() {
-		return capnp.Struct(s).SetPtr(0, capnp.Ptr{})
-	}
-	seg := s.Segment()
-	in := capnp.NewInterface(seg, seg.Message().AddCap(c))
-	return capnp.Struct(s).SetPtr(0, in.ToPtr())
-}
-
-// CapGatewayService_getCapability_Results_List is a list of CapGatewayService_getCapability_Results.
-type CapGatewayService_getCapability_Results_List = capnp.StructList[CapGatewayService_getCapability_Results]
-
-// NewCapGatewayService_getCapability_Results creates a new list of CapGatewayService_getCapability_Results.
-func NewCapGatewayService_getCapability_Results_List(s *capnp.Segment, sz int32) (CapGatewayService_getCapability_Results_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapGatewayService_getCapability_Results](l), err
-}
-
-// CapGatewayService_getCapability_Results_Future is a wrapper for a CapGatewayService_getCapability_Results promised by a client call.
-type CapGatewayService_getCapability_Results_Future struct{ *capnp.Future }
-
-func (f CapGatewayService_getCapability_Results_Future) Struct() (CapGatewayService_getCapability_Results, error) {
-	p, err := f.Future.Ptr()
-	return CapGatewayService_getCapability_Results(p.Struct()), err
-}
-func (p CapGatewayService_getCapability_Results_Future) Capability() capnp.Client {
-	return p.Future.Field(0, nil).Client()
-}
-
-type CapGatewayService_listCapabilities_Params capnp.Struct
-
-// CapGatewayService_listCapabilities_Params_TypeID is the unique identifier for the type CapGatewayService_listCapabilities_Params.
-const CapGatewayService_listCapabilities_Params_TypeID = 0xee390bf7678d972a
-
-func NewCapGatewayService_listCapabilities_Params(s *capnp.Segment) (CapGatewayService_listCapabilities_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapGatewayService_listCapabilities_Params(st), err
-}
-
-func NewRootCapGatewayService_listCapabilities_Params(s *capnp.Segment) (CapGatewayService_listCapabilities_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapGatewayService_listCapabilities_Params(st), err
-}
-
-func ReadRootCapGatewayService_listCapabilities_Params(msg *capnp.Message) (CapGatewayService_listCapabilities_Params, error) {
-	root, err := msg.Root()
-	return CapGatewayService_listCapabilities_Params(root.Struct()), err
-}
-
-func (s CapGatewayService_listCapabilities_Params) String() string {
-	str, _ := text.Marshal(0xee390bf7678d972a, capnp.Struct(s))
-	return str
-}
-
-func (s CapGatewayService_listCapabilities_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapGatewayService_listCapabilities_Params) DecodeFromPtr(p capnp.Ptr) CapGatewayService_listCapabilities_Params {
-	return CapGatewayService_listCapabilities_Params(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapGatewayService_listCapabilities_Params) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapGatewayService_listCapabilities_Params) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapGatewayService_listCapabilities_Params) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapGatewayService_listCapabilities_Params) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s CapGatewayService_listCapabilities_Params) ClientType() (string, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.Text(), err
-}
-
-func (s CapGatewayService_listCapabilities_Params) HasClientType() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s CapGatewayService_listCapabilities_Params) ClientTypeBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.TextBytes(), err
-}
-
-func (s CapGatewayService_listCapabilities_Params) SetClientType(v string) error {
-	return capnp.Struct(s).SetText(0, v)
-}
-
-// CapGatewayService_listCapabilities_Params_List is a list of CapGatewayService_listCapabilities_Params.
-type CapGatewayService_listCapabilities_Params_List = capnp.StructList[CapGatewayService_listCapabilities_Params]
-
-// NewCapGatewayService_listCapabilities_Params creates a new list of CapGatewayService_listCapabilities_Params.
-func NewCapGatewayService_listCapabilities_Params_List(s *capnp.Segment, sz int32) (CapGatewayService_listCapabilities_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapGatewayService_listCapabilities_Params](l), err
-}
-
-// CapGatewayService_listCapabilities_Params_Future is a wrapper for a CapGatewayService_listCapabilities_Params promised by a client call.
-type CapGatewayService_listCapabilities_Params_Future struct{ *capnp.Future }
-
-func (f CapGatewayService_listCapabilities_Params_Future) Struct() (CapGatewayService_listCapabilities_Params, error) {
-	p, err := f.Future.Ptr()
-	return CapGatewayService_listCapabilities_Params(p.Struct()), err
-}
-
-type CapGatewayService_listCapabilities_Results capnp.Struct
-
-// CapGatewayService_listCapabilities_Results_TypeID is the unique identifier for the type CapGatewayService_listCapabilities_Results.
-const CapGatewayService_listCapabilities_Results_TypeID = 0x84aca6aa73b2217c
-
-func NewCapGatewayService_listCapabilities_Results(s *capnp.Segment) (CapGatewayService_listCapabilities_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapGatewayService_listCapabilities_Results(st), err
-}
-
-func NewRootCapGatewayService_listCapabilities_Results(s *capnp.Segment) (CapGatewayService_listCapabilities_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapGatewayService_listCapabilities_Results(st), err
-}
-
-func ReadRootCapGatewayService_listCapabilities_Results(msg *capnp.Message) (CapGatewayService_listCapabilities_Results, error) {
-	root, err := msg.Root()
-	return CapGatewayService_listCapabilities_Results(root.Struct()), err
-}
-
-func (s CapGatewayService_listCapabilities_Results) String() string {
-	str, _ := text.Marshal(0x84aca6aa73b2217c, capnp.Struct(s))
-	return str
-}
-
-func (s CapGatewayService_listCapabilities_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapGatewayService_listCapabilities_Results) DecodeFromPtr(p capnp.Ptr) CapGatewayService_listCapabilities_Results {
-	return CapGatewayService_listCapabilities_Results(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapGatewayService_listCapabilities_Results) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapGatewayService_listCapabilities_Results) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapGatewayService_listCapabilities_Results) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapGatewayService_listCapabilities_Results) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s CapGatewayService_listCapabilities_Results) InfoList() (CapabilityInfo_List, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return CapabilityInfo_List(p.List()), err
-}
-
-func (s CapGatewayService_listCapabilities_Results) HasInfoList() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s CapGatewayService_listCapabilities_Results) SetInfoList(v CapabilityInfo_List) error {
-	return capnp.Struct(s).SetPtr(0, v.ToPtr())
-}
-
-// NewInfoList sets the infoList field to a newly
-// allocated CapabilityInfo_List, preferring placement in s's segment.
-func (s CapGatewayService_listCapabilities_Results) NewInfoList(n int32) (CapabilityInfo_List, error) {
-	l, err := NewCapabilityInfo_List(capnp.Struct(s).Segment(), n)
-	if err != nil {
-		return CapabilityInfo_List{}, err
-	}
-	err = capnp.Struct(s).SetPtr(0, l.ToPtr())
-	return l, err
-}
-
-// CapGatewayService_listCapabilities_Results_List is a list of CapGatewayService_listCapabilities_Results.
-type CapGatewayService_listCapabilities_Results_List = capnp.StructList[CapGatewayService_listCapabilities_Results]
-
-// NewCapGatewayService_listCapabilities_Results creates a new list of CapGatewayService_listCapabilities_Results.
-func NewCapGatewayService_listCapabilities_Results_List(s *capnp.Segment, sz int32) (CapGatewayService_listCapabilities_Results_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapGatewayService_listCapabilities_Results](l), err
-}
-
-// CapGatewayService_listCapabilities_Results_Future is a wrapper for a CapGatewayService_listCapabilities_Results promised by a client call.
-type CapGatewayService_listCapabilities_Results_Future struct{ *capnp.Future }
-
-func (f CapGatewayService_listCapabilities_Results_Future) Struct() (CapGatewayService_listCapabilities_Results, error) {
-	p, err := f.Future.Ptr()
-	return CapGatewayService_listCapabilities_Results(p.Struct()), err
-}
-
-type CapGatewayService_login_Params capnp.Struct
-
-// CapGatewayService_login_Params_TypeID is the unique identifier for the type CapGatewayService_login_Params.
-const CapGatewayService_login_Params_TypeID = 0xb3bdac89b9126cf5
-
-func NewCapGatewayService_login_Params(s *capnp.Segment) (CapGatewayService_login_Params, error) {
+func NewCapGatewaySession_login_Params(s *capnp.Segment) (CapGatewaySession_login_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
-	return CapGatewayService_login_Params(st), err
+	return CapGatewaySession_login_Params(st), err
 }
 
-func NewRootCapGatewayService_login_Params(s *capnp.Segment) (CapGatewayService_login_Params, error) {
+func NewRootCapGatewaySession_login_Params(s *capnp.Segment) (CapGatewaySession_login_Params, error) {
 	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
-	return CapGatewayService_login_Params(st), err
+	return CapGatewaySession_login_Params(st), err
 }
 
-func ReadRootCapGatewayService_login_Params(msg *capnp.Message) (CapGatewayService_login_Params, error) {
+func ReadRootCapGatewaySession_login_Params(msg *capnp.Message) (CapGatewaySession_login_Params, error) {
 	root, err := msg.Root()
-	return CapGatewayService_login_Params(root.Struct()), err
+	return CapGatewaySession_login_Params(root.Struct()), err
 }
 
-func (s CapGatewayService_login_Params) String() string {
-	str, _ := text.Marshal(0xb3bdac89b9126cf5, capnp.Struct(s))
+func (s CapGatewaySession_login_Params) String() string {
+	str, _ := text.Marshal(0xf1a76030917cce82, capnp.Struct(s))
 	return str
 }
 
-func (s CapGatewayService_login_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapGatewaySession_login_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapGatewayService_login_Params) DecodeFromPtr(p capnp.Ptr) CapGatewayService_login_Params {
-	return CapGatewayService_login_Params(capnp.Struct{}.DecodeFromPtr(p))
+func (CapGatewaySession_login_Params) DecodeFromPtr(p capnp.Ptr) CapGatewaySession_login_Params {
+	return CapGatewaySession_login_Params(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapGatewayService_login_Params) ToPtr() capnp.Ptr {
+func (s CapGatewaySession_login_Params) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapGatewayService_login_Params) IsValid() bool {
+func (s CapGatewaySession_login_Params) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapGatewayService_login_Params) Message() *capnp.Message {
+func (s CapGatewaySession_login_Params) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapGatewayService_login_Params) Segment() *capnp.Segment {
+func (s CapGatewaySession_login_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapGatewayService_login_Params) ClientID() (string, error) {
+func (s CapGatewaySession_login_Params) ClientID() (string, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.Text(), err
 }
 
-func (s CapGatewayService_login_Params) HasClientID() bool {
+func (s CapGatewaySession_login_Params) HasClientID() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapGatewayService_login_Params) ClientIDBytes() ([]byte, error) {
+func (s CapGatewaySession_login_Params) ClientIDBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.TextBytes(), err
 }
 
-func (s CapGatewayService_login_Params) SetClientID(v string) error {
+func (s CapGatewaySession_login_Params) SetClientID(v string) error {
 	return capnp.Struct(s).SetText(0, v)
 }
 
-func (s CapGatewayService_login_Params) Password() (string, error) {
+func (s CapGatewaySession_login_Params) Password() (string, error) {
 	p, err := capnp.Struct(s).Ptr(1)
 	return p.Text(), err
 }
 
-func (s CapGatewayService_login_Params) HasPassword() bool {
+func (s CapGatewaySession_login_Params) HasPassword() bool {
 	return capnp.Struct(s).HasPtr(1)
 }
 
-func (s CapGatewayService_login_Params) PasswordBytes() ([]byte, error) {
+func (s CapGatewaySession_login_Params) PasswordBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(1)
 	return p.TextBytes(), err
 }
 
-func (s CapGatewayService_login_Params) SetPassword(v string) error {
+func (s CapGatewaySession_login_Params) SetPassword(v string) error {
 	return capnp.Struct(s).SetText(1, v)
 }
 
-// CapGatewayService_login_Params_List is a list of CapGatewayService_login_Params.
-type CapGatewayService_login_Params_List = capnp.StructList[CapGatewayService_login_Params]
+// CapGatewaySession_login_Params_List is a list of CapGatewaySession_login_Params.
+type CapGatewaySession_login_Params_List = capnp.StructList[CapGatewaySession_login_Params]
 
-// NewCapGatewayService_login_Params creates a new list of CapGatewayService_login_Params.
-func NewCapGatewayService_login_Params_List(s *capnp.Segment, sz int32) (CapGatewayService_login_Params_List, error) {
+// NewCapGatewaySession_login_Params creates a new list of CapGatewaySession_login_Params.
+func NewCapGatewaySession_login_Params_List(s *capnp.Segment, sz int32) (CapGatewaySession_login_Params_List, error) {
 	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
-	return capnp.StructList[CapGatewayService_login_Params](l), err
+	return capnp.StructList[CapGatewaySession_login_Params](l), err
 }
 
-// CapGatewayService_login_Params_Future is a wrapper for a CapGatewayService_login_Params promised by a client call.
-type CapGatewayService_login_Params_Future struct{ *capnp.Future }
+// CapGatewaySession_login_Params_Future is a wrapper for a CapGatewaySession_login_Params promised by a client call.
+type CapGatewaySession_login_Params_Future struct{ *capnp.Future }
 
-func (f CapGatewayService_login_Params_Future) Struct() (CapGatewayService_login_Params, error) {
+func (f CapGatewaySession_login_Params_Future) Struct() (CapGatewaySession_login_Params, error) {
 	p, err := f.Future.Ptr()
-	return CapGatewayService_login_Params(p.Struct()), err
+	return CapGatewaySession_login_Params(p.Struct()), err
 }
 
-type CapGatewayService_login_Results capnp.Struct
+type CapGatewaySession_login_Results capnp.Struct
 
-// CapGatewayService_login_Results_TypeID is the unique identifier for the type CapGatewayService_login_Results.
-const CapGatewayService_login_Results_TypeID = 0xabc4f6c44f8a0ce7
+// CapGatewaySession_login_Results_TypeID is the unique identifier for the type CapGatewaySession_login_Results.
+const CapGatewaySession_login_Results_TypeID = 0xa2b15d1db4fa12d2
 
-func NewCapGatewayService_login_Results(s *capnp.Segment) (CapGatewayService_login_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0})
-	return CapGatewayService_login_Results(st), err
+func NewCapGatewaySession_login_Results(s *capnp.Segment) (CapGatewaySession_login_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	return CapGatewaySession_login_Results(st), err
 }
 
-func NewRootCapGatewayService_login_Results(s *capnp.Segment) (CapGatewayService_login_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0})
-	return CapGatewayService_login_Results(st), err
+func NewRootCapGatewaySession_login_Results(s *capnp.Segment) (CapGatewaySession_login_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	return CapGatewaySession_login_Results(st), err
 }
 
-func ReadRootCapGatewayService_login_Results(msg *capnp.Message) (CapGatewayService_login_Results, error) {
+func ReadRootCapGatewaySession_login_Results(msg *capnp.Message) (CapGatewaySession_login_Results, error) {
 	root, err := msg.Root()
-	return CapGatewayService_login_Results(root.Struct()), err
+	return CapGatewaySession_login_Results(root.Struct()), err
 }
 
-func (s CapGatewayService_login_Results) String() string {
-	str, _ := text.Marshal(0xabc4f6c44f8a0ce7, capnp.Struct(s))
+func (s CapGatewaySession_login_Results) String() string {
+	str, _ := text.Marshal(0xa2b15d1db4fa12d2, capnp.Struct(s))
 	return str
 }
 
-func (s CapGatewayService_login_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+func (s CapGatewaySession_login_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
 	return capnp.Struct(s).EncodeAsPtr(seg)
 }
 
-func (CapGatewayService_login_Results) DecodeFromPtr(p capnp.Ptr) CapGatewayService_login_Results {
-	return CapGatewayService_login_Results(capnp.Struct{}.DecodeFromPtr(p))
+func (CapGatewaySession_login_Results) DecodeFromPtr(p capnp.Ptr) CapGatewaySession_login_Results {
+	return CapGatewaySession_login_Results(capnp.Struct{}.DecodeFromPtr(p))
 }
 
-func (s CapGatewayService_login_Results) ToPtr() capnp.Ptr {
+func (s CapGatewaySession_login_Results) ToPtr() capnp.Ptr {
 	return capnp.Struct(s).ToPtr()
 }
-func (s CapGatewayService_login_Results) IsValid() bool {
+func (s CapGatewaySession_login_Results) IsValid() bool {
 	return capnp.Struct(s).IsValid()
 }
 
-func (s CapGatewayService_login_Results) Message() *capnp.Message {
+func (s CapGatewaySession_login_Results) Message() *capnp.Message {
 	return capnp.Struct(s).Message()
 }
 
-func (s CapGatewayService_login_Results) Segment() *capnp.Segment {
+func (s CapGatewaySession_login_Results) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapGatewayService_login_Results) Success() bool {
-	return capnp.Struct(s).Bit(0)
-}
-
-func (s CapGatewayService_login_Results) SetSuccess(v bool) {
-	capnp.Struct(s).SetBit(0, v)
-}
-
-// CapGatewayService_login_Results_List is a list of CapGatewayService_login_Results.
-type CapGatewayService_login_Results_List = capnp.StructList[CapGatewayService_login_Results]
-
-// NewCapGatewayService_login_Results creates a new list of CapGatewayService_login_Results.
-func NewCapGatewayService_login_Results_List(s *capnp.Segment, sz int32) (CapGatewayService_login_Results_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 8, PointerCount: 0}, sz)
-	return capnp.StructList[CapGatewayService_login_Results](l), err
-}
-
-// CapGatewayService_login_Results_Future is a wrapper for a CapGatewayService_login_Results promised by a client call.
-type CapGatewayService_login_Results_Future struct{ *capnp.Future }
-
-func (f CapGatewayService_login_Results_Future) Struct() (CapGatewayService_login_Results, error) {
-	p, err := f.Future.Ptr()
-	return CapGatewayService_login_Results(p.Struct()), err
-}
-
-type CapGatewayService_ping_Params capnp.Struct
-
-// CapGatewayService_ping_Params_TypeID is the unique identifier for the type CapGatewayService_ping_Params.
-const CapGatewayService_ping_Params_TypeID = 0xd96fd51ce635fe36
-
-func NewCapGatewayService_ping_Params(s *capnp.Segment) (CapGatewayService_ping_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapGatewayService_ping_Params(st), err
-}
-
-func NewRootCapGatewayService_ping_Params(s *capnp.Segment) (CapGatewayService_ping_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapGatewayService_ping_Params(st), err
-}
-
-func ReadRootCapGatewayService_ping_Params(msg *capnp.Message) (CapGatewayService_ping_Params, error) {
-	root, err := msg.Root()
-	return CapGatewayService_ping_Params(root.Struct()), err
-}
-
-func (s CapGatewayService_ping_Params) String() string {
-	str, _ := text.Marshal(0xd96fd51ce635fe36, capnp.Struct(s))
-	return str
-}
-
-func (s CapGatewayService_ping_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapGatewayService_ping_Params) DecodeFromPtr(p capnp.Ptr) CapGatewayService_ping_Params {
-	return CapGatewayService_ping_Params(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapGatewayService_ping_Params) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapGatewayService_ping_Params) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapGatewayService_ping_Params) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapGatewayService_ping_Params) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-
-// CapGatewayService_ping_Params_List is a list of CapGatewayService_ping_Params.
-type CapGatewayService_ping_Params_List = capnp.StructList[CapGatewayService_ping_Params]
-
-// NewCapGatewayService_ping_Params creates a new list of CapGatewayService_ping_Params.
-func NewCapGatewayService_ping_Params_List(s *capnp.Segment, sz int32) (CapGatewayService_ping_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
-	return capnp.StructList[CapGatewayService_ping_Params](l), err
-}
-
-// CapGatewayService_ping_Params_Future is a wrapper for a CapGatewayService_ping_Params promised by a client call.
-type CapGatewayService_ping_Params_Future struct{ *capnp.Future }
-
-func (f CapGatewayService_ping_Params_Future) Struct() (CapGatewayService_ping_Params, error) {
-	p, err := f.Future.Ptr()
-	return CapGatewayService_ping_Params(p.Struct()), err
-}
-
-type CapGatewayService_ping_Results capnp.Struct
-
-// CapGatewayService_ping_Results_TypeID is the unique identifier for the type CapGatewayService_ping_Results.
-const CapGatewayService_ping_Results_TypeID = 0xf8edd72c204cd0d4
-
-func NewCapGatewayService_ping_Results(s *capnp.Segment) (CapGatewayService_ping_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapGatewayService_ping_Results(st), err
-}
-
-func NewRootCapGatewayService_ping_Results(s *capnp.Segment) (CapGatewayService_ping_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapGatewayService_ping_Results(st), err
-}
-
-func ReadRootCapGatewayService_ping_Results(msg *capnp.Message) (CapGatewayService_ping_Results, error) {
-	root, err := msg.Root()
-	return CapGatewayService_ping_Results(root.Struct()), err
-}
-
-func (s CapGatewayService_ping_Results) String() string {
-	str, _ := text.Marshal(0xf8edd72c204cd0d4, capnp.Struct(s))
-	return str
-}
-
-func (s CapGatewayService_ping_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapGatewayService_ping_Results) DecodeFromPtr(p capnp.Ptr) CapGatewayService_ping_Results {
-	return CapGatewayService_ping_Results(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapGatewayService_ping_Results) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapGatewayService_ping_Results) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapGatewayService_ping_Results) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapGatewayService_ping_Results) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s CapGatewayService_ping_Results) Response() (string, error) {
+func (s CapGatewaySession_login_Results) AuthToken() (string, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.Text(), err
 }
 
-func (s CapGatewayService_ping_Results) HasResponse() bool {
+func (s CapGatewaySession_login_Results) HasAuthToken() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapGatewayService_ping_Results) ResponseBytes() ([]byte, error) {
+func (s CapGatewaySession_login_Results) AuthTokenBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.TextBytes(), err
 }
 
-func (s CapGatewayService_ping_Results) SetResponse(v string) error {
+func (s CapGatewaySession_login_Results) SetAuthToken(v string) error {
 	return capnp.Struct(s).SetText(0, v)
 }
 
-// CapGatewayService_ping_Results_List is a list of CapGatewayService_ping_Results.
-type CapGatewayService_ping_Results_List = capnp.StructList[CapGatewayService_ping_Results]
-
-// NewCapGatewayService_ping_Results creates a new list of CapGatewayService_ping_Results.
-func NewCapGatewayService_ping_Results_List(s *capnp.Segment, sz int32) (CapGatewayService_ping_Results_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapGatewayService_ping_Results](l), err
+func (s CapGatewaySession_login_Results) RefreshToken() (string, error) {
+	p, err := capnp.Struct(s).Ptr(1)
+	return p.Text(), err
 }
 
-// CapGatewayService_ping_Results_Future is a wrapper for a CapGatewayService_ping_Results promised by a client call.
-type CapGatewayService_ping_Results_Future struct{ *capnp.Future }
+func (s CapGatewaySession_login_Results) HasRefreshToken() bool {
+	return capnp.Struct(s).HasPtr(1)
+}
 
-func (f CapGatewayService_ping_Results_Future) Struct() (CapGatewayService_ping_Results, error) {
+func (s CapGatewaySession_login_Results) RefreshTokenBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(1)
+	return p.TextBytes(), err
+}
+
+func (s CapGatewaySession_login_Results) SetRefreshToken(v string) error {
+	return capnp.Struct(s).SetText(1, v)
+}
+
+// CapGatewaySession_login_Results_List is a list of CapGatewaySession_login_Results.
+type CapGatewaySession_login_Results_List = capnp.StructList[CapGatewaySession_login_Results]
+
+// NewCapGatewaySession_login_Results creates a new list of CapGatewaySession_login_Results.
+func NewCapGatewaySession_login_Results_List(s *capnp.Segment, sz int32) (CapGatewaySession_login_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
+	return capnp.StructList[CapGatewaySession_login_Results](l), err
+}
+
+// CapGatewaySession_login_Results_Future is a wrapper for a CapGatewaySession_login_Results promised by a client call.
+type CapGatewaySession_login_Results_Future struct{ *capnp.Future }
+
+func (f CapGatewaySession_login_Results_Future) Struct() (CapGatewaySession_login_Results, error) {
 	p, err := f.Future.Ptr()
-	return CapGatewayService_ping_Results(p.Struct()), err
+	return CapGatewaySession_login_Results(p.Struct()), err
 }
 
-const schema_dd3a962266ddd0e3 = "x\xda\x9cTMH\x15k\x18~\xdf\xef\x9bq\xbc\xdc" +
-	"\xe3\xd5\xcfs.\xdc\xc5\xe5z\xbdx\xf1\xa7\xf0'3" +
-	"H\x8cs\xcaB4\xcb\xf3U\x9b\x8c\xa0\xf18\x1e\x07" +
-	"\xce\xcfx\xbeQ9\xa1\xb4\x11*!\xa8MA\x9b\xa0" +
-	"E\x81\xb9\xe9\x07\xc4E\xadlS\x1b\x17\x8a\x14HP" +
-	"\x90\x10\xe4\xce\xfe\x16M|\xe3\x99q(\xc5l\xfb\xce" +
-	"\xf3\xbd\xcf\xf3\xbe\xef\xf3L\xe3\x12\xc6\x94\xa6\x92\x06\x15" +
-	"\x08oS\x8b\x9c\xb1\xca\x07b\xea\xce\xf4\x04\xb0j\x04" +
-	"PQ\x03h\x1e'\x84\x00\x86\xaf\x91(\xa0\xb3\x12\x9a" +
-	"\xec\x99\xfb0w\x0fx5\"\x80\"\x01O\xc9\x14\x02" +
-	"\x86\x17]@\xffsc\xf5\xee\xc2\xca\xfdB\x07\x17\xb0" +
-	"F^K\xc0ot\x05\xd0YK\x95\xcf^\x9e~\xfc" +
-	"\xb0\x00 \x12\xf0\x99\xdev\x01\xca(\xa0s\xe9\xe2\xab" +
-	"[G_>\x9a\x05\xf6'u\xde\xcc/\x0f\xfcw\xbd" +
-	"u\x19\x00\x9b\xd3J+\x86\xc7\xdd\x8eyE\xc3\xf0\xff" +
-	"\xaa\x06\xe0\x8c\xfc3s`\xa6r\xf6IPr\x89\xfa" +
-	"N\xf6\xabT\xa5\xa2}_[\xde\xfe\xbd\x98}\xb1\x0e" +
-	"p\x9f\x1fQo\"(N\xdd\x8d+\xc9\x8f\xbf\xef_" +
-	"\x0d>mQ\xbf\xc8\xa7\x9d\xee\xd3\x85\xf9\xee\x7fw/" +
-	"\xbd\xff\x14\x04\xa4UW\xeb\xb8\x1a\x85vgp\xb8O" +
-	"\xb7\xcc\x86\x0eM\xb7\x8dQ=_\x9f\xd0\xad\x8c\xd5\xda" +
-	"\xae[\x1d\xeb\x85\x93Fn\xc4L\x18\xf5)S\xd8\xed" +
-	"\xba\xa5\xf7\x99)\xd36\x0dQu\xc2\x10\xc3)[\x00" +
-	"W\xa8\x02\xa0 \x00+\xe9\x02\xe0!\x8a\xbc\x86\xa0c" +
-	"f\x06\xb2\xdd\xa6\xb0\x01\x00\xff\x00\x8cS\xc42\xe7\xd9" +
-	".\xbbgj\xfe\xcc\x04\x00\xca\xa2\xcf\xaen\xc7\x9eM" +
-	"\x9a\x19IY*9\x83\x94\x87\x00x1E\x1e!x" +
-	"A\x0c'\x12\x86\x10\x88@\x10\x03\xdd\x8b\xb6\xe9\x9e4" +
-	"6F\xcbW\xc5\xf5\x9c\xa6\xa7\x05/\xf3It9\xd7" +
-	"9\x8a<E\x90!F\xa4o\x98\xd9\x0b\xc0\x07)r" +
-	"\x9b #$\x82\x04\x80\x0d\x9d\x07\xe0\x16E>F\x90" +
-	"Q\x1aA\x0a\xc0\xf2u\x00\xdc\xa6\xc8\xaf\x12t\x12)" +
-	"\xd3\xc8\xd8\x9d\x87\xe5ZB@0\x04^\xedT\x1e\xa8" +
-	"el\x14\x0b\x8a j\xe7\x8f\xebi\xffC\xa9\x9eK" +
-	"\x0ao\xa3\xb2\xb6\xf3=z\x13\x16\xfb\x13\xd6\xca\x09k" +
-	"(\xf2\xbd\x81\x09\x9bd\xb1\x91\"o\xdbB\xb7\xa5\x0b" +
-	"1\x9a\xcd\xf5\x07k\x9e\x12\xba\x95\x92\xe8\xba\x948\"" +
-	"/\xa3*\x80\x9f7\xf4r\xc0\x86r@\x98\xa9!\xfa" +
-	"\xfeF/\xd6\xec\xec$\x10vZC\xe2\xc7\x10\xbdD" +
-	"\xb3c{\x80\xb0\x83\x1aR?1\xe8\xf9\x9f\xb5\xd4\x01" +
-	"a\xb5\x9a\xe3\xdd\x1a*\xdck\xc7\xd0\xf1\x9c\x8d\x9e\xb5" +
-	"\x01bX\xe1n*\x86\xa5\x96\x99I\xc60\x8e\xbf\xea" +
-	"\xa6\xcd<\xdb[\x88\xc9_$pfj\xe7\xb1\\\xa1" +
-	"\x80X\xbe\x83\x83Jy\xf2\x9e:M\x8b\x9fV\xf8C" +
-	"\x96\xa3\xb2Czk\x8d\x9b\xf9sG\x0a\xe5\xcfB\xfb" +
-	"n\x0b]\x01\x86\x9c!\xaclF\x18\x01'}\x0b\x00" +
-	"\x00\xff\xff\x0b\xee\xa5v"
+type CapGatewaySession_ping_Params capnp.Struct
+
+// CapGatewaySession_ping_Params_TypeID is the unique identifier for the type CapGatewaySession_ping_Params.
+const CapGatewaySession_ping_Params_TypeID = 0xc15a6f918b7c3038
+
+func NewCapGatewaySession_ping_Params(s *capnp.Segment) (CapGatewaySession_ping_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapGatewaySession_ping_Params(st), err
+}
+
+func NewRootCapGatewaySession_ping_Params(s *capnp.Segment) (CapGatewaySession_ping_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapGatewaySession_ping_Params(st), err
+}
+
+func ReadRootCapGatewaySession_ping_Params(msg *capnp.Message) (CapGatewaySession_ping_Params, error) {
+	root, err := msg.Root()
+	return CapGatewaySession_ping_Params(root.Struct()), err
+}
+
+func (s CapGatewaySession_ping_Params) String() string {
+	str, _ := text.Marshal(0xc15a6f918b7c3038, capnp.Struct(s))
+	return str
+}
+
+func (s CapGatewaySession_ping_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapGatewaySession_ping_Params) DecodeFromPtr(p capnp.Ptr) CapGatewaySession_ping_Params {
+	return CapGatewaySession_ping_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapGatewaySession_ping_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapGatewaySession_ping_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapGatewaySession_ping_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapGatewaySession_ping_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+
+// CapGatewaySession_ping_Params_List is a list of CapGatewaySession_ping_Params.
+type CapGatewaySession_ping_Params_List = capnp.StructList[CapGatewaySession_ping_Params]
+
+// NewCapGatewaySession_ping_Params creates a new list of CapGatewaySession_ping_Params.
+func NewCapGatewaySession_ping_Params_List(s *capnp.Segment, sz int32) (CapGatewaySession_ping_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
+	return capnp.StructList[CapGatewaySession_ping_Params](l), err
+}
+
+// CapGatewaySession_ping_Params_Future is a wrapper for a CapGatewaySession_ping_Params promised by a client call.
+type CapGatewaySession_ping_Params_Future struct{ *capnp.Future }
+
+func (f CapGatewaySession_ping_Params_Future) Struct() (CapGatewaySession_ping_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapGatewaySession_ping_Params(p.Struct()), err
+}
+
+type CapGatewaySession_ping_Results capnp.Struct
+
+// CapGatewaySession_ping_Results_TypeID is the unique identifier for the type CapGatewaySession_ping_Results.
+const CapGatewaySession_ping_Results_TypeID = 0xce340b1ce0aa477c
+
+func NewCapGatewaySession_ping_Results(s *capnp.Segment) (CapGatewaySession_ping_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapGatewaySession_ping_Results(st), err
+}
+
+func NewRootCapGatewaySession_ping_Results(s *capnp.Segment) (CapGatewaySession_ping_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapGatewaySession_ping_Results(st), err
+}
+
+func ReadRootCapGatewaySession_ping_Results(msg *capnp.Message) (CapGatewaySession_ping_Results, error) {
+	root, err := msg.Root()
+	return CapGatewaySession_ping_Results(root.Struct()), err
+}
+
+func (s CapGatewaySession_ping_Results) String() string {
+	str, _ := text.Marshal(0xce340b1ce0aa477c, capnp.Struct(s))
+	return str
+}
+
+func (s CapGatewaySession_ping_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapGatewaySession_ping_Results) DecodeFromPtr(p capnp.Ptr) CapGatewaySession_ping_Results {
+	return CapGatewaySession_ping_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapGatewaySession_ping_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapGatewaySession_ping_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapGatewaySession_ping_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapGatewaySession_ping_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapGatewaySession_ping_Results) Reply() (ClientInfo, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return ClientInfo(p.Struct()), err
+}
+
+func (s CapGatewaySession_ping_Results) HasReply() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapGatewaySession_ping_Results) SetReply(v ClientInfo) error {
+	return capnp.Struct(s).SetPtr(0, capnp.Struct(v).ToPtr())
+}
+
+// NewReply sets the reply field to a newly
+// allocated ClientInfo struct, preferring placement in s's segment.
+func (s CapGatewaySession_ping_Results) NewReply() (ClientInfo, error) {
+	ss, err := NewClientInfo(capnp.Struct(s).Segment())
+	if err != nil {
+		return ClientInfo{}, err
+	}
+	err = capnp.Struct(s).SetPtr(0, capnp.Struct(ss).ToPtr())
+	return ss, err
+}
+
+// CapGatewaySession_ping_Results_List is a list of CapGatewaySession_ping_Results.
+type CapGatewaySession_ping_Results_List = capnp.StructList[CapGatewaySession_ping_Results]
+
+// NewCapGatewaySession_ping_Results creates a new list of CapGatewaySession_ping_Results.
+func NewCapGatewaySession_ping_Results_List(s *capnp.Segment, sz int32) (CapGatewaySession_ping_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[CapGatewaySession_ping_Results](l), err
+}
+
+// CapGatewaySession_ping_Results_Future is a wrapper for a CapGatewaySession_ping_Results promised by a client call.
+type CapGatewaySession_ping_Results_Future struct{ *capnp.Future }
+
+func (f CapGatewaySession_ping_Results_Future) Struct() (CapGatewaySession_ping_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapGatewaySession_ping_Results(p.Struct()), err
+}
+func (p CapGatewaySession_ping_Results_Future) Reply() ClientInfo_Future {
+	return ClientInfo_Future{Future: p.Future.Field(0, nil)}
+}
+
+type CapGatewaySession_refresh_Params capnp.Struct
+
+// CapGatewaySession_refresh_Params_TypeID is the unique identifier for the type CapGatewaySession_refresh_Params.
+const CapGatewaySession_refresh_Params_TypeID = 0xc469005256c59d20
+
+func NewCapGatewaySession_refresh_Params(s *capnp.Segment) (CapGatewaySession_refresh_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapGatewaySession_refresh_Params(st), err
+}
+
+func NewRootCapGatewaySession_refresh_Params(s *capnp.Segment) (CapGatewaySession_refresh_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapGatewaySession_refresh_Params(st), err
+}
+
+func ReadRootCapGatewaySession_refresh_Params(msg *capnp.Message) (CapGatewaySession_refresh_Params, error) {
+	root, err := msg.Root()
+	return CapGatewaySession_refresh_Params(root.Struct()), err
+}
+
+func (s CapGatewaySession_refresh_Params) String() string {
+	str, _ := text.Marshal(0xc469005256c59d20, capnp.Struct(s))
+	return str
+}
+
+func (s CapGatewaySession_refresh_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapGatewaySession_refresh_Params) DecodeFromPtr(p capnp.Ptr) CapGatewaySession_refresh_Params {
+	return CapGatewaySession_refresh_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapGatewaySession_refresh_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapGatewaySession_refresh_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapGatewaySession_refresh_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapGatewaySession_refresh_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapGatewaySession_refresh_Params) RefreshToken() (string, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.Text(), err
+}
+
+func (s CapGatewaySession_refresh_Params) HasRefreshToken() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapGatewaySession_refresh_Params) RefreshTokenBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.TextBytes(), err
+}
+
+func (s CapGatewaySession_refresh_Params) SetRefreshToken(v string) error {
+	return capnp.Struct(s).SetText(0, v)
+}
+
+// CapGatewaySession_refresh_Params_List is a list of CapGatewaySession_refresh_Params.
+type CapGatewaySession_refresh_Params_List = capnp.StructList[CapGatewaySession_refresh_Params]
+
+// NewCapGatewaySession_refresh_Params creates a new list of CapGatewaySession_refresh_Params.
+func NewCapGatewaySession_refresh_Params_List(s *capnp.Segment, sz int32) (CapGatewaySession_refresh_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[CapGatewaySession_refresh_Params](l), err
+}
+
+// CapGatewaySession_refresh_Params_Future is a wrapper for a CapGatewaySession_refresh_Params promised by a client call.
+type CapGatewaySession_refresh_Params_Future struct{ *capnp.Future }
+
+func (f CapGatewaySession_refresh_Params_Future) Struct() (CapGatewaySession_refresh_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapGatewaySession_refresh_Params(p.Struct()), err
+}
+
+type CapGatewaySession_refresh_Results capnp.Struct
+
+// CapGatewaySession_refresh_Results_TypeID is the unique identifier for the type CapGatewaySession_refresh_Results.
+const CapGatewaySession_refresh_Results_TypeID = 0xa75445aa77986ace
+
+func NewCapGatewaySession_refresh_Results(s *capnp.Segment) (CapGatewaySession_refresh_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	return CapGatewaySession_refresh_Results(st), err
+}
+
+func NewRootCapGatewaySession_refresh_Results(s *capnp.Segment) (CapGatewaySession_refresh_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	return CapGatewaySession_refresh_Results(st), err
+}
+
+func ReadRootCapGatewaySession_refresh_Results(msg *capnp.Message) (CapGatewaySession_refresh_Results, error) {
+	root, err := msg.Root()
+	return CapGatewaySession_refresh_Results(root.Struct()), err
+}
+
+func (s CapGatewaySession_refresh_Results) String() string {
+	str, _ := text.Marshal(0xa75445aa77986ace, capnp.Struct(s))
+	return str
+}
+
+func (s CapGatewaySession_refresh_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapGatewaySession_refresh_Results) DecodeFromPtr(p capnp.Ptr) CapGatewaySession_refresh_Results {
+	return CapGatewaySession_refresh_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapGatewaySession_refresh_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapGatewaySession_refresh_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapGatewaySession_refresh_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapGatewaySession_refresh_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapGatewaySession_refresh_Results) AuthToken() (string, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.Text(), err
+}
+
+func (s CapGatewaySession_refresh_Results) HasAuthToken() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapGatewaySession_refresh_Results) AuthTokenBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.TextBytes(), err
+}
+
+func (s CapGatewaySession_refresh_Results) SetAuthToken(v string) error {
+	return capnp.Struct(s).SetText(0, v)
+}
+
+func (s CapGatewaySession_refresh_Results) RefreshToken() (string, error) {
+	p, err := capnp.Struct(s).Ptr(1)
+	return p.Text(), err
+}
+
+func (s CapGatewaySession_refresh_Results) HasRefreshToken() bool {
+	return capnp.Struct(s).HasPtr(1)
+}
+
+func (s CapGatewaySession_refresh_Results) RefreshTokenBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(1)
+	return p.TextBytes(), err
+}
+
+func (s CapGatewaySession_refresh_Results) SetRefreshToken(v string) error {
+	return capnp.Struct(s).SetText(1, v)
+}
+
+// CapGatewaySession_refresh_Results_List is a list of CapGatewaySession_refresh_Results.
+type CapGatewaySession_refresh_Results_List = capnp.StructList[CapGatewaySession_refresh_Results]
+
+// NewCapGatewaySession_refresh_Results creates a new list of CapGatewaySession_refresh_Results.
+func NewCapGatewaySession_refresh_Results_List(s *capnp.Segment, sz int32) (CapGatewaySession_refresh_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
+	return capnp.StructList[CapGatewaySession_refresh_Results](l), err
+}
+
+// CapGatewaySession_refresh_Results_Future is a wrapper for a CapGatewaySession_refresh_Results promised by a client call.
+type CapGatewaySession_refresh_Results_Future struct{ *capnp.Future }
+
+func (f CapGatewaySession_refresh_Results_Future) Struct() (CapGatewaySession_refresh_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapGatewaySession_refresh_Results(p.Struct()), err
+}
+
+const schema_dd3a962266ddd0e3 = "x\xda\xbc\x94Kh\x13_\x14\xc6\xcf\xb937S\xfe" +
+	"\xff\x94vL\x8b.\x94V)\xf8\x00k\xfa@\xb4\x08" +
+	"\x0dj\xa9-\x14rctQ(\xf6Zo\x9ai\xd2" +
+	"\x99q&1\x04\xa2\x82K\xc5E7\"\x82\x9b\x82\xb4" +
+	"d\xa5b7nD\xb0\x14\x14\x82\x08.\\\x14\x05)" +
+	"(\xa2\xe0Jp3r3y\x8c \xd4l\xdc\x9e|" +
+	"\xf7\xfc\xce\xf9\xf2\x9d\x89\xf6\x92\x98:\xd0\xfe\xa3\x0d\x08" +
+	"K\xd3\x90\xf7f\xc7\xcf'{f\x1e-\x83\xbe\x1f\x01" +
+	"(\xd1\x00\x86\xb8ZF\xc0\xc8e\xb5\x00\xe8U\x16\xee" +
+	"\x16\xcac\xc9\x95\xa0\xe0\xad\xfaT\x0a\xb6\xaa\x82\x0b\xaf" +
+	"\xbedf?M\xad\x82\xde\x8d\xde\xc7\xd7\x9b\xa9}w" +
+	"F6k\xc2\x09J0r\x8ej\x00\x11F\xa5\xf8X" +
+	"\xb4tk\xc9\x9a~\xeewS\xa5f\x8d\xdeCP\xdf" +
+	"\xf7\xde_?\x9f0^\xf8\x14\x94?<\xa0\x8f%e" +
+	"\x8d\x8e\x02z\x0fo^\xc13\xe1\xff\xd6A\xefV\x9a" +
+	"\x14\xc0\xa1wt\x04#\x9f\xab\x88-\xba\x11\x99\x09\xed" +
+	"\x04\xf0J\xe3\xe5\x0f\xbb\xff\x1f\xae@\xa0\xddThY" +
+	"\xb6\x9b\x09\xc9v7*\xa5\xa5\xe8\xec\xca\xf7\xe0VW" +
+	"}\xc1\xedP\x016\xbct\xfe\"\xb7\x8d#\xe3\x94\xe7" +
+	"D\x81\x17\xfb\xe7\xb8m\xda#\xa7\xb8=\xee\x17\xce\x0a" +
+	"\xd75,\xb3?k\xcd\x1bf_B\xb8\x1d\xf9l\xce" +
+	"em\x8a\x0a\xa0\"\x80~0\x01\xc0\x0e(\xc8\x86\x09" +
+	"\xea\x88](\x8b\x03\x0b\x00,\xaa ;A\xd0\xe3\xf9" +
+	"\\:ie\x04\xa0\x89a \x18\x06\xf4\x1c\x91r\x84" +
+	"\x9bNB\x87\x95\x11\xcd\xf2\xdfNS{\xde\x97\x18\x15" +
+	"\xee\xbf\x98G\xf9}\x9e\xac!\xcc\xdc\x84\x99\xb2 \x8e" +
+	"\x18dO\xfe\x89=\x1d`\xcf\xf9OO\x03@\x03\xe2" +
+	"\xd7\x92EPl\xd1\xb2\x13\xb6a\xce\xf7\xc5\xb9\xc3\x95" +
+	"E\xb7e\xfb\xe2=\xdc\xe1\x8b.S\x1b\x1b\xb4K\xa3" +
+	"\xc2\x0a\xb2]\xa4US\x9a\x94Q\x1f#\xbd\x09+\x14" +
+	"\xa0\x91B\xac_\xa1\xce\x06\x81\xe8c\x1a6/\x05\xeb" +
+	"Y\xd6\x8f\x1f\x02\xa2\x1f\xd6\x90\xd4o%p\x9b{O" +
+	"\x02\xd1\xbb\xb5\x9ej\x1cc\xd8!\xd7\x8f\xe1\xf5\xda\xa4" +
+	"1d*\xa27\xfb\xf5\xda\xd1\x97\xab\xcf\xbe\x01@k" +
+	">&\x84\x9b\xd7d\x9c\x02\x86\x0c\x02\xb06\x05Y\x17" +
+	"\xc1\x1eG\xd8\xd9\"v6?\x05\x80\xd8\xd9\xc2\x9f\xe5" +
+	"\x1fQ\x9c;\x9at}\xbb\xdcLn\x93\x1b\x9b\xbbn" +
+	"\xc1r.\x05j\xbf\x02\x00\x00\xff\xff\x89\xd6]\x80"
 
 func init() {
 	schemas.Register(schema_dd3a962266ddd0e3,
-		0x84aca6aa73b2217c,
-		0xabc4f6c44f8a0ce7,
-		0xb1e7d4a7ee65cb64,
-		0xb3bdac89b9126cf5,
-		0xb9b4da4b9fdf8788,
-		0xbeb921b73db71e76,
-		0xd96fd51ce635fe36,
-		0xee390bf7678d972a,
-		0xf8edd72c204cd0d4)
+		0xa2b15d1db4fa12d2,
+		0xa75445aa77986ace,
+		0xa84de8606bebcb5f,
+		0xc15a6f918b7c3038,
+		0xc469005256c59d20,
+		0xc50a0c4801768ab0,
+		0xce340b1ce0aa477c,
+		0xf1a76030917cce82)
 }
