@@ -69,40 +69,9 @@ type CapRegistrationServer struct {
 	resolverClient *capnpclient.ResolverSessionCapnpClient
 }
 
-// Connect establishes an RPC connection with the Resolver Service, obtain the registration
-// capability and register this service capabilities.
-// Users must call ExportCapabilities before connecting.
-//
-// If no socket path is given, then use the default path.
-func (rcl *CapRegistrationServer) Connect(resolverSocket string) (err error) {
-	ctx := context.Background()
-	if resolverSocket == "" {
-		resolverSocket = resolver.DefaultResolverPath
-	}
-
-	conn, err := net.DialTimeout("unix", resolverSocket, time.Second)
-	if err != nil {
-		return err
-	}
-	// keep the resolver client alive as capabilities use its RPC connection
-	rcl.resolverClient, err = capnpclient.NewResolverSessionCapnpClient(ctx, conn)
-	if err != nil {
-		return err
-	}
-
-	// list capabilities
-	capList := make([]resolver.CapabilityInfo, 0, len(rcl.exportedCapabilities))
-	for _, capInfo := range rcl.exportedCapabilities {
-		capList = append(capList, capInfo)
-	}
-
-	err = rcl.resolverClient.RegisterCapabilities(ctx, rcl.serviceName, capList, rcl.capProviderCapability)
-
-	return err
-}
-
 // ExportCapability adds the method to the list of exported capabilities and allows it to be
-// returned in GetCapability. This should be called at service start before connecting to the resolver.
+// returned in GetCapability. This should be called before invoking Start as start uses it to
+// register the capabilities.
 // This only stores the capabilities for retrieval later by ListCapabilities.
 func (rcl *CapRegistrationServer) ExportCapability(methodName string, clientTypes []string) {
 	_, found := rcl.knownMethods[methodName]
@@ -150,10 +119,10 @@ func (rcl *CapRegistrationServer) GetCapability(
 	}
 	// invoke the method to get the capability
 	// the clientID and clientType arguments from this call are passed on to the capability request
-	// and available in the method ... probably
+	// and available in the method.
 	// okay, not quite sure how this works but the results of the method are applied to 'call'
-	// and returned by this method. Capability result doesn't need a matching name apparently as
-	// the first result from the capability table in the message is used.
+	// and returned by this method. The 'Capability' result doesn't need a matching name apparently as
+	// the first result from the capability table in the message is used. Quite convenient.
 	// TBD: Can this behavior be relied on in future versions of go-capnp?
 	method, _ := rcl.knownMethods[capabilityName]
 	mc := call.Call
@@ -193,6 +162,38 @@ func (rcl *CapRegistrationServer) Provider() hubapi.CapProvider {
 // for now release the resolver service and close the rpc connection
 func (rcl *CapRegistrationServer) Release() {
 	logrus.Infof("client of registration service is released")
+}
+
+// Start establishes an RPC connection with the Resolver Service, obtain the registration
+// capability and register this service capabilities.
+// Users must call ExportCapabilities before connecting.
+//
+// If no socket path is given, then use the default path.
+func (rcl *CapRegistrationServer) Start(resolverSocket string) (err error) {
+	ctx := context.Background()
+	if resolverSocket == "" {
+		resolverSocket = resolver.DefaultResolverPath
+	}
+
+	conn, err := net.DialTimeout("unix", resolverSocket, time.Second)
+	if err != nil {
+		return err
+	}
+	// keep the resolver client alive as capabilities use its RPC connection
+	rcl.resolverClient, err = capnpclient.NewResolverSessionCapnpClient(ctx, conn)
+	if err != nil {
+		return err
+	}
+
+	// list capabilities
+	capList := make([]resolver.CapabilityInfo, 0, len(rcl.exportedCapabilities))
+	for _, capInfo := range rcl.exportedCapabilities {
+		capList = append(capList, capInfo)
+	}
+
+	err = rcl.resolverClient.RegisterCapabilities(ctx, rcl.serviceName, capList, rcl.capProviderCapability)
+
+	return err
 }
 
 // Stop the registration server and close the RPC connection

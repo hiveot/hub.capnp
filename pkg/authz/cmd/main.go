@@ -20,7 +20,7 @@ func main() {
 	f := svcconfig.LoadServiceConfig(authz.ServiceName, false, nil)
 	aclStoreFolder := filepath.Join(f.Stores, authz.ServiceName)
 	aclStorePath := filepath.Join(aclStoreFolder, aclStoreFile)
-	os.Mkdir(aclStoreFolder, 0700)
+	_ = os.Mkdir(aclStoreFolder, 0700)
 
 	svc := service.NewAuthzService(aclStorePath)
 
@@ -28,7 +28,7 @@ func main() {
 		func(ctx context.Context, lis net.Listener) error {
 			// startup
 			err := svc.Start(ctx)
-			err = capnpserver.StartAuthzCapnpServer(ctx, lis, svc)
+			err = capnpserver.StartAuthzCapnpServer(lis, svc)
 			return err
 		}, func() error {
 			// shutdown

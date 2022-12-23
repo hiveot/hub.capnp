@@ -257,7 +257,7 @@ To stop or start a service:
 
 # Contributing
 
-Contributions to HiveOT projects are always welcome. There are many areas where help is needed, especially with documentation and building plugins for IoT and other devices. See [CONTRIBUTING](docs/CONTRIBUTING.md) for guidelines.
+Contributions to HiveOT projects are always welcome. There are many areas where help is needed, especially with documentation and building plugins for IoT and other devices. See [CONTRIBUTING](CONTRIBUTING.md) for guidelines.
 
 # Credits
 

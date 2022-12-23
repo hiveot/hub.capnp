@@ -9,14 +9,15 @@ import (
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/internal/caphelp"
 	"github.com/hiveot/hub/pkg/history"
+	"github.com/hiveot/hub/pkg/resolver/client"
 )
 
 // HistoryServiceCapnpServer is a capnproto adapter for the history store
 // This implements the capnproto generated interface History_Server
 // See hub.capnp/go/hubapi/HistoryStore.capnp.go for the interface.
 type HistoryServiceCapnpServer struct {
-	caphelp.HiveOTServiceCapnpServer
-	svc history.IHistoryService
+	capRegSrv *client.CapRegistrationServer
+	svc       history.IHistoryService
 }
 
 func (capsrv *HistoryServiceCapnpServer) CapAddHistory(
@@ -89,18 +90,18 @@ func (capsrv *HistoryServiceCapnpServer) CapReadHistory(
 func StartHistoryServiceCapnpServer(_ context.Context, listener net.Listener, svc history.IHistoryService) error {
 
 	capsrv := &HistoryServiceCapnpServer{
-		HiveOTServiceCapnpServer: caphelp.NewHiveOTServiceCapnpServer(history.ServiceName),
-		svc:                      svc,
+		svc: svc,
 	}
-	// register the methods available through getCapability
-	capsrv.RegisterKnownMethods(hubapi.CapHistoryService_Methods(nil, capsrv))
-	capsrv.ExportCapability("capAddHistory", []string{hubapi.ClientTypeService})
-	capsrv.ExportCapability("capAddAnyThing", []string{hubapi.ClientTypeService})
-	capsrv.ExportCapability("capReadHistory",
+	capRegSrv := client.NewCapRegistrationServer(
+		history.ServiceName, hubapi.CapHistoryService_Methods(nil, capsrv))
+	capRegSrv.ExportCapability("capAddHistory", []string{hubapi.ClientTypeService})
+	capRegSrv.ExportCapability("capAddAnyThing", []string{hubapi.ClientTypeService})
+	capRegSrv.ExportCapability("capReadHistory",
 		[]string{hubapi.ClientTypeService, hubapi.ClientTypeUser})
+	capsrv.capRegSrv = capRegSrv
 
 	// Create the capnp handler to receive requests
 	main := hubapi.CapHistoryService_ServerToClient(capsrv)
-	err := caphelp.Serve(listener, capnp.Client(main))
+	err := caphelp.Serve(listener, capnp.Client(main), nil)
 	return err
 }

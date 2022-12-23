@@ -15,8 +15,7 @@ import (
 // This implements the ILauncher interface
 type LauncherCapnpClient struct {
 	connection *rpc.Conn          // connection to the capnp server
-	capability hubapi.CapLauncher // capnp client
-	ctx        context.Context
+	capability hubapi.CapLauncher // capnp client to the server
 }
 
 // List services
@@ -104,7 +103,6 @@ func NewLauncherCapnpClient(ctx context.Context, connection net.Conn) (*Launcher
 	cl = &LauncherCapnpClient{
 		connection: rpcConn,
 		capability: capability,
-		ctx:        ctx,
 	}
 
 	return cl, nil

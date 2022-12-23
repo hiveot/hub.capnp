@@ -99,13 +99,14 @@ func ProvisionGetPendingRequestsCommand(ctx context.Context, f svcconfig.AppFold
 }
 
 // HandleAddOobSecret invokes the out-of-band provisioning service to add a provisioning secret
-//  deviceID is the ID of the device whose secret to set
-//  secret to set
+//
+//	deviceID is the ID of the device whose secret to set
+//	secret to set
 func HandleAddOobSecret(ctx context.Context, f svcconfig.AppFolders, deviceID string, secret string) error {
 	var pc provisioning.IProvisioning
 	var secrets []provisioning.OOBSecret
 
-	conn, err := listener.CreateClientConnection(f.Run, provisioning.ServiceName)
+	conn, err := listener.CreateLocalClientConnection(provisioning.ServiceName, f.Run)
 	if err == nil {
 		pc, err = capnpclient.NewProvisioningCapnpClient(ctx, conn)
 	}
@@ -126,11 +127,12 @@ func HandleAddOobSecret(ctx context.Context, f svcconfig.AppFolders, deviceID st
 }
 
 // HandleApproveRequest
-//  deviceID is the ID of the device to approve
+//
+//	deviceID is the ID of the device to approve
 func HandleApproveRequest(ctx context.Context, f svcconfig.AppFolders, deviceID string) error {
 	var pc provisioning.IProvisioning
 
-	conn, err := listener.CreateClientConnection(f.Run, provisioning.ServiceName)
+	conn, err := listener.CreateLocalClientConnection(provisioning.ServiceName, f.Run)
 	if err == nil {
 		pc, err = capnpclient.NewProvisioningCapnpClient(ctx, conn)
 	}
@@ -148,7 +150,7 @@ func HandleApproveRequest(ctx context.Context, f svcconfig.AppFolders, deviceID 
 func HandleGetApprovedRequests(ctx context.Context, f svcconfig.AppFolders) error {
 	var pc provisioning.IProvisioning
 
-	conn, err := listener.CreateClientConnection(f.Run, provisioning.ServiceName)
+	conn, err := listener.CreateLocalClientConnection(provisioning.ServiceName, f.Run)
 	if err == nil {
 		pc, err = capnpclient.NewProvisioningCapnpClient(ctx, conn)
 	}
@@ -173,7 +175,7 @@ func HandleGetApprovedRequests(ctx context.Context, f svcconfig.AppFolders) erro
 func HandleGetPendingRequests(ctx context.Context, f svcconfig.AppFolders) error {
 	var pc provisioning.IProvisioning
 
-	conn, err := listener.CreateClientConnection(f.Run, provisioning.ServiceName)
+	conn, err := listener.CreateLocalClientConnection(provisioning.ServiceName, f.Run)
 	if err == nil {
 		pc, err = capnpclient.NewProvisioningCapnpClient(ctx, conn)
 	}

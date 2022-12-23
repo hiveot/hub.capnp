@@ -28,6 +28,8 @@ type ResolverService struct {
 // If this connection closes then capabilites added in this session are removed.
 func (svc *ResolverService) OnIncomingConnection(conn net.Conn) resolver.IResolverSession {
 	_ = conn
+	svc.sessionMutex.Lock()
+	defer svc.sessionMutex.Unlock()
 	newSession := NewResolverSession(svc)
 	svc.sessions[conn] = newSession
 	return newSession
@@ -104,7 +106,7 @@ func (svc *ResolverService) ListCapabilities(ctx context.Context) ([]resolver.Ca
 			capList = append(capList, sessionCaps...)
 		}
 	}
-	logrus.Infof("listing '%d' capabilities from %d sessions", len(capList), len(svc.sessions))
+	//logrus.Infof("listing '%d' capabilities from %d sessions", len(capList), len(svc.sessions))
 	// sort by service ID + capability Name
 	sort.Slice(capList, func(i, j int) bool {
 		iName := capList[i].ServiceID + capList[i].CapabilityName
@@ -116,7 +118,7 @@ func (svc *ResolverService) ListCapabilities(ctx context.Context) ([]resolver.Ca
 
 // Start currently has nothing to do as the capnpserver listens for incoming connections
 func (svc *ResolverService) Start(_ context.Context) error {
-	logrus.Infof("Starting resolver service")
+	//logrus.Infof("Starting resolver service")
 	return nil
 }
 

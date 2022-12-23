@@ -4,59 +4,128 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a8355b86-cb16-4dbc-90ec-9852fdfe1e16" name="Changes" comment="Added gateway to hub cli&#10;Bug fixes">
-      <change afterPath="$PROJECT_DIR$/internal/listener/RunService.go" afterDir="false" />
+    <list default="true" id="a8355b86-cb16-4dbc-90ec-9852fdfe1e16" name="Changes" comment="dev iteration with breaking changes using the resolver for getting capabilities.">
+      <change afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Resolver.capnp.old" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Resolver.capnp.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/internal/dummy/DummyAuthnService.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/internal/dummy/DummyCapResolver.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/gateway/capnpclient/GatewaySessionCapnpClient.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/gateway/capnpserver/GatewaySessionCapnpServer.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/gateway/capnpserver/StartGatewayCapnpServer.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/gateway/config/GatewayConfig.go" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pkg/gateway/service/GatewaySession.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/Makefile" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Authn.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Authn.capnp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Authz.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Authz.capnp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Certs.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Certs.capnp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Directory.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Directory.capnp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Gateway.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Gateway.capnp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/History.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/History.capnp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Launcher.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Launcher.capnp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Provisioning.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Provisioning.capnp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/PubSub.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/PubSub.capnp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Resolver.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Resolver.capnp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/Service.capnp" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/State.capnp" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/capnp/hubapi/State.capnp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Authn.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Authn.capnp.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Authz.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Authz.capnp.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Certs.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Certs.capnp.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Directory.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Directory.capnp.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Gateway.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Gateway.capnp.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/History.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/History.capnp.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Launcher.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Launcher.capnp.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Provisioning.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Provisioning.capnp.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/PubSub.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/PubSub.capnp.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/Service.capnp.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.capnp/go/hubapi/State.capnp.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.capnp/go/hubapi/State.capnp.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../hub.go/pkg/certsclient/Certs.go" beforeDir="false" afterPath="$PROJECT_DIR$/../hub.go/pkg/certsclient/Certs.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Makefile" beforeDir="false" afterPath="$PROJECT_DIR$/Makefile" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cmd/hubcli/gateway/GatewayCommands.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/gateway/GatewayCommands.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/hubcli/authn/AuthnCommands.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/authn/AuthnCommands.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/hubcli/authz/AuthzCommands.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/authz/AuthzCommands.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/hubcli/certscli/CertCommands.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/certscli/CertCommands.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/hubcli/directorycli/DirectoryCommands.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/directorycli/DirectoryCommands.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/hubcli/gateway/GatewayCommands.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/gatewaycli/GatewayCommands.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/hubcli/historycli/HistoryCommands.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/historycli/HistoryCommands.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/cmd/hubcli/launchercli/LauncherCommands.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/launchercli/LauncherCommands.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/listener/CreateServiceListener.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/listener/CreateServiceListener.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/listener/ExitOnSignal.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/listener/ExitOnSignal.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/internal/svcconfig/SvcConfig.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/svcconfig/SvcConfig.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/hubcli/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/cmd/hubcli/provcli/ProvCommands.go" beforeDir="false" afterPath="$PROJECT_DIR$/cmd/hubcli/provcli/ProvCommands.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/caphelp/HiveOTServiceCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/caphelp/HiveOTServiceCapnpClient.go.org" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/caphelp/HiveOTServiceCapnpServer.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/caphelp/Serve.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/caphelp/Serve.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/captest/TestMethod1.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/captest/TestMethod1.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/internal/captest/TestService.go" beforeDir="false" afterPath="$PROJECT_DIR$/internal/captest/TestService.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/authn/Authn_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/authn/Authn_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/authn/cmd/authn.old/authn_test.go.old" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/authn/cmd/authn.old/main.go.old" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/authn/capnpclient/UserAuthnCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/authn/capnpclient/UserAuthnCapnpClient.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/authn/capnpserver/AuthnCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/authn/capnpserver/AuthnCapnpServer.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/authn/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/authn/cmd/main.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/authn/service/AuthnService.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/authn/service/AuthnService.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/authz/Authz_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/authz/Authz_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/authz/capnpserver/AuthzCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/authz/capnpserver/AuthzCapnpServer.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/authz/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/authz/cmd/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/authz/service/AuthzService.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/authz/service/AuthzService.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/certs/Certs_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/certs/Certs_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/certs/ICerts.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/certs/ICerts.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/certs/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/certs/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/certs/capnpserver/CertsCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/certs/capnpserver/CertsCapnpServer.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/certs/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/certs/cmd/main.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/certs/service/selfsigned/CertsService.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/certs/service/selfsigned/CertsService.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/directory/Directory_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/directory/Directory_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/directory/IDirectory.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/directory/IDirectory.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/directory/capnpclient/DirectoryCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/directory/capnpclient/DirectoryCapnpClient.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/directory/capnpserver/DirectoryServiceCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/directory/capnpserver/DirectoryServiceCapnpServer.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/directory/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/directory/cmd/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/directory/service/DirectoryService.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/directory/service/DirectoryService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/discovery/IDiscovery.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/discovery/IDiscovery.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/gateway/Gateway_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/gateway/Gateway_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/gateway/IGateway.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/gateway/IGateway.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/gateway/capnpclient/GatewayServiceCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/gateway/capnpclient/GatewayServiceCapnpClient.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/gateway/capnpserver/GatewayServiceCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/gateway/capnpserver/GatewayServiceCapnpServer.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/gateway/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/gateway/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/gateway/capnpclient/GatewayServiceCapnpClient.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/gateway/capnpserver/GatewayServiceCapnpServer.go" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/gateway/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/gateway/cmd/main.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/gateway/service/GatewayService.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/gateway/service/GatewayService.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/history/History_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/History_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/history/IHistory.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/IHistory.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/history/capnpclient/HistoryServiceCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/capnpclient/HistoryServiceCapnpClient.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/history/capnpserver/HistoryServiceCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/capnpserver/HistoryServiceCapnpServer.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/history/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/cmd/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/history/service/HistoryService.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/history/service/HistoryService.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/launcher/ILauncher.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/launcher/ILauncher.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/launcher/Launcher_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/launcher/Launcher_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/launcher/capnpclient/LauncherCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/launcher/capnpclient/LauncherCapnpClient.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/launcher/capnpserver/LauncherCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/launcher/capnpserver/LauncherCapnpServer.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/launcher/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/launcher/cmd/main.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/launcher/service/LauncherService.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/launcher/service/LauncherService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/launcher/config/launcher.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/launcher/config/launcher.yaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/provisioning/Provisioning_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/provisioning/Provisioning_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/provisioning/capnpclient/ProvisioningCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/provisioning/capnpclient/ProvisioningCapnpClient.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/provisioning/capnpserver/ProvisioningCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/provisioning/capnpserver/ProvisioningCapnpServer.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/provisioning/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/provisioning/cmd/main.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/provisioning/service/ProvisioningService.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/provisioning/service/ProvisioningService.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/pubsub/IPubSub.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/pubsub/IPubSub.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/pubsub/PubSub_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/pubsub/PubSub_test.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pkg/pubsub/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/pubsub/cmd/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/pubsub/capnpclient/PubSubCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/pubsub/capnpclient/PubSubCapnpClient.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/pubsub/capnpserver/PubSubCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/pubsub/capnpserver/PubSubCapnpServer.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/pubsub/service/PubSubService.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/pubsub/service/PubSubService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/resolver/IResolver.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/resolver/IResolver.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/resolver/Resolver_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/resolver/Resolver_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/resolver/capnpclient/CapProviderCapnpClient.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/resolver/capnpclient/CapProviderCapnpClient.go.old" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/resolver/capnpclient/CapRegistrationCapnpClient.go.old" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/resolver/capnpclient/ResolverServiceCapnpClient.go.old" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/resolver/capnpclient/ResolverSessionCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/resolver/capnpclient/ResolverSessionCapnpClient.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/resolver/capnpserver/CapProviderCapnpServer.go.old" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/resolver/capnpserver/CapRegistrationCapnpServer.go.old" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/resolver/capnpserver/ResolverSessionCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/resolver/capnpserver/ResolverSessionCapnpServer.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/resolver/capnpserver/StartResolverCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/resolver/capnpserver/StartResolverCapnpServer.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/resolver/client/CapClient.go.old" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/resolver/client/CapRegistrationServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/resolver/client/CapRegistrationServer.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/resolver/client/ConnectToResolver.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/resolver/service/ResolverService.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/resolver/service/ResolverService.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/resolver/service/ResolverService.go.old" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/resolver/service/ResolverSession.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/resolver/service/ResolverSession.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/resolver/service/StartResolver.go" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/state/StateBench_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/StateBench_test.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/state/State_test.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/State_test.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/state/capnpclient/StateStoreCapnpClient.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/capnpclient/StateStoreCapnpClient.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/state/capnpserver/StateStoreCapnpServer.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/capnpserver/StateStoreCapnpServer.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/state/cmd/main.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/cmd/main.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/state/config/StateConfig.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/config/StateConfig.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pkg/state/config/state.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/config/state.yaml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/pkg/state/service/StateService.go" beforeDir="false" afterPath="$PROJECT_DIR$/pkg/state/service/StateService.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -97,51 +166,51 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_ADD_EXTERNAL_FILES": "true",
-    "DefaultGoTemplateProperty": "Go File",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.go.format.on.save.advertiser.fired": "true",
-    "RunOnceActivity.go.formatter.settings.were.checked": "true",
-    "RunOnceActivity.go.migrated.go.modules.settings": "true",
-    "RunOnceActivity.go.modules.go.list.on.any.changes.was.set": "true",
-    "RunOnceActivity.go.watchers.conflict.with.on.save.actions.check.performed": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "go.import.settings.migrated": "true",
-    "go.sdk.automatically.set": "true",
-    "last_opened_file_path": "/home/henk/dev/hiveot/hub/cmd/hubcli/gateway",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "preferences.keymap"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
+    &quot;DefaultGoTemplateProperty&quot;: &quot;Go File&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.format.on.save.advertiser.fired&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.formatter.settings.were.checked&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.migrated.go.modules.settings&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.modules.go.list.on.any.changes.was.set&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.go.watchers.conflict.with.on.save.actions.check.performed&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;go.import.settings.migrated&quot;: &quot;true&quot;,
+    &quot;go.sdk.automatically.set&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/henk/dev/hiveot/hub/pkg/resolver/capnpclient&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.editor.code.editing&quot;
   },
-  "keyToStringList": {
-    "DatabaseDriversLRU": [
-      "mongo"
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;mongo&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/cmd/hubcli/gateway" />
-      <recent name="$PROJECT_DIR$/internal/caphelp" />
-      <recent name="$PROJECT_DIR$/pkg/gateway/capnpserver" />
-      <recent name="$PROJECT_DIR$/pkg/gateway/capnpclient" />
-      <recent name="$PROJECT_DIR$/pkg/pubsub" />
+      <recent name="$PROJECT_DIR$/pkg/resolver/capnpclient" />
+      <recent name="$PROJECT_DIR$/../hub.capnp/capnp/hubapi" />
+      <recent name="$PROJECT_DIR$/pkg/resolver/service" />
+      <recent name="$PROJECT_DIR$/pkg/resolver/client" />
+      <recent name="$PROJECT_DIR$/pkg/resolver/capnpserver" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/pkg/resolver/service" />
+      <recent name="$PROJECT_DIR$/pkg/resolver/peer" />
+      <recent name="$PROJECT_DIR$/internal/capresolver" />
+      <recent name="$PROJECT_DIR$/pkg/resolver/capserializer" />
       <recent name="$PROJECT_DIR$/internal/caphelp" />
-      <recent name="$PROJECT_DIR$/pkg/gateway/capnpserver" />
-      <recent name="$PROJECT_DIR$/pkg/pubsub/capnpclient" />
-      <recent name="$PROJECT_DIR$/pkg/bucketstore/cmd" />
-      <recent name="$PROJECT_DIR$/pkg/history/service" />
     </key>
   </component>
-  <component name="RunManager" selected="Go Test.TestAddRemoveTD in github.com/hiveot/hub/pkg/directory">
+  <component name="RunManager" selected="Go Test.go test github.com/hiveot/hub/pkg/state">
     <configuration default="true" type="GoApplicationRunConfiguration" factoryName="Go Application">
       <working_directory value="$PROJECT_DIR$" />
       <kind value="FILE" />
@@ -149,64 +218,28 @@
       <filePath value="$PROJECT_DIR$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestAddRemoveTD in github.com/hiveot/hub/pkg/directory" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestGetCapability in github.com/hiveot/hub/pkg/gateway" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="hub" />
-      <working_directory value="$PROJECT_DIR$/pkg/directory" />
+      <working_directory value="$PROJECT_DIR$/pkg/gateway" />
       <root_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <package value="github.com/hiveot/hub/pkg/directory" />
+      <package value="github.com/hiveot/hub/pkg/gateway" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestAddRemoveTD\E$" />
+      <pattern value="^\QTestGetCapability\E$" />
       <method v="2" />
     </configuration>
-    <configuration name="TestAutomaticProvisioning in github.com/hiveot/hub/pkg/provisioning" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+    <configuration name="TestGetCapabilityNotExists in github.com/hiveot/hub/pkg/gateway" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
       <module name="hub" />
-      <working_directory value="$PROJECT_DIR$/pkg/provisioning" />
+      <working_directory value="$PROJECT_DIR$/pkg/gateway" />
       <root_directory value="$PROJECT_DIR$" />
       <kind value="PACKAGE" />
-      <package value="github.com/hiveot/hub/pkg/provisioning" />
+      <package value="github.com/hiveot/hub/pkg/gateway" />
       <directory value="$PROJECT_DIR$" />
       <filePath value="$PROJECT_DIR$" />
       <framework value="gotest" />
-      <pattern value="^\QTestAutomaticProvisioning\E$" />
-      <method v="2" />
-    </configuration>
-    <configuration name="TestList in github.com/hiveot/hub/pkg/launcher" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="hub" />
-      <working_directory value="$PROJECT_DIR$/pkg/launcher" />
-      <root_directory value="$PROJECT_DIR$" />
-      <kind value="PACKAGE" />
-      <package value="github.com/hiveot/hub/pkg/launcher" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <pattern value="^\QTestList\E$" />
-      <method v="2" />
-    </configuration>
-    <configuration name="TestStartStop in github.com/hiveot/hub/pkg/launcher" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="hub" />
-      <working_directory value="$PROJECT_DIR$/pkg/launcher" />
-      <root_directory value="$PROJECT_DIR$" />
-      <kind value="PACKAGE" />
-      <package value="github.com/hiveot/hub/pkg/launcher" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <pattern value="^\QTestStartStop\E$" />
-      <method v="2" />
-    </configuration>
-    <configuration name="TestStartYes in github.com/hiveot/hub/pkg/launcher" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
-      <module name="hub" />
-      <working_directory value="$PROJECT_DIR$/pkg/launcher" />
-      <root_directory value="$PROJECT_DIR$" />
-      <kind value="PACKAGE" />
-      <package value="github.com/hiveot/hub/pkg/launcher" />
-      <directory value="$PROJECT_DIR$" />
-      <filePath value="$PROJECT_DIR$" />
-      <framework value="gotest" />
-      <pattern value="^\QTestStartYes\E$" />
+      <pattern value="^\QTestGetCapabilityNotExists\E$" />
       <method v="2" />
     </configuration>
     <configuration default="true" type="GoTestRunConfiguration" factoryName="Go Test">
@@ -217,13 +250,46 @@
       <framework value="gotest" />
       <method v="2" />
     </configuration>
+    <configuration name="go test github.com/hiveot/hub/pkg/gateway" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="hub" />
+      <working_directory value="$PROJECT_DIR$/pkg/gateway" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/hiveot/hub/pkg/gateway" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <method v="2" />
+    </configuration>
+    <configuration name="go test github.com/hiveot/hub/pkg/resolver" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="hub" />
+      <working_directory value="$PROJECT_DIR$/pkg/resolver" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/hiveot/hub/pkg/resolver" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <method v="2" />
+    </configuration>
+    <configuration name="go test github.com/hiveot/hub/pkg/state" type="GoTestRunConfiguration" factoryName="Go Test" temporary="true" nameIsGenerated="true">
+      <module name="hub" />
+      <working_directory value="$PROJECT_DIR$/pkg/state" />
+      <root_directory value="$PROJECT_DIR$" />
+      <kind value="PACKAGE" />
+      <package value="github.com/hiveot/hub/pkg/state" />
+      <directory value="$PROJECT_DIR$" />
+      <filePath value="$PROJECT_DIR$" />
+      <framework value="gotest" />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Go Test.TestAddRemoveTD in github.com/hiveot/hub/pkg/directory" />
-        <item itemvalue="Go Test.TestStartYes in github.com/hiveot/hub/pkg/launcher" />
-        <item itemvalue="Go Test.TestList in github.com/hiveot/hub/pkg/launcher" />
-        <item itemvalue="Go Test.TestStartStop in github.com/hiveot/hub/pkg/launcher" />
-        <item itemvalue="Go Test.TestAutomaticProvisioning in github.com/hiveot/hub/pkg/provisioning" />
+        <item itemvalue="Go Test.go test github.com/hiveot/hub/pkg/state" />
+        <item itemvalue="Go Test.go test github.com/hiveot/hub/pkg/resolver" />
+        <item itemvalue="Go Test.go test github.com/hiveot/hub/pkg/gateway" />
+        <item itemvalue="Go Test.TestGetCapabilityNotExists in github.com/hiveot/hub/pkg/gateway" />
+        <item itemvalue="Go Test.TestGetCapability in github.com/hiveot/hub/pkg/gateway" />
       </list>
     </recent_temporary>
   </component>
@@ -276,8 +342,6 @@
       <path value="$PROJECT_DIR$/../hub.grpc" />
       <path value="$PROJECT_DIR$/../owserver-pb" />
     </ignored-roots>
-    <MESSAGE value="Launcher: improve error handling and logging  &#10;Launcher: adds logging of service stderr/stdout to file&#10;Launcher: Improve code coverage in tests&#10;KVStore: fix bug in store folder mode" />
-    <MESSAGE value="Cleanup launching &amp; bug fixes" />
     <MESSAGE value="Cleanup launching &amp; bug fixes&#10;Investigating a capnp rpc data race in some testcases" />
     <MESSAGE value="Update documentation" />
     <MESSAGE value="Added authorization service&#10;Update documentation&#10;cleanup" />
@@ -301,7 +365,9 @@
     <MESSAGE value="Gateway service first iteration complete&#10;Updated service capnp server so they can be called via the gateway.&#10;Cleanup and bug fixes" />
     <MESSAGE value="Fixes on server Serve() method.&#10;Added ServeTLS. (still needs work)&#10;Cleanup" />
     <MESSAGE value="Added gateway to hub cli&#10;Bug fixes" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added gateway to hub cli&#10;Bug fixes" />
+    <MESSAGE value="Standardize launching of services&#10;Cleanup&#10;Bug fixes" />
+    <MESSAGE value="dev iteration with breaking changes using the resolver for getting capabilities." />
+    <option name="LAST_COMMIT_MESSAGE" value="dev iteration with breaking changes using the resolver for getting capabilities." />
   </component>
   <component name="VgoProject">
     <settings-migrated>true</settings-migrated>
@@ -430,28 +496,8 @@
           <option name="timeStamp" value="435" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/pkg/pubsub/capnpclient/DevicePubSubCapnpClient.go</url>
-          <line>62</line>
-          <option name="timeStamp" value="437" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/internal/caphelp/HiveOTServiceCapnpClient.go</url>
-          <line>23</line>
-          <option name="timeStamp" value="552" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/pkg/gateway/service/GatewayService.go</url>
-          <line>264</line>
-          <option name="timeStamp" value="559" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/pkg/gateway/capnpserver/GatewayServiceCapnpServer.go</url>
-          <line>129</line>
-          <option name="timeStamp" value="560" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/internal/caphelp/HiveOTServiceCapnpServer.go</url>
-          <line>66</line>
+          <url>file://$PROJECT_DIR$/pkg/resolver/client/CapProvider.go</url>
+          <line>36</line>
           <option name="timeStamp" value="568" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
@@ -461,12 +507,12 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/pkg/state/State_test.go</url>
-          <line>273</line>
+          <line>283</line>
           <option name="timeStamp" value="587" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/pkg/state/State_test.go</url>
-          <line>270</line>
+          <line>280</line>
           <option name="timeStamp" value="589" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
@@ -475,13 +521,8 @@
           <option name="timeStamp" value="591" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/pkg/bucketstore/kvbtree/KVBTreeCursor.go</url>
-          <line>108</line>
-          <option name="timeStamp" value="592" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/pkg/state/State_test.go</url>
-          <line>257</line>
+          <line>267</line>
           <option name="timeStamp" value="593" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
@@ -500,44 +541,104 @@
           <option name="timeStamp" value="600" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/internal/caphelp/CapMap.go</url>
-          <line>20</line>
-          <option name="timeStamp" value="601" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/pkg/bucketstore/capnpclient/BucketCursorCapnpClient.go</url>
           <line>138</line>
           <option name="timeStamp" value="602" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/pkg/state/State_test.go</url>
-          <line>266</line>
+          <line>276</line>
           <option name="timeStamp" value="603" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/pkg/history/History_test.go</url>
-          <line>335</line>
-          <option name="timeStamp" value="619" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/pkg/history/History_test.go</url>
-          <line>158</line>
+          <line>161</line>
           <option name="timeStamp" value="622" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/pkg/state/State_test.go</url>
-          <line>132</line>
-          <option name="timeStamp" value="626" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
-          <url>file://$PROJECT_DIR$/../hub.capnp/go/hubapi/State.capnp.go</url>
-          <line>433</line>
-          <option name="timeStamp" value="627" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DlvLineBreakpoint">
           <url>file://$PROJECT_DIR$/pkg/launcher/service/LauncherService.go</url>
           <line>171</line>
           <option name="timeStamp" value="632" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/pkg/state/capnpserver/StateStoreCapnpServer.go</url>
+          <line>50</line>
+          <option name="timeStamp" value="645" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/pkg/state/State_test.go</url>
+          <line>50</line>
+          <option name="timeStamp" value="655" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/pkg/gateway/Gateway_test.go</url>
+          <line>91</line>
+          <option name="timeStamp" value="690" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/pkg/resolver/client/CapProvider.go</url>
+          <line>109</line>
+          <option name="timeStamp" value="772" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/pkg/resolver/client/CapProvider.go</url>
+          <line>206</line>
+          <option name="timeStamp" value="777" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/../../go-capnproto2/rpc/rpc.go</url>
+          <line>234</line>
+          <option name="timeStamp" value="787" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/pkg/resolver/capnpclient/ResolverSessionCapnpClient.go</url>
+          <line>131</line>
+          <option name="timeStamp" value="890" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/pkg/resolver/service/ResolverSession.go</url>
+          <line>71</line>
+          <option name="timeStamp" value="936" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/pkg/resolver/client/CapRegistrationServer.go</url>
+          <line>104</line>
+          <option name="timeStamp" value="949" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/pkg/resolver/client/CapRegistrationServer.go</url>
+          <line>114</line>
+          <option name="timeStamp" value="950" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/pkg/resolver/Resolver_test.go</url>
+          <line>165</line>
+          <option name="timeStamp" value="962" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/pkg/resolver/service/ResolverService.go</url>
+          <line>120</line>
+          <option name="timeStamp" value="966" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/pkg/resolver/capnpclient/ResolverSessionCapnpClient.go</url>
+          <line>56</line>
+          <option name="timeStamp" value="1008" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/pkg/gateway/service/GatewaySession.go</url>
+          <line>64</line>
+          <option name="timeStamp" value="1011" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/pkg/resolver/service/ResolverService.go</url>
+          <line>84</line>
+          <option name="timeStamp" value="1018" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="DlvLineBreakpoint">
+          <url>file://$PROJECT_DIR$/pkg/resolver/capnpclient/ResolverSessionCapnpClient.go</url>
+          <line>44</line>
+          <option name="timeStamp" value="1021" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
@@ -545,7 +646,6 @@
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/hub$TestLoginRefreshLogout_in_github_com_hiveot_hub_pkg_authn.out" NAME="TestLoginRefreshLogout in github.com/hiveot/hub/pkg/authn Coverage Results" MODIFIED="1667100205656" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$TestGetLatest_in_github_com_hiveot_hub_pkg_history.out" NAME="TestGetLatest in github.com/hiveot/hub/pkg/history Coverage Results" MODIFIED="1668563599773" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
-    <SUITE FILE_PATH="coverage/hub$TestProfile_in_github_com_hiveot_hub_pkg_authn.out" NAME="TestProfile in github.com/hiveot/hub/pkg/authn Coverage Results" MODIFIED="1667100156919" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_authz_service_aclstore.out" NAME="go test github.com/hiveot/hub/pkg/authz/service/aclstore Coverage Results" MODIFIED="1666455587550" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_provisioning.out" NAME="go test github.com/hiveot/hub/pkg/provisioning Coverage Results" MODIFIED="1669703970167" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_authn.out" NAME="go test github.com/hiveot/hub/pkg/authn Coverage Results" MODIFIED="1667100093116" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
@@ -556,40 +656,42 @@
     <SUITE FILE_PATH="coverage/hub$TestStartStop_in_github_com_hiveot_hub_pkg_gateway.out" NAME="TestStartStop in github.com/hiveot/hub/pkg/gateway Coverage Results" MODIFIED="1669700797423" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$TestCursor_in_github_com_hiveot_hub_pkg_directory.out" NAME="TestCursor in github.com/hiveot/hub/pkg/directory Coverage Results" MODIFIED="1669700939532" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$TestRemoveRole_in_github_com_hiveot_hub_pkg_authz_service_aclstore.out" NAME="TestRemoveRole in github.com/hiveot/hub/pkg/authz/service/aclstore Coverage Results" MODIFIED="1666454026469" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
-    <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_history.out" NAME="go test github.com/hiveot/hub/pkg/history Coverage Results" MODIFIED="1669701603164" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$TestCreateDelete_in_github_com_hiveot_hub_pkg_history.out" NAME="TestCreateDelete in github.com/hiveot/hub/pkg/history Coverage Results" MODIFIED="1665545158437" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
-    <SUITE FILE_PATH="coverage/hub$TestManagerAuthorization_in_github_com_hiveot_hub_pkg_authz.out" NAME="TestManagerAuthorization in github.com/hiveot/hub/pkg/authz Coverage Results" MODIFIED="1666460585155" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$TestAddGetEvent_in_github_com_hiveot_hub_pkg_history.out" NAME="TestAddGetEvent in github.com/hiveot/hub/pkg/history Coverage Results" MODIFIED="1665547199033" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$TestSeek_in_github_com_hiveot_hub_pkg_state.out" NAME="TestSeek in github.com/hiveot/hub/pkg/state Coverage Results" MODIFIED="1667859152920" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
-    <SUITE FILE_PATH="coverage/hub$TestIsPublisher_in_github_com_hiveot_hub_pkg_authz.out" NAME="TestIsPublisher in github.com/hiveot/hub/pkg/authz Coverage Results" MODIFIED="1666451557855" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
-    <SUITE FILE_PATH="coverage/hub$TestStartBadName_in_github_com_hiveot_hub_pkg_launcher.out" NAME="TestStartBadName in github.com/hiveot/hub/pkg/launcher Coverage Results" MODIFIED="1665027669792" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_certs.out" NAME="go test github.com/hiveot/hub/pkg/certs Coverage Results" MODIFIED="1665629762626" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$TestPrevNextFiltered_in_github_com_hiveot_hub_pkg_history.out" NAME="TestPrevNextFiltered in github.com/hiveot/hub/pkg/history Coverage Results" MODIFIED="1668575464095" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$gobench_github_com_hiveot_hub_pkg_launcher.out" NAME="gobench github.com/hiveot/hub/pkg/launcher Coverage Results" MODIFIED="1665027775771" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
-    <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_internal_bucketstore.out" NAME="go test github.com/hiveot/hub/internal/bucketstore Coverage Results" MODIFIED="1667540733779" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$TestStartStop_in_github_com_hiveot_hub_pkg_history.out" NAME="TestStartStop in github.com/hiveot/hub/pkg/history Coverage Results" MODIFIED="1665545475375" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$TestGetStuff_in_github_com_hiveot_hub_pkg_gateway.out" NAME="TestGetStuff in github.com/hiveot/hub/pkg/gateway Coverage Results" MODIFIED="1669167233859" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
-    <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_historystore.out" NAME="go test github.com/hiveot/hub/pkg/historystore Coverage Results" MODIFIED="1663989968436" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
-    <SUITE FILE_PATH="coverage/hub$TestNoAuthorization_in_github_com_hiveot_hub_pkg_authz.out" NAME="TestNoAuthorization in github.com/hiveot/hub/pkg/authz Coverage Results" MODIFIED="1666453577665" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
-    <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_directory.out" NAME="go test github.com/hiveot/hub/pkg/directory Coverage Results" MODIFIED="1669700861099" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_launcher.out" NAME="go test github.com/hiveot/hub/pkg/launcher Coverage Results" MODIFIED="1665593941235" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
-    <SUITE FILE_PATH="coverage/hub$TestCursor_in_github_com_hiveot_hub_pkg_state.out" NAME="TestCursor in github.com/hiveot/hub/pkg/state Coverage Results" MODIFIED="1667859464808" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
-    <SUITE FILE_PATH="coverage/hub$TestAddPropertiesEvent_in_github_com_hiveot_hub_pkg_history.out" NAME="TestAddPropertiesEvent in github.com/hiveot/hub/pkg/history Coverage Results" MODIFIED="1668576873220" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
-    <SUITE FILE_PATH="coverage/hub$TestStartNoDBName_in_github_com_hiveot_hub_pkg_history.out" NAME="TestStartNoDBName in github.com/hiveot/hub/pkg/history Coverage Results" MODIFIED="1665546767596" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$TestAddRemoveTD_in_github_com_hiveot_hub_pkg_directory.out" NAME="TestAddRemoveTD in github.com/hiveot/hub/pkg/directory Coverage Results" MODIFIED="1668106625288" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$TestList_in_github_com_hiveot_hub_pkg_launcher.out" NAME="TestList in github.com/hiveot/hub/pkg/launcher Coverage Results" MODIFIED="1665536113183" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$TestStartStopTwice_in_github_com_hiveot_hub_pkg_launcher.out" NAME="TestStartStopTwice in github.com/hiveot/hub/pkg/launcher Coverage Results" MODIFIED="1665028808661" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$TestAutomaticProvisioningBadParameters_in_github_com_hiveot_hub_pkg_provisioning.out" NAME="TestAutomaticProvisioningBadParameters in github.com/hiveot/hub/pkg/provisioning Coverage Results" MODIFIED="1664736166374" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
-    <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_gateway.out" NAME="go test github.com/hiveot/hub/pkg/gateway Coverage Results" MODIFIED="1669700650950" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$TestPrevNext_in_github_com_hiveot_hub_pkg_history.out" NAME="TestPrevNext in github.com/hiveot/hub/pkg/history Coverage Results" MODIFIED="1668566233627" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$TestStartStopBadLocation_in_github_com_hiveot_hub_pkg_state.out" NAME="TestStartStopBadLocation in github.com/hiveot/hub/pkg/state Coverage Results" MODIFIED="1667929445775" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$TestManualProvisioning_in_github_com_hiveot_hub_pkg_provisioning.out" NAME="TestManualProvisioning in github.com/hiveot/hub/pkg/provisioning Coverage Results" MODIFIED="1664738724782" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/hub$TestListGroups_in_github_com_hiveot_hub_pkg_authz.out" NAME="TestListGroups in github.com/hiveot/hub/pkg/authz Coverage Results" MODIFIED="1666459497680" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_pubsub.out" NAME="go test github.com/hiveot/hub/pkg/pubsub Coverage Results" MODIFIED="1669704016617" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/hub$gobench_github_com_hiveot_hub_pkg_history.out" NAME="gobench github.com/hiveot/hub/pkg/history Coverage Results" MODIFIED="1668577125202" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/hub$TestProfile_in_github_com_hiveot_hub_pkg_authn.out" NAME="TestProfile in github.com/hiveot/hub/pkg/authn Coverage Results" MODIFIED="1667100156919" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_history.out" NAME="go test github.com/hiveot/hub/pkg/history Coverage Results" MODIFIED="1669701603164" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/hub$TestManagerAuthorization_in_github_com_hiveot_hub_pkg_authz.out" NAME="TestManagerAuthorization in github.com/hiveot/hub/pkg/authz Coverage Results" MODIFIED="1666460585155" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/hub$TestIsPublisher_in_github_com_hiveot_hub_pkg_authz.out" NAME="TestIsPublisher in github.com/hiveot/hub/pkg/authz Coverage Results" MODIFIED="1666451557855" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/hub$TestStartBadName_in_github_com_hiveot_hub_pkg_launcher.out" NAME="TestStartBadName in github.com/hiveot/hub/pkg/launcher Coverage Results" MODIFIED="1665027669792" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_internal_bucketstore.out" NAME="go test github.com/hiveot/hub/internal/bucketstore Coverage Results" MODIFIED="1667540733779" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_historystore.out" NAME="go test github.com/hiveot/hub/pkg/historystore Coverage Results" MODIFIED="1663989968436" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/hub$TestNoAuthorization_in_github_com_hiveot_hub_pkg_authz.out" NAME="TestNoAuthorization in github.com/hiveot/hub/pkg/authz Coverage Results" MODIFIED="1666453577665" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_directory.out" NAME="go test github.com/hiveot/hub/pkg/directory Coverage Results" MODIFIED="1669700861099" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/hub$TestCursor_in_github_com_hiveot_hub_pkg_state.out" NAME="TestCursor in github.com/hiveot/hub/pkg/state Coverage Results" MODIFIED="1667859464808" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/hub$TestAddPropertiesEvent_in_github_com_hiveot_hub_pkg_history.out" NAME="TestAddPropertiesEvent in github.com/hiveot/hub/pkg/history Coverage Results" MODIFIED="1668576873220" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/hub$TestStartNoDBName_in_github_com_hiveot_hub_pkg_history.out" NAME="TestStartNoDBName in github.com/hiveot/hub/pkg/history Coverage Results" MODIFIED="1665546767596" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_gateway.out" NAME="go test github.com/hiveot/hub/pkg/gateway Coverage Results" MODIFIED="1669700650950" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+    <SUITE FILE_PATH="coverage/hub$TestGetCapability_in_github_com_hiveot_hub_pkg_resolver.out" NAME="TestGetCapability in github.com/hiveot/hub/pkg/resolver Coverage Results" MODIFIED="1670827018445" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$TestGroup_in_github_com_hiveot_hub_pkg_authz_service_aclstore.out" NAME="TestGroup in github.com/hiveot/hub/pkg/authz/service/aclstore Coverage Results" MODIFIED="1666454399167" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_authz.out" NAME="go test github.com/hiveot/hub/pkg/authz Coverage Results" MODIFIED="1666501180580" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_bucketstore.out" NAME="go test github.com/hiveot/hub/pkg/bucketstore Coverage Results" MODIFIED="1668064041877" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
-    <SUITE FILE_PATH="coverage/hub$TestListGroups_in_github_com_hiveot_hub_pkg_authz.out" NAME="TestListGroups in github.com/hiveot/hub/pkg/authz Coverage Results" MODIFIED="1666459497680" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
     <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_certservice.out" NAME="go test github.com/hiveot/hub/pkg/certservice Coverage Results" MODIFIED="1663899705475" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
-    <SUITE FILE_PATH="coverage/hub$go_test_github_com_hiveot_hub_pkg_pubsub.out" NAME="go test github.com/hiveot/hub/pkg/pubsub Coverage Results" MODIFIED="1669704016617" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
-    <SUITE FILE_PATH="coverage/hub$gobench_github_com_hiveot_hub_pkg_history.out" NAME="gobench github.com/hiveot/hub/pkg/history Coverage Results" MODIFIED="1668577125202" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="GoCoverage" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
   </component>
 </project>

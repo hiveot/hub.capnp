@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 	"os"
+	"syscall"
 	"testing"
 	"time"
 
@@ -22,7 +23,7 @@ import (
 
 const storeDir = "/tmp/test-state"
 
-// const testAddress = "/tmp/statestore_test.socket"
+const testAddress = "/tmp/statestore_test.socket"
 const testUseCapnp = true
 
 var backend = bucketstore.BackendKVBTree
@@ -32,42 +33,48 @@ var backend = bucketstore.BackendKVBTree
 //var backend = bucketstore.BackendPebble
 
 // return an API to the state service, optionally using capnp RPC
-func createStateService(useCapnp bool) (store state.IStateService, stopFn func() error, err error) {
-	ctx, cancelCtx := context.WithCancel(context.Background())
-	defer cancelCtx()
-	logrus.Infof("createStateService")
-	os.RemoveAll(storeDir)
+func startStateService(useCapnp bool) (store state.IStateService, stopFn func() error, err error) {
+	logrus.Infof("startStateService")
+	_ = os.RemoveAll(storeDir)
 	cfg := config.NewStateConfig(storeDir)
 	cfg.Backend = backend
 	stateSvc := service.NewStateStoreService(cfg)
+	ctx, cancelCtx := context.WithCancel(context.Background())
 	err = stateSvc.Start(ctx)
 
 	// optionally test with capnp RPC
 	if err == nil && useCapnp {
 
-		//_ = syscall.Unlink(testAddress)
-		//srvListener, _ := net.Listen("unix", testAddress)
-		srvListener, _ := net.Listen("tcp", ":0")
+		_ = syscall.Unlink(testAddress)
+		srvListener, err2 := net.Listen("unix", testAddress)
+		if err2 != nil {
+			panic(err2)
+		}
+		//srvListener, _ := net.Listen("tcp", ":0")
 		go func() {
-			_ = capnpserver.StartStateCapnpServer(ctx, srvListener, stateSvc)
+			_ = capnpserver.StartStateCapnpServer(srvListener, stateSvc)
 		}()
 		// connect the client to the server above
-		//clConn, _ := net.Dial("unix", testAddress)
-		clConn, _ := net.Dial("tcp", srvListener.Addr().String())
+		clConn, err2 := net.Dial("unix", testAddress)
+		//clConn, err2 := net.Dial("tcp", srvListener.Addr().String())
+		if err2 != nil {
+			panic(err2)
+		}
 		capClient, err2 := capnpclient.NewStateCapnpClient(ctx, clConn)
 		// the stop function cancels the context, closes the listener and stops the store
 		return capClient, func() error {
 			// don't kill the capnp messenger yet as capabilities are being released in the test cases
-			time.Sleep(time.Millisecond)
-			err = capClient.Stop()
-			_ = clConn.Close()
+			capClient.Release()
 			cancelCtx()
+			_ = clConn.Close()
 			err = stateSvc.Stop()
-			time.Sleep(time.Millisecond)
 			return err
 		}, err2
 	}
-	return stateSvc, func() error { return stateSvc.Stop() }, err
+	return stateSvc, func() error {
+		cancelCtx()
+		return stateSvc.Stop()
+	}, err
 }
 
 func TestMain(m *testing.M) {
@@ -79,7 +86,7 @@ func TestMain(m *testing.M) {
 
 func TestStartStop(t *testing.T) {
 	logrus.Infof("--- TestStartStop ---")
-	store, stopFn, err := createStateService(testUseCapnp)
+	store, stopFn, err := startStateService(testUseCapnp)
 	require.NoError(t, err)
 	assert.NotNil(t, store)
 
@@ -96,7 +103,8 @@ func TestStartStopBadLocation(t *testing.T) {
 	stateSvc := service.NewStateStoreService(cfg)
 	err := stateSvc.Start(context.Background())
 	if !assert.Error(t, err) {
-		stateSvc.Stop()
+		err = stateSvc.Stop()
+		assert.NoError(t, err)
 	}
 
 	// stop twice should return an error
@@ -108,7 +116,8 @@ func TestStartStopBadLocation(t *testing.T) {
 	stateSvc = service.NewStateStoreService(cfg)
 	err = stateSvc.Start(context.Background())
 	if !assert.Error(t, err) {
-		stateSvc.Stop()
+		err = stateSvc.Stop()
+		assert.NoError(t, err)
 	}
 }
 
@@ -120,9 +129,9 @@ func TestSetGet1(t *testing.T) {
 	var val1 = []byte("value 1")
 
 	ctx := context.Background()
-	store, stopFn, err := createStateService(testUseCapnp)
+	svc, stopFn, err := startStateService(testUseCapnp)
 	require.NoError(t, err)
-	clientState, err := store.CapClientState(ctx, clientID1, appID)
+	clientState, err := svc.CapClientState(ctx, clientID1, appID)
 	assert.NoError(t, err)
 
 	logrus.Infof("set")
@@ -136,7 +145,7 @@ func TestSetGet1(t *testing.T) {
 	assert.Equal(t, val1, val2)
 	//
 	// check if it persists
-	clientState2, err2 := store.CapClientState(ctx, clientID1, appID)
+	clientState2, err2 := svc.CapClientState(ctx, clientID1, appID)
 	assert.NoError(t, err2)
 	logrus.Infof("get2")
 	val3, err := clientState2.Get(ctx, key1)
@@ -163,7 +172,7 @@ func TestSetGetMultiple(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	store, stopFn, err := createStateService(testUseCapnp)
+	store, stopFn, err := startStateService(testUseCapnp)
 	clientState, err := store.CapClientState(ctx, clientID1, appID)
 
 	// write multiple
@@ -191,7 +200,7 @@ func TestDelete(t *testing.T) {
 	var val1 = []byte("value 1")
 
 	ctx := context.Background()
-	store, stopFn, err := createStateService(testUseCapnp)
+	store, stopFn, err := startStateService(testUseCapnp)
 	require.NoError(t, err)
 	clientState, err := store.CapClientState(ctx, clientID1, appID)
 	if assert.NoError(t, err) {
@@ -217,7 +226,7 @@ func TestGetDifferentClientBuckets(t *testing.T) {
 	var val1 = []byte("value 1")
 
 	ctx := context.Background()
-	store, stopFn, err := createStateService(testUseCapnp)
+	store, stopFn, err := startStateService(testUseCapnp)
 	assert.NoError(t, err)
 	clientState, err := store.CapClientState(ctx, clientID1, appID)
 	assert.NoError(t, err)
@@ -234,7 +243,8 @@ func TestGetDifferentClientBuckets(t *testing.T) {
 	clientStore2.Release()
 
 	// we want to detect exceptions so don't use defer stopFn() which can hang on a lock
-	stopFn()
+	err = stopFn()
+	assert.NoError(t, err)
 }
 
 func TestCursor(t *testing.T) {
@@ -251,7 +261,7 @@ func TestCursor(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	svc, stopFn, err := createStateService(testUseCapnp)
+	svc, stopFn, err := startStateService(testUseCapnp)
 	clientState, err := svc.CapClientState(ctx, clientID1, appID)
 
 	// write multiple

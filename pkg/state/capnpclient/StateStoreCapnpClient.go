@@ -16,7 +16,6 @@ import (
 type StateServiceCapnpClient struct {
 	connection *rpc.Conn       // connection to capnp server
 	capability hubapi.CapState // capnp client of the state store
-	ctx        context.Context
 }
 
 func (cl *StateServiceCapnpClient) CapClientState(
@@ -29,15 +28,15 @@ func (cl *StateServiceCapnpClient) CapClientState(
 			return err2
 		})
 	defer release()
-	capability := method.Cap().AddRef()
-	return NewClientStateCapnpClient(capability), nil
+	resp, err := method.Struct()
+	capability := resp.Cap().AddRef()
+	//capability := method.Cap().AddRef()
+	return NewClientStateCapnpClient(capability), err
 }
 
-func (cl *StateServiceCapnpClient) Stop() error {
-	// release will invoke a shutdown on the client instance at the server
-	// except that this doesn't work. Without open calls the server shutdown is not invoked???
+func (cl *StateServiceCapnpClient) Release() {
+	// release will release  client service instance
 	cl.capability.Release()
-	return nil
 }
 
 // NewStateCapnpClient returns a state store client using the capnp protocol
@@ -53,7 +52,6 @@ func NewStateCapnpClient(ctx context.Context, connection net.Conn) (*StateServic
 	cl = &StateServiceCapnpClient{
 		connection: rpcConn,
 		capability: capability,
-		ctx:        ctx,
 	}
 	return cl, nil
 }

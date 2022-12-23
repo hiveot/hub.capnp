@@ -9,6 +9,7 @@ import (
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/internal/caphelp"
+	"github.com/hiveot/hub/pkg/resolver/client"
 	"github.com/hiveot/hub/pkg/state"
 )
 
@@ -16,8 +17,8 @@ import (
 // This implements the capnproto generated interface State_Server
 // See hub.capnp/go/hubapi/State.capnp.go for the interface.
 type StateStoreCapnpServer struct {
-	caphelp.HiveOTServiceCapnpServer
-	svc state.IStateService
+	capRegSrv *client.CapRegistrationServer
+	svc       state.IStateService
 }
 
 // CapClientState returns a capnp server instance for accessing client state
@@ -53,20 +54,24 @@ func (capsrv *StateStoreCapnpServer) Shutdown() {
 
 // StartStateCapnpServer starts the capnp protocol server for the state store
 // The capnp server will release the service on shutdown.
-func StartStateCapnpServer(ctx context.Context, lis net.Listener, svc state.IStateService) error {
-
-	logrus.Infof("Starting state store capnp adapter on: %s", lis.Addr())
+func StartStateCapnpServer(lis net.Listener, svc state.IStateService) error {
 
 	capsrv := &StateStoreCapnpServer{
-		HiveOTServiceCapnpServer: caphelp.NewHiveOTServiceCapnpServer(state.ServiceName),
-		svc:                      svc,
+		svc: svc,
 	}
-	// register the methods available through getCapability
-	capsrv.RegisterKnownMethods(hubapi.CapState_Methods(nil, capsrv))
-	capsrv.ExportCapability("capClientState",
+	// Support the resolver with a capability provider
+	capRegSrv := client.NewCapRegistrationServer(
+		state.ServiceName, hubapi.CapState_Methods(nil, capsrv))
+	capRegSrv.ExportCapability("capClientState",
 		[]string{hubapi.ClientTypeService, hubapi.ClientTypeUser})
+	capsrv.capRegSrv = capRegSrv
+	err := capRegSrv.Start("")
 
-	main := hubapi.CapState_ServerToClient(capsrv)
-	err := caphelp.Serve(lis, capnp.Client(main))
+	// listen on socket if a listener is provided
+	if lis != nil {
+		logrus.Infof("Starting state store capnp server on: %s", lis.Addr())
+		main := hubapi.CapState_ServerToClient(capsrv)
+		err = caphelp.Serve(lis, capnp.Client(main), nil)
+	}
 	return err
 }

@@ -89,6 +89,9 @@ func newHistoryService(useCapnp bool) (history.IHistoryService, func() error) {
 			cancelFn()
 			_ = svc.Stop()
 			err = store.Close()
+			cl.Release()
+			// give it some time to shut down before the next test
+			time.Sleep(time.Millisecond)
 			return err
 		}
 	}
@@ -165,8 +168,8 @@ func addHistory(svc history.IHistoryService, count int, nrThings int, timespanSe
 
 func TestMain(m *testing.M) {
 	logging.SetLogging("info", "")
-	os.RemoveAll(testFolder)
-	os.MkdirAll(testFolder, 0700)
+	_ = os.RemoveAll(testFolder)
+	_ = os.MkdirAll(testFolder, 0700)
 
 	res := m.Run()
 	os.Exit(res)
@@ -175,6 +178,7 @@ func TestMain(m *testing.M) {
 // Test creating and deleting the history database
 // This requires a local unsecured MongoDB instance
 func TestStartStop(t *testing.T) {
+	logrus.Info("--- TestStartStop ---")
 	ctx := context.Background()
 	cfg := config.NewHistoryConfig(testFolder)
 
@@ -195,6 +199,7 @@ func TestStartStop(t *testing.T) {
 }
 
 func TestAddGetEvent(t *testing.T) {
+	logrus.Info("--- TestAddGetEvent ---")
 	const device1 = "urn:device1"
 	const id1 = "urn:thing1"
 	const id2 = "urn:thing2"
@@ -283,6 +288,7 @@ func TestAddGetEvent(t *testing.T) {
 }
 
 func TestAddPropertiesEvent(t *testing.T) {
+	logrus.Info("--- TestAddPropertiesEvent ---")
 	const id1 = "urn:" + thingIDPrefix + "0" // matches a percentage of the random things
 	const thing1Addr = "urn:device1/" + id1
 	const temp1 = "55"
@@ -391,6 +397,7 @@ func TestAddPropertiesEvent(t *testing.T) {
 }
 
 func TestGetLatest(t *testing.T) {
+	logrus.Info("--- TestGetLatest ---")
 	const count = 1000
 	const id1 = thingIDPrefix + "0" // matches a percentage of the random things
 	const thing1Addr = "urn:device1/" + id1
@@ -432,6 +439,7 @@ func TestGetLatest(t *testing.T) {
 }
 
 func TestPrevNext(t *testing.T) {
+	logrus.Info("--- TestPrevNext ---")
 	const count = 1000
 	const id0 = thingIDPrefix + "0" // matches a percentage of the random things
 	const thing0Addr = "urn:device1/" + id0
@@ -487,6 +495,7 @@ func TestPrevNext(t *testing.T) {
 
 // filter on property name
 func TestPrevNextFiltered(t *testing.T) {
+	logrus.Info("--- TestPrevNextFiltered ---")
 	const count = 1000
 	const id0 = thingIDPrefix + "0" // matches a percentage of the random things
 	const thing0Addr = "urn:device1/" + id0
@@ -552,8 +561,9 @@ func TestPrevNextFiltered(t *testing.T) {
 }
 
 func TestGetInfo(t *testing.T) {
-	store, closeFn := newHistoryService(useTestCapnp)
-	defer closeFn()
+	logrus.Info("--- TestGetInfo ---")
+	store, stopFn := newHistoryService(useTestCapnp)
+	defer stopFn()
 	addHistory(store, 1000, 5, 1000)
 	ctx := context.Background()
 

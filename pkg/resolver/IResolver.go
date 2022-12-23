@@ -67,6 +67,8 @@ type IResolverSession interface {
 	// GetCapability is used to obtain the capability using the capnp protocol.
 	// If Level 3 RPC is support, this might hand the capability over to the client.
 	// The provided capability must be released after use.
+	//
+	// Note that if the capability is not available this might not return an error until it is used.
 	GetCapability(ctx context.Context,
 		clientID string, clientType string, capName string, args []string) (capnp.Client, error)
 
@@ -86,22 +88,6 @@ type IResolverSession interface {
 	// This returns if the provider or capInfo are invalid
 	RegisterCapabilities(ctx context.Context, providerID string, capInfo []CapabilityInfo, provider hubapi.CapProvider) error
 
-	// Release is defined in ICapProvider
+	// Release must be called after to close the session
+	Release()
 }
-
-// IProvider provides capabilities from service providers.
-// This is the callback in to RegisterCapabilities to provide the service capabilities
-//type IProvider interface {
-//
-//	// GetCapability is used to obtain the capability using the capnp protocol.
-//	// If Level 3 RPC is support, this might hand the capability over to the client.
-//	// The provided capability must be released after use.
-//	GetCapability(ctx context.Context,
-//		clientID string, clientType string, capName string, args []string) (capnp.Client, error)
-//
-//	// ListCapabilities returns the list of capabilities provided by capability providers.
-//	ListCapabilities(ctx context.Context) (capInfo []CapabilityInfo, err error)
-//
-//	// Release the connection to the provider
-//	Release()
-//}

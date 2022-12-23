@@ -10,6 +10,7 @@ import (
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/internal/caphelp"
 	"github.com/hiveot/hub/pkg/pubsub"
+	"github.com/hiveot/hub/pkg/resolver/client"
 )
 
 // PubSubCapnpServer provides the capnp RPC server for pubsub services.
@@ -17,8 +18,8 @@ import (
 // See hub.capnp/go/hubapi/PubSubService.capnp.go for the interface.
 type PubSubCapnpServer struct {
 	// getCapability and listCapabilities
-	caphelp.HiveOTServiceCapnpServer
-	svc pubsub.IPubSubService
+	capProvider *client.CapRegistrationServer
+	svc         pubsub.IPubSubService
 }
 
 // CapDevicePubSub provides the capability to pub/sub thing information as an IoT device.
@@ -80,20 +81,24 @@ func StartPubSubCapnpServer(
 
 	logrus.Infof("Starting pubsub service capnp adapter on: %s", lis.Addr())
 	capsrv := &PubSubCapnpServer{
-		HiveOTServiceCapnpServer: caphelp.NewHiveOTServiceCapnpServer(pubsub.ServiceName),
-		svc:                      svc,
+		svc: svc,
 	}
-	// register the methods available through getCapability
-	capsrv.RegisterKnownMethods(hubapi.CapPubSubService_Methods(nil, capsrv))
-	capsrv.ExportCapability("capDevicePubSub",
+	// register with the capability resolver
+
+	capRegSrv := client.NewCapRegistrationServer(
+		pubsub.ServiceName, hubapi.CapPubSubService_Methods(nil, capsrv))
+	capRegSrv.ExportCapability("capDevicePubSub",
 		[]string{hubapi.ClientTypeService, hubapi.ClientTypeIotDevice})
-	capsrv.ExportCapability("capServicePubSub",
+	capRegSrv.ExportCapability("capServicePubSub",
 		[]string{hubapi.ClientTypeService})
-	capsrv.ExportCapability("capUserPubSub",
+	capRegSrv.ExportCapability("capUserPubSub",
 		[]string{hubapi.ClientTypeService, hubapi.ClientTypeUser})
-
-	main := hubapi.CapPubSubService_ServerToClient(capsrv)
-
-	err := caphelp.Serve(lis, capnp.Client(main))
+	err := capRegSrv.Start("")
+	capsrv.capProvider = capRegSrv
+	// listen for direct capability requests without resolver
+	if lis != nil {
+		main := hubapi.CapPubSubService_ServerToClient(capsrv)
+		err = caphelp.Serve(lis, capnp.Client(main), nil)
+	}
 	return err
 }

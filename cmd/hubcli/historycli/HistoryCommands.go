@@ -46,7 +46,7 @@ func HandleListEvents(ctx context.Context, f svcconfig.AppFolders, thingAddr str
 	var hist history.IHistoryService
 	var rd history.IReadHistory
 
-	conn, err := listener.CreateClientConnection(f.Run, history.ServiceName)
+	conn, err := listener.CreateLocalClientConnection(history.ServiceName, f.Run)
 	if err == nil {
 		hist, err = capnpclient.NewHistoryCapnpClient(ctx, conn)
 	}

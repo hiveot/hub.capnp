@@ -13,7 +13,7 @@ import (
 	"github.com/hiveot/hub/cmd/hubcli/authz"
 	"github.com/hiveot/hub/cmd/hubcli/certscli"
 	"github.com/hiveot/hub/cmd/hubcli/directorycli"
-	gatewaycli "github.com/hiveot/hub/cmd/hubcli/gateway"
+	"github.com/hiveot/hub/cmd/hubcli/gatewaycli"
 	"github.com/hiveot/hub/cmd/hubcli/historycli"
 	"github.com/hiveot/hub/cmd/hubcli/launchercli"
 	"github.com/hiveot/hub/cmd/hubcli/provcli"

@@ -97,7 +97,6 @@ func TestMissingRelease(t *testing.T) {
 func TestPubSubAction(t *testing.T) {
 	const device1ID = "urn:device1"
 	const service1ID = "urn:service1"
-	const userID = "urn:user1"
 	const thing1ID = "urn:thing1"
 	var thing1Addr = thing.MakeThingAddr(device1ID, thing1ID)
 	const actionName1 = "action1"
@@ -146,7 +145,6 @@ func TestPubSubAction(t *testing.T) {
 
 func TestPubSubEvent(t *testing.T) {
 	const device1ID = "urn:device1"
-	const service1ID = "urn:service1"
 	const thing1ID = "urn:thing1"
 	const user1ID = "urn:user"
 	const event1Name = "event1"
@@ -181,7 +179,6 @@ func TestPubSubEvent(t *testing.T) {
 func TestPubSubTD(t *testing.T) {
 	const device1ID = "urn:device1"
 	const serviceID = "urn:service1"
-	const userID = "urn:user1"
 	const thing1ID = "urn:thing1"
 	var thing1Addr = thing.MakeThingAddr(device1ID, thing1ID)
 	var rxTD *thing.ThingValue
@@ -213,7 +210,6 @@ func TestPubSubProperties(t *testing.T) {
 	const device1ID = "urn:device1"
 	const thing1ID = "urn:thing1"
 	const user1ID = "urn:user"
-	const propName = "event1"
 	var thing1Addr = thing.MakeThingAddr(device1ID, thing1ID)
 	var event1Count = 0
 	var rxPropsEvent *thing.ThingValue

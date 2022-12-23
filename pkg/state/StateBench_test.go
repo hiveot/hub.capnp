@@ -127,7 +127,7 @@ func BenchmarkSetState(b *testing.B) {
 		// setup
 		logging.SetLogging("warning", "")
 		ctx := context.Background()
-		store, stopFn, err := createStateService(testUseCapnp)
+		store, stopFn, err := startStateService(testUseCapnp)
 		require.NoError(b, err)
 		addRecords(store, clientID1, appID, tbl.dataSize)
 		clientState, err := store.CapClientState(ctx, clientID1, appID)
@@ -160,7 +160,7 @@ func BenchmarkSetMultiple(b *testing.B) {
 		// setup
 		logging.SetLogging("warning", "")
 		ctx := context.Background()
-		store, stopFn, err := createStateService(testUseCapnp)
+		store, stopFn, err := startStateService(testUseCapnp)
 		require.NoError(b, err)
 		// prepopulate the store with records
 		addRecords(store, clientID1, appID, tbl.dataSize)
@@ -202,7 +202,7 @@ func BenchmarkGetState(b *testing.B) {
 		// setup
 		logging.SetLogging("warning", "")
 		ctx := context.Background()
-		store, stopFn, err := createStateService(testUseCapnp)
+		store, stopFn, err := startStateService(testUseCapnp)
 		require.NoError(b, err)
 		addRecords(store, clientID1, appID, v.dataSize)
 		clientState, err := store.CapClientState(ctx, clientID1, appID)

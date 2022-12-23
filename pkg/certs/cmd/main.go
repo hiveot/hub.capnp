@@ -50,7 +50,7 @@ func main() {
 			// startup
 			err = svc.Start()
 			if err == nil {
-				err = capnpserver.StartCertsCapnpServer(ctx, lis, svc)
+				err = capnpserver.StartCertsCapnpServer(lis, svc)
 			}
 			return err
 		}, func() error {

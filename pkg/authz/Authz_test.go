@@ -29,7 +29,7 @@ var aclFilePath string
 var tempFolder string
 
 // Create a new authz service with empty acl list
-func startTestAuthzService(useCapnp bool) (svc authz.IAuthz, closeFn func()) {
+func startTestAuthzService(useCapnp bool) (svc authz.IAuthz, closeFn func() error) {
 
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	_ = cancelFunc
@@ -47,20 +47,28 @@ func startTestAuthzService(useCapnp bool) (svc authz.IAuthz, closeFn func()) {
 		if err != nil {
 			logrus.Panic("Unable to create a listener, can't run test")
 		}
-		go capnpserver.StartAuthzCapnpServer(ctx, srvListener, authSvc)
+		go capnpserver.StartAuthzCapnpServer(srvListener, authSvc)
 
 		// connect the client to the server above
 		clConn, _ := net.Dial("unix", socketPath)
 		capClient, _ := capnpclient.NewAuthzCapnpClient(ctx, clConn)
-		return capClient, func() { cancelFunc(); authSvc.Stop() }
+		return capClient, func() error {
+			cancelFunc()
+			err = authSvc.Stop()
+			return err
+		}
 	}
-	return authSvc, func() { cancelFunc(); authSvc.Stop() }
+	return authSvc, func() error {
+		cancelFunc()
+		err = authSvc.Stop()
+		return err
+	}
 }
 
 // TestMain for all authn tests, setup of default folders and filenames
 func TestMain(m *testing.M) {
 	logging.SetLogging("info", "")
-	os.RemoveAll(testFolder)
+	_ = os.RemoveAll(testFolder)
 	_ = os.MkdirAll(testFolder, 0700)
 	aclFilePath = path.Join(testFolder, aclFilename)
 
@@ -74,8 +82,8 @@ func TestMain(m *testing.M) {
 func TestAuthzServiceStartStop(t *testing.T) {
 	logrus.Infof("---TestAuthzServiceStartStop---")
 	svc, closeFn := startTestAuthzService(testUseCapnp)
-	closeFn()
-
+	err := closeFn()
+	assert.NoError(t, err)
 	assert.NotNil(t, svc)
 }
 
@@ -88,7 +96,8 @@ func TestAuthzServiceBadStart(t *testing.T) {
 	// opening the acl store should fail
 	err := svc.Start(ctx)
 	assert.Error(t, err)
-	svc.Stop()
+	err = svc.Stop()
+	assert.NoError(t, err)
 
 	// missing store should not panic
 	svc = service.NewAuthzService("")
@@ -418,7 +427,8 @@ func TestClientPermissions(t *testing.T) {
 	assert.Contains(t, perms, authz.PermWriteProperty)
 
 	// after removing the manager role write property permissions no longer apply
-	manageAuthz.RemoveThing(ctx, user1ID, group2ID)
+	err = manageAuthz.RemoveThing(ctx, user1ID, group2ID)
+	assert.NoError(t, err)
 	perms, err = clientAuthz.GetPermissions(ctx, thing1ID)
 	assert.NoError(t, err)
 	assert.Contains(t, perms, authz.PermEmitAction)

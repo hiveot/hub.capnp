@@ -78,7 +78,7 @@ func LauncherStopCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comma
 func HandleListServices(ctx context.Context, f svcconfig.AppFolders) error {
 	var ls launcher.ILauncher
 
-	conn, err := listener.CreateClientConnection(f.Run, launcher.ServiceName)
+	conn, err := listener.CreateLocalClientConnection(launcher.ServiceName, f.Run)
 	if err == nil {
 		ls, err = capnpclient.NewLauncherCapnpClient(ctx, conn)
 	}
@@ -99,7 +99,7 @@ func HandleListServices(ctx context.Context, f svcconfig.AppFolders) error {
 		if entry.Running {
 			status = "running"
 		}
-		fmt.Printf("%-25s %4d MB   %6d   %6s   %4s   %6s   %6s   %s\n",
+		fmt.Printf("%-25s %4d MB   %6d   %7s   %4s   %6s   %6s   %s\n",
 			entry.Name,
 			entry.Size/1024/1024,
 			entry.StartCount,
@@ -116,7 +116,7 @@ func HandleListServices(ctx context.Context, f svcconfig.AppFolders) error {
 // HandleStartService starts a service
 func HandleStartService(ctx context.Context, f svcconfig.AppFolders, serviceName string) error {
 	var ls launcher.ILauncher
-	conn, err := listener.CreateClientConnection(f.Run, launcher.ServiceName)
+	conn, err := listener.CreateLocalClientConnection(launcher.ServiceName, f.Run)
 	if err == nil {
 		ls, err = capnpclient.NewLauncherCapnpClient(ctx, conn)
 	}
@@ -142,14 +142,14 @@ func HandleStartService(ctx context.Context, f svcconfig.AppFolders, serviceName
 		fmt.Printf("Service '%s' started\n", info.Name)
 	}
 	// last, show a list of running services
-	HandleListServices(ctx, f)
-	return nil
+	err = HandleListServices(ctx, f)
+	return err
 }
 
 // HandleStopService stops a service
 func HandleStopService(ctx context.Context, f svcconfig.AppFolders, serviceName string) error {
 	var ls launcher.ILauncher
-	conn, err := listener.CreateClientConnection(f.Run, launcher.ServiceName)
+	conn, err := listener.CreateLocalClientConnection(launcher.ServiceName, f.Run)
 	if err == nil {
 		ls, err = capnpclient.NewLauncherCapnpClient(ctx, conn)
 	}
@@ -175,6 +175,6 @@ func HandleStopService(ctx context.Context, f svcconfig.AppFolders, serviceName 
 		fmt.Printf("Service '%s' stopped\n", info.Name)
 	}
 	// last, show a list of running services
-	HandleListServices(ctx, f)
-	return nil
+	err = HandleListServices(ctx, f)
+	return err
 }

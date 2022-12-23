@@ -58,6 +58,10 @@ func (cl *HistoryServiceCapnpClient) CapReadHistory(
 	return NewReadHistoryCapnpClient(capability)
 }
 
+func (cl *HistoryServiceCapnpClient) Release() {
+	cl.capability.Release()
+}
+
 // NewHistoryCapnpClient returns a history service client using the capnp protocol.
 // This implements the IHistoryService interface.
 //

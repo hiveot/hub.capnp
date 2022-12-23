@@ -29,7 +29,7 @@ func main() {
 			// startup
 			err := svc.Start(ctx)
 			if err == nil {
-				err = capnpserver.StartDirectoryServiceCapnpServer(ctx, lis, svc)
+				err = capnpserver.StartDirectoryServiceCapnpServer(lis, svc)
 			}
 			return err
 		}, func() error {

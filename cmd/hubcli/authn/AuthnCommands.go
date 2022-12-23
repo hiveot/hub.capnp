@@ -88,7 +88,7 @@ func HandleAddUser(ctx context.Context, f svcconfig.AppFolders, loginID, userNam
 	var authnClient authn.IAuthnService
 	var manageAuthn authn.IManageAuthn
 
-	conn, err := listener.CreateClientConnection(f.Run, authn.ServiceName)
+	conn, err := listener.CreateLocalClientConnection(authn.ServiceName, f.Run)
 	if err == nil {
 		authnClient, err = capnpclient.NewAuthnCapnpClient(ctx, conn)
 	}
@@ -115,7 +115,7 @@ func HandleListUsers(ctx context.Context, f svcconfig.AppFolders) error {
 	var authnClient authn.IAuthnService
 	var manageAuthn authn.IManageAuthn
 
-	conn, err := listener.CreateClientConnection(f.Run, authn.ServiceName)
+	conn, err := listener.CreateLocalClientConnection(authn.ServiceName, f.Run)
 	if err == nil {
 		authnClient, err = capnpclient.NewAuthnCapnpClient(ctx, conn)
 	}
@@ -145,7 +145,7 @@ func HandleRemoveUser(ctx context.Context, f svcconfig.AppFolders, loginID strin
 	var authnClient authn.IAuthnService
 	var manageAuthn authn.IManageAuthn
 
-	conn, err := listener.CreateClientConnection(f.Run, authn.ServiceName)
+	conn, err := listener.CreateLocalClientConnection(authn.ServiceName, f.Run)
 	if err == nil {
 		authnClient, err = capnpclient.NewAuthnCapnpClient(ctx, conn)
 	}

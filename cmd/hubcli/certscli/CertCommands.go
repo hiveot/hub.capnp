@@ -170,7 +170,7 @@ func HandleCreateDeviceCert(ctx context.Context, f svcconfig.AppFolders, deviceI
 	var cc certs.ICerts
 	var dc certs.IDeviceCerts
 
-	conn, err := listener.CreateClientConnection(f.Run, certs.ServiceName)
+	conn, err := listener.CreateLocalClientConnection(certs.ServiceName, f.Run)
 	if err == nil {
 		cc, err = capnpclient.NewCertServiceCapnpClient(conn)
 	}
@@ -219,7 +219,7 @@ func HandleCreateServiceCert(ctx context.Context, f svcconfig.AppFolders,
 	var cc certs.ICerts
 	var sc certs.IServiceCerts
 
-	conn, err := listener.CreateClientConnection(f.Run, certs.ServiceName)
+	conn, err := listener.CreateLocalClientConnection(certs.ServiceName, f.Run)
 	if err == nil {
 		cc, err = capnpclient.NewCertServiceCapnpClient(conn)
 	}
@@ -264,7 +264,7 @@ func HandleCreateUserCert(ctx context.Context, f svcconfig.AppFolders, clientID 
 	var cc certs.ICerts
 	var uc certs.IUserCerts
 
-	conn, err := listener.CreateClientConnection(f.Run, certs.ServiceName)
+	conn, err := listener.CreateLocalClientConnection(certs.ServiceName, f.Run)
 	if err == nil {
 		cc, err = capnpclient.NewCertServiceCapnpClient(conn)
 	}

@@ -11,20 +11,21 @@ import (
 	"github.com/hiveot/hub/internal/caphelp"
 	"github.com/hiveot/hub/pkg/launcher"
 	"github.com/hiveot/hub/pkg/launcher/capserializer"
+	"github.com/hiveot/hub/pkg/resolver/client"
 )
 
 // LauncherCapnpServer provides the capnproto RPC server for the service launcher
 // This implements the capnproto generated interface Launcher_Server
 // See hub.capnp/go/hubapi/launcher.capnp.go for the interface.
 type LauncherCapnpServer struct {
-	caphelp.HiveOTServiceCapnpServer
-	pogo launcher.ILauncher
+	capRegSrv *client.CapRegistrationServer
+	svc       launcher.ILauncher
 }
 
 func (capsrv *LauncherCapnpServer) List(ctx context.Context, call hubapi.CapLauncher_list) error {
 	args := call.Args()
 	onlyRunning := args.OnlyRunning()
-	infoList, err := capsrv.pogo.List(ctx, onlyRunning)
+	infoList, err := capsrv.svc.List(ctx, onlyRunning)
 	if err == nil {
 		res, _ := call.AllocResults()
 		svcInfoListCapnp := capserializer.MarshalServiceInfoList(infoList)
@@ -36,7 +37,7 @@ func (capsrv *LauncherCapnpServer) StartService(ctx context.Context,
 	call hubapi.CapLauncher_startService) error {
 	args := call.Args()
 	serviceName, _ := args.Name()
-	serviceInfo, err := capsrv.pogo.StartService(ctx, serviceName)
+	serviceInfo, err := capsrv.svc.StartService(ctx, serviceName)
 	res, _ := call.AllocResults()
 	svcInfoCapnp := capserializer.MarshalServiceInfo(serviceInfo)
 	_ = res.SetInfo(svcInfoCapnp)
@@ -44,13 +45,14 @@ func (capsrv *LauncherCapnpServer) StartService(ctx context.Context,
 }
 
 func (capsrv *LauncherCapnpServer) StartAll(ctx context.Context, call hubapi.CapLauncher_startAll) error {
-	err := capsrv.pogo.StartAll(ctx)
+	err := capsrv.svc.StartAll(ctx)
+	_, _ = call.AllocResults()
 	return err
 }
 func (capsrv *LauncherCapnpServer) StopService(ctx context.Context, call hubapi.CapLauncher_stopService) error {
 	args := call.Args()
 	serviceName, _ := args.Name()
-	serviceInfo, err := capsrv.pogo.StopService(ctx, serviceName)
+	serviceInfo, err := capsrv.svc.StopService(ctx, serviceName)
 	res, _ := call.AllocResults()
 	svcInfoCapnp := capserializer.MarshalServiceInfo(serviceInfo)
 	_ = res.SetInfo(svcInfoCapnp)
@@ -58,24 +60,30 @@ func (capsrv *LauncherCapnpServer) StopService(ctx context.Context, call hubapi.
 }
 
 func (capsrv *LauncherCapnpServer) StopAll(ctx context.Context, call hubapi.CapLauncher_stopAll) error {
-	err := capsrv.pogo.StopAll(ctx)
+	err := capsrv.svc.StopAll(ctx)
 	_ = call
 	return err
 }
 
 // StartLauncherCapnpServer starts the capnp server for the launcher service
 //
-//	ctx is the context for serving capabilities
 //	lis is the socket server from whom to accept connections
-//	srv is the instance of the launcher service
-//	lc holds the launcher configuration
-func StartLauncherCapnpServer(
-	ctx context.Context, lis net.Listener, srv launcher.ILauncher) error {
+//	svc is the instance of the launcher service
+func StartLauncherCapnpServer(lis net.Listener, svc launcher.ILauncher) error {
 
 	logrus.Infof("Starting launcher service capnp adapter on: %s", lis.Addr())
+	capsrv := &LauncherCapnpServer{
+		svc: svc,
+	}
+	capRegSrv := client.NewCapRegistrationServer(
+		launcher.ServiceName,
+		hubapi.CapLauncher_Methods(nil, capsrv))
+	// the launcher does not have any exported capabilities (yet)
+	//capRegSrv.ExportCapability("", []string{hubapi.ClientTypeService})
 
 	main := hubapi.CapLauncher_ServerToClient(&LauncherCapnpServer{
-		pogo: srv,
+		svc:       svc,
+		capRegSrv: capRegSrv,
 	})
-	return caphelp.Serve(lis, capnp.Client(main))
+	return caphelp.Serve(lis, capnp.Client(main), nil)
 }

@@ -14,13 +14,11 @@ import (
 
 // ResolverSession implements a session for incoming connections
 type ResolverSession struct {
-	// sessionID
-	//sessionID string
 
 	// ID of the connected client
 	clientID string
 
-	// tyoe of the connected client
+	// type of the connected client
 	clientType string
 
 	// optional capability provider
@@ -75,9 +73,6 @@ func (session *ResolverSession) GetRegisteredCapability(ctx context.Context,
 	}
 
 	// now the provider is found, request the capability
-	//capability, err = session.registeredProvider.GetCapability(
-	//	ctx, clientID, clientType, capabilityName, args)
-
 	method, release := session.registeredProvider.GetCapability(ctx,
 		func(params hubapi.CapProvider_getCapability_Params) error {
 			err2 := params.SetCapabilityName(capabilityName)

@@ -21,13 +21,13 @@ func main() {
 	var deviceCap certs.IDeviceCerts
 	var verifyCap certs.IVerifyCerts
 	var certsClient certs.ICerts
-	ctx, _ := context.WithCancel(context.Background())
+	ctx := context.Background()
 
 	// Determine the folder layout and handle commandline options
 	f := svcconfig.LoadServiceConfig(provisioning.ServiceName, false, nil)
 
 	// connect to the certificate service to get its capability for issuing device certificates
-	certConn, err := listener.CreateClientConnection(f.Run, certs.ServiceName)
+	certConn, err := listener.CreateLocalClientConnection(certs.ServiceName, f.Run)
 	if err == nil {
 		certsClient, err = certsclient.NewCertServiceCapnpClient(certConn)
 	}
@@ -43,7 +43,7 @@ func main() {
 			// startup
 			err := svc.Start(ctx)
 			if err == nil {
-				err = capnpserver.StartProvisioningCapnpServer(ctx, lis, svc)
+				err = capnpserver.StartProvisioningCapnpServer(lis, svc)
 			}
 			return err
 		}, func() error {

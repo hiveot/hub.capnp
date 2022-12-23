@@ -2,64 +2,60 @@ package gateway
 
 import (
 	"context"
+	"net"
 
-	"capnproto.org/go/capnp/v3"
-
-	"github.com/hiveot/hub/internal/caphelp"
+	"github.com/hiveot/hub/pkg/resolver"
 )
 
 const ServiceName = "gateway"
 
-// ConfigCapabilitiesSection is the name of the capabilities section in the config file
-const ConfigCapabilitiesSection = "capabilities"
+const ClientUnauthenticated = "unauthenticated"
 
-// ConfigClientTypeField name of the field that holds the type of clients allowed to use the capability
-const ConfigClientTypeField = "clientType"
+// ClientInfo contains client info as seen by the gateway
+// Intended for diagnostics and troubleshooting
+type ClientInfo struct {
+	// ClientID that is connected. loginID, serviceID, or IoT device ID
+	ClientID string
 
-// GatewayInfo describes the gateway's capabilities and capacity
-//type GatewayInfo struct {
-//	// Capabilities describes the capabilities available via this gateway
-//	Capabilities []caphelp.CapabilityInfo
-//
-//	// URL to the URL to the gateway service that provides this capability.
-//	// The gateway implements the IGateway interface that can be used to obtain access to the capability.
-//	// A local UDS socket: uds://run/name.socket
-//	// A remote Websocket service: wss://address:port/name
-//	URL string `json:"url"`
-//
-//	// Latency of reaching the capability in msec
-//	Latency int `json:"latency"`
-//
-//	// current CPU utilization of the host
-//	//CPUUtilization int `json:"CPUUtilization"`
-//
-//	// memory utilization of the host
-//
-//	// cpu capacity of the host
-//
-//	// memory capacity of the host
-//}
+	// ClientType identifies how the client is authenticated. See also the resolver:
+	//  ClientTypeUnauthenticated   - client is not authenticated
+	//  ClientTypeUser              - client is authenticated as a user with login/password
+	//  ClientTypeIoTDevice         - client is authenticated as an IoT device with certificate
+	//  ClientTypeService           - client is authenticated as a service with certificate
+	ClientType string
+}
 
-// IGatewayService provides Hub capabilities that are available on the device to clients such as IoT devices, services and
-// end-users.
+// IGatewayService provides the capability to accept new sessions with remote clients
 type IGatewayService interface {
-	// GetCapability returns the capnp capability by name
-	// The client login determines what capabilities are available.
-	// TODO: automatically determine clientID and type when connected through UDS or TLS with client cert
-	// in the meantime, pass it in manually
-	//   clientID of the connected client
-	//   clientType of the connected client
-	GetCapability(ctx context.Context, clientID, clientType, capabilityName string, args []string) (
-		capability capnp.Client, err error)
+	// OnIncomingConnection notifies the service of a new incoming RPC connection.
+	// This is invoked by the underlying RPC protocol (eg capnp) server.
+	// This creates a new session for each connection in order to track authentication
+	// and performance. If the RPC connection closes the session is released.
+	OnIncomingConnection(conn net.Conn) IGatewaySession
 
-	// ListCapabilities returns the aggregated list of capabilities from all connected services
-	// This list is reduced to capabilities based on the client type.
-	ListCapabilities(_ context.Context, clientType string) (infoList []caphelp.CapabilityInfo, err error)
+	// OnConnectionClosed is invoked if the connection with the client has closed.
+	// The service will remove the session.
+	OnConnectionClosed(conn net.Conn, session IGatewaySession)
+}
 
-	// Login to the gateway in order to get additional capabilities
-	// Login detects the client type (service, iotdevice, user) based on the connection method.
-	Login(ctx context.Context, clientID string, password string) (success bool, err error)
+// IGatewaySession provides Hub capabilities to clients on the network
+// Each client connection receives a session with the capabilities that are dependent
+// on the client's authentication.
+type IGatewaySession interface {
+	resolver.IResolverSession
 
-	// Ping helps determine if the service is reachable
-	Ping(ctx context.Context) (reply string, err error)
+	// Login to the gateway as a user in order to get additional capabilities.
+	// This returns an authToken and refreshToken that can be used with services that require
+	// authentication.
+	// If the authentication token has expired then call refresh.
+	Login(ctx context.Context, clientID string, password string) (authToken, refreshToken string, err error)
+
+	// Ping helps determine if the gateway is reachable
+	Ping(ctx context.Context) (reply ClientInfo, err error)
+
+	// Refresh the token pair
+	Refresh(ctx context.Context, oldRefreshToken string) (newAuthToken, newRefreshToken string, err error)
+
+	// Release the session when its incoming RPC connection closes
+	Release()
 }

@@ -28,6 +28,7 @@ func (cl *ResolverSessionCapnpClient) GetCapability(ctx context.Context,
 	clientID string, clientType string, capabilityName string, args []string) (
 	capability capnp.Client, err error) {
 
+	//logrus.Infof("clientID='%s'", clientID)
 	method, release := cl.capSession.GetCapability(ctx,
 		func(params hubapi.CapResolverSession_getCapability_Params) error {
 			_ = params.SetClientID(clientID)
@@ -40,8 +41,11 @@ func (cl *ResolverSessionCapnpClient) GetCapability(ctx context.Context,
 		})
 	defer release()
 	// return a future. Caller must release
-	// this does not detect a broken connection until the capability is used
-	capability = method.Capability().AddRef()
+	// resolve the capability otherwise we don't get an error until much later
+	resp, err := method.Struct()
+	if err == nil {
+		capability = resp.Capability().AddRef()
+	}
 	return capability, err
 }
 
@@ -50,6 +54,7 @@ func (cl *ResolverSessionCapnpClient) GetCapability(ctx context.Context,
 func (cl *ResolverSessionCapnpClient) ListCapabilities(
 	ctx context.Context) (infoList []resolver.CapabilityInfo, err error) {
 
+	//logrus.Infof("")
 	infoList = make([]resolver.CapabilityInfo, 0)
 	method, release := cl.capSession.ListCapabilities(ctx, nil)
 	defer release()
@@ -119,10 +124,31 @@ func NewResolverSessionCapnpClient(ctx context.Context, conn net.Conn) (cl *Reso
 		rpcConn:    rpcConn,
 		capSession: capSession,
 	}
-	ctx2, _ := context.WithTimeout(ctx, time.Second*3)
+	// use a timeout that is long enough for debugging but prevents eternal hang if the resolver
+	// cannot be reached.
+	ctx2, _ := context.WithTimeout(ctx, time.Second*30)
 	err = capSession.Resolve(ctx2)
 	if err != nil || !capSession.IsValid() {
 		err = fmt.Errorf("Failed establishing RPC connecting: %s", err)
 	}
+	return cl, err
+}
+
+// ConnectToResolver is a helper that starts a new session with the resolver
+// Users should call Release when done. This will close the connection and any
+// capabilities obtained from the resolver.
+//
+//	resolverSocket is the path to the socket the resolver listens on or "" for the default
+//
+// This returns the resolver client
+func ConnectToResolver(resolverSocket string) (
+	resolverClient resolver.IResolverSession, err error) {
+
+	if resolverSocket == "" {
+		resolverSocket = resolver.DefaultResolverPath
+	}
+	conn, err := net.DialTimeout("unix", resolverSocket, time.Second*10)
+	ctx := context.Background()
+	cl, err := NewResolverSessionCapnpClient(ctx, conn)
 	return cl, err
 }

@@ -52,12 +52,14 @@ func startTestAuthnService(useCapnp bool) (authSvc authn.IAuthnService, stopFn f
 		if err != nil {
 			logrus.Panic("Unable to create a listener, can't run test")
 		}
-		go capnpserver.StartAuthnCapnpServer(ctx, srvListener, svc)
+		go capnpserver.StartAuthnCapnpServer(srvListener, svc)
+		time.Sleep(time.Millisecond)
 
 		// connect the client to the server above
 		clConn, _ := net.Dial("tcp", srvListener.Addr().String())
 		capClient, err := capnpclient.NewAuthnCapnpClient(ctx, clConn)
 		return capClient, func() error {
+			time.Sleep(time.Millisecond)
 			cancelFunc()
 			capClient.Release()
 			_ = clConn.Close()

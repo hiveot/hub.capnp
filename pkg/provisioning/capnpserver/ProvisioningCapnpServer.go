@@ -10,13 +10,14 @@ import (
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/internal/caphelp"
 	"github.com/hiveot/hub/pkg/provisioning"
+	"github.com/hiveot/hub/pkg/resolver/client"
 )
 
 // ProvisioningCapnpServer provides the capnproto RPC server for IOT device provisioning.
 // This implements the capnproto generated interface Provisioning_Server
 // See hub.capnp/go/hubapi/Provisioning.capnp.go for the interface.
 type ProvisioningCapnpServer struct {
-	caphelp.HiveOTServiceCapnpServer
+	capRegSrv *client.CapRegistrationServer
 	// the plain-old-go-object provisioning server
 	svc provisioning.IProvisioning
 }
@@ -74,21 +75,24 @@ func (capsrv *ProvisioningCapnpServer) CapRequestProvisioning(
 }
 
 // StartProvisioningCapnpServer starts the capnp server for the provisioning service
-func StartProvisioningCapnpServer(_ context.Context, lis net.Listener, svc provisioning.IProvisioning) error {
+func StartProvisioningCapnpServer(lis net.Listener, svc provisioning.IProvisioning) error {
 
 	logrus.Infof("Starting provisioning service capnp adapter on: %s", lis.Addr())
 
 	srv := &ProvisioningCapnpServer{
-		HiveOTServiceCapnpServer: caphelp.NewHiveOTServiceCapnpServer(provisioning.ServiceName),
-		svc:                      svc,
+		svc: svc,
 	}
-	srv.RegisterKnownMethods(hubapi.CapProvisioning_Methods(nil, srv))
-	srv.ExportCapability("capManageProvisioning", []string{hubapi.ClientTypeService})
-	srv.ExportCapability("capRequestProvisioning", []string{hubapi.ClientTypeService, hubapi.ClientTypeIotDevice})
-	srv.ExportCapability("capRefreshProvisioning", []string{hubapi.ClientTypeService, hubapi.ClientTypeIotDevice})
-
+	capRegSrv := client.NewCapRegistrationServer(
+		provisioning.ServiceName, hubapi.CapProvisioning_Methods(nil, srv))
+	srv.capRegSrv = capRegSrv
+	capRegSrv.ExportCapability("capManageProvisioning", []string{hubapi.ClientTypeService})
+	capRegSrv.ExportCapability("capRequestProvisioning", []string{hubapi.ClientTypeService, hubapi.ClientTypeIotDevice})
+	capRegSrv.ExportCapability("capRefreshProvisioning", []string{hubapi.ClientTypeService, hubapi.ClientTypeIotDevice})
+	err := capRegSrv.Start("")
 	//
-	main := hubapi.CapProvisioning_ServerToClient(srv)
-	err := caphelp.Serve(lis, capnp.Client(main))
+	if lis != nil {
+		main := hubapi.CapProvisioning_ServerToClient(srv)
+		err = caphelp.Serve(lis, capnp.Client(main), nil)
+	}
 	return err
 }

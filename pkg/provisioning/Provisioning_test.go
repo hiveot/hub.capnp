@@ -47,11 +47,13 @@ func newServer(useCapnp bool) (provSvc provisioning.IProvisioning, closeFn func(
 	// optionally test with capnp RPC
 	if useCapnp {
 		_ = syscall.Unlink(testSocket)
-		lis, _ := net.Listen("unix", testSocket)
-		go capnpserver.StartProvisioningCapnpServer(ctx, lis, svc)
+		//lis, _ := net.Listen("unix", testSocket)
+		lis, _ := net.Listen("tcp", ":0")
+		go capnpserver.StartProvisioningCapnpServer(lis, svc)
 
 		// connect the client to the server above
-		clConn, _ := net.Dial("unix", testSocket)
+		//clConn, _ := net.Dial("unix", testSocket)
+		clConn, _ := net.Dial("tcp", lis.Addr().String())
 		cl, err := capnpclient.NewProvisioningCapnpClient(ctx, clConn)
 		if err != nil {
 			logrus.Fatalf("Failed starting capnp client: %s", err)
@@ -59,6 +61,7 @@ func newServer(useCapnp bool) (provSvc provisioning.IProvisioning, closeFn func(
 		return cl, func() error {
 			cancelFunc()
 			err = svc.Stop()
+			cl.Release()
 			return err
 		}
 	}
@@ -72,8 +75,8 @@ func newServer(useCapnp bool) (provSvc provisioning.IProvisioning, closeFn func(
 func TestMain(m *testing.M) {
 	logging.SetLogging("info", "")
 
-	os.RemoveAll(testFolder)
-	os.MkdirAll(testFolder, 0700)
+	_ = os.RemoveAll(testFolder)
+	_ = os.MkdirAll(testFolder, 0700)
 	res := m.Run()
 	os.Exit(res)
 }
@@ -82,8 +85,9 @@ func TestMain(m *testing.M) {
 func TestStartStop(t *testing.T) {
 	// this needs a certificate service capability
 	provServer, closeFn := newServer(useTestCapnp)
-	defer closeFn()
+	err := closeFn()
 	assert.NotNil(t, provServer)
+	assert.NoError(t, err)
 }
 
 func TestAutomaticProvisioning(t *testing.T) {

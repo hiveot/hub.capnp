@@ -4,11 +4,9 @@ import (
 	"context"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/urfave/cli/v2"
 
-	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/internal/listener"
 	"github.com/hiveot/hub/internal/svcconfig"
 	"github.com/hiveot/hub/pkg/gateway"
@@ -42,13 +40,13 @@ func GatewayListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comman
 }
 
 func HandleListGateway(ctx context.Context, f svcconfig.AppFolders) error {
-	var gw *capnpclient.GatewayServiceCapnpClient //gateway.IGatewayService
+	var gw *capnpclient.GatewaySessionCapnpClient //gateway.IGatewaySession
 	//logrus.Infof("Contacting gateway on '%s'", f.Run)
-	ctx2, _ := context.WithTimeout(ctx, time.Second*10)
-	conn, err := listener.CreateClientConnection(f.Run, gateway.ServiceName)
+	ctx2 := context.Background()
+	conn, err := listener.CreateLocalClientConnection(gateway.ServiceName, f.Run)
 	if err == nil {
 		//logrus.Infof("Connection established")
-		gw, err = capnpclient.NewGatewayServiceCapnpClient(ctx2, conn)
+		gw, err = capnpclient.NewGatewaySessionCapnpClient(ctx2, conn)
 		defer gw.Release()
 	}
 	if err != nil {
@@ -57,14 +55,14 @@ func HandleListGateway(ctx context.Context, f svcconfig.AppFolders) error {
 	//logrus.Infof("Sending request")
 
 	// ask as a service. we might want to make this a parameter
-	capList, err := gw.ListCapabilities(ctx2, hubapi.ClientTypeService)
+	capList, err := gw.ListCapabilities(ctx2)
 	fmt.Println("Capability                          Service                        ClientTypes")
 	fmt.Println("--------                            -------                        ----       ")
 	for _, capInfo := range capList {
 		clientTypeAsText := strings.Join(capInfo.ClientTypes, ",")
 		fmt.Printf("%-35s %-30s %-30s\n",
 			capInfo.CapabilityName,
-			capInfo.ServiceName,
+			capInfo.ServiceID,
 			clientTypeAsText,
 		)
 	}

@@ -47,7 +47,7 @@ func startDirectory(useCapnp bool) (directory.IDirectory, func() error) {
 		if err != nil {
 			logrus.Panic("Unable to create a listener, can't run test")
 		}
-		go capnpserver.StartDirectoryServiceCapnpServer(ctx, srvListener, svc)
+		go capnpserver.StartDirectoryServiceCapnpServer(srvListener, svc)
 
 		// connect the client to the server above
 		clConn, _ := net.Dial("tcp", srvListener.Addr().String())
@@ -79,8 +79,8 @@ func createTDDoc(thingID string, title string) []byte {
 func TestMain(m *testing.M) {
 	logging.SetLogging("info", "")
 	// clean start
-	os.RemoveAll(testFolder)
-	os.MkdirAll(testFolder, 0700)
+	_ = os.RemoveAll(testFolder)
+	_ = os.MkdirAll(testFolder, 0700)
 
 	res := m.Run()
 	os.Exit(res)
@@ -242,7 +242,6 @@ func TestCursor(t *testing.T) {
 func TestPerf(t *testing.T) {
 	logrus.Infof("--- start TestPerf ---")
 	_ = os.Remove(testStoreFile)
-	const gateway1ID = "test"
 	const thing1ID = "urn:thing1"
 	const thing1Addr = "urn:test/" + thing1ID
 	const title1 = "title1"

@@ -31,28 +31,28 @@ var testSocket = path.Join(testFolder, "certs.socket")
 //}
 
 // Factory for creating service instance. Currently the only implementation is selfsigned.
-func NewService() (svc certs.ICerts, closeFunc func()) {
+func NewService() (svc certs.ICerts, stopFunc func()) {
 	// use selfsigned to create a new CA for these tests
 	//ctx, cancelFunc := context.WithCancel(context.Background())
 	caCert, caKey, _ := selfsigned.CreateHubCA(1)
 	certSvc := selfsigned.NewSelfSignedCertsService(caCert, caKey)
-	ctx := context.Background()
+
 	// when using capnp, return a client instance instead the svc
 	if useCapnp {
 		// remove stale handle
 		_ = syscall.Unlink(testSocket)
 		srvListener, _ := net.Listen("unix", testSocket)
-		go capnpserver.StartCertsCapnpServer(ctx, srvListener, certSvc)
+		go capnpserver.StartCertsCapnpServer(srvListener, certSvc)
 		// connect the client to the server above
 		clConn, _ := net.Dial("unix", testSocket)
 		capClient, _ := capnpclient.NewCertServiceCapnpClient(clConn)
 		return capClient, func() {
 			capClient.Release()
-			certSvc.Stop()
+			_ = certSvc.Stop()
 		}
 	}
 	return certSvc, func() {
-		certSvc.Stop()
+		_ = certSvc.Stop()
 	}
 }
 
@@ -60,7 +60,7 @@ func NewService() (svc certs.ICerts, closeFunc func()) {
 func TestMain(m *testing.M) {
 	logging.SetLogging("info", "")
 	// clean start
-	os.RemoveAll(testFolder)
+	_ = os.RemoveAll(testFolder)
 	_ = os.MkdirAll(testFolder, 0700)
 	logging.SetLogging("info", "")
 	//removeServerCerts()

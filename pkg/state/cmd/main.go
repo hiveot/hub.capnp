@@ -17,17 +17,17 @@ import (
 func main() {
 	f := svcconfig.GetFolders("", false)
 	// set config defaults
-	var config = config.NewStateConfig(f.Stores)
-	config.Backend = bucketstore.BackendKVBTree
-	f = svcconfig.LoadServiceConfig(state.ServiceName, false, &config)
+	var cfg = config.NewStateConfig(f.Stores)
+	cfg.Backend = bucketstore.BackendKVBTree
+	f = svcconfig.LoadServiceConfig(state.ServiceName, false, &cfg)
 
-	svc := statekvstore.NewStateStoreService(config)
+	svc := statekvstore.NewStateStoreService(cfg)
 
 	listener.RunService(state.ServiceName, f.Run,
 		func(ctx context.Context, lis net.Listener) error {
 			// startup
 			err := svc.Start(ctx)
-			err = capnpserver.StartStateCapnpServer(ctx, lis, svc)
+			err = capnpserver.StartStateCapnpServer(lis, svc)
 			return err
 		}, func() error {
 			// shutdown

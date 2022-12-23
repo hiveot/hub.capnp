@@ -103,7 +103,7 @@ func (srv *StateService) onClientReleased(clientID string) {
 
 // Start the state service
 // Ensure the stores location exists and is writable
-func (srv *StateService) Start(ctx context.Context) error {
+func (srv *StateService) Start(_ context.Context) error {
 	logrus.Infof("starting state store service")
 	info, err := os.Stat(srv.cfg.StoreDirectory)
 	if err != nil {

@@ -3,7 +3,7 @@ package discovery
 import (
 	"context"
 
-	"github.com/hiveot/hub/internal/caphelp"
+	"github.com/hiveot/hub/pkg/resolver"
 )
 
 // IDiscovery defines the interface to the discovery service.
@@ -23,5 +23,5 @@ type IDiscovery interface {
 	// This list varies depending on whether the client is authenticated, is an IoT device, service or end-user.
 	// The discovery service can include local and remote capabilities.
 	//  clientType to return the capabilities for the type of client. See constants above.
-	ListCapabilities(_ context.Context) (infoList []caphelp.CapabilityInfo, err error)
+	ListCapabilities(_ context.Context) (infoList []resolver.CapabilityInfo, err error)
 }

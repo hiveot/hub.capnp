@@ -38,7 +38,7 @@ func (svc *AuthnService) CapManageAuthn(ctx context.Context) authn.IManageAuthn 
 }
 
 func (svc *AuthnService) Start(ctx context.Context) error {
-	logrus.Info("starting authn service using '%s' for password store", svc.config.PasswordFile)
+	logrus.Infof("starting authn service using '%s' for password store", svc.config.PasswordFile)
 	return svc.pwStore.Open(ctx)
 }
 func (svc *AuthnService) Stop() error {

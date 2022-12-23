@@ -10,14 +10,16 @@ import (
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/internal/caphelp"
 	"github.com/hiveot/hub/pkg/authz"
+	"github.com/hiveot/hub/pkg/resolver/client"
 )
 
 // AuthzCapnpServer provides the capnp RPC server for authorization services
 // This implements the capnproto generated interface Authz_Server
 // See hub.capnp/go/hubapi/Authz.capnp.go for the interface.
 type AuthzCapnpServer struct {
-	caphelp.HiveOTServiceCapnpServer
-	svc authz.IAuthz
+	// the capability provider for use by the resolver
+	capProvider *client.CapRegistrationServer
+	svc         authz.IAuthz
 }
 
 func (capsrv *AuthzCapnpServer) CapClientAuthz(
@@ -63,23 +65,22 @@ func (capsrv *AuthzCapnpServer) CapVerifyAuthz(ctx context.Context, call hubapi.
 }
 
 // StartAuthzCapnpServer starts the capnp protocol server for the authentication service
-func StartAuthzCapnpServer(ctx context.Context, lis net.Listener, svc authz.IAuthz) error {
+func StartAuthzCapnpServer(lis net.Listener, svc authz.IAuthz) error {
 
 	logrus.Infof("Starting authz service capnp adapter on: %s", lis.Addr())
-	srv := &AuthzCapnpServer{
-		HiveOTServiceCapnpServer: caphelp.NewHiveOTServiceCapnpServer(authz.ServiceName),
-		svc:                      svc,
-	}
+	srv := &AuthzCapnpServer{svc: svc}
+	capProvider := client.NewCapRegistrationServer(authz.ServiceName, hubapi.CapAuthz_Methods(nil, srv))
+	srv.capProvider = capProvider
 	// register the methods available through getCapability
-	srv.RegisterKnownMethods(hubapi.CapAuthz_Methods(nil, srv))
-	srv.ExportCapability("capClientAuthz",
+	capProvider.ExportCapability("capClientAuthz",
 		[]string{hubapi.ClientTypeService, hubapi.ClientTypeUser})
-	srv.ExportCapability("capManageAuthz",
+	capProvider.ExportCapability("capManageAuthz",
 		[]string{hubapi.ClientTypeService})
-	srv.ExportCapability("capVerifyAuthz",
+	capProvider.ExportCapability("capVerifyAuthz",
 		[]string{hubapi.ClientTypeService})
+	_ = capProvider.Start("")
 
 	main := hubapi.CapAuthz_ServerToClient(srv)
-	err := caphelp.Serve(lis, capnp.Client(main))
+	err := caphelp.Serve(lis, capnp.Client(main), nil)
 	return err
 }

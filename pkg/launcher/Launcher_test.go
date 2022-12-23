@@ -48,7 +48,7 @@ func newServer(useCapnp bool) (l launcher.ILauncher, stopFn func()) {
 	// optionally test with capnp RPC
 	if useCapnp {
 		srvListener, _ := net.Listen("tcp", ":0")
-		go capnpserver.StartLauncherCapnpServer(ctx, srvListener, svc)
+		go capnpserver.StartLauncherCapnpServer(srvListener, svc)
 
 		// connect the client to the server above
 		clConn, _ := net.Dial("tcp", srvListener.Addr().String())
@@ -157,7 +157,7 @@ func TestStartStopTwice(t *testing.T) {
 }
 
 func TestStartStopAll(t *testing.T) {
-	ctx, _ := context.WithTimeout(context.Background(), time.Second*3)
+	ctx := context.Background()
 	svc, cancelFunc := newServer(testUseCapnp)
 	defer cancelFunc()
 	assert.NotNil(t, svc)

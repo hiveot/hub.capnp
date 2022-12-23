@@ -15,6 +15,7 @@ import (
 	"github.com/hiveot/hub.go/pkg/logging"
 	"github.com/hiveot/hub/internal/captest"
 	"github.com/hiveot/hub/pkg/resolver"
+	"github.com/hiveot/hub/pkg/resolver/capnpclient"
 	"github.com/hiveot/hub/pkg/resolver/capnpserver"
 	"github.com/hiveot/hub/pkg/resolver/client"
 	"github.com/hiveot/hub/pkg/resolver/service"
@@ -45,7 +46,7 @@ func startResolverAndClient(useCapnp bool) (resolver.IResolverSession, func() er
 		time.Sleep(time.Millisecond)
 
 		// connect the client to the server above
-		capClient, err := client.ConnectToResolver(testResolverSocket)
+		capClient, err := capnpclient.ConnectToResolver(testResolverSocket)
 		return capClient, func() error {
 			capClient.Release()
 			time.Sleep(time.Millisecond)
@@ -91,7 +92,7 @@ func TestConnectDisconnectClients(t *testing.T) {
 	assert.NotNil(t, capInfo1)
 
 	// second connection
-	cl2, err := client.ConnectToResolver(testResolverSocket)
+	cl2, err := capnpclient.ConnectToResolver(testResolverSocket)
 	assert.NoError(t, err)
 	capInfo2, err := cl2.ListCapabilities(ctx)
 	assert.NoError(t, err)
@@ -115,7 +116,7 @@ func TestConnectDisconnectProviders(t *testing.T) {
 	assert.NotNil(t, svc)
 
 	// create the client and a registration
-	cl, err := client.ConnectToResolver(testResolverSocket)
+	cl, err := capnpclient.ConnectToResolver(testResolverSocket)
 	assert.NoError(t, err)
 
 	// register a capability provider
@@ -175,8 +176,7 @@ func TestGetCapability(t *testing.T) {
 	// when the service disconnects the capabilities should disappear
 	ts.Stop()
 	// remote side needs time to discover disconnect
-	// FIXME: resolver service doesn't detect the disconnect. This used to work!
-	time.Sleep(time.Millisecond * 10)
+	time.Sleep(time.Millisecond * 1)
 	//
 	c1, err := svc.GetCapability(
 		ctx, "test", hubapi.ClientTypeService, caps[0].CapabilityName, nil)

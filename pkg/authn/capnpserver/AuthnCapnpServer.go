@@ -7,18 +7,18 @@ import (
 	"capnproto.org/go/capnp/v3"
 	"github.com/sirupsen/logrus"
 
-	"github.com/hiveot/hub/pkg/authn"
-
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/internal/caphelp"
+	"github.com/hiveot/hub/pkg/authn"
+	"github.com/hiveot/hub/pkg/resolver/client"
 )
 
 // AuthnCapnpServer provides the capnp RPC server for authentication services
 // This implements the capnproto generated interface Authn_Server
 // See hub.capnp/go/hubapi/Authn.capnp.go for the interface.
 type AuthnCapnpServer struct {
-	caphelp.HiveOTServiceCapnpServer
-	svc authn.IAuthnService
+	capRegSrv *client.CapRegistrationServer
+	svc       authn.IAuthnService
 }
 
 func (capsrv *AuthnCapnpServer) CapUserAuthn(
@@ -51,22 +51,33 @@ func (capsrv *AuthnCapnpServer) CapManageAuthn(ctx context.Context, call hubapi.
 }
 
 // StartAuthnCapnpServer starts the capnp protocol server for the authentication service
-func StartAuthnCapnpServer(ctx context.Context, lis net.Listener, svc authn.IAuthnService) error {
+// lis is optional if the service needs to be listening on its own endpoint instead of using the resolver.
+func StartAuthnCapnpServer(lis net.Listener, svc authn.IAuthnService) error {
 
-	logrus.Infof("Starting Authn service capnp adapter on: %s", lis.Addr())
 	srv := &AuthnCapnpServer{
-		HiveOTServiceCapnpServer: caphelp.NewHiveOTServiceCapnpServer(authn.ServiceName),
-		svc:                      svc,
+		svc: svc,
 	}
+	// this server will handle capability registration for us.
+	capRegSrv := client.NewCapRegistrationServer(
+		authn.ServiceName,
+		hubapi.CapAuthn_Methods(nil, srv))
+
 	// register the methods available through getCapability
-	srv.RegisterKnownMethods(hubapi.CapAuthn_Methods(nil, srv))
-	srv.ExportCapability("capUserAuthn",
+	capRegSrv.ExportCapability("capUserAuthn",
 		[]string{hubapi.ClientTypeService, hubapi.ClientTypeUser, hubapi.ClientTypeUnauthenticated})
-	srv.ExportCapability("capManageAuthn",
+	capRegSrv.ExportCapability("capManageAuthn",
 		[]string{hubapi.ClientTypeService})
 
-	//
-	main := hubapi.CapAuthn_ServerToClient(srv)
-	err := caphelp.Serve(lis, capnp.Client(main))
+	err := capRegSrv.Start("")
+	if err != nil {
+		logrus.Warningf("unable to connect to the resolver service: %s", err)
+	}
+
+	// also listen, although that isn't needed if the resolver works.
+	if lis != nil {
+		logrus.Infof("Starting Authn service capnp adapter listening on: %s", lis.Addr())
+		main := hubapi.CapAuthn_ServerToClient(srv)
+		err = caphelp.Serve(lis, capnp.Client(main), nil)
+	}
 	return err
 }

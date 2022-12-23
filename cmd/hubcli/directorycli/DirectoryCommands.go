@@ -51,7 +51,7 @@ func HandleListDirectory(ctx context.Context, f svcconfig.AppFolders, limit int,
 	var rd directory.IReadDirectory
 	var tdDoc thing.ThingDescription
 
-	conn, err := listener.CreateClientConnection(f.Run, directory.ServiceName)
+	conn, err := listener.CreateLocalClientConnection(directory.ServiceName, f.Run)
 	if err == nil {
 		dir, err = capnpclient.NewDirectoryCapnpClient(ctx, conn)
 	}

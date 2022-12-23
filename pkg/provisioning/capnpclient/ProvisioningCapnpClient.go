@@ -41,9 +41,15 @@ func (cl *ProvisioningCapnpClient) CapRefreshProvisioning(ctx context.Context) p
 	return NewRefreshProvisioningCapnpClient(capability.AddRef())
 }
 
+// Release the client capability
+func (cl *ProvisioningCapnpClient) Release() {
+	cl.capability.Release()
+}
+
 // NewProvisioningCapnpClient returns a provisioning service client using the capnp protocol
-//  ctx is the context for this client's connection. Release it to release the client.
-//  conn is the connection with the provisioning capnp RPC server
+//
+//	ctx is the context for this client's connection. Release it to release the client.
+//	conn is the connection with the provisioning capnp RPC server
 func NewProvisioningCapnpClient(ctx context.Context, connection net.Conn) (*ProvisioningCapnpClient, error) {
 	var cl *ProvisioningCapnpClient
 

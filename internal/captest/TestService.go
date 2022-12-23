@@ -26,11 +26,10 @@ func (ts *TestService) CapMethod1(_ context.Context, call CapTestService_capMeth
 
 	res, err := call.AllocResults()
 	if err == nil {
-		testMethod1 := &Method1Service{clientID: clientID, clientType: clientType}
+		testMethod1 := NewMethod1ServiceCapnpServer(clientID, clientType)
 		capMethod1 := CapMethod1Service_ServerToClient(testMethod1)
 		// the name doesn't matter as the first capability returned is used
 		_ = res.SetCapabilit(capMethod1.AddRef())
-
 	}
 	logrus.Info("TestService.method1 called :)")
 	return err
@@ -41,7 +40,7 @@ func (ts *TestService) Start(resolverSocket string) (err error) {
 
 	// export the capability for running method1
 	// connect to the resolver service and register capabilities
-	err = ts.capRegSrv.Connect(resolverSocket)
+	err = ts.capRegSrv.Start(resolverSocket)
 	if err != nil {
 		return err
 	}

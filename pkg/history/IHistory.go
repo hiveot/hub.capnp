@@ -72,6 +72,9 @@ type IHistoryService interface {
 
 	// TBD: Subscribe to the pubsub service to receive events and actions
 	//Subscribe()
+
+	// Release the client
+	//Release()
 }
 
 // IAddHistory defines the capability to add to a Thing's history

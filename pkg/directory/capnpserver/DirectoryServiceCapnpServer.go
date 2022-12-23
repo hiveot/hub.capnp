@@ -9,16 +9,16 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
-	"github.com/hiveot/hub/internal/caphelp"
 	"github.com/hiveot/hub/pkg/directory"
+	"github.com/hiveot/hub/pkg/resolver/client"
 )
 
 // DirectoryServiceCapnpServer provides the capnp RPC server for directory services
 // This implements the capnproto generated interface Directory_Server
 // See hub.capnp/go/hubapi/DirectoryStore.capnp.go for the interface.
 type DirectoryServiceCapnpServer struct {
-	caphelp.HiveOTServiceCapnpServer // getCapability and listCapabilities
-	svc                              directory.IDirectory
+	capRegSrv *client.CapRegistrationServer
+	svc       directory.IDirectory
 }
 
 func (capsrv *DirectoryServiceCapnpServer) CapReadDirectory(
@@ -52,19 +52,18 @@ func (capsrv *DirectoryServiceCapnpServer) CapUpdateDirectory(
 }
 
 // StartDirectoryServiceCapnpServer starts the capnp protocol server for the directory service
-func StartDirectoryServiceCapnpServer(ctx context.Context, lis net.Listener, svc directory.IDirectory) error {
+func StartDirectoryServiceCapnpServer(lis net.Listener, svc directory.IDirectory) error {
 
 	logrus.Infof("Starting directory service capnp adapter on: %s", lis.Addr())
 
 	srv := &DirectoryServiceCapnpServer{
-		HiveOTServiceCapnpServer: caphelp.NewHiveOTServiceCapnpServer(directory.ServiceName),
-		svc:                      svc,
+		svc: svc,
 	}
-	// register the methods available through getCapability
-	methods := hubapi.CapDirectoryService_Methods(nil, srv)
-	srv.RegisterKnownMethods(methods)
-	srv.ExportCapability("capReadDirectory", []string{hubapi.ClientTypeUser, hubapi.ClientTypeService})
-	srv.ExportCapability("capUpdateDirectory", []string{hubapi.ClientTypeService})
+	capRegSrv := client.NewCapRegistrationServer(
+		directory.ServiceName, hubapi.CapDirectoryService_Methods(nil, srv))
+	srv.capRegSrv = capRegSrv
+	capRegSrv.ExportCapability("capReadDirectory", []string{hubapi.ClientTypeUser, hubapi.ClientTypeService})
+	capRegSrv.ExportCapability("capUpdateDirectory", []string{hubapi.ClientTypeService})
 
 	main := hubapi.CapDirectoryService_ServerToClient(srv)
 	err := rpc.Serve(lis, capnp.Client(main))

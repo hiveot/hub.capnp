@@ -8,6 +8,8 @@ import (
 	"github.com/hiveot/hub.capnp/go/hubapi"
 )
 
+const DefaultCACertName = hubapi.DefaultCaCertFile
+
 // DefaultServiceCertValidityDays with validity of generated service certificates
 const DefaultServiceCertValidityDays = int(hubapi.DefaultServiceCertValidityDays)
 
@@ -56,8 +58,12 @@ type IDeviceCerts interface {
 // IServiceCerts defines the POGS based capability to create service certificates
 type IServiceCerts interface {
 	// CreateServiceCert generates a hub service certificate
-	//  serviceID is the unique service ID, for example hostname-serviceName
+	// This returns the PEM encoded certificate with certificate of the CA that signed it.
+	// An error is returned if one of the parameters is invalid.
+	//
+	//  serviceID is the unique service ID used as the CN. for example hostname-serviceName
 	//  pubkeyPEM is the device's public key in PEM format
+	//  names are the SAN names to include with the certificate, typically the service IP address or host names
 	//  validityDays is the duration the cert is valid for. Use 0 for default.
 	CreateServiceCert(
 		ctx context.Context, serviceID string, pubKeyPEM string, names []string, validityDays int) (

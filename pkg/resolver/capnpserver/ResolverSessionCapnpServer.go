@@ -41,8 +41,7 @@ func (capsrv *ResolverSessionCapnpServer) GetCapability(
 	//capability.State().Metadata.Put("a", "b")
 	resp, err := call.AllocResults()
 	if err == nil {
-		// AddRef makes sure capability is not released when this returns
-		err = resp.SetCapability(capability.AddRef())
+		err = resp.SetCapability(capability)
 	}
 	if err != nil {
 		logrus.Errorf("get capabilities failed: %s", err)
@@ -54,7 +53,7 @@ func (capsrv *ResolverSessionCapnpServer) GetCapability(
 func (capsrv *ResolverSessionCapnpServer) ListCapabilities(
 	ctx context.Context, call hubapi.CapResolverSession_listCapabilities) (err error) {
 
-	logrus.Info("list capabilities")
+	//logrus.Info("list capabilities")
 	infoList, err := capsrv.session.ListCapabilities(ctx)
 	resp, err2 := call.AllocResults()
 	if err = err2; err == nil {

@@ -1,7 +1,9 @@
 package capnpserver
 
 import (
+	"context"
 	"net"
+	"os"
 
 	"capnproto.org/go/capnp/v3"
 	"capnproto.org/go/capnp/v3/rpc"
@@ -9,6 +11,7 @@ import (
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/pkg/resolver"
+	"github.com/hiveot/hub/pkg/resolver/service"
 )
 
 // StartResolverCapnpServer starts a new resolver capnp server for incoming connections.
@@ -27,7 +30,7 @@ func StartResolverCapnpServer(
 
 		logrus.Infof("New connection from remote client: %s", conn.RemoteAddr().String())
 
-		// these capnp and resolver sessions are going to handle the connection
+		// a capnp and resolver sessions are going to handle the connection
 		session := svc.OnIncomingConnection(conn)
 		capsrv := NewResolverSessionCapnpServer(session)
 
@@ -42,57 +45,36 @@ func StartResolverCapnpServer(
 		// For each new incoming connection, create a new RPC transport connection that will serve incoming RPC requests
 		transport := rpc.NewStreamTransport(conn)
 		rpcConn := rpc.NewConn(transport, &opts)
-		_ = rpcConn
-		// the RPC connection is now established
-		// notify on disconnect
+
+		// the RPC connection is now established. Notify on disconnect
 		go func() {
 			<-rpcConn.Done()
-			//boot.Release() // probably not needed ???
 			svc.OnConnectionClosed(conn, session)
 		}()
 
-		//--- determine if the remote bootstrap client is a provider ---
-		// if the service is using it.
-		//remoteBoot := rpcConn.Bootstrap(context.Background())
-		//err := remoteBoot.Resolve(ctx)
-		//if err != nil {
-		//	logrus.Warningf("Unable to resolve client: %s", err)
-		//	return
-		//}
-		//// we can't tell if the remote client supports the resolver API so just make the call to find out
-		//capProvider := hubapi.CapProvider(remoteBoot)
-		//remoteBoot.State().Metadata.Put("onincomingconnection", "testing")
-		//connectionID := capProvider.String()
-		//method, release := capProvider.ListCapabilities(ctx, nil)
-		//defer release()
-		//resp, err := method.Struct()
-		//if err != nil {
-		//	logrus.Infof("New connection from '%s'. This is not a provider.", connectionID)
-		//	svc.connectClients.Add(1)
-		//	go func() {
-		//		<-rpcConn.Done()
-		//		svc.connectClients.Add(-1)
-		//		remaining := svc.connectClients.Load()
-		//		logrus.Infof("Client connection '%s' closed. %d remaining", connectionID, remaining)
-		//	}()
-		//} else {
-		//	// liftoff, this is a client that has capabilities to offer. Store them and keep the connection.
-		//	// add the remote client capabilities and keep track of the connection
-		//	capInfoListCapnp, err := resp.InfoList()
-		//	if err == nil {
-		//	}
-		//	capInfoList := capserializer.UnmarshalCapabilyInfoList(capInfoListCapnp)
-		//	// The resolver will be released on stop.
-		//	err = svc.RegisterCapabilities(ctx, connectionID, capInfoList, capProvider)
-		//	// cleanup
-		//	go func() {
-		//		<-rpcConn.Done()
-		//		logrus.Infof("Provider connection '%s' closed. %d providers remaining",
-		//			connectionID, len(svc.connectedProviders))
-		//		svc.removeService(connectionID)
-		//	}()
-		//
-		//}
-		//return err
 	}
+}
+
+// StartResolver is a helper for starting the resolver service and its capnp server in the background.
+// This returns a stop function or an error if start fails.
+func StartResolver(socketPath string) (stopFn func(), err error) {
+	if socketPath == "" {
+		socketPath = resolver.DefaultResolverPath
+	}
+	_ = os.RemoveAll(socketPath)
+	svc := service.NewResolverService()
+	err = svc.Start(context.Background())
+	if err != nil {
+		logrus.Panicf("Failed to start with socket dir %s", socketPath)
+	}
+
+	logrus.Infof("listening on %s", socketPath)
+	lis, err := net.Listen("unix", socketPath)
+	if err == nil {
+		go StartResolverCapnpServer(lis, svc)
+	}
+	return func() {
+		_ = svc.Stop()
+		_ = lis.Close()
+	}, err
 }

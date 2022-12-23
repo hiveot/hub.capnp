@@ -12,12 +12,6 @@ import (
 	"github.com/hiveot/hub/pkg/authn/service"
 )
 
-const DefaultUserConfigFolderName = "configStore"
-
-func Main() {
-	main()
-}
-
 // main entry point to start the authentication service
 func main() {
 	// get defaults
@@ -32,7 +26,7 @@ func main() {
 			// startup
 			err := svc.Start(ctx)
 			if err == nil {
-				err = capnpserver.StartAuthnCapnpServer(ctx, lis, svc)
+				err = capnpserver.StartAuthnCapnpServer(lis, svc)
 			}
 			return err
 		}, func() error {

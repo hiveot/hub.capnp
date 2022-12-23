@@ -40,17 +40,17 @@ It is recommended to import the CA certificate in the browser to avoid unnecessa
 
 ## Hub Service Certificates
 
-Each Hub Service is provided its own certificate for use as both a Hub client and server. This certificate is signed by the CA. It is intended for authentication of the service to the clients and as a client to authenticate to other services.
+Hub services can request a new certificate for use with TCP connections. This certificate is signed by the CA. It is intended for authentication of the service to its clients and as a client to authenticate to other services. 
 
-This is an organization certificate and not a domain certificate, as they are only intended to be used on the local network (domain is local).
+Service certificates are only used with TLS connections over TCP. UDS connections do not use TLS. UDS connections are secured through their socket file permissions. MiM attacks are not possible without root access to the device, in which case all security has already been broken.
 
-The certificate CN contains the service ID, while its OU identifies it as a Hub service.
+A service certificate is an organization certificate and not a domain certificate. They are only intended to be used on the local network (domain is local). The certificate CN contains the service ID, its OU identifies it as a Hub service and SAN names contain both the hostname and the ip address of the device the service is running on.
 
-Service certificates have a short validity period. After renewal the service is restarted.
+Service certificates have a short validity period. They are renewed by the service on each service restart.
 
-Future: 
-* launcher periodically checks for certificate expiration and restarts the service if it nears expiration.
-* If the service is exposed to the internet the public certificate is recommended. Support for Lets Encrypt is not yet available. Until then, domain certificates must be generated manually.
+It is recommended to NOT expose any service to the internet unless a proxy service is used. The proxy service can use a certificate from Lets Encrypt.
+
+Proposal: bridge services connect to each other over the internet. They are effectively a proxy between Hubs and utilize a - preferably Lets Encrypt - certificate. Bridge services use a manual adoption process where the administrator adds the remote bridge address and accept or reject the offered certificate. Certificate renewal will re-use the keys used to generate the certificate and does not require redistribution. 
 
 
 ## IoT Device Certificates
