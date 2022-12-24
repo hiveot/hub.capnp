@@ -17,11 +17,10 @@ type ManageAuthnCapnpClient struct {
 	capability hubapi.CapManageAuthn // capnp client of the user profile service
 }
 
-func (cl *ManageAuthnCapnpClient) AddUser(ctx context.Context, loginID string, name string) (password string, err error) {
+func (cl *ManageAuthnCapnpClient) AddUser(ctx context.Context, loginID string) (password string, err error) {
 
 	method, release := cl.capability.AddUser(ctx, func(params hubapi.CapManageAuthn_addUser_Params) error {
 		err2 := params.SetLoginID(loginID)
-		_ = params.SetName(name)
 		return err2
 	})
 	defer release()

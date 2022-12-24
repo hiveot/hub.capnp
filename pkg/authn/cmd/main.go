@@ -21,7 +21,7 @@ func main() {
 
 	svc := service.NewAuthnService(authServiceConfig)
 
-	listener.RunService(authn.ServiceName, f.Run,
+	listener.RunService(authn.ServiceName, f.SocketPath,
 		func(ctx context.Context, lis net.Listener) error {
 			// startup
 			err := svc.Start(ctx)

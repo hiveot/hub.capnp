@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"capnproto.org/go/capnp/v3"
 	"github.com/sirupsen/logrus"
@@ -29,6 +30,8 @@ type ResolverSession struct {
 
 	// the resolver service is used to get capabilities from connected sessions
 	resolverService *ResolverService
+
+	rwmux sync.RWMutex
 }
 
 // Close the session
@@ -55,6 +58,9 @@ func (session *ResolverSession) GetCapability(ctx context.Context,
 func (session *ResolverSession) GetRegisteredCapability(ctx context.Context,
 	clientID, clientType, capabilityName string, args []string) (
 	capability capnp.Client, err error) {
+
+	session.rwmux.RLock()
+	defer session.rwmux.RUnlock()
 
 	// determine which method this belongs to
 	var capInfo *resolver.CapabilityInfo
@@ -103,10 +109,12 @@ func (session *ResolverSession) ListCapabilities(ctx context.Context) (
 func (session *ResolverSession) ListRegisteredCapabilities(_ context.Context) (
 	capabilities []resolver.CapabilityInfo, err error) {
 
+	session.rwmux.RLock()
+	defer session.rwmux.RUnlock()
+
 	if session.registeredCapabilities == nil {
 		err = fmt.Errorf("Client does not offer capabilities")
 	}
-
 	return session.registeredCapabilities, err
 }
 
@@ -127,6 +135,8 @@ func (session *ResolverSession) Release() {
 func (session *ResolverSession) RegisterCapabilities(_ context.Context,
 	clientID string, capInfo []resolver.CapabilityInfo, provider hubapi.CapProvider) error {
 
+	session.rwmux.Lock()
+	defer session.rwmux.Unlock()
 	session.registeredCapabilities = capInfo
 	session.clientID = clientID
 	session.registeredProvider = provider

@@ -4,6 +4,7 @@ import (
 	"flag"
 	"os"
 	"path"
+	"path/filepath"
 
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
@@ -70,6 +71,8 @@ func LoadServiceConfig(serviceName string, required bool, cfg interface{}) AppFo
 	if runFolder != f.Run {
 		f2.Run = runFolder
 	}
+	f2.SocketPath = filepath.Join(f.Run, serviceName+".socket")
+
 	if storesFolder != f.Stores {
 		f2.Stores = storesFolder
 	}

@@ -171,18 +171,14 @@ func HandleCreateDeviceCert(ctx context.Context, f svcconfig.AppFolders, deviceI
 	var dc certs.IDeviceCerts
 
 	conn, err := listener.CreateLocalClientConnection(certs.ServiceName, f.Run)
-	if err == nil {
-		cc, err = capnpclient.NewCertServiceCapnpClient(conn)
-	}
-	if err == nil {
-		dc = cc.CapDeviceCerts(ctx)
-	}
 	if err != nil {
 		return err
 	}
-	if err == nil {
-		pubKeyPEM, generatedPrivKey, err = loadOrCreateKey(keyFile)
-	}
+	cc = capnpclient.NewCertServiceCapnpClient(conn)
+	dc = cc.CapDeviceCerts(ctx)
+
+	pubKeyPEM, generatedPrivKey, err = loadOrCreateKey(keyFile)
+
 	// finally, create the user certificate
 	if err == nil {
 		certPEM, _, err = dc.CreateDeviceCert(ctx, deviceID, pubKeyPEM, validityDays)
@@ -220,18 +216,13 @@ func HandleCreateServiceCert(ctx context.Context, f svcconfig.AppFolders,
 	var sc certs.IServiceCerts
 
 	conn, err := listener.CreateLocalClientConnection(certs.ServiceName, f.Run)
-	if err == nil {
-		cc, err = capnpclient.NewCertServiceCapnpClient(conn)
-	}
-	if err == nil {
-		sc = cc.CapServiceCerts(ctx)
-	}
 	if err != nil {
 		return err
 	}
-	if err == nil {
-		pubKeyPEM, generatedPrivKey, err = loadOrCreateKey(keyFile)
-	}
+	cc = capnpclient.NewCertServiceCapnpClient(conn)
+	sc = cc.CapServiceCerts(ctx)
+	pubKeyPEM, generatedPrivKey, err = loadOrCreateKey(keyFile)
+
 	// finally, create the user certificate
 	if err == nil {
 		certPEM, _, err = sc.CreateServiceCert(ctx, serviceID, pubKeyPEM, names, validityDays)
@@ -265,18 +256,14 @@ func HandleCreateUserCert(ctx context.Context, f svcconfig.AppFolders, clientID 
 	var uc certs.IUserCerts
 
 	conn, err := listener.CreateLocalClientConnection(certs.ServiceName, f.Run)
-	if err == nil {
-		cc, err = capnpclient.NewCertServiceCapnpClient(conn)
-	}
-	if err == nil {
-		uc = cc.CapUserCerts(ctx)
-	}
 	if err != nil {
 		return err
 	}
-	if err == nil {
-		pubKeyPEM, generatedPrivKey, err = loadOrCreateKey(keyFile)
-	}
+	cc = capnpclient.NewCertServiceCapnpClient(conn)
+
+	uc = cc.CapUserCerts(ctx)
+	pubKeyPEM, generatedPrivKey, err = loadOrCreateKey(keyFile)
+
 	// finally, create the user certificate
 	if err == nil {
 		certPEM, _, err = uc.CreateUserCert(ctx, clientID, pubKeyPEM, validityDays)

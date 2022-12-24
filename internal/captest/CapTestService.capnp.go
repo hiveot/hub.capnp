@@ -99,7 +99,9 @@ func (c CapTestService) SetFlowLimiter(lim fc.FlowLimiter) {
 // for this client.
 func (c CapTestService) GetFlowLimiter() fc.FlowLimiter {
 	return capnp.Client(c).GetFlowLimiter()
-} // A CapTestService_Server is a CapTestService with a local implementation.
+}
+
+// A CapTestService_Server is a CapTestService with a local implementation.
 type CapTestService_Server interface {
 	CapMethod1(context.Context, CapTestService_capMethod1) error
 }

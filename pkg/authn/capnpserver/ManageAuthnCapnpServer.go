@@ -18,12 +18,11 @@ func (capsrv *ManageAuthnCapnpServer) AddUser(
 
 	args := call.Args()
 	loginID, _ := args.LoginID()
-	name, _ := args.Name()
-	passwd, err := capsrv.svc.AddUser(ctx, loginID, name)
+	passwd, err := capsrv.svc.AddUser(ctx, loginID)
 	if err == nil {
 		res, err2 := call.AllocResults()
 		err = err2
-		res.SetPassword(passwd)
+		_ = res.SetPassword(passwd)
 	}
 	return err
 }

@@ -59,9 +59,9 @@ func newServer(useCapnp bool) (provSvc provisioning.IProvisioning, closeFn func(
 			logrus.Fatalf("Failed starting capnp client: %s", err)
 		}
 		return cl, func() error {
+			cl.Release()
 			cancelFunc()
 			err = svc.Stop()
-			cl.Release()
 			return err
 		}
 	}

@@ -102,13 +102,11 @@ func (ls *LauncherService) StartService(
 	ls.mux.Lock()
 	defer ls.mux.Unlock()
 
-	logrus.Infof("Starting service '%s'", name)
-
 	// step 1: pre-checks
 	serviceInfo, found := ls.services[name]
 	if !found {
 		info.Status = fmt.Sprintf("service '%s' not found", name)
-		logrus.Error(err)
+		logrus.Error(info.Status)
 		return info, errors.New(info.Status)
 	}
 	if serviceInfo.Running {
@@ -127,6 +125,8 @@ func (ls *LauncherService) StartService(
 	svcCmd = exec.Command(serviceInfo.Path)
 
 	// step3: setup logging before starting service
+	logrus.Infof("Starting service '%s'", name)
+
 	if ls.cfg.LogServices {
 		// inspired by https://gist.github.com/jerblack/4b98ba48ed3fb1d9f7544d2b1a1be287
 		logfile := path.Join(ls.f.Logs, name+".log")
@@ -169,7 +169,7 @@ func (ls *LauncherService) StartService(
 		return *serviceInfo, err
 	}
 	ls.cmds[name] = svcCmd
-	logrus.Warningf("Service '%s' has started", name)
+	//logrus.Warningf("Service '%s' has started", name)
 
 	serviceInfo.StartTime = time.Now().Format(time.RFC3339)
 	serviceInfo.PID = svcCmd.Process.Pid

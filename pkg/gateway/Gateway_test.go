@@ -34,6 +34,7 @@ const testSocketDir = "/tmp/test-gateway"
 const testClientID = "client1"
 const testUseCapnp = true
 
+var certsSocketPath = path.Join(testSocketDir, certs.ServiceName+".socket")
 var testSocketPath = path.Join(testSocketDir, gateway.ServiceName+".socket")
 var testAddress = "127.0.0.1:0"
 var testCACert string
@@ -49,7 +50,8 @@ func startCertService(ctx context.Context) certs.ICerts {
 	var err error
 	caCert, caKey, _ := selfsigned.CreateHubCA(1)
 	certCap := selfsigned.NewSelfSignedCertsService(caCert, caKey)
-	srvListener := listener.CreateUDSServiceListener(testSocketDir, certs.ServiceName)
+
+	srvListener, _ := net.Listen("unix", certsSocketPath)
 
 	logrus.Infof("CertServiceCapnpServer starting on: %s", srvListener.Addr())
 	svc := selfsigned.NewSelfSignedCertsService(caCert, caKey)

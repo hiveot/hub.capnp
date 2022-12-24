@@ -2,10 +2,14 @@ package captest
 
 import (
 	"context"
+	"net"
+	"os"
 
+	"capnproto.org/go/capnp/v3"
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/internal/caphelp"
 	"github.com/hiveot/hub/pkg/resolver/client"
 )
 
@@ -15,6 +19,7 @@ type TestService struct {
 	// The capnp server used to register capabilities
 	capRegSrv   *client.CapRegistrationServer
 	serviceName string
+	lis         net.Listener // listening socket for direct serving
 }
 
 // CapMethod1 returns the capability to call method1
@@ -35,6 +40,19 @@ func (ts *TestService) CapMethod1(_ context.Context, call CapTestService_capMeth
 	return err
 }
 
+// Listen for direct incoming connections
+func (ts *TestService) Listen(listenSocket string) {
+	err := os.Remove(listenSocket)
+	ts.lis, err = net.Listen("unix", listenSocket)
+	if err != nil {
+		panic("failed to start listening ")
+	}
+	go func() {
+		main := CapTestService_ServerToClient(ts)
+		err = caphelp.Serve(ts.lis, capnp.Client(main), nil)
+	}()
+}
+
 // Start connects the test service to the resolver and register its capabilities
 func (ts *TestService) Start(resolverSocket string) (err error) {
 
@@ -50,6 +68,9 @@ func (ts *TestService) Start(resolverSocket string) (err error) {
 // Stop the test service and close its connection to the resolver
 func (ts *TestService) Stop() {
 	ts.capRegSrv.Stop()
+	if ts.lis != nil {
+		_ = ts.lis.Close()
+	}
 }
 
 // NewTestService creates a new instance of the test service capnp server
@@ -58,11 +79,8 @@ func NewTestService() *TestService {
 		serviceName: "testservice",
 	}
 
-	// obtain the methods of this service
+	// register the exported methods of this service as available capabilities
 	ts.capRegSrv = client.NewCapRegistrationServer(
-		// FIXME: each method must return a capability. How is this returned?
-		//    A: standardize result parameter name as 'capability' in each service.
-		// -> B: somehow get the first argument as a capnp.Client, regardless the name
 		ts.serviceName, CapTestService_Methods(nil, ts))
 
 	// export the methods that are available as capabilities

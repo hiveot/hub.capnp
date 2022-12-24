@@ -128,7 +128,7 @@ func HandleStartService(ctx context.Context, f svcconfig.AppFolders, serviceName
 		err = ls.StartAll(ctx)
 
 		if err != nil {
-			fmt.Println("Start all failed with: ", err)
+			//fmt.Println("Start all failed with: ", err)
 			return err
 		}
 		fmt.Printf("All services started\n")
@@ -136,7 +136,7 @@ func HandleStartService(ctx context.Context, f svcconfig.AppFolders, serviceName
 		info, err2 := ls.StartService(ctx, serviceName)
 
 		if err2 != nil {
-			fmt.Println("Start failed:", err2)
+			//fmt.Println("Start failed:", err2)
 			return err2
 		}
 		fmt.Printf("Service '%s' started\n", info.Name)

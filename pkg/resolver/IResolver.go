@@ -10,6 +10,7 @@ import (
 )
 
 const ServiceName = "resolver"
+
 const DefaultResolverPath = hubapi.DefaultResolverAddress
 
 // CapabilityInfo provides information on a capability that is available through the resolver and gateways
@@ -65,10 +66,15 @@ type IResolverService interface {
 type IResolverSession interface {
 
 	// GetCapability is used to obtain the capability using the capnp protocol.
-	// If Level 3 RPC is support, this might hand the capability over to the client.
 	// The provided capability must be released after use.
 	//
 	// Note that if the capability is not available this might not return an error until it is used.
+	//
+	// This implementation of GetCapability is written as a wrapper around the go-capnproto2 library.
+	// It isn't the most efficient way of implementing this as some unnecessary (un)marshalling takes place.
+	// Once the way capnp handles messages is better understood and a case can be made for improved performance,
+	// I'll change the resolver to proxy the message itself to the provider.
+	//
 	GetCapability(ctx context.Context,
 		clientID string, clientType string, capName string, args []string) (capnp.Client, error)
 

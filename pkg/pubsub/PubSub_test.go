@@ -45,15 +45,15 @@ func startService(useCapnp bool) (pubsub.IPubSubService, func() error) {
 		capClient, err := capnpclient.StartPubSubCapnpClient(ctx, clConn)
 
 		return capClient, func() error {
+			err = capClient.Release()
 			// allow ongoing releases to finish
 			time.Sleep(time.Millisecond * 1)
-			err2 := svc.Stop()
-			time.Sleep(time.Millisecond * 1)
 			// catch missing releases
-			err = capClient.Release()
+			err2 := svc.Stop()
 			if err == nil {
 				err = err2
 			}
+			time.Sleep(time.Millisecond * 1)
 			return err
 		}
 	}
@@ -74,24 +74,6 @@ func TestStartStop(t *testing.T) {
 	err := stopFn()
 	assert.NoError(t, err)
 
-}
-
-func TestMissingRelease(t *testing.T) {
-	ctx := context.Background()
-	svc, stopFn := startService(testUseCapnp)
-
-	devicePS := svc.CapDevicePubSub(ctx, "deviceID")
-	_ = devicePS
-
-	// test subscription of a single action by both service and device
-	err := devicePS.SubAction(ctx, "", "", func(val *thing.ThingValue) {
-		// subscriber
-	})
-	// having unreleased subscription is an error
-	err = stopFn()
-	// it seems to be a race. not clear why
-	_ = err
-	assert.Error(t, err, "all subscriptions were released. this is unexpected")
 }
 
 func TestPubSubAction(t *testing.T) {

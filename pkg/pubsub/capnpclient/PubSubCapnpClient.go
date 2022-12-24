@@ -9,7 +9,7 @@ import (
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/pkg/pubsub"
 	"github.com/hiveot/hub/pkg/resolver"
-	"github.com/hiveot/hub/pkg/resolver/client"
+	"github.com/hiveot/hub/pkg/resolver/capnpclient"
 )
 
 // PubSubCapnpClient is the capnp client for the pubsub service
@@ -101,7 +101,7 @@ func StartPubSubCapnpClient(ctx context.Context, connection net.Conn) (*PubSubCa
 		capPubSub = hubapi.CapPubSubService(rpcConn.Bootstrap(ctx))
 	} else {
 		// use the resolver service
-		resolverClient, err = client.ConnectToResolver("")
+		resolverClient, err = capnpclient.ConnectToResolver("")
 	}
 	cl = &PubSubCapnpClient{
 		resolverClient: resolverClient,

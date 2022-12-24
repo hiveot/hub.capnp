@@ -47,9 +47,14 @@ func (authz *AuthzCapnpClient) CapVerifyAuthz(ctx context.Context) authz.IVerify
 	return NewVerifyAuthzCapnpClient(capability)
 }
 
+func (authz *AuthzCapnpClient) Release() {
+	authz.capability.Release()
+}
+
 // NewAuthzCapnpClient returns a authorization client using the capnp protocol
-//  ctx is the context for retrieving capabilities
-//  connection is the client connection to the capnp server
+//
+//	ctx is the context for retrieving capabilities
+//	connection is the client connection to the capnp server
 func NewAuthzCapnpClient(ctx context.Context, connection net.Conn) (*AuthzCapnpClient, error) {
 	var cl *AuthzCapnpClient
 	transport := rpc.NewStreamTransport(connection)

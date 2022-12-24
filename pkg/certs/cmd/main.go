@@ -28,7 +28,6 @@ func main() {
 	var err error
 
 	f := svcconfig.LoadServiceConfig(certs.ServiceName, false, nil)
-
 	// This service needs the CA certificate and key to operate
 	caCertPath := path.Join(f.Certs, hubapi.DefaultCaCertFile)
 	caKeyPath := path.Join(f.Certs, hubapi.DefaultCaKeyFile)
@@ -45,7 +44,7 @@ func main() {
 
 	svc := selfsigned.NewSelfSignedCertsService(caCert, caKey)
 
-	listener.RunService(certs.ServiceName, f.Run,
+	listener.RunService(certs.ServiceName, f.SocketPath,
 		func(ctx context.Context, lis net.Listener) error {
 			// startup
 			err = svc.Start()

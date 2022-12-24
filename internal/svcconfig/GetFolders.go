@@ -7,14 +7,15 @@ import (
 )
 
 type AppFolders struct {
-	Bin      string // Application binary folder, eg launcher, cli, ...
-	Services string // Services and plugin folder
-	Home     string // Home folder, default this is the parent of bin, config, certs and logs
-	Config   string // Config folder with application and service yaml configuration files
-	Certs    string // Certificates and keys
-	Logs     string // Logging output
-	Run      string // PID and sockets folder.
-	Stores   string // Root of the service stores
+	Bin        string // Application binary folder, eg launcher, cli, ...
+	Services   string // Services and plugin folder
+	Home       string // Home folder, default this is the parent of bin, config, certs and logs
+	Config     string // Config folder with application and service yaml configuration files
+	Certs      string // Certificates and keys
+	Logs       string // Logging output
+	Run        string // PID and sockets folder.
+	Stores     string // Root of the service stores
+	SocketPath string // default location of service UDS listening socket, if used
 }
 
 // GetFolders returns the application folders for use by the Hub.

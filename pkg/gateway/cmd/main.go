@@ -19,6 +19,7 @@ import (
 	capnpclient2 "github.com/hiveot/hub/pkg/authn/capnpclient"
 	"github.com/hiveot/hub/pkg/certs"
 	"github.com/hiveot/hub/pkg/certs/capnpclient"
+	"github.com/hiveot/hub/pkg/certs/service/selfsigned"
 	"github.com/hiveot/hub/pkg/gateway"
 	"github.com/hiveot/hub/pkg/gateway/capnpserver"
 	"github.com/hiveot/hub/pkg/gateway/config"
@@ -30,21 +31,14 @@ func main() {
 	var serviceName = gateway.ServiceName
 	var err error
 	var svc *service.GatewayService
+	var userAuthn authn.IUserAuthn
 
+	ctx := context.Background()
 	f := svcconfig.GetFolders("", false)
 	gwConfig := config.NewGatewayConfig(f.Run, f.Certs)
 	f = svcconfig.LoadServiceConfig(serviceName, false, &gwConfig)
 
-	// the gateway uses the authn service to authenticate logins from users
-	authnConn, err := listener.CreateLocalClientConnection(authn.ServiceName, f.Run)
-	if err == nil {
-		authnService, err := capnpclient2.NewAuthnCapnpClient(context.Background(), authnConn)
-
-		if err == nil {
-			svc = service.NewGatewayService(f.Run, authnService)
-		}
-	}
-	// certificates are needed for the capnp server.
+	// certificates are needed for TLS connections to the capnp server.
 	// on each restart a new set of keys is used and a new certificate is requested.
 	keys := certsclient.CreateECDSAKeys()
 	serverCert, caCert, err := RenewServiceCerts(serviceName, keys, f.Run)
@@ -54,7 +48,22 @@ func main() {
 	lis, err := net.Listen("tcp", gwConfig.Address)
 	tlsLis := listener.CreateTLSListener(lis, serverCert, caCert)
 
-	ctx := listener.ExitOnSignal(context.Background(), func() {
+	// the gateway uses the authn service to authenticate logins from users
+	// without authn it still functions with certificates
+	authnConn, err := listener.CreateLocalClientConnection(authn.ServiceName, f.Run)
+	if err == nil {
+		authnService, err2 := capnpclient2.NewAuthnCapnpClient(context.Background(), authnConn)
+		if err2 == nil {
+			defer authnService.Release()
+			userAuthn = authnService.CapUserAuthn(ctx, serviceName)
+		}
+	}
+	// need certs but not authn
+	if err == nil {
+		svc = service.NewGatewayService(f.Run, userAuthn)
+	}
+
+	ctx = listener.ExitOnSignal(context.Background(), func() {
 		_ = lis.Close()
 		err = svc.Stop()
 	})
@@ -83,19 +92,30 @@ func main() {
 //	socketFolder is the location of the certs service socket
 func RenewServiceCerts(serviceID string, keys *ecdsa.PrivateKey, socketFolder string) (
 	svcCert *tls.Certificate, caCert *x509.Certificate, err error) {
+	var capServiceCert certs.IServiceCerts
+
+	ipAddr := hubnet.GetOutboundIP("")
+	names := []string{"127.0.0.1", ipAddr.String()}
+	pubKeyPEM, err := certsclient.PublicKeyToPEM(&keys.PublicKey)
+	if err != nil {
+		logrus.Errorf("invalid public key: %s", err)
+		return nil, nil, err
+	}
 
 	ctx := context.Background()
 	csConn, err := listener.CreateLocalClientConnection(certs.ServiceName, socketFolder)
 	if err != nil {
+		logrus.Errorf("unable to connect to certs service: %s. Workaround with local instance", err)
+		// FIXME: workaround or panic?
+		capServiceCert = selfsigned.NewServiceCertsService(caCert, nil)
 		return nil, nil, err
+	} else {
+		cs := capnpclient.NewCertServiceCapnpClient(csConn)
+		capServiceCert = cs.CapServiceCerts(ctx)
 	}
-	cs, err := capnpclient.NewCertServiceCapnpClient(csConn)
-	capServiceCert := cs.CapServiceCerts(ctx)
-	ipAddr := hubnet.GetOutboundIP("")
-	names := []string{"127.0.0.1", ipAddr.String()}
-	pubKeyPEM, _ := certsclient.PublicKeyToPEM(keys.PublicKey)
 	svcPEM, caPEM, err := capServiceCert.CreateServiceCert(ctx, serviceID, pubKeyPEM, names, 0)
 	if err != nil {
+		logrus.Errorf("unable to create a service certificate: %s", err)
 		return nil, nil, err
 	}
 	caCert, _ = certsclient.X509CertFromPEM(caPEM)

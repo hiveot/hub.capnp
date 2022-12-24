@@ -51,28 +51,32 @@ func (capsrv *AuthnCapnpServer) CapManageAuthn(ctx context.Context, call hubapi.
 }
 
 // StartAuthnCapnpServer starts the capnp protocol server for the authentication service
-// lis is optional if the service needs to be listening on its own endpoint instead of using the resolver.
-func StartAuthnCapnpServer(lis net.Listener, svc authn.IAuthnService) error {
+//
+//	svc is the service implementation
+//	lis if the service listens on its own endpoint for direct connections. nil to use resolver.
+//	resolverSocket is the UDS socket of the resolver used to register the service capabilities. "" to not register.
+func StartAuthnCapnpServer(svc authn.IAuthnService, lis net.Listener, resolverSocket string) (err error) {
 
 	srv := &AuthnCapnpServer{
 		svc: svc,
 	}
-	// this server will handle capability registration for us.
-	capRegSrv := client.NewCapRegistrationServer(
-		authn.ServiceName,
-		hubapi.CapAuthn_Methods(nil, srv))
+	if resolverSocket != "" {
+		// this server will handle capability registration for us.
+		capRegSrv := client.NewCapRegistrationServer(
+			authn.ServiceName,
+			hubapi.CapAuthn_Methods(nil, srv))
 
-	// register the methods available through getCapability
-	capRegSrv.ExportCapability("capUserAuthn",
-		[]string{hubapi.ClientTypeService, hubapi.ClientTypeUser, hubapi.ClientTypeUnauthenticated})
-	capRegSrv.ExportCapability("capManageAuthn",
-		[]string{hubapi.ClientTypeService})
+		// register the methods available through getCapability
+		capRegSrv.ExportCapability("capUserAuthn",
+			[]string{hubapi.ClientTypeService, hubapi.ClientTypeUser, hubapi.ClientTypeUnauthenticated})
+		capRegSrv.ExportCapability("capManageAuthn",
+			[]string{hubapi.ClientTypeService})
 
-	err := capRegSrv.Start("")
-	if err != nil {
-		logrus.Warningf("unable to connect to the resolver service: %s", err)
+		err := capRegSrv.Start(resolverSocket)
+		if err != nil {
+			logrus.Warningf("unable to connect to the resolver service: %s", err)
+		}
 	}
-
 	// also listen, although that isn't needed if the resolver works.
 	if lis != nil {
 		logrus.Infof("Starting Authn service capnp adapter listening on: %s", lis.Addr())

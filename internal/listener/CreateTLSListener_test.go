@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"net"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -31,6 +32,7 @@ func TestConnectWriteRead(t *testing.T) {
 	var n int
 	network := "tcp"
 	address := "127.0.0.1:9999"
+	rwmux := sync.RWMutex{}
 
 	// create the server listener
 	lis, err := net.Listen(network, address)
@@ -52,10 +54,12 @@ func TestConnectWriteRead(t *testing.T) {
 			clientID := pcert.Subject.CommonName
 			assert.Equal(t, "Plugin", clientID)
 		}
+		rwmux.Lock()
 		n, err = srvConn.Read(readBuf)
 		readBuf = readBuf[0:n]
 		remoteClient := srvConn.RemoteAddr().String()
 		logrus.Infof("read %d bytes from '%s'", n, remoteClient)
+		rwmux.Unlock()
 	}()
 	time.Sleep(time.Millisecond)
 	// create the TLS client and connect
@@ -74,8 +78,10 @@ func TestConnectWriteRead(t *testing.T) {
 	assert.Equal(t, 11, m)
 
 	time.Sleep(time.Millisecond * 10) // give read some time
+	rwmux.RLock()
 	assert.Equal(t, 11, n)
 	assert.Equal(t, message, readBuf)
+	rwmux.RUnlock()
 
 	err = tlsConn.Close()
 	assert.NoError(t, err)

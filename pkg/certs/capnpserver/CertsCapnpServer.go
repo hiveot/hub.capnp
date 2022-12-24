@@ -8,6 +8,7 @@ import (
 
 	"capnproto.org/go/capnp/v3"
 	"capnproto.org/go/capnp/v3/rpc"
+	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/pkg/certs"
@@ -99,7 +100,7 @@ func (capsrv *CertsCapnpServer) CapVerifyCerts(
 // StartCertsCapnpServer starts the capnp protocol server for the certificates service
 func StartCertsCapnpServer(lis net.Listener, svc certs.ICerts) error {
 
-	log.Printf("Starting certs service capnp server on: %s", lis.Addr())
+	logrus.Infof("Starting certs service capnp server on: %s", lis.Addr())
 
 	srv := &CertsCapnpServer{
 		svc: svc,

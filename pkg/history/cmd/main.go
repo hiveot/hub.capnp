@@ -25,7 +25,7 @@ func main() {
 	store := cmd.NewBucketStore(cfg.Directory, cfg.ServiceID, cfg.Backend)
 	svc := service.NewHistoryService(store, "urn:"+cfg.ServiceID)
 
-	listener.RunService(history.ServiceName, f.Run,
+	listener.RunService(history.ServiceName, f.SocketPath,
 		func(ctx context.Context, lis net.Listener) error {
 			// startup
 			err := store.Open()

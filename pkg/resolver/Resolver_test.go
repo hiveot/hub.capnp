@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"capnproto.org/go/capnp/v3/rpc"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -133,7 +134,43 @@ func TestConnectDisconnectProviders(t *testing.T) {
 	time.Sleep(time.Second)
 }
 
-func TestGetCapability(t *testing.T) {
+// Test accessing the capability directly using GetCapability
+func TestGetCapabilityDirect(t *testing.T) {
+	//capability1 := "cap1"
+	//serviceID1 := "service1"
+	listenerSocket := "/tmp/test-resolver-direct.socket"
+	ctx := context.Background()
+	//svc, stopFn := startResolverAndClient(testUseCapnp)
+
+	// start the test service
+	ts := captest.NewTestService()
+	ts.Listen(listenerSocket)
+
+	// obtain the test service capability directly from the service without the use of getcapability.
+	// step 1: connect
+	conn, err := net.Dial("unix", listenerSocket)
+	require.NoError(t, err)
+	// step 2: obtain the service bootstrap client
+	transport := rpc.NewStreamTransport(conn)
+	rpcConn := rpc.NewConn(transport, nil)
+	bootClient := rpcConn.Bootstrap(ctx)
+
+	// step 3: convert the bootstrap client to the service client
+	capTestSvc := captest.CapTestService(bootClient)
+	// step 4: obtain the capability for method1 from the service
+	method, release := capTestSvc.CapMethod1(ctx, nil)
+	defer release()
+	capMethod1 := method.Capabilit()
+	// step 5: invoke method1
+	resp2, release2 := capMethod1.Method1(ctx, nil)
+	defer release2()
+	resp3, err := resp2.Struct()
+	// finally: the end
+	forYouText, _ := resp3.ForYou()
+	assert.NotEmpty(t, forYouText)
+}
+
+func TestGetCapabilityViaResolver(t *testing.T) {
 	//capability1 := "cap1"
 	//serviceID1 := "service1"
 

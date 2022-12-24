@@ -53,6 +53,7 @@ func startTestAuthzService(useCapnp bool) (svc authz.IAuthz, closeFn func() erro
 		clConn, _ := net.Dial("unix", socketPath)
 		capClient, _ := capnpclient.NewAuthzCapnpClient(ctx, clConn)
 		return capClient, func() error {
+			capClient.Release()
 			cancelFunc()
 			err = authSvc.Stop()
 			return err

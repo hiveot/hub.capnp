@@ -29,16 +29,14 @@ func main() {
 	// connect to the certificate service to get its capability for issuing device certificates
 	certConn, err := listener.CreateLocalClientConnection(certs.ServiceName, f.Run)
 	if err == nil {
-		certsClient, err = certsclient.NewCertServiceCapnpClient(certConn)
-	}
-	// the provisioning service requires certificate capabilities
-	if err == nil {
+		certsClient = certsclient.NewCertServiceCapnpClient(certConn)
+		// the provisioning service requires certificate capabilities
 		deviceCap = certsClient.CapDeviceCerts(ctx)
 		verifyCap = certsClient.CapVerifyCerts(ctx)
 		svc = service.NewProvisioningService(deviceCap, verifyCap)
 	}
 	// now we have the capability to create certificates, start the service and start listening for capnp clients
-	listener.RunService(provisioning.ServiceName, f.Run,
+	listener.RunService(provisioning.ServiceName, f.SocketPath,
 		func(ctx context.Context, lis net.Listener) error {
 			// startup
 			err := svc.Start(ctx)

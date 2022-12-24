@@ -24,7 +24,7 @@ func main() {
 	storePath := filepath.Join(f.Stores, directory.ServiceName, storeFile)
 	svc := service.NewDirectoryService(hubID, storePath)
 
-	listener.RunService(directory.ServiceName, f.Run,
+	listener.RunService(directory.ServiceName, f.SocketPath,
 		func(ctx context.Context, lis net.Listener) error {
 			// startup
 			err := svc.Start(ctx)

@@ -21,7 +21,7 @@ func main() {
 
 	svc := service.NewLauncherService(f, lc)
 
-	listener.RunService(launcher.ServiceName, f.Run,
+	listener.RunService(launcher.ServiceName, f.SocketPath,
 		func(ctx context.Context, lis net.Listener) error {
 			// startup
 			err := svc.Start(ctx)

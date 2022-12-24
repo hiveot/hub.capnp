@@ -17,7 +17,7 @@ func main() {
 
 	svc := service.NewPubSubService()
 
-	listener.RunService(pubsub.ServiceName, f.Run,
+	listener.RunService(pubsub.ServiceName, f.SocketPath,
 		func(ctx context.Context, lis net.Listener) error {
 			// startup
 			err := svc.Start()

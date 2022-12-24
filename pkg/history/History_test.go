@@ -86,10 +86,10 @@ func newHistoryService(useCapnp bool) (history.IHistoryService, func() error) {
 			logrus.Fatalf("Failed starting capnp client: %s", err)
 		}
 		return cl, func() error {
+			cl.Release()
 			cancelFn()
 			_ = svc.Stop()
 			err = store.Close()
-			cl.Release()
 			// give it some time to shut down before the next test
 			time.Sleep(time.Millisecond)
 			return err

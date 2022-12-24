@@ -138,7 +138,7 @@ func NewResolverSessionCapnpClient(ctx context.Context, conn net.Conn) (cl *Reso
 // Users should call Release when done. This will close the connection and any
 // capabilities obtained from the resolver.
 //
-//	resolverSocket is the path to the socket the resolver listens on or "" for the default
+//	resolverSocket is the path to the socket the resolver listens
 //
 // This returns the resolver client
 func ConnectToResolver(resolverSocket string) (

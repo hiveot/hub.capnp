@@ -36,8 +36,10 @@ type IAuthnService interface {
 // Intended for administrators only.
 type IManageAuthn interface {
 
-	// AddUser adds a new user and generates a temporary password
-	AddUser(ctx context.Context, loginID string, name string) (password string, err error)
+	// AddUser adds a user and generates a temporary password
+	// If the loginID already exists then an error is returned
+	// Users can set their own user name with IUserAuth
+	AddUser(ctx context.Context, loginID string) (password string, err error)
 
 	// ListUsers provide a list of users and their info
 	ListUsers(ctx context.Context) (profiles []UserProfile, err error)

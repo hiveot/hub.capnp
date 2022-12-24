@@ -12,6 +12,7 @@ type DummyAuthnService struct {
 }
 
 func (dummy *DummyAuthnService) CapUserAuthn(_ context.Context, clientID string) authn.IUserAuthn {
+	_ = clientID
 	return dummy
 }
 
@@ -21,8 +22,8 @@ func (dummy *DummyAuthnService) CapManageAuthn(_ context.Context) authn.IManageA
 
 // --- Manage ---
 
-func (dummy *DummyAuthnService) AddUser(_ context.Context, loginID string, name string) (password string, err error) {
-	dummy.pwMap[loginID] = name
+func (dummy *DummyAuthnService) AddUser(_ context.Context, loginID string) (password string, err error) {
+	dummy.pwMap[loginID] = loginID
 	return "newpassword", nil
 }
 
@@ -32,10 +33,12 @@ func (dummy *DummyAuthnService) ListUsers(_ context.Context) (profiles []authn.U
 }
 
 func (dummy *DummyAuthnService) RemoveUser(_ context.Context, loginID string) error {
+	_ = loginID
 	return nil
 }
 
 func (dummy *DummyAuthnService) ResetPassword(_ context.Context, loginID string) (newPassword string, err error) {
+	_ = loginID
 	newpw := "newpassword"
 	return newpw, nil
 }
@@ -43,23 +46,26 @@ func (dummy *DummyAuthnService) ResetPassword(_ context.Context, loginID string)
 func (dummy *DummyAuthnService) Release() {
 }
 
-func (dummy *DummyAuthnService) GetProfile(ctx context.Context) (profile authn.UserProfile, err error) {
+func (dummy *DummyAuthnService) GetProfile(_ context.Context) (profile authn.UserProfile, err error) {
 	profile = authn.UserProfile{}
 	return profile, nil
 }
 
-func (dummy *DummyAuthnService) Login(ctx context.Context, password string) (authToken, refreshToken string, err error) {
+func (dummy *DummyAuthnService) Login(_ context.Context, password string) (authToken, refreshToken string, err error) {
+	_ = password
 	authToken = "auth"
 	refreshToken = "refresh"
 	err = nil
 	return
 }
 
-func (dummy *DummyAuthnService) Logout(ctx context.Context, refreshToken string) (err error) {
+func (dummy *DummyAuthnService) Logout(_ context.Context, refreshToken string) (err error) {
+	_ = refreshToken
 	return nil
 }
 
-func (dummy *DummyAuthnService) Refresh(ctx context.Context, refreshToken string) (newAuthToken, newRefreshToken string, err error) {
+func (dummy *DummyAuthnService) Refresh(_ context.Context, refreshToken string) (newAuthToken, newRefreshToken string, err error) {
+	_ = refreshToken
 	newAuthToken = "auth"
 	newRefreshToken = "refresh"
 	err = nil
@@ -68,13 +74,15 @@ func (dummy *DummyAuthnService) Refresh(ctx context.Context, refreshToken string
 
 // SetPassword changes the client password
 // Login or Refresh must be called successfully first.
-func (dummy *DummyAuthnService) SetPassword(ctx context.Context, newPassword string) error {
+func (dummy *DummyAuthnService) SetPassword(_ context.Context, newPassword string) error {
+	_ = newPassword
 	return nil
 }
 
 // SetProfile updates the user profile
 // Login or Refresh must be called successfully first.
-func (dummy *DummyAuthnService) SetProfile(ctx context.Context, profile authn.UserProfile) error {
+func (dummy *DummyAuthnService) SetProfile(_ context.Context, profile authn.UserProfile) error {
+	_ = profile
 	return nil
 }
 

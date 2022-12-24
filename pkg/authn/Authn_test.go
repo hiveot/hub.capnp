@@ -25,7 +25,7 @@ var passwordFile string // set in TestMain
 const testUseCapnp = true
 
 var tempFolder string
-
+var testResolverSocket = "/tmp/test-authn-resolver.socket"
 var testuser1 = "testuser1"
 var testpass1 = "secret11" // set at start
 
@@ -44,7 +44,10 @@ func startTestAuthnService(useCapnp bool) (authSvc authn.IAuthnService, stopFn f
 	if err == nil {
 		mng := svc.CapManageAuthn(ctx)
 		defer mng.Release()
-		testpass1, err = mng.AddUser(ctx, testuser1, "test user")
+		testpass1, err = mng.AddUser(ctx, testuser1)
+	}
+	if err != nil {
+		logrus.Panicf("cant start test authn service: %s", err)
 	}
 	if useCapnp {
 		// start the server
@@ -52,7 +55,7 @@ func startTestAuthnService(useCapnp bool) (authSvc authn.IAuthnService, stopFn f
 		if err != nil {
 			logrus.Panic("Unable to create a listener, can't run test")
 		}
-		go capnpserver.StartAuthnCapnpServer(srvListener, svc)
+		go capnpserver.StartAuthnCapnpServer(svc, srvListener, testResolverSocket)
 		time.Sleep(time.Millisecond)
 
 		// connect the client to the server above
@@ -118,7 +121,6 @@ func TestManageUser(t *testing.T) {
 
 	ctx := context.Background()
 	svc, stopFn, err := startTestAuthnService(testUseCapnp)
-	defer stopFn()
 	require.NoError(t, err)
 	mng := svc.CapManageAuthn(ctx)
 	defer mng.Release()
@@ -147,9 +149,11 @@ func TestManageUser(t *testing.T) {
 	require.Equal(t, 1, len(userList))
 
 	// add existing user should fail
-	_, err = mng.AddUser(ctx, testuser1, "user name")
+	_, err = mng.AddUser(ctx, testuser1)
 	assert.Error(t, err)
 
+	err = stopFn()
+	assert.NoError(t, err)
 }
 
 func TestLoginRefreshLogout(t *testing.T) {

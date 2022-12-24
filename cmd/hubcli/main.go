@@ -8,7 +8,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 
-	"github.com/hiveot/hub.go/pkg/logging"
 	"github.com/hiveot/hub/cmd/hubcli/authn"
 	"github.com/hiveot/hub/cmd/hubcli/authz"
 	"github.com/hiveot/hub/cmd/hubcli/certscli"
@@ -27,7 +26,7 @@ var homeFolder string
 
 // CLI Main entry
 func main() {
-	logging.SetLogging("info", "")
+	//logging.SetLogging("info", "")
 	binFolder = path.Dir(os.Args[0])
 	homeFolder = path.Dir(binFolder)
 	ctx := context.Background()

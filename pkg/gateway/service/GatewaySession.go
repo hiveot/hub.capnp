@@ -35,8 +35,8 @@ type GatewaySession struct {
 	resolverPath    string
 	resolverSession *capnpclient.ResolverSessionCapnpClient
 	resolverConn    net.Conn
-	authnSvc        authn.IAuthnService
-	userAuthn       authn.IUserAuthn // user auth capability obtained at login
+	//authnSvc        authn.IAuthnService
+	userAuthn authn.IUserAuthn // user auth capability obtained at login
 }
 
 // Close the session
@@ -75,18 +75,17 @@ func (session *GatewaySession) ListCapabilities(ctx context.Context) ([]resolver
 }
 
 // Login to the gateway
+// if no userauthn service is available then refuse
 func (session *GatewaySession) Login(ctx context.Context, clientID, password string) (
 	authToken string, refreshToken string, err error) {
 
+	if session.userAuthn == nil {
+		err = fmt.Errorf("sorry, authentication is not available")
+		return
+	}
 	logrus.Infof("loginID=%s", clientID)
+	authToken, refreshToken, err = session.userAuthn.Login(ctx, password)
 
-	// get the authentication capability from the resolver
-	if err == nil {
-		session.userAuthn = session.authnSvc.CapUserAuthn(ctx, clientID)
-	}
-	if err == nil {
-		authToken, refreshToken, err = session.userAuthn.Login(ctx, password)
-	}
 	if err == nil {
 		session.clientType = hubapi.ClientTypeUser
 		session.clientID = clientID
@@ -130,6 +129,7 @@ func (session *GatewaySession) Release() {
 	if session.resolverConn != nil {
 		_ = session.resolverConn.Close() // is this needed?
 	}
+	// do not release the userAuthn service as it belongs to the service, not the session
 }
 
 // RegisterCapabilities makes capabilities available to the hub.
@@ -148,9 +148,12 @@ func (session *GatewaySession) RegisterCapabilities(_ context.Context,
 }
 
 // StartGatewaySession creates a new gateway session with the resolver to serve gateway requests.
-// Use Release after the remote connection to the gateway is closed
+// Use Release after the remote connection to the gateway is closed.
 // This returns an error if connecting with the resolver fails.
-func StartGatewaySession(resolverPath string, authnSvc authn.IAuthnService) (*GatewaySession, error) {
+// The user authentication is on loan to the session and should not be released.
+//
+//	userAuthn is the optional service to authenticate user requests. nil if user authentication is not available.
+func StartGatewaySession(resolverPath string, userAuthn authn.IUserAuthn) (*GatewaySession, error) {
 	ctx := context.Background()
 	session := &GatewaySession{
 		clientID:               "",
@@ -158,7 +161,7 @@ func StartGatewaySession(resolverPath string, authnSvc authn.IAuthnService) (*Ga
 		registeredProvider:     hubapi.CapProvider{},
 		registeredCapabilities: nil,
 		resolverPath:           resolverPath,
-		authnSvc:               authnSvc,
+		userAuthn:              userAuthn,
 	}
 	resolverConn, err := net.Dial("unix", resolverPath)
 	if err == nil {

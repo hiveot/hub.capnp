@@ -70,7 +70,7 @@ func (cl *CertsCapnpClient) Release() {
 // Intended for bootstrapping the capability chain
 //
 //	ctx is the context for retrieving capabilities
-func NewCertServiceCapnpClient(conn net.Conn) (*CertsCapnpClient, error) {
+func NewCertServiceCapnpClient(conn net.Conn) *CertsCapnpClient {
 	ctx := context.Background()
 	transport := rpc.NewStreamTransport(conn)
 	rpcConn := rpc.NewConn(transport, nil)
@@ -80,5 +80,5 @@ func NewCertServiceCapnpClient(conn net.Conn) (*CertsCapnpClient, error) {
 		connection: rpcConn,
 		capability: capability,
 	}
-	return cl, nil
+	return cl
 }

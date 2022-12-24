@@ -10,8 +10,10 @@ import (
 	"github.com/hiveot/hub.go/pkg/certsclient"
 	"github.com/hiveot/hub.go/pkg/hubnet"
 	"github.com/hiveot/hub/internal/listener"
+	"github.com/hiveot/hub/internal/svcconfig"
 	"github.com/hiveot/hub/pkg/certs"
 	"github.com/hiveot/hub/pkg/certs/capnpclient"
+	"github.com/hiveot/hub/pkg/pubsub"
 	"github.com/hiveot/hub/pkg/resolver"
 	"github.com/hiveot/hub/pkg/resolver/capnpserver"
 	"github.com/hiveot/hub/pkg/resolver/service"
@@ -19,12 +21,14 @@ import (
 
 // main launches the resolver service
 func main() {
-	resolverSocketPath := resolver.DefaultResolverPath
+	//resolverSocketPath := resolver.DefaultResolverPath
 
+	f := svcconfig.LoadServiceConfig(pubsub.ServiceName, false, nil)
+	_ = f
 	svc := service.NewResolverService()
 
 	// the resolver uses unix sockets to listen for incoming connections
-	listener.RunService(resolver.ServiceName, resolverSocketPath,
+	listener.RunService(resolver.ServiceName, resolver.DefaultResolverPath, //f.SocketPath,
 		func(ctx context.Context, lis net.Listener) error {
 			// startup
 			err := svc.Start(ctx)
@@ -55,7 +59,7 @@ func RenewServiceCerts(serviceID string, keys *ecdsa.PrivateKey, socketFolder st
 	if err != nil {
 		return nil, nil, err
 	}
-	cs, err := capnpclient.NewCertServiceCapnpClient(csConn)
+	cs := capnpclient.NewCertServiceCapnpClient(csConn)
 	capServiceCert := cs.CapServiceCerts(ctx)
 	ipAddr := hubnet.GetOutboundIP("")
 	names := []string{"127.0.0.1", ipAddr.String()}

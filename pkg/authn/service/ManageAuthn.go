@@ -18,7 +18,7 @@ type ManageAuthn struct {
 }
 
 // AddUser adds a new user and returns a generated password
-func (svc *ManageAuthn) AddUser(ctx context.Context, loginID string, name string) (newPassword string, err error) {
+func (svc *ManageAuthn) AddUser(ctx context.Context, loginID string) (newPassword string, err error) {
 	_ = ctx
 	exists := svc.pwStore.Exists(loginID)
 	if exists {
@@ -26,7 +26,6 @@ func (svc *ManageAuthn) AddUser(ctx context.Context, loginID string, name string
 	}
 	pw := svc.GeneratePassword(0, false)
 	err = svc.pwStore.SetPassword(loginID, pw)
-	_ = svc.pwStore.SetName(loginID, name)
 	return pw, err
 }
 
@@ -93,6 +92,16 @@ func (svc *ManageAuthn) ResetPassword(ctx context.Context, loginID string) (newP
 	return newpw, err
 }
 
+// UpdateUser updates a user's name
+func (svc *ManageAuthn) UpdateUser(ctx context.Context, loginID string, name string) (err error) {
+	_ = ctx
+	exists := svc.pwStore.Exists(loginID)
+	if !exists {
+		return fmt.Errorf("user with loginID '%s' does not exist", loginID)
+	}
+	err = svc.pwStore.SetName(loginID, name)
+	return err
+}
 func NewManageAuthn(pwStore unpwstore.IUnpwStore) *ManageAuthn {
 	ma := &ManageAuthn{
 		pwStore: pwStore,

@@ -32,15 +32,14 @@ func AuthnAddUserCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comma
 	return &cli.Command{
 		Name:      "add",
 		Usage:     "Add a user",
-		ArgsUsage: "{loginID} {userName}",
+		ArgsUsage: "{loginID}",
 		Action: func(cCtx *cli.Context) error {
-			if cCtx.NArg() != 2 {
-				err := fmt.Errorf("Expected 2 arguments")
+			if cCtx.NArg() != 1 {
+				err := fmt.Errorf("Expected 1 argument")
 				return err
 			}
 			loginID := cCtx.Args().Get(0)
-			userName := cCtx.Args().Get(1)
-			err := HandleAddUser(ctx, f, loginID, userName)
+			err := HandleAddUser(ctx, f, loginID)
 			return err
 		},
 	}
@@ -83,7 +82,7 @@ func AuthnRemoveUserCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Co
 }
 
 // HandleAddUser adds a user
-func HandleAddUser(ctx context.Context, f svcconfig.AppFolders, loginID, userName string) error {
+func HandleAddUser(ctx context.Context, f svcconfig.AppFolders, loginID string) error {
 	var err error
 	var authnClient authn.IAuthnService
 	var manageAuthn authn.IManageAuthn
@@ -98,7 +97,7 @@ func HandleAddUser(ctx context.Context, f svcconfig.AppFolders, loginID, userNam
 	if err != nil {
 		return err
 	}
-	newPassword, err := manageAuthn.AddUser(ctx, loginID, userName)
+	newPassword, err := manageAuthn.AddUser(ctx, loginID)
 
 	if err != nil {
 		fmt.Println("Error: " + err.Error())
@@ -127,11 +126,11 @@ func HandleListUsers(ctx context.Context, f svcconfig.AppFolders) error {
 	}
 	profileList, err := manageAuthn.ListUsers(ctx)
 
-	fmt.Println("Login ID                            User Name")
-	fmt.Println("--------                            ---------")
+	fmt.Println("Login ID                             User Name")
+	fmt.Println("--------                             ---------")
 	for _, profile := range profileList {
 
-		fmt.Printf("%-35s %10s\n",
+		fmt.Printf("%-35s  %-10s\n",
 			profile.LoginID,
 			profile.Name,
 		)

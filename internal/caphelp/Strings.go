@@ -18,7 +18,7 @@ func MarshalStringList(arr []string) capnp.TextList {
 	tlist, _ := capnp.NewTextList(seg, int32(len(arr)))
 
 	for i := 0; i < len(arr); i++ {
-		tlist.Set(i, arr[i])
+		_ = tlist.Set(i, arr[i])
 	}
 
 	return tlist

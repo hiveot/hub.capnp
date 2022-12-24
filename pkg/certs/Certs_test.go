@@ -45,7 +45,7 @@ func NewService() (svc certs.ICerts, stopFunc func()) {
 		go capnpserver.StartCertsCapnpServer(srvListener, certSvc)
 		// connect the client to the server above
 		clConn, _ := net.Dial("unix", testSocket)
-		capClient, _ := capnpclient.NewCertServiceCapnpClient(clConn)
+		capClient := capnpclient.NewCertServiceCapnpClient(clConn)
 		return capClient, func() {
 			capClient.Release()
 			_ = certSvc.Stop()

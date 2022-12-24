@@ -112,14 +112,16 @@ func NewUserAuthnCapnpClient(capability hubapi.CapUserAuthn) *UserAuthnCapnpClie
 	return cl
 }
 
-// ResolveUserAuthn returns a client instance of the UserAuthn capability
+// ResolveUserAuthn returns a client instance of the UserAuthn capability using the resolver
 func ResolveUserAuthn(
 	resolver resolver.IResolverSession, userID string) (cl authn.IUserAuthn, err error) {
 	ctx := context.Background()
-	cap, err := resolver.GetCapability(ctx, userID, hubapi.ClientTypeUser, "capUserAuthn", nil)
+	// T: use capability names that are compiler checked instead
+	capability, err := resolver.GetCapability(ctx, userID, hubapi.ClientTypeUser,
+		"capUserAuthn", nil)
 	if err == nil {
 		cl = &UserAuthnCapnpClient{
-			capability: hubapi.CapUserAuthn(cap),
+			capability: hubapi.CapUserAuthn(capability),
 		}
 	}
 
