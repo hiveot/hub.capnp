@@ -635,6 +635,927 @@ func (p CapAuthn_capManageAuthn_Results_Future) Cap() CapManageAuthn {
 	return CapManageAuthn(p.Future.Field(0, nil).Client())
 }
 
+type CapManageAuthn capnp.Client
+
+// CapManageAuthn_TypeID is the unique identifier for the type CapManageAuthn.
+const CapManageAuthn_TypeID = 0x88a16fc7ce91c2bc
+
+func (c CapManageAuthn) AddUser(ctx context.Context, params func(CapManageAuthn_addUser_Params) error) (CapManageAuthn_addUser_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0x88a16fc7ce91c2bc,
+			MethodID:      0,
+			InterfaceName: "hubapi/Authn.capnp:CapManageAuthn",
+			MethodName:    "addUser",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapManageAuthn_addUser_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapManageAuthn_addUser_Results_Future{Future: ans.Future()}, release
+}
+func (c CapManageAuthn) ListUsers(ctx context.Context, params func(CapManageAuthn_listUsers_Params) error) (CapManageAuthn_listUsers_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0x88a16fc7ce91c2bc,
+			MethodID:      1,
+			InterfaceName: "hubapi/Authn.capnp:CapManageAuthn",
+			MethodName:    "listUsers",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapManageAuthn_listUsers_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapManageAuthn_listUsers_Results_Future{Future: ans.Future()}, release
+}
+func (c CapManageAuthn) RemoveUser(ctx context.Context, params func(CapManageAuthn_removeUser_Params) error) (CapManageAuthn_removeUser_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0x88a16fc7ce91c2bc,
+			MethodID:      2,
+			InterfaceName: "hubapi/Authn.capnp:CapManageAuthn",
+			MethodName:    "removeUser",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapManageAuthn_removeUser_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapManageAuthn_removeUser_Results_Future{Future: ans.Future()}, release
+}
+func (c CapManageAuthn) ResetPassword(ctx context.Context, params func(CapManageAuthn_resetPassword_Params) error) (CapManageAuthn_resetPassword_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0x88a16fc7ce91c2bc,
+			MethodID:      3,
+			InterfaceName: "hubapi/Authn.capnp:CapManageAuthn",
+			MethodName:    "resetPassword",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapManageAuthn_resetPassword_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapManageAuthn_resetPassword_Results_Future{Future: ans.Future()}, release
+}
+
+// String returns a string that identifies this capability for debugging
+// purposes.  Its format should not be depended on: in particular, it
+// should not be used to compare clients.  Use IsSame to compare clients
+// for equality.
+func (c CapManageAuthn) String() string {
+	return fmt.Sprintf("%T(%v)", c, capnp.Client(c))
+}
+
+// AddRef creates a new Client that refers to the same capability as c.
+// If c is nil or has resolved to null, then AddRef returns nil.
+func (c CapManageAuthn) AddRef() CapManageAuthn {
+	return CapManageAuthn(capnp.Client(c).AddRef())
+}
+
+// Release releases a capability reference.  If this is the last
+// reference to the capability, then the underlying resources associated
+// with the capability will be released.
+//
+// Release will panic if c has already been released, but not if c is
+// nil or resolved to null.
+func (c CapManageAuthn) Release() {
+	capnp.Client(c).Release()
+}
+
+// Resolve blocks until the capability is fully resolved or the Context
+// expires.
+func (c CapManageAuthn) Resolve(ctx context.Context) error {
+	return capnp.Client(c).Resolve(ctx)
+}
+
+func (c CapManageAuthn) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Client(c).EncodeAsPtr(seg)
+}
+
+func (CapManageAuthn) DecodeFromPtr(p capnp.Ptr) CapManageAuthn {
+	return CapManageAuthn(capnp.Client{}.DecodeFromPtr(p))
+}
+
+// IsValid reports whether c is a valid reference to a capability.
+// A reference is invalid if it is nil, has resolved to null, or has
+// been released.
+func (c CapManageAuthn) IsValid() bool {
+	return capnp.Client(c).IsValid()
+}
+
+// IsSame reports whether c and other refer to a capability created by the
+// same call to NewClient.  This can return false negatives if c or other
+// are not fully resolved: use Resolve if this is an issue.  If either
+// c or other are released, then IsSame panics.
+func (c CapManageAuthn) IsSame(other CapManageAuthn) bool {
+	return capnp.Client(c).IsSame(capnp.Client(other))
+}
+
+// Update the flowcontrol.FlowLimiter used to manage flow control for
+// this client. This affects all future calls, but not calls already
+// waiting to send. Passing nil sets the value to flowcontrol.NopLimiter,
+// which is also the default.
+func (c CapManageAuthn) SetFlowLimiter(lim fc.FlowLimiter) {
+	capnp.Client(c).SetFlowLimiter(lim)
+}
+
+// Get the current flowcontrol.FlowLimiter used to manage flow control
+// for this client.
+func (c CapManageAuthn) GetFlowLimiter() fc.FlowLimiter {
+	return capnp.Client(c).GetFlowLimiter()
+} // A CapManageAuthn_Server is a CapManageAuthn with a local implementation.
+type CapManageAuthn_Server interface {
+	AddUser(context.Context, CapManageAuthn_addUser) error
+
+	ListUsers(context.Context, CapManageAuthn_listUsers) error
+
+	RemoveUser(context.Context, CapManageAuthn_removeUser) error
+
+	ResetPassword(context.Context, CapManageAuthn_resetPassword) error
+}
+
+// CapManageAuthn_NewServer creates a new Server from an implementation of CapManageAuthn_Server.
+func CapManageAuthn_NewServer(s CapManageAuthn_Server) *server.Server {
+	c, _ := s.(server.Shutdowner)
+	return server.New(CapManageAuthn_Methods(nil, s), s, c)
+}
+
+// CapManageAuthn_ServerToClient creates a new Client from an implementation of CapManageAuthn_Server.
+// The caller is responsible for calling Release on the returned Client.
+func CapManageAuthn_ServerToClient(s CapManageAuthn_Server) CapManageAuthn {
+	return CapManageAuthn(capnp.NewClient(CapManageAuthn_NewServer(s)))
+}
+
+// CapManageAuthn_Methods appends Methods to a slice that invoke the methods on s.
+// This can be used to create a more complicated Server.
+func CapManageAuthn_Methods(methods []server.Method, s CapManageAuthn_Server) []server.Method {
+	if cap(methods) == 0 {
+		methods = make([]server.Method, 0, 4)
+	}
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0x88a16fc7ce91c2bc,
+			MethodID:      0,
+			InterfaceName: "hubapi/Authn.capnp:CapManageAuthn",
+			MethodName:    "addUser",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.AddUser(ctx, CapManageAuthn_addUser{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0x88a16fc7ce91c2bc,
+			MethodID:      1,
+			InterfaceName: "hubapi/Authn.capnp:CapManageAuthn",
+			MethodName:    "listUsers",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.ListUsers(ctx, CapManageAuthn_listUsers{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0x88a16fc7ce91c2bc,
+			MethodID:      2,
+			InterfaceName: "hubapi/Authn.capnp:CapManageAuthn",
+			MethodName:    "removeUser",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.RemoveUser(ctx, CapManageAuthn_removeUser{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0x88a16fc7ce91c2bc,
+			MethodID:      3,
+			InterfaceName: "hubapi/Authn.capnp:CapManageAuthn",
+			MethodName:    "resetPassword",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.ResetPassword(ctx, CapManageAuthn_resetPassword{call})
+		},
+	})
+
+	return methods
+}
+
+// CapManageAuthn_addUser holds the state for a server call to CapManageAuthn.addUser.
+// See server.Call for documentation.
+type CapManageAuthn_addUser struct {
+	*server.Call
+}
+
+// Args returns the call's arguments.
+func (c CapManageAuthn_addUser) Args() CapManageAuthn_addUser_Params {
+	return CapManageAuthn_addUser_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c CapManageAuthn_addUser) AllocResults() (CapManageAuthn_addUser_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapManageAuthn_addUser_Results(r), err
+}
+
+// CapManageAuthn_listUsers holds the state for a server call to CapManageAuthn.listUsers.
+// See server.Call for documentation.
+type CapManageAuthn_listUsers struct {
+	*server.Call
+}
+
+// Args returns the call's arguments.
+func (c CapManageAuthn_listUsers) Args() CapManageAuthn_listUsers_Params {
+	return CapManageAuthn_listUsers_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c CapManageAuthn_listUsers) AllocResults() (CapManageAuthn_listUsers_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapManageAuthn_listUsers_Results(r), err
+}
+
+// CapManageAuthn_removeUser holds the state for a server call to CapManageAuthn.removeUser.
+// See server.Call for documentation.
+type CapManageAuthn_removeUser struct {
+	*server.Call
+}
+
+// Args returns the call's arguments.
+func (c CapManageAuthn_removeUser) Args() CapManageAuthn_removeUser_Params {
+	return CapManageAuthn_removeUser_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c CapManageAuthn_removeUser) AllocResults() (CapManageAuthn_removeUser_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapManageAuthn_removeUser_Results(r), err
+}
+
+// CapManageAuthn_resetPassword holds the state for a server call to CapManageAuthn.resetPassword.
+// See server.Call for documentation.
+type CapManageAuthn_resetPassword struct {
+	*server.Call
+}
+
+// Args returns the call's arguments.
+func (c CapManageAuthn_resetPassword) Args() CapManageAuthn_resetPassword_Params {
+	return CapManageAuthn_resetPassword_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c CapManageAuthn_resetPassword) AllocResults() (CapManageAuthn_resetPassword_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapManageAuthn_resetPassword_Results(r), err
+}
+
+// CapManageAuthn_List is a list of CapManageAuthn.
+type CapManageAuthn_List = capnp.CapList[CapManageAuthn]
+
+// NewCapManageAuthn creates a new list of CapManageAuthn.
+func NewCapManageAuthn_List(s *capnp.Segment, sz int32) (CapManageAuthn_List, error) {
+	l, err := capnp.NewPointerList(s, sz)
+	return capnp.CapList[CapManageAuthn](l), err
+}
+
+type CapManageAuthn_addUser_Params capnp.Struct
+
+// CapManageAuthn_addUser_Params_TypeID is the unique identifier for the type CapManageAuthn_addUser_Params.
+const CapManageAuthn_addUser_Params_TypeID = 0xf16244ccb186a63b
+
+func NewCapManageAuthn_addUser_Params(s *capnp.Segment) (CapManageAuthn_addUser_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapManageAuthn_addUser_Params(st), err
+}
+
+func NewRootCapManageAuthn_addUser_Params(s *capnp.Segment) (CapManageAuthn_addUser_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapManageAuthn_addUser_Params(st), err
+}
+
+func ReadRootCapManageAuthn_addUser_Params(msg *capnp.Message) (CapManageAuthn_addUser_Params, error) {
+	root, err := msg.Root()
+	return CapManageAuthn_addUser_Params(root.Struct()), err
+}
+
+func (s CapManageAuthn_addUser_Params) String() string {
+	str, _ := text.Marshal(0xf16244ccb186a63b, capnp.Struct(s))
+	return str
+}
+
+func (s CapManageAuthn_addUser_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapManageAuthn_addUser_Params) DecodeFromPtr(p capnp.Ptr) CapManageAuthn_addUser_Params {
+	return CapManageAuthn_addUser_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapManageAuthn_addUser_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapManageAuthn_addUser_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapManageAuthn_addUser_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapManageAuthn_addUser_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapManageAuthn_addUser_Params) LoginID() (string, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.Text(), err
+}
+
+func (s CapManageAuthn_addUser_Params) HasLoginID() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapManageAuthn_addUser_Params) LoginIDBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.TextBytes(), err
+}
+
+func (s CapManageAuthn_addUser_Params) SetLoginID(v string) error {
+	return capnp.Struct(s).SetText(0, v)
+}
+
+// CapManageAuthn_addUser_Params_List is a list of CapManageAuthn_addUser_Params.
+type CapManageAuthn_addUser_Params_List = capnp.StructList[CapManageAuthn_addUser_Params]
+
+// NewCapManageAuthn_addUser_Params creates a new list of CapManageAuthn_addUser_Params.
+func NewCapManageAuthn_addUser_Params_List(s *capnp.Segment, sz int32) (CapManageAuthn_addUser_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[CapManageAuthn_addUser_Params](l), err
+}
+
+// CapManageAuthn_addUser_Params_Future is a wrapper for a CapManageAuthn_addUser_Params promised by a client call.
+type CapManageAuthn_addUser_Params_Future struct{ *capnp.Future }
+
+func (f CapManageAuthn_addUser_Params_Future) Struct() (CapManageAuthn_addUser_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapManageAuthn_addUser_Params(p.Struct()), err
+}
+
+type CapManageAuthn_addUser_Results capnp.Struct
+
+// CapManageAuthn_addUser_Results_TypeID is the unique identifier for the type CapManageAuthn_addUser_Results.
+const CapManageAuthn_addUser_Results_TypeID = 0xb7815fcecda6b54c
+
+func NewCapManageAuthn_addUser_Results(s *capnp.Segment) (CapManageAuthn_addUser_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapManageAuthn_addUser_Results(st), err
+}
+
+func NewRootCapManageAuthn_addUser_Results(s *capnp.Segment) (CapManageAuthn_addUser_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapManageAuthn_addUser_Results(st), err
+}
+
+func ReadRootCapManageAuthn_addUser_Results(msg *capnp.Message) (CapManageAuthn_addUser_Results, error) {
+	root, err := msg.Root()
+	return CapManageAuthn_addUser_Results(root.Struct()), err
+}
+
+func (s CapManageAuthn_addUser_Results) String() string {
+	str, _ := text.Marshal(0xb7815fcecda6b54c, capnp.Struct(s))
+	return str
+}
+
+func (s CapManageAuthn_addUser_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapManageAuthn_addUser_Results) DecodeFromPtr(p capnp.Ptr) CapManageAuthn_addUser_Results {
+	return CapManageAuthn_addUser_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapManageAuthn_addUser_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapManageAuthn_addUser_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapManageAuthn_addUser_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapManageAuthn_addUser_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapManageAuthn_addUser_Results) Password() (string, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.Text(), err
+}
+
+func (s CapManageAuthn_addUser_Results) HasPassword() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapManageAuthn_addUser_Results) PasswordBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.TextBytes(), err
+}
+
+func (s CapManageAuthn_addUser_Results) SetPassword(v string) error {
+	return capnp.Struct(s).SetText(0, v)
+}
+
+// CapManageAuthn_addUser_Results_List is a list of CapManageAuthn_addUser_Results.
+type CapManageAuthn_addUser_Results_List = capnp.StructList[CapManageAuthn_addUser_Results]
+
+// NewCapManageAuthn_addUser_Results creates a new list of CapManageAuthn_addUser_Results.
+func NewCapManageAuthn_addUser_Results_List(s *capnp.Segment, sz int32) (CapManageAuthn_addUser_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[CapManageAuthn_addUser_Results](l), err
+}
+
+// CapManageAuthn_addUser_Results_Future is a wrapper for a CapManageAuthn_addUser_Results promised by a client call.
+type CapManageAuthn_addUser_Results_Future struct{ *capnp.Future }
+
+func (f CapManageAuthn_addUser_Results_Future) Struct() (CapManageAuthn_addUser_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapManageAuthn_addUser_Results(p.Struct()), err
+}
+
+type CapManageAuthn_listUsers_Params capnp.Struct
+
+// CapManageAuthn_listUsers_Params_TypeID is the unique identifier for the type CapManageAuthn_listUsers_Params.
+const CapManageAuthn_listUsers_Params_TypeID = 0xfcdcc5587bf2f9d8
+
+func NewCapManageAuthn_listUsers_Params(s *capnp.Segment) (CapManageAuthn_listUsers_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapManageAuthn_listUsers_Params(st), err
+}
+
+func NewRootCapManageAuthn_listUsers_Params(s *capnp.Segment) (CapManageAuthn_listUsers_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapManageAuthn_listUsers_Params(st), err
+}
+
+func ReadRootCapManageAuthn_listUsers_Params(msg *capnp.Message) (CapManageAuthn_listUsers_Params, error) {
+	root, err := msg.Root()
+	return CapManageAuthn_listUsers_Params(root.Struct()), err
+}
+
+func (s CapManageAuthn_listUsers_Params) String() string {
+	str, _ := text.Marshal(0xfcdcc5587bf2f9d8, capnp.Struct(s))
+	return str
+}
+
+func (s CapManageAuthn_listUsers_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapManageAuthn_listUsers_Params) DecodeFromPtr(p capnp.Ptr) CapManageAuthn_listUsers_Params {
+	return CapManageAuthn_listUsers_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapManageAuthn_listUsers_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapManageAuthn_listUsers_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapManageAuthn_listUsers_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapManageAuthn_listUsers_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+
+// CapManageAuthn_listUsers_Params_List is a list of CapManageAuthn_listUsers_Params.
+type CapManageAuthn_listUsers_Params_List = capnp.StructList[CapManageAuthn_listUsers_Params]
+
+// NewCapManageAuthn_listUsers_Params creates a new list of CapManageAuthn_listUsers_Params.
+func NewCapManageAuthn_listUsers_Params_List(s *capnp.Segment, sz int32) (CapManageAuthn_listUsers_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
+	return capnp.StructList[CapManageAuthn_listUsers_Params](l), err
+}
+
+// CapManageAuthn_listUsers_Params_Future is a wrapper for a CapManageAuthn_listUsers_Params promised by a client call.
+type CapManageAuthn_listUsers_Params_Future struct{ *capnp.Future }
+
+func (f CapManageAuthn_listUsers_Params_Future) Struct() (CapManageAuthn_listUsers_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapManageAuthn_listUsers_Params(p.Struct()), err
+}
+
+type CapManageAuthn_listUsers_Results capnp.Struct
+
+// CapManageAuthn_listUsers_Results_TypeID is the unique identifier for the type CapManageAuthn_listUsers_Results.
+const CapManageAuthn_listUsers_Results_TypeID = 0x8060c97a0e273ede
+
+func NewCapManageAuthn_listUsers_Results(s *capnp.Segment) (CapManageAuthn_listUsers_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapManageAuthn_listUsers_Results(st), err
+}
+
+func NewRootCapManageAuthn_listUsers_Results(s *capnp.Segment) (CapManageAuthn_listUsers_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapManageAuthn_listUsers_Results(st), err
+}
+
+func ReadRootCapManageAuthn_listUsers_Results(msg *capnp.Message) (CapManageAuthn_listUsers_Results, error) {
+	root, err := msg.Root()
+	return CapManageAuthn_listUsers_Results(root.Struct()), err
+}
+
+func (s CapManageAuthn_listUsers_Results) String() string {
+	str, _ := text.Marshal(0x8060c97a0e273ede, capnp.Struct(s))
+	return str
+}
+
+func (s CapManageAuthn_listUsers_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapManageAuthn_listUsers_Results) DecodeFromPtr(p capnp.Ptr) CapManageAuthn_listUsers_Results {
+	return CapManageAuthn_listUsers_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapManageAuthn_listUsers_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapManageAuthn_listUsers_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapManageAuthn_listUsers_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapManageAuthn_listUsers_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapManageAuthn_listUsers_Results) Profiles() (UserProfile_List, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return UserProfile_List(p.List()), err
+}
+
+func (s CapManageAuthn_listUsers_Results) HasProfiles() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapManageAuthn_listUsers_Results) SetProfiles(v UserProfile_List) error {
+	return capnp.Struct(s).SetPtr(0, v.ToPtr())
+}
+
+// NewProfiles sets the profiles field to a newly
+// allocated UserProfile_List, preferring placement in s's segment.
+func (s CapManageAuthn_listUsers_Results) NewProfiles(n int32) (UserProfile_List, error) {
+	l, err := NewUserProfile_List(capnp.Struct(s).Segment(), n)
+	if err != nil {
+		return UserProfile_List{}, err
+	}
+	err = capnp.Struct(s).SetPtr(0, l.ToPtr())
+	return l, err
+}
+
+// CapManageAuthn_listUsers_Results_List is a list of CapManageAuthn_listUsers_Results.
+type CapManageAuthn_listUsers_Results_List = capnp.StructList[CapManageAuthn_listUsers_Results]
+
+// NewCapManageAuthn_listUsers_Results creates a new list of CapManageAuthn_listUsers_Results.
+func NewCapManageAuthn_listUsers_Results_List(s *capnp.Segment, sz int32) (CapManageAuthn_listUsers_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[CapManageAuthn_listUsers_Results](l), err
+}
+
+// CapManageAuthn_listUsers_Results_Future is a wrapper for a CapManageAuthn_listUsers_Results promised by a client call.
+type CapManageAuthn_listUsers_Results_Future struct{ *capnp.Future }
+
+func (f CapManageAuthn_listUsers_Results_Future) Struct() (CapManageAuthn_listUsers_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapManageAuthn_listUsers_Results(p.Struct()), err
+}
+
+type CapManageAuthn_removeUser_Params capnp.Struct
+
+// CapManageAuthn_removeUser_Params_TypeID is the unique identifier for the type CapManageAuthn_removeUser_Params.
+const CapManageAuthn_removeUser_Params_TypeID = 0xe459e7faec337b55
+
+func NewCapManageAuthn_removeUser_Params(s *capnp.Segment) (CapManageAuthn_removeUser_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapManageAuthn_removeUser_Params(st), err
+}
+
+func NewRootCapManageAuthn_removeUser_Params(s *capnp.Segment) (CapManageAuthn_removeUser_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapManageAuthn_removeUser_Params(st), err
+}
+
+func ReadRootCapManageAuthn_removeUser_Params(msg *capnp.Message) (CapManageAuthn_removeUser_Params, error) {
+	root, err := msg.Root()
+	return CapManageAuthn_removeUser_Params(root.Struct()), err
+}
+
+func (s CapManageAuthn_removeUser_Params) String() string {
+	str, _ := text.Marshal(0xe459e7faec337b55, capnp.Struct(s))
+	return str
+}
+
+func (s CapManageAuthn_removeUser_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapManageAuthn_removeUser_Params) DecodeFromPtr(p capnp.Ptr) CapManageAuthn_removeUser_Params {
+	return CapManageAuthn_removeUser_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapManageAuthn_removeUser_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapManageAuthn_removeUser_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapManageAuthn_removeUser_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapManageAuthn_removeUser_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapManageAuthn_removeUser_Params) LoginID() (string, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.Text(), err
+}
+
+func (s CapManageAuthn_removeUser_Params) HasLoginID() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapManageAuthn_removeUser_Params) LoginIDBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.TextBytes(), err
+}
+
+func (s CapManageAuthn_removeUser_Params) SetLoginID(v string) error {
+	return capnp.Struct(s).SetText(0, v)
+}
+
+// CapManageAuthn_removeUser_Params_List is a list of CapManageAuthn_removeUser_Params.
+type CapManageAuthn_removeUser_Params_List = capnp.StructList[CapManageAuthn_removeUser_Params]
+
+// NewCapManageAuthn_removeUser_Params creates a new list of CapManageAuthn_removeUser_Params.
+func NewCapManageAuthn_removeUser_Params_List(s *capnp.Segment, sz int32) (CapManageAuthn_removeUser_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[CapManageAuthn_removeUser_Params](l), err
+}
+
+// CapManageAuthn_removeUser_Params_Future is a wrapper for a CapManageAuthn_removeUser_Params promised by a client call.
+type CapManageAuthn_removeUser_Params_Future struct{ *capnp.Future }
+
+func (f CapManageAuthn_removeUser_Params_Future) Struct() (CapManageAuthn_removeUser_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapManageAuthn_removeUser_Params(p.Struct()), err
+}
+
+type CapManageAuthn_removeUser_Results capnp.Struct
+
+// CapManageAuthn_removeUser_Results_TypeID is the unique identifier for the type CapManageAuthn_removeUser_Results.
+const CapManageAuthn_removeUser_Results_TypeID = 0xa818262095a69d17
+
+func NewCapManageAuthn_removeUser_Results(s *capnp.Segment) (CapManageAuthn_removeUser_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapManageAuthn_removeUser_Results(st), err
+}
+
+func NewRootCapManageAuthn_removeUser_Results(s *capnp.Segment) (CapManageAuthn_removeUser_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapManageAuthn_removeUser_Results(st), err
+}
+
+func ReadRootCapManageAuthn_removeUser_Results(msg *capnp.Message) (CapManageAuthn_removeUser_Results, error) {
+	root, err := msg.Root()
+	return CapManageAuthn_removeUser_Results(root.Struct()), err
+}
+
+func (s CapManageAuthn_removeUser_Results) String() string {
+	str, _ := text.Marshal(0xa818262095a69d17, capnp.Struct(s))
+	return str
+}
+
+func (s CapManageAuthn_removeUser_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapManageAuthn_removeUser_Results) DecodeFromPtr(p capnp.Ptr) CapManageAuthn_removeUser_Results {
+	return CapManageAuthn_removeUser_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapManageAuthn_removeUser_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapManageAuthn_removeUser_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapManageAuthn_removeUser_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapManageAuthn_removeUser_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+
+// CapManageAuthn_removeUser_Results_List is a list of CapManageAuthn_removeUser_Results.
+type CapManageAuthn_removeUser_Results_List = capnp.StructList[CapManageAuthn_removeUser_Results]
+
+// NewCapManageAuthn_removeUser_Results creates a new list of CapManageAuthn_removeUser_Results.
+func NewCapManageAuthn_removeUser_Results_List(s *capnp.Segment, sz int32) (CapManageAuthn_removeUser_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
+	return capnp.StructList[CapManageAuthn_removeUser_Results](l), err
+}
+
+// CapManageAuthn_removeUser_Results_Future is a wrapper for a CapManageAuthn_removeUser_Results promised by a client call.
+type CapManageAuthn_removeUser_Results_Future struct{ *capnp.Future }
+
+func (f CapManageAuthn_removeUser_Results_Future) Struct() (CapManageAuthn_removeUser_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapManageAuthn_removeUser_Results(p.Struct()), err
+}
+
+type CapManageAuthn_resetPassword_Params capnp.Struct
+
+// CapManageAuthn_resetPassword_Params_TypeID is the unique identifier for the type CapManageAuthn_resetPassword_Params.
+const CapManageAuthn_resetPassword_Params_TypeID = 0xea8e208f67747074
+
+func NewCapManageAuthn_resetPassword_Params(s *capnp.Segment) (CapManageAuthn_resetPassword_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapManageAuthn_resetPassword_Params(st), err
+}
+
+func NewRootCapManageAuthn_resetPassword_Params(s *capnp.Segment) (CapManageAuthn_resetPassword_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapManageAuthn_resetPassword_Params(st), err
+}
+
+func ReadRootCapManageAuthn_resetPassword_Params(msg *capnp.Message) (CapManageAuthn_resetPassword_Params, error) {
+	root, err := msg.Root()
+	return CapManageAuthn_resetPassword_Params(root.Struct()), err
+}
+
+func (s CapManageAuthn_resetPassword_Params) String() string {
+	str, _ := text.Marshal(0xea8e208f67747074, capnp.Struct(s))
+	return str
+}
+
+func (s CapManageAuthn_resetPassword_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapManageAuthn_resetPassword_Params) DecodeFromPtr(p capnp.Ptr) CapManageAuthn_resetPassword_Params {
+	return CapManageAuthn_resetPassword_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapManageAuthn_resetPassword_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapManageAuthn_resetPassword_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapManageAuthn_resetPassword_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapManageAuthn_resetPassword_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapManageAuthn_resetPassword_Params) LoginID() (string, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.Text(), err
+}
+
+func (s CapManageAuthn_resetPassword_Params) HasLoginID() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapManageAuthn_resetPassword_Params) LoginIDBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.TextBytes(), err
+}
+
+func (s CapManageAuthn_resetPassword_Params) SetLoginID(v string) error {
+	return capnp.Struct(s).SetText(0, v)
+}
+
+// CapManageAuthn_resetPassword_Params_List is a list of CapManageAuthn_resetPassword_Params.
+type CapManageAuthn_resetPassword_Params_List = capnp.StructList[CapManageAuthn_resetPassword_Params]
+
+// NewCapManageAuthn_resetPassword_Params creates a new list of CapManageAuthn_resetPassword_Params.
+func NewCapManageAuthn_resetPassword_Params_List(s *capnp.Segment, sz int32) (CapManageAuthn_resetPassword_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[CapManageAuthn_resetPassword_Params](l), err
+}
+
+// CapManageAuthn_resetPassword_Params_Future is a wrapper for a CapManageAuthn_resetPassword_Params promised by a client call.
+type CapManageAuthn_resetPassword_Params_Future struct{ *capnp.Future }
+
+func (f CapManageAuthn_resetPassword_Params_Future) Struct() (CapManageAuthn_resetPassword_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapManageAuthn_resetPassword_Params(p.Struct()), err
+}
+
+type CapManageAuthn_resetPassword_Results capnp.Struct
+
+// CapManageAuthn_resetPassword_Results_TypeID is the unique identifier for the type CapManageAuthn_resetPassword_Results.
+const CapManageAuthn_resetPassword_Results_TypeID = 0xfaa82702574f9d19
+
+func NewCapManageAuthn_resetPassword_Results(s *capnp.Segment) (CapManageAuthn_resetPassword_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapManageAuthn_resetPassword_Results(st), err
+}
+
+func NewRootCapManageAuthn_resetPassword_Results(s *capnp.Segment) (CapManageAuthn_resetPassword_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	return CapManageAuthn_resetPassword_Results(st), err
+}
+
+func ReadRootCapManageAuthn_resetPassword_Results(msg *capnp.Message) (CapManageAuthn_resetPassword_Results, error) {
+	root, err := msg.Root()
+	return CapManageAuthn_resetPassword_Results(root.Struct()), err
+}
+
+func (s CapManageAuthn_resetPassword_Results) String() string {
+	str, _ := text.Marshal(0xfaa82702574f9d19, capnp.Struct(s))
+	return str
+}
+
+func (s CapManageAuthn_resetPassword_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapManageAuthn_resetPassword_Results) DecodeFromPtr(p capnp.Ptr) CapManageAuthn_resetPassword_Results {
+	return CapManageAuthn_resetPassword_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapManageAuthn_resetPassword_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapManageAuthn_resetPassword_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapManageAuthn_resetPassword_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapManageAuthn_resetPassword_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapManageAuthn_resetPassword_Results) NewPassword() (string, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.Text(), err
+}
+
+func (s CapManageAuthn_resetPassword_Results) HasNewPassword() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapManageAuthn_resetPassword_Results) NewPasswordBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.TextBytes(), err
+}
+
+func (s CapManageAuthn_resetPassword_Results) SetNewPassword(v string) error {
+	return capnp.Struct(s).SetText(0, v)
+}
+
+// CapManageAuthn_resetPassword_Results_List is a list of CapManageAuthn_resetPassword_Results.
+type CapManageAuthn_resetPassword_Results_List = capnp.StructList[CapManageAuthn_resetPassword_Results]
+
+// NewCapManageAuthn_resetPassword_Results creates a new list of CapManageAuthn_resetPassword_Results.
+func NewCapManageAuthn_resetPassword_Results_List(s *capnp.Segment, sz int32) (CapManageAuthn_resetPassword_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	return capnp.StructList[CapManageAuthn_resetPassword_Results](l), err
+}
+
+// CapManageAuthn_resetPassword_Results_Future is a wrapper for a CapManageAuthn_resetPassword_Results promised by a client call.
+type CapManageAuthn_resetPassword_Results_Future struct{ *capnp.Future }
+
+func (f CapManageAuthn_resetPassword_Results_Future) Struct() (CapManageAuthn_resetPassword_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapManageAuthn_resetPassword_Results(p.Struct()), err
+}
+
 type CapUserAuthn capnp.Client
 
 // CapUserAuthn_TypeID is the unique identifier for the type CapUserAuthn.
@@ -1992,1045 +2913,106 @@ func (f CapUserAuthn_setProfile_Results_Future) Struct() (CapUserAuthn_setProfil
 	return CapUserAuthn_setProfile_Results(p.Struct()), err
 }
 
-type CapManageAuthn capnp.Client
-
-// CapManageAuthn_TypeID is the unique identifier for the type CapManageAuthn.
-const CapManageAuthn_TypeID = 0x88a16fc7ce91c2bc
-
-func (c CapManageAuthn) AddUser(ctx context.Context, params func(CapManageAuthn_addUser_Params) error) (CapManageAuthn_addUser_Results_Future, capnp.ReleaseFunc) {
-	s := capnp.Send{
-		Method: capnp.Method{
-			InterfaceID:   0x88a16fc7ce91c2bc,
-			MethodID:      0,
-			InterfaceName: "hubapi/Authn.capnp:CapManageAuthn",
-			MethodName:    "addUser",
-		},
-	}
-	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 2}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapManageAuthn_addUser_Params(s)) }
-	}
-	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapManageAuthn_addUser_Results_Future{Future: ans.Future()}, release
-}
-func (c CapManageAuthn) ListUsers(ctx context.Context, params func(CapManageAuthn_listUsers_Params) error) (CapManageAuthn_listUsers_Results_Future, capnp.ReleaseFunc) {
-	s := capnp.Send{
-		Method: capnp.Method{
-			InterfaceID:   0x88a16fc7ce91c2bc,
-			MethodID:      1,
-			InterfaceName: "hubapi/Authn.capnp:CapManageAuthn",
-			MethodName:    "listUsers",
-		},
-	}
-	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapManageAuthn_listUsers_Params(s)) }
-	}
-	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapManageAuthn_listUsers_Results_Future{Future: ans.Future()}, release
-}
-func (c CapManageAuthn) RemoveUser(ctx context.Context, params func(CapManageAuthn_removeUser_Params) error) (CapManageAuthn_removeUser_Results_Future, capnp.ReleaseFunc) {
-	s := capnp.Send{
-		Method: capnp.Method{
-			InterfaceID:   0x88a16fc7ce91c2bc,
-			MethodID:      2,
-			InterfaceName: "hubapi/Authn.capnp:CapManageAuthn",
-			MethodName:    "removeUser",
-		},
-	}
-	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapManageAuthn_removeUser_Params(s)) }
-	}
-	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapManageAuthn_removeUser_Results_Future{Future: ans.Future()}, release
-}
-func (c CapManageAuthn) ResetPassword(ctx context.Context, params func(CapManageAuthn_resetPassword_Params) error) (CapManageAuthn_resetPassword_Results_Future, capnp.ReleaseFunc) {
-	s := capnp.Send{
-		Method: capnp.Method{
-			InterfaceID:   0x88a16fc7ce91c2bc,
-			MethodID:      3,
-			InterfaceName: "hubapi/Authn.capnp:CapManageAuthn",
-			MethodName:    "resetPassword",
-		},
-	}
-	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapManageAuthn_resetPassword_Params(s)) }
-	}
-	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapManageAuthn_resetPassword_Results_Future{Future: ans.Future()}, release
-}
-
-// String returns a string that identifies this capability for debugging
-// purposes.  Its format should not be depended on: in particular, it
-// should not be used to compare clients.  Use IsSame to compare clients
-// for equality.
-func (c CapManageAuthn) String() string {
-	return fmt.Sprintf("%T(%v)", c, capnp.Client(c))
-}
-
-// AddRef creates a new Client that refers to the same capability as c.
-// If c is nil or has resolved to null, then AddRef returns nil.
-func (c CapManageAuthn) AddRef() CapManageAuthn {
-	return CapManageAuthn(capnp.Client(c).AddRef())
-}
-
-// Release releases a capability reference.  If this is the last
-// reference to the capability, then the underlying resources associated
-// with the capability will be released.
-//
-// Release will panic if c has already been released, but not if c is
-// nil or resolved to null.
-func (c CapManageAuthn) Release() {
-	capnp.Client(c).Release()
-}
-
-// Resolve blocks until the capability is fully resolved or the Context
-// expires.
-func (c CapManageAuthn) Resolve(ctx context.Context) error {
-	return capnp.Client(c).Resolve(ctx)
-}
-
-func (c CapManageAuthn) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Client(c).EncodeAsPtr(seg)
-}
-
-func (CapManageAuthn) DecodeFromPtr(p capnp.Ptr) CapManageAuthn {
-	return CapManageAuthn(capnp.Client{}.DecodeFromPtr(p))
-}
-
-// IsValid reports whether c is a valid reference to a capability.
-// A reference is invalid if it is nil, has resolved to null, or has
-// been released.
-func (c CapManageAuthn) IsValid() bool {
-	return capnp.Client(c).IsValid()
-}
-
-// IsSame reports whether c and other refer to a capability created by the
-// same call to NewClient.  This can return false negatives if c or other
-// are not fully resolved: use Resolve if this is an issue.  If either
-// c or other are released, then IsSame panics.
-func (c CapManageAuthn) IsSame(other CapManageAuthn) bool {
-	return capnp.Client(c).IsSame(capnp.Client(other))
-}
-
-// Update the flowcontrol.FlowLimiter used to manage flow control for
-// this client. This affects all future calls, but not calls already
-// waiting to send. Passing nil sets the value to flowcontrol.NopLimiter,
-// which is also the default.
-func (c CapManageAuthn) SetFlowLimiter(lim fc.FlowLimiter) {
-	capnp.Client(c).SetFlowLimiter(lim)
-}
-
-// Get the current flowcontrol.FlowLimiter used to manage flow control
-// for this client.
-func (c CapManageAuthn) GetFlowLimiter() fc.FlowLimiter {
-	return capnp.Client(c).GetFlowLimiter()
-} // A CapManageAuthn_Server is a CapManageAuthn with a local implementation.
-type CapManageAuthn_Server interface {
-	AddUser(context.Context, CapManageAuthn_addUser) error
-
-	ListUsers(context.Context, CapManageAuthn_listUsers) error
-
-	RemoveUser(context.Context, CapManageAuthn_removeUser) error
-
-	ResetPassword(context.Context, CapManageAuthn_resetPassword) error
-}
-
-// CapManageAuthn_NewServer creates a new Server from an implementation of CapManageAuthn_Server.
-func CapManageAuthn_NewServer(s CapManageAuthn_Server) *server.Server {
-	c, _ := s.(server.Shutdowner)
-	return server.New(CapManageAuthn_Methods(nil, s), s, c)
-}
-
-// CapManageAuthn_ServerToClient creates a new Client from an implementation of CapManageAuthn_Server.
-// The caller is responsible for calling Release on the returned Client.
-func CapManageAuthn_ServerToClient(s CapManageAuthn_Server) CapManageAuthn {
-	return CapManageAuthn(capnp.NewClient(CapManageAuthn_NewServer(s)))
-}
-
-// CapManageAuthn_Methods appends Methods to a slice that invoke the methods on s.
-// This can be used to create a more complicated Server.
-func CapManageAuthn_Methods(methods []server.Method, s CapManageAuthn_Server) []server.Method {
-	if cap(methods) == 0 {
-		methods = make([]server.Method, 0, 4)
-	}
-
-	methods = append(methods, server.Method{
-		Method: capnp.Method{
-			InterfaceID:   0x88a16fc7ce91c2bc,
-			MethodID:      0,
-			InterfaceName: "hubapi/Authn.capnp:CapManageAuthn",
-			MethodName:    "addUser",
-		},
-		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.AddUser(ctx, CapManageAuthn_addUser{call})
-		},
-	})
-
-	methods = append(methods, server.Method{
-		Method: capnp.Method{
-			InterfaceID:   0x88a16fc7ce91c2bc,
-			MethodID:      1,
-			InterfaceName: "hubapi/Authn.capnp:CapManageAuthn",
-			MethodName:    "listUsers",
-		},
-		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.ListUsers(ctx, CapManageAuthn_listUsers{call})
-		},
-	})
-
-	methods = append(methods, server.Method{
-		Method: capnp.Method{
-			InterfaceID:   0x88a16fc7ce91c2bc,
-			MethodID:      2,
-			InterfaceName: "hubapi/Authn.capnp:CapManageAuthn",
-			MethodName:    "removeUser",
-		},
-		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.RemoveUser(ctx, CapManageAuthn_removeUser{call})
-		},
-	})
-
-	methods = append(methods, server.Method{
-		Method: capnp.Method{
-			InterfaceID:   0x88a16fc7ce91c2bc,
-			MethodID:      3,
-			InterfaceName: "hubapi/Authn.capnp:CapManageAuthn",
-			MethodName:    "resetPassword",
-		},
-		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.ResetPassword(ctx, CapManageAuthn_resetPassword{call})
-		},
-	})
-
-	return methods
-}
-
-// CapManageAuthn_addUser holds the state for a server call to CapManageAuthn.addUser.
-// See server.Call for documentation.
-type CapManageAuthn_addUser struct {
-	*server.Call
-}
-
-// Args returns the call's arguments.
-func (c CapManageAuthn_addUser) Args() CapManageAuthn_addUser_Params {
-	return CapManageAuthn_addUser_Params(c.Call.Args())
-}
-
-// AllocResults allocates the results struct.
-func (c CapManageAuthn_addUser) AllocResults() (CapManageAuthn_addUser_Results, error) {
-	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapManageAuthn_addUser_Results(r), err
-}
-
-// CapManageAuthn_listUsers holds the state for a server call to CapManageAuthn.listUsers.
-// See server.Call for documentation.
-type CapManageAuthn_listUsers struct {
-	*server.Call
-}
-
-// Args returns the call's arguments.
-func (c CapManageAuthn_listUsers) Args() CapManageAuthn_listUsers_Params {
-	return CapManageAuthn_listUsers_Params(c.Call.Args())
-}
-
-// AllocResults allocates the results struct.
-func (c CapManageAuthn_listUsers) AllocResults() (CapManageAuthn_listUsers_Results, error) {
-	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapManageAuthn_listUsers_Results(r), err
-}
-
-// CapManageAuthn_removeUser holds the state for a server call to CapManageAuthn.removeUser.
-// See server.Call for documentation.
-type CapManageAuthn_removeUser struct {
-	*server.Call
-}
-
-// Args returns the call's arguments.
-func (c CapManageAuthn_removeUser) Args() CapManageAuthn_removeUser_Params {
-	return CapManageAuthn_removeUser_Params(c.Call.Args())
-}
-
-// AllocResults allocates the results struct.
-func (c CapManageAuthn_removeUser) AllocResults() (CapManageAuthn_removeUser_Results, error) {
-	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapManageAuthn_removeUser_Results(r), err
-}
-
-// CapManageAuthn_resetPassword holds the state for a server call to CapManageAuthn.resetPassword.
-// See server.Call for documentation.
-type CapManageAuthn_resetPassword struct {
-	*server.Call
-}
-
-// Args returns the call's arguments.
-func (c CapManageAuthn_resetPassword) Args() CapManageAuthn_resetPassword_Params {
-	return CapManageAuthn_resetPassword_Params(c.Call.Args())
-}
-
-// AllocResults allocates the results struct.
-func (c CapManageAuthn_resetPassword) AllocResults() (CapManageAuthn_resetPassword_Results, error) {
-	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapManageAuthn_resetPassword_Results(r), err
-}
-
-// CapManageAuthn_List is a list of CapManageAuthn.
-type CapManageAuthn_List = capnp.CapList[CapManageAuthn]
-
-// NewCapManageAuthn creates a new list of CapManageAuthn.
-func NewCapManageAuthn_List(s *capnp.Segment, sz int32) (CapManageAuthn_List, error) {
-	l, err := capnp.NewPointerList(s, sz)
-	return capnp.CapList[CapManageAuthn](l), err
-}
-
-type CapManageAuthn_addUser_Params capnp.Struct
-
-// CapManageAuthn_addUser_Params_TypeID is the unique identifier for the type CapManageAuthn_addUser_Params.
-const CapManageAuthn_addUser_Params_TypeID = 0xf16244ccb186a63b
-
-func NewCapManageAuthn_addUser_Params(s *capnp.Segment) (CapManageAuthn_addUser_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
-	return CapManageAuthn_addUser_Params(st), err
-}
-
-func NewRootCapManageAuthn_addUser_Params(s *capnp.Segment) (CapManageAuthn_addUser_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
-	return CapManageAuthn_addUser_Params(st), err
-}
-
-func ReadRootCapManageAuthn_addUser_Params(msg *capnp.Message) (CapManageAuthn_addUser_Params, error) {
-	root, err := msg.Root()
-	return CapManageAuthn_addUser_Params(root.Struct()), err
-}
-
-func (s CapManageAuthn_addUser_Params) String() string {
-	str, _ := text.Marshal(0xf16244ccb186a63b, capnp.Struct(s))
-	return str
-}
-
-func (s CapManageAuthn_addUser_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapManageAuthn_addUser_Params) DecodeFromPtr(p capnp.Ptr) CapManageAuthn_addUser_Params {
-	return CapManageAuthn_addUser_Params(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapManageAuthn_addUser_Params) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapManageAuthn_addUser_Params) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapManageAuthn_addUser_Params) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapManageAuthn_addUser_Params) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s CapManageAuthn_addUser_Params) LoginID() (string, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.Text(), err
-}
-
-func (s CapManageAuthn_addUser_Params) HasLoginID() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s CapManageAuthn_addUser_Params) LoginIDBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.TextBytes(), err
-}
-
-func (s CapManageAuthn_addUser_Params) SetLoginID(v string) error {
-	return capnp.Struct(s).SetText(0, v)
-}
-
-func (s CapManageAuthn_addUser_Params) Name() (string, error) {
-	p, err := capnp.Struct(s).Ptr(1)
-	return p.Text(), err
-}
-
-func (s CapManageAuthn_addUser_Params) HasName() bool {
-	return capnp.Struct(s).HasPtr(1)
-}
-
-func (s CapManageAuthn_addUser_Params) NameBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(1)
-	return p.TextBytes(), err
-}
-
-func (s CapManageAuthn_addUser_Params) SetName(v string) error {
-	return capnp.Struct(s).SetText(1, v)
-}
-
-// CapManageAuthn_addUser_Params_List is a list of CapManageAuthn_addUser_Params.
-type CapManageAuthn_addUser_Params_List = capnp.StructList[CapManageAuthn_addUser_Params]
-
-// NewCapManageAuthn_addUser_Params creates a new list of CapManageAuthn_addUser_Params.
-func NewCapManageAuthn_addUser_Params_List(s *capnp.Segment, sz int32) (CapManageAuthn_addUser_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
-	return capnp.StructList[CapManageAuthn_addUser_Params](l), err
-}
-
-// CapManageAuthn_addUser_Params_Future is a wrapper for a CapManageAuthn_addUser_Params promised by a client call.
-type CapManageAuthn_addUser_Params_Future struct{ *capnp.Future }
-
-func (f CapManageAuthn_addUser_Params_Future) Struct() (CapManageAuthn_addUser_Params, error) {
-	p, err := f.Future.Ptr()
-	return CapManageAuthn_addUser_Params(p.Struct()), err
-}
-
-type CapManageAuthn_addUser_Results capnp.Struct
-
-// CapManageAuthn_addUser_Results_TypeID is the unique identifier for the type CapManageAuthn_addUser_Results.
-const CapManageAuthn_addUser_Results_TypeID = 0xb7815fcecda6b54c
-
-func NewCapManageAuthn_addUser_Results(s *capnp.Segment) (CapManageAuthn_addUser_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapManageAuthn_addUser_Results(st), err
-}
-
-func NewRootCapManageAuthn_addUser_Results(s *capnp.Segment) (CapManageAuthn_addUser_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapManageAuthn_addUser_Results(st), err
-}
-
-func ReadRootCapManageAuthn_addUser_Results(msg *capnp.Message) (CapManageAuthn_addUser_Results, error) {
-	root, err := msg.Root()
-	return CapManageAuthn_addUser_Results(root.Struct()), err
-}
-
-func (s CapManageAuthn_addUser_Results) String() string {
-	str, _ := text.Marshal(0xb7815fcecda6b54c, capnp.Struct(s))
-	return str
-}
-
-func (s CapManageAuthn_addUser_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapManageAuthn_addUser_Results) DecodeFromPtr(p capnp.Ptr) CapManageAuthn_addUser_Results {
-	return CapManageAuthn_addUser_Results(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapManageAuthn_addUser_Results) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapManageAuthn_addUser_Results) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapManageAuthn_addUser_Results) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapManageAuthn_addUser_Results) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s CapManageAuthn_addUser_Results) Password() (string, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.Text(), err
-}
-
-func (s CapManageAuthn_addUser_Results) HasPassword() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s CapManageAuthn_addUser_Results) PasswordBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.TextBytes(), err
-}
-
-func (s CapManageAuthn_addUser_Results) SetPassword(v string) error {
-	return capnp.Struct(s).SetText(0, v)
-}
-
-// CapManageAuthn_addUser_Results_List is a list of CapManageAuthn_addUser_Results.
-type CapManageAuthn_addUser_Results_List = capnp.StructList[CapManageAuthn_addUser_Results]
-
-// NewCapManageAuthn_addUser_Results creates a new list of CapManageAuthn_addUser_Results.
-func NewCapManageAuthn_addUser_Results_List(s *capnp.Segment, sz int32) (CapManageAuthn_addUser_Results_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapManageAuthn_addUser_Results](l), err
-}
-
-// CapManageAuthn_addUser_Results_Future is a wrapper for a CapManageAuthn_addUser_Results promised by a client call.
-type CapManageAuthn_addUser_Results_Future struct{ *capnp.Future }
-
-func (f CapManageAuthn_addUser_Results_Future) Struct() (CapManageAuthn_addUser_Results, error) {
-	p, err := f.Future.Ptr()
-	return CapManageAuthn_addUser_Results(p.Struct()), err
-}
-
-type CapManageAuthn_listUsers_Params capnp.Struct
-
-// CapManageAuthn_listUsers_Params_TypeID is the unique identifier for the type CapManageAuthn_listUsers_Params.
-const CapManageAuthn_listUsers_Params_TypeID = 0xfcdcc5587bf2f9d8
-
-func NewCapManageAuthn_listUsers_Params(s *capnp.Segment) (CapManageAuthn_listUsers_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapManageAuthn_listUsers_Params(st), err
-}
-
-func NewRootCapManageAuthn_listUsers_Params(s *capnp.Segment) (CapManageAuthn_listUsers_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapManageAuthn_listUsers_Params(st), err
-}
-
-func ReadRootCapManageAuthn_listUsers_Params(msg *capnp.Message) (CapManageAuthn_listUsers_Params, error) {
-	root, err := msg.Root()
-	return CapManageAuthn_listUsers_Params(root.Struct()), err
-}
-
-func (s CapManageAuthn_listUsers_Params) String() string {
-	str, _ := text.Marshal(0xfcdcc5587bf2f9d8, capnp.Struct(s))
-	return str
-}
-
-func (s CapManageAuthn_listUsers_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapManageAuthn_listUsers_Params) DecodeFromPtr(p capnp.Ptr) CapManageAuthn_listUsers_Params {
-	return CapManageAuthn_listUsers_Params(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapManageAuthn_listUsers_Params) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapManageAuthn_listUsers_Params) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapManageAuthn_listUsers_Params) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapManageAuthn_listUsers_Params) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-
-// CapManageAuthn_listUsers_Params_List is a list of CapManageAuthn_listUsers_Params.
-type CapManageAuthn_listUsers_Params_List = capnp.StructList[CapManageAuthn_listUsers_Params]
-
-// NewCapManageAuthn_listUsers_Params creates a new list of CapManageAuthn_listUsers_Params.
-func NewCapManageAuthn_listUsers_Params_List(s *capnp.Segment, sz int32) (CapManageAuthn_listUsers_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
-	return capnp.StructList[CapManageAuthn_listUsers_Params](l), err
-}
-
-// CapManageAuthn_listUsers_Params_Future is a wrapper for a CapManageAuthn_listUsers_Params promised by a client call.
-type CapManageAuthn_listUsers_Params_Future struct{ *capnp.Future }
-
-func (f CapManageAuthn_listUsers_Params_Future) Struct() (CapManageAuthn_listUsers_Params, error) {
-	p, err := f.Future.Ptr()
-	return CapManageAuthn_listUsers_Params(p.Struct()), err
-}
-
-type CapManageAuthn_listUsers_Results capnp.Struct
-
-// CapManageAuthn_listUsers_Results_TypeID is the unique identifier for the type CapManageAuthn_listUsers_Results.
-const CapManageAuthn_listUsers_Results_TypeID = 0x8060c97a0e273ede
-
-func NewCapManageAuthn_listUsers_Results(s *capnp.Segment) (CapManageAuthn_listUsers_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapManageAuthn_listUsers_Results(st), err
-}
-
-func NewRootCapManageAuthn_listUsers_Results(s *capnp.Segment) (CapManageAuthn_listUsers_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapManageAuthn_listUsers_Results(st), err
-}
-
-func ReadRootCapManageAuthn_listUsers_Results(msg *capnp.Message) (CapManageAuthn_listUsers_Results, error) {
-	root, err := msg.Root()
-	return CapManageAuthn_listUsers_Results(root.Struct()), err
-}
-
-func (s CapManageAuthn_listUsers_Results) String() string {
-	str, _ := text.Marshal(0x8060c97a0e273ede, capnp.Struct(s))
-	return str
-}
-
-func (s CapManageAuthn_listUsers_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapManageAuthn_listUsers_Results) DecodeFromPtr(p capnp.Ptr) CapManageAuthn_listUsers_Results {
-	return CapManageAuthn_listUsers_Results(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapManageAuthn_listUsers_Results) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapManageAuthn_listUsers_Results) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapManageAuthn_listUsers_Results) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapManageAuthn_listUsers_Results) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s CapManageAuthn_listUsers_Results) Profiles() (UserProfile_List, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return UserProfile_List(p.List()), err
-}
-
-func (s CapManageAuthn_listUsers_Results) HasProfiles() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s CapManageAuthn_listUsers_Results) SetProfiles(v UserProfile_List) error {
-	return capnp.Struct(s).SetPtr(0, v.ToPtr())
-}
-
-// NewProfiles sets the profiles field to a newly
-// allocated UserProfile_List, preferring placement in s's segment.
-func (s CapManageAuthn_listUsers_Results) NewProfiles(n int32) (UserProfile_List, error) {
-	l, err := NewUserProfile_List(capnp.Struct(s).Segment(), n)
-	if err != nil {
-		return UserProfile_List{}, err
-	}
-	err = capnp.Struct(s).SetPtr(0, l.ToPtr())
-	return l, err
-}
-
-// CapManageAuthn_listUsers_Results_List is a list of CapManageAuthn_listUsers_Results.
-type CapManageAuthn_listUsers_Results_List = capnp.StructList[CapManageAuthn_listUsers_Results]
-
-// NewCapManageAuthn_listUsers_Results creates a new list of CapManageAuthn_listUsers_Results.
-func NewCapManageAuthn_listUsers_Results_List(s *capnp.Segment, sz int32) (CapManageAuthn_listUsers_Results_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapManageAuthn_listUsers_Results](l), err
-}
-
-// CapManageAuthn_listUsers_Results_Future is a wrapper for a CapManageAuthn_listUsers_Results promised by a client call.
-type CapManageAuthn_listUsers_Results_Future struct{ *capnp.Future }
-
-func (f CapManageAuthn_listUsers_Results_Future) Struct() (CapManageAuthn_listUsers_Results, error) {
-	p, err := f.Future.Ptr()
-	return CapManageAuthn_listUsers_Results(p.Struct()), err
-}
-
-type CapManageAuthn_removeUser_Params capnp.Struct
-
-// CapManageAuthn_removeUser_Params_TypeID is the unique identifier for the type CapManageAuthn_removeUser_Params.
-const CapManageAuthn_removeUser_Params_TypeID = 0xe459e7faec337b55
-
-func NewCapManageAuthn_removeUser_Params(s *capnp.Segment) (CapManageAuthn_removeUser_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapManageAuthn_removeUser_Params(st), err
-}
-
-func NewRootCapManageAuthn_removeUser_Params(s *capnp.Segment) (CapManageAuthn_removeUser_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapManageAuthn_removeUser_Params(st), err
-}
-
-func ReadRootCapManageAuthn_removeUser_Params(msg *capnp.Message) (CapManageAuthn_removeUser_Params, error) {
-	root, err := msg.Root()
-	return CapManageAuthn_removeUser_Params(root.Struct()), err
-}
-
-func (s CapManageAuthn_removeUser_Params) String() string {
-	str, _ := text.Marshal(0xe459e7faec337b55, capnp.Struct(s))
-	return str
-}
-
-func (s CapManageAuthn_removeUser_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapManageAuthn_removeUser_Params) DecodeFromPtr(p capnp.Ptr) CapManageAuthn_removeUser_Params {
-	return CapManageAuthn_removeUser_Params(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapManageAuthn_removeUser_Params) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapManageAuthn_removeUser_Params) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapManageAuthn_removeUser_Params) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapManageAuthn_removeUser_Params) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s CapManageAuthn_removeUser_Params) LoginID() (string, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.Text(), err
-}
-
-func (s CapManageAuthn_removeUser_Params) HasLoginID() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s CapManageAuthn_removeUser_Params) LoginIDBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.TextBytes(), err
-}
-
-func (s CapManageAuthn_removeUser_Params) SetLoginID(v string) error {
-	return capnp.Struct(s).SetText(0, v)
-}
-
-// CapManageAuthn_removeUser_Params_List is a list of CapManageAuthn_removeUser_Params.
-type CapManageAuthn_removeUser_Params_List = capnp.StructList[CapManageAuthn_removeUser_Params]
-
-// NewCapManageAuthn_removeUser_Params creates a new list of CapManageAuthn_removeUser_Params.
-func NewCapManageAuthn_removeUser_Params_List(s *capnp.Segment, sz int32) (CapManageAuthn_removeUser_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapManageAuthn_removeUser_Params](l), err
-}
-
-// CapManageAuthn_removeUser_Params_Future is a wrapper for a CapManageAuthn_removeUser_Params promised by a client call.
-type CapManageAuthn_removeUser_Params_Future struct{ *capnp.Future }
-
-func (f CapManageAuthn_removeUser_Params_Future) Struct() (CapManageAuthn_removeUser_Params, error) {
-	p, err := f.Future.Ptr()
-	return CapManageAuthn_removeUser_Params(p.Struct()), err
-}
-
-type CapManageAuthn_removeUser_Results capnp.Struct
-
-// CapManageAuthn_removeUser_Results_TypeID is the unique identifier for the type CapManageAuthn_removeUser_Results.
-const CapManageAuthn_removeUser_Results_TypeID = 0xa818262095a69d17
-
-func NewCapManageAuthn_removeUser_Results(s *capnp.Segment) (CapManageAuthn_removeUser_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapManageAuthn_removeUser_Results(st), err
-}
-
-func NewRootCapManageAuthn_removeUser_Results(s *capnp.Segment) (CapManageAuthn_removeUser_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapManageAuthn_removeUser_Results(st), err
-}
-
-func ReadRootCapManageAuthn_removeUser_Results(msg *capnp.Message) (CapManageAuthn_removeUser_Results, error) {
-	root, err := msg.Root()
-	return CapManageAuthn_removeUser_Results(root.Struct()), err
-}
-
-func (s CapManageAuthn_removeUser_Results) String() string {
-	str, _ := text.Marshal(0xa818262095a69d17, capnp.Struct(s))
-	return str
-}
-
-func (s CapManageAuthn_removeUser_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapManageAuthn_removeUser_Results) DecodeFromPtr(p capnp.Ptr) CapManageAuthn_removeUser_Results {
-	return CapManageAuthn_removeUser_Results(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapManageAuthn_removeUser_Results) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapManageAuthn_removeUser_Results) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapManageAuthn_removeUser_Results) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapManageAuthn_removeUser_Results) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-
-// CapManageAuthn_removeUser_Results_List is a list of CapManageAuthn_removeUser_Results.
-type CapManageAuthn_removeUser_Results_List = capnp.StructList[CapManageAuthn_removeUser_Results]
-
-// NewCapManageAuthn_removeUser_Results creates a new list of CapManageAuthn_removeUser_Results.
-func NewCapManageAuthn_removeUser_Results_List(s *capnp.Segment, sz int32) (CapManageAuthn_removeUser_Results_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
-	return capnp.StructList[CapManageAuthn_removeUser_Results](l), err
-}
-
-// CapManageAuthn_removeUser_Results_Future is a wrapper for a CapManageAuthn_removeUser_Results promised by a client call.
-type CapManageAuthn_removeUser_Results_Future struct{ *capnp.Future }
-
-func (f CapManageAuthn_removeUser_Results_Future) Struct() (CapManageAuthn_removeUser_Results, error) {
-	p, err := f.Future.Ptr()
-	return CapManageAuthn_removeUser_Results(p.Struct()), err
-}
-
-type CapManageAuthn_resetPassword_Params capnp.Struct
-
-// CapManageAuthn_resetPassword_Params_TypeID is the unique identifier for the type CapManageAuthn_resetPassword_Params.
-const CapManageAuthn_resetPassword_Params_TypeID = 0xea8e208f67747074
-
-func NewCapManageAuthn_resetPassword_Params(s *capnp.Segment) (CapManageAuthn_resetPassword_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapManageAuthn_resetPassword_Params(st), err
-}
-
-func NewRootCapManageAuthn_resetPassword_Params(s *capnp.Segment) (CapManageAuthn_resetPassword_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapManageAuthn_resetPassword_Params(st), err
-}
-
-func ReadRootCapManageAuthn_resetPassword_Params(msg *capnp.Message) (CapManageAuthn_resetPassword_Params, error) {
-	root, err := msg.Root()
-	return CapManageAuthn_resetPassword_Params(root.Struct()), err
-}
-
-func (s CapManageAuthn_resetPassword_Params) String() string {
-	str, _ := text.Marshal(0xea8e208f67747074, capnp.Struct(s))
-	return str
-}
-
-func (s CapManageAuthn_resetPassword_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapManageAuthn_resetPassword_Params) DecodeFromPtr(p capnp.Ptr) CapManageAuthn_resetPassword_Params {
-	return CapManageAuthn_resetPassword_Params(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapManageAuthn_resetPassword_Params) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapManageAuthn_resetPassword_Params) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapManageAuthn_resetPassword_Params) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapManageAuthn_resetPassword_Params) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s CapManageAuthn_resetPassword_Params) LoginID() (string, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.Text(), err
-}
-
-func (s CapManageAuthn_resetPassword_Params) HasLoginID() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s CapManageAuthn_resetPassword_Params) LoginIDBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.TextBytes(), err
-}
-
-func (s CapManageAuthn_resetPassword_Params) SetLoginID(v string) error {
-	return capnp.Struct(s).SetText(0, v)
-}
-
-// CapManageAuthn_resetPassword_Params_List is a list of CapManageAuthn_resetPassword_Params.
-type CapManageAuthn_resetPassword_Params_List = capnp.StructList[CapManageAuthn_resetPassword_Params]
-
-// NewCapManageAuthn_resetPassword_Params creates a new list of CapManageAuthn_resetPassword_Params.
-func NewCapManageAuthn_resetPassword_Params_List(s *capnp.Segment, sz int32) (CapManageAuthn_resetPassword_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapManageAuthn_resetPassword_Params](l), err
-}
-
-// CapManageAuthn_resetPassword_Params_Future is a wrapper for a CapManageAuthn_resetPassword_Params promised by a client call.
-type CapManageAuthn_resetPassword_Params_Future struct{ *capnp.Future }
-
-func (f CapManageAuthn_resetPassword_Params_Future) Struct() (CapManageAuthn_resetPassword_Params, error) {
-	p, err := f.Future.Ptr()
-	return CapManageAuthn_resetPassword_Params(p.Struct()), err
-}
-
-type CapManageAuthn_resetPassword_Results capnp.Struct
-
-// CapManageAuthn_resetPassword_Results_TypeID is the unique identifier for the type CapManageAuthn_resetPassword_Results.
-const CapManageAuthn_resetPassword_Results_TypeID = 0xfaa82702574f9d19
-
-func NewCapManageAuthn_resetPassword_Results(s *capnp.Segment) (CapManageAuthn_resetPassword_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapManageAuthn_resetPassword_Results(st), err
-}
-
-func NewRootCapManageAuthn_resetPassword_Results(s *capnp.Segment) (CapManageAuthn_resetPassword_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapManageAuthn_resetPassword_Results(st), err
-}
-
-func ReadRootCapManageAuthn_resetPassword_Results(msg *capnp.Message) (CapManageAuthn_resetPassword_Results, error) {
-	root, err := msg.Root()
-	return CapManageAuthn_resetPassword_Results(root.Struct()), err
-}
-
-func (s CapManageAuthn_resetPassword_Results) String() string {
-	str, _ := text.Marshal(0xfaa82702574f9d19, capnp.Struct(s))
-	return str
-}
-
-func (s CapManageAuthn_resetPassword_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapManageAuthn_resetPassword_Results) DecodeFromPtr(p capnp.Ptr) CapManageAuthn_resetPassword_Results {
-	return CapManageAuthn_resetPassword_Results(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapManageAuthn_resetPassword_Results) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapManageAuthn_resetPassword_Results) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapManageAuthn_resetPassword_Results) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapManageAuthn_resetPassword_Results) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s CapManageAuthn_resetPassword_Results) NewPassword() (string, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.Text(), err
-}
-
-func (s CapManageAuthn_resetPassword_Results) HasNewPassword() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s CapManageAuthn_resetPassword_Results) NewPasswordBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.TextBytes(), err
-}
-
-func (s CapManageAuthn_resetPassword_Results) SetNewPassword(v string) error {
-	return capnp.Struct(s).SetText(0, v)
-}
-
-// CapManageAuthn_resetPassword_Results_List is a list of CapManageAuthn_resetPassword_Results.
-type CapManageAuthn_resetPassword_Results_List = capnp.StructList[CapManageAuthn_resetPassword_Results]
-
-// NewCapManageAuthn_resetPassword_Results creates a new list of CapManageAuthn_resetPassword_Results.
-func NewCapManageAuthn_resetPassword_Results_List(s *capnp.Segment, sz int32) (CapManageAuthn_resetPassword_Results_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapManageAuthn_resetPassword_Results](l), err
-}
-
-// CapManageAuthn_resetPassword_Results_Future is a wrapper for a CapManageAuthn_resetPassword_Results promised by a client call.
-type CapManageAuthn_resetPassword_Results_Future struct{ *capnp.Future }
-
-func (f CapManageAuthn_resetPassword_Results_Future) Struct() (CapManageAuthn_resetPassword_Results, error) {
-	p, err := f.Future.Ptr()
-	return CapManageAuthn_resetPassword_Results(p.Struct()), err
-}
-
-const schema_c2f3c14cadbaf856 = "x\xda\xacW}LTW\x16?\xe7\xbd\x19\xde<@" +
-	"\xe0\xf94\xab\xd9]a\x0dY\xc4\xe8\x0a\xb2\x1f\xe2\xae" +
-	"2\xa0fW\"\xbb3\xb0\xb8\x0b\xad\xb1\x8f\xe1\x01C" +
-	"\xe7\xcby3\x10\x11C5\xb5\xb6\xb4\xdah\x84h\x1b" +
-	"\x120\x16Q\x83\x8d\xfdH\x1blS%\xb5-\x89\xda" +
-	"?Zcm\xeaG\x1b\xfba\xad\xd1j\x9b\x16\xa2\x9d" +
-	"\xe6\xdeyo\xe6\xce0\xc0\xd8\xfa\x1f\xbc{\xee\xef\x9c" +
-	"\xf3;\xe7\xfc\xce\x9d\x82\x87LVS\xe1\xb4\xcct\xe0" +
-	"\xec\xcf\x98SB\x97\x96\xe7e\xb4\x8d<\xf2\x18Hs" +
-	"\x11\xc0\x8c\x02@\xd1\x0d\xf3~\x04\x94\xef\x99K\x00C" +
-	"\x17z\xe7\x0f\x1e8wz\x0bH9\x11\x83\xc2\x14?" +
-	"1X\x96B\x0c\xde\x18\xdeu\xf6]o\xdf\x93 \xc9" +
-	"|h\xed\x8fC\x83kN\xde\x19\x06\xc0\"%e:" +
-	"\xca\x1bR\xc8\x05w\x8a\x80\xf2lA\x00xk\x81\xfb" +
-	"\xf1w\xdeo\xefd\xd0Ph#h\xd3\x04\x82\xf6\xdd" +
-	"\x17sj{O\xbc\xb7+\xc6\x9d\xd0L\xddQ\x03\xd3" +
-	"\xed\xfc\xee\xf6+\xa6n\xd6@\x11v\x13\x83\x0d\xd4\xe0" +
-	"\xc4\xc9\xb7w\xee\x18\xf8ao\xd8\xc0D\xce\xbb\xc8\xb9" +
-	")\x94q\xa01\xef\xf0W\xdd/\x80$\x9bb\"\xdd" +
-	"&\xecF\xb9\x87\x84W\xb5W\xe0\xb1\xea\x80\xc0!@" +
-	"\xe87=\xfd]9\x7f\x9c5\x10\xe6FG:L\x90" +
-	"\xd6g\x1f;\xd2\xfe\xd7\xcb\x87\x13 u&B\xba\xb9" +
-	"\xa4l\xad\xf7\x0f'\x06\xe39\x92\xbb\x84\xcf\xe4>b" +
-	".\xf7\x08\xdb\xe5\xef\xc9_\xa1E\xe5-]G\x1b\xe6" +
-	"\xbe2\x8e\xd0\x8b\x02\x87\xf25bS\xf4\xb9\xb0\x1d\xe5" +
-	"O-\xc4|\xcd\xab\xfdg\xce\xae\xdf\xf2\x1a[\xc1\x11" +
-	"\x0b%\xe4\x82\x85\x10\xf2\xf2S7.v\xdf\xbd\xfd\xba" +
-	"\xce\x18G\x0c\xeeY\xb6\x12\x03Ql\x05\x0c\x9d\x7f\xb3" +
-	"\xaf\xff\xe6`\xc6\x10\xc3\x98[\xdcO\xf2\x1cx8c" +
-	"\xdbKb\x1e{\xb2N|\x8e\x9c\x04\x9e\x9f\xf3\xcf\xcb" +
-	"\xd7~{\x9c9\xa9\x10\xdb\xc8\x89\xe5\xe9;\xf9\xb7\x16" +
-	"V\x0c\xb3\x05*&\x97P^-\x92x:\x0fZ\xce" +
-	"\xb7_\xc9\x1f\x01\xe9w\x11\x03\xb7\xd8I\x0c6S\x83" +
-	"\xe5\x1f\xce\\u\xb5h\x89n@\xb1{DZ\xc1\xe3" +
-	"\xbdJ\xad\xb8\xb9f$\x9ewy\x878&\xef\x13\x09" +
-	"\xed{D\x1e\xabzEJ{yE\xee\xc2\x7f\x15\x9f" +
-	"=\x03\x92\x8cQs\xca\x80\xdc%\x8e\xc9}\"e\x9e" +
-	"\x92\xc0_/\\\xf7\xe2\xb2#\x1f\xb0a\x8f\x86\xc3\x16" +
-	"SIT9\x7f\x13\x06\x8e\xce[\xf01Kc~*" +
-	"\x1d\x84\xbf\xa4\x12\x84\xeaME\xdf\x8c}Ys\x95-" +
-	"\xc4\xbeT:J\x87(B\xc0\x17h|6g\xe7\xd7" +
-	"1\x95J\x1d\xa2\x95\xa2\x06\x97\xb2p\xe8\xa7\x96\xe37" +
-	"YfFSi\xa5\xcci\xc4\x00k\xaf\x1f\\\xd1\xb8" +
-	"\xe7\x16k\x90\x9fF\x83,\xa6\x06\x7f\xef\x7f\xe2\xd8\xe9" +
-	"\x95u\xdf\xea.h\x905i\x94[g\x1a\x09rv" +
-	"\xcf\x7f\xfe\xc7\xe5\x0d\x8c\xb11\x9cJ\x1b&\x06\xe7(" +
-	"\xc2G\xa3\xb77\xfd\xff\xd4'w\x99\xa6\x1f%\x1e\x0a" +
-	"BM\xc1:\xc5\xe7\\Tj\x0e\x06\x9a<\x7fr(" +
-	">\x8fo\xe9\x0a\xc5W\xa1x\x94F\xb5\x94~t9" +
-	"\xb5@\xb5\xa6\xfa\xb5\xdcJU\x0b\x0a\xae\x80f7\xf1" +
-	"&\x00\x13\x02H\xd3\xca\x01\xec\xe9<\xda\xe7q\x18\xf2" +
-	"\xf9\xbd\x0dN\x97\xaa\x01\x00f\x00\xdax\xc4\xach\xbd" +
-	"\x00\xc9\xc7\x88GS\xacG\xe2A\xf7\xe7m\xf4\x06\x03" +
-	"\xb9\xb6l\xc5\xaf\xb8c|5\xeb\xbefq\x18\xf2\xab" +
-	"\x0d~Uk\xfa/dz\x1fU=\x98\x0e\x1c\xa63" +
-	"\xe8\xfcD\xf9\xa0\xc7\x86h\xcf\xe2\xcd\x00\x11b\xd1\x18" +
-	"7iC\x19p\x92*`\x9424\xc4T\xaa\xa9\x04" +
-	"N\xb2\x0b\xc8E\x9a\x02\x0d1\x91V\xd5\x02'-\x13" +
-	"\x90\x8f\xf4\x03\x1aE\x91\x0a\xfd\xc0I\xf9B\x87R_" +
-	"O\x92\xb4b\xc8`\x14P\xb3\x92L\xdc\xde\x16\xb5Z" +
-	"\x03\x9e\x1e\xfaUM\x0d\xd8\x14\x0d\xb2\xb5V\xaf\xbf\xde" +
-	"\x8a6L\x824\x9d\x8e\xdc\x12\xdb\xafam\xb2\x9a8" +
-	"=\xb96%3\x1e\xbc\x9c\x01\xf7)\x1a\x0d\x99\x94?" +
-	"\x1e\xd9<\x112I6\xdc6\xb94t\x8c\x81\xafe" +
-	"\xe0=j+\xb5\x04\xde\xa5\xc6\xf5UV2\x9e\x1a\xc7" +
-	"yJx\xa7^mP\x82\xae@\xa5\xce\x14\xe1i\xad" +
-	"\xe2r\xd6;\x03\x1b\xabTt\xd8\x10\xd1\x04\x9cb\x0a" +
-	"N\x9f\xd8);>FyU?\x99\x9f\xcc\xa0+0" +
-	"\xa9\xdfR\x87C\xd5\xb48\xb7\x0e\x00\xddo\xa1)\x8b" +
-	"\x1d\".\xd6oiP\x084\xd1\x06\xb7\xd0\x067\xb4" +
-	"\x07\x0dy\x96\x0a\x9bi3bT\x90\xd1\xd0\x1f\xe9\xf7" +
-	"m\xc0I3\x85\x90Cg\x0d2\x09\xba\x15\xc9\x07\x9a" +
-	"\x11\x94\x84s\x8a\xedI~\x02\xc2I\xc8\xf6Y4\x0e" +
-	"c}\xa3!\xc8\xd2120\x87H\x1c\xc6\xe3\x00\x0d" +
-	"-\x96z\x16\x03'\xed\"\x83f\xbcS\xd0\xd8L\xd2" +
-	"\xb6\xa5\xc0I\x1b\x05\xe4\x8d7\x07\xb3\x09\xdddx\x15" +
-	"\x01\xa3\xeb\x0a\x8d-(U\xd7\x01'U\x08h\x8e\xbc" +
-	"5\xd0\xd8\x83R)\x89\xa5X\x08\x19\x0dB\x1a\xcc\x8a" +
-	"\xd9\xb4\xe7\xadX\x12\xd6#+v\xe8\xc3c\xc5Px" +
-	"B\xb5V\x10\xe8\x84\x86\xb4\x98\x9b,9\x934\x86\xae" +
-	"\x07TU]\x01|\xb0ce\xe8A\x18\\\x03\xbb%" +
-	"\x02\x9eO\x04a\x1e\x8f\xf6?s(!\xce@\xf2\xb1" +
-	"p+\x80\xbd\x80G\xfb?\xc2\x93FP\xe2U\xc2\xa3" +
-	"\xb6\xd2\xa9@},\xees\xca\xf54\"[\xe4\xbe\xb4" +
-	"\x81\xe6\xc13\x97\xa6Z\x1f\x95%\xe1\xcc\xef/6\"" +
-	"\x0c|\xac\xc2\xd5\xc5IP\xa4\xeeSe_j\xfc\x1b" +
-	"q\x15\xa9\x06\xb0\x0e\xe6\x02\xa9\x0e\xdagp(8\x14" +
-	"\x1fJ\xd1\xc7\" JI8`\xbaj\x9c\xb4\xb1\x0a" +
-	"\xa1\xa9\xfe\x16g\x89C\xfd\xb7\xe2V\x89\x9e\x84\x13\x00" +
-	"\x09\x17g+\xc4,\xe1%\x12\xbd\xad$\\\x86\xb0\xb2" +
-	"D\x1a\xa9\x0c\xc0\x9e\xcb\xa3\xbd\x80i\xa4\x85\xf3\xa3\xdd" +
-	"\xd5AGh\xf5J\x83\xa9L\x8f\xe2V\x93o\x9a\xc6" +
-	"\xf1\xe5gy+\x8b\xf2\xd6\xa1\xbf<&Y\x0bS\xac" +
-	"\xb6J5\x9b\x96\x86M\xaf2\xd1\x9c43sBH" +
-	"#\x93\x00\x18\x1d\x92)6lr\x8b\xc2\xa6\xf8\x85\xb8" +
-	"E\xcbf\x1bGkr\xe0l\x9b'x%\xfc\x02\xfc" +
-	"\x04\x0d\x1e\xc6\x85\x89\xa4\xcc\xe1r\xaa\x9e\xc0\xea\x95I" +
-	"HY\xc2\xe6N\xd4\x06\xe3\xc7'\xf2\xe3u\xf2\xf1I" +
-	"\xa4\xc5z\xfc\xf0\xe0\xbb<%\xd9\xdaD\x14\xfbAh" +
-	"P\xe2w\xbc\xaer?\x07\x00\x00\xff\xff\xefW\xc3\x82"
+const schema_c2f3c14cadbaf856 = "x\xda\xacW{LTg\x16?\xe7\xde\x19\xee\\@" +
+	"\xe0z5\xab\xd9]a\x0dY\xc4\xe8\x0a\xb2\x0fqW" +
+	"\x19P\xb3+\x91\xdd\x19Xl!5\xf62\\`\xe8" +
+	"\xbc\x9c;\x03\x111TSk\xa5\xd5F#D\xdb\x90" +
+	"\x80\xb1\x88\x1al\xec#m\xb0\xa6J\xfa\"Q\xfbG" +
+	"\xdbX\x9b\xfahc\x1f\xd6\x1a\xad\xb6i%\xdai\xbe" +
+	"o\xee\x9d\xf9f\x18`h\xfd\x0f\xee\xf7\xfb\xce\xe3w" +
+	"\xce\xf9\x9do\x0a\xd6\x98\xac\xa6\xc2i\x99\xe9\xc0\xd9\x9f" +
+	"1\xa7\x84.-\xcf\xcbh\x1by\xf4q\x90\xe6\"\x80" +
+	"\x19\x05\x80\xa2\x1b\xe6\x03\x08(\xdf7\x97\x00\x86.\xf4" +
+	"\xce\x1f<\xf8\xd1\x99- \xe5D\x00\x85)~\x02X" +
+	"\x96B\x00o\x0c\xef>\xf7\xae\xb7\xef)\x90d>\xb4" +
+	"\xf6\xa7\xa1\xc15\xa7\xef\x0c\x03`\x91\x922\x1d\xe5\x0d" +
+	")\xe4\x82;E@y\xb6 \x00\xbc\xb9\xc0\xfd\xc4;" +
+	"\xef\xb7w2\xd6Ph#\xd6\xa6\x09\xc4\xda\xf7_\xce" +
+	"\xa9\xed=\xf5\xde\xee\x18wB3uG\x01\xa6\xdb\xf9" +
+	"\xdd\xedWL\xdd,@\x11\xf6\x10\xc0\x06\x0a8u\xfa" +
+	"\xad];\x07~\xdc\x17\x06\x98\xc8y\x1797\x852" +
+	"\x0e6\xe6\x1d\xf9\xba\xfb\x05\x90dSL\xa4\xdb\x84=" +
+	"(\xf7\x90\xf0\xaa\xf6\x09<V\x1d\x148\x04\x08\xfd\xae" +
+	"\xa7\xbf+\xe7\xcf\xb3\x06\xc2\xdc\xe8\x96\x8e\x10K\xeb\xb3" +
+	"\x8f\x1fm\xff\xfb\xe5#\x09,u&\xb2tsI\xd9" +
+	"Z\xef\x9fN\x0d\xc6s$w\x09\x9f\xcb}\x04.\xf7" +
+	"\x08\xdb\xe5\x1f\xc8_\xa1E\xe5-]\xc7\x1a\xe6\xbe2" +
+	"\x86\xd0\x8b\x02\x87\xf25\x82)\xfaB\xd8\x8e\xf2g\x16" +
+	"\x02_\xf3j\xff\xd9s\xeb\xb7\xbc\xc6Vp\xc4B\x09" +
+	"\xb9`!\x84\xbc\xbc\xe3\xc6\xc5\xee{\xb7_\xd7\x19\xe3" +
+	"\x08\xe0\xbee+\x01\x88b+`\xe8\xfc\xc9\xbe\xfe\x9b" +
+	"\x83\x19C\x0ccn\xf1\x00\xc9s\xe0\x91\x8cm/\x89" +
+	"y\xec\xc9:\xf19r\x12x~\xce\xbf/_\xfb\xfd" +
+	"\x09\xe6\xa4Bl#'\x96\xa7\xef\xe4\xdfZX1\xcc" +
+	"\x16\xa8\x98\\By\xb5H\xe2\xe9<d9\xdf~%" +
+	"\x7f\x04\xa4?D\x00n\xb1\x93\x006S\xc0\xf2\x0fg" +
+	"\xae\xbaZ\xb4D\x07P\xdb=\"\xad\xe0\x89^\xa5V" +
+	"\xdc\\3\x12\xcf\xbb\xbcS\x1c\x95\xf7\x8b\x84\xf6\xbd\"" +
+	"\x8fU\xbd\"\xa5\xbd\xbc\"w\xe1\x7f\x8a\xcf\x9d\x05I" +
+	"\xc6(\x9c2 w\x89\xa3r\x9fH\x99\xa7$\xf0\xd7" +
+	"\x0b\xd7\xbd\xb8\xec\xe8\x07l\xd8w\xc3a\x8b\xa9$\xaa" +
+	"\x9c\x7f\x08\x03\xc7\xe6-\xf8\x84\xa51?\x95\x0e\xc2\xdf" +
+	"R\x89\x85\xeaME\xdf\x8e~Us\x95-\xc4\xfeT" +
+	":J\x87\xa9\x85\x80/\xd0\xf8l\xce\xaeob*\x95" +
+	":D+E\x01\x97\xb2p\xe8\xe7\x96\x137Yf\xee" +
+	"\xa6\xd2J\x99\xd3\x08\x00k\xaf\x1fZ\xd1\xb8\xf7\x16\x0b" +
+	"\xc8O\xa3A\x16S\xc0?\xfb\x9f<~fe\xddw" +
+	"\xac\x8b\x9a4\xca\xad\x93\x02f\xf7\xfc\xef!.o`" +
+	"\x94\x05\xecH\x1b&\x80\xfd\x14\xf0\xf1\xdd\xdb\x9b\x1e~" +
+	"\xfb\xd3{L\xd3\x9f$\x1e\x0aBM\xc1:\xc5\xe7\\" +
+	"Tj\x0e\x06\x9a<\x7fq(>\x8fo\xe9\x0a\xc5W" +
+	"\xa1x\x94F\xb5\x94~t9\xb5@\xb5\xa6\xfa\xb5\xdc" +
+	"JU\x0b\x0a\xae\x80f7\xf1&\x00\x13\x02H\xd3\xca" +
+	"\x01\xec\xe9<\xda\xe7q\x18\xf2\xf9\xbd\x0dN\x97\xaa\x01" +
+	"\x00f\x00\xdax\xc4\xach\xbd\x00\xc9\xc7\x88GS\xac" +
+	"G\xe2A\xf7\xe7m\xf4\x06\x03\xb9\xb6l\xc5\xaf\xb8c" +
+	"|5\xeb\xbefq\x18\xf2\xab\x0d~Uk\xfa?d" +
+	"z\x1fS=\x98\x0e\x1c\xa63\xd6\xf9\xf1\xf2A\x8f\x0d" +
+	"\xd1\x9e\xc5\x9b\x01\"\xc4\xa21n\xd2\x862\xe0$U" +
+	"\xc0(eh\x88\xa9TS\x09\x9cd\x17\x90\x8b4\x05" +
+	"\x1ab\"\xad\xaa\x05NZ& \x1f\xe9\x074\x8a\"" +
+	"\x15\xfa\x81\x93\xf2\x85\x0e\xa5\xbe\x9e$i\xc5\x90\xc1(" +
+	"\xa0f%\x99\xb8\xbd-j\xb5\x06<=\xf4\xab\x9a\x1a" +
+	"\xb0)\x1adk\xad^\x7f\xbd\x15m\x98\x04i:\x1d" +
+	"\xb9%\xb6\xdf\xc2\xdaD5qzrmJf\xbc\xf1" +
+	"r\xc6\xb8O\xd1h\xc8\xa4\xfc\xf1\x96\xcd\xe3Y&\xc9" +
+	"\x86\xdb&\x97\x86\x8e1\xe6k\x19\xf3\x1e\xb5\x95\"\x81" +
+	"w\xa9q}\x95\x95\x8c\xa7\xc61\x9e\x12\xde\xa9W\x1b" +
+	"\x94\xa0+P\xa93ExZ\xab\xb8\x9c\xf5\xce\xc0\xc6" +
+	"*\x15\x1d6D4\x01\xa7\x98\x82\xd3\xc7w\xca\x8e\x8f" +
+	"Q^\xd5O\xe6'3\xe8\x0aL\xe8\xb7\xd4\xe1P5" +
+	"-\xce\xad\x03@\xf7[h\xcab\x87\x88\x8b\xf5[\x1a" +
+	"\x14\x02M\xb4\xc1-\xb4\xc1\x0d\xedAC\x9e\xa5\xc2f" +
+	"\xda\x8c\x18\x15d4\xf4G\xfac\x1bp\xd2L!\xe4" +
+	"\xd0Y\x83Lb\xdd\x8a\xe4\x03\xcd\x08J\xc29\xc5\xf6" +
+	"$?\x0e\xe1$d\xfb,\x1a\x87\xb1\xbe\xd1\x10d\xe9" +
+	"8\x19\x98\xc3$\x0e\xe3q\x80\x86\x16K=\x8b\x81\x93" +
+	"v\x93A3\xde)hl&i\xdbR\xe0\xa4\x8d\x02" +
+	"\xf2\xc6\x9b\x83\xd9\x84n2\xbc\x8a\x80\xd1u\x85\xc6\x16" +
+	"\x94\xaa\xeb\x80\x93*\x044G\xde\x1ah\xecA\xa9\x94" +
+	"\xc4R,\x84\x8c\x06!\x0df\xc5l\xda\xf3V,\x09" +
+	"\xeb\x91\x15;\xf4\xe1\xb1b(<\xa1Z+\x08tB" +
+	"CZ\xccM\x96\x9c\x09\x1aC\xd7\x03\xaa\xaa\xae\x00>" +
+	"\xd8\xb12\xf4 l\\\x03\xbb%b<\x9f\x08\xc2<" +
+	"\x1e\xed\x7f\xe5PB\x9c\x81\xe4c\xe1V\x00{\x01\x8f" +
+	"\xf6\x7f\x85'\x8dX\x89W\x09\x8f\xdaJ\xa7\x02\xf5\xb1" +
+	"\x98\xe2\x94\xebiD\xb6\xc8\x94\xb4\x81\xe6\xc13\x97&" +
+	"[\x1f\x95%\xe1\xcc\xa7\x16\x1b\x11\x06>V\xe1\xea\xe2" +
+	"$(R\xf7\xc9\xb2/5\xfe\x8d\xb8\x8aT\x03X\x07" +
+	"s\x81T\x07\xed38\x14\x1c\x8a\x0f\xa5\xe8c\x11\x10" +
+	"\xa5$\x1c0]5F\xdaX\x85\xd0T\x7f\x8b\xb3\xc4" +
+	"\xa1\xfeWq\xabDO\xc2\x09\x80\x84\x8b\xb3\x15\x02K" +
+	"x\x89Do+\x09\x97!\xac,\x91F*\x03\xb0\xe7" +
+	"\xf2h/`\x1ai\xe1\xfchwu\xd0\x11Z\xbd\xd2" +
+	"`*\xd3\xa3\xb8\xd5\xe4\x9b\xa6ql\xf9Y\xde\xca\xa2" +
+	"\xbcu\xe8/\x8f\x09\xd6\xc2$\xab\xadR\xcd\xa6\xa5a" +
+	"\xd3\xabL4'\xcd\xcc\x9c\x10\xd2\xc8$\x00F\x87d" +
+	"\x92\x0d\x9b\xdc\xa2\xb0)~!n\xd1\xb2\xd9\xc6\xd1\x9a" +
+	"\x9cq\xb6\xcd\x13\xbc\x12~\x85\xfd\x04\x0d\x1e\xb6\x0b\xe3" +
+	"I\x99\xc3\xe5T=\x81\xd5+\x93\x90\xb2\x84\xcd\x9d\xa8" +
+	"\x0d\xc6\x8eO\xe4\xc7\xeb\xc4\xe3\x93H\x8b\xf5\xf8a\xaa" +
+	"\xcc\xa4$\xcb|D\x8f\x1f\x84\xc2$~\xa5\xeb\x1a\xf6" +
+	"K\x00\x00\x00\xff\xff\xa1g\xbe\xcb"
 
 func init() {
 	schemas.Register(schema_c2f3c14cadbaf856,
