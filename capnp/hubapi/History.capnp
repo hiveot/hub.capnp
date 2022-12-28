@@ -8,32 +8,38 @@ using Thing = import "./Thing.capnp";
 using Bucket = import "./Bucket.capnp";
 
 
+
+const capNameAddHistory :Text = "capAddHistory";
+const capNameAddAnyThing :Text = "capAddAnyThing";
+const capNameReadHistory :Text = "capReadHistory";
+
+
 interface CapHistoryService {
 # Available History store capabilities
 
-  capAddHistory @0 (thingAddr :Text) -> (cap :CapAddHistory);
+  capAddHistory @0 (clientID :Text, thingAddr :Text) -> (cap :CapAddHistory);
   # Capabilities to add to the Thing's history.
   # This capability should only be provided to the device or service that have write access to the Thing.
-  # thingAddress is the full address of the thing, usually publisherID/thingID
+  #  clientID is the client requesting the capability
+  #  thingAddress is the full address of the thing, usually publisherID/thingID
 
-  capAddAnyThing @1 () -> (cap :CapAddHistory);
+  capAddAnyThing @1 (clientID :Text) -> (cap :CapAddHistory);
   # CapAddAnyThing provides the capability to add to the history of any Thing.
   # It is similar to CapAddHistory but not constraint to a specific Thing.
   # This capability should only be provided to trusted services that capture events from multiple sources
   # and can verify their authenticity.
+  #  clientID is the client requesting the capability
 
-  capReadHistory @2 (thingAddr :Text) -> (cap :CapReadHistory);
+  capReadHistory @2 (clientID :Text, thingAddr :Text) -> (cap :CapReadHistory);
   # CapReadHistory provides the capability to iterate history.
   # This returns an iterator for the history.
   # Values added after creating the cursor might not be included, depending on the
   # underlying store.
   # This capability can be provided to anyone who has read access to the thing.
   #
+  #  clientID is the client requesting the capability
   #  the cursor key is the timestamp in ISO8601 in msec, eg YYYY-MM-DDTHH:MM:SS.sss-TZ
   #  the cursor value is the event or action
-
-  #info @3 () -> (info :HistoryInfo);
-  # Provide info on the history store
 }
 
 

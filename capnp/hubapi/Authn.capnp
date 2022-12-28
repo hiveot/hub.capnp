@@ -24,15 +24,22 @@ struct UserProfile {
 	# The user's display name for presentation
 }
 
+const capNameUserAuthn :Text = "capUserAuthn";
+# The capability name for user authentication
+
+const capNameManageAuthn :Text = "capManageAuthn";
+# The capability name for managing authentication
 
 interface CapAuthn {
 # CapAuthn defines the interface for simple user management and authentication
 
 	capUserAuthn @0 (clientID :Text) -> (cap :CapUserAuthn);
 	# CapUserAuthn provides the authentication capabilities for unauthenticated users.
+	#  ClientID is the ID of the user of the capability
 
-	capManageAuthn @1 () -> (cap :CapManageAuthn);
+	capManageAuthn @1 (clientID :Text) -> (cap :CapManageAuthn);
 	# CapManageAuthn provides the capability manage users for use by administrators.
+	#  ClientID is the ID of the user of the capability
 }
 
 

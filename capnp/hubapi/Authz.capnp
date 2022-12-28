@@ -92,16 +92,20 @@ struct Group {
 }
 
 
+const capNameClientAuthz :Text = "capClientAuthz";
+const capNameManageAuthz :Text = "capManageAuthz";
+const capNameVerifyAuthz :Text = "capVerifyAuthz";
+
 interface CapAuthz {
 # CapAuthz defines the interface of the authorization service
 
 	capClientAuthz @0 (clientID :Text) -> (cap :CapClientAuthz);
 	# Get the capability to verify a client's authorization
 
-    capManageAuthz @1 () -> (cap :CapManageAuthz);
+    capManageAuthz @1 (clientID :Text) -> (cap :CapManageAuthz);
     # Get the capability to manage authorization groups
 
-	capVerifyAuthz @2 () -> (cap :CapVerifyAuthz);
+	capVerifyAuthz @2 (clientID :Text) -> (cap :CapVerifyAuthz);
 	# Get the capability to verify authorization
 }
 

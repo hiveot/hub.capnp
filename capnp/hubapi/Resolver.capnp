@@ -30,78 +30,54 @@ const clientTypeService :Text = "service";
 struct CapabilityInfo  {
 # CapabilityInfo provides information on a capabilities available through the gateway
 
-	capabilityName @0 :Text;
-	# Name of the capability. This is the capnp interface name as defined by the service.
+	interfaceID @0 :UInt64;
+	# Internal capnp ID of the interface that provides the capability.
+	# This is typically the bootstrap interface of the service providing the method to get the capability.
 
-	capabilityArgs @1 :List(Text);
-	# list of argument names that are required.
+	methodID @1 :UInt16;
+	# Internal capnp method ID of the method that provides the capability.
+    # This is the method index in the bootstrap interface above.
 
-	clientTypes @2 :List(Text);
+	interfaceName @2 :Text;
+	# InterfaceName is the canonical name of the bootstrap interface providing the capability
+
+	methodName @3 :Text;
+    # MethodName is the name of the method in the bootstrap interface that provides the capability.
+    # Method names must be unique and typically have the name of the capability interface.
+
+	clientTypes @4 :List(Text);
 	# Type of clients that can use the capability. See ClientTypeXyz above
 
-	protocol @6 :Text;
+	protocol @5 :Text;
 	# The protocol to use; default is capnp. Services can also publish other protocols such
 	# as rtsp and https. If a protocol is used that is not capnp, then dNetwork and dAddress are required.
 
-	serviceID @3 :Text;
+	serviceID @6 :Text;
 	# ServiceID is the instance ID of the service that is providing the capability.
 
-	dNetwork @4 :Text;
+	network @7 :Text;
 	# optional direct access network; unix or tcp
 
-	dAddress @5 :Text;
-	# optional direct access address; socket path or network address
+	address @8 :Text;
+	# Address is the connection address of the service implementing the interface and method
+	# to obtain the capability.
+	#  * leave empty to use the connection that provided this info (default)
+	#  * unix domain sockets provide the socket path to dial into.
+	#  * tcp networks provide the IP address:port, and optionally a path, depending on the protocol
 }
 
-interface CapResolverSession  {
-# CapResolverSession is a client of the resolver service using to access and register capabilities.
+interface CapResolverService  {
+# CapResolverService provides an aggregated list of available capabilities from services
 
-	getCapability @0 (clientID :Text, clientType :Text, capName :Text, args :List(Text)) -> (capability :Capability);
-	# GetCapability returns a capability that was registered with the resolver.
-	#
-    # Peers MUST provide the clientID and type of the client requesting the capability. Clients that
-    # request capabilities on behalf of others must be authenticated and the clientType must be provided.
-    #
-    # The capability that is returned must be released after use by the remote peer.
-	#
-	#  clientID is the ID of the authenticated client requesting the capability.
-	#  clientType is the verified type of client.
-	#  capName is the capability name as published in RegisterCapabilities.
-	#  args is optional list of arguments when needed for the requested capability.
-	#
-	# This returns the capability or an error if the capability is not available.
-	# The error types are ResolveDenied when the client is not allowed access to the capability, and ResolveUnavailable
-	# if the capability is not available.
-
-	listCapabilities @1 () -> (infoList :List(CapabilityInfo));
+	listCapabilities @0 (clientType :Text) -> (infoList :List(CapabilityInfo));
 	# ListCapabilities returns the list of capabilities available on the resolver
-
-    registerCapabilities @2 (serviceID :Text, capInfo :List(CapabilityInfo), provider :CapProvider) -> ();
-	# RegisterCapabilities is invoked by services that register capabilities.
-	# provider is the callback interface of the service for obtaining the capabilities.
 }
+
 
 interface CapProvider {
 # CapProvider provides capabilities from service providers.
-# This is the callback provided with RegisterCapabilities and implemented by all services.
+# This interface is implemented by all service providers
 
-	getCapability @0 (clientID :Text, clientType :Text, capabilityName :Text, args :List(Text)) -> (capability :Capability);
-	# GetCapability returns the requested capability.
-	#
-    # Peers MUST provide the clientID and type of the client requesting the capability. Clients that
-    # request capabilities on behalf of others must be authenticated and the clientType must be provided.
-    #
-    # The capability that is returned must be released after use by the remote peer.
-	#
-	#  name is the capability name as published in RegisterCapabilities.
-	#  clientID is the ID of the authenticated client requesting the capability.
-	#  clientType is the verified type of client.
-	#  args is optional list of arguments when needed for the requested capability.
-	#
-	# This returns the capability or an error if the capability is not available on the provider.
-	# The error types are ResolveDenied when the client is not allowed access to the capability, and ResolveUnavailable
-	# if the capability is not available.
-
-	listCapabilities @1 () -> (infoList :List(CapabilityInfo));
+	listCapabilities @0 () -> (infoList :List(CapabilityInfo));
 	# ListCapabilities returns the list of provided capabilities
 }

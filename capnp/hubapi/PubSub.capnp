@@ -8,6 +8,11 @@ $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
 using Bucket = import "./Bucket.capnp";
 using Thing = import "./Thing.capnp";
 
+
+const capNameDevicePubSub :Text = "capDevicePubSub";
+const capNameServicePubSub :Text = "capServicePubSub";
+const capNameUserPubSub :Text = "capUserPubSub";
+
 interface CapPubSubService {
 # CapPubSubService capabilities for publishing and subscribing to Thing messages
 

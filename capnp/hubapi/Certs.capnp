@@ -24,20 +24,26 @@ const defaultDeviceCertValidityDays :Int32 = 30;
 # Default validity of generated device certificates
 
 
+const capNameDeviceCerts :Text = "capDeviceCerts";
+const capNameServiceCerts :Text = "capServiceCerts";
+const capNameUserCerts :Text = "capUserCerts";
+const capNameVerifyCerts :Text = "capVerifyCerts";
+
+
 interface CapCerts {
 # Certificate service for providing capabilities
 # For management of the CA, use the CLI.
 
-  capDeviceCerts @0 () -> (cap :CapDeviceCerts);
+  capDeviceCerts @0 (clientID :Text) -> (cap :CapDeviceCerts);
   # Get the capability to create device certificates
 
-  capServiceCerts @1 () -> (cap :CapServiceCerts);
+  capServiceCerts @1 (clientID :Text) -> (cap :CapServiceCerts);
   # Get the capability to create service certificates
 
-  capUserCerts @2 () -> (cap :CapUserCerts);
+  capUserCerts @2 (clientID :Text) -> (cap :CapUserCerts);
   # Get the capability to create user certificates
 
-  capVerifyCerts @3 () -> (cap :CapVerifyCerts);
+  capVerifyCerts @3 (clientID :Text) -> (cap :CapVerifyCerts);
   # Get the capability to verify certificates
 }
 

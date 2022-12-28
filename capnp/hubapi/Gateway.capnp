@@ -24,13 +24,21 @@ struct ClientInfo {
 }
 
 
-interface CapGatewaySession extends (Resolver.CapResolverSession) {
+
+interface CapGatewaySession {
     # The gateway session provides Hub capabilities to connected clients
     # Each client receives its own session which is used to track authentication state.
     #
     # Clients can authenticate with a signed client certificate or using the login method.
 
-    login @0 (clientID:Text, password:Text) -> (authToken :Text, refreshToken :Text);
+    listCapabilities @0 () -> (infoList :List(Resolver.CapabilityInfo));
+	# ListCapabilities returns the list of capabilities available on the resolver
+
+    registerCapabilities @1 (serviceID :Text, capInfo :List(Resolver.CapabilityInfo), provider :Resolver.CapProvider) -> ();
+	# RegisterCapabilities is invoked by services that register capabilities.
+	# provider is the callback interface of the service for obtaining the capabilities.
+
+    login @2 (clientID:Text, password:Text) -> (authToken :Text, refreshToken :Text);
     # Login to the gateway as a user in order to get additional capabilities.
     # This returns an authToken and refreshToken that can be used with services that require
     # authentication.
@@ -38,9 +46,9 @@ interface CapGatewaySession extends (Resolver.CapResolverSession) {
 
     # User login to the gateway to use its capabilities. This is intended for end-users only
 
-    ping @1 () -> (reply :ClientInfo);
+    ping @3 () -> (reply :ClientInfo);
     # ping the gateway, no authentication is required
 
-    refresh @2 (refreshToken :Text) -> (authToken :Text, refreshToken :Text);
+    refresh @4 (refreshToken :Text) -> (authToken :Text, refreshToken :Text);
     # Refresh the token pair obtained at login
 }

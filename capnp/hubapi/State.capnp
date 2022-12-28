@@ -7,6 +7,7 @@ $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
 
 using Bucket = import "./Bucket.capnp";
 
+const capNameClientState :Text = "capClientState";
 
 interface CapState {
   # State storage

@@ -12,6 +12,13 @@ import (
 	fmt "fmt"
 )
 
+// Constants defined in History.capnp.
+const (
+	CapNameAddHistory  = "capAddHistory"
+	CapNameAddAnyThing = "capAddAnyThing"
+	CapNameReadHistory = "capReadHistory"
+)
+
 type CapHistoryService capnp.Client
 
 // CapHistoryService_TypeID is the unique identifier for the type CapHistoryService.
@@ -27,7 +34,7 @@ func (c CapHistoryService) CapAddHistory(ctx context.Context, params func(CapHis
 		},
 	}
 	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 2}
 		s.PlaceArgs = func(s capnp.Struct) error { return params(CapHistoryService_capAddHistory_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
@@ -43,7 +50,7 @@ func (c CapHistoryService) CapAddAnyThing(ctx context.Context, params func(CapHi
 		},
 	}
 	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
 		s.PlaceArgs = func(s capnp.Struct) error { return params(CapHistoryService_capAddAnyThing_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
@@ -59,7 +66,7 @@ func (c CapHistoryService) CapReadHistory(ctx context.Context, params func(CapHi
 		},
 	}
 	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 2}
 		s.PlaceArgs = func(s capnp.Struct) error { return params(CapHistoryService_capReadHistory_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
@@ -264,12 +271,12 @@ type CapHistoryService_capAddHistory_Params capnp.Struct
 const CapHistoryService_capAddHistory_Params_TypeID = 0xe77e737e0f852702
 
 func NewCapHistoryService_capAddHistory_Params(s *capnp.Segment) (CapHistoryService_capAddHistory_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
 	return CapHistoryService_capAddHistory_Params(st), err
 }
 
 func NewRootCapHistoryService_capAddHistory_Params(s *capnp.Segment) (CapHistoryService_capAddHistory_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
 	return CapHistoryService_capAddHistory_Params(st), err
 }
 
@@ -305,22 +312,40 @@ func (s CapHistoryService_capAddHistory_Params) Message() *capnp.Message {
 func (s CapHistoryService_capAddHistory_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapHistoryService_capAddHistory_Params) ThingAddr() (string, error) {
+func (s CapHistoryService_capAddHistory_Params) ClientID() (string, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.Text(), err
 }
 
-func (s CapHistoryService_capAddHistory_Params) HasThingAddr() bool {
+func (s CapHistoryService_capAddHistory_Params) HasClientID() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapHistoryService_capAddHistory_Params) ThingAddrBytes() ([]byte, error) {
+func (s CapHistoryService_capAddHistory_Params) ClientIDBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.TextBytes(), err
 }
 
-func (s CapHistoryService_capAddHistory_Params) SetThingAddr(v string) error {
+func (s CapHistoryService_capAddHistory_Params) SetClientID(v string) error {
 	return capnp.Struct(s).SetText(0, v)
+}
+
+func (s CapHistoryService_capAddHistory_Params) ThingAddr() (string, error) {
+	p, err := capnp.Struct(s).Ptr(1)
+	return p.Text(), err
+}
+
+func (s CapHistoryService_capAddHistory_Params) HasThingAddr() bool {
+	return capnp.Struct(s).HasPtr(1)
+}
+
+func (s CapHistoryService_capAddHistory_Params) ThingAddrBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(1)
+	return p.TextBytes(), err
+}
+
+func (s CapHistoryService_capAddHistory_Params) SetThingAddr(v string) error {
+	return capnp.Struct(s).SetText(1, v)
 }
 
 // CapHistoryService_capAddHistory_Params_List is a list of CapHistoryService_capAddHistory_Params.
@@ -328,7 +353,7 @@ type CapHistoryService_capAddHistory_Params_List = capnp.StructList[CapHistorySe
 
 // NewCapHistoryService_capAddHistory_Params creates a new list of CapHistoryService_capAddHistory_Params.
 func NewCapHistoryService_capAddHistory_Params_List(s *capnp.Segment, sz int32) (CapHistoryService_capAddHistory_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
 	return capnp.StructList[CapHistoryService_capAddHistory_Params](l), err
 }
 
@@ -431,12 +456,12 @@ type CapHistoryService_capAddAnyThing_Params capnp.Struct
 const CapHistoryService_capAddAnyThing_Params_TypeID = 0xf71ceab5f8e294bd
 
 func NewCapHistoryService_capAddAnyThing_Params(s *capnp.Segment) (CapHistoryService_capAddAnyThing_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
 	return CapHistoryService_capAddAnyThing_Params(st), err
 }
 
 func NewRootCapHistoryService_capAddAnyThing_Params(s *capnp.Segment) (CapHistoryService_capAddAnyThing_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
 	return CapHistoryService_capAddAnyThing_Params(st), err
 }
 
@@ -472,13 +497,30 @@ func (s CapHistoryService_capAddAnyThing_Params) Message() *capnp.Message {
 func (s CapHistoryService_capAddAnyThing_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
+func (s CapHistoryService_capAddAnyThing_Params) ClientID() (string, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.Text(), err
+}
+
+func (s CapHistoryService_capAddAnyThing_Params) HasClientID() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapHistoryService_capAddAnyThing_Params) ClientIDBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.TextBytes(), err
+}
+
+func (s CapHistoryService_capAddAnyThing_Params) SetClientID(v string) error {
+	return capnp.Struct(s).SetText(0, v)
+}
 
 // CapHistoryService_capAddAnyThing_Params_List is a list of CapHistoryService_capAddAnyThing_Params.
 type CapHistoryService_capAddAnyThing_Params_List = capnp.StructList[CapHistoryService_capAddAnyThing_Params]
 
 // NewCapHistoryService_capAddAnyThing_Params creates a new list of CapHistoryService_capAddAnyThing_Params.
 func NewCapHistoryService_capAddAnyThing_Params_List(s *capnp.Segment, sz int32) (CapHistoryService_capAddAnyThing_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
 	return capnp.StructList[CapHistoryService_capAddAnyThing_Params](l), err
 }
 
@@ -581,12 +623,12 @@ type CapHistoryService_capReadHistory_Params capnp.Struct
 const CapHistoryService_capReadHistory_Params_TypeID = 0xf51b4d58d6c7f245
 
 func NewCapHistoryService_capReadHistory_Params(s *capnp.Segment) (CapHistoryService_capReadHistory_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
 	return CapHistoryService_capReadHistory_Params(st), err
 }
 
 func NewRootCapHistoryService_capReadHistory_Params(s *capnp.Segment) (CapHistoryService_capReadHistory_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
 	return CapHistoryService_capReadHistory_Params(st), err
 }
 
@@ -622,22 +664,40 @@ func (s CapHistoryService_capReadHistory_Params) Message() *capnp.Message {
 func (s CapHistoryService_capReadHistory_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapHistoryService_capReadHistory_Params) ThingAddr() (string, error) {
+func (s CapHistoryService_capReadHistory_Params) ClientID() (string, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.Text(), err
 }
 
-func (s CapHistoryService_capReadHistory_Params) HasThingAddr() bool {
+func (s CapHistoryService_capReadHistory_Params) HasClientID() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapHistoryService_capReadHistory_Params) ThingAddrBytes() ([]byte, error) {
+func (s CapHistoryService_capReadHistory_Params) ClientIDBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.TextBytes(), err
 }
 
-func (s CapHistoryService_capReadHistory_Params) SetThingAddr(v string) error {
+func (s CapHistoryService_capReadHistory_Params) SetClientID(v string) error {
 	return capnp.Struct(s).SetText(0, v)
+}
+
+func (s CapHistoryService_capReadHistory_Params) ThingAddr() (string, error) {
+	p, err := capnp.Struct(s).Ptr(1)
+	return p.Text(), err
+}
+
+func (s CapHistoryService_capReadHistory_Params) HasThingAddr() bool {
+	return capnp.Struct(s).HasPtr(1)
+}
+
+func (s CapHistoryService_capReadHistory_Params) ThingAddrBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(1)
+	return p.TextBytes(), err
+}
+
+func (s CapHistoryService_capReadHistory_Params) SetThingAddr(v string) error {
+	return capnp.Struct(s).SetText(1, v)
 }
 
 // CapHistoryService_capReadHistory_Params_List is a list of CapHistoryService_capReadHistory_Params.
@@ -645,7 +705,7 @@ type CapHistoryService_capReadHistory_Params_List = capnp.StructList[CapHistoryS
 
 // NewCapHistoryService_capReadHistory_Params creates a new list of CapHistoryService_capReadHistory_Params.
 func NewCapHistoryService_capReadHistory_Params_List(s *capnp.Segment, sz int32) (CapHistoryService_capReadHistory_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
 	return capnp.StructList[CapHistoryService_capReadHistory_Params](l), err
 }
 
@@ -3803,116 +3863,127 @@ func (p CapHistoryCursor_seek_Results_Future) Tv() ThingValue_Future {
 	return ThingValue_Future{Future: p.Future.Field(0, nil)}
 }
 
-const schema_f1bd301f7c12caab = "x\xda\xccW}l\x1bg\x19\x7f\x9e;'\xe78v" +
-	"\x9c\xc3\x0d\x90l\xd1\xb5#\xb4M\xa5\x96&mZ\x1a" +
-	"\x96\xd9\xa1D\x84\xb2d9\xaf\x7fl\xd5\xa6q\x8do" +
-	"\xcdu\x89\xed\xf8.\x09A\xa4\"\xd32\xb5eC\xea" +
-	"\xc0\x03\x0d\xa2\xd1P1eY\xb7f4*\x9b\x14A" +
-	"\x0aiH\x84\xd4\xd2\xa2\xa2\xa2\x16P\xa1\x05\"\xb5\x85" +
-	"\x8a~\xd0\x8f\x1cz\xdf\xf3k\x9f\xf3A\xec\xc2\xd4\xfe" +
-	"e\xfb}\x9e\xe7}>\x7f\xbf\xf7\xf1\xdaWr\x02\x8e" +
-	"\x0a\xcf\x0a/p\xf2\xa1\x9c\\s\xe9\x96M3\xbb\xc2" +
-	"\xd7v\x83\xbc\x1c\x11 \x07\x05\x80u\xdd\xc2\x1b\x08\xe8" +
-	"\xdb#t\x01\x9a\xff\x98|\xcc\xef\xe0\xd6\xef\x05qE" +
-	"R\xe1\x82p\x95(\xfc[\xf0\x03\x9a\x7f\xfa\\\xee\xc4" +
-	"\xc6\x9fo\xf96\x88E\xbc94\xf5\xb1\xafKkG" +
-	"\xff\x09\x80\xeb\x8a\x9d\xd5\xe8+w\x0a\x00\xbeO;'" +
-	"|\x83\xe4\x9b\xb9\xf1I\xe9w\xea\xcbEq\x10?\x85" +
-	"\x00\x0er\xdb>\xe7\xdb\x08\x0e\xf3\xe43}\x91\xbdc" +
-	"\xd5?\xb0Iz\x9d\x03D\xd2\xcb\x9d\xbb\xa0\xbd\xb5\xbd" +
-	"\x7f\x8e\x87vg%\xfaz\xc9\xbd\xebz\x9c\x13\xe8\x8b" +
-	"\xe7\x11\x17E\x9b\xa4k\xdb\x1e}\xa1\x1f\xc4\xb2d\xc4" +
-	"=y\xe7I\xc4\xfb\xf2H\xc4\x1b\x8f\x9f-\xbb\xf4\x92" +
-	"\xef\xcd\xb4\xa4\x87\xf3h\xd2cy]\x80W\xba\x82\x91" +
-	"7\xdf\xbf\xf3cKNC)uQ\xf1j\x17\xb9`" +
-	"\xf0\xad\xeaR}\xe9\xf4\xa0\xddC\x83\xeb$QP\xa8" +
-	"\xc2N\xb1D\xda\x1a\xc9}\xdb\x96K\xdcE\xb2\xbcq" +
-	"\xaa\xf1\xc0W\xde\xab\x19\xb2\x19\xf6\xb9\xf6\x12\xc385" +
-	"\\\xfaD\xc7\x81\x87v\x9f98'\xd5\x11\xd7#\xe8" +
-	"\x1bw\x91b\x8e\xb9&|\xb5\xf9\x02\xc0\xdd\xcb\xafV" +
-	"<s\xfb\xd2\xbb\xb3u\xcb\xf3K\xd0\xb7\x89h\xf8\xaa" +
-	"\xf2'|\x1f\x90o\xa6\xa7\xf8\xe8\xad\x01I\x1fNK" +
-	"z\x7f\xfe\x00\xf1=\x9cO:\x9d74T\xf2\xa1{" +
-	"\xe0'V\xd0\x96B\xa9\x9b*\xacv\xfb\x01\x7f\xe6x" +
-	"\xeeW\xdf;\xf1\xfea[\xec\xcf\xba\x7fO\xc4\xedD" +
-	"l\xde\xfc\xe2\x97\xbf;\xf1\xb7\xe9Q\x10\x97'[\xeb" +
-	"~\x8d4\xf0\xf0\x91\xfc\xa9oV\\\xf9\x85%\xb1L" +
-	"{\x89\x08}\xfb\xa8i\xd5;gOV\x97~\xebX" +
-	"Zp#nZ\xf2q7\x09N\xef\x97\xffx\xddy" +
-	"\xf7\x98\xed\xf2e\x1ez\xf9\x13SKZ\x1f\xbf\xfe\xf2" +
-	"\xa4M\"Z\x92\x0d\xeb7\xd4W\x1c\xd1~mo\x13" +
-	"z\xa6\xc8\xa5E\x1e\xe2\xf6\x87#3\xcbw\xcf\x94\x1c" +
-	"\xb7\x99\xd6y\xde \xa6\xf1\xf7\x1e\x8b\xb7\xbc\xbe\xe7\x94" +
-	"\xbd\x16U\x1e\x1aO\x1d5]\xb9\xcd\xdf\x17?\xba\xf3" +
-	"/`\x9b\x11\xd5R\xe8\xa0\x0a\x9f\xa8*\xfe\xc3\xf4x" +
-	"\xe1E;n\xe2\x1e\x8a\x9bA\xaa\xc0\xad\xe8\xf3\xee\xd2" +
-	"w\xfd\xd5\xae0\xe9\xa1cz\x8e*\xfc\xfd\xd1\x0f'" +
-	"\x95C]\x97\xd3\x8a\x82\x05\xb4!b\x01)\xca\xfe<" +
-	"Ehh<q\xd5\x1ee\x8f\xa5\xf0j\x01\xb9Bp" +
-	"=u{\xec\x97\xfa\xbf\xd2\xae8hi\x8c\xd2+\xea" +
-	"\xaeN\x9c~\xaa\xe1\xa1k\xf6(\x8a\xbd\xd3\xb4\xe9^" +
-	"r\xc5\xe8w\xce\xdf\x1c\x99~\xf8\x86\xa5@\xf3\x94\x89" +
-	"\xdca.\xab;\x8e\xed?\xdav\xcb*\xafU=\xef" +
-	"\x8bD2<3\xb2\xe3\xe3\xef<{'\xcdm\x85\x97" +
-	"V\xa7\xd6K\xdc\x1e\xfe\xf3\xd0\xa1\xa1#\xbf5\xedn" +
-	"\xfb-\xb7\xc3^?<m\xb6tlW\xa2\xdag\xea" +
-	"s4\xdd\x88\xc4\xba\xd74+\xd1p\xb4z\xb3\x12\xad" +
-	"\xb7\x0e6w\xc4\xf4Hl\x8d\xae\xaa/\x94\x05U\xbd" +
-	"\xa3\x957t\xd9\xc9;\x00\x1c\x08 \x96\x97\x00\xc8e" +
-	"<\xcak9D\\B\xa2\x10WW\x02\xc8+y\x94" +
-	"\xd7s\xc8\x1b\x9dXh\xbe\xf6\x8d\xd7\x7f\xda\x7f\xf1\xf4" +
-	"\xf7\x01\x10\x0b\x01\xa5N\xa5U\x0b!\x02\x87\x08\x98\x0c" +
-	"!w\x81\x10\x9eTc\x9dZ\xb3J\xce\x83\xaa\x12J" +
-	"\x9c\x96\x05UI\xefh5t\xd9\x91\x8c\xc6\xf3\x08\x80" +
-	"\xec\xe4Q^\xc2\xa1\xd0\xacDQL\x01\x1d\x10E\x9b" +
-	"3~!g~\xcb[\x13\xa2\xec\xe6s\x00\x92\xf3\x83" +
-	"\xac\x96\xa2\x1c\x03N\xfc\x92\x80\xa9\xa6!\x9bB\xb1\xe6" +
-	"k\xc0\x89U\x02r\xc9\x8e#cv\xb1\x9c\xc8\x96\x09" +
-	"f\xb3\x12\xad\x0d\x85\xea5\x90\xa8\xcb\x00&Nj\xc3" +
-	"\xe0\xef\xde\xda\xa2\x85wXG4[\xf0k\x09\xad&" +
-	"\xc4\x85\xdbE/\xb4\xce\x94P\xa8\xaeS\x0d\x1b:i" +
-	"\x98\x97\x94(+3\xdaf\xc1n\xb5P\xad6Kt" +
-	"8H\xa9\x1e\xa6\xa5b8G\x86\x07\xf17\x95\xc0\x89" +
-	"\xe3\xa4T\x8c>\x90\xbd\x0a\xe2\x07\xab\x80\x13\x0f\x92R" +
-	"1FC6\xd0\xe2~\"\x8b\x0b\xc8'\x09\x00\x19L" +
-	"\xc5=\xe4\xce\x1e\x01\x1dI\xb2B\xc6kb;\xb1S" +
-	"\x05\xccaOK\x8a\x8f\xc5\xa7\x89]\x83\x80\xb9I\x9e" +
-	"D\xf6,\x8b\xb5\xabh\xdb\xa4\xe7\xb5\x98n\x04\xd0\xdb" +
-	"\xaa\xd0\x8f\xb0\xfaU#\x80\x12\xf9h\x0c\xa07\x1aS" +
-	";\x03(\x91\x0f\xf2\x93\x80\"\xbd-sF\xd86\xb0" +
-	"kv\xa8\x06-pj\x80\xad:\xdb\x07\xb8:5\xc0" +
-	"\xfefZ]\x14S\xef\xf2\xac\x19^\x04\xb3$\x87\x8f" +
-	"\x1a\xb3\x8b\x84@+U\xd6\xa4\xc4\x14\xbe--\xcf\xca" +
-	"T\x9e\x92n\xa8Q\x1d\x9d\xc0\xa1\x132/eS," +
-	"\x12Uc\x86\xa6\xeaV\x8e\x06\xa69\x08\x02\xc8n\x1e" +
-	"\xe5\x95\x1c\x9a\x9dJk\x87\xfa\xb8\xa6\x03\x1aX\x00\xd8" +
-	"\xc4\xe3\xac\xfc\x0a cd\xd56\x1bZ$\x9c\x01\xb2" +
-	"\xec\xe1j\xe1\xe7#\x89(u\x00{\x98\xabRu\xf0" +
-	"\x12-,4k\xce|\xfe\xdd\x0d\xcf\xbd\xf4J\xa2\xf0" +
-	"\x0b\xa3\x90y\x10\"\xb1\xee$]\xb1\xe5\xc1\xb6\x9d\xc9" +
-	"/2\xbab\x0f5\xb2\xc5J\xac\x891\xbab\xaf\x0c" +
-	"\x9ej<\x00tu*'\x98(\x15L6\xb7\x98H" +
-	"\x07\x02h\xb2\x06\x80D[\x10\xb0\xa2O\x07\x03\xbfP" +
-	"%y[\xbc\xc9\xb7\x15\xd9.'\xcaA\x16/\xdb\x0e" +
-	"\x90\xed\xacb\xcd\x16\x16/\xdb\xa2\x90m\xbaby\xd0" +
-	"\xa2W\xd6%\xc0p\x00MFk\x00`\xff\x85\xfa\"" +
-	"\x84:\xdf '\x11k\x03Se\x02L\x81\x14\x98j" +
-	"\xc8\xd9gy\x94\xbf\xc0\xa1\xb4]1\x9a[\x16\x1c\xbb" +
-	"La5/\xbd7)1AI\xc7UIb\x9e\xca" +
-	",\x18/:\xedY\x11\xd6<8\xb6\xcfoXiS" +
-	"\xd1\x0d\x1c\xba3'\x08\xc2\xac\xf4\xde6\xd4\xb3\xdaE" +
-	"\x126\xf6Xv& \xffI\x0eMM\x8fl\xd5\xda" +
-	"T\x1d\xbc\x86\xd2\x16\xcd6*\xd2\xed\x07\x809\xb3-" +
-	"\x0c%\xfc\xd96Y\xf0(5\x9dEP\x95\xa9\x81\x92" +
-	"H\x83u6S\xa4\xa4\x05\x99\xe7C\x1fV6A\xd9" +
-	"\xed#\xf3\x8c]Ij\xec\xe6\xady6\xe3\xf7\xffz" +
-	"\x9f\xe6n\xabt\xa5\xb3\x16\xba\xcc\xb6U\xf6Gs\xd6" +
-	";\x9f\x99+\x1bJg\xb3B\xd0\x86\x0c\x83\x84S\x1b" +
-	"\x0a\x01\xc6\xee\x05\xac\x0f\x0e\x09&^\xe2\xffB\x82\xff" +
-	"\xebtX3;_\xbe\xf7\xef_O\x93\xe2\x8d\xddc" +
-	"w\xb3\x9c\xd8\x84\xa7\xa4y\xfe\xa2\x1bN\x82?\x98A" +
-	"\x06\xcc\x7f\xff\xffQ\xda\x80\xc3v\xba, \xfa\x9f\x00" +
-	"\x00\x00\xff\xff\x09\xde\xd6\x9d"
+const schema_f1bd301f7c12caab = "x\xda\xccW}pT\xd5\x15?\xe7\xbd\xdd\xbc\xdd\xec" +
+	"\xe7\xed\x12[\"\xcc\x82\x0dH\x98\x11\x93@\xa0\xa4\xc4" +
+	"\xdd\x80\x99\x86\xd4\xc4\xbc\x04g\x84\xb1c\x1f\x9b'<" +
+	"Lv\x97}/A\x9c\xca\x14G\x1c\xa4\x1f\x7f\xd8\xc6" +
+	"\xda\xda\x8c\x85\xd2:\x18Qc\xa1\x14\xa7\x996VL" +
+	"a\xda\xc1Bk\x87\x0e\xfd\xb2\xc5\x96\xb4(2\x8d:" +
+	"\x02y\x9d{\xdf\xde\xdd\xb7\xd9,\xd9\x9d\xd6\x91\xbf6" +
+	"\xb9\xf7\xdc\xf3\xf1;\xe7w\xcey5\x9e\xb2\xa8\xa3\xd6" +
+	"wk\x10\x04\xf9\xa7\xce2s^\xeb\xca\xc9\x1d\xf1\x89" +
+	"\xdd /D\x04p\xa2\x04\xb0\xf4\xaa\xf4\x1d\x04\x0c\xf9" +
+	"\\\xdb\x00\xcd\x8b\xc7o\x8b8\x84e{\x80\xdc\x9c\x11" +
+	"\xd0\\\x97\xa8\xc0C\xae\x08\xa0\xf9\x97\xcf\x96\x8d\xad\xf8" +
+	"y\xeb7\x80T\x88\xe6\xd0\x89O|)\\3\xf2." +
+	"\x00.\x1dt5`\xe8\xa0K\x02\x08\x1dp\x8d\x85n" +
+	"qK\x00\xe6\x8a\xae\xf0\xef\xd5G+\x06\x80|\x1a\x01" +
+	"\x1cT[\x85\xfbY\x04\x87\xe9\xbb\xe0\xbc\xf0\xea\xf2\xb3" +
+	"O\x01\xa9p\xe4\xe8q\xbaWc\xa8\x82\xbe\xee\x0a\xba" +
+	"E\xec\x9a\xe3\x16\x10\xc0<u\xcf\xae\xc4\x9e\xd1\x86\xef" +
+	"\xe6h\xdaG5\xed\x14\xfexN{f\xe3`\x9eG" +
+	"Nw]Z\xd3R\xe2\x1e\xc3Pu9u\xa9be" +
+	"xb\xc3\xaa\xfb\x07\x81Te\"$\xe5o\xd2\x08\x17" +
+	"\x94\xd3\x08W\x9c<[u\xe1\x91\xd0\xd39 5\x97" +
+	"3\x90\xee*\xdf\x06\xf8\xce\xb6\xce\xc4\xd3/]\xf9\xa1" +
+	"u\xcf\\\x19\xb6\xaeG\x99\x82\x03\xcf4\xcc\xd5\xe7\x8d" +
+	"\x1f\xb0[\xf8k\xf9)*0\xc1\x04\xb6\x90\xca\xf0\xba" +
+	"D\xd9\xb3\xb6X\xaa=\x14\x95\xf7O\xb7\xef\xff\xe2\x0b" +
+	"\x8dC\xb6\x87\xb3={\xe8\xc3j\x0f}8\xef\xce\xbe" +
+	"\xfd7\xee>s0/\xd4\xb5\x9e\x9b0\xb4\xdeC\xc1" +
+	"\xbf\xcb3\x16\xfa\x1d\xfd\xeb\xea\xdb_\xab\xbd\xe7\xf2\x85" +
+	"\xe7\xa7\xca\x8ex*1\xf4k&{\xdc3\x16j\xf3" +
+	"RT|\xb3_\xf9p_X\x1f\xce\x09\xba\xde\xbb\x8f" +
+	"\xdan\xf6\xd2\xcap\x0f\x0dU\xbe\xec\xdd\xf7#\xcbi" +
+	"K`\xd8\x12\x18\xf5F\x00\x7f\xe6\xb8\xf7\x97O\xbe\xfe" +
+	"\xd2!\x9b\xef\xefz\xff@\xaf\x9d>\xea\xfb\xe5\x07Z" +
+	"\x8f^\x1c}\xf2\xc7y\x09_\xe0[\x8d\xa1z\x1fM" +
+	"x\x8dO\xc4\xaeU>\x96\xf0\x0f>\xf7\xf9o\x8d\xfd" +
+	"s|\x04\xc8B\x0eR\xbd\xefq\x9a\xf0CG<'" +
+	"\xbeR\xfb\xce/\xac\x1b\xcb\xd4\x02zE\xd5PS\xf5" +
+	"\xcf\x9d=\xd50\xf7\xeb\xaf\xe5\x04\xb3\xde\xc7R\xa4\xf9" +
+	"h0\xfa\xa0\xfc\xe7\xf7\\W_\xb3)?f)\xbf" +
+	"\xf3\xc4\xac\x9e;\xde{\xf4\xb8\xed\xe6\xb0u\xb3|\xd9" +
+	"\xf2\x96\xda#\xda\xaf\xeci\xfd\x81\xef\x04Uz\x94\x99" +
+	"\xfd\xde\xe1\xc9\x85\xbb'+O\xda\x9e\x9e\xa7F\x1d\xe6" +
+	"\xc0\x0b\xb7\x0dl~\xe2\xb1\xd3v\xec\xceX\xfe\x9cg" +
+	"O\x17m\x88\xec\x1axe\xcb\xdf\xc1VSn?\x13" +
+	"\x98\xed\xa7\x02\x9f\xac\x9f\xfd\xa7\xf1c\xc1\xb7\xec\xbc\\" +
+	"\xe9g\xbclc\x02\xc2\xcd\xbb\x02;\xf4\x1d\xffH\x0b" +
+	"\x08T\xa0\xd7\xcf\xcaz\xa7\x9f\x86|\xc3\xe4\xbf.6" +
+	"\x9f\x9b\xf5\xef<\xfc\xcf\xf9\x1b04\xe1\xa7\xf8_\xf4" +
+	"\x8b\xd8u\xc5\xcf\xf0?\xbf\xea\xe5\xe3\xca\x8b\xdb\xde\xce" +
+	"\x01q\xc2\xcf\x12\xee\x0cP\x8d{\xdd\x8a\xd4\xd6\xfe\xfa" +
+	"%{T[\x03L`g\x80\xfa$\x95\xdf}y\xf4" +
+	"U\xfd?9*\xf6Z\x12\xc3LE\xf3\xa5\xb17\xee" +
+	"n\xbbq\xc2\xee\xb5/8N\x05\xe6\x07\xa9\xc0\xc87" +
+	"\xdf\xfc\xe0\xf0\xf8\x9c\xf7\xedq\xef\xb2\x04\xbe\x1d\xa46" +
+	"\xe67\x9f\xc4\xad\xdf\xdf\xf0\xa1\x95\x15\x06\xdcH\xf0a" +
+	"\x0a\xfa\xf0\xe4\xe1M7<\xf7\x85+9\xd6\x0f\x04\x19" +
+	"\xa8G\x99\xf2C\x7f\x1bzq\xe8\xc8oM\xbb\xf2\x0a" +
+	"\xc2\x94W\x93\x08\xac77\xf7mT\x92\xda\xad-N" +
+	"M7\x12\xa9\xedKbJ2\x9elX\xa3$[\xac" +
+	"\x835})=\x91Z\xa2\xab\xea\xfdU\x9d\xaa\xde\xd7" +
+	"#\x1a\xba\xec\x12\x1d\x00\x0e\x04 \xd5\x95\x00r\x95\x88" +
+	"r\x8d\x80\x88\xb3\xa8\x17\xe4\x96:\x00y\x91\x88\xf22" +
+	"\x01E\xa3\x1f\x83\xe6\xe3_~\xe2'\x83o\xbd\xf1\x14" +
+	"\x00b\x100\xdc\xaf\xf4h\xdd\x88  \x02f\\(" +
+	"+\xe0B\x97\x9a\xea\xd7b*=\xefT\x95\xee\xf4i" +
+	"U\xa7\x1a\xd6\xfbz\x0c]vd\xbc\xf1\xdd\x04 \xbb" +
+	"D\x94g\x09(\xc5\x94$\x92l?\x01Db3&" +
+	"\x162\x16\xb1\xacu \xca^\xd1\x09\x90);\xe4X" +
+	"\x129\x05\x02Y+a6w\xc8\x8b\x974>\x08\x02" +
+	"\xa9\x97P\xc8$\x1e\xf9\xc0!\xd5\xf4n\xbed\xc6\x94" +
+	"dSww\x8b\x06af2\x8a\xe9\x93\xa68D\xb6" +
+	"\xaf\xdb\xac\xc57YG,Z\x88hi\xa9\x0e\xc4\xc2" +
+	"\xe9b\x0a\xad3\xa5\xbb\xbb\xb9_\x8d\x1b:MX\x80" +
+	"B\x94y\xe6\xc8y\x16S\x92\xedJ\xaf\xca,[v" +
+	"\xa1\x03\x11\xbd \xa0\x17\x80\xe0\x83y~\x95d\x9f\xd5" +
+	"\x8bd7_\x08\xf45aVe\x14\xf39\x0cs\xde" +
+	"g\x90\xf3\x8b\xfc\xa6\x0e\x04r\x8cb\xce\xdb\x17\xf2)" +
+	"F\x8e.\x06\x81\x1c\xa4\x98\xf3\x8e\x8a\x9c\x19d/\xbd" +
+	"\x1b\x90P\xcc4 \xe4\xb4'\x8fQ\x9d\x0fI\xe8\xc8" +
+	"4K\xe4}\x95l\xa5\xefT\x09\x9d|\x14f\xe7\x07" +
+	"YO\xdf\xb5IX\x96\xe9\xd3\xc8\xd7\x0e\xd2\xb4\x98\xe5" +
+	"?|\x9f\x96\xd2\x8d(\x06z\x14\xf6\x13W\x1f0\xa2" +
+	"\x18\xa6?\xedQ\x0c$Sj\x7f\x14\xc3\xf4\x87\xfeK" +
+	"\xd9\x95\x9b\xdf<.\xd8*\x7f\xc9&\xd5`\x00g\x99" +
+	"`\xe1lgBC\x96\x09\x91\x18C\x17Iv\x8f\x98" +
+	"B\x86\x19\xc8Oc\xf8\xa8\xc9?\x83\x0b\x0c\xa9\xaa\x0e" +
+	"%\xa5\x88\xbd9q\xd6e\xe3\x0c\xeb\x86\x9a\xd4\xd1\x05" +
+	"\x02\xba\xa0x(;R\x89\xa4\x9a24U\xb7b4" +
+	"0\xc7@'\x80\xec\x15Q^$\xa0\xd9\xaf\xf4\xf4\xa9" +
+	"wh:\xa0\x81~\xc0\x0e\x11\xa7\xc4\xe7\x87\xa2)\xda" +
+	"\x143\xb4D<\x9f\xa2\xcek\xb9\xab\xc5\xefK\xa4\xbd" +
+	"\xd4\x01\xecn.\xce\xe2\x10\xa0R\x184\x1b\xcf\xac~" +
+	"~\xf9\xbd\x8f|5\x0d|a\x16r\x0bR\"\xb5=" +
+	"\xd3\xf7\xf8\xb2c\xdb&\xe5\x87y\xdf\xe3\x8b\x02\xf2E" +
+	"\x904\xa6x\xdf\xe3\xe3\x0aO\xb7\xef\x07\xb6\xeaUS" +
+	"N\xcc\x95L^\xb7\x98\x0e\x07\xa2h\xf2\x04@\x98\xa5" +
+	" jy\x9fK\x06\xb1\x10\x92\xa2\xcd\xdf\xcc\xacF\xbe" +
+	"{\x12\xb9\x93\xfb\xcb\xb7\x13\xe4;6il\xe5\xfe\xf2" +
+	"\xad\x0f\xf9&O\xaa;\xad>\xcd\xb3\x04\x18\x8f\xa2\xc9" +
+	"\xdb\x1a\x00\xd8\xffC}\x86\xce<]!g\x18k#" +
+	"S]\x9aL\xd1,\x99\x1a\xe9\xd9gD\x94o\x170" +
+	"\xbcQ1b\x9b\x0b\x96]\xb1\xb4\x9avNt()" +
+	"I\xc9\xe5Ue\xba\x9e\xaa,\x1a\xcfX\xed%5\xac" +
+	"ixl\xaf\xdf\xb8\xd2\xab\xa6\xa7\x10^{t\xd9\x8c" +
+	"L3\xbar\xe6g\xb1\x09\xa2-\x9a9\xd8\x8bzI" +
+	"\xdbQ\xfa\x8d=\xa8-\xe9\xde\xf1)\x01MMO\xac" +
+	"\xd3zU\x1d\x02\x86\xd2\x9b\xcc\x0b\xaf\x88\xb2\xb9\x0eZ" +
+	"p\xa9\xc0\xb0\xc91\xf5M\x09\x0d\x99=\x9d\xd2\xe9\xea" +
+	"\xb2\x95\x19\xa6\x95\xa2\xf3\xe2\xa4\x90\xfa\x8b\x8f\x87Mh" +
+	"^\x8a\xa5-6\xd3\xd4oe\xb6~\xa7\xc5\xbc\x94\xf2" +
+	"\xfb\x7f\x0d\xba\xfc\xfd\xd9\xb6\xea\x15\xb7?\xf3/\xec)" +
+	"\x0bCq\xa6ltg\xed\xc5V\xb6\xad\xd9\x12%\xbc" +
+	"nk\xe9\xa8\xad\x11Q^%\xa0\x19\xeb\xd1\xd4\xb8\xb1" +
+	"\xf6v\x00\xc8p\xc5\xa0~7uw\x03\xa6\xf2\xf8#" +
+	"\x16\xd8l[\xd2\xf4\xcf\xe9\x0e\xa9\xa9+xi\xd9\xb9" +
+	"^\xbawz\x85\xb8F\xf7\xfe_\xab\xd1\xe2\xc8t\xf1" +
+	"~|\xdf}\x1dJ \xf5QWS\x89T\xe2.\xd9" +
+	"2\xd0jk\xfd\xd3Y\xe7\x96<3\xae{\xe9\x1e\xc8" +
+	"\x1f\x141\xbd>\xfe\xeft\x1b\xf9\xf9\x82[B\x9b\xf9" +
+	"o\x00\x00\x00\xff\xff[X[?"
 
 func init() {
 	schemas.Register(schema_f1bd301f7c12caab,
@@ -3920,6 +3991,7 @@ func init() {
 		0x8a3402043f3ec9f0,
 		0x934ac037c7063be0,
 		0x95158665d71f5337,
+		0x9bdc36c4ed05ed0d,
 		0x9c3ac18a6f855cd2,
 		0x9d62a769e5dd0281,
 		0x9d6b3c5af51f3915,
@@ -3933,6 +4005,7 @@ func init() {
 		0xb1731fa2fac2190d,
 		0xb3a20cba1aabab09,
 		0xb400b2d098c85f04,
+		0xb698c1f0b94a78fb,
 		0xbdeae8c7974b47f8,
 		0xc3ef318bca0bb7b4,
 		0xc68e1d3ad2dcac35,
@@ -3944,6 +4017,7 @@ func init() {
 		0xe46ac295853f5a28,
 		0xe610c5eade193517,
 		0xe77e737e0f852702,
+		0xec14e545f0ebfe16,
 		0xee77b061c9ba3ce9,
 		0xf2d04e4d076109a1,
 		0xf473c4c1fb580a07,

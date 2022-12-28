@@ -8,13 +8,16 @@ $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
 using Bucket = import "./Bucket.capnp";
 using Thing = import "./Thing.capnp";
 
+const capNameReadDirectory :Text = "capReadDirectory";
+const capNameUpdateDirectory :Text = "capUpdateDirectory";
+
 interface CapDirectoryService {
   # Available Thing directory capabilities
 
-  capReadDirectory @0 () -> (cap :CapReadDirectory);
+  capReadDirectory @0 (clientID :Text) -> (cap :CapReadDirectory);
   # Capabilities to read the directory
 
-  capUpdateDirectory @1 () -> (cap :CapUpdateDirectory);
+  capUpdateDirectory @1 (clientID :Text) -> (cap :CapUpdateDirectory);
   # Capabilities to update the directory
 }
 

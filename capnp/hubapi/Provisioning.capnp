@@ -42,16 +42,20 @@ struct ProvisionStatus {
     # Recommended delay before retrying if the request is pending
 }
 
+const capNameManageProvisioning :Text = "capManageProvisioning";
+const capNameRequestProvisioning :Text = "capRequestProvisioning";
+const capNameRefreshProvisioning :Text = "capRefreshProvisioning";
+
 interface CapProvisioning {
 # Capabilities for provisioning of IoT devices
 
-    capManageProvisioning @0 () -> (cap :CapManageProvisioning);
+    capManageProvisioning @0 (clientID :Text) -> (cap :CapManageProvisioning);
     # getManagementCapability provides the capability to manage provisioning requests
 
-    capRequestProvisioning @1 () ->(cap :CapRequestProvisioning);
+    capRequestProvisioning @1 (clientID :Text) ->(cap :CapRequestProvisioning);
     # getRequestCapability provides the capability to provision IoT devices
 
-    capRefreshProvisioning @2 () ->(cap :CapRefreshProvisioning);
+    capRefreshProvisioning @2 (clientID :Text) ->(cap :CapRefreshProvisioning);
     # getRequestCapability provides the capability to provision IoT devices
     # The request must be made with a valid certificate and is only valid for a matching deviceID.
 }
