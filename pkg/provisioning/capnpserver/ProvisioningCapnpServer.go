@@ -4,20 +4,17 @@ import (
 	"context"
 	"net"
 
-	"capnproto.org/go/capnp/v3"
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
-	"github.com/hiveot/hub/internal/caphelp"
 	"github.com/hiveot/hub/pkg/provisioning"
-	"github.com/hiveot/hub/pkg/resolver/client"
+	"github.com/hiveot/hub/pkg/resolver/capprovider"
 )
 
 // ProvisioningCapnpServer provides the capnproto RPC server for IOT device provisioning.
 // This implements the capnproto generated interface Provisioning_Server
 // See hub.capnp/go/hubapi/Provisioning.capnp.go for the interface.
 type ProvisioningCapnpServer struct {
-	capRegSrv *client.CapRegistrationServer
 	// the plain-old-go-object provisioning server
 	svc provisioning.IProvisioning
 }
@@ -25,9 +22,10 @@ type ProvisioningCapnpServer struct {
 func (capsrv *ProvisioningCapnpServer) CapManageProvisioning(
 	ctx context.Context, call hubapi.CapProvisioning_capManageProvisioning) error {
 
+	clientID, _ := call.Args().ClientID()
 	// create the service instance for this request
 	mngCapSrv := &ManageProvisioningCapnpServer{
-		pogosrv: capsrv.svc.CapManageProvisioning(ctx),
+		pogosrv: capsrv.svc.CapManageProvisioning(ctx, clientID),
 	}
 
 	// wrap it with a capnp proxy
@@ -43,10 +41,11 @@ func (capsrv *ProvisioningCapnpServer) CapManageProvisioning(
 func (capsrv *ProvisioningCapnpServer) CapRefreshProvisioning(
 	ctx context.Context, call hubapi.CapProvisioning_capRefreshProvisioning) error {
 
+	clientID, _ := call.Args().ClientID()
 	// create the service instance for this request
 	// TODO: restrict it to the deviceID of the caller
 	refreshCapSrv := &RefreshProvisioningCapnpServer{
-		pogosrv: capsrv.svc.CapRefreshProvisioning(ctx),
+		pogosrv: capsrv.svc.CapRefreshProvisioning(ctx, clientID),
 	}
 
 	// wrap it with a capnp proxy
@@ -60,9 +59,11 @@ func (capsrv *ProvisioningCapnpServer) CapRefreshProvisioning(
 }
 func (capsrv *ProvisioningCapnpServer) CapRequestProvisioning(
 	ctx context.Context, call hubapi.CapProvisioning_capRequestProvisioning) error {
+
+	clientID, _ := call.Args().ClientID()
 	// create the service instance for this request
 	reqCapSrv := &RequestProvisioningCapnpServer{
-		pogosrv: capsrv.svc.CapRequestProvisioning(ctx),
+		pogosrv: capsrv.svc.CapRequestProvisioning(ctx, clientID),
 	}
 
 	// wrap it with a capnp proxy
@@ -75,24 +76,25 @@ func (capsrv *ProvisioningCapnpServer) CapRequestProvisioning(
 }
 
 // StartProvisioningCapnpServer starts the capnp server for the provisioning service
-func StartProvisioningCapnpServer(lis net.Listener, svc provisioning.IProvisioning) error {
-
-	logrus.Infof("Starting provisioning service capnp adapter on: %s", lis.Addr())
+func StartProvisioningCapnpServer(svc provisioning.IProvisioning, lis net.Listener) error {
+	serviceName := provisioning.ServiceName
 
 	srv := &ProvisioningCapnpServer{
 		svc: svc,
 	}
-	capRegSrv := client.NewCapRegistrationServer(
-		provisioning.ServiceName, hubapi.CapProvisioning_Methods(nil, srv))
-	srv.capRegSrv = capRegSrv
-	capRegSrv.ExportCapability("capManageProvisioning", []string{hubapi.ClientTypeService})
-	capRegSrv.ExportCapability("capRequestProvisioning", []string{hubapi.ClientTypeService, hubapi.ClientTypeIotDevice})
-	capRegSrv.ExportCapability("capRefreshProvisioning", []string{hubapi.ClientTypeService, hubapi.ClientTypeIotDevice})
-	err := capRegSrv.Start("")
-	//
-	if lis != nil {
-		main := hubapi.CapProvisioning_ServerToClient(srv)
-		err = caphelp.Serve(lis, capnp.Client(main), nil)
-	}
+	capProv := capprovider.NewCapServer(
+		serviceName, hubapi.CapProvisioning_Methods(nil, srv))
+
+	capProv.ExportCapability("capManageProvisioning",
+		[]string{hubapi.ClientTypeService})
+
+	capProv.ExportCapability("capRequestProvisioning",
+		[]string{hubapi.ClientTypeService, hubapi.ClientTypeIotDevice})
+
+	capProv.ExportCapability("capRefreshProvisioning",
+		[]string{hubapi.ClientTypeService, hubapi.ClientTypeIotDevice})
+
+	logrus.Infof("Starting provisioning service capnp adapter on: %s", lis.Addr())
+	err := capProv.Start(lis)
 	return err
 }

@@ -66,7 +66,7 @@ func BenchmarkPubSub(b *testing.B) {
 			thingAddr := thing.MakeThingAddr(device1, thingID)
 			name := vocab.PropNameTemperature
 			err := capUser.SubEvent(ctx, thingAddr, name, func(tv *thing.ThingValue) {
-				//logrus.Infof("received tv thingAddr=%s name=%s", tv.ThingAddr, tv.Name)
+				//logrus.Infof("received tv thingAddr=%s name=%s", tv.thingAddr, tv.Name)
 				evCount++
 			})
 			assert.NoError(b, err)

@@ -1,4 +1,4 @@
-// Package certcli with certificate commandline definitions
+// Package certscli with certificate commandline definitions
 package certscli
 
 import (
@@ -6,7 +6,6 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"os/exec"
 
@@ -32,7 +31,7 @@ func CertCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 			CertCreateDeviceCommands(ctx, f),
 			CertsCreateServiceCommand(ctx, f),
 			CertsCreateUserCommand(ctx, f),
-			CertsShowInfoCommand(ctx, f),
+			CertsShowInfoCommand(ctx),
 		},
 	}
 	return cmd
@@ -61,7 +60,7 @@ func CertsCreateUserCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Co
 		},
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() == 0 {
-				return fmt.Errorf("Missing client login ID")
+				return fmt.Errorf("missing client login ID")
 			}
 			loginID := cCtx.Args().Get(0)
 			pubKeyFile := cCtx.String("pubkey")
@@ -94,7 +93,7 @@ func CertCreateDeviceCommands(ctx context.Context, f svcconfig.AppFolders) *cli.
 		},
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() == 0 {
-				return fmt.Errorf("Missing device ID")
+				return fmt.Errorf("missing device ID")
 			}
 			deviceID := cCtx.Args().Get(0)
 			pubKeyFile := cCtx.String("pubkey")
@@ -133,7 +132,7 @@ func CertsCreateServiceCommand(ctx context.Context, f svcconfig.AppFolders) *cli
 		},
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() == 0 {
-				return fmt.Errorf("Missing service ID")
+				return fmt.Errorf("missing service ID")
 			}
 			serviceID := cCtx.Args().Get(0)
 			pubKeyFile := cCtx.String("pubkey")
@@ -142,7 +141,7 @@ func CertsCreateServiceCommand(ctx context.Context, f svcconfig.AppFolders) *cli
 		},
 	}
 }
-func CertsShowInfoCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
+func CertsShowInfoCommand(ctx context.Context) *cli.Command {
 	return &cli.Command{
 		Name:      "info",
 		Usage:     "Show certificate info",
@@ -175,7 +174,7 @@ func HandleCreateDeviceCert(ctx context.Context, f svcconfig.AppFolders, deviceI
 		return err
 	}
 	cc = capnpclient.NewCertServiceCapnpClient(conn)
-	dc = cc.CapDeviceCerts(ctx)
+	dc = cc.CapDeviceCerts(ctx, "hubcli")
 
 	pubKeyPEM, generatedPrivKey, err = loadOrCreateKey(keyFile)
 
@@ -208,7 +207,7 @@ func HandleCreateDeviceCert(ctx context.Context, f svcconfig.AppFolders, deviceI
 func HandleCreateServiceCert(ctx context.Context, f svcconfig.AppFolders,
 	serviceID string, ipAddr string, keyFile string, validityDays int) error {
 
-	var names = []string{"localhost"}
+	var names = []string{"localhost", ipAddr}
 	var pubKeyPEM string
 	var generatedPrivKey *ecdsa.PrivateKey
 	var certPEM string
@@ -220,7 +219,7 @@ func HandleCreateServiceCert(ctx context.Context, f svcconfig.AppFolders,
 		return err
 	}
 	cc = capnpclient.NewCertServiceCapnpClient(conn)
-	sc = cc.CapServiceCerts(ctx)
+	sc = cc.CapServiceCerts(ctx, "hubcli")
 	pubKeyPEM, generatedPrivKey, err = loadOrCreateKey(keyFile)
 
 	// finally, create the user certificate
@@ -261,7 +260,7 @@ func HandleCreateUserCert(ctx context.Context, f svcconfig.AppFolders, clientID 
 	}
 	cc = capnpclient.NewCertServiceCapnpClient(conn)
 
-	uc = cc.CapUserCerts(ctx)
+	uc = cc.CapUserCerts(ctx, "hubcli")
 	pubKeyPEM, generatedPrivKey, err = loadOrCreateKey(keyFile)
 
 	// finally, create the user certificate
@@ -286,14 +285,14 @@ func HandleCreateUserCert(ctx context.Context, f svcconfig.AppFolders, clientID 
 // Simplified version of openssl x509 -in cert -noout -text
 //
 //	certFile certificate to get info for
-func HandleShowCertInfo(ctx context.Context, certFile string) error {
+func HandleShowCertInfo(_ context.Context, certFile string) error {
 	cmd := exec.Command("openssl", "x509", "-in", certFile, "-noout", "-text")
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 	out, err := cmd.Output()
 	if err != nil {
 		fmt.Printf("ERROR: %s.\n", err)
-		fmt.Fprintf(os.Stderr, "%s", stderr.String())
+		_, _ = fmt.Fprintf(os.Stderr, "%s", stderr.String())
 	} else {
 		fmt.Printf("%s\n", out)
 	}
@@ -310,7 +309,7 @@ func loadOrCreateKey(keyFile string) (
 	// If a key file is given, use it, otherwise generate a pair
 	if keyFile != "" {
 		logrus.Infof("Using key file: %s\n", keyFile)
-		keyAsBytes, err = ioutil.ReadFile(keyFile)
+		keyAsBytes, err = os.ReadFile(keyFile)
 		if err != nil {
 			logrus.Errorf("Failed loading Keyfile '%s': %s", keyFile, err)
 			return "", nil, err

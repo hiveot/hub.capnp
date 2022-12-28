@@ -23,18 +23,20 @@ type AuthnService struct {
 	pwStore unpwstore.IUnpwStore
 }
 
-func (svc *AuthnService) CapUserAuthn(ctx context.Context, loginID string) authn.IUserAuthn {
+// CapUserAuthn creates a new user authentication session
+func (svc *AuthnService) CapUserAuthn(ctx context.Context, clientID string) (authn.IUserAuthn, error) {
 	_ = ctx
 	jwtAuthn := jwtauthn.NewJWTAuthn(
 		svc.signingKey, svc.config.AccessTokenValiditySec, svc.config.RefreshTokenValiditySec)
-	capUserAuthn := NewUserAuthn(loginID, jwtAuthn, svc.pwStore)
-	return capUserAuthn
+	capUserAuthn := NewUserAuthn(clientID, jwtAuthn, svc.pwStore)
+	return capUserAuthn, nil
 }
 
-func (svc *AuthnService) CapManageAuthn(ctx context.Context) authn.IManageAuthn {
+// CapManageAuthn creates a new manage authentication session
+func (svc *AuthnService) CapManageAuthn(ctx context.Context, clientID string) (authn.IManageAuthn, error) {
 	_ = ctx
 	capManageAuthn := NewManageAuthn(svc.pwStore)
-	return capManageAuthn
+	return capManageAuthn, nil
 }
 
 func (svc *AuthnService) Start(ctx context.Context) error {
@@ -48,7 +50,7 @@ func (svc *AuthnService) Stop() error {
 }
 
 // NewAuthnService creates new instance of the service.
-// Call Start before using the service.
+// Call Connect before using the service.
 func NewAuthnService(cfg config.AuthnConfig) *AuthnService {
 	signingKey := signing.CreateECDSAKeys()
 	pwStore := unpwstore.NewPasswordFileStore(cfg.PasswordFile)

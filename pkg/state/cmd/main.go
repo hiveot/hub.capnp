@@ -13,7 +13,7 @@ import (
 	statekvstore "github.com/hiveot/hub/pkg/state/service"
 )
 
-// Start the service
+// Connect the service
 func main() {
 	f := svcconfig.GetFolders("", false)
 	// set config defaults
@@ -27,7 +27,7 @@ func main() {
 		func(ctx context.Context, lis net.Listener) error {
 			// startup
 			err := svc.Start(ctx)
-			err = capnpserver.StartStateCapnpServer(lis, svc)
+			err = capnpserver.StartStateCapnpServer(svc, lis)
 			return err
 		}, func() error {
 			// shutdown

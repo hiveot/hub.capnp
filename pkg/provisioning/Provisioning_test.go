@@ -10,7 +10,6 @@ import (
 	"syscall"
 	"testing"
 
-	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -38,37 +37,35 @@ func getCertCap() certs.ICerts {
 	return certCap
 }
 
-func newServer(useCapnp bool) (provSvc provisioning.IProvisioning, closeFn func() error) {
+func newServer(useCapnp bool) (provSvc provisioning.IProvisioning, closeFn func()) {
 	certCap := getCertCap()
 	ctx, cancelFunc := context.WithCancel(context.Background())
 
-	svc := service.NewProvisioningService(certCap.CapDeviceCerts(ctx), certCap.CapVerifyCerts(ctx))
+	capDeviceCert := certCap.CapDeviceCerts(ctx, "test")
+	capVerifyCert := certCap.CapVerifyCerts(ctx, "test")
+	svc := service.NewProvisioningService(capDeviceCert, capVerifyCert)
 
 	// optionally test with capnp RPC
 	if useCapnp {
 		_ = syscall.Unlink(testSocket)
 		//lis, _ := net.Listen("unix", testSocket)
 		lis, _ := net.Listen("tcp", ":0")
-		go capnpserver.StartProvisioningCapnpServer(lis, svc)
+		go capnpserver.StartProvisioningCapnpServer(svc, lis)
 
 		// connect the client to the server above
 		//clConn, _ := net.Dial("unix", testSocket)
 		clConn, _ := net.Dial("tcp", lis.Addr().String())
-		cl, err := capnpclient.NewProvisioningCapnpClient(ctx, clConn)
-		if err != nil {
-			logrus.Fatalf("Failed starting capnp client: %s", err)
-		}
-		return cl, func() error {
+		cl := capnpclient.NewProvisioningCapnpClient(ctx, clConn)
+
+		return cl, func() {
 			cl.Release()
 			cancelFunc()
-			err = svc.Stop()
-			return err
+			_ = svc.Stop()
 		}
 	}
-	return svc, func() error {
+	return svc, func() {
 		cancelFunc()
-		err := svc.Stop()
-		return err
+		_ = svc.Stop()
 	}
 }
 
@@ -85,9 +82,8 @@ func TestMain(m *testing.M) {
 func TestStartStop(t *testing.T) {
 	// this needs a certificate service capability
 	provServer, closeFn := newServer(useTestCapnp)
-	err := closeFn()
 	assert.NotNil(t, provServer)
-	assert.NoError(t, err)
+	closeFn()
 }
 
 func TestAutomaticProvisioning(t *testing.T) {
@@ -102,9 +98,9 @@ func TestAutomaticProvisioning(t *testing.T) {
 	provServer, closeFn := newServer(useTestCapnp)
 	defer closeFn()
 
-	capManage := provServer.CapManageProvisioning(ctx)
+	capManage := provServer.CapManageProvisioning(ctx, "test")
 	defer capManage.Release()
-	capProv := provServer.CapRequestProvisioning(ctx)
+	capProv := provServer.CapRequestProvisioning(ctx, device1ID)
 	defer capProv.Release()
 
 	err := capManage.AddOOBSecrets(ctx, secrets)
@@ -141,9 +137,9 @@ func TestAutomaticProvisioningBadParameters(t *testing.T) {
 
 	provServer, closeFn := newServer(useTestCapnp)
 	defer closeFn()
-	capProv := provServer.CapRequestProvisioning(ctx)
+	capProv := provServer.CapRequestProvisioning(ctx, device1ID)
 	defer capProv.Release()
-	capManage := provServer.CapManageProvisioning(ctx)
+	capManage := provServer.CapManageProvisioning(ctx, "test")
 	defer capManage.Release()
 
 	// add a secret for testing
@@ -180,9 +176,9 @@ func TestManualProvisioning(t *testing.T) {
 	ctx := context.Background()
 	provServer, closeFn := newServer(useTestCapnp)
 	defer closeFn()
-	capProv := provServer.CapRequestProvisioning(ctx)
+	capProv := provServer.CapRequestProvisioning(ctx, device1ID)
 	defer capProv.Release()
-	capManage := provServer.CapManageProvisioning(ctx)
+	capManage := provServer.CapManageProvisioning(ctx, "test")
 	defer capManage.Release()
 
 	// Stage 1: request provisioning without a secret.
@@ -242,11 +238,11 @@ func TestRefreshProvisioning(t *testing.T) {
 	// request provisioning with a valid secret.
 	provServer, closeFn := newServer(useTestCapnp)
 	defer closeFn()
-	capProv := provServer.CapRequestProvisioning(ctx)
+	capProv := provServer.CapRequestProvisioning(ctx, device1ID)
 	defer capProv.Release()
-	capRefresh := provServer.CapRefreshProvisioning(ctx)
+	capRefresh := provServer.CapRefreshProvisioning(ctx, device1ID)
 	defer capRefresh.Release()
-	capManage := provServer.CapManageProvisioning(ctx)
+	capManage := provServer.CapManageProvisioning(ctx, "test")
 	defer capManage.Release()
 
 	// obtain a certificate

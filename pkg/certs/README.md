@@ -4,15 +4,11 @@
 
 Manage certificates for authentication of hub services, IoT devices and consumers.
 
-## Roadmap
+## Status
+This service is functional and can issue IoT device certificates, service certificates and end-user certificates.
 
-1. Revisit the use-cases for certificates now services always listen using UDS, (except for the gateway). 
-   * How are remote services discovered?
-   * How are connections to remote services established?
-   * When are service certificates needed? If at all.
-
-2. TBD. Add support for LetsEncrypt 
-
+For consideration:
+- Support for lets encrypt to obtain service certificates
 
 ## Summary
 

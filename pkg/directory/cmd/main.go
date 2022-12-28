@@ -16,7 +16,7 @@ import (
 // name of the storage file
 const storeFile = "directorystore.json"
 
-// Start the service
+// Connect the service
 func main() {
 	hubID := "urn:hub" // FIXME: get HubID from the Hub somewhere
 	f := svcconfig.LoadServiceConfig(directory.ServiceName, false, nil)
@@ -29,7 +29,7 @@ func main() {
 			// startup
 			err := svc.Start(ctx)
 			if err == nil {
-				err = capnpserver.StartDirectoryServiceCapnpServer(lis, svc)
+				err = capnpserver.StartDirectoryServiceCapnpServer(svc, lis)
 			}
 			return err
 		}, func() error {

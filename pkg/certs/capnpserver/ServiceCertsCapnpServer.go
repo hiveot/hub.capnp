@@ -23,7 +23,7 @@ func (capsrv *ServiceCertsCapnpServer) CreateServiceCert(
 	if validityDays == 0 {
 		validityDays = hubapi.DefaultServiceCertValidityDays
 	}
-	names := []string{}
+	names := make([]string, 0)
 	for i := 0; i < namesList.Len(); i++ {
 		name, _ := namesList.At(i)
 		names = append(names, name)

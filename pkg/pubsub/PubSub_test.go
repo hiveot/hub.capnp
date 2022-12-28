@@ -38,11 +38,11 @@ func startService(useCapnp bool) (pubsub.IPubSubService, func() error) {
 		if err != nil {
 			logrus.Panic("Unable to create a listener, can't run test")
 		}
-		go capnpserver.StartPubSubCapnpServer(ctx, srvListener, svc)
+		go capnpserver.StartPubSubCapnpServer(svc, srvListener)
 
 		// connect the client to the server above
 		clConn, _ := net.Dial("unix", testAddress)
-		capClient, err := capnpclient.StartPubSubCapnpClient(ctx, clConn)
+		capClient := capnpclient.NewPubSubCapnpClient(ctx, clConn)
 
 		return capClient, func() error {
 			err = capClient.Release()

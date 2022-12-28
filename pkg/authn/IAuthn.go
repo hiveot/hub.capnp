@@ -29,7 +29,7 @@ type IAuthnService interface {
 	CapUserAuthn(ctx context.Context, clientID string) IUserAuthn
 
 	// CapManageAuthn provides the capability manage users for use by administrators.
-	CapManageAuthn(ctx context.Context) IManageAuthn
+	CapManageAuthn(ctx context.Context, clientID string) IManageAuthn
 }
 
 // IManageAuthn defines the interface for managing the authentication service

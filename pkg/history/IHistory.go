@@ -52,14 +52,16 @@ type IHistoryService interface {
 
 	// CapAddHistory provides the capability to add to the history of a Thing.
 	// This capability should only be provided to the device or service that have write access to the Thing.
+	//  clientID is the ID of the device or service requesting the capability
 	//  thingAddr is the gateway address of the thing, eg publisherID/thingID
-	CapAddHistory(ctx context.Context, thingAddr string) IAddHistory
+	CapAddHistory(ctx context.Context, clientID string, thingAddr string) (IAddHistory, error)
 
 	// CapAddAnyThing provides the capability to add to the history of any Thing.
 	// It is similar to CapAddHistory but not constraint to a specific Thing.
 	// This capability should only be provided to trusted services that capture events from multiple sources
 	// and can verify their authenticity.
-	CapAddAnyThing(ctx context.Context) IAddHistory
+	//  clientID is the ID of the device or service requesting the capability
+	CapAddAnyThing(ctx context.Context, clientID string) (IAddHistory, error)
 
 	// CapReadHistory provides the capability to iterate history.
 	// This returns an iterator for the history.
@@ -67,14 +69,9 @@ type IHistoryService interface {
 	// underlying store.
 	// This capability can be provided to anyone who has read access to the thing.
 	//
+	//  clientID is the ID of the device or service requesting the capability
 	//  thingAddr is the gateway address of the thing, eg publisherID/thingID
-	CapReadHistory(ctx context.Context, thingAddr string) IReadHistory
-
-	// TBD: Subscribe to the pubsub service to receive events and actions
-	//Subscribe()
-
-	// Release the client
-	//Release()
+	CapReadHistory(ctx context.Context, clientID string, thingAddr string) (IReadHistory, error)
 }
 
 // IAddHistory defines the capability to add to a Thing's history

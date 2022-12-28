@@ -99,10 +99,10 @@ type IAuthz interface {
 	CapClientAuthz(ctx context.Context, clientID string) IClientAuthz
 
 	// CapManageAuthz provides the capability to manage authorization groups
-	CapManageAuthz(ctx context.Context) IManageAuthz
+	CapManageAuthz(ctx context.Context, clientID string) IManageAuthz
 
 	// CapVerifyAuthz provides the capability to verify authorization
-	CapVerifyAuthz(ctx context.Context) IVerifyAuthz
+	CapVerifyAuthz(ctx context.Context, clientID string) IVerifyAuthz
 }
 
 // IClientAuthz defines the capability for verifying authorization of a client.

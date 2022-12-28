@@ -14,6 +14,8 @@ import (
 // regardless of how they are authenticated.
 type VerifyAuthz struct {
 	aclStore *aclstore.AclFileStore
+	// the client requesting this session
+	clientID string
 }
 
 // Release this client capability. To be invoked after use has completed.
@@ -126,9 +128,10 @@ func (vauthz *VerifyAuthz) IsPublisher(ctx context.Context, deviceID string, thi
 // NewVerifyAuthz creates an instance handler for verifying authorization.
 //
 //	aclStore provides the functions to read and write authorization rules
-func NewVerifyAuthz(aclStore *aclstore.AclFileStore) *VerifyAuthz {
+func NewVerifyAuthz(aclStore *aclstore.AclFileStore, clientID string) *VerifyAuthz {
 	vauthz := VerifyAuthz{
 		aclStore: aclStore,
+		clientID: clientID,
 	}
 	return &vauthz
 }

@@ -4,29 +4,27 @@ import (
 	"context"
 	"net"
 
-	"capnproto.org/go/capnp/v3"
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
-	"github.com/hiveot/hub/internal/caphelp"
 	"github.com/hiveot/hub/pkg/authn"
-	"github.com/hiveot/hub/pkg/resolver/client"
+	"github.com/hiveot/hub/pkg/resolver/capprovider"
 )
 
 // AuthnCapnpServer provides the capnp RPC server for authentication services
 // This implements the capnproto generated interface Authn_Server
 // See hub.capnp/go/hubapi/Authn.capnp.go for the interface.
 type AuthnCapnpServer struct {
-	capRegSrv *client.CapRegistrationServer
-	svc       authn.IAuthnService
+	svc authn.IAuthnService
 }
 
 func (capsrv *AuthnCapnpServer) CapUserAuthn(
 	ctx context.Context, call hubapi.CapAuthn_capUserAuthn) error {
 
 	clientID, _ := call.Args().ClientID()
+	userAuthInstance, err := capsrv.svc.CapUserAuthn(ctx, clientID)
 	userAuthnCapSrv := &UserAuthnCapnpServer{
-		svc: capsrv.svc.CapUserAuthn(ctx, clientID),
+		svc: userAuthInstance,
 	}
 	capability := hubapi.CapUserAuthn_ServerToClient(userAuthnCapSrv)
 
@@ -39,8 +37,10 @@ func (capsrv *AuthnCapnpServer) CapUserAuthn(
 }
 
 func (capsrv *AuthnCapnpServer) CapManageAuthn(ctx context.Context, call hubapi.CapAuthn_capManageAuthn) error {
+	clientID, _ := call.Args().ClientID()
+	manageAuthInstance, _ := capsrv.svc.CapManageAuthn(ctx, clientID)
 	manageAuthnCapSrv := &ManageAuthnCapnpServer{
-		svc: capsrv.svc.CapManageAuthn(ctx),
+		svc: manageAuthInstance,
 	}
 	capability := hubapi.CapManageAuthn_ServerToClient(manageAuthnCapSrv)
 	res, err := call.AllocResults()
@@ -51,37 +51,29 @@ func (capsrv *AuthnCapnpServer) CapManageAuthn(ctx context.Context, call hubapi.
 }
 
 // StartAuthnCapnpServer starts the capnp protocol server for the authentication service
+// The starts the cap-provider server on the listener
 //
 //	svc is the service implementation
-//	lis if the service listens on its own endpoint for direct connections. nil to use resolver.
-//	resolverSocket is the UDS socket of the resolver used to register the service capabilities. "" to not register.
-func StartAuthnCapnpServer(svc authn.IAuthnService, lis net.Listener, resolverSocket string) (err error) {
+//	lis is the cap provider listening endpoint
+func StartAuthnCapnpServer(svc authn.IAuthnService, lis net.Listener) (err error) {
+	serviceName := authn.ServiceName
 
 	srv := &AuthnCapnpServer{
 		svc: svc,
 	}
-	if resolverSocket != "" {
-		// this server will handle capability registration for us.
-		capRegSrv := client.NewCapRegistrationServer(
-			authn.ServiceName,
-			hubapi.CapAuthn_Methods(nil, srv))
+	// the provider serves the exported capabilities
+	capProv := capprovider.NewCapServer(
+		serviceName,
+		hubapi.CapAuthn_Methods(nil, srv))
 
-		// register the methods available through getCapability
-		capRegSrv.ExportCapability("capUserAuthn",
-			[]string{hubapi.ClientTypeService, hubapi.ClientTypeUser, hubapi.ClientTypeUnauthenticated})
-		capRegSrv.ExportCapability("capManageAuthn",
-			[]string{hubapi.ClientTypeService})
+	capProv.ExportCapability(hubapi.CapNameUserAuthn,
+		[]string{hubapi.ClientTypeService, hubapi.ClientTypeUser, hubapi.ClientTypeUnauthenticated})
 
-		err := capRegSrv.Start(resolverSocket)
-		if err != nil {
-			logrus.Warningf("unable to connect to the resolver service: %s", err)
-		}
-	}
-	// also listen, although that isn't needed if the resolver works.
-	if lis != nil {
-		logrus.Infof("Starting Authn service capnp adapter listening on: %s", lis.Addr())
-		main := hubapi.CapAuthn_ServerToClient(srv)
-		err = caphelp.Serve(lis, capnp.Client(main), nil)
-	}
+	capProv.ExportCapability(hubapi.CapNameManageAuthn,
+		[]string{hubapi.ClientTypeService})
+
+	logrus.Infof("Starting '%s' service capnp adapter listening on: %s", serviceName, lis.Addr())
+	err = capProv.Start(lis)
+
 	return err
 }

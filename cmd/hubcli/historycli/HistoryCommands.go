@@ -25,7 +25,6 @@ func HistoryCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	return cmd
 }
 
-// HistoryListCommand
 func HistoryListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	return &cli.Command{
 		Name:      "list",
@@ -48,10 +47,8 @@ func HandleListEvents(ctx context.Context, f svcconfig.AppFolders, thingAddr str
 
 	conn, err := listener.CreateLocalClientConnection(history.ServiceName, f.Run)
 	if err == nil {
-		hist, err = capnpclient.NewHistoryCapnpClient(ctx, conn)
-	}
-	if err == nil {
-		rd = hist.CapReadHistory(ctx, thingAddr)
+		hist = capnpclient.NewHistoryCapnpClient(ctx, conn)
+		rd, err = hist.CapReadHistory(ctx, thingAddr, "hubcli")
 	}
 	if err != nil {
 		return err

@@ -20,22 +20,35 @@ type DirectoryCapnpClient struct {
 
 // CapReadDirectory returns the capability to read the directory
 // The returned release function must be called after the capability is no longer needed.
-func (cl *DirectoryCapnpClient) CapReadDirectory(ctx context.Context) (cap directory.IReadDirectory) {
+func (cl *DirectoryCapnpClient) CapReadDirectory(
+	ctx context.Context, clientID string) (directory.IReadDirectory, error) {
 
 	// The use of a result 'future' avoids a round trip, making this more efficient
-	getCapMethod, getCapRelease := cl.capability.CapReadDirectory(ctx, nil)
+	getCapMethod, getCapRelease := cl.capability.CapReadDirectory(ctx,
+		func(params hubapi.CapDirectoryService_capReadDirectory_Params) error {
+			err2 := params.SetClientID(clientID)
+			return err2
+		})
 	capRead := getCapMethod.Cap()
 	defer getCapRelease()
-	return NewReadDirectoryCapnpClient(capRead.AddRef())
+	newCap := NewReadDirectoryCapnpClient(capRead.AddRef())
+	return newCap, nil
 }
 
 // CapUpdateDirectory returns the capability to update the directory
-func (cl *DirectoryCapnpClient) CapUpdateDirectory(ctx context.Context) directory.IUpdateDirectory {
+func (cl *DirectoryCapnpClient) CapUpdateDirectory(
+	ctx context.Context, clientID string) (directory.IUpdateDirectory, error) {
+
 	// The use of a result 'future' avoids a round trip, making this more efficient
-	getCapMethod, getCapRelease := cl.capability.CapUpdateDirectory(ctx, nil)
+	getCapMethod, getCapRelease := cl.capability.CapUpdateDirectory(ctx,
+		func(params hubapi.CapDirectoryService_capUpdateDirectory_Params) error {
+			err2 := params.SetClientID(clientID)
+			return err2
+		})
 	defer getCapRelease()
 	capability := getCapMethod.Cap()
-	return NewUpdateDirectoryCapnpClient(capability.AddRef())
+	newCap := NewUpdateDirectoryCapnpClient(capability.AddRef())
+	return newCap, nil
 }
 
 // Release the client capability
@@ -49,7 +62,7 @@ func (cl *DirectoryCapnpClient) Release() error {
 //
 //	ctx is the context for retrieving capabilities
 //	connection is the client connection to the capnp server
-func NewDirectoryCapnpClient(ctx context.Context, connection net.Conn) (*DirectoryCapnpClient, error) {
+func NewDirectoryCapnpClient(ctx context.Context, connection net.Conn) *DirectoryCapnpClient {
 	var cl *DirectoryCapnpClient
 	transport := rpc.NewStreamTransport(connection)
 	rpcConn := rpc.NewConn(transport, nil)
@@ -59,5 +72,5 @@ func NewDirectoryCapnpClient(ctx context.Context, connection net.Conn) (*Directo
 		connection: rpcConn,
 		capability: capability,
 	}
-	return cl, nil
+	return cl
 }

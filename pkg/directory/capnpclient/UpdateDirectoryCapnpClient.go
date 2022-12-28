@@ -22,8 +22,8 @@ func (cl *UpdateDirectoryCapnpClient) Release() {
 func (cl *UpdateDirectoryCapnpClient) RemoveTD(ctx context.Context, thingAddr string) (err error) {
 	method, release := cl.capability.RemoveTD(ctx,
 		func(params hubapi.CapUpdateDirectory_removeTD_Params) error {
-			params.SetThingAddr(thingAddr)
-			return nil
+			err2 := params.SetThingAddr(thingAddr)
+			return err2
 		})
 	defer release()
 	_, err = method.Struct()
@@ -35,9 +35,9 @@ func (cl *UpdateDirectoryCapnpClient) RemoveTD(ctx context.Context, thingAddr st
 func (cl *UpdateDirectoryCapnpClient) UpdateTD(ctx context.Context, thingAddr string, tdDoc []byte) (err error) {
 	method, release := cl.capability.UpdateTD(ctx,
 		func(params hubapi.CapUpdateDirectory_updateTD_Params) error {
-			params.SetThingAddr(thingAddr)
-			err = params.SetTdDoc(tdDoc)
-			return err
+			err2 := params.SetThingAddr(thingAddr)
+			_ = params.SetTdDoc(tdDoc)
+			return err2
 		})
 	defer release()
 	_, err = method.Struct()

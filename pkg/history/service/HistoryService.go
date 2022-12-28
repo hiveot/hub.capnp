@@ -20,27 +20,31 @@ type HistoryService struct {
 }
 
 // CapAddHistory provides the capability to update history
-func (srv *HistoryService) CapAddHistory(_ context.Context, ThingAddr string) history.IAddHistory {
-	bucket := srv.bucketStore.GetBucket(ThingAddr)
-	historyUpdater := NewAddHistory(ThingAddr, bucket, srv.propsStore.HandleAddValue)
-	return historyUpdater
+func (srv *HistoryService) CapAddHistory(
+	_ context.Context, thingID string, thingAddr string) (history.IAddHistory, error) {
+	bucket := srv.bucketStore.GetBucket(thingAddr)
+
+	historyUpdater := NewAddHistory(thingID, thingAddr, bucket, srv.propsStore.HandleAddValue)
+	return historyUpdater, nil
 }
 
 // CapAddAnyThing provides the capability to add to the history of any Thing.
 // It is similar to CapAddHistory but not constrained to a specific Thing.
 // This capability should only be provided to trusted services that capture events from multiple sources
 // and can verify their authenticity.
-func (srv *HistoryService) CapAddAnyThing(context.Context) history.IAddHistory {
+func (srv *HistoryService) CapAddAnyThing(
+	_ context.Context, clientID string) (history.IAddHistory, error) {
 
-	historyUpdater := NewAddAnyThing(srv.bucketStore, srv.propsStore.HandleAddValue)
-	return historyUpdater
+	historyUpdater := NewAddAnyThing(clientID, srv.bucketStore, srv.propsStore.HandleAddValue)
+	return historyUpdater, nil
 }
 
 // CapReadHistory provides the capability to read history
-func (srv *HistoryService) CapReadHistory(_ context.Context, ThingAddr string) history.IReadHistory {
-	bucket := srv.bucketStore.GetBucket(ThingAddr)
-	readHistory := NewReadHistory(ThingAddr, bucket, srv.propsStore.GetProperties)
-	return readHistory
+func (srv *HistoryService) CapReadHistory(
+	_ context.Context, clientID, thingAddr string) (history.IReadHistory, error) {
+	bucket := srv.bucketStore.GetBucket(thingAddr)
+	readHistory := NewReadHistory(clientID, thingAddr, bucket, srv.propsStore.GetProperties)
+	return readHistory, nil
 }
 
 // Start using the history service

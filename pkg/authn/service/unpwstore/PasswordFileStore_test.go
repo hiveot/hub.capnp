@@ -29,7 +29,7 @@ func TestMain(m *testing.M) {
 	tempFolder = path.Join(os.TempDir(), "hiveot-authn-test")
 	_ = os.MkdirAll(tempFolder, 0700)
 
-	// Start without pw file
+	// Connect without pw file
 	unpwFilePath = path.Join(tempFolder, unpwFileName)
 	os.Remove(unpwFilePath)
 

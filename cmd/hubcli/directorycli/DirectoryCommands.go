@@ -27,7 +27,6 @@ func DirectoryCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command
 	return cmd
 }
 
-// DirectoryListCommand
 func DirectoryListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	var limit = 100
 	var offset = 0
@@ -45,7 +44,7 @@ func DirectoryListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comm
 	}
 }
 
-// HandleListDirectory lists the directoryc content
+// HandleListDirectory lists the directory content
 func HandleListDirectory(ctx context.Context, f svcconfig.AppFolders, limit int, offset int) error {
 	var dir directory.IDirectory
 	var rd directory.IReadDirectory
@@ -53,10 +52,8 @@ func HandleListDirectory(ctx context.Context, f svcconfig.AppFolders, limit int,
 
 	conn, err := listener.CreateLocalClientConnection(directory.ServiceName, f.Run)
 	if err == nil {
-		dir, err = capnpclient.NewDirectoryCapnpClient(ctx, conn)
-	}
-	if err == nil {
-		rd = dir.CapReadDirectory(ctx)
+		dir = capnpclient.NewDirectoryCapnpClient(ctx, conn)
+		rd, err = dir.CapReadDirectory(ctx, "hubcli")
 	}
 	if err != nil {
 		return err
@@ -65,7 +62,13 @@ func HandleListDirectory(ctx context.Context, f svcconfig.AppFolders, limit int,
 	cursor := rd.Cursor(ctx)
 	fmt.Println("Thing ID                            Modified                       type       props  events  actions")
 	fmt.Println("--------                            -------                        ----       -----  ------  -------")
-	for tv, valid := cursor.First(); valid; tv, valid = cursor.Next() {
+	i := 0
+	tv, valid := cursor.First()
+	if offset > 0 {
+		// TODO, skip
+		//tv, valid = cursor.Skip(offset)
+	}
+	for ; valid && i < limit; tv, valid = cursor.Next() {
 		err = json.Unmarshal(tv.ValueJSON, &tdDoc)
 
 		utime, err := dateparse.ParseAny(tdDoc.Modified)

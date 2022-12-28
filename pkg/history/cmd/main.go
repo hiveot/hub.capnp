@@ -14,7 +14,7 @@ import (
 	"github.com/hiveot/hub/pkg/history/service"
 )
 
-// Start the history store service
+// Connect the history store service
 func main() {
 
 	f := svcconfig.GetFolders("", false)
@@ -33,7 +33,7 @@ func main() {
 				err = svc.Start(ctx)
 			}
 			if err == nil {
-				err = capnpserver.StartHistoryServiceCapnpServer(ctx, lis, svc)
+				err = capnpserver.StartHistoryServiceCapnpServer(svc, lis)
 			}
 			return err
 		}, func() error {

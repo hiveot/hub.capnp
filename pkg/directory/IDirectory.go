@@ -16,16 +16,10 @@ const TDBucketName = "td"
 type IDirectory interface {
 
 	// CapReadDirectory provides the capability to read and query the thing directory
-	CapReadDirectory(ctx context.Context) IReadDirectory
+	CapReadDirectory(ctx context.Context, clientID string) (IReadDirectory, error)
 
 	// CapUpdateDirectory provides the capability to update the thing directory
-	CapUpdateDirectory(ctx context.Context) IUpdateDirectory
-
-	// Stop the service and free its resources
-	//Stop() error
-
-	// TBD: Subscribe to receive TD updates
-	//Subscribe()
+	CapUpdateDirectory(ctx context.Context, clientID string) (IUpdateDirectory, error)
 }
 
 // IDirectoryCursor is a cursor to iterate the directory

@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"testing"
 
+	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/thanhpk/randstr"
@@ -21,7 +22,7 @@ const DefaultBucketID = "default"
 func addRecords(store state.IStateService, clientID, bucketID string, count int) {
 	const batchSize = 50000
 	ctx := context.Background()
-	client, _ := store.CapClientState(ctx, clientID, bucketID)
+	client := store.CapClientState(ctx, clientID, bucketID)
 	nrBatches := (count / batchSize) + 1
 
 	// Don't exceed the max transaction size
@@ -34,7 +35,10 @@ func addRecords(store state.IStateService, clientID, bucketID string, count int)
 			docs[k] = v
 			count--
 		}
-		client.SetMultiple(ctx, docs)
+		err := client.SetMultiple(ctx, docs)
+		if err != nil {
+			logrus.Panicf("set multiple failed with: %s", err)
+		}
 		//client.Commit(nil)
 	}
 	client.Release()
@@ -130,7 +134,7 @@ func BenchmarkSetState(b *testing.B) {
 		store, stopFn, err := startStateService(testUseCapnp)
 		require.NoError(b, err)
 		addRecords(store, clientID1, appID, tbl.dataSize)
-		clientState, err := store.CapClientState(ctx, clientID1, appID)
+		clientState := store.CapClientState(ctx, clientID1, appID)
 
 		b.Run(fmt.Sprintf("SetState. Datasize=%d, #sets=%d", tbl.dataSize, tbl.nrSets),
 			func(b *testing.B) {
@@ -146,7 +150,7 @@ func BenchmarkSetState(b *testing.B) {
 				}
 			})
 		clientState.Release()
-		err = stopFn()
+		stopFn()
 		assert.NoError(b, err)
 	}
 }
@@ -173,7 +177,7 @@ func BenchmarkSetMultiple(b *testing.B) {
 			multiple[td.key] = td.val
 		}
 
-		clientState, err := store.CapClientState(ctx, clientID1, appID)
+		clientState := store.CapClientState(ctx, clientID1, appID)
 
 		b.Run(fmt.Sprintf("SetMultiple. Datasize=%d, #sets=%d", tbl.dataSize, tbl.nrSets),
 			func(b *testing.B) {
@@ -185,7 +189,7 @@ func BenchmarkSetMultiple(b *testing.B) {
 			})
 
 		clientState.Release()
-		err = stopFn()
+		stopFn()
 		assert.NoError(b, err)
 	}
 }
@@ -205,7 +209,7 @@ func BenchmarkGetState(b *testing.B) {
 		store, stopFn, err := startStateService(testUseCapnp)
 		require.NoError(b, err)
 		addRecords(store, clientID1, appID, v.dataSize)
-		clientState, err := store.CapClientState(ctx, clientID1, appID)
+		clientState := store.CapClientState(ctx, clientID1, appID)
 		clientState.Set(ctx, key1, val1)
 
 		// create the client, update and close
@@ -222,7 +226,7 @@ func BenchmarkGetState(b *testing.B) {
 		})
 		clientState.Release()
 
-		err = stopFn()
+		stopFn()
 		assert.NoError(b, err)
 	}
 }

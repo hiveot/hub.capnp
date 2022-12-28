@@ -7,7 +7,7 @@ Provide authorization to access resources based on the client role and group.
 
 ## Status
 
-In development. This service is being converted to provide a capnp API.
+This service is functional but breaking changes can still be expected. 
 
 ## Summary
 

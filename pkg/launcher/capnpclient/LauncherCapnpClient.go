@@ -41,7 +41,6 @@ func (cl *LauncherCapnpClient) Release() {
 	cl.capability.Release()
 }
 
-// Start a service
 func (cl *LauncherCapnpClient) StartService(
 	ctx context.Context, name string) (serviceInfo launcher.ServiceInfo, err error) {
 

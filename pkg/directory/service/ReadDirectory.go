@@ -12,6 +12,8 @@ import (
 // ReadDirectory is a provides the capability to read and iterate the directory
 // This implements the IReadDirectory API
 type ReadDirectory struct {
+	// the client that is reading the directory
+	clientID string
 	// read bucket that holds the TD documents
 	bucket bucketstore.IBucket
 }
@@ -20,7 +22,7 @@ type ReadDirectory struct {
 func (svc *ReadDirectory) GetTD(_ context.Context, thingAddr string) (tdValue *thing.ThingValue, err error) {
 	// bucket keys are made of the gatewayID / thingID
 	raw, err := svc.bucket.Get(thingAddr)
-	if err == nil {
+	if raw != nil {
 		err = json.Unmarshal(raw, &tdValue)
 	}
 	return tdValue, err
@@ -97,7 +99,10 @@ func (svc *ReadDirectory) Release() {
 
 // NewReadDirectory returns the capability to read the directory
 // bucket with the TD documents. Will be closed when done.
-func NewReadDirectory(bucket bucketstore.IBucket) directory.IReadDirectory {
-	svc := &ReadDirectory{bucket: bucket}
+func NewReadDirectory(clientID string, bucket bucketstore.IBucket) directory.IReadDirectory {
+	svc := &ReadDirectory{
+		clientID: clientID,
+		bucket:   bucket,
+	}
 	return svc
 }

@@ -35,7 +35,7 @@ func AuthnAddUserCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comma
 		ArgsUsage: "{loginID}",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 1 {
-				err := fmt.Errorf("Expected 1 argument")
+				err := fmt.Errorf("expected 1 argument")
 				return err
 			}
 			loginID := cCtx.Args().Get(0)
@@ -71,7 +71,7 @@ func AuthnRemoveUserCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Co
 		ArgsUsage: "{loginID}",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 1 {
-				err := fmt.Errorf("Expected 1 arguments")
+				err := fmt.Errorf("expected 1 arguments")
 				return err
 			}
 			loginID := cCtx.Args().Get(0)
@@ -89,10 +89,10 @@ func HandleAddUser(ctx context.Context, f svcconfig.AppFolders, loginID string) 
 
 	conn, err := listener.CreateLocalClientConnection(authn.ServiceName, f.Run)
 	if err == nil {
-		authnClient, err = capnpclient.NewAuthnCapnpClient(ctx, conn)
+		authnClient = capnpclient.NewAuthnCapnpClient(ctx, conn)
 	}
 	if err == nil {
-		manageAuthn = authnClient.CapManageAuthn(ctx)
+		manageAuthn = authnClient.CapManageAuthn(ctx, "hubcli")
 	}
 	if err != nil {
 		return err
@@ -116,10 +116,10 @@ func HandleListUsers(ctx context.Context, f svcconfig.AppFolders) error {
 
 	conn, err := listener.CreateLocalClientConnection(authn.ServiceName, f.Run)
 	if err == nil {
-		authnClient, err = capnpclient.NewAuthnCapnpClient(ctx, conn)
+		authnClient = capnpclient.NewAuthnCapnpClient(ctx, conn)
 	}
 	if err == nil {
-		manageAuthn = authnClient.CapManageAuthn(ctx)
+		manageAuthn = authnClient.CapManageAuthn(ctx, "hubcli")
 	}
 	if err != nil {
 		return err
@@ -146,10 +146,10 @@ func HandleRemoveUser(ctx context.Context, f svcconfig.AppFolders, loginID strin
 
 	conn, err := listener.CreateLocalClientConnection(authn.ServiceName, f.Run)
 	if err == nil {
-		authnClient, err = capnpclient.NewAuthnCapnpClient(ctx, conn)
+		authnClient = capnpclient.NewAuthnCapnpClient(ctx, conn)
 	}
 	if err == nil {
-		manageAuthn = authnClient.CapManageAuthn(ctx)
+		manageAuthn = authnClient.CapManageAuthn(ctx, "hubcli")
 	}
 	if err != nil {
 		return err

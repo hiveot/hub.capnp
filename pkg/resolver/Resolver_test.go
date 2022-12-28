@@ -12,26 +12,27 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/hiveot/hub/pkg/resolver/capnpclient"
+
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub.go/pkg/logging"
 	"github.com/hiveot/hub/internal/captest"
 	"github.com/hiveot/hub/pkg/resolver"
-	"github.com/hiveot/hub/pkg/resolver/capnpclient"
 	"github.com/hiveot/hub/pkg/resolver/capnpserver"
-	"github.com/hiveot/hub/pkg/resolver/client"
 	"github.com/hiveot/hub/pkg/resolver/service"
 )
 
 const testResolverSocket = "/tmp/test-resolver.socket"
+const testSocketDir = "/tmp/test-resolver"
+const testServiceSocket = testSocketDir + "/testservice.socket"
 const testUseCapnp = true
 
-func startResolverAndClient(useCapnp bool) (resolver.IResolverSession, func() error) {
-	var session resolver.IResolverSession
+func startResolverAndClient(useCapnp bool) (resolver.IResolverService, func()) {
 
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	_ = os.RemoveAll(testResolverSocket)
 
-	svc := service.NewResolverService()
+	svc := service.NewResolverService(testSocketDir)
 	err := svc.Start(ctx)
 	if err != nil {
 		logrus.Panicf("Failed to start with socket dir %s", testResolverSocket)
@@ -43,27 +44,26 @@ func startResolverAndClient(useCapnp bool) (resolver.IResolverSession, func() er
 		if err2 != nil {
 			logrus.Panicf("Unable to create a listener, can't run test: %s", err2)
 		}
-		go capnpserver.StartResolverCapnpServer(srvListener, svc)
+		go capnpserver.StartResolverServiceCapnpServer(svc, srvListener, svc.HandleUnknownMethod)
 		time.Sleep(time.Millisecond)
 
 		// connect the client to the server above
-		capClient, err := capnpclient.ConnectToResolver(testResolverSocket)
-		return capClient, func() error {
+		conn, _ := net.Dial("unix", testResolverSocket)
+		capClient, err := capnpclient.NewResolverServiceCapnpClient(ctx, conn)
+		if err != nil {
+			panic("")
+		}
+		return capClient, func() {
 			capClient.Release()
 			time.Sleep(time.Millisecond)
-			err = svc.Stop()
+			_ = svc.Stop()
 			cancelFunc()
-			return err
 		}
-	} else {
-		session = svc.OnIncomingConnection(nil)
 	}
 
-	return session, func() error {
+	return svc, func() {
 		cancelFunc()
-		err = svc.Stop()
-		//certSvc.Stop()
-		return err
+		_ = svc.Stop()
 	}
 }
 func TestMain(m *testing.M) {
@@ -77,8 +77,7 @@ func TestStartStop(t *testing.T) {
 	svc, stopFn := startResolverAndClient(testUseCapnp)
 	assert.NotNil(t, svc)
 
-	err := stopFn()
-	assert.NoError(t, err)
+	stopFn()
 }
 
 // test that the server detects clients disconnecting
@@ -86,52 +85,53 @@ func TestConnectDisconnectClients(t *testing.T) {
 	ctx, cancelFunc := context.WithTimeout(context.Background(), time.Second*30)
 	defer cancelFunc()
 	svc, stopFn := startResolverAndClient(testUseCapnp)
+	defer stopFn()
 
 	require.NotNil(t, svc)
-	capInfo1, err := svc.ListCapabilities(ctx)
+	capInfo1, err := svc.ListCapabilities(ctx, hubapi.ClientTypeService)
 	assert.NoError(t, err)
 	assert.NotNil(t, capInfo1)
 
 	// second connection
-	cl2, err := capnpclient.ConnectToResolver(testResolverSocket)
+	conn2, err := net.Dial("unix", testResolverSocket)
+	require.NoError(t, err)
+	cl2, err := capnpclient.NewResolverServiceCapnpClient(ctx, conn2)
 	assert.NoError(t, err)
-	capInfo2, err := cl2.ListCapabilities(ctx)
+	capInfo2, err := cl2.ListCapabilities(ctx, hubapi.ClientTypeService)
 	assert.NoError(t, err)
 	assert.NotNil(t, capInfo2)
 
 	// after releasing the client this should fail
 	cl2.Release()
-	_, err = cl2.ListCapabilities(ctx)
+	_, err = cl2.ListCapabilities(ctx, hubapi.ClientTypeService)
 	assert.Error(t, err)
 	time.Sleep(time.Millisecond)
 
-	err = stopFn()
-	assert.NoError(t, err)
-	//time.Sleep(time.Second)
 }
 
 // test that the server detects provider disconnecting and releases its capabilities
 func TestConnectDisconnectProviders(t *testing.T) {
 	ctx := context.Background()
+
 	svc, stopFn := startResolverAndClient(testUseCapnp)
 	assert.NotNil(t, svc)
+	defer stopFn()
 
 	// create the client and a registration
-	cl, err := capnpclient.ConnectToResolver(testResolverSocket)
+	conn2, err := net.Dial("unix", testResolverSocket)
+	require.NoError(t, err)
+	cl2, err := capnpclient.NewResolverServiceCapnpClient(ctx, conn2)
 	assert.NoError(t, err)
 
 	// register a capability provider
-	regSrv := client.NewCapRegistrationServer("testservice1", nil)
-	err = cl.RegisterCapabilities(ctx, "test", nil, regSrv.Provider())
+	ts := captest.NewTestService()
+	err = ts.Start(testServiceSocket)
 	assert.NoError(t, err)
+	ts.Stop()
 
 	// after releasing
-	cl.Release()
+	cl2.Release()
 	time.Sleep(time.Millisecond)
-
-	err = stopFn()
-	assert.NoError(t, err)
-	time.Sleep(time.Second)
 }
 
 // Test accessing the capability directly using GetCapability
@@ -144,9 +144,11 @@ func TestGetCapabilityDirect(t *testing.T) {
 
 	// start the test service
 	ts := captest.NewTestService()
-	ts.Listen(listenerSocket)
+	err := ts.Start(listenerSocket)
+	assert.NoError(t, err)
+	defer ts.Stop()
 
-	// obtain the test service capability directly from the service without the use of getcapability.
+	// obtain the test service capability directly from the service without using the resolver.
 	// step 1: connect
 	conn, err := net.Dial("unix", listenerSocket)
 	require.NoError(t, err)
@@ -165,70 +167,93 @@ func TestGetCapabilityDirect(t *testing.T) {
 	resp2, release2 := capMethod1.Method1(ctx, nil)
 	defer release2()
 	resp3, err := resp2.Struct()
+	assert.NoError(t, err)
 	// finally: the end
-	forYouText, _ := resp3.ForYou()
+	forYouText, err := resp3.ForYou()
 	assert.NotEmpty(t, forYouText)
+	assert.NoError(t, err)
 }
 
 func TestGetCapabilityViaResolver(t *testing.T) {
 	//capability1 := "cap1"
-	//serviceID1 := "service1"
+	serviceID1 := "service1"
 
+	// Phase 1 - setup environment with a test service
 	ctx := context.Background()
 	svc, stopFn := startResolverAndClient(testUseCapnp)
+	defer stopFn()
 
 	// register a test service
 	ts := captest.NewTestService()
-	err := ts.Start(testResolverSocket)
+	err := ts.Start(testServiceSocket)
 	assert.NoError(t, err)
+	defer ts.Stop()
 
-	// give the test service time to register with the resolver
+	// give the resolver time to discover the test service
 	time.Sleep(time.Millisecond * 10)
 
-	// obtain the test service capability from the resolver
-	caps, err := svc.ListCapabilities(ctx)
+	// Phase 2 - obtain the test service capability from the resolver
+	caps, err := svc.ListCapabilities(ctx, hubapi.ClientTypeService)
 	require.NoError(t, err)
-	if assert.Equal(t, 1, len(caps)) {
+	require.Equal(t, 1, len(caps))
 
-		// obtain the test service capability for method1
-		capMethod1Client, err2 := svc.GetCapability(ctx, "test", hubapi.ClientTypeService,
-			caps[0].CapabilityName, nil)
-		assert.NoError(t, err2)
-		// cast the actual type
-		capMethod1 := captest.CapMethod1Service(capMethod1Client)
-		// invoke method 1
-		method1, release := capMethod1.Method1(ctx, nil)
-		// get the result
-		resp, err3 := method1.Struct()
-		assert.NoError(t, err3)
+	// Phase 3 - obtain the test service capability for method1 using the resolver connection
+	resConn, _ := net.Dial("unix", testResolverSocket)
+	transport := rpc.NewStreamTransport(resConn)
+	rpcConn := rpc.NewConn(transport, nil)
+	capability := captest.CapTestService(rpcConn.Bootstrap(ctx))
 
-		msg1, _ := resp.ForYou()
-		assert.NotEmpty(t, msg1)
-		// release the method
-		release()
-		// release the capability
-		capMethod1.Release()
-	}
+	// the watcher notifies the resolver that the test service socket was discovered.
+	// the resolver lists its capabilities and adds the test service capabilities to its bootstrap with a stub
+	// that forwards the request.
+	method, release := capability.CapMethod1(ctx,
+		func(params captest.CapTestService_capMethod1_Params) error {
+			err2 := params.SetClientID(serviceID1)
+			assert.NoError(t, err2)
+			_ = params.SetClientType(hubapi.ClientTypeService)
+			return err2
+		})
+	capMethod1 := method.Capabilit()
+	// invoke method 1
+	method1, release := capMethod1.Method1(ctx, nil)
+	// get the result
+	resp, err3 := method1.Struct()
+	assert.NoError(t, err3)
 
-	// when the service disconnects the capabilities should disappear
+	msg1, _ := resp.ForYou()
+	assert.NotEmpty(t, msg1)
+	t.Logf("Received method1 response from testserver: %s", msg1)
+	// release the method and capability
+	release()
+	capMethod1.Release()
+
+	// Phase 4 - stop the test service. Its capabilities should disappear
 	ts.Stop()
 	// remote side needs time to discover disconnect
 	time.Sleep(time.Millisecond * 1)
-	//
-	c1, err := svc.GetCapability(
-		ctx, "test", hubapi.ClientTypeService, caps[0].CapabilityName, nil)
-	err = c1.Resolve(ctx)
-	c2 := captest.CapMethod1Service(c1)
-	m2, r2 := c2.Method1(ctx, nil)
-	_, err = m2.Struct()
-	r2()
-	assert.Error(t, err)
-
-	//
-	caps, err = svc.ListCapabilities(ctx)
+	caps, err = svc.ListCapabilities(ctx, hubapi.ClientTypeService)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(caps))
 
-	err = stopFn()
-	assert.NoError(t, err)
+	// Phase 5 - capabilities should no longer resolve
+	// fixme: can we do without the boilerplate please?
+	// when the service disconnects the capabilities should disappear
+	method, release = capability.CapMethod1(ctx,
+		func(params captest.CapTestService_capMethod1_Params) error {
+			err2 := params.SetClientID(serviceID1)
+			assert.NoError(t, err2)
+			_ = params.SetClientType(hubapi.ClientTypeService)
+			return err2
+		})
+
+	capMethod1b := method.Capabilit()
+
+	// invoke method 1
+	method1b, release := capMethod1b.Method1(ctx, nil)
+	// get the result
+	_, err4 := method1b.Struct()
+
+	assert.Error(t, err4)
+
+	release()
 }

@@ -103,9 +103,9 @@ func (bucket *KVBTreeBucket) Get(key string) (val []byte, err error) {
 
 	val, found = bucket.kvtree.Get(key)
 	if !found {
-		logrus.Debugf("key '%s' not found in map", key)
+		err = fmt.Errorf("key '%s' not found in map", key)
 	}
-	return val, nil
+	return val, err
 }
 
 // GetMultiple returns a batch of documents for the given key

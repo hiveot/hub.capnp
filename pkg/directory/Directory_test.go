@@ -28,7 +28,7 @@ var testStoreFile = path.Join(testFolder, "directory.json")
 const testUseCapnp = true
 
 // startDirectory initializes a Directory service, optionally using capnp RPC
-func startDirectory(useCapnp bool) (directory.IDirectory, func() error) {
+func startDirectory(useCapnp bool) (dir directory.IDirectory, stopFn func()) {
 
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	logrus.Infof("startDirectory start")
@@ -47,22 +47,21 @@ func startDirectory(useCapnp bool) (directory.IDirectory, func() error) {
 		if err != nil {
 			logrus.Panic("Unable to create a listener, can't run test")
 		}
-		go capnpserver.StartDirectoryServiceCapnpServer(srvListener, svc)
+		go capnpserver.StartDirectoryServiceCapnpServer(svc, srvListener)
 
 		// connect the client to the server above
 		clConn, _ := net.Dial("tcp", srvListener.Addr().String())
-		capClient, err := capnpclient.NewDirectoryCapnpClient(ctx, clConn)
-		return capClient, func() error {
+		capClient := capnpclient.NewDirectoryCapnpClient(ctx, clConn)
+		return capClient, func() {
 			cancelFunc()
 			_ = capClient.Release()
 			_ = clConn.Close()
-			err = svc.Stop()
-			return err
+			_ = svc.Stop()
 		}
 	}
-	return svc, func() error {
+	return svc, func() {
 		cancelFunc()
-		return svc.Stop()
+		_ = svc.Stop()
 	}
 }
 
@@ -90,9 +89,8 @@ func TestStartStop(t *testing.T) {
 	logrus.Infof("--- TestStartStop start ---")
 	_ = os.Remove(testStoreFile)
 	store, stopFunc := startDirectory(testUseCapnp)
+	defer stopFunc()
 	assert.NotNil(t, store)
-	err := stopFunc()
-	assert.NoError(t, err)
 	logrus.Infof("--- TestStartStop end ---")
 }
 
@@ -104,30 +102,33 @@ func TestAddRemoveTD(t *testing.T) {
 	const title1 = "title1"
 	ctx := context.Background()
 	store, stopFunc := startDirectory(testUseCapnp)
-	readCap := store.CapReadDirectory(ctx)
-	updateCap := store.CapUpdateDirectory(ctx)
+	defer stopFunc()
+
+	readCap, err := store.CapReadDirectory(ctx, thing1ID)
+	assert.NoError(t, err)
+	updateCap, err := store.CapUpdateDirectory(ctx, thing1ID)
+	assert.NoError(t, err)
 	require.NotNil(t, readCap)
 	require.NotNil(t, updateCap)
 
 	tdDoc1 := createTDDoc(thing1ID, title1)
-	err := updateCap.UpdateTD(ctx, thing1Addr, tdDoc1)
+	err = updateCap.UpdateTD(ctx, thing1Addr, tdDoc1)
 	assert.NoError(t, err)
 
 	tv2, err := readCap.GetTD(ctx, thing1Addr)
-	assert.NoError(t, err)
-	assert.NotNil(t, tv2)
-	assert.Equal(t, thing1Addr, tv2.ThingAddr)
-	assert.Equal(t, tdDoc1, tv2.ValueJSON)
-
+	if assert.NoError(t, err) {
+		assert.NotNil(t, tv2)
+		assert.Equal(t, thing1Addr, tv2.ThingAddr)
+		assert.Equal(t, tdDoc1, tv2.ValueJSON)
+	}
 	err = updateCap.RemoveTD(ctx, thing1Addr)
 	assert.NoError(t, err)
 	td3, err := readCap.GetTD(ctx, thing1Addr)
 	assert.Nil(t, td3)
+	assert.Error(t, err)
 
 	readCap.Release()
 	updateCap.Release()
-	err = stopFunc()
-	assert.NoError(t, err)
 
 	logrus.Infof("--- TestRemoveTD end ---")
 }
@@ -168,15 +169,18 @@ func TestCursor(t *testing.T) {
 
 	ctx := context.Background()
 	store, stopFunc := startDirectory(testUseCapnp)
+	defer stopFunc()
 
-	readCap := store.CapReadDirectory(ctx)
+	readCap, err := store.CapReadDirectory(ctx, thing1ID)
+	assert.NoError(t, err)
 	defer readCap.Release()
-	updateCap := store.CapUpdateDirectory(ctx)
+	updateCap, err := store.CapUpdateDirectory(ctx, thing1ID)
+	assert.NoError(t, err)
 	defer updateCap.Release()
 
 	// add 1 doc. the service itself also has a doc
 	tdDoc1 := createTDDoc(thing1ID, title1)
-	err := updateCap.UpdateTD(ctx, thing1Addr, tdDoc1)
+	err = updateCap.UpdateTD(ctx, thing1Addr, tdDoc1)
 	require.NoError(t, err)
 
 	// expect 2 docs, the service itself and the one just added
@@ -202,7 +206,6 @@ func TestCursor(t *testing.T) {
 	assert.False(t, valid)
 	assert.Empty(t, tdValues)
 
-	err = stopFunc()
 	assert.NoError(t, err)
 	logrus.Infof("--- TestCursor end ---")
 }
@@ -249,8 +252,11 @@ func TestPerf(t *testing.T) {
 
 	ctx := context.Background()
 	store, stopFunc := startDirectory(true)
-	readCap := store.CapReadDirectory(ctx)
-	updateCap := store.CapUpdateDirectory(ctx)
+	defer stopFunc()
+	readCap, err := store.CapReadDirectory(ctx, thing1ID)
+	assert.NoError(t, err)
+	updateCap, err := store.CapUpdateDirectory(ctx, thing1ID)
+	assert.NoError(t, err)
 
 	// test update
 	t1 := time.Now()
@@ -274,7 +280,5 @@ func TestPerf(t *testing.T) {
 
 	readCap.Release()
 	updateCap.Release()
-	err := stopFunc()
-	assert.NoError(t, err)
 	logrus.Infof("--- end TestPerf ---")
 }

@@ -1,0 +1,96 @@
+package capprovider
+
+import (
+	"context"
+	"net"
+
+	"capnproto.org/go/capnp/v3"
+	"capnproto.org/go/capnp/v3/rpc"
+	"github.com/sirupsen/logrus"
+
+	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/pkg/resolver"
+	"github.com/hiveot/hub/pkg/resolver/capserializer"
+)
+
+// CapClient is a client to capability providers
+// This is a helper to obtain a capability from a capability server
+type CapClient struct {
+	// capProvider is the capability of the service provider for GetCapability and ListCapabilities
+	capProvider *hubapi.CapProvider
+	// connection to the provider
+	rpcConn *rpc.Conn
+}
+
+// Boot returns the remote's bootstrap client
+func (cl *CapClient) Boot() capnp.Client {
+	return capnp.Client(*cl.capProvider)
+}
+
+// GetCapability obtains a capability from the connected service provider
+//func (cl *CapClient) GetCapability(ctx context.Context,
+//	clientID, clientType string, capabilityName string, args []string) (capability capnp.Client, err error) {
+//
+//	method, release := cl.capProvider.GetCapability(ctx,
+//		func(params hubapi.CapProvider_getCapability_Params) error {
+//			err := params.SetClientID(clientID)
+//			_ = params.SetClientType(clientType)
+//			_ = params.SetCapName(capabilityName)
+//			if args != nil {
+//				err = params.SetArgs(caphelp.MarshalStringList(args))
+//			}
+//			return err
+//		})
+//	defer release()
+//	// return a future. Caller must release
+//	// resolve the capability otherwise we don't get an error until much later
+//	resp, err := method.Struct()
+//	if err == nil {
+//		capability = resp.Capability().AddRef()
+//	}
+//	return capability, err
+//}
+
+// ListCapabilities returns a list of capabilities that can be obtained from the service
+func (cl *CapClient) ListCapabilities(ctx context.Context) (infoList []resolver.CapabilityInfo, err error) {
+	//logrus.Infof("")
+	infoList = make([]resolver.CapabilityInfo, 0)
+	method, release := cl.capProvider.ListCapabilities(ctx, nil)
+	defer release()
+	resp, err := method.Struct()
+	if err == nil {
+		infoListCapnp, err2 := resp.InfoList()
+		if err = err2; err == nil {
+			infoList = capserializer.UnmarshalCapabilyInfoList(infoListCapnp)
+		}
+	}
+	return infoList, err
+}
+
+// Release the client and close the connection to the provider
+// This will also release all capabilities obtained via this client.
+func (cl *CapClient) Release() {
+	if cl.capProvider != nil {
+		cl.capProvider.Release()
+	}
+	if cl.rpcConn != nil {
+		err := cl.rpcConn.Close()
+		if err != nil {
+			logrus.Warning(err)
+		}
+	}
+}
+
+// StartCapClient creates a client to obtain capabilities from a server
+// conn is the connection to the service that provides the capability
+func StartCapClient(conn net.Conn) *CapClient {
+	transport := rpc.NewStreamTransport(conn)
+	rpcConn := rpc.NewConn(transport, nil)
+	ctx := context.Background()
+	capProvider := hubapi.CapProvider(rpcConn.Bootstrap(ctx))
+	cl := &CapClient{
+		capProvider: &capProvider,
+		rpcConn:     rpcConn,
+	}
+	return cl
+}

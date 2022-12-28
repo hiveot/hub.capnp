@@ -59,7 +59,7 @@ func HandleListGroups(ctx context.Context, f svcconfig.AppFolders, clientID stri
 		authzClient, err = capnpclient.NewAuthzCapnpClient(ctx, conn)
 	}
 	if err == nil {
-		manageAuthz = authzClient.CapManageAuthz(ctx)
+		manageAuthz = authzClient.CapManageAuthz(ctx, "hubcli")
 	}
 	if err != nil {
 		return err

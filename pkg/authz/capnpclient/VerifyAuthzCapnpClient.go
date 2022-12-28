@@ -42,9 +42,9 @@ func (authz *VerifyAuthzCapnpClient) GetPermissions(
 
 	method, release := authz.capability.GetPermissions(ctx,
 		func(params hubapi.CapVerifyAuthz_getPermissions_Params) error {
-			params.SetClientID(clientID)
-			params.SetThingAddr(thingAddr)
-			return nil
+			err := params.SetClientID(clientID)
+			_ = params.SetThingAddr(thingAddr)
+			return err
 		})
 	defer release()
 

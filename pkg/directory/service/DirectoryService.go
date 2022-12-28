@@ -20,6 +20,22 @@ type DirectoryService struct {
 	tdBucketName string
 }
 
+// CapReadDirectory provides the service to read the directory
+func (srv *DirectoryService) CapReadDirectory(
+	_ context.Context, clientID string) (directory.IReadDirectory, error) {
+	bucket := srv.store.GetBucket(srv.tdBucketName)
+	rd := NewReadDirectory(clientID, bucket)
+	return rd, nil
+}
+
+// CapUpdateDirectory provides the service to update the directory
+func (srv *DirectoryService) CapUpdateDirectory(
+	_ context.Context, clientID string) (directory.IUpdateDirectory, error) {
+	bucket := srv.store.GetBucket(srv.tdBucketName)
+	ud := NewUpdateDirectory(clientID, bucket)
+	return ud, nil
+}
+
 // Create a new Thing TD document describing this service
 func (srv *DirectoryService) createServiceTD() *thing.ThingDescription {
 	title := "Directory Store Service"
@@ -29,20 +45,6 @@ func (srv *DirectoryService) createServiceTD() *thing.ThingDescription {
 	return td
 }
 
-// CapReadDirectory provides the service to read the directory
-func (srv *DirectoryService) CapReadDirectory(_ context.Context) directory.IReadDirectory {
-	bucket := srv.store.GetBucket(srv.tdBucketName)
-	rd := NewReadDirectory(bucket)
-	return rd
-}
-
-// CapUpdateDirectory provides the service to update the directory
-func (srv *DirectoryService) CapUpdateDirectory(_ context.Context) directory.IUpdateDirectory {
-	bucket := srv.store.GetBucket(srv.tdBucketName)
-	ud := NewUpdateDirectory(bucket)
-	return ud
-}
-
 // Start opens the store and updates the service own TD
 func (srv *DirectoryService) Start(ctx context.Context) error {
 	err := srv.store.Open()
@@ -50,9 +52,12 @@ func (srv *DirectoryService) Start(ctx context.Context) error {
 		myTD := srv.createServiceTD()
 		myTDJSON, _ := json.Marshal(myTD)
 		myTDAddr := srv.hubID + "/" + myTD.ID
-		ud := srv.CapUpdateDirectory(ctx)
-		err = ud.UpdateTD(ctx, myTDAddr, myTDJSON)
-		ud.Release()
+		ud, err2 := srv.CapUpdateDirectory(ctx, directory.ServiceName)
+		err = err2
+		if err == nil {
+			err = ud.UpdateTD(ctx, myTDAddr, myTDJSON)
+			ud.Release()
+		}
 	}
 	return err
 }

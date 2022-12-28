@@ -23,19 +23,18 @@ func MarshalCapabilityInfoList(infoList []resolver.CapabilityInfo) (infoListCapn
 func MarshalCapabilityInfo(capInfo *resolver.CapabilityInfo) hubapi.CapabilityInfo {
 	_, seg, _ := capnp.NewMessage(capnp.SingleSegment(nil))
 	capInfoCapnp, _ := hubapi.NewCapabilityInfo(seg)
-	if capInfo.CapabilityArgs != nil {
-		capabilityArgsCapnp := caphelp.MarshalStringList(capInfo.CapabilityArgs)
-		_ = capInfoCapnp.SetCapabilityArgs(capabilityArgsCapnp)
-	}
 	if capInfo.ClientTypes != nil {
 		clientTypesCapnp := caphelp.MarshalStringList(capInfo.ClientTypes)
 		_ = capInfoCapnp.SetClientTypes(clientTypesCapnp)
 	}
-	_ = capInfoCapnp.SetCapabilityName(capInfo.CapabilityName)
+	capInfoCapnp.SetInterfaceID(capInfo.InterfaceID)
+	capInfoCapnp.SetMethodID(capInfo.MethodID)
+	_ = capInfoCapnp.SetInterfaceName(capInfo.InterfaceName)
+	_ = capInfoCapnp.SetMethodName(capInfo.MethodName)
 	_ = capInfoCapnp.SetProtocol(capInfo.Protocol)
 	_ = capInfoCapnp.SetServiceID(capInfo.ServiceID)
-	_ = capInfoCapnp.SetDNetwork(capInfo.DNetwork)
-	_ = capInfoCapnp.SetDAddress(capInfo.DAddress)
+	_ = capInfoCapnp.SetNetwork(capInfo.Network)
+	_ = capInfoCapnp.SetAddress(capInfo.Address)
 	return capInfoCapnp
 }
 
@@ -55,13 +54,14 @@ func UnmarshalCapabilyInfoList(infoListCapnp hubapi.CapabilityInfo_List) (infoLi
 func UnmarshalCapabilityInfo(infoCapnp hubapi.CapabilityInfo) (info resolver.CapabilityInfo) {
 
 	clientTypesCapnp, _ := infoCapnp.ClientTypes()
-	argsCapnp, _ := infoCapnp.CapabilityArgs()
 	info.ClientTypes = caphelp.UnmarshalStringList(clientTypesCapnp)
-	info.CapabilityArgs = caphelp.UnmarshalStringList(argsCapnp)
-	info.CapabilityName, _ = infoCapnp.CapabilityName()
+	info.InterfaceID = infoCapnp.InterfaceID()
+	info.MethodID = infoCapnp.MethodID()
+	info.InterfaceName, _ = infoCapnp.InterfaceName()
+	info.MethodName, _ = infoCapnp.MethodName()
 	info.Protocol, _ = infoCapnp.Protocol()
 	info.ServiceID, _ = infoCapnp.ServiceID()
-	info.DNetwork, _ = infoCapnp.DNetwork()
-	info.DAddress, _ = infoCapnp.DAddress()
+	info.Network, _ = infoCapnp.Network()
+	info.Address, _ = infoCapnp.Address()
 	return info
 }

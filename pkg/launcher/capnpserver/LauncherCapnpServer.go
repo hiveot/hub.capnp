@@ -4,22 +4,19 @@ import (
 	"context"
 	"net"
 
-	"capnproto.org/go/capnp/v3"
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
-	"github.com/hiveot/hub/internal/caphelp"
 	"github.com/hiveot/hub/pkg/launcher"
 	"github.com/hiveot/hub/pkg/launcher/capserializer"
-	"github.com/hiveot/hub/pkg/resolver/client"
+	"github.com/hiveot/hub/pkg/resolver/capprovider"
 )
 
 // LauncherCapnpServer provides the capnproto RPC server for the service launcher
 // This implements the capnproto generated interface Launcher_Server
 // See hub.capnp/go/hubapi/launcher.capnp.go for the interface.
 type LauncherCapnpServer struct {
-	capRegSrv *client.CapRegistrationServer
-	svc       launcher.ILauncher
+	svc launcher.ILauncher
 }
 
 func (capsrv *LauncherCapnpServer) List(ctx context.Context, call hubapi.CapLauncher_list) error {
@@ -69,21 +66,21 @@ func (capsrv *LauncherCapnpServer) StopAll(ctx context.Context, call hubapi.CapL
 //
 //	lis is the socket server from whom to accept connections
 //	svc is the instance of the launcher service
-func StartLauncherCapnpServer(lis net.Listener, svc launcher.ILauncher) error {
+func StartLauncherCapnpServer(lis net.Listener, svc launcher.ILauncher) (err error) {
+	serviceName := launcher.ServiceName
 
-	logrus.Infof("Starting launcher service capnp adapter on: %s", lis.Addr())
 	capsrv := &LauncherCapnpServer{
 		svc: svc,
 	}
-	capRegSrv := client.NewCapRegistrationServer(
-		launcher.ServiceName,
+	// the provider serves the exported capabilities
+	// this replaces CapLauncher_ServerToClient
+	capProv := capprovider.NewCapServer(serviceName,
 		hubapi.CapLauncher_Methods(nil, capsrv))
+
 	// the launcher does not have any exported capabilities (yet)
 	//capRegSrv.ExportCapability("", []string{hubapi.ClientTypeService})
 
-	main := hubapi.CapLauncher_ServerToClient(&LauncherCapnpServer{
-		svc:       svc,
-		capRegSrv: capRegSrv,
-	})
-	return caphelp.Serve(lis, capnp.Client(main), nil)
+	logrus.Infof("Starting launcher service capnp adapter on: %s", lis.Addr())
+	err = capProv.Start(lis)
+	return err
 }

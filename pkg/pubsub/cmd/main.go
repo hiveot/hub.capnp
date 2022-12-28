@@ -11,7 +11,7 @@ import (
 	"github.com/hiveot/hub/pkg/pubsub/service"
 )
 
-// Start the history store service
+// Connect the history store service
 func main() {
 	f := svcconfig.LoadServiceConfig(pubsub.ServiceName, false, nil)
 
@@ -21,7 +21,7 @@ func main() {
 		func(ctx context.Context, lis net.Listener) error {
 			// startup
 			err := svc.Start()
-			err = capnpserver.StartPubSubCapnpServer(ctx, lis, svc)
+			err = capnpserver.StartPubSubCapnpServer(svc, lis)
 			return err
 		}, func() error {
 			// shutdown

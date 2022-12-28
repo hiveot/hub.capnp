@@ -39,19 +39,23 @@ type ProvisioningService struct {
 }
 
 // CapManageProvisioning provides the capability to manage provisioning
-func (svc *ProvisioningService) CapManageProvisioning(_ context.Context) provisioning.IManageProvisioning {
+func (svc *ProvisioningService) CapManageProvisioning(
+	_ context.Context, clientID string) provisioning.IManageProvisioning {
+
 	// TODO: separate instances of each capability
 	return svc
 }
 
 // CapRefreshProvisioning provides the capability to refresh device provisioning
-func (svc *ProvisioningService) CapRefreshProvisioning(_ context.Context) provisioning.IRefreshProvisioning {
+func (svc *ProvisioningService) CapRefreshProvisioning(
+	_ context.Context, clientID string) provisioning.IRefreshProvisioning {
 	// TODO: separate instances of each capability
 	return svc
 }
 
 // CapRequestProvisioning provides the capability to request device provisioning
-func (svc *ProvisioningService) CapRequestProvisioning(_ context.Context) provisioning.IRequestProvisioning {
+func (svc *ProvisioningService) CapRequestProvisioning(
+	_ context.Context, clientID string) provisioning.IRequestProvisioning {
 	// TODO: separate instances of each capability and lifecycle
 	return svc
 }

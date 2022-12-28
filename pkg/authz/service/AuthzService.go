@@ -23,29 +23,30 @@ type AuthzService struct {
 func (authzService *AuthzService) CapClientAuthz(
 	ctx context.Context, clientID string) authz.IClientAuthz {
 
-	capVerifyAuthz := authzService.CapVerifyAuthz(ctx)
-	clientAuthz := NewClientAuthz(clientID, capVerifyAuthz)
+	verifyAuthz := authzService.CapVerifyAuthz(ctx, clientID)
+	clientAuthz := NewClientAuthz(clientID, verifyAuthz)
 	return clientAuthz
 }
 
 // CapManageAuthz returns the capability to manage authorization
-func (authzService *AuthzService) CapManageAuthz(ctx context.Context) authz.IManageAuthz {
-	_ = ctx
-	manageAuthz := NewManageAuthz(authzService.aclStore)
+func (authzService *AuthzService) CapManageAuthz(
+	_ context.Context, clientID string) authz.IManageAuthz {
+
+	manageAuthz := NewManageAuthz(authzService.aclStore, clientID)
 	return manageAuthz
 }
 
 // CapVerifyAuthz returns the capability to verify authorization
-func (authzService *AuthzService) CapVerifyAuthz(ctx context.Context) authz.IVerifyAuthz {
-	_ = ctx
-	verifyAuthz := NewVerifyAuthz(authzService.aclStore)
+func (authzService *AuthzService) CapVerifyAuthz(
+	_ context.Context, clientID string) authz.IVerifyAuthz {
+
+	verifyAuthz := NewVerifyAuthz(authzService.aclStore, clientID)
 	return verifyAuthz
 }
 
 // Stop closes the service and release resources
-func (authzService *AuthzService) Stop() error {
+func (authzService *AuthzService) Stop() {
 	authzService.aclStore.Close()
-	return nil
 }
 
 // Start the ACL store for reading

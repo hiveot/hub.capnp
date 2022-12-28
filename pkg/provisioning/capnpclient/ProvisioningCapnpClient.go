@@ -18,39 +18,61 @@ type ProvisioningCapnpClient struct {
 }
 
 // CapManageProvisioning provides the capability to manage provisioning requests
-func (cl *ProvisioningCapnpClient) CapManageProvisioning(ctx context.Context) provisioning.IManageProvisioning {
-	getCap, release := cl.capability.CapManageProvisioning(ctx, nil)
+func (cl *ProvisioningCapnpClient) CapManageProvisioning(
+	ctx context.Context, clientID string) provisioning.IManageProvisioning {
+
+	getCap, release := cl.capability.CapManageProvisioning(ctx,
+		func(params hubapi.CapProvisioning_capManageProvisioning_Params) error {
+			err2 := params.SetClientID(clientID)
+			return err2
+		})
 	defer release()
 	capability := getCap.Cap()
-	return NewManageProvisioningCapnpClient(capability.AddRef())
+	newCap := NewManageProvisioningCapnpClient(capability.AddRef())
+	return newCap
 }
 
 // CapRequestProvisioning provides the capability to provision IoT devices
-func (cl *ProvisioningCapnpClient) CapRequestProvisioning(ctx context.Context) provisioning.IRequestProvisioning {
-	getCap, release := cl.capability.CapRequestProvisioning(ctx, nil)
+func (cl *ProvisioningCapnpClient) CapRequestProvisioning(
+	ctx context.Context, clientID string) provisioning.IRequestProvisioning {
+
+	getCap, release := cl.capability.CapRequestProvisioning(ctx,
+		func(params hubapi.CapProvisioning_capRequestProvisioning_Params) error {
+			err2 := params.SetClientID(clientID)
+			return err2
+		})
 	defer release()
 	capability := getCap.Cap()
-	return NewRequestProvisioningCapnpClient(capability.AddRef())
+	newCap := NewRequestProvisioningCapnpClient(capability.AddRef())
+	return newCap
 }
 
 // CapRefreshProvisioning provides the capability for IoT devices to refresh
-func (cl *ProvisioningCapnpClient) CapRefreshProvisioning(ctx context.Context) provisioning.IRefreshProvisioning {
-	getCap, release := cl.capability.CapRefreshProvisioning(ctx, nil)
+func (cl *ProvisioningCapnpClient) CapRefreshProvisioning(
+	ctx context.Context, clientID string) provisioning.IRefreshProvisioning {
+
+	getCap, release := cl.capability.CapRefreshProvisioning(ctx,
+		func(params hubapi.CapProvisioning_capRefreshProvisioning_Params) error {
+			err2 := params.SetClientID(clientID)
+			return err2
+		})
 	defer release()
 	capability := getCap.Cap()
-	return NewRefreshProvisioningCapnpClient(capability.AddRef())
+	newCap := NewRefreshProvisioningCapnpClient(capability.AddRef())
+	return newCap
 }
 
 // Release the client capability
 func (cl *ProvisioningCapnpClient) Release() {
 	cl.capability.Release()
+	cl.connection.Close()
 }
 
 // NewProvisioningCapnpClient returns a provisioning service client using the capnp protocol
 //
 //	ctx is the context for this client's connection. Release it to release the client.
 //	conn is the connection with the provisioning capnp RPC server
-func NewProvisioningCapnpClient(ctx context.Context, connection net.Conn) (*ProvisioningCapnpClient, error) {
+func NewProvisioningCapnpClient(ctx context.Context, connection net.Conn) *ProvisioningCapnpClient {
 	var cl *ProvisioningCapnpClient
 
 	transport := rpc.NewStreamTransport(connection)
@@ -61,5 +83,5 @@ func NewProvisioningCapnpClient(ctx context.Context, connection net.Conn) (*Prov
 		connection: rpcConn,
 		capability: capability,
 	}
-	return cl, nil
+	return cl
 }

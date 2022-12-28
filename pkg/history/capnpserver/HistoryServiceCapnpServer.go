@@ -4,29 +4,29 @@ import (
 	"context"
 	"net"
 
-	"capnproto.org/go/capnp/v3"
+	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
-	"github.com/hiveot/hub/internal/caphelp"
 	"github.com/hiveot/hub/pkg/history"
-	"github.com/hiveot/hub/pkg/resolver/client"
+	"github.com/hiveot/hub/pkg/resolver/capprovider"
 )
 
 // HistoryServiceCapnpServer is a capnproto adapter for the history store
 // This implements the capnproto generated interface History_Server
 // See hub.capnp/go/hubapi/HistoryStore.capnp.go for the interface.
 type HistoryServiceCapnpServer struct {
-	capRegSrv *client.CapRegistrationServer
-	svc       history.IHistoryService
+	svc history.IHistoryService
 }
 
 func (capsrv *HistoryServiceCapnpServer) CapAddHistory(
 	ctx context.Context, call hubapi.CapHistoryService_capAddHistory) error {
 	// create a client instance for adding history
 	args := call.Args()
+	clientID, _ := args.ClientID()
 	thingAddr, _ := args.ThingAddr()
+	capAdd, _ := capsrv.svc.CapAddHistory(ctx, clientID, thingAddr)
 	ahCapSrv := &AddHistoryCapnpServer{
-		svc: capsrv.svc.CapAddHistory(ctx, thingAddr),
+		svc: capAdd,
 	}
 
 	capnpAddHistory := hubapi.CapAddHistory_ServerToClient(ahCapSrv)
@@ -40,8 +40,10 @@ func (capsrv *HistoryServiceCapnpServer) CapAddHistory(
 func (capsrv *HistoryServiceCapnpServer) CapAddAnyThing(
 	ctx context.Context, call hubapi.CapHistoryService_capAddAnyThing) error {
 	// create a client instance for adding history
+	clientID, _ := call.Args().ClientID()
+	capAny, _ := capsrv.svc.CapAddAnyThing(ctx, clientID)
 	ahCapSrv := &AddHistoryCapnpServer{
-		svc: capsrv.svc.CapAddAnyThing(ctx),
+		svc: capAny,
 	}
 	// reuse the add history marshalling
 	capnpAddHistory := hubapi.CapAddHistory_ServerToClient(ahCapSrv)
@@ -58,8 +60,10 @@ func (capsrv *HistoryServiceCapnpServer) CapReadHistory(
 	// create a client instance for reading the history
 	args := call.Args()
 	thingAddr, _ := args.ThingAddr()
+	clientID, _ := args.ClientID()
+	capRead, _ := capsrv.svc.CapReadHistory(ctx, clientID, thingAddr)
 	readSrv := &ReadHistoryCapnpServer{
-		svc: capsrv.svc.CapReadHistory(ctx, thingAddr),
+		svc: capRead,
 	}
 	capnpReadHistory := hubapi.CapReadHistory_ServerToClient(readSrv)
 	res, err := call.AllocResults()
@@ -87,21 +91,27 @@ func (capsrv *HistoryServiceCapnpServer) CapReadHistory(
 //}
 
 // StartHistoryServiceCapnpServer returns the capnp protocol server for the history store
-func StartHistoryServiceCapnpServer(_ context.Context, listener net.Listener, svc history.IHistoryService) error {
+func StartHistoryServiceCapnpServer(svc history.IHistoryService, lis net.Listener) (err error) {
+	serviceName := history.ServiceName
 
 	capsrv := &HistoryServiceCapnpServer{
 		svc: svc,
 	}
-	capRegSrv := client.NewCapRegistrationServer(
-		history.ServiceName, hubapi.CapHistoryService_Methods(nil, capsrv))
-	capRegSrv.ExportCapability("capAddHistory", []string{hubapi.ClientTypeService})
-	capRegSrv.ExportCapability("capAddAnyThing", []string{hubapi.ClientTypeService})
-	capRegSrv.ExportCapability("capReadHistory",
-		[]string{hubapi.ClientTypeService, hubapi.ClientTypeUser})
-	capsrv.capRegSrv = capRegSrv
+	// the provider serves the exported capabilities
+	// this replaces CapHistoryService_ServerToClient
+	capProv := capprovider.NewCapServer(
+		serviceName,
+		hubapi.CapHistoryService_Methods(nil, capsrv))
 
-	// Create the capnp handler to receive requests
-	main := hubapi.CapHistoryService_ServerToClient(capsrv)
-	err := caphelp.Serve(listener, capnp.Client(main), nil)
+	capProv.ExportCapability(hubapi.CapNameAddHistory, []string{hubapi.ClientTypeService})
+
+	capProv.ExportCapability(hubapi.CapNameAddAnyThing, []string{hubapi.ClientTypeService})
+
+	capProv.ExportCapability(hubapi.CapNameReadHistory,
+		[]string{hubapi.ClientTypeService, hubapi.ClientTypeUser})
+
+	logrus.Infof("Starting '%s' service capnp adapter listening on: %s", serviceName, lis.Addr())
+	err = capProv.Start(lis)
+
 	return err
 }

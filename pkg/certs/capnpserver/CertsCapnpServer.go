@@ -3,23 +3,19 @@ package capnpserver
 
 import (
 	"context"
-	"log"
 	"net"
 
-	"capnproto.org/go/capnp/v3"
-	"capnproto.org/go/capnp/v3/rpc"
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/pkg/certs"
-	"github.com/hiveot/hub/pkg/resolver/client"
+	"github.com/hiveot/hub/pkg/resolver/capprovider"
 )
 
 // CertsCapnpServer provides the capnpr RPC server for interface hubapi.CapCerts_Server
 // See hub.capnp/go/hubapi/Certs.capnp.go for the interface
 type CertsCapnpServer struct {
-	capProvider *client.CapRegistrationServer
-	svc         certs.ICerts
+	svc certs.ICerts
 }
 
 // CapDeviceCerts provides the device certificate capability
@@ -29,9 +25,10 @@ func (capsrv *CertsCapnpServer) CapDeviceCerts(
 	ctx context.Context, call hubapi.CapCerts_capDeviceCerts) error {
 
 	// Create the capnp proxy that provides the capability to create device certificates
-	// TODO: use context to identify caller and include as part of restrictions?
+	clientID, _ := call.Args().ClientID()
+	capDeviceCerts := capsrv.svc.CapDeviceCerts(ctx, clientID)
 	deviceCertsSrv := &DeviceCertsCapnpServer{
-		srv: capsrv.svc.CapDeviceCerts(ctx),
+		srv: capDeviceCerts,
 	}
 
 	capability := hubapi.CapDeviceCerts_ServerToClient(deviceCertsSrv)
@@ -49,8 +46,10 @@ func (capsrv *CertsCapnpServer) CapServiceCerts(
 	ctx context.Context, call hubapi.CapCerts_capServiceCerts) error {
 
 	// Create the capnp proxy that provides the capability to create certificates
+	clientID, _ := call.Args().ClientID()
+	capServiceCerts := capsrv.svc.CapServiceCerts(ctx, clientID)
 	serviceCertsSrv := &ServiceCertsCapnpServer{
-		srv: capsrv.svc.CapServiceCerts(ctx),
+		srv: capServiceCerts,
 	}
 
 	capability := hubapi.CapServiceCerts_ServerToClient(serviceCertsSrv)
@@ -67,8 +66,10 @@ func (capsrv *CertsCapnpServer) CapUserCerts(
 	ctx context.Context, call hubapi.CapCerts_capUserCerts) error {
 
 	// Create the capnp proxy that provides the capability to create certificates
+	clientID, _ := call.Args().ClientID()
+	capUserCerts := capsrv.svc.CapUserCerts(ctx, clientID)
 	userCertsSrv := &UserCertsCapnpServer{
-		srv: capsrv.svc.CapUserCerts(ctx),
+		srv: capUserCerts,
 	}
 
 	capability := hubapi.CapUserCerts_ServerToClient(userCertsSrv)
@@ -85,8 +86,10 @@ func (capsrv *CertsCapnpServer) CapVerifyCerts(
 	ctx context.Context, call hubapi.CapCerts_capVerifyCerts) error {
 
 	// Create the capnp proxy that provides the capability to create certificates
+	clientID, _ := call.Args().ClientID()
+	capVerifyCerts := capsrv.svc.CapVerifyCerts(ctx, clientID)
 	verifyCertsSrv := &VerifyCertsCapnpServer{
-		srv: capsrv.svc.CapVerifyCerts(ctx),
+		srv: capVerifyCerts,
 	}
 
 	capability := hubapi.CapVerifyCerts_ServerToClient(verifyCertsSrv)
@@ -98,36 +101,34 @@ func (capsrv *CertsCapnpServer) CapVerifyCerts(
 }
 
 // StartCertsCapnpServer starts the capnp protocol server for the certificates service
-func StartCertsCapnpServer(lis net.Listener, svc certs.ICerts) error {
+//
+//	svc is the service implementation
+//	lis is the service listning endpoint for direct connections
+//	resolverSocket is the UDS socket of the resolver used to register the service capabilities. "" to not register.
+func StartCertsCapnpServer(svc certs.ICerts, lis net.Listener) (err error) {
 
-	logrus.Infof("Starting certs service capnp server on: %s", lis.Addr())
-
+	serviceName := certs.ServiceName
 	srv := &CertsCapnpServer{
 		svc: svc,
 	}
-	capRegSrv := client.NewCapRegistrationServer(
-		certs.ServiceName, hubapi.CapCerts_Methods(nil, srv))
-	srv.capProvider = capRegSrv
+
+	// the provider serves the exported capabilities
+	capProv := capprovider.NewCapServer(
+		serviceName,
+		hubapi.CapCerts_Methods(nil, srv))
 
 	// register the methods available through getCapability
-	capRegSrv.ExportCapability("capDeviceCerts", []string{hubapi.ClientTypeService})
-	capRegSrv.ExportCapability("capServiceCerts", []string{hubapi.ClientTypeService})
-	capRegSrv.ExportCapability("capUserCerts", []string{hubapi.ClientTypeService})
-	capRegSrv.ExportCapability("capVerifyCerts", []string{
+	capProv.ExportCapability("capDeviceCerts", []string{hubapi.ClientTypeService})
+	capProv.ExportCapability("capServiceCerts", []string{hubapi.ClientTypeService})
+	capProv.ExportCapability("capUserCerts", []string{hubapi.ClientTypeService})
+	capProv.ExportCapability("capVerifyCerts", []string{
 		hubapi.ClientTypeService,
 		hubapi.ClientTypeIotDevice,
 		hubapi.ClientTypeUser,
 		hubapi.ClientTypeUnauthenticated,
 	})
-	_ = capRegSrv.Start("")
 
-	// Create the capnp server proxy that provides the certificate capability
-	// TODO:
-	main := hubapi.CapCerts_ServerToClient(srv)
-	err := rpc.Serve(lis, capnp.Client(main))
-
-	capRegSrv.Stop()
-
-	log.Printf("Certs service capnp server stopped")
+	logrus.Infof("Starting '%s' service capnp adapter listening on: %s", serviceName, lis.Addr())
+	err = capProv.Start(lis)
 	return err
 }

@@ -24,12 +24,10 @@ import (
 // when testing using the capnp RPC
 const testUseCapnp = true
 
-var homeFolder string = "/tmp"
-var logFolder string = "/tmp"
+var homeFolder = "/tmp"
+var logFolder = "/tmp"
 
 func newServer(useCapnp bool) (l launcher.ILauncher, stopFn func()) {
-	//cwd, _ := os.Getwd()
-	//homeFolder = path.Join(cwd, "../../dist")
 	var launcherConfig = config.NewLauncherConfig()
 	launcherConfig.AttachStderr = true
 	launcherConfig.AttachStdout = false

@@ -24,9 +24,10 @@ import (
 // * where 'e|a' is 'e' for events and 'a' for actions
 type AddHistory struct {
 	// this buckets holds the history updates of events and actions
+	clientID  string
 	bucket    bucketstore.IBucket
 	store     bucketstore.IBucketStore
-	ThingAddr string // address of the Thing the bucket belongs to
+	thingAddr string // address of the Thing the bucket belongs to
 
 	// callback to invoke when an event is added. Intended for tracking latest value.
 	onAddedValue func(ev *thing.ThingValue, isAction bool)
@@ -125,13 +126,13 @@ func (svc *AddHistory) Release() {
 // validateValue checks the event has the right thing address and adds a timestamp if missing
 func (svc *AddHistory) validateValue(thingValue *thing.ThingValue) error {
 	if thingValue == nil {
-		return fmt.Errorf("nil event instead of event for Thing '%s'", svc.ThingAddr)
+		return fmt.Errorf("nil event instead of event for Thing '%s'", svc.thingAddr)
 	}
 	if thingValue.ThingAddr == "" {
 		return fmt.Errorf("missing thing address in value with name '%s'", thingValue.Name)
 	}
-	if thingValue.ThingAddr != svc.ThingAddr {
-		return fmt.Errorf("refused adding event for Thing '%s'. Only events for '%s' are allowed", thingValue.ThingAddr, svc.ThingAddr)
+	if thingValue.ThingAddr != svc.thingAddr {
+		return fmt.Errorf("refused adding event for Thing '%s'. Only events for '%s' are allowed", thingValue.ThingAddr, svc.thingAddr)
 	}
 	if thingValue.Name == "" {
 		return fmt.Errorf("missing name for event or action for thing '%s'", thingValue.ThingAddr)
@@ -144,19 +145,20 @@ func (svc *AddHistory) validateValue(thingValue *thing.ThingValue) error {
 
 // NewAddHistory provides the capability to add values to a Thing's history bucket
 //
-//	ThingAddr address of the thing (publisherID/thingID).
+//	thingAddr address of the thing (publisherID/thingID).
 //	bucket to store values
 //	onAddedValue callback to notify if a value was added
 func NewAddHistory(
-	ThingAddr string,
+	clientID, thingAddr string,
 	bucket bucketstore.IBucket,
 	onAddedValue func(event *thing.ThingValue, isAction bool)) *AddHistory {
 	svc := &AddHistory{
 		bucket:       bucket,
-		ThingAddr:    ThingAddr,
+		clientID:     clientID,
+		thingAddr:    thingAddr,
 		onAddedValue: onAddedValue,
 	}
-	if ThingAddr == "" {
+	if thingAddr == "" {
 		panic("NewAddHistory MUST have an address")
 	}
 	return svc

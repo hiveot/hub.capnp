@@ -25,13 +25,12 @@ var passwordFile string // set in TestMain
 const testUseCapnp = true
 
 var tempFolder string
-var testResolverSocket = "/tmp/test-authn-resolver.socket"
 var testuser1 = "testuser1"
 var testpass1 = "secret11" // set at start
 
 // create a new authn service and set the password for testuser1
 // containing a password for testuser1
-func startTestAuthnService(useCapnp bool) (authSvc authn.IAuthnService, stopFn func() error, err error) {
+func startTestAuthnService(useCapnp bool) (authSvc authn.IAuthnService, stopFn func(), err error) {
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	_ = os.Remove(passwordFile)
 	cfg := config.AuthnConfig{
@@ -42,7 +41,8 @@ func startTestAuthnService(useCapnp bool) (authSvc authn.IAuthnService, stopFn f
 	svc := service.NewAuthnService(cfg)
 	err = svc.Start(ctx)
 	if err == nil {
-		mng := svc.CapManageAuthn(ctx)
+		mng, err2 := svc.CapManageAuthn(ctx, "test")
+		err = err2
 		defer mng.Release()
 		testpass1, err = mng.AddUser(ctx, testuser1)
 	}
@@ -55,23 +55,23 @@ func startTestAuthnService(useCapnp bool) (authSvc authn.IAuthnService, stopFn f
 		if err != nil {
 			logrus.Panic("Unable to create a listener, can't run test")
 		}
-		go capnpserver.StartAuthnCapnpServer(svc, srvListener, testResolverSocket)
+		go capnpserver.StartAuthnCapnpServer(svc, srvListener)
 		time.Sleep(time.Millisecond)
 
 		// connect the client to the server above
-		clConn, _ := net.Dial("tcp", srvListener.Addr().String())
-		capClient, err := capnpclient.NewAuthnCapnpClient(ctx, clConn)
-		return capClient, func() error {
+		clConn, err := net.Dial("tcp", srvListener.Addr().String())
+		capClient := capnpclient.NewAuthnCapnpClient(ctx, clConn)
+		return capClient, func() {
 			time.Sleep(time.Millisecond)
 			cancelFunc()
 			capClient.Release()
 			_ = clConn.Close()
-			return svc.Stop()
+			_ = svc.Stop()
 		}, err
 	}
-	return svc, func() error {
+	return svc, func() {
 		cancelFunc()
-		return svc.Stop()
+		_ = svc.Stop()
 	}, err
 }
 
@@ -98,12 +98,11 @@ func TestMain(m *testing.M) {
 
 // Create and verify a JWT token
 func TestStartStop(t *testing.T) {
-	srv, closeFn, err := startTestAuthnService(testUseCapnp)
+	srv, stopFn, err := startTestAuthnService(testUseCapnp)
 	require.NoError(t, err)
 	assert.NotNil(t, srv)
 
-	err = closeFn()
-	assert.NoError(t, err)
+	stopFn()
 }
 
 // Create and verify a JWT token
@@ -112,8 +111,7 @@ func TestStartTwice(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, svc)
 
-	err = stopFn()
-	assert.NoError(t, err)
+	stopFn()
 }
 
 // Create manage users
@@ -121,8 +119,10 @@ func TestManageUser(t *testing.T) {
 
 	ctx := context.Background()
 	svc, stopFn, err := startTestAuthnService(testUseCapnp)
+	defer stopFn()
 	require.NoError(t, err)
-	mng := svc.CapManageAuthn(ctx)
+	mng, err := svc.CapManageAuthn(ctx, "test")
+	assert.NoError(t, err)
 	defer mng.Release()
 
 	// expect the test user
@@ -152,8 +152,6 @@ func TestManageUser(t *testing.T) {
 	_, err = mng.AddUser(ctx, testuser1)
 	assert.Error(t, err)
 
-	err = stopFn()
-	assert.NoError(t, err)
 }
 
 func TestLoginRefreshLogout(t *testing.T) {
@@ -168,7 +166,8 @@ func TestLoginRefreshLogout(t *testing.T) {
 	require.NoError(t, err)
 
 	// login and get tokens
-	clauth := svc.CapUserAuthn(ctx, testuser1)
+	clauth, err := svc.CapUserAuthn(ctx, testuser1)
+	assert.NoError(t, err)
 	defer clauth.Release()
 	t1 := time.Now()
 	for i := 0; i < count; i++ {
@@ -206,7 +205,8 @@ func TestLoginFail(t *testing.T) {
 	require.NoError(t, err)
 
 	// login and get tokens
-	clauth := svc.CapUserAuthn(ctx, testuser1)
+	clauth, err := svc.CapUserAuthn(ctx, testuser1)
+	assert.NoError(t, err)
 	defer clauth.Release()
 	accessToken, refreshToken, err := clauth.Login(ctx, "badpass")
 	assert.Error(t, err)
@@ -219,7 +219,8 @@ func TestProfile(t *testing.T) {
 	svc, stopFn, err := startTestAuthnService(testUseCapnp)
 	defer stopFn()
 	require.NoError(t, err)
-	clauth := svc.CapUserAuthn(ctx, testuser1)
+	clauth, err := svc.CapUserAuthn(ctx, testuser1)
+	assert.NoError(t, err)
 	defer clauth.Release()
 
 	// unauthenticated users cannot get their profile or set their password

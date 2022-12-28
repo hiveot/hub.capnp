@@ -21,16 +21,20 @@ type AuthnCapnpClient struct {
 func (cl *AuthnCapnpClient) CapUserAuthn(ctx context.Context, clientID string) authn.IUserAuthn {
 	getCap, release := cl.capability.CapUserAuthn(ctx,
 		func(params hubapi.CapAuthn_capUserAuthn_Params) error {
-			params.SetClientID(clientID)
-			return nil
+			err2 := params.SetClientID(clientID)
+			return err2
 		})
 	defer release()
 	capability := getCap.Cap().AddRef()
 	return NewUserAuthnCapnpClient(capability)
 }
 
-func (cl *AuthnCapnpClient) CapManageAuthn(ctx context.Context) authn.IManageAuthn {
-	getCap, release := cl.capability.CapManageAuthn(ctx, nil)
+func (cl *AuthnCapnpClient) CapManageAuthn(ctx context.Context, clientID string) authn.IManageAuthn {
+	getCap, release := cl.capability.CapManageAuthn(ctx,
+		func(params hubapi.CapAuthn_capManageAuthn_Params) error {
+			err2 := params.SetClientID(clientID)
+			return err2
+		})
 	defer release()
 	capability := getCap.Cap().AddRef()
 	return NewManageAuthnCapnpClient(capability)
@@ -45,7 +49,7 @@ func (cl *AuthnCapnpClient) Release() {
 //
 //	ctx is the context for retrieving capabilities
 //	connection is the client connection to the capnp server
-func NewAuthnCapnpClient(ctx context.Context, connection net.Conn) (*AuthnCapnpClient, error) {
+func NewAuthnCapnpClient(ctx context.Context, connection net.Conn) *AuthnCapnpClient {
 	var cl *AuthnCapnpClient
 	transport := rpc.NewStreamTransport(connection)
 	rpcConn := rpc.NewConn(transport, nil)
@@ -55,5 +59,5 @@ func NewAuthnCapnpClient(ctx context.Context, connection net.Conn) (*AuthnCapnpC
 		connection: rpcConn,
 		capability: capability,
 	}
-	return cl, nil
+	return cl
 }

@@ -118,7 +118,7 @@ func (srv *MongoBucketStore) createBucketCollection(bucketID string) (err error)
 
 // Open connects to the DB server.
 // This will setup the database if the collections haven't been created yet.
-// Start must be called before any other method, including Setup or Delete
+// Connect must be called before any other method, including Setup or Delete
 func (srv *MongoBucketStore) Open() (err error) {
 	ctx := context.Background()
 	logrus.Infof("Connecting to the mongodb database on '%s'", srv.dbURL)
@@ -145,7 +145,7 @@ func (srv *MongoBucketStore) Open() (err error) {
 }
 
 // Close disconnects from the DB server
-// Call Start to reconnect.
+// Call Connect to reconnect.
 func (srv *MongoBucketStore) Close() error {
 	logrus.Infof("Disconnecting from the database")
 	ctx := context.Background()

@@ -14,7 +14,7 @@ import (
 	"github.com/hiveot/hub/pkg/provisioning/service"
 )
 
-// Start the provisioning service
+// Connect the provisioning service
 // - dependent on certs service
 func main() {
 	var svc *service.ProvisioningService
@@ -31,8 +31,8 @@ func main() {
 	if err == nil {
 		certsClient = certsclient.NewCertServiceCapnpClient(certConn)
 		// the provisioning service requires certificate capabilities
-		deviceCap = certsClient.CapDeviceCerts(ctx)
-		verifyCap = certsClient.CapVerifyCerts(ctx)
+		deviceCap = certsClient.CapDeviceCerts(ctx, provisioning.ServiceName)
+		verifyCap = certsClient.CapVerifyCerts(ctx, provisioning.ServiceName)
 		svc = service.NewProvisioningService(deviceCap, verifyCap)
 	}
 	// now we have the capability to create certificates, start the service and start listening for capnp clients
@@ -41,7 +41,7 @@ func main() {
 			// startup
 			err := svc.Start(ctx)
 			if err == nil {
-				err = capnpserver.StartProvisioningCapnpServer(lis, svc)
+				err = capnpserver.StartProvisioningCapnpServer(svc, lis)
 			}
 			return err
 		}, func() error {

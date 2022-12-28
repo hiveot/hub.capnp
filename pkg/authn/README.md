@@ -4,7 +4,12 @@
 
 Provide user authentication on the local network. 
 
-### Scope
+## Status
+
+This service is functional but breaking changes can still be expected.
+
+
+## Scope
 
 In-scope is to provide identity management for users on the local network. Login to the authn service will provide tokens required to authorize access to Thing resources. 
 

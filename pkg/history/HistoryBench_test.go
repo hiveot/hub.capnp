@@ -110,9 +110,9 @@ func BenchmarkAddEvents(b *testing.B) {
 		// build a dataset in the store
 		addHistory(store, tbl.dataSize, 10, timespanSec)
 
-		updateAnyHistory := store.CapAddAnyThing(ctx)
-		updateHistory := store.CapAddHistory(ctx, id0)
-		readHistory := store.CapReadHistory(ctx, id0)
+		updateAnyHistory, _ := store.CapAddAnyThing(ctx, "test")
+		updateHistory, _ := store.CapAddHistory(ctx, "test", id0)
+		readHistory, _ := store.CapReadHistory(ctx, "test", id0)
 
 		// test adding records one by one
 		b.Run(fmt.Sprintf("[dbsize:%d] #things:%d add-single:%d", tbl.dataSize, tbl.nrThings, tbl.nrSets),
@@ -196,8 +196,7 @@ func BenchmarkAddEvents(b *testing.B) {
 		//b.Log("- next round -")
 		time.Sleep(time.Second) // cleanup delay
 		fmt.Println("--- next round ---")
-		err := closeFn()
-		assert.NoError(b, err)
+		closeFn()
 
 	}
 }

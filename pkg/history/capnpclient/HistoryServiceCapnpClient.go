@@ -18,44 +18,55 @@ type HistoryServiceCapnpClient struct {
 	capability hubapi.CapHistoryService // capnp client
 }
 
-func (cl *HistoryServiceCapnpClient) CapAddAnyThing(ctx context.Context) history.IAddHistory {
-	getCap, release := cl.capability.CapAddAnyThing(ctx, nil)
+func (cl *HistoryServiceCapnpClient) CapAddAnyThing(
+	ctx context.Context, clientID string) (history.IAddHistory, error) {
+
+	getCap, release := cl.capability.CapAddAnyThing(ctx,
+		func(params hubapi.CapHistoryService_capAddAnyThing_Params) error {
+			err2 := params.SetClientID(clientID)
+			return err2
+		})
 	defer release()
 	capability := getCap.Cap().AddRef()
 	// reuse the add history capability
-	return NewAddHistoryCapnpClient(capability)
+	newCap := NewAddHistoryCapnpClient(capability)
+	return newCap, nil
 }
 
 // CapAddHistory provides the capability to add to the history
 func (cl *HistoryServiceCapnpClient) CapAddHistory(
-	ctx context.Context, thingAddr string) history.IAddHistory {
+	ctx context.Context, clientID string, thingAddr string) (history.IAddHistory, error) {
 
 	// The use of a result 'future' avoids a round trip, making this more efficient
 	getCap, release := cl.capability.CapAddHistory(ctx,
 		func(params hubapi.CapHistoryService_capAddHistory_Params) error {
-			err := params.SetThingAddr(thingAddr)
-			return err
+			err2 := params.SetClientID(clientID)
+			_ = params.SetThingAddr(thingAddr)
+			return err2
 		})
 
 	defer release()
 	capability := getCap.Cap().AddRef()
 
-	return NewAddHistoryCapnpClient(capability)
+	newCap := NewAddHistoryCapnpClient(capability)
+	return newCap, nil
 }
 
 // CapReadHistory the capability to iterate the history
 func (cl *HistoryServiceCapnpClient) CapReadHistory(
-	ctx context.Context, thingAddr string) history.IReadHistory {
+	ctx context.Context, clientID string, thingAddr string) (history.IReadHistory, error) {
 
 	getCap, release := cl.capability.CapReadHistory(ctx,
 		func(params hubapi.CapHistoryService_capReadHistory_Params) error {
-			err := params.SetThingAddr(thingAddr)
-			return err
+			err2 := params.SetClientID(clientID)
+			_ = params.SetThingAddr(thingAddr)
+			return err2
 		})
 	defer release()
 	capability := getCap.Cap().AddRef()
 
-	return NewReadHistoryCapnpClient(capability)
+	newCap := NewReadHistoryCapnpClient(capability)
+	return newCap, nil
 }
 
 func (cl *HistoryServiceCapnpClient) Release() {
@@ -67,7 +78,7 @@ func (cl *HistoryServiceCapnpClient) Release() {
 //
 //	ctx is the context for getting capabilities from the server
 //	connection is the connection to the capnp server
-func NewHistoryCapnpClient(ctx context.Context, connection net.Conn) (*HistoryServiceCapnpClient, error) {
+func NewHistoryCapnpClient(ctx context.Context, connection net.Conn) *HistoryServiceCapnpClient {
 	var cl *HistoryServiceCapnpClient
 	transport := rpc.NewStreamTransport(connection)
 	rpcConn := rpc.NewConn(transport, nil)
@@ -77,5 +88,5 @@ func NewHistoryCapnpClient(ctx context.Context, connection net.Conn) (*HistorySe
 		connection: rpcConn,
 		capability: capability,
 	}
-	return cl, nil
+	return cl
 }

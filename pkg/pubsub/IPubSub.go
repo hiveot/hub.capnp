@@ -56,12 +56,7 @@ type IPubSubService interface {
 	// CapUserPubSub provides the capability for an end-user to publish or subscribe to messages.
 	// The caller must authenticate the user and provide appropriate configuration.
 	//  userID is the login ID of an authenticated user
-	CapUserPubSub(ctx context.Context, userID string) (pub IUserPubSub)
-
-	// Release the capability and end subscriptions
-	// If this is an RPC client this just ends the client connection to the service
-	// If this is a server instance then the server stops
-	//Release() error
+	CapUserPubSub(ctx context.Context, userID string) IUserPubSub
 }
 
 // IDevicePubSub available to an IoT device

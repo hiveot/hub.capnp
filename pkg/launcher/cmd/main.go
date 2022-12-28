@@ -12,7 +12,7 @@ import (
 	"github.com/hiveot/hub/pkg/launcher/service"
 )
 
-// Start the launcher service
+// Connect the launcher service
 func main() {
 	var lc config.LauncherConfig
 

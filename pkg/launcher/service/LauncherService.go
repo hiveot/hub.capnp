@@ -96,7 +96,6 @@ func (ls *LauncherService) List(_ context.Context, onlyRunning bool) ([]launcher
 
 }
 
-// Start a service
 func (ls *LauncherService) StartService(
 	_ context.Context, name string) (info launcher.ServiceInfo, err error) {
 	ls.mux.Lock()

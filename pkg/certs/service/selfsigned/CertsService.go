@@ -27,26 +27,34 @@ type SelfSignedCertsService struct {
 }
 
 // CapDeviceCerts provides the capability to manage device certificates
-func (srv *SelfSignedCertsService) CapDeviceCerts(_ context.Context) certs.IDeviceCerts {
-	// FIXME: return a new instance
+func (srv *SelfSignedCertsService) CapDeviceCerts(
+	_ context.Context, clientID string) certs.IDeviceCerts {
+	_ = clientID
+	// TODO: return a new instance
 	return srv.deviceCertsService
 }
 
 // CapServiceCerts provides the capability to manage service certificates
-func (srv *SelfSignedCertsService) CapServiceCerts(_ context.Context) certs.IServiceCerts {
-	// FIXME: return a new instance
+func (srv *SelfSignedCertsService) CapServiceCerts(
+	_ context.Context, clientID string) certs.IServiceCerts {
+	// TODO: return a new instance
+	_ = clientID
 	return srv.serviceCertsService
 }
 
 // CapUserCerts provides the capability to manage user certificates
-func (srv *SelfSignedCertsService) CapUserCerts(_ context.Context) certs.IUserCerts {
-	// FIXME: return a new instance
+func (srv *SelfSignedCertsService) CapUserCerts(
+	_ context.Context, clientID string) certs.IUserCerts {
+	// TODO: return a new instance
+	_ = clientID
 	return srv.userCertsService
 }
 
 // CapVerifyCerts provides the capability to verify certificates
-func (srv *SelfSignedCertsService) CapVerifyCerts(_ context.Context) certs.IVerifyCerts {
-	// FIXME: return a new instance
+func (srv *SelfSignedCertsService) CapVerifyCerts(
+	_ context.Context, clientID string) certs.IVerifyCerts {
+	// TODO: return a new instance
+	_ = clientID
 	return srv.verifyCertsService
 }
 

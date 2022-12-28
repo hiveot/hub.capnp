@@ -18,7 +18,7 @@ import (
 	"github.com/hiveot/hub/pkg/certs/service/selfsigned"
 )
 
-// Start the certs service
+// Connect the certs service
 //
 //	commandline options:
 //	--certs <certificate folder>
@@ -49,7 +49,7 @@ func main() {
 			// startup
 			err = svc.Start()
 			if err == nil {
-				err = capnpserver.StartCertsCapnpServer(lis, svc)
+				err = capnpserver.StartCertsCapnpServer(svc, lis)
 			}
 			return err
 		}, func() error {

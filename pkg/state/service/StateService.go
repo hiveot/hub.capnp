@@ -35,15 +35,15 @@ type StateService struct {
 
 // CapClientState returns a new instance of the capability to store client state in a bucket.
 // This opens a store for the client if one doesn't yet exist.
-func (srv *StateService) CapClientState(_ context.Context,
-	clientID string, bucketID string) (cap state.IClientState, err error) {
+func (srv *StateService) CapClientState(
+	_ context.Context, clientID string, bucketID string) (cap state.IClientState) {
 
 	srv.mux.Lock()
 	defer srv.mux.Unlock()
 	if !srv.running {
-		err = fmt.Errorf("state store service has stopped. No new clients allowed.")
+		err := fmt.Errorf("state store service has stopped. No new clients allowed.")
 		logrus.Error(err)
-		return nil, err
+		return nil
 	}
 	clientStore := srv.clientStores[clientID]
 	// create the store instance for the client if one doesn't yet exist
@@ -62,7 +62,7 @@ func (srv *StateService) CapClientState(_ context.Context,
 		//	storePath := path.Join(srv.cfg.StoreDirectory, clientID) // this is a folder
 		//	clientStore = pebble.NewPebbleStore(clientID, storePath)
 		//}
-		err = clientStore.Open()
+		err := clientStore.Open()
 		if err == nil {
 			srv.clientStores[clientID] = clientStore
 		}
@@ -74,7 +74,7 @@ func (srv *StateService) CapClientState(_ context.Context,
 	srv.clientRefs[clientID] = refCount
 	bucket := clientStore.GetBucket(bucketID)
 	capability := NewClientState(clientID, bucketID, bucket, srv.onClientReleased)
-	return capability, err
+	return capability
 }
 
 // callback to close the client store when all its clients are removed

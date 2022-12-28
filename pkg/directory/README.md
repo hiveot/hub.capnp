@@ -6,9 +6,9 @@ Manage the collection of available Thing Description documents for use by consum
 
 ## Status
 
-This service is functional.
+This service is functional but breaking changes can still be expected.
 
-c
+
 ## Summary
 
 The Directory holds the collection of TD documents that describe available Things. The TD documents are defined by the [W3C Web of Things (WoT) working group](https://www.w3.org/TR/wot-thing-description11/). TD documents are stored in their JSON format as described in the WoT specification. 

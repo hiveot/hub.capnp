@@ -57,7 +57,7 @@ func MarshalThingValueList(arr []*thing.ThingValue) hubapi.ThingValue_List {
 	for i := 0; i < len(arr); i++ {
 		thingValue := arr[i]
 		capValue := MarshalThingValue(thingValue)
-		capList.Set(i, capValue)
+		_ = capList.Set(i, capValue)
 	}
 
 	return capList
@@ -89,6 +89,7 @@ func MarshalThingValueMap(valueMap map[string]*thing.ThingValue) hubapi.ThingVal
 }
 
 // MarshalThingValue serializes a thing.ThingValue object to a capnp message
+//
 // errors are ignored
 func MarshalThingValue(thingValue *thing.ThingValue) hubapi.ThingValue {
 	if thingValue == nil {

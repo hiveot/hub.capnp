@@ -76,8 +76,7 @@ type IBucket interface {
 	Delete(key string) (err error)
 
 	// Get returns the document for the given key
-	// Returns nil if the key isn't found in the bucket
-	// Returns an error if the database cannot be read
+	// Returns nil and an error if the key isn't found in the bucket or the database cannot be read
 	Get(key string) (value []byte, err error)
 
 	// GetMultiple returns a batch of documents with existing keys

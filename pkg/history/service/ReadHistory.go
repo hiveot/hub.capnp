@@ -15,6 +15,7 @@ type GetPropertiesFunc func(thingAddr string, names []string) []*thing.ThingValu
 // ReadHistory provides read access to the history of a thing
 // This implements the IReadHistory interface
 type ReadHistory struct {
+	clientID string
 	// routing address of the thing to read history of
 	thingAddr string
 	// The bucket containing the thing data
@@ -58,8 +59,9 @@ func (hc *ReadHistory) Release() {
 //	thingAddr is the Things's full address, usually publisherID/thingID
 //	thingBucket is the bucket used to store history data
 //	gePropertiesFunc implements the aggregation of the Thing's most recent property values
-func NewReadHistory(thingAddr string, thingBucket bucketstore.IBucket, getPropertiesFunc GetPropertiesFunc) *ReadHistory {
+func NewReadHistory(clientID, thingAddr string, thingBucket bucketstore.IBucket, getPropertiesFunc GetPropertiesFunc) *ReadHistory {
 	svc := &ReadHistory{
+		clientID:          clientID,
 		thingAddr:         thingAddr,
 		thingBucket:       thingBucket,
 		getPropertiesFunc: getPropertiesFunc,

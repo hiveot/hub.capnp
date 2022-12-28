@@ -15,7 +15,7 @@ import (
 func LauncherCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	cmd := &cli.Command{
 		Name:  "launcher",
-		Usage: "Start stop Hub services",
+		Usage: "Connect stop Hub services",
 		Subcommands: []*cli.Command{
 			LauncherListCommand(ctx, f),
 			LauncherStartCommand(ctx, f),
@@ -25,7 +25,6 @@ func LauncherCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command 
 	return cmd
 }
 
-// LauncherListCommand
 func LauncherListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 
 	return &cli.Command{
@@ -46,7 +45,7 @@ func LauncherStartCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comm
 
 	return &cli.Command{
 		Name:      "start",
-		Usage:     "Start a service or all services",
+		Usage:     "Connect a service or all services",
 		ArgsUsage: "start <serviceName> | all",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 1 {
@@ -128,7 +127,7 @@ func HandleStartService(ctx context.Context, f svcconfig.AppFolders, serviceName
 		err = ls.StartAll(ctx)
 
 		if err != nil {
-			//fmt.Println("Start all failed with: ", err)
+			//fmt.Println("Connect all failed with: ", err)
 			return err
 		}
 		fmt.Printf("All services started\n")
@@ -136,7 +135,7 @@ func HandleStartService(ctx context.Context, f svcconfig.AppFolders, serviceName
 		info, err2 := ls.StartService(ctx, serviceName)
 
 		if err2 != nil {
-			//fmt.Println("Start failed:", err2)
+			//fmt.Println("Connect failed:", err2)
 			return err2
 		}
 		fmt.Printf("Service '%s' started\n", info.Name)

@@ -55,7 +55,7 @@ var names = []string{"temperature", "humidity", "pressure", "wind", "speed", "sw
 //var testHighestName = make(map[string]*thing.ThingValue)
 
 // Create a new store, delete if it already exists
-func newHistoryService(useCapnp bool) (history.IHistoryService, func() error) {
+func newHistoryService(useCapnp bool) (history.IHistoryService, func()) {
 	svcConfig := config.NewHistoryConfig(testFolder)
 
 	// create a new empty store to use
@@ -77,30 +77,26 @@ func newHistoryService(useCapnp bool) (history.IHistoryService, func() error) {
 	if useCapnp {
 		_ = syscall.Unlink(testSocket)
 		srvListener, _ := net.Listen("unix", testSocket)
-		go capnpserver.StartHistoryServiceCapnpServer(ctx, srvListener, svc)
+		go capnpserver.StartHistoryServiceCapnpServer(svc, srvListener)
 
 		// connect the client to the server above
 		clConn, _ := net.Dial("unix", testSocket)
-		cl, err := capnpclient.NewHistoryCapnpClient(ctx, clConn)
-		if err != nil {
-			logrus.Fatalf("Failed starting capnp client: %s", err)
-		}
-		return cl, func() error {
+		cl := capnpclient.NewHistoryCapnpClient(ctx, clConn)
+
+		return cl, func() {
 			cl.Release()
 			cancelFn()
 			_ = svc.Stop()
 			err = store.Close()
 			// give it some time to shut down before the next test
 			time.Sleep(time.Millisecond)
-			return err
 		}
 	}
 
-	return svc, func() error {
+	return svc, func() {
 		_ = svc.Stop()
 		err = store.Close()
 		cancelFn()
-		return err
 	}
 }
 
@@ -154,10 +150,13 @@ func addHistory(svc history.IHistoryService, count int, nrThings int, timespanSe
 	// use add multiple in 100's
 	for i := 0; i < count/batchSize; i++ {
 		// no thingID constraint allows adding events from any thing
-		capAdd := svc.CapAddAnyThing(ctx)
+		capAdd, err := svc.CapAddAnyThing(ctx, "test")
+		if err != nil {
+			panic("failed cap add")
+		}
 		start := batchSize * i
 		end := batchSize * (i + 1)
-		err := capAdd.AddEvents(ctx, evBatch[start:end])
+		err = capAdd.AddEvents(ctx, evBatch[start:end])
 		if err != nil {
 			logrus.Fatalf("Problem adding events: %s", err)
 		}
@@ -216,8 +215,8 @@ func TestAddGetEvent(t *testing.T) {
 	addHistory(store, 20, 3, 3600)
 
 	// add events for thing 1
-	addHistory1 := store.CapAddHistory(ctx, thing1Addr)
-	readHistory1 := store.CapReadHistory(ctx, thing1Addr)
+	addHistory1, _ := store.CapAddHistory(ctx, device1, thing1Addr)
+	readHistory1, _ := store.CapReadHistory(ctx, device1, thing1Addr)
 
 	// release and cancel is order dependent
 	defer addHistory1.Release()
@@ -236,7 +235,7 @@ func TestAddGetEvent(t *testing.T) {
 	assert.NoError(t, err)
 
 	// add events for thing 2, temperature and humidity
-	addHistory2 := store.CapAddHistory(ctx, thing2Addr)
+	addHistory2, _ := store.CapAddHistory(ctx, device1, thing2Addr)
 	// add thing2 humidity from 5 minutes ago
 	ev2_1 := &thing.ThingValue{ThingAddr: thing2Addr, Name: evHumidity,
 		ValueJSON: []byte("50"), Created: fivemago.Format(vocab.ISO8601Format)}
@@ -278,7 +277,7 @@ func TestAddGetEvent(t *testing.T) {
 	cursor1 = nil
 
 	// Test 3: get first temperature of thing 2 - expect 1 result
-	readHistory2 := store.CapReadHistory(ctx, thing2Addr)
+	readHistory2, _ := store.CapReadHistory(ctx, device1, thing2Addr)
 	cursor2 := readHistory2.GetEventHistory(ctx, "")
 	res3, valid := cursor2.First()
 	cursor2.Release()
@@ -295,8 +294,8 @@ func TestAddPropertiesEvent(t *testing.T) {
 	store, closeFn := newHistoryService(useTestCapnp)
 
 	ctx := context.Background()
-	addHist := store.CapAddHistory(ctx, thing1Addr)
-	readHist := store.CapReadHistory(ctx, thing1Addr)
+	addHist, _ := store.CapAddHistory(ctx, id1, thing1Addr)
+	readHist, _ := store.CapReadHistory(ctx, id1, thing1Addr)
 
 	action1 := &thing.ThingValue{
 		ThingAddr: thing1Addr,
@@ -372,8 +371,8 @@ func TestAddPropertiesEvent(t *testing.T) {
 	// restart
 	readHist.Release()
 	addHist.Release()
-	err = closeFn()
-	assert.NoError(t, err)
+	closeFn()
+
 	backend := cmd.NewBucketStore(testFolder, testClientID, HistoryStoreBackend)
 	err = backend.Open()
 	assert.NoError(t, err)
@@ -382,7 +381,7 @@ func TestAddPropertiesEvent(t *testing.T) {
 	assert.NoError(t, err)
 
 	// after closing and reopen the store the properties should still be there
-	readHist = svc.CapReadHistory(ctx, thing1Addr)
+	readHist, _ = svc.CapReadHistory(ctx, id1, thing1Addr)
 	props = readHist.GetProperties(ctx, []string{vocab.PropNameTemperature, vocab.PropNameSwitch})
 	assert.Equal(t, 2, len(props))
 	assert.Equal(t, props[0].Name, vocab.PropNameTemperature)
@@ -410,7 +409,7 @@ func TestGetLatest(t *testing.T) {
 	// TODO: use different timezones
 	highestFromAdded := addHistory(store, count, 1, 3600*24*30)
 
-	readHistory := store.CapReadHistory(ctx, thing1Addr)
+	readHistory, _ := store.CapReadHistory(ctx, id1, thing1Addr)
 	values := readHistory.GetProperties(ctx, nil)
 	cursor := readHistory.GetEventHistory(ctx, "")
 	readHistory.Release()
@@ -452,7 +451,7 @@ func TestPrevNext(t *testing.T) {
 	// TODO: use different timezones
 	_ = addHistory(store, count, 1, 3600*24*30)
 
-	readHistory := store.CapReadHistory(ctx, thing0Addr)
+	readHistory, _ := store.CapReadHistory(ctx, id0, thing0Addr)
 	cursor := readHistory.GetEventHistory(ctx, "")
 	readHistory.Release()
 	readHistory = nil
@@ -509,7 +508,7 @@ func TestPrevNextFiltered(t *testing.T) {
 	_ = addHistory(store, count, 1, 3600*24*30)
 	propName := names[2] // names used to generate the history
 
-	readHistory := store.CapReadHistory(ctx, thing0Addr)
+	readHistory, _ := store.CapReadHistory(ctx, id0, thing0Addr)
 	values := readHistory.GetProperties(ctx, []string{propName})
 	cursor := readHistory.GetEventHistory(ctx, propName)
 	readHistory.Release()
@@ -570,7 +569,7 @@ func TestGetInfo(t *testing.T) {
 	//info := store.Info(ctx)
 	//t.Logf("Store ID:%s, records:%d", info.Id, info.NrRecords)
 
-	readHistory := store.CapReadHistory(ctx, thingIDPrefix+"0")
+	readHistory, _ := store.CapReadHistory(ctx, "test", thingIDPrefix+"0")
 	defer readHistory.Release()
 
 	info := readHistory.Info(ctx)

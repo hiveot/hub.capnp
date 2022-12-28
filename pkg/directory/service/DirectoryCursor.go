@@ -53,11 +53,11 @@ func (dc *DirectoryCursor) Next() (thingValue *thing.ThingValue, valid bool) {
 // and return a list with N values in incremental time order.
 // itemsRemaining is false if the iterator has reached the end.
 // Intended to speed up with batch iterations over rpc.
-func (hc *DirectoryCursor) NextN(steps uint) (values []*thing.ThingValue, itemsRemaining bool) {
+func (dc *DirectoryCursor) NextN(steps uint) (values []*thing.ThingValue, itemsRemaining bool) {
 	values = make([]*thing.ThingValue, 0, steps)
 	// tbd is it faster to use NextN and sort the keys?
 	for i := uint(0); i < steps; i++ {
-		thingValue, valid := hc.Next()
+		thingValue, valid := dc.Next()
 		if !valid {
 			break
 		}
@@ -68,8 +68,8 @@ func (hc *DirectoryCursor) NextN(steps uint) (values []*thing.ThingValue, itemsR
 
 // Release close the cursor and release its resources.
 // This invalidates all values obtained from the cursor
-func (hc *DirectoryCursor) Release() {
-	hc.bc.Release()
+func (dc *DirectoryCursor) Release() {
+	dc.bc.Release()
 }
 
 // NewDirectoryCursor creates a new Cursor for iterating the directory entries

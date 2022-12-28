@@ -18,6 +18,8 @@ import (
 //	Bucket keys are made of gatewayID+"/"+thingID
 //	Bucket values are ThingValue objects
 type UpdateDirectory struct {
+	// The client that is updating the directory
+	clientID string
 	// bucket that holds the TD documents
 	bucket bucketstore.IBucket
 }
@@ -46,7 +48,10 @@ func (svc *UpdateDirectory) Release() {
 
 // NewUpdateDirectory returns the capability to update the directory
 // bucket with the TD documents. Will be closed when done.
-func NewUpdateDirectory(bucket bucketstore.IBucket) directory.IUpdateDirectory {
-	svc := &UpdateDirectory{bucket: bucket}
+func NewUpdateDirectory(clientID string, bucket bucketstore.IBucket) directory.IUpdateDirectory {
+	svc := &UpdateDirectory{
+		clientID: clientID,
+		bucket:   bucket,
+	}
 	return svc
 }

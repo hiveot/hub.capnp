@@ -16,6 +16,7 @@ import (
 // AddAnyThing adds events and actions of any Thing
 // this is not restricted to one Thing and only intended for services that are authorized to do so.
 type AddAnyThing struct {
+	clientID string
 	// store with buckets for Things
 	store bucketstore.IBucketStore
 	// onAddedValue is a callback to invoke after a value is added. Intended for tracking most recent values.
@@ -119,9 +120,11 @@ func (svc *AddAnyThing) Release() {
 // NewAddAnyThing provides the capability to add values to Thing history buckets
 // onAddedValue is invoked after the value is added to the bucket.
 func NewAddAnyThing(
+	clientID string,
 	store bucketstore.IBucketStore,
 	onAddedValue func(value *thing.ThingValue, isAction bool)) *AddAnyThing {
 	svc := &AddAnyThing{
+		clientID:     clientID,
 		store:        store,
 		onAddedValue: onAddedValue,
 	}

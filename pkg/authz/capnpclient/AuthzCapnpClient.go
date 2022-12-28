@@ -22,29 +22,38 @@ type AuthzCapnpClient struct {
 func (authz *AuthzCapnpClient) CapClientAuthz(ctx context.Context, clientID string) authz.IClientAuthz {
 	getCap, release := authz.capability.CapClientAuthz(ctx,
 		func(params hubapi.CapAuthz_capClientAuthz_Params) error {
-			params.SetClientID(clientID)
-			return nil
+			err2 := params.SetClientID(clientID)
+			return err2
 		})
 	defer release()
 	capability := getCap.Cap().AddRef()
-	return NewClientAuthzCapnpClient(capability)
+	cl := NewClientAuthzCapnpClient(capability)
+	return cl
 }
 
 // CapManageAuthz provides the capability to manage authorization groups
-func (authz *AuthzCapnpClient) CapManageAuthz(ctx context.Context) authz.IManageAuthz {
-	getCap, release := authz.capability.CapManageAuthz(ctx, nil)
+func (authz *AuthzCapnpClient) CapManageAuthz(ctx context.Context, clientID string) authz.IManageAuthz {
+	getCap, release := authz.capability.CapManageAuthz(ctx, func(params hubapi.CapAuthz_capManageAuthz_Params) error {
+		err2 := params.SetClientID(clientID)
+		return err2
+	})
 	defer release()
 	capability := getCap.Cap().AddRef()
-	return NewManageAuthzCapnpClient(capability)
+	cl := NewManageAuthzCapnpClient(capability)
+	return cl
 }
 
 // CapVerifyAuthz provides the capability to verify authorization
 // The type of client, OU of certificate, certsclient.OUService, OUIoTDevice, OUUser, OUAdmin
-func (authz *AuthzCapnpClient) CapVerifyAuthz(ctx context.Context) authz.IVerifyAuthz {
-	getCap, release := authz.capability.CapVerifyAuthz(ctx, nil)
+func (authz *AuthzCapnpClient) CapVerifyAuthz(ctx context.Context, clientID string) authz.IVerifyAuthz {
+	getCap, release := authz.capability.CapVerifyAuthz(ctx, func(params hubapi.CapAuthz_capVerifyAuthz_Params) error {
+		err2 := params.SetClientID(clientID)
+		return err2
+	})
 	defer release()
 	capability := getCap.Cap().AddRef()
-	return NewVerifyAuthzCapnpClient(capability)
+	cl := NewVerifyAuthzCapnpClient(capability)
+	return cl
 }
 
 func (authz *AuthzCapnpClient) Release() {

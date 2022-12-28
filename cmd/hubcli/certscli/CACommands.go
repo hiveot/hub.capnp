@@ -44,7 +44,7 @@ func CACommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 // This does not require any services to run.
 // After creating a new CA, services have to be restarted.
 //
-//  hubcli certs ca [--certs=CertFolder]  [--hostname=hostname]
+//	hubcli certs ca [--certs=CertFolder]  [--hostname=hostname]
 func CreateCACommand(ctx context.Context, certsFolder string) *cli.Command {
 	var force = false
 	var validityDays = 365 * 5
@@ -83,7 +83,8 @@ func CreateCACommand(ctx context.Context, certsFolder string) *cli.Command {
 
 // ViewCACommand shows info on the Hub self-signed CA
 // This does not require any services to run.
-//  hubcli ca [--certs=CertFolder] view
+//
+//	hubcli ca [--certs=CertFolder] view
 func ViewCACommand(ctx context.Context, certsFolder string) *cli.Command {
 
 	return &cli.Command{
@@ -112,7 +113,7 @@ func HandleCreateCACert(ctx context.Context, certsFolder string, validityDays in
 	// folder doesn't exist
 	if _, err := os.Stat(certsFolder); err != nil {
 		if force {
-			os.Mkdir(certsFolder, 0744)
+			_ = os.Mkdir(certsFolder, 0744)
 		} else {
 			return fmt.Errorf("certificate folder '%s' doesn't exist", certsFolder)
 		}
@@ -120,7 +121,7 @@ func HandleCreateCACert(ctx context.Context, certsFolder string, validityDays in
 	// do not overwrite existing certificate unless force is used
 	if !force {
 		if _, err := os.Stat(caCertPath); err == nil {
-			return fmt.Errorf("CA certificate already exists in '%s'. Use --force to replace.", caCertPath)
+			return fmt.Errorf("CA certificate already exists in '%s'. Use --force to replace", caCertPath)
 		}
 		if _, err := os.Stat(caKeyPath); err == nil {
 			return fmt.Errorf("CA key alread exists in '%s'", caKeyPath)

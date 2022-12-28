@@ -22,43 +22,64 @@ type CertsCapnpClient struct {
 }
 
 // CapDeviceCerts returns the capability to create device certificates
-func (cl *CertsCapnpClient) CapDeviceCerts(ctx context.Context) certs.IDeviceCerts {
+func (cl *CertsCapnpClient) CapDeviceCerts(ctx context.Context, clientID string) certs.IDeviceCerts {
 
 	// Get the capability for creating a device certificate for the given device
-	getCap, release := cl.capability.CapDeviceCerts(ctx, nil)
+	getCap, release := cl.capability.CapDeviceCerts(ctx,
+		func(params hubapi.CapCerts_capDeviceCerts_Params) error {
+			err2 := params.SetClientID(clientID)
+			return err2
+		})
 	defer release()
 	capability := getCap.Cap().AddRef()
-	return NewDeviceCertsCapnpClient(capability)
+	newCap := NewDeviceCertsCapnpClient(capability)
+	return newCap
 }
 
 // CapServiceCerts returns the capability to create service certificates
-func (cl *CertsCapnpClient) CapServiceCerts(ctx context.Context) certs.IServiceCerts {
+func (cl *CertsCapnpClient) CapServiceCerts(ctx context.Context, clientID string) certs.IServiceCerts {
 
 	// Get the capability for creating a device certificate for the given device
-	getCap, release := cl.capability.CapServiceCerts(ctx, nil)
+	getCap, release := cl.capability.CapServiceCerts(ctx,
+		func(params hubapi.CapCerts_capServiceCerts_Params) error {
+			err2 := params.SetClientID(clientID)
+			return err2
+		})
 	defer release()
 	capability := getCap.Cap().AddRef()
-	return NewServiceCertsCapnpClient(capability)
+	newCap := NewServiceCertsCapnpClient(capability)
+	return newCap
 }
 
 // CapUserCerts returns the capability to create user certificates
-func (cl *CertsCapnpClient) CapUserCerts(ctx context.Context) certs.IUserCerts {
+func (cl *CertsCapnpClient) CapUserCerts(ctx context.Context, clientID string) certs.IUserCerts {
 
 	// Get the capability for creating a device certificate for the given device
-	getCap, release := cl.capability.CapUserCerts(ctx, nil)
+	getCap, release := cl.capability.CapUserCerts(ctx,
+		func(params hubapi.CapCerts_capUserCerts_Params) error {
+			err2 := params.SetClientID(clientID)
+			return err2
+		})
 	defer release()
 	capability := getCap.Cap().AddRef()
-	return NewUserCertsCapnpClient(capability)
+	newCap := NewUserCertsCapnpClient(capability)
+	return newCap
 }
 
 // CapVerifyCerts returns the capability to verify certificates
-func (cl *CertsCapnpClient) CapVerifyCerts(ctx context.Context) certs.IVerifyCerts {
+func (cl *CertsCapnpClient) CapVerifyCerts(ctx context.Context, clientID string) certs.IVerifyCerts {
 
 	// Get the capability for creating a device certificate for the given device
-	getCap, release := cl.capability.CapVerifyCerts(ctx, nil)
+	getCap, release := cl.capability.CapVerifyCerts(ctx,
+		func(params hubapi.CapCerts_capVerifyCerts_Params) error {
+			err2 := params.SetClientID(clientID)
+			return err2
+
+		})
 	defer release()
 	capability := getCap.Cap().AddRef()
-	return NewVerifyCertsCapnpClient(capability)
+	newCap := NewVerifyCertsCapnpClient(capability)
+	return newCap
 }
 
 // Release the provided capabilities after use and release resources

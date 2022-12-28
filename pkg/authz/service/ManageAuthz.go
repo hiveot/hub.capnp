@@ -12,6 +12,8 @@ import (
 // TBD: add constraints if needed
 type ManageAuthz struct {
 	aclStore *aclstore.AclFileStore
+	// the client requesting this session
+	clientID string
 }
 
 // AddThing adds a Thing to a group
@@ -78,9 +80,10 @@ func (manageAuthz *ManageAuthz) SetClientRole(ctx context.Context, clientID stri
 }
 
 // NewManageAuthz returns a new instance with the capability to manage the authorization service
-func NewManageAuthz(aclStore *aclstore.AclFileStore) *ManageAuthz {
+func NewManageAuthz(aclStore *aclstore.AclFileStore, clientID string) *ManageAuthz {
 	mngAuthz := &ManageAuthz{
 		aclStore: aclStore,
+		clientID: clientID,
 	}
 	return mngAuthz
 }
