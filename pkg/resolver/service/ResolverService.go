@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"capnproto.org/go/capnp/v3"
 	"capnproto.org/go/capnp/v3/rpc"
@@ -39,7 +40,7 @@ type ResolverService struct {
 	// mutex for running Refresh scans
 	refreshMutex sync.Mutex
 	//
-	running bool
+	running atomic.Bool
 }
 
 // HandleUnknownMethod looks up the requested method and returns a stub that forwards
@@ -190,6 +191,7 @@ func (svc *ResolverService) Start(ctx context.Context) error {
 	svc.socketWatcher, _ = fsnotify.NewWatcher()
 	err = svc.socketWatcher.Add(svc.socketDir)
 	if err == nil {
+		svc.running.Store(true)
 		go func() {
 			for {
 				select {
@@ -197,7 +199,8 @@ func (svc *ResolverService) Start(ctx context.Context) error {
 					logrus.Infof("socket watcher ended by context")
 					return
 				case event := <-svc.socketWatcher.Events:
-					if svc.running {
+					isRunning := svc.running.Load()
+					if isRunning {
 						logrus.Infof("watcher event: %v", event)
 						_ = svc.Refresh(ctx)
 					} else {
@@ -211,15 +214,15 @@ func (svc *ResolverService) Start(ctx context.Context) error {
 			}
 		}()
 	}
-	svc.running = true
 	return err
 }
 
 // Stop releases the connections
 func (svc *ResolverService) Stop() (err error) {
 	logrus.Infof("Stopping resolver service")
-	if svc.running {
-		svc.running = false
+	isRunning := svc.running.Load()
+	if isRunning {
+		svc.running.Store(false)
 		err = svc.socketWatcher.Close()
 
 		for _, hiveService := range svc.connectedServices {

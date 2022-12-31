@@ -4,7 +4,6 @@ import (
 	"context"
 	"net"
 	"os"
-	"time"
 
 	"github.com/sirupsen/logrus"
 
@@ -17,9 +16,10 @@ import (
 // This implements the capnp generated TestService_Server interface.
 type TestService struct {
 	// The capnp server used to register capabilities
-	capServer   *capprovider.CapServer
-	serviceName string
-	//lis         net.Listener // listening socket for direct serving
+	capServer    *capprovider.CapServer
+	serviceName  string
+	lis          net.Listener // listening socket for direct serving
+	listenSocket string
 }
 
 // CapMethod1 returns the capability to call method1
@@ -41,7 +41,9 @@ func (ts *TestService) CapMethod1(_ context.Context, call CapTestService_capMeth
 }
 
 func (ts *TestService) Stop() {
-	ts.capServer.Stop()
+	//ts.capServer.Stop()
+	ts.lis.Close()
+	_ = os.Remove(ts.listenSocket)
 }
 
 // Start listening in the background. This returns an error if no listening socket
@@ -49,16 +51,14 @@ func (ts *TestService) Stop() {
 func (ts *TestService) Start(listenSocket string) (err error) {
 	logrus.Infof("listening on %s", listenSocket)
 	_ = os.Remove(listenSocket)
+	ts.listenSocket = listenSocket
 	lis, err := net.Listen("unix", listenSocket)
+	ts.lis = lis
 	if err != nil {
 		return err
 	}
 	go ts.capServer.Start(lis)
-	// give the goroutine some time to get started
-	time.Sleep(time.Millisecond)
-	return nil
-	//err = ts.capServer.Start(lis)
-	//return err
+	return err
 }
 
 // NewTestService creates a new instance of the test service capnp server

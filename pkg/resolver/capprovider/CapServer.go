@@ -125,8 +125,8 @@ func (capsrv *CapServer) ListCapabilities(
 	return err
 }
 
-// Start handling capability requests in the background using the given listener.
-// This transfers ownership of the listener to this server.
+// Start listening for incoming connections.
+// This transfers ownership of the listener to this server and waits until the listener is closed
 // Use Stop() to stop listening and close the listener.
 func (capsrv *CapServer) Start(lis net.Listener) error {
 	logrus.Infof("CapServer listening on %s", lis.Addr())
@@ -137,9 +137,9 @@ func (capsrv *CapServer) Start(lis net.Listener) error {
 }
 
 // Stop listening
-func (capsrv *CapServer) Stop() {
-	_ = capsrv.lis.Close()
-}
+//func (capsrv *CapServer) Stop() {
+//	_ = capsrv.lis.Close()
+//}
 
 // NewCapServer injects the ListCapabilities method in the given list of methods in addition to
 // serving the given methods from the service.

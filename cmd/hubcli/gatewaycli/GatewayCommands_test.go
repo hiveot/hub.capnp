@@ -24,12 +24,14 @@ import (
 	"github.com/hiveot/hub/pkg/gateway/capnpserver"
 	"github.com/hiveot/hub/pkg/gateway/service"
 	"github.com/hiveot/hub/pkg/resolver"
+	capnpserver2 "github.com/hiveot/hub/pkg/resolver/capnpserver"
+	service2 "github.com/hiveot/hub/pkg/resolver/service"
 )
 
 const testHomeDir = "/tmp/test-hubcli"
 
-var testSocketDir = path.Join(testHomeDir, "run")
-var resolverSocketPath = path.Join(testSocketDir, resolver.ServiceName+".socket")
+// var testSocketDir = path.Join(testHomeDir, "run")
+var resolverSocketPath = path.Join(testHomeDir, resolver.ServiceName+".socket")
 
 func TestConnectToGateway(t *testing.T) {
 	logging.SetLogging("info", "")
@@ -72,6 +74,12 @@ func TestConnectToGateway(t *testing.T) {
 	}
 	srvListener = listener.CreateTLSListener(srvListener, &testServiceCert, testCACert)
 	go capnpserver.StartGatewayCapnpServer(svc, srvListener)
+
+	// gateway uses resolver
+	rsvc := service2.NewResolverService(f.Run)
+	rlis, err2 := net.Listen("unix", resolverSocketPath)
+	require.NoError(t, err2)
+	go capnpserver2.StartResolverServiceCapnpServer(rsvc, rlis, nil)
 
 	// step 4: client connects
 	gw, err := connectToGateway(f, srvListener.Addr().String())

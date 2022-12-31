@@ -18,7 +18,7 @@ import (
 // Each client therefore operates in its own session.
 func StartGatewayCapnpServer(svc *service.GatewayService, lis net.Listener) error {
 
-	logrus.Infof("listening on %s", lis.Addr().String())
+	logrus.Infof("listening on %s", lis.Addr())
 
 	for {
 		// Listen for incoming connections

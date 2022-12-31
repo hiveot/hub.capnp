@@ -250,7 +250,7 @@ func TestWriteRead(t *testing.T) {
 	err = bucket.Delete(id1)
 	assert.NoError(t, err)
 	resp, err = bucket.Get(id1)
-	assert.NoError(t, err)
+	assert.Error(t, err)
 	assert.Nil(t, resp)
 
 	err = bucket.Close()
