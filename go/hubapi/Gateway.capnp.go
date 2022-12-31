@@ -133,27 +133,11 @@ func (c CapGatewaySession) ListCapabilities(ctx context.Context, params func(Cap
 	ans, release := capnp.Client(c).SendCall(ctx, s)
 	return CapGatewaySession_listCapabilities_Results_Future{Future: ans.Future()}, release
 }
-func (c CapGatewaySession) RegisterCapabilities(ctx context.Context, params func(CapGatewaySession_registerCapabilities_Params) error) (CapGatewaySession_registerCapabilities_Results_Future, capnp.ReleaseFunc) {
-	s := capnp.Send{
-		Method: capnp.Method{
-			InterfaceID:   0xc50a0c4801768ab0,
-			MethodID:      1,
-			InterfaceName: "hubapi/Gateway.capnp:CapGatewaySession",
-			MethodName:    "registerCapabilities",
-		},
-	}
-	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 3}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapGatewaySession_registerCapabilities_Params(s)) }
-	}
-	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapGatewaySession_registerCapabilities_Results_Future{Future: ans.Future()}, release
-}
 func (c CapGatewaySession) Login(ctx context.Context, params func(CapGatewaySession_login_Params) error) (CapGatewaySession_login_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
 			InterfaceID:   0xc50a0c4801768ab0,
-			MethodID:      2,
+			MethodID:      1,
 			InterfaceName: "hubapi/Gateway.capnp:CapGatewaySession",
 			MethodName:    "login",
 		},
@@ -169,7 +153,7 @@ func (c CapGatewaySession) Ping(ctx context.Context, params func(CapGatewaySessi
 	s := capnp.Send{
 		Method: capnp.Method{
 			InterfaceID:   0xc50a0c4801768ab0,
-			MethodID:      3,
+			MethodID:      2,
 			InterfaceName: "hubapi/Gateway.capnp:CapGatewaySession",
 			MethodName:    "ping",
 		},
@@ -185,7 +169,7 @@ func (c CapGatewaySession) Refresh(ctx context.Context, params func(CapGatewaySe
 	s := capnp.Send{
 		Method: capnp.Method{
 			InterfaceID:   0xc50a0c4801768ab0,
-			MethodID:      4,
+			MethodID:      3,
 			InterfaceName: "hubapi/Gateway.capnp:CapGatewaySession",
 			MethodName:    "refresh",
 		},
@@ -267,8 +251,6 @@ func (c CapGatewaySession) GetFlowLimiter() fc.FlowLimiter {
 type CapGatewaySession_Server interface {
 	ListCapabilities(context.Context, CapGatewaySession_listCapabilities) error
 
-	RegisterCapabilities(context.Context, CapGatewaySession_registerCapabilities) error
-
 	Login(context.Context, CapGatewaySession_login) error
 
 	Ping(context.Context, CapGatewaySession_ping) error
@@ -292,7 +274,7 @@ func CapGatewaySession_ServerToClient(s CapGatewaySession_Server) CapGatewaySess
 // This can be used to create a more complicated Server.
 func CapGatewaySession_Methods(methods []server.Method, s CapGatewaySession_Server) []server.Method {
 	if cap(methods) == 0 {
-		methods = make([]server.Method, 0, 5)
+		methods = make([]server.Method, 0, 4)
 	}
 
 	methods = append(methods, server.Method{
@@ -312,18 +294,6 @@ func CapGatewaySession_Methods(methods []server.Method, s CapGatewaySession_Serv
 			InterfaceID:   0xc50a0c4801768ab0,
 			MethodID:      1,
 			InterfaceName: "hubapi/Gateway.capnp:CapGatewaySession",
-			MethodName:    "registerCapabilities",
-		},
-		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.RegisterCapabilities(ctx, CapGatewaySession_registerCapabilities{call})
-		},
-	})
-
-	methods = append(methods, server.Method{
-		Method: capnp.Method{
-			InterfaceID:   0xc50a0c4801768ab0,
-			MethodID:      2,
-			InterfaceName: "hubapi/Gateway.capnp:CapGatewaySession",
 			MethodName:    "login",
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
@@ -334,7 +304,7 @@ func CapGatewaySession_Methods(methods []server.Method, s CapGatewaySession_Serv
 	methods = append(methods, server.Method{
 		Method: capnp.Method{
 			InterfaceID:   0xc50a0c4801768ab0,
-			MethodID:      3,
+			MethodID:      2,
 			InterfaceName: "hubapi/Gateway.capnp:CapGatewaySession",
 			MethodName:    "ping",
 		},
@@ -346,7 +316,7 @@ func CapGatewaySession_Methods(methods []server.Method, s CapGatewaySession_Serv
 	methods = append(methods, server.Method{
 		Method: capnp.Method{
 			InterfaceID:   0xc50a0c4801768ab0,
-			MethodID:      4,
+			MethodID:      3,
 			InterfaceName: "hubapi/Gateway.capnp:CapGatewaySession",
 			MethodName:    "refresh",
 		},
@@ -373,23 +343,6 @@ func (c CapGatewaySession_listCapabilities) Args() CapGatewaySession_listCapabil
 func (c CapGatewaySession_listCapabilities) AllocResults() (CapGatewaySession_listCapabilities_Results, error) {
 	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
 	return CapGatewaySession_listCapabilities_Results(r), err
-}
-
-// CapGatewaySession_registerCapabilities holds the state for a server call to CapGatewaySession.registerCapabilities.
-// See server.Call for documentation.
-type CapGatewaySession_registerCapabilities struct {
-	*server.Call
-}
-
-// Args returns the call's arguments.
-func (c CapGatewaySession_registerCapabilities) Args() CapGatewaySession_registerCapabilities_Params {
-	return CapGatewaySession_registerCapabilities_Params(c.Call.Args())
-}
-
-// AllocResults allocates the results struct.
-func (c CapGatewaySession_registerCapabilities) AllocResults() (CapGatewaySession_registerCapabilities_Results, error) {
-	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapGatewaySession_registerCapabilities_Results(r), err
 }
 
 // CapGatewaySession_login holds the state for a server call to CapGatewaySession.login.
@@ -605,201 +558,10 @@ func (f CapGatewaySession_listCapabilities_Results_Future) Struct() (CapGatewayS
 	return CapGatewaySession_listCapabilities_Results(p.Struct()), err
 }
 
-type CapGatewaySession_registerCapabilities_Params capnp.Struct
-
-// CapGatewaySession_registerCapabilities_Params_TypeID is the unique identifier for the type CapGatewaySession_registerCapabilities_Params.
-const CapGatewaySession_registerCapabilities_Params_TypeID = 0xc15a6f918b7c3038
-
-func NewCapGatewaySession_registerCapabilities_Params(s *capnp.Segment) (CapGatewaySession_registerCapabilities_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 3})
-	return CapGatewaySession_registerCapabilities_Params(st), err
-}
-
-func NewRootCapGatewaySession_registerCapabilities_Params(s *capnp.Segment) (CapGatewaySession_registerCapabilities_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 3})
-	return CapGatewaySession_registerCapabilities_Params(st), err
-}
-
-func ReadRootCapGatewaySession_registerCapabilities_Params(msg *capnp.Message) (CapGatewaySession_registerCapabilities_Params, error) {
-	root, err := msg.Root()
-	return CapGatewaySession_registerCapabilities_Params(root.Struct()), err
-}
-
-func (s CapGatewaySession_registerCapabilities_Params) String() string {
-	str, _ := text.Marshal(0xc15a6f918b7c3038, capnp.Struct(s))
-	return str
-}
-
-func (s CapGatewaySession_registerCapabilities_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapGatewaySession_registerCapabilities_Params) DecodeFromPtr(p capnp.Ptr) CapGatewaySession_registerCapabilities_Params {
-	return CapGatewaySession_registerCapabilities_Params(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapGatewaySession_registerCapabilities_Params) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapGatewaySession_registerCapabilities_Params) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapGatewaySession_registerCapabilities_Params) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapGatewaySession_registerCapabilities_Params) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s CapGatewaySession_registerCapabilities_Params) ServiceID() (string, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.Text(), err
-}
-
-func (s CapGatewaySession_registerCapabilities_Params) HasServiceID() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s CapGatewaySession_registerCapabilities_Params) ServiceIDBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.TextBytes(), err
-}
-
-func (s CapGatewaySession_registerCapabilities_Params) SetServiceID(v string) error {
-	return capnp.Struct(s).SetText(0, v)
-}
-
-func (s CapGatewaySession_registerCapabilities_Params) CapInfo() (CapabilityInfo_List, error) {
-	p, err := capnp.Struct(s).Ptr(1)
-	return CapabilityInfo_List(p.List()), err
-}
-
-func (s CapGatewaySession_registerCapabilities_Params) HasCapInfo() bool {
-	return capnp.Struct(s).HasPtr(1)
-}
-
-func (s CapGatewaySession_registerCapabilities_Params) SetCapInfo(v CapabilityInfo_List) error {
-	return capnp.Struct(s).SetPtr(1, v.ToPtr())
-}
-
-// NewCapInfo sets the capInfo field to a newly
-// allocated CapabilityInfo_List, preferring placement in s's segment.
-func (s CapGatewaySession_registerCapabilities_Params) NewCapInfo(n int32) (CapabilityInfo_List, error) {
-	l, err := NewCapabilityInfo_List(capnp.Struct(s).Segment(), n)
-	if err != nil {
-		return CapabilityInfo_List{}, err
-	}
-	err = capnp.Struct(s).SetPtr(1, l.ToPtr())
-	return l, err
-}
-func (s CapGatewaySession_registerCapabilities_Params) Provider() CapProvider {
-	p, _ := capnp.Struct(s).Ptr(2)
-	return CapProvider(p.Interface().Client())
-}
-
-func (s CapGatewaySession_registerCapabilities_Params) HasProvider() bool {
-	return capnp.Struct(s).HasPtr(2)
-}
-
-func (s CapGatewaySession_registerCapabilities_Params) SetProvider(v CapProvider) error {
-	if !v.IsValid() {
-		return capnp.Struct(s).SetPtr(2, capnp.Ptr{})
-	}
-	seg := s.Segment()
-	in := capnp.NewInterface(seg, seg.Message().AddCap(capnp.Client(v)))
-	return capnp.Struct(s).SetPtr(2, in.ToPtr())
-}
-
-// CapGatewaySession_registerCapabilities_Params_List is a list of CapGatewaySession_registerCapabilities_Params.
-type CapGatewaySession_registerCapabilities_Params_List = capnp.StructList[CapGatewaySession_registerCapabilities_Params]
-
-// NewCapGatewaySession_registerCapabilities_Params creates a new list of CapGatewaySession_registerCapabilities_Params.
-func NewCapGatewaySession_registerCapabilities_Params_List(s *capnp.Segment, sz int32) (CapGatewaySession_registerCapabilities_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 3}, sz)
-	return capnp.StructList[CapGatewaySession_registerCapabilities_Params](l), err
-}
-
-// CapGatewaySession_registerCapabilities_Params_Future is a wrapper for a CapGatewaySession_registerCapabilities_Params promised by a client call.
-type CapGatewaySession_registerCapabilities_Params_Future struct{ *capnp.Future }
-
-func (f CapGatewaySession_registerCapabilities_Params_Future) Struct() (CapGatewaySession_registerCapabilities_Params, error) {
-	p, err := f.Future.Ptr()
-	return CapGatewaySession_registerCapabilities_Params(p.Struct()), err
-}
-func (p CapGatewaySession_registerCapabilities_Params_Future) Provider() CapProvider {
-	return CapProvider(p.Future.Field(2, nil).Client())
-}
-
-type CapGatewaySession_registerCapabilities_Results capnp.Struct
-
-// CapGatewaySession_registerCapabilities_Results_TypeID is the unique identifier for the type CapGatewaySession_registerCapabilities_Results.
-const CapGatewaySession_registerCapabilities_Results_TypeID = 0xce340b1ce0aa477c
-
-func NewCapGatewaySession_registerCapabilities_Results(s *capnp.Segment) (CapGatewaySession_registerCapabilities_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapGatewaySession_registerCapabilities_Results(st), err
-}
-
-func NewRootCapGatewaySession_registerCapabilities_Results(s *capnp.Segment) (CapGatewaySession_registerCapabilities_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapGatewaySession_registerCapabilities_Results(st), err
-}
-
-func ReadRootCapGatewaySession_registerCapabilities_Results(msg *capnp.Message) (CapGatewaySession_registerCapabilities_Results, error) {
-	root, err := msg.Root()
-	return CapGatewaySession_registerCapabilities_Results(root.Struct()), err
-}
-
-func (s CapGatewaySession_registerCapabilities_Results) String() string {
-	str, _ := text.Marshal(0xce340b1ce0aa477c, capnp.Struct(s))
-	return str
-}
-
-func (s CapGatewaySession_registerCapabilities_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapGatewaySession_registerCapabilities_Results) DecodeFromPtr(p capnp.Ptr) CapGatewaySession_registerCapabilities_Results {
-	return CapGatewaySession_registerCapabilities_Results(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapGatewaySession_registerCapabilities_Results) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapGatewaySession_registerCapabilities_Results) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapGatewaySession_registerCapabilities_Results) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapGatewaySession_registerCapabilities_Results) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-
-// CapGatewaySession_registerCapabilities_Results_List is a list of CapGatewaySession_registerCapabilities_Results.
-type CapGatewaySession_registerCapabilities_Results_List = capnp.StructList[CapGatewaySession_registerCapabilities_Results]
-
-// NewCapGatewaySession_registerCapabilities_Results creates a new list of CapGatewaySession_registerCapabilities_Results.
-func NewCapGatewaySession_registerCapabilities_Results_List(s *capnp.Segment, sz int32) (CapGatewaySession_registerCapabilities_Results_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
-	return capnp.StructList[CapGatewaySession_registerCapabilities_Results](l), err
-}
-
-// CapGatewaySession_registerCapabilities_Results_Future is a wrapper for a CapGatewaySession_registerCapabilities_Results promised by a client call.
-type CapGatewaySession_registerCapabilities_Results_Future struct{ *capnp.Future }
-
-func (f CapGatewaySession_registerCapabilities_Results_Future) Struct() (CapGatewaySession_registerCapabilities_Results, error) {
-	p, err := f.Future.Ptr()
-	return CapGatewaySession_registerCapabilities_Results(p.Struct()), err
-}
-
 type CapGatewaySession_login_Params capnp.Struct
 
 // CapGatewaySession_login_Params_TypeID is the unique identifier for the type CapGatewaySession_login_Params.
-const CapGatewaySession_login_Params_TypeID = 0xc469005256c59d20
+const CapGatewaySession_login_Params_TypeID = 0xc15a6f918b7c3038
 
 func NewCapGatewaySession_login_Params(s *capnp.Segment) (CapGatewaySession_login_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
@@ -817,7 +579,7 @@ func ReadRootCapGatewaySession_login_Params(msg *capnp.Message) (CapGatewaySessi
 }
 
 func (s CapGatewaySession_login_Params) String() string {
-	str, _ := text.Marshal(0xc469005256c59d20, capnp.Struct(s))
+	str, _ := text.Marshal(0xc15a6f918b7c3038, capnp.Struct(s))
 	return str
 }
 
@@ -899,7 +661,7 @@ func (f CapGatewaySession_login_Params_Future) Struct() (CapGatewaySession_login
 type CapGatewaySession_login_Results capnp.Struct
 
 // CapGatewaySession_login_Results_TypeID is the unique identifier for the type CapGatewaySession_login_Results.
-const CapGatewaySession_login_Results_TypeID = 0xa75445aa77986ace
+const CapGatewaySession_login_Results_TypeID = 0xce340b1ce0aa477c
 
 func NewCapGatewaySession_login_Results(s *capnp.Segment) (CapGatewaySession_login_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
@@ -917,7 +679,7 @@ func ReadRootCapGatewaySession_login_Results(msg *capnp.Message) (CapGatewaySess
 }
 
 func (s CapGatewaySession_login_Results) String() string {
-	str, _ := text.Marshal(0xa75445aa77986ace, capnp.Struct(s))
+	str, _ := text.Marshal(0xce340b1ce0aa477c, capnp.Struct(s))
 	return str
 }
 
@@ -999,7 +761,7 @@ func (f CapGatewaySession_login_Results_Future) Struct() (CapGatewaySession_logi
 type CapGatewaySession_ping_Params capnp.Struct
 
 // CapGatewaySession_ping_Params_TypeID is the unique identifier for the type CapGatewaySession_ping_Params.
-const CapGatewaySession_ping_Params_TypeID = 0xf811e6b8fd945038
+const CapGatewaySession_ping_Params_TypeID = 0xc469005256c59d20
 
 func NewCapGatewaySession_ping_Params(s *capnp.Segment) (CapGatewaySession_ping_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
@@ -1017,7 +779,7 @@ func ReadRootCapGatewaySession_ping_Params(msg *capnp.Message) (CapGatewaySessio
 }
 
 func (s CapGatewaySession_ping_Params) String() string {
-	str, _ := text.Marshal(0xf811e6b8fd945038, capnp.Struct(s))
+	str, _ := text.Marshal(0xc469005256c59d20, capnp.Struct(s))
 	return str
 }
 
@@ -1064,7 +826,7 @@ func (f CapGatewaySession_ping_Params_Future) Struct() (CapGatewaySession_ping_P
 type CapGatewaySession_ping_Results capnp.Struct
 
 // CapGatewaySession_ping_Results_TypeID is the unique identifier for the type CapGatewaySession_ping_Results.
-const CapGatewaySession_ping_Results_TypeID = 0xcf0b9e786839c3fc
+const CapGatewaySession_ping_Results_TypeID = 0xa75445aa77986ace
 
 func NewCapGatewaySession_ping_Results(s *capnp.Segment) (CapGatewaySession_ping_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
@@ -1082,7 +844,7 @@ func ReadRootCapGatewaySession_ping_Results(msg *capnp.Message) (CapGatewaySessi
 }
 
 func (s CapGatewaySession_ping_Results) String() string {
-	str, _ := text.Marshal(0xcf0b9e786839c3fc, capnp.Struct(s))
+	str, _ := text.Marshal(0xa75445aa77986ace, capnp.Struct(s))
 	return str
 }
 
@@ -1155,7 +917,7 @@ func (p CapGatewaySession_ping_Results_Future) Reply() ClientInfo_Future {
 type CapGatewaySession_refresh_Params capnp.Struct
 
 // CapGatewaySession_refresh_Params_TypeID is the unique identifier for the type CapGatewaySession_refresh_Params.
-const CapGatewaySession_refresh_Params_TypeID = 0xc5b055a2f2b2bd04
+const CapGatewaySession_refresh_Params_TypeID = 0xf811e6b8fd945038
 
 func NewCapGatewaySession_refresh_Params(s *capnp.Segment) (CapGatewaySession_refresh_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
@@ -1173,7 +935,7 @@ func ReadRootCapGatewaySession_refresh_Params(msg *capnp.Message) (CapGatewaySes
 }
 
 func (s CapGatewaySession_refresh_Params) String() string {
-	str, _ := text.Marshal(0xc5b055a2f2b2bd04, capnp.Struct(s))
+	str, _ := text.Marshal(0xf811e6b8fd945038, capnp.Struct(s))
 	return str
 }
 
@@ -1237,7 +999,7 @@ func (f CapGatewaySession_refresh_Params_Future) Struct() (CapGatewaySession_ref
 type CapGatewaySession_refresh_Results capnp.Struct
 
 // CapGatewaySession_refresh_Results_TypeID is the unique identifier for the type CapGatewaySession_refresh_Results.
-const CapGatewaySession_refresh_Results_TypeID = 0xb23f790a692bea68
+const CapGatewaySession_refresh_Results_TypeID = 0xcf0b9e786839c3fc
 
 func NewCapGatewaySession_refresh_Results(s *capnp.Segment) (CapGatewaySession_refresh_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
@@ -1255,7 +1017,7 @@ func ReadRootCapGatewaySession_refresh_Results(msg *capnp.Message) (CapGatewaySe
 }
 
 func (s CapGatewaySession_refresh_Results) String() string {
-	str, _ := text.Marshal(0xb23f790a692bea68, capnp.Struct(s))
+	str, _ := text.Marshal(0xcf0b9e786839c3fc, capnp.Struct(s))
 	return str
 }
 
@@ -1334,73 +1096,60 @@ func (f CapGatewaySession_refresh_Results_Future) Struct() (CapGatewaySession_re
 	return CapGatewaySession_refresh_Results(p.Struct()), err
 }
 
-const schema_dd3a962266ddd0e3 = "x\xda\xb4U]h\x1cU\x14>\xe7\xde\x99\xbd\xa5\xdd" +
-	"\x9a\\7E\x11K\xb4\x14l\x15j\xdaTh\x82\xb0" +
-	"\x9b6u\x9b``n\xdc\x8a\x16\x83\xb9Mn\xb27" +
-	"\xd9\xcc\x8c3\x93\xc4\x85HQ\xe8K\xc5\x87\x88\x88\x0a" +
-	"\xfa\x90\x97\xca\xe2O\x0d\"*\xf4A4Ob\x14\xdf" +
-	"\x83\x82 \xfe<\xc5\xa7Z\x94\x91\xbb\xbb\xb3;E\xcb" +
-	"\x9a\x87\xbc\x9e{\xbe\xfb}\xf7\x9co\xbe\xe9\x9b#\x05" +
-	"\xeb\xf8\xfe<\x03\"Jv&\xfe\xfe\xce\x9b\x1f\x1f\x9c" +
-	"\xf8h\x0d\xf8\x03\x08`#\x03\xe8\xbfL\x09\x01\xcc\xbd" +
-	"I\xf3\x80\xf1\xe6\xdc\x1b\xcb\xb5\xb3\xa5\xab\xcd\x06b\x1a" +
-	"\xbe\xa15\x04\xccm\xd1e\xc0\xf8\xd9\xaf\x7f\x9f\x9f\xfc" +
-	"e\xec]\xe0\x070\xfe\xe9\xbb\xad\x99C\xaf\x0fn5" +
-	"\x1b\x87,\x82\xb91\x8b\x01\xe4F,\xd3\\\xfe\xed!" +
-	"\xbd\xb7\x9a_O\xdf\xf6\xbe\xf5\xb9\xb9\xedz\xbd\xe1T" +
-	"\xdf\xca\xcb\xab\xde\x85/\x9a\x0d\xd44\xdco\xdfc\xf4" +
-	"\x0c\xd8\x1f\x02\xfep\xdf\xdb\x1bO\x8e\xeb\xafR\xf8_" +
-	"\xed5\x83\xff\xd36\xf8kW\x96\xf0\\v\xef\x06\xf0" +
-	"\x03\xb4\xad\x06\xb0\x7f\"3\x88\xb9\x85\x8c\x01\xe8L\x11" +
-	"sC\x8c\x01\xc4\xd6\xf5\xf5?\xd6\xce_\xdbH?\xff" +
-	"([7\xf7\x0d0\xf3\xfc\x95b\xed\xc7{\xf7\x9d\xdc" +
-	"l4\x98\x97\xf4O\xb0C\x04\xac\xf8\xaf/\x07\xca\xcf" +
-	"\xbf\xb3\xef\xdb4\xf4<\xabKQu\xe8K\x9b+\xab" +
-	"}\x93W\xb7S\xd0\xcb\xec&\x82\x15\x9fr^\xfb\xfb" +
-	"\xd3\x9f\xf9\x8d\xd4I\x95\xbd\x850\x1b\x97\x17/J_" +
-	"?\\d2R\xcb\xb2zlJ\xfa\xae?xF\xfa" +
-	"\xc5F\xe1\x09\x15\x86\xdas\x8fUt\x18\x9d\x91\xbe\xbc" +
-	"\xa8+:\xd2*<<\xae\xc2\xc5J\x14\x82\xb0\xa8\x05" +
-	"`!\x00\xdf?\x0a \xb2\x14\xc5\x11\x82\xb1vg\xbc" +
-	"\xc7u\x18\x01\x00\xde\x01\xe8P\xc4\xeex\xbb\xf6\xc9c" +
-	"\x07\xefr>\x00@Sl\xb1\xdb\x9d\xd8\xbdY\xed\x1a" +
-	"\xca.\xc3)\xf6\xb4(\x8f\x8e\x03\x88#\x14\xc5I\x82" +
-	"\x1c\xb1\x07M\xf1\xf8\x1c\x80\xe8\xa3(\x1e%\x18\xcb\xc5" +
-	"\xa8\\\xf2\xe6\x15\xa0\x8bY \x98\x05\x8c\x035\x13\xa8" +
-	"\xb0\\\x82.o^\xb5\xcb\x89\x1az\xab\x9a\x8aVn" +
-	"4\xe2\xcex\xe0 \xa6\xb9G\xff\x8b\xfbB\x8a{\xaa" +
-	"\x01\x1d63HH\x1a\xb5R\x15\xa8\xaf\xfe\xc5\xdci" +
-	"\x0eM\xe1\x87\xc7\xf3\x8d\xe9\xef\xf6$XG=\xb3:" +
-	"\x8cTp\x8b3\x1c\x19H\xba\x10\x8alK\xdbY\xa3" +
-	"m\x98\xa2pR\xda\xc6N\x03\x88s\x14\xc54AN" +
-	"H\x0f\x12\x00.\xcdL')\x8a\x0a\xc18T\xc1\x92" +
-	"\x9eR#\x80\xc3\x89\xb2KS\xd27\xab\xb8\xbd\xa5\xfc" +
-	"\xc0[\xd2\xd3*03\xe7\xf1\xab7\x9e\xf9\xec\xa9\xe2" +
-	"\xf6{\xe6\x94\xef\xd8p\x8e\x0c\x98\\\x08;\xee|\xb4" +
-	"\xc3\xce}\x19\x86\xcb^0\x9d\xae\xdd\xc6lm%\xf9" +
-	"\x86\x14\xe3\xb9\x1ej\x03\xb4>oL\"\x94\xaf^\x01" +
-	"\xc2_a\xd8N1L\xe2\x83\xbfX\x03\xc2_`H" +
-	"\x92\x00K\x05\xebs'\x80p\xc5\x90\xb6\x82\x01\x93p" +
-	"\xe1O?\x08\x84\x8f1\xb4ZQ\x85I\x86\xf2\xa1\xd3" +
-	"@\xf8#,N\xc2\x00\x93\x9d\x03\x14\x8c\x97\x1af\xc0" +
-	"\xc4\x0d]\xe6\xa8\x80\xbd\xf5a\x16\xb0\xcb\xd7\xeel\x01" +
-	"/5=W@\x07w\xee|\xa7W\x06f%\xa9\xd4" +
-	"\x99k\xa6\xce\xdddw\xfcl\x92\x8eU\xa2\xf0\x7fk" +
-	"5\xefl\xa1\xd2JO\x00\x88=\x14E\x0f\xc1\xde@" +
-	"\xf9\x95*v\xb7\xfff\x80\xd8\x9d\x92\x9a\xd9i \xe7" +
-	"\x9d\xfadv\xa6\xb2\xf9\xad\xfe\x13\x00\x00\xff\xff\xfd\xf7" +
-	"+\xe3"
+const schema_dd3a962266ddd0e3 = "x\xda\xb4T]H\x14m\x14>\xe7}g\x1c\xf9\\" +
+	"?w\xbeU\xbe.\x12+\x8c4\xc8\xd6\x9f\x0b\x93b" +
+	"\x97\xacL)\x98\xd9\xb6.\x84\xc8\xd1f\xdd\xd1uf" +
+	"\xdaw\xb6mA\x08\xba\x09\x8c.\x84\x88\x08\xecB\x08" +
+	"k/\xa2\"\"\x82.\xa2\xbc\x0a,\xba\x97\x8a \x82" +
+	"\xae\xf6.$\x99xg\xffFHt/\xba\x1b\xce<" +
+	"\xe7<\xcf9\xe79o\xf8\x0bF\x85\xee\xc6\xeb\"\x10" +
+	"5*\xd6\xb9\x1f\xff[{\xd6z\xfe\xc9\"\xc8\xfb\x10" +
+	"@D\x09\xa0\xf7!!\x040\xf4\x8aD\x00\xdd\x95\xa9" +
+	";\xd9\xfc\xf1\xf8\x92\x1fP \x8b\x08\x18B\xca\x01\x17" +
+	"\xde\xfd\x98\x1e\xfb~\xfa\x01\xc8-\xe8~\xfd\xb0\x9a\xd8" +
+	"s{`\x15D\xc2\x81\xbb)\xc1\xd0\x01*\x01\x84:" +
+	"i\x16\xd0\xed\x0f\xcf\xde\x98\xb7F_\x97\xaay\xa0\x9b" +
+	"\xd4\xab\xb6\xc0\x01\x9fv-,\x9f\x8b\x19o\xbd\xdf\x02" +
+	"\xff\x8b\xc2]\x04\xc1}<w\x19O\x06\xfeY\x06\xb9" +
+	"\x85VY\x00{\x0bt\x00C\xe8A\xd7\xa9\x84\xa1\xfb" +
+	"\xfc\xd3\x9d\x1d\xca\x7f\xde\xd9\xd0\xb7\xb2\x81G\xc8{<" +
+	"\x02\x17\xf2\xeb\xcd\xa1\xe4\x95{\x0d\xef\xfd\x00\x14_r" +
+	"\x80,r\xc0\xb5\x95\xd9\xf9\xf0\xd8R\x01\xaaR2\xe2" +
+	"\x1a\x97\xd2\xaf\xdcZ\x7f\xf1M\xfe\xe9\x9f\x88!>\xe5" +
+	"\xa991\x02\x83n23\xae\xd9\xc6\xc1!Is\xf4" +
+	"\xac\x96\xeb\x9a\xd0l\xd3\x1e\x18\xd4\xec\xa1b\xe0\x8c\xce" +
+	"\x98a\x99])\x839\x83\x9a\xad\x8d\x1b)\xc31t" +
+	"\xd6\x1e\xd3Y&\xe50P\x05*\x00\x08\x08 7\x8e" +
+	"\x00\xa8\x01\x8aj\x07A\xd70\x13\xd6)\x839\x00\x80" +
+	"\xff\x02*\x141\xe8\x16\xf2\xcfO\xb4\xfe\xaf<\x02@" +
+	"\x1e\xac\xb0\x8b[\xb0\xdb\x869\xe91J)\x87\xf9\x19" +
+	"{\x00\xd4z\x8aj3\xc1\xb6\xb4n\xa7r\x18\xac." +
+	"\x19\x10\x83>\x12\xba\x91$e\xe8\xa63l&,P" +
+	"\x10\xd5\xfaJ\xcdN\xdeE\x07E\xb5\x8f\xa0\x8c\xd8\x8c" +
+	"<\xd8=\x0a\xa0\x86)\xaa\x87\x09\xba\x13\xc5\xd4c\xbc" +
+	"\xb5\x00\x10\x0c@9\x16\xcf\x01\xb5\xf5Jp\xbb\xed\xa5" +
+	"\xacI\xc3lW\xb4\xb4\xa4\xcd\xb0-\xa5\x8cl!\xc5" +
+	"\xd6\x18\xcbZ\xe9\x8b\xfeXM\x83V\xb4\xb4Fg\xd8" +
+	"f\x83\xab&E\x8aY|~A*\x02T\x8c\x88\xe5" +
+	"S\x95/\xcd\x01\x91g$\xac\x9e\x13\x96\xfd.k=" +
+	"@\xe4\xb3\x12\x92\xf2%\xf9\x0exx?\x10\xf9\x88\x84" +
+	"\xb4ba,\x9f\x81\xdc}\x14\x88\xbcWr\xcb\x9e\xc4" +
+	"\xb2)\x01\xa2\xd8\xe6\x0d3\x8aM\xbc\x95(^M\xeb" +
+	"\x89\xb4\xce\x92QT\xb0\xd6\x85\xc4t\xd6\xc4=\xee\xdf" +
+	"H\xecO\x1b\x99\xf2mD\xcb8\xc9\xb85\xad\x03\x9a" +
+	"\x95\xe9\x974\xc4\xa1\xc9\x9a\xd6\xcd\x9a\x97RJo\x8f" +
+	"E\x8a7\xf7\xb7\xf5\xd4\xd5\xfa\x16D\xb8c|\x86\xd9" +
+	"nCJ\x9b\x97\xe7?\xe8\xa9\xd2\x13\xb2\x83l&\xf3" +
+	"w\x00\x00\x00\xff\xff\x0f9\xb4K"
 
 func init() {
 	schemas.Register(schema_dd3a962266ddd0e3,
 		0xa2b15d1db4fa12d2,
 		0xa75445aa77986ace,
 		0xa84de8606bebcb5f,
-		0xb23f790a692bea68,
 		0xc15a6f918b7c3038,
 		0xc469005256c59d20,
 		0xc50a0c4801768ab0,
-		0xc5b055a2f2b2bd04,
 		0xce340b1ce0aa477c,
 		0xcf0b9e786839c3fc,
 		0xf1a76030917cce82,

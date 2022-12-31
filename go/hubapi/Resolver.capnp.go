@@ -16,7 +16,7 @@ const ClientType = uint64(0xe1385e5b215ca71f)
 
 // Constants defined in Resolver.capnp.
 const (
-	DefaultResolverAddress    = "/tmp/hive-resolver.socket"
+	DefaultResolverAddress    = "/tmp/hiveot-resolver.socket"
 	ClientTypeUnauthenticated = "noauth"
 	ClientTypeIotDevice       = "iotdevice"
 	ClientTypeUser            = "user"
@@ -239,21 +239,21 @@ type CapResolverService capnp.Client
 // CapResolverService_TypeID is the unique identifier for the type CapResolverService.
 const CapResolverService_TypeID = 0xab76eb2c88343a05
 
-func (c CapResolverService) ListCapabilities(ctx context.Context, params func(CapResolverService_listCapabilities_Params) error) (CapResolverService_listCapabilities_Results_Future, capnp.ReleaseFunc) {
+func (c CapResolverService) ListCapabilities(ctx context.Context, params func(CapProvider_listCapabilities_Params) error) (CapProvider_listCapabilities_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
-			InterfaceID:   0xab76eb2c88343a05,
+			InterfaceID:   0xacf14758b95cf892,
 			MethodID:      0,
-			InterfaceName: "hubapi/Resolver.capnp:CapResolverService",
+			InterfaceName: "hubapi/Resolver.capnp:CapProvider",
 			MethodName:    "listCapabilities",
 		},
 	}
 	if params != nil {
 		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapResolverService_listCapabilities_Params(s)) }
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapProvider_listCapabilities_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapResolverService_listCapabilities_Results_Future{Future: ans.Future()}, release
+	return CapProvider_listCapabilities_Results_Future{Future: ans.Future()}, release
 }
 
 // String returns a string that identifies this capability for debugging
@@ -323,7 +323,7 @@ func (c CapResolverService) GetFlowLimiter() fc.FlowLimiter {
 	return capnp.Client(c).GetFlowLimiter()
 } // A CapResolverService_Server is a CapResolverService with a local implementation.
 type CapResolverService_Server interface {
-	ListCapabilities(context.Context, CapResolverService_listCapabilities) error
+	ListCapabilities(context.Context, CapProvider_listCapabilities) error
 }
 
 // CapResolverService_NewServer creates a new Server from an implementation of CapResolverService_Server.
@@ -347,34 +347,17 @@ func CapResolverService_Methods(methods []server.Method, s CapResolverService_Se
 
 	methods = append(methods, server.Method{
 		Method: capnp.Method{
-			InterfaceID:   0xab76eb2c88343a05,
+			InterfaceID:   0xacf14758b95cf892,
 			MethodID:      0,
-			InterfaceName: "hubapi/Resolver.capnp:CapResolverService",
+			InterfaceName: "hubapi/Resolver.capnp:CapProvider",
 			MethodName:    "listCapabilities",
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.ListCapabilities(ctx, CapResolverService_listCapabilities{call})
+			return s.ListCapabilities(ctx, CapProvider_listCapabilities{call})
 		},
 	})
 
 	return methods
-}
-
-// CapResolverService_listCapabilities holds the state for a server call to CapResolverService.listCapabilities.
-// See server.Call for documentation.
-type CapResolverService_listCapabilities struct {
-	*server.Call
-}
-
-// Args returns the call's arguments.
-func (c CapResolverService_listCapabilities) Args() CapResolverService_listCapabilities_Params {
-	return CapResolverService_listCapabilities_Params(c.Call.Args())
-}
-
-// AllocResults allocates the results struct.
-func (c CapResolverService_listCapabilities) AllocResults() (CapResolverService_listCapabilities_Results, error) {
-	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapResolverService_listCapabilities_Results(r), err
 }
 
 // CapResolverService_List is a list of CapResolverService.
@@ -384,176 +367,6 @@ type CapResolverService_List = capnp.CapList[CapResolverService]
 func NewCapResolverService_List(s *capnp.Segment, sz int32) (CapResolverService_List, error) {
 	l, err := capnp.NewPointerList(s, sz)
 	return capnp.CapList[CapResolverService](l), err
-}
-
-type CapResolverService_listCapabilities_Params capnp.Struct
-
-// CapResolverService_listCapabilities_Params_TypeID is the unique identifier for the type CapResolverService_listCapabilities_Params.
-const CapResolverService_listCapabilities_Params_TypeID = 0xcac2ed02e6489dd4
-
-func NewCapResolverService_listCapabilities_Params(s *capnp.Segment) (CapResolverService_listCapabilities_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapResolverService_listCapabilities_Params(st), err
-}
-
-func NewRootCapResolverService_listCapabilities_Params(s *capnp.Segment) (CapResolverService_listCapabilities_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapResolverService_listCapabilities_Params(st), err
-}
-
-func ReadRootCapResolverService_listCapabilities_Params(msg *capnp.Message) (CapResolverService_listCapabilities_Params, error) {
-	root, err := msg.Root()
-	return CapResolverService_listCapabilities_Params(root.Struct()), err
-}
-
-func (s CapResolverService_listCapabilities_Params) String() string {
-	str, _ := text.Marshal(0xcac2ed02e6489dd4, capnp.Struct(s))
-	return str
-}
-
-func (s CapResolverService_listCapabilities_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapResolverService_listCapabilities_Params) DecodeFromPtr(p capnp.Ptr) CapResolverService_listCapabilities_Params {
-	return CapResolverService_listCapabilities_Params(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapResolverService_listCapabilities_Params) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapResolverService_listCapabilities_Params) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapResolverService_listCapabilities_Params) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapResolverService_listCapabilities_Params) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s CapResolverService_listCapabilities_Params) ClientType() (string, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.Text(), err
-}
-
-func (s CapResolverService_listCapabilities_Params) HasClientType() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s CapResolverService_listCapabilities_Params) ClientTypeBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.TextBytes(), err
-}
-
-func (s CapResolverService_listCapabilities_Params) SetClientType(v string) error {
-	return capnp.Struct(s).SetText(0, v)
-}
-
-// CapResolverService_listCapabilities_Params_List is a list of CapResolverService_listCapabilities_Params.
-type CapResolverService_listCapabilities_Params_List = capnp.StructList[CapResolverService_listCapabilities_Params]
-
-// NewCapResolverService_listCapabilities_Params creates a new list of CapResolverService_listCapabilities_Params.
-func NewCapResolverService_listCapabilities_Params_List(s *capnp.Segment, sz int32) (CapResolverService_listCapabilities_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapResolverService_listCapabilities_Params](l), err
-}
-
-// CapResolverService_listCapabilities_Params_Future is a wrapper for a CapResolverService_listCapabilities_Params promised by a client call.
-type CapResolverService_listCapabilities_Params_Future struct{ *capnp.Future }
-
-func (f CapResolverService_listCapabilities_Params_Future) Struct() (CapResolverService_listCapabilities_Params, error) {
-	p, err := f.Future.Ptr()
-	return CapResolverService_listCapabilities_Params(p.Struct()), err
-}
-
-type CapResolverService_listCapabilities_Results capnp.Struct
-
-// CapResolverService_listCapabilities_Results_TypeID is the unique identifier for the type CapResolverService_listCapabilities_Results.
-const CapResolverService_listCapabilities_Results_TypeID = 0x8dfa473cba128039
-
-func NewCapResolverService_listCapabilities_Results(s *capnp.Segment) (CapResolverService_listCapabilities_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapResolverService_listCapabilities_Results(st), err
-}
-
-func NewRootCapResolverService_listCapabilities_Results(s *capnp.Segment) (CapResolverService_listCapabilities_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapResolverService_listCapabilities_Results(st), err
-}
-
-func ReadRootCapResolverService_listCapabilities_Results(msg *capnp.Message) (CapResolverService_listCapabilities_Results, error) {
-	root, err := msg.Root()
-	return CapResolverService_listCapabilities_Results(root.Struct()), err
-}
-
-func (s CapResolverService_listCapabilities_Results) String() string {
-	str, _ := text.Marshal(0x8dfa473cba128039, capnp.Struct(s))
-	return str
-}
-
-func (s CapResolverService_listCapabilities_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapResolverService_listCapabilities_Results) DecodeFromPtr(p capnp.Ptr) CapResolverService_listCapabilities_Results {
-	return CapResolverService_listCapabilities_Results(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapResolverService_listCapabilities_Results) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapResolverService_listCapabilities_Results) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapResolverService_listCapabilities_Results) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapResolverService_listCapabilities_Results) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s CapResolverService_listCapabilities_Results) InfoList() (CapabilityInfo_List, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return CapabilityInfo_List(p.List()), err
-}
-
-func (s CapResolverService_listCapabilities_Results) HasInfoList() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s CapResolverService_listCapabilities_Results) SetInfoList(v CapabilityInfo_List) error {
-	return capnp.Struct(s).SetPtr(0, v.ToPtr())
-}
-
-// NewInfoList sets the infoList field to a newly
-// allocated CapabilityInfo_List, preferring placement in s's segment.
-func (s CapResolverService_listCapabilities_Results) NewInfoList(n int32) (CapabilityInfo_List, error) {
-	l, err := NewCapabilityInfo_List(capnp.Struct(s).Segment(), n)
-	if err != nil {
-		return CapabilityInfo_List{}, err
-	}
-	err = capnp.Struct(s).SetPtr(0, l.ToPtr())
-	return l, err
-}
-
-// CapResolverService_listCapabilities_Results_List is a list of CapResolverService_listCapabilities_Results.
-type CapResolverService_listCapabilities_Results_List = capnp.StructList[CapResolverService_listCapabilities_Results]
-
-// NewCapResolverService_listCapabilities_Results creates a new list of CapResolverService_listCapabilities_Results.
-func NewCapResolverService_listCapabilities_Results_List(s *capnp.Segment, sz int32) (CapResolverService_listCapabilities_Results_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapResolverService_listCapabilities_Results](l), err
-}
-
-// CapResolverService_listCapabilities_Results_Future is a wrapper for a CapResolverService_listCapabilities_Results promised by a client call.
-type CapResolverService_listCapabilities_Results_Future struct{ *capnp.Future }
-
-func (f CapResolverService_listCapabilities_Results_Future) Struct() (CapResolverService_listCapabilities_Results, error) {
-	p, err := f.Future.Ptr()
-	return CapResolverService_listCapabilities_Results(p.Struct()), err
 }
 
 type CapProvider capnp.Client
@@ -571,7 +384,7 @@ func (c CapProvider) ListCapabilities(ctx context.Context, params func(CapProvid
 		},
 	}
 	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 0}
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
 		s.PlaceArgs = func(s capnp.Struct) error { return params(CapProvider_listCapabilities_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
@@ -714,12 +527,12 @@ type CapProvider_listCapabilities_Params capnp.Struct
 const CapProvider_listCapabilities_Params_TypeID = 0xbb0d5b68acfa1d84
 
 func NewCapProvider_listCapabilities_Params(s *capnp.Segment) (CapProvider_listCapabilities_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
 	return CapProvider_listCapabilities_Params(st), err
 }
 
 func NewRootCapProvider_listCapabilities_Params(s *capnp.Segment) (CapProvider_listCapabilities_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
 	return CapProvider_listCapabilities_Params(st), err
 }
 
@@ -755,13 +568,30 @@ func (s CapProvider_listCapabilities_Params) Message() *capnp.Message {
 func (s CapProvider_listCapabilities_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
+func (s CapProvider_listCapabilities_Params) ClientType() (string, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.Text(), err
+}
+
+func (s CapProvider_listCapabilities_Params) HasClientType() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapProvider_listCapabilities_Params) ClientTypeBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.TextBytes(), err
+}
+
+func (s CapProvider_listCapabilities_Params) SetClientType(v string) error {
+	return capnp.Struct(s).SetText(0, v)
+}
 
 // CapProvider_listCapabilities_Params_List is a list of CapProvider_listCapabilities_Params.
 type CapProvider_listCapabilities_Params_List = capnp.StructList[CapProvider_listCapabilities_Params]
 
 // NewCapProvider_listCapabilities_Params creates a new list of CapProvider_listCapabilities_Params.
 func NewCapProvider_listCapabilities_Params_List(s *capnp.Segment, sz int32) (CapProvider_listCapabilities_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
 	return capnp.StructList[CapProvider_listCapabilities_Params](l), err
 }
 
@@ -861,80 +691,74 @@ func (f CapProvider_listCapabilities_Results_Future) Struct() (CapProvider_listC
 	return CapProvider_listCapabilities_Results(p.Struct()), err
 }
 
-const schema_f02d0b8fc1fe2004 = "x\xda\xa4T]h\x1cU\x18\xfd\xce\xbd\xf3\xd3\xc6\xac" +
-	"\xe9d\x964\x05c\x8dDHK\xb6II\xc44\xb4" +
-	"&M\x82q\x83\x94\xdd\x9d\x06\xa5-\xc2d\xf7\x86\x8c" +
-	"\xdd\xec\x0c3\x93\x95<\xb5h\x05-\xa8\xb4\x88o>" +
-	"+\x1a\xfc{\x10\x7f^\xac\xe0\x8bZ\x1fJE\xf4E" +
-	"D\xf4A\x8d\xdab\xa1\x14\xe3\xc8\x9d\xcdlvYB" +
-	"\xc0\xbc\xed\x9e9\xdf\xf9\xbe{\xee\xf9\xee\xd0ClB" +
-	"9\x9c\xfaA%\x96\x9fV\xb5\xe8\xc8\xf9\xce\x8f\x8f\xce" +
-	"\xdcy\x91\x8c\x03 R\xa1\x13\x0d\x7f\xc3:\x19\xc1\\" +
-	"c\xe3\x84\xe8\xe7\x93\xcf^\x7f88\x7f\x99\x8c.%" +
-	"R\xee\xfb\xf7\xca\xcbwe\xfe\"\xc2p/?\x08\xf3" +
-	"0\xd7\x89\xac\x01\xcea\x8dr\x06\xa2H\x1d\x1by~" +
-	"\xe0\xb7\xea[dt\xf1&~\x86\xcf\xc2<.\xf9\xe6" +
-	"1>c.\xc9_\xd1\xe5\xdbg>zb\xe6\xc6j" +
-	"\x0b{\x8ew\xc2\x141\xdb\xe63\xe6\xa5\x98}\xe3\xcd" +
-	"\x0f\x1e\xe9\xd9\x9b{\x9b\xf2]`\x9btU\x97S\xaf" +
-	"\xc8y^\x90\xbc\xe1\xe7x\x04B\xf4\xee\xbe\xee\x9f\xbe" +
-	"\xce\x1a\xef\xb7\x8c\xfe\x9e\xfa\x14\xcc\xcfU9\xfa\xa7*" +
-	"\x87\xf5\x95\x1a\x8f~\xa1\xe7\xce\xea\xe2\xe9\xd4'd\xdc" +
-	"\x0f\"E*]U\xaf\x81\x94\xe8\xfak\x8f\xfe\xc2\xd6" +
-	">\xfb\xa2\xd1\xa5+j\x9bt\xe9;U\xbat\xef\xcd" +
-	"\xb6\xde\xab\xb9\xd5o[Z\xad\xab\x05\x98\x86&[\xb5" +
-	"k\x1cV\xb7\x16\xb7\xda\xff\xfa\x99\xde\xd3O\x8e\xfeH" +
-	"\x97\xbaT\xd6T`hm0{\xe3\x82{4.\x8f" +
-	"\x11\\\xd8\xdb\xf3\xc7\xc0K\xbf\xb6h\xa7\xb4I\x98=" +
-	"1\xb5[j\xf7\xd5\xb4\xe7^y|\xfd\xe2\x87\xfa\x9f" +
-	"-\xfc}\xda3031\xbf_\xf2Gj\xfcw\x1c" +
-	"\xfd\xd5\x9bo|y\xabv\xec\xda\xe1\x0eh\xdf\x83`" +
-	"\x1e\xd3\xc6)\x13-.\xcf\xdb\x9e3X\xd0E\xe0\x96" +
-	"\xab\xc2?T\xb4\xbd\x8a76e{\x85\x0d\xc4\x12~" +
-	"\xd5)\x8aCe'\x08\xa7l\xcf\x9ew\xcaN\xe8\x88" +
-	"\xa0\xaf \x82\xe5r\x88 \xafp\x85H\x01\x91\x91\x9a" +
-	"%\xca\xb7s\xe4\xfb\x19\"\xa7\xb2\xe0>\xe6\x04!\x11" +
-	"\xe1nB\x8e\x03{6\xaf\x99 \xc1z\x7f\xde\xdc\xbf" +
-	"XvD%<\xb9\xe2\x89\x8e\xb9@\xf89\x00\xed\xc4" +
-	"\xd0Nd\xe0`\xc7r \xfcz\xa5\xb2\xdd\xe4D9" +
-	" \xafp\x95\xa8~\xd9Hv\xc30.\x123Rz" +
-	"\x94\x1c\x0f\xc9\xf9\x88&\x90\xc3\x96\x13N\xd9^\xcew" +
-	"\xabNI\xc0\xdf\xd4Ob\x86\xc4\xf8\x9d\xe8\xd7\xac^" +
-	"\xe9\xc8V\x16\\\xd9\xa2\xaf\xee\xf3\xda<Q\xfew\x8e" +
-	"\xfcm\x06\x03J\x1a\x12\xbc%\xcd\xff\x9b\xa3\x00\x06\xb0" +
-	"4\x18\x91\xb1\xee\x13\xe5\xff\xe1\xb0v\x81\xc1\xe0H\x83" +
-	"\x13\x99*N\x11Y\x0a8\xac=\x12WX\x1a\x0a\x91" +
-	"\x99\xc2\xbc\xcc\xb2\xc4\xfb%\xae\xf24T\"\xf3\x01\xcc" +
-	"\x12Y}\x12\x1f\x92\xb8\xa6\xa4\xa1\x11\x99\x19\x14\xe4\x0b" +
-	"!\xf1Q\x89\xebjZ&\xcc|\x10\x93D\xd6\x90\xc4" +
-	"\x8fJ|\x97\x96\xc6.\"\xf3H\x8c\x8fH|\x02q" +
-	"BB\xe1/\xd8E\xd2Ev\x1a\xbb\x89a7!Z" +
-	"\x12\xe1\xa2[\xcaN\xcb\xdc\xe8\xc4\xa0S\x03s\xbf8" +
-	"a/\x89\x8d0$\xdc\x136\xf1\x060\x09\x0f\xe9\x9e" +
-	"\x08\x92\xe8\xc9\x8f2p\x9e\xef\x86n\xd1-K\xf5\xa4" +
-	" \xa8\x05%K\x98N\xb0s\x15\x11>\xed\xfag\xeb" +
-	"\xff\xedR\xc9\x17AP\xaf\xd9\"~%\xb1`/\x97" +
-	"\xc3$\x82\xc7K\xa5\x0eY\xd6\x14\xe0k\xd1`\xb8\xe4" +
-	"\x0d.:U&2~R\x1f\xb8\xc5\xb3\x02a]X" +
-	"\xdb*o~\xeb*\xe6l\xdf^B\xb0\x93m\x8e%" +
-	"\x02\xa2\xc6m>\xb5\xb1\xcd\xdd\xac\xc1T\xee\x89\xedL" +
-	"\xd8\xdc\xde\xac\x1bN\x8b\xaaS\x84hr\xa0\x109n" +
-	"X\x92\x1f\x08b\xfb7 \xde`Y\xbd}\xc3d\xe7" +
-	"\x9b\xdaM\x9e\xdb\xb8\xe1z\xbd\xbaU\xfd\\\xc5^\x0e" +
-	"\x17E%t\x8av(J\xcd:c\xe3\x15W~\xfe" +
-	"_w\x14?\x97<\xdc\xd1s\xf9_\x00\x00\x00\xff\xff" +
-	"\xb3\xed%\xbb"
+const schema_f02d0b8fc1fe2004 = "x\xda\x9cUOh\x1cU\x1c\xfe~\xef\xcd\xdbIk" +
+	"\xb6\xe98kR\x0f\xb1V\"\x94\x924\x91ThC" +
+	"11\x09\xd6\x0d\xb6\xec\xec$X\xdb*Nv^\xd8" +
+	"\xb1\x9b\x9dafv%\x07\xa9h\x0f\xb5\xa0b\xa9B" +
+	"\x0f\x9e\x15\x8d\x7f\xf0 \x16\xf1\xe0\xc1\x93\xe8A\x04\xc1" +
+	"\x9bJ/\xfemK\x0bU\x8c#owg\xb3K\x8c" +
+	"\x81\xdev\xbf\xf7}\xdf\xef\xf7\xde\xef\xfb1cWi" +
+	"J{ ;*\xc0\xac\xc3\"\x93\\\x99\x7f\xf1\xdb\x87" +
+	"\xa2\xe7/\xc0\xe8\xd7\x12\xed\xde\x7f>\x7f\xf5\x8e\x91\xab" +
+	"\x00\x8d?\xc7\xf6\x91\xf92\xd3\x01\xfb\x1c\xe3d_d" +
+	"\x8c\x80DL\x1c87\xfcK\xfd]\x18\xfd\xbc\x8b\xff" +
+	"\x12\x9b#\xf3M\xc57/1\xdd\xbc\xc4\x06\x80\xe4\xc2" +
+	"\xadS\x97\x8f\x1f\xb9\xb6\xfa\x1f\xec;I\xf1\x00\xf3u" +
+	"v\xc4\xfcB\xfdJ\xae\xbd\xf3\xf1#\x83\x03\x85\xf7a" +
+	"\xf5\x13[\xa7\x0b]\x07\xc6\xdfS\xfd|\xa6x\xe3\x97" +
+	"YB\xa0\xe4\xc3\xbbw\xfd\xf4u\xde\xf8hC\xebW" +
+	"\xb4g\xc8\xfcSS\xad\xdf\xd08\x15E\xa3\xf3\xb3\x83" +
+	"\x7f\xad\x96Of?\x85q\x1f\x01\x82\x94\x13\x89o\x08" +
+	"d\xde%&A\xc9=\xd7\xb7\xef\xf9\xaa\xb0\xfa\xdd\x06" +
+	"\xbfC\xa2H\xe6Q\xa1\xfc\x1e\x15\x9c\xec\xf9\xa6\xe1\xee" +
+	"\xb7N\xed9\xf9\xd4\xc1\x1f\xf0Z\xbf`]\x82\xa3b" +
+	";\x99O6\x04\xc7\x05W\xbdFg\x07\x06\x7f\x1f~" +
+	"\xe5\xe7\x0d\xdey1M\xe6\x13\x0d\xea\xbc\xf2~\xba\xe9" +
+	"\xbdp\xf1\xf1\xb5\xf3\x9f\xe8\x7fl\xe0/\x88\x17\xc8\xf4" +
+	"\x1a|W\xf1\x83&\xff\x03O\x7f\xe3\xfa\xdb_\xde\xec" +
+	"\xbc\x9c\x14\xdf\xab\xcb\xad\x88I\x8c$\xe5\xda\xa2\x13x" +
+	"\xa3E.#\xbfR\x97\xe1\xfe\x92\x13T\x83\x89R\xc5" +
+	"\x93\xd5x~%\x90}\x0b\x91\x0c\x0bD\xd4\x0bF\xbd" +
+	"\x80A\xfb\xfaj\x91\x0c\xdbJ\xad[9\xe3\x04\xc5\x16" +
+	"b\xcb\xb0\xee\x95$P *paiD\xeb\x93\x07" +
+	"6\xab=\xe3\x04\x85\xd0\xaf{\xae$U\xd8\xd2\xb8\xe8" +
+	"\x18\x13\xa5W2\x8c\xf3`FVO*^\x14\xcf8" +
+	"\x81C\x8b^\xc5\x8b=\x19\x01ST \xfa\x1f\x7f\xa7" +
+	"A]\xe9\xcbW\x97|Ub\x88k\x80F\x80\xf1\xdb" +
+	"\"`\xfd\xca\xc9\xba\xc5\xc8 -G\x0a\xbc9\x07X" +
+	"78\x15\x89\x11\xb1\x1c1\xc0X\x0b\x01\xeboNv" +
+	"\x0f128\xe5\x88\x03\xa6\xa0\x13\x80\xad\x11'{\xa7" +
+	"\xc25\x96#\x0d0\xb3\xb4\x08\xd8\xbd\x0a\xdf\xabp\xc1" +
+	"s$\x00\xf3~\x9a\x03\xec!\x85\x8f)<\xa3\xe5(" +
+	"\x03\x98#T\x04\xeca\x85\x1fT\xb8.rjv\xe6" +
+	"\x834\x0d\xd8c\x0a?\xac\xf0\x9eL\x8ez\x00\xf3P" +
+	"\x03?\xa0\xf0)b\x94x\xd5X\x86KN\x09\xba\xcc" +
+	"\xcf\xd260\xda\x06J\x96e\\\xf6\xdd\xfc,\x00\xd2" +
+	"\xc1HG\x07s\xb7<\xe6,\xcb\xd6\x98S\xee1\x07" +
+	"\xbc\x03Lc\x01=\x90\x11\xed\x00\x15x3\x18;@" +
+	"I\x10\xfa\xb1_\xf2+\xca=\x15D\xcd\x08\xe4A\xb3" +
+	")v\xa6*\xe3g\xfd\xf0t\xfb\xbf\xe3\xba\xa1\x8c\xa2" +
+	"\xb6f\x93`\xb9r\xc9\xa9U\xe24\\\x0f\xbbn\x9f" +
+	"\x92uE\xf3\xc7d4^\x0eF\xcb^\x9dI?\x1e" +
+	"\x09S\x87\xc8/\xe9\xa7e\xdc\xb6\xcel\x96\xb8p\x7f" +
+	"\x9a\xa64LC\x05't\x96)\xb2\xb4vF\xb2'" +
+	"\x00\xab\x97\x93\xb5\x8bu<\x09\x0f\xe4VWX\xdf\xaa" +
+	"\xbc\x1f\xcf\xca\xbaW\"\xd9\xd5\x7f1\xf1\xfc\xd8U\x07" +
+	" \xb9\xf5n66K\xa9\xb7.\x98\xeebW\xb9\xe9" +
+	"3\xad\xf9\xb4\xf5b3\xfdB\xd5\xa9\xc5eY\x8d\xbd" +
+	"\x92\x13K\xb7\xdbgb\xb2\xea\xab\xe3\xdbz\xdf\xa2\x8c" +
+	"j\x15\x1ew=\xf0\\\xeb\x81\xf76\xa2\xbc\xe4?\xe6" +
+	"E\xb1\x8aU+q;\xd7?\x09 \x05\xfe\x1b\x00\x00" +
+	"\xff\xffd\xbe\xd0\xfe"
 
 func init() {
 	schemas.Register(schema_f02d0b8fc1fe2004,
-		0x8dfa473cba128039,
 		0x9280733ed48354e5,
 		0xab76eb2c88343a05,
 		0xacf14758b95cf892,
 		0xae50171d46b6aaf1,
 		0xb21149cee31819b0,
 		0xbb0d5b68acfa1d84,
-		0xcac2ed02e6489dd4,
 		0xd7ac50cd210af21e,
 		0xe1385e5b215ca71f,
 		0xea8e2cee1d178473,

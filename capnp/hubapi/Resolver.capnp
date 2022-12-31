@@ -9,8 +9,8 @@ $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
 annotation clientType(method) :Text;
 # annotation for client type allowed to use the method
 
-const defaultResolverAddress :Text = "/tmp/hive-resolver.socket";
-# socket path for the default resolver
+const defaultResolverAddress :Text = "/tmp/hiveot-resolver.socket";
+# default socket path for the resolver
 
 
 #--- types of clients
@@ -66,11 +66,8 @@ struct CapabilityInfo  {
 	#  * tcp networks provide the IP address:port, and optionally a path, depending on the protocol
 }
 
-interface CapResolverService  {
+interface CapResolverService extends (CapProvider) {
 # CapResolverService provides an aggregated list of available capabilities from services
-
-	listCapabilities @0 (clientType :Text) -> (infoList :List(CapabilityInfo));
-	# ListCapabilities returns the list of capabilities available on the resolver
 }
 
 
@@ -78,6 +75,6 @@ interface CapProvider {
 # CapProvider provides capabilities from service providers.
 # This interface is implemented by all service providers
 
-	listCapabilities @0 () -> (infoList :List(CapabilityInfo));
+	listCapabilities @0 (clientType :Text) -> (infoList :List(CapabilityInfo));
 	# ListCapabilities returns the list of provided capabilities
 }
