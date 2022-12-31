@@ -36,14 +36,14 @@ type StateService struct {
 // CapClientState returns a new instance of the capability to store client state in a bucket.
 // This opens a store for the client if one doesn't yet exist.
 func (srv *StateService) CapClientState(
-	_ context.Context, clientID string, bucketID string) (cap state.IClientState) {
+	_ context.Context, clientID string, bucketID string) (state.IClientState, error) {
 
 	srv.mux.Lock()
 	defer srv.mux.Unlock()
 	if !srv.running {
 		err := fmt.Errorf("state store service has stopped. No new clients allowed.")
 		logrus.Error(err)
-		return nil
+		return nil, err
 	}
 	clientStore := srv.clientStores[clientID]
 	// create the store instance for the client if one doesn't yet exist
@@ -74,7 +74,7 @@ func (srv *StateService) CapClientState(
 	srv.clientRefs[clientID] = refCount
 	bucket := clientStore.GetBucket(bucketID)
 	capability := NewClientState(clientID, bucketID, bucket, srv.onClientReleased)
-	return capability
+	return capability, nil
 }
 
 // callback to close the client store when all its clients are removed

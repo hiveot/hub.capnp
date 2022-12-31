@@ -2,10 +2,12 @@ package service
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"net"
 
 	"capnproto.org/go/capnp/v3"
+	"capnproto.org/go/capnp/v3/server"
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
@@ -13,6 +15,7 @@ import (
 	"github.com/hiveot/hub/pkg/gateway"
 	"github.com/hiveot/hub/pkg/resolver"
 	"github.com/hiveot/hub/pkg/resolver/capnpclient"
+	"github.com/hiveot/hub/pkg/resolver/service"
 )
 
 // GatewaySession implements the IGatewaySession interface.
@@ -22,6 +25,9 @@ type GatewaySession struct {
 
 	// ID of the connected client
 	clientID string
+
+	// client connection
+	clientConn *tls.Conn
 
 	// type of the connected client
 	clientType string
@@ -33,44 +39,30 @@ type GatewaySession struct {
 	registeredCapabilities []resolver.CapabilityInfo
 
 	resolverPath    string
-	resolverSession *capnpclient.ResolverSessionCapnpClient
+	resolverService *capnpclient.ResolverServiceCapnpClient
 	resolverConn    net.Conn
 	//authnSvc        authn.IAuthnService
 	userAuthn authn.IUserAuthn // user auth capability obtained at login
 }
 
-// Close the session
-// This releases the capability connection if it exists
-func (session *GatewaySession) Close() (err error) {
-	logrus.Infof("closing session of client '%s'", session.clientID)
-	if session.registeredProvider.IsValid() {
-		session.registeredProvider.Release()
-	}
-	return nil
-}
+// HandleUnknownMethod forwards the request to the resolver.
+func (session *GatewaySession) HandleUnknownMethod(m capnp.Method) *server.Method {
 
-// GetCapability returns the capability with the given name, if available.
-func (session *GatewaySession) GetCapability(ctx context.Context, clientID, clientType, capabilityName string, args []string) (
-	capability capnp.Client, err error) {
-
-	session.clientID = clientID
-	session.clientType = clientType
-	logrus.Infof("clientID='%s'", clientID)
-	// TODO: authenticate and authorize the client - using middleware
-	capability, err = session.resolverSession.GetCapability(ctx, clientID, clientType, capabilityName, args)
-	// FIXME: error result from resolver is not returned
-	if err == nil {
-		err = capability.Resolve(ctx)
-	}
-	return capability, err
+	// return a helper for forwarding the request to the resolver
+	capResolverClient := capnp.Client(session.resolverService.Capability())
+	forwarderMethod := service.NewForwarderMethod(m, &capResolverClient)
+	return forwarderMethod
 }
 
 // ListCapabilities returns list of capabilities of all connected services sorted by service and capability names
 func (session *GatewaySession) ListCapabilities(ctx context.Context) ([]resolver.CapabilityInfo, error) {
 	capList := make([]resolver.CapabilityInfo, 0)
-
+	//cstate := session.clientConn.ConnectionState()
+	//logrus.Infof("clientID: %v", cstate.PeerCertificates[0].Subject.CommonName)
+	//logrus.Infof("clientTypes: %v", cstate.PeerCertificates[0].Subject.OrganizationalUnit)
+	//logrus.Infof("handshake: %v", cstate.HandshakeComplete)
 	//logrus.Infof("clientID='%s'", session.clientID)
-	capList, err := session.resolverSession.ListCapabilities(ctx)
+	capList, err := session.resolverService.ListCapabilities(ctx, session.clientType)
 	return capList, err
 }
 
@@ -120,8 +112,9 @@ func (session *GatewaySession) Refresh(ctx context.Context, oldRefreshToken stri
 
 // Release the connection to the resolver
 func (session *GatewaySession) Release() {
-	if session.resolverSession != nil {
-		session.resolverSession.Release()
+	logrus.Infof("releasing session of client '%s'", session.clientID)
+	if session.resolverService != nil {
+		session.resolverService.Release()
 	}
 	if session.registeredProvider.IsValid() {
 		session.registeredProvider.Release()
@@ -138,14 +131,14 @@ func (session *GatewaySession) Release() {
 //	clientID is the unique clientID of the capability provider
 //	capInfo is the list with capabilities available through this provider
 //	capProvider is the capnp capability provider callback interface used to obtain capabilities
-func (session *GatewaySession) RegisterCapabilities(_ context.Context,
-	clientID string, capInfo []resolver.CapabilityInfo, provider hubapi.CapProvider) error {
-
-	session.registeredCapabilities = capInfo
-	session.clientID = clientID
-	session.registeredProvider = provider
-	return nil
-}
+//func (session *GatewaySession) RegisterCapabilities(_ context.Context,
+//	clientID string, capInfo []resolver.CapabilityInfo, provider hubapi.CapProvider) error {
+//
+//	session.registeredCapabilities = capInfo
+//	session.clientID = clientID
+//	session.registeredProvider = provider
+//	return nil
+//}
 
 // StartGatewaySession creates a new gateway session with the resolver to serve gateway requests.
 // Use Release after the remote connection to the gateway is closed.
@@ -153,10 +146,14 @@ func (session *GatewaySession) RegisterCapabilities(_ context.Context,
 // The user authentication is on loan to the session and should not be released.
 //
 //	userAuthn is the optional service to authenticate user requests. nil if user authentication is not available.
-func StartGatewaySession(resolverPath string, userAuthn authn.IUserAuthn) (*GatewaySession, error) {
+func StartGatewaySession(
+	resolverPath string, userAuthn authn.IUserAuthn, clientConn *tls.Conn) (
+	*GatewaySession, error) {
+
 	ctx := context.Background()
 	session := &GatewaySession{
 		clientID:               "",
+		clientConn:             clientConn,
 		clientType:             hubapi.ClientTypeUnauthenticated,
 		registeredProvider:     hubapi.CapProvider{},
 		registeredCapabilities: nil,
@@ -164,9 +161,12 @@ func StartGatewaySession(resolverPath string, userAuthn authn.IUserAuthn) (*Gate
 		userAuthn:              userAuthn,
 	}
 	resolverConn, err := net.Dial("unix", resolverPath)
-	if err == nil {
-		session.resolverConn = resolverConn
-		session.resolverSession, err = capnpclient.NewResolverSessionCapnpClient(ctx, resolverConn)
+	if err != nil {
+		err = fmt.Errorf("unable to connect to the resolver socket at '%s': %s", resolverPath, err)
+		return nil, err
 	}
+
+	session.resolverConn = resolverConn
+	session.resolverService, err = capnpclient.NewResolverServiceCapnpClient(ctx, resolverConn)
 	return session, err
 }

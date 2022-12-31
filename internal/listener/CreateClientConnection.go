@@ -43,15 +43,18 @@ func CreateLocalClientConnection(serviceName string, runFolder string) (net.Conn
 //	clientCert is the client certificate to authenticate with. Use nil to not use client authentication
 //	caCert is the CA certificate used to verify the server authenticity. Use nil if server auth is not yet established.
 func CreateTLSClientConnection(network, address string, clientCert *tls.Certificate, caCert *x509.Certificate) (*tls.Conn, error) {
-	var clientCertList []tls.Certificate
+	var clientCertList []tls.Certificate = nil
 	var checkServerCert bool
 	caCertPool := x509.NewCertPool()
 
 	// Use CA certificate for server authentication if it exists
 	if caCert == nil {
 		// No CA certificate so no client authentication either
-		logrus.Infof("destination '%s'. No CA certificate. InsecureSkipVerify used", address)
+		logrus.Warningf("destination '%s'. No CA certificate. InsecureSkipVerify used", address)
 		checkServerCert = false
+	} else if clientCert == nil {
+		// No CA certificate so no client authentication either
+		logrus.Warningf("No client certificate for connecting to '%s'. Client auth unavailable", address)
 	} else {
 		// CA certificate is provided
 		logrus.Infof("destination '%s'. CA certificate '%s'",
@@ -73,7 +76,7 @@ func CreateTLSClientConnection(network, address string, clientCert *tls.Certific
 		}
 	}
 
-	// setup the tls client authentication
+	// setup for mutual tls client authentication
 	if clientCert != nil {
 		clientCertList = []tls.Certificate{*clientCert}
 	}
@@ -88,6 +91,9 @@ func CreateTLSClientConnection(network, address string, clientCert *tls.Certific
 	conn, err := tls.Dial(network, address, tlsConfig)
 	if err != nil {
 		err = fmt.Errorf("Unable to connect to '%s'. Is the service running?\n  Error: %s", address, err)
+		logrus.Error(err)
+	} else {
+		logrus.Infof("connected")
 	}
 	return conn, err
 }

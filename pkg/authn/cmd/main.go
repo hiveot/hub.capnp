@@ -26,7 +26,7 @@ func main() {
 			// startup
 			err := svc.Start(ctx)
 			if err == nil {
-				err = capnpserver.StartAuthnCapnpServer(lis, svc)
+				err = capnpserver.StartAuthnCapnpServer(svc, lis)
 			}
 			return err
 		}, func() error {

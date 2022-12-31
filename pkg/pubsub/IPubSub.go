@@ -46,17 +46,17 @@ type IPubSubService interface {
 	// CapDevicePubSub provides the capability to pub/sub thing information as an IoT device.
 	// The issuer must only provide this capability after verifying the device ID.
 	// The deviceID is the thingID of the device requesting the capability.
-	CapDevicePubSub(ctx context.Context, deviceID string) IDevicePubSub
+	CapDevicePubSub(ctx context.Context, deviceID string) (IDevicePubSub, error)
 
 	// CapServicePubSub provides the capability to pub/sub thing information as a hub service.
 	// Hub services can publish their own information and receive events from any thing.
 	// The serviceID is the thingID of the service requesting the capability.
-	CapServicePubSub(ctx context.Context, serviceID string) IServicePubSub
+	CapServicePubSub(ctx context.Context, serviceID string) (IServicePubSub, error)
 
 	// CapUserPubSub provides the capability for an end-user to publish or subscribe to messages.
 	// The caller must authenticate the user and provide appropriate configuration.
 	//  userID is the login ID of an authenticated user
-	CapUserPubSub(ctx context.Context, userID string) IUserPubSub
+	CapUserPubSub(ctx context.Context, userID string) (IUserPubSub, error)
 }
 
 // IDevicePubSub available to an IoT device

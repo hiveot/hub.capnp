@@ -31,6 +31,7 @@ func main() {
 	homeFolder = path.Dir(binFolder)
 	ctx := context.Background()
 	f := svcconfig.LoadServiceConfig("hubcli", false, nil)
+
 	//logrus.Infof("folders is %v", f)
 	app := &cli.App{
 		EnableBashCompletion: true,

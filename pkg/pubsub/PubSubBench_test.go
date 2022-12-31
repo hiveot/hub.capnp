@@ -51,8 +51,8 @@ func BenchmarkPubSub(b *testing.B) {
 	for _, tbl := range BenchParams {
 		// setup
 		svc, stopFn := startService(testUseCapnp)
-		capDevice := svc.CapDevicePubSub(ctx, device1)
-		capUser := svc.CapUserPubSub(ctx, "user1")
+		capDevice, _ := svc.CapDevicePubSub(ctx, device1)
+		capUser, _ := svc.CapUserPubSub(ctx, "user1")
 
 		// generate thingIDs
 		thingIDs := make([]string, tbl.Things)
@@ -100,8 +100,7 @@ func BenchmarkPubSub(b *testing.B) {
 		b.Log("Releasing clients")
 		capDevice.Release()
 		capUser.Release()
-		err := stopFn()
-		assert.NoError(b, err)
+		stopFn()
 	}
 
 	// generate event names

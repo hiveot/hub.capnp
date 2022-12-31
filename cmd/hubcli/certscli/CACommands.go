@@ -45,7 +45,7 @@ func CACommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 // After creating a new CA, services have to be restarted.
 //
 //	hubcli certs ca [--certs=CertFolder]  [--hostname=hostname]
-func CreateCACommand(ctx context.Context, certsFolder string) *cli.Command {
+func CreateCACommand(_ context.Context, certsFolder string) *cli.Command {
 	var force = false
 	var validityDays = 365 * 5
 
@@ -70,12 +70,7 @@ func CreateCACommand(ctx context.Context, certsFolder string) *cli.Command {
 			if cCtx.NArg() > 0 {
 				return fmt.Errorf("unexpected argument(s) '%s'", cCtx.Args().First())
 			}
-			err := HandleCreateCACert(ctx, certsFolder,
-				cCtx.Int("days"),
-				cCtx.Bool("force"),
-			)
-			//logrus.Infof("CreatingCA certificate in '%s' for host '%s'",
-			//cCtx.String("certs"), cCtx.String("hostname"))
+			err := HandleCreateCACert(certsFolder, cCtx.Int("days"), cCtx.Bool("force"))
 			return err
 		},
 	}
@@ -105,10 +100,9 @@ func ViewCACommand(ctx context.Context, certsFolder string) *cli.Command {
 // HandleCreateCACert generates the hub self-signed CA private key and certificate
 // in the given folder.
 // Use force to create the folder and overwrite existing certificate if it exists
-func HandleCreateCACert(ctx context.Context, certsFolder string, validityDays int, force bool) error {
+func HandleCreateCACert(certsFolder string, validityDays int, force bool) error {
 	caCertPath := path.Join(certsFolder, hubapi.DefaultCaCertFile)
 	caKeyPath := path.Join(certsFolder, hubapi.DefaultCaKeyFile)
-	_ = ctx
 
 	// folder doesn't exist
 	if _, err := os.Stat(certsFolder); err != nil {

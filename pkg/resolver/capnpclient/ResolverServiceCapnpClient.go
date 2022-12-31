@@ -17,6 +17,11 @@ type ResolverServiceCapnpClient struct {
 	capability hubapi.CapResolverService // capnp client of the resolver service
 }
 
+// Capability of the capnp client used to talk to the resolver
+func (cl *ResolverServiceCapnpClient) Capability() hubapi.CapResolverService {
+	return cl.capability
+}
+
 // ListCapabilities lists the available capabilities of the service
 // Returns a list of capabilities that can be obtained through the service
 func (cl *ResolverServiceCapnpClient) ListCapabilities(
@@ -24,7 +29,7 @@ func (cl *ResolverServiceCapnpClient) ListCapabilities(
 
 	infoList = make([]resolver.CapabilityInfo, 0)
 	method, release := cl.capability.ListCapabilities(ctx,
-		func(params hubapi.CapResolverService_listCapabilities_Params) error {
+		func(params hubapi.CapProvider_listCapabilities_Params) error {
 			err2 := params.SetClientType(clientType)
 			return err2
 		})

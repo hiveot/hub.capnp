@@ -18,7 +18,7 @@ type PubSubCapnpClient struct {
 
 // CapDevicePubSub provides the capability to pub/sub thing information as an IoT device.
 func (cl *PubSubCapnpClient) CapDevicePubSub(
-	ctx context.Context, deviceID string) (deviceCl pubsub.IDevicePubSub) {
+	ctx context.Context, deviceID string) (capability pubsub.IDevicePubSub, err error) {
 
 	method, release := cl.capability.CapDevicePubSub(ctx,
 		func(params hubapi.CapPubSubService_capDevicePubSub_Params) error {
@@ -26,38 +26,38 @@ func (cl *PubSubCapnpClient) CapDevicePubSub(
 			return err
 		})
 	defer release()
-	capability := method.Cap()
-	newCap := NewDevicePubSubCapnpClient(capability.AddRef())
-	return newCap
+	capFuture := method.Cap()
+	newCap := NewDevicePubSubCapnpClient(capFuture.AddRef())
+	return newCap, err
 }
 
 // CapServicePubSub provides the capability to pub/sub thing information as a hub service.
 func (cl *PubSubCapnpClient) CapServicePubSub(
-	ctx context.Context, serviceID string) pubsub.IServicePubSub {
+	ctx context.Context, serviceID string) (capability pubsub.IServicePubSub, err error) {
 
 	method, release := cl.capability.CapServicePubSub(ctx,
 		func(params hubapi.CapPubSubService_capServicePubSub_Params) error {
-			err := params.SetServiceID(serviceID)
-			return err
+			err2 := params.SetServiceID(serviceID)
+			return err2
 		})
 	defer release()
-	capability := method.Cap()
-	newCap := NewServicePubSubCapnpClient(capability.AddRef())
-	return newCap
+	capFuture := method.Cap()
+	newCap := NewServicePubSubCapnpClient(capFuture.AddRef())
+	return newCap, err
 }
 
 // CapUserPubSub provides the capability for an end-user to publish or subscribe to messages.
 func (cl *PubSubCapnpClient) CapUserPubSub(
-	ctx context.Context, userID string) (pub pubsub.IUserPubSub) {
+	ctx context.Context, userID string) (capability pubsub.IUserPubSub, err error) {
 
 	method, release := cl.capability.CapUserPubSub(ctx, func(params hubapi.CapPubSubService_capUserPubSub_Params) error {
 		err := params.SetUserID(userID)
 		return err
 	})
 	defer release()
-	capability := method.Cap()
-	userCl := NewUserPubSubCapnpClient(capability.AddRef())
-	return userCl
+	capFuture := method.Cap()
+	userCl := NewUserPubSubCapnpClient(capFuture.AddRef())
+	return userCl, err
 }
 
 // Release stops the client connection and free its resources

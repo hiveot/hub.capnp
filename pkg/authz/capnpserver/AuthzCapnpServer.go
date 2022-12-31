@@ -22,7 +22,7 @@ func (capsrv *AuthzCapnpServer) CapClientAuthz(
 	ctx context.Context, call hubapi.CapAuthz_capClientAuthz) error {
 
 	clientID, _ := call.Args().ClientID()
-	capClientAuthz := capsrv.svc.CapClientAuthz(ctx, clientID)
+	capClientAuthz, _ := capsrv.svc.CapClientAuthz(ctx, clientID)
 	capClientAuthzCapnp := &ClientAuthzCapnpServer{
 		srv: capClientAuthz,
 	}
@@ -39,7 +39,7 @@ func (capsrv *AuthzCapnpServer) CapClientAuthz(
 func (capsrv *AuthzCapnpServer) CapManageAuthz(ctx context.Context, call hubapi.CapAuthz_capManageAuthz) error {
 
 	clientID, _ := call.Args().ClientID()
-	capManageAuthz := capsrv.svc.CapManageAuthz(ctx, clientID)
+	capManageAuthz, _ := capsrv.svc.CapManageAuthz(ctx, clientID)
 	manageAuthzCapSrv := &ManageAuthzCapnpServer{
 		srv: capManageAuthz,
 	}
@@ -54,7 +54,7 @@ func (capsrv *AuthzCapnpServer) CapManageAuthz(ctx context.Context, call hubapi.
 func (capsrv *AuthzCapnpServer) CapVerifyAuthz(ctx context.Context, call hubapi.CapAuthz_capVerifyAuthz) error {
 
 	clientID, _ := call.Args().ClientID()
-	capVerifyAuthz := capsrv.svc.CapVerifyAuthz(ctx, clientID)
+	capVerifyAuthz, _ := capsrv.svc.CapVerifyAuthz(ctx, clientID)
 	verifyAuthzSrv := &VerifyAuthzCapnpServer{
 		srv: capVerifyAuthz,
 	}

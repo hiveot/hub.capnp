@@ -56,6 +56,7 @@ func startDirectory(useCapnp bool) (dir directory.IDirectory, stopFn func()) {
 			cancelFunc()
 			_ = capClient.Release()
 			_ = clConn.Close()
+			_ = srvListener.Close()
 			_ = svc.Stop()
 		}
 	}

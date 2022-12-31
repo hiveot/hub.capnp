@@ -65,14 +65,15 @@ func startStateService(useCapnp bool) (store state.IStateService, stopFn func(),
 		return capClient, func() {
 			// don't kill the capnp messenger yet as capabilities are being released in the test cases
 			capClient.Release()
-			cancelCtx()
 			_ = clConn.Close()
+			cancelCtx()
+			_ = srvListener.Close()
 			_ = stateSvc.Stop()
 		}, err2
 	}
 	return stateSvc, func() {
 		cancelCtx()
-		stateSvc.Stop()
+		_ = stateSvc.Stop()
 	}, err
 }
 
@@ -131,7 +132,7 @@ func TestSetGet1(t *testing.T) {
 	require.NoError(t, err)
 	defer stopFn()
 
-	clientState := svc.CapClientState(ctx, clientID1, appID)
+	clientState, _ := svc.CapClientState(ctx, clientID1, appID)
 	assert.NotNil(t, clientState)
 
 	logrus.Infof("set")
@@ -145,7 +146,7 @@ func TestSetGet1(t *testing.T) {
 	assert.Equal(t, val1, val2)
 	//
 	// check if it persists
-	clientState2 := svc.CapClientState(ctx, clientID1, appID)
+	clientState2, _ := svc.CapClientState(ctx, clientID1, appID)
 	assert.NotNil(t, clientState2)
 	logrus.Infof("get2")
 	val3, err := clientState2.Get(ctx, key1)
@@ -173,7 +174,7 @@ func TestSetGetMultiple(t *testing.T) {
 	store, stopFn, err := startStateService(testUseCapnp)
 	defer stopFn()
 
-	clientState := store.CapClientState(ctx, clientID1, appID)
+	clientState, _ := store.CapClientState(ctx, clientID1, appID)
 
 	// write multiple
 	err = clientState.SetMultiple(ctx, data)
@@ -203,7 +204,7 @@ func TestDelete(t *testing.T) {
 	require.NoError(t, err)
 	defer stopFn()
 
-	clientState := store.CapClientState(ctx, clientID1, appID)
+	clientState, _ := store.CapClientState(ctx, clientID1, appID)
 	err = clientState.Set(ctx, key1, val1)
 	assert.NoError(t, err)
 
@@ -227,14 +228,14 @@ func TestGetDifferentClientBuckets(t *testing.T) {
 	store, stopFn, err := startStateService(testUseCapnp)
 	assert.NoError(t, err)
 	defer stopFn()
-	clientState := store.CapClientState(ctx, clientID1, appID)
+	clientState, _ := store.CapClientState(ctx, clientID1, appID)
 
 	err = clientState.Set(ctx, key1, val1)
 	assert.NoError(t, err)
 	clientState.Release()
 
 	// second client
-	clientStore2 := store.CapClientState(ctx, clientID2, appID)
+	clientStore2, _ := store.CapClientState(ctx, clientID2, appID)
 	val2, err := clientStore2.Get(ctx, key1)
 	assert.NotEqual(t, val1, val2)
 	clientStore2.Release()
@@ -256,7 +257,7 @@ func TestCursor(t *testing.T) {
 	ctx := context.Background()
 	svc, stopFn, err := startStateService(testUseCapnp)
 	defer stopFn()
-	clientState := svc.CapClientState(ctx, clientID1, appID)
+	clientState, _ := svc.CapClientState(ctx, clientID1, appID)
 
 	// write multiple
 	err = clientState.SetMultiple(ctx, data)

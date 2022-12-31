@@ -17,25 +17,25 @@ type PubSubService struct {
 
 // CapDevicePubSub provides the capability to pub/sub thing information as an IoT device.
 // The issuer must only provide this capability after verifying the device ID.
-func (svc *PubSubService) CapDevicePubSub(_ context.Context, deviceID string) pubsub.IDevicePubSub {
+func (svc *PubSubService) CapDevicePubSub(_ context.Context, deviceID string) (pubsub.IDevicePubSub, error) {
 	devicePubSub := NewDevicePubSub(deviceID, svc.core)
-	return devicePubSub
+	return devicePubSub, nil
 }
 
 // CapServicePubSub provides the capability to pub/sub thing information as a hub service.
 // Hub services can publish their own information and receive events from any thing.
-func (svc *PubSubService) CapServicePubSub(_ context.Context, serviceID string) pubsub.IServicePubSub {
+func (svc *PubSubService) CapServicePubSub(_ context.Context, serviceID string) (pubsub.IServicePubSub, error) {
 	servicePubSub := NewServicePubSub(serviceID, svc.core)
-	return servicePubSub
+	return servicePubSub, nil
 }
 
 // CapUserPubSub provides the capability for an end-user to publish or subscribe to messages.
 // The caller must authenticate the user and provide appropriate configuration.
 //
 //	userID is the login ID of an authenticated user
-func (svc *PubSubService) CapUserPubSub(_ context.Context, userID string) (pub pubsub.IUserPubSub) {
+func (svc *PubSubService) CapUserPubSub(_ context.Context, userID string) (pubsub.IUserPubSub, error) {
 	userPubSub := NewUserPubSub(userID, svc.core)
-	return userPubSub
+	return userPubSub, nil
 }
 
 // Release the service and free its resources

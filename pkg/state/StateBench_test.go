@@ -15,14 +15,13 @@ import (
 	"github.com/hiveot/hub/pkg/state"
 )
 
-const DefaultClientID = "statebench_text"
 const DefaultBucketID = "default"
 
 // Add records to the state store
 func addRecords(store state.IStateService, clientID, bucketID string, count int) {
 	const batchSize = 50000
 	ctx := context.Background()
-	client := store.CapClientState(ctx, clientID, bucketID)
+	client, _ := store.CapClientState(ctx, clientID, bucketID)
 	nrBatches := (count / batchSize) + 1
 
 	// Don't exceed the max transaction size
@@ -134,7 +133,7 @@ func BenchmarkSetState(b *testing.B) {
 		store, stopFn, err := startStateService(testUseCapnp)
 		require.NoError(b, err)
 		addRecords(store, clientID1, appID, tbl.dataSize)
-		clientState := store.CapClientState(ctx, clientID1, appID)
+		clientState, _ := store.CapClientState(ctx, clientID1, appID)
 
 		b.Run(fmt.Sprintf("SetState. Datasize=%d, #sets=%d", tbl.dataSize, tbl.nrSets),
 			func(b *testing.B) {
@@ -177,7 +176,7 @@ func BenchmarkSetMultiple(b *testing.B) {
 			multiple[td.key] = td.val
 		}
 
-		clientState := store.CapClientState(ctx, clientID1, appID)
+		clientState, _ := store.CapClientState(ctx, clientID1, appID)
 
 		b.Run(fmt.Sprintf("SetMultiple. Datasize=%d, #sets=%d", tbl.dataSize, tbl.nrSets),
 			func(b *testing.B) {
@@ -209,8 +208,9 @@ func BenchmarkGetState(b *testing.B) {
 		store, stopFn, err := startStateService(testUseCapnp)
 		require.NoError(b, err)
 		addRecords(store, clientID1, appID, v.dataSize)
-		clientState := store.CapClientState(ctx, clientID1, appID)
-		clientState.Set(ctx, key1, val1)
+		clientState, _ := store.CapClientState(ctx, clientID1, appID)
+		err = clientState.Set(ctx, key1, val1)
+		assert.NoError(b, err)
 
 		// create the client, update and close
 		b.Run(fmt.Sprintf("GetState. Datasize=%d, %d gets", v.dataSize, v.nrSets), func(b *testing.B) {

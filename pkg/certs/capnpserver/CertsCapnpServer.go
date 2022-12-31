@@ -26,7 +26,7 @@ func (capsrv *CertsCapnpServer) CapDeviceCerts(
 
 	// Create the capnp proxy that provides the capability to create device certificates
 	clientID, _ := call.Args().ClientID()
-	capDeviceCerts := capsrv.svc.CapDeviceCerts(ctx, clientID)
+	capDeviceCerts, _ := capsrv.svc.CapDeviceCerts(ctx, clientID)
 	deviceCertsSrv := &DeviceCertsCapnpServer{
 		srv: capDeviceCerts,
 	}
@@ -47,7 +47,7 @@ func (capsrv *CertsCapnpServer) CapServiceCerts(
 
 	// Create the capnp proxy that provides the capability to create certificates
 	clientID, _ := call.Args().ClientID()
-	capServiceCerts := capsrv.svc.CapServiceCerts(ctx, clientID)
+	capServiceCerts, _ := capsrv.svc.CapServiceCerts(ctx, clientID)
 	serviceCertsSrv := &ServiceCertsCapnpServer{
 		srv: capServiceCerts,
 	}
@@ -67,7 +67,7 @@ func (capsrv *CertsCapnpServer) CapUserCerts(
 
 	// Create the capnp proxy that provides the capability to create certificates
 	clientID, _ := call.Args().ClientID()
-	capUserCerts := capsrv.svc.CapUserCerts(ctx, clientID)
+	capUserCerts, _ := capsrv.svc.CapUserCerts(ctx, clientID)
 	userCertsSrv := &UserCertsCapnpServer{
 		srv: capUserCerts,
 	}
@@ -87,7 +87,7 @@ func (capsrv *CertsCapnpServer) CapVerifyCerts(
 
 	// Create the capnp proxy that provides the capability to create certificates
 	clientID, _ := call.Args().ClientID()
-	capVerifyCerts := capsrv.svc.CapVerifyCerts(ctx, clientID)
+	capVerifyCerts, _ := capsrv.svc.CapVerifyCerts(ctx, clientID)
 	verifyCertsSrv := &VerifyCertsCapnpServer{
 		srv: capVerifyCerts,
 	}

@@ -11,6 +11,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub.go/pkg/certsclient"
 	"github.com/hiveot/hub.go/pkg/hubnet"
 	"github.com/hiveot/hub/internal/listener"
@@ -24,6 +25,7 @@ import (
 	"github.com/hiveot/hub/pkg/gateway/capnpserver"
 	"github.com/hiveot/hub/pkg/gateway/config"
 	"github.com/hiveot/hub/pkg/gateway/service"
+	"github.com/hiveot/hub/pkg/resolver"
 )
 
 // main launches the gateway service using TLS socket
@@ -46,21 +48,25 @@ func main() {
 		logrus.Panicf("certs service not reachable when starting the gateway: %s", err)
 	}
 	lis, err := net.Listen("tcp", gwConfig.Address)
+	if err != nil {
+		logrus.Panicf("gateway unable to listen for connections: %s", err)
+	}
+
 	tlsLis := listener.CreateTLSListener(lis, serverCert, caCert)
 
 	// the gateway uses the authn service to authenticate logins from users
 	// without authn it still functions with certificates
 	authnConn, err := listener.CreateLocalClientConnection(authn.ServiceName, f.Run)
 	if err == nil {
-		authnService, err2 := capnpclient2.NewAuthnCapnpClient(context.Background(), authnConn)
-		if err2 == nil {
-			defer authnService.Release()
-			userAuthn = authnService.CapUserAuthn(ctx, serviceName)
-		}
+		authnService := capnpclient2.NewAuthnCapnpClient(context.Background(), authnConn)
+		defer authnService.Release()
+		userAuthn, err = authnService.CapUserAuthn(ctx, serviceName)
 	}
 	// need certs but not authn
 	if err == nil {
-		svc = service.NewGatewayService(f.Run, userAuthn)
+		//resolverPath := path.Join(f.Run, resolver.ServiceName+".socket")
+		resolverPath := resolver.DefaultResolverPath
+		svc = service.NewGatewayService(resolverPath, userAuthn)
 	}
 
 	ctx = listener.ExitOnSignal(context.Background(), func() {
@@ -68,9 +74,9 @@ func main() {
 		err = svc.Stop()
 	})
 
-	err = svc.Start(ctx)
+	err = svc.Start()
 	if err == nil {
-		err = capnpserver.StartGatewayCapnpServer(tlsLis, svc)
+		err = capnpserver.StartGatewayCapnpServer(svc, tlsLis)
 	}
 
 	if errors.Is(err, net.ErrClosed) {
@@ -111,7 +117,7 @@ func RenewServiceCerts(serviceID string, keys *ecdsa.PrivateKey, socketFolder st
 		return nil, nil, err
 	} else {
 		cs := capnpclient.NewCertServiceCapnpClient(csConn)
-		capServiceCert = cs.CapServiceCerts(ctx)
+		capServiceCert, err = cs.CapServiceCerts(ctx, hubapi.ClientTypeService)
 	}
 	svcPEM, caPEM, err := capServiceCert.CreateServiceCert(ctx, serviceID, pubKeyPEM, names, 0)
 	if err != nil {

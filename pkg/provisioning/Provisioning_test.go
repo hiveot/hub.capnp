@@ -41,25 +41,26 @@ func newServer(useCapnp bool) (provSvc provisioning.IProvisioning, closeFn func(
 	certCap := getCertCap()
 	ctx, cancelFunc := context.WithCancel(context.Background())
 
-	capDeviceCert := certCap.CapDeviceCerts(ctx, "test")
-	capVerifyCert := certCap.CapVerifyCerts(ctx, "test")
+	capDeviceCert, _ := certCap.CapDeviceCerts(ctx, "test")
+	capVerifyCert, _ := certCap.CapVerifyCerts(ctx, "test")
 	svc := service.NewProvisioningService(capDeviceCert, capVerifyCert)
 
 	// optionally test with capnp RPC
 	if useCapnp {
 		_ = syscall.Unlink(testSocket)
 		//lis, _ := net.Listen("unix", testSocket)
-		lis, _ := net.Listen("tcp", ":0")
-		go capnpserver.StartProvisioningCapnpServer(svc, lis)
+		srvListener, _ := net.Listen("tcp", ":0")
+		go capnpserver.StartProvisioningCapnpServer(svc, srvListener)
 
 		// connect the client to the server above
 		//clConn, _ := net.Dial("unix", testSocket)
-		clConn, _ := net.Dial("tcp", lis.Addr().String())
+		clConn, _ := net.Dial("tcp", srvListener.Addr().String())
 		cl := capnpclient.NewProvisioningCapnpClient(ctx, clConn)
 
 		return cl, func() {
 			cl.Release()
 			cancelFunc()
+			_ = srvListener.Close()
 			_ = svc.Stop()
 		}
 	}
@@ -98,9 +99,9 @@ func TestAutomaticProvisioning(t *testing.T) {
 	provServer, closeFn := newServer(useTestCapnp)
 	defer closeFn()
 
-	capManage := provServer.CapManageProvisioning(ctx, "test")
+	capManage, _ := provServer.CapManageProvisioning(ctx, "test")
 	defer capManage.Release()
-	capProv := provServer.CapRequestProvisioning(ctx, device1ID)
+	capProv, _ := provServer.CapRequestProvisioning(ctx, device1ID)
 	defer capProv.Release()
 
 	err := capManage.AddOOBSecrets(ctx, secrets)
@@ -137,9 +138,9 @@ func TestAutomaticProvisioningBadParameters(t *testing.T) {
 
 	provServer, closeFn := newServer(useTestCapnp)
 	defer closeFn()
-	capProv := provServer.CapRequestProvisioning(ctx, device1ID)
+	capProv, _ := provServer.CapRequestProvisioning(ctx, device1ID)
 	defer capProv.Release()
-	capManage := provServer.CapManageProvisioning(ctx, "test")
+	capManage, _ := provServer.CapManageProvisioning(ctx, "test")
 	defer capManage.Release()
 
 	// add a secret for testing
@@ -176,9 +177,9 @@ func TestManualProvisioning(t *testing.T) {
 	ctx := context.Background()
 	provServer, closeFn := newServer(useTestCapnp)
 	defer closeFn()
-	capProv := provServer.CapRequestProvisioning(ctx, device1ID)
+	capProv, _ := provServer.CapRequestProvisioning(ctx, device1ID)
 	defer capProv.Release()
-	capManage := provServer.CapManageProvisioning(ctx, "test")
+	capManage, _ := provServer.CapManageProvisioning(ctx, "test")
 	defer capManage.Release()
 
 	// Stage 1: request provisioning without a secret.
@@ -238,11 +239,11 @@ func TestRefreshProvisioning(t *testing.T) {
 	// request provisioning with a valid secret.
 	provServer, closeFn := newServer(useTestCapnp)
 	defer closeFn()
-	capProv := provServer.CapRequestProvisioning(ctx, device1ID)
+	capProv, _ := provServer.CapRequestProvisioning(ctx, device1ID)
 	defer capProv.Release()
-	capRefresh := provServer.CapRefreshProvisioning(ctx, device1ID)
+	capRefresh, _ := provServer.CapRefreshProvisioning(ctx, device1ID)
 	defer capRefresh.Release()
-	capManage := provServer.CapManageProvisioning(ctx, "test")
+	capManage, _ := provServer.CapManageProvisioning(ctx, "test")
 	defer capManage.Release()
 
 	// obtain a certificate

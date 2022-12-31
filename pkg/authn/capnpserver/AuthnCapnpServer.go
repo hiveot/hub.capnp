@@ -23,6 +23,9 @@ func (capsrv *AuthnCapnpServer) CapUserAuthn(
 
 	clientID, _ := call.Args().ClientID()
 	userAuthInstance, err := capsrv.svc.CapUserAuthn(ctx, clientID)
+	if err != nil {
+		return err
+	}
 	userAuthnCapSrv := &UserAuthnCapnpServer{
 		svc: userAuthInstance,
 	}
@@ -38,7 +41,10 @@ func (capsrv *AuthnCapnpServer) CapUserAuthn(
 
 func (capsrv *AuthnCapnpServer) CapManageAuthn(ctx context.Context, call hubapi.CapAuthn_capManageAuthn) error {
 	clientID, _ := call.Args().ClientID()
-	manageAuthInstance, _ := capsrv.svc.CapManageAuthn(ctx, clientID)
+	manageAuthInstance, err := capsrv.svc.CapManageAuthn(ctx, clientID)
+	if err != nil {
+		return err
+	}
 	manageAuthnCapSrv := &ManageAuthnCapnpServer{
 		svc: manageAuthInstance,
 	}

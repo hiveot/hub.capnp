@@ -21,27 +21,27 @@ type AuthzService struct {
 
 // CapClientAuthz returns the capability to verify client authorization
 func (authzService *AuthzService) CapClientAuthz(
-	ctx context.Context, clientID string) authz.IClientAuthz {
+	ctx context.Context, clientID string) (authz.IClientAuthz, error) {
 
-	verifyAuthz := authzService.CapVerifyAuthz(ctx, clientID)
+	verifyAuthz, err := authzService.CapVerifyAuthz(ctx, clientID)
 	clientAuthz := NewClientAuthz(clientID, verifyAuthz)
-	return clientAuthz
+	return clientAuthz, err
 }
 
 // CapManageAuthz returns the capability to manage authorization
 func (authzService *AuthzService) CapManageAuthz(
-	_ context.Context, clientID string) authz.IManageAuthz {
+	_ context.Context, clientID string) (authz.IManageAuthz, error) {
 
 	manageAuthz := NewManageAuthz(authzService.aclStore, clientID)
-	return manageAuthz
+	return manageAuthz, nil
 }
 
 // CapVerifyAuthz returns the capability to verify authorization
 func (authzService *AuthzService) CapVerifyAuthz(
-	_ context.Context, clientID string) authz.IVerifyAuthz {
+	_ context.Context, clientID string) (authz.IVerifyAuthz, error) {
 
 	verifyAuthz := NewVerifyAuthz(authzService.aclStore, clientID)
-	return verifyAuthz
+	return verifyAuthz, nil
 }
 
 // Stop closes the service and release resources

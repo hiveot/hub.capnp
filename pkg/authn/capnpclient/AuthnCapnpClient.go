@@ -18,7 +18,7 @@ type AuthnCapnpClient struct {
 }
 
 // CapUserAuthn provides the authentication capability for authenticating users
-func (cl *AuthnCapnpClient) CapUserAuthn(ctx context.Context, clientID string) authn.IUserAuthn {
+func (cl *AuthnCapnpClient) CapUserAuthn(ctx context.Context, clientID string) (authn.IUserAuthn, error) {
 	getCap, release := cl.capability.CapUserAuthn(ctx,
 		func(params hubapi.CapAuthn_capUserAuthn_Params) error {
 			err2 := params.SetClientID(clientID)
@@ -26,10 +26,10 @@ func (cl *AuthnCapnpClient) CapUserAuthn(ctx context.Context, clientID string) a
 		})
 	defer release()
 	capability := getCap.Cap().AddRef()
-	return NewUserAuthnCapnpClient(capability)
+	return NewUserAuthnCapnpClient(capability), nil
 }
 
-func (cl *AuthnCapnpClient) CapManageAuthn(ctx context.Context, clientID string) authn.IManageAuthn {
+func (cl *AuthnCapnpClient) CapManageAuthn(ctx context.Context, clientID string) (authn.IManageAuthn, error) {
 	getCap, release := cl.capability.CapManageAuthn(ctx,
 		func(params hubapi.CapAuthn_capManageAuthn_Params) error {
 			err2 := params.SetClientID(clientID)
@@ -37,7 +37,7 @@ func (cl *AuthnCapnpClient) CapManageAuthn(ctx context.Context, clientID string)
 		})
 	defer release()
 	capability := getCap.Cap().AddRef()
-	return NewManageAuthnCapnpClient(capability)
+	return NewManageAuthnCapnpClient(capability), nil
 }
 
 // Release this client capability

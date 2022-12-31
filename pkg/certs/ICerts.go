@@ -8,8 +8,6 @@ import (
 	"github.com/hiveot/hub.capnp/go/hubapi"
 )
 
-const DefaultCACertName = hubapi.DefaultCaCertFile
-
 // DefaultServiceCertValidityDays with validity of generated service certificates
 const DefaultServiceCertValidityDays = int(hubapi.DefaultServiceCertValidityDays)
 
@@ -29,16 +27,16 @@ const ServiceName = "certs"
 type ICerts interface {
 
 	// CapDeviceCerts provides the capability to manage device certificates
-	CapDeviceCerts(ctx context.Context, clientID string) IDeviceCerts
+	CapDeviceCerts(ctx context.Context, clientID string) (IDeviceCerts, error)
 
 	// CapServiceCerts provides the capability to manage service certificates
-	CapServiceCerts(ctx context.Context, clientID string) IServiceCerts
+	CapServiceCerts(ctx context.Context, clientID string) (IServiceCerts, error)
 
 	// CapUserCerts provides the capability to manage user certificates
-	CapUserCerts(ctx context.Context, clientID string) IUserCerts
+	CapUserCerts(ctx context.Context, clientID string) (IUserCerts, error)
 
 	// CapVerifyCerts provides the capability to verify certificates
-	CapVerifyCerts(ctx context.Context, clientID string) IVerifyCerts
+	CapVerifyCerts(ctx context.Context, clientID string) (IVerifyCerts, error)
 }
 
 // IDeviceCerts defines the POGS based capability to create device certificates

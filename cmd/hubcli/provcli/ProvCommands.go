@@ -113,7 +113,7 @@ func HandleAddOobSecret(ctx context.Context, f svcconfig.AppFolders, deviceID st
 	if err != nil {
 		return err
 	}
-	manage := pc.CapManageProvisioning(ctx, "hubcli")
+	manage, _ := pc.CapManageProvisioning(ctx, "hubcli")
 
 	secrets = []provisioning.OOBSecret{
 		{
@@ -135,7 +135,7 @@ func HandleApproveRequest(ctx context.Context, f svcconfig.AppFolders, deviceID 
 	conn, err := listener.CreateLocalClientConnection(provisioning.ServiceName, f.Run)
 	if err == nil {
 		pc = capnpclient.NewProvisioningCapnpClient(ctx, conn)
-		manage := pc.CapManageProvisioning(ctx, "hubcli")
+		manage, _ := pc.CapManageProvisioning(ctx, "hubcli")
 		err = manage.ApproveRequest(ctx, deviceID)
 	}
 
@@ -149,7 +149,7 @@ func HandleGetApprovedRequests(ctx context.Context, f svcconfig.AppFolders) erro
 	conn, err := listener.CreateLocalClientConnection(provisioning.ServiceName, f.Run)
 	if err == nil {
 		pc = capnpclient.NewProvisioningCapnpClient(ctx, conn)
-		manage := pc.CapManageProvisioning(ctx, "hubcli")
+		manage, _ := pc.CapManageProvisioning(ctx, "hubcli")
 		provStatus, err = manage.GetApprovedRequests(ctx)
 	}
 	if err != nil {
@@ -175,7 +175,7 @@ func HandleGetPendingRequests(ctx context.Context, f svcconfig.AppFolders) error
 	conn, err := listener.CreateLocalClientConnection(provisioning.ServiceName, f.Run)
 	if err == nil {
 		pc = capnpclient.NewProvisioningCapnpClient(ctx, conn)
-		manage := pc.CapManageProvisioning(ctx, "hubcli")
+		manage, _ := pc.CapManageProvisioning(ctx, "hubcli")
 		provStatus, err = manage.GetPendingRequests(ctx)
 	}
 	if err != nil {

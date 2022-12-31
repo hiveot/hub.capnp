@@ -27,7 +27,7 @@ func (capsrv *StateStoreCapnpServer) CapClientState(
 	args := call.Args()
 	clientID, _ := args.ClientID()
 	appID, _ := args.AppID()
-	pogoClientStateServer := capsrv.svc.CapClientState(ctx, clientID, appID)
+	pogoClientStateServer, _ := capsrv.svc.CapClientState(ctx, clientID, appID)
 	// second, wrap it in a capnp binding which implements the capnp generated API
 	capnpClientStateServer := &ClientStateCapnpServer{srv: pogoClientStateServer}
 

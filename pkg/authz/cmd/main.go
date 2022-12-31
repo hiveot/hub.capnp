@@ -28,11 +28,11 @@ func main() {
 		func(ctx context.Context, lis net.Listener) error {
 			// startup
 			err := svc.Start(ctx)
-			err = capnpserver.StartAuthzCapnpServer(lis, svc)
+			err = capnpserver.StartAuthzCapnpServer(svc, lis)
 			return err
 		}, func() error {
 			// shutdown
-			err := svc.Stop()
-			return err
+			svc.Stop()
+			return nil
 		})
 }

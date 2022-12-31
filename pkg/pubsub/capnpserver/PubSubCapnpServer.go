@@ -23,7 +23,7 @@ func (capsrv *PubSubCapnpServer) CapDevicePubSub(
 	ctx context.Context, call hubapi.CapPubSubService_capDevicePubSub) error {
 	args := call.Args()
 	deviceID, _ := args.DeviceID()
-	deviceSvc := capsrv.svc.CapDevicePubSub(ctx, deviceID)
+	deviceSvc, _ := capsrv.svc.CapDevicePubSub(ctx, deviceID)
 
 	capDeviceSvc := NewDevicePubSubCapnpServer(deviceSvc)
 	capability := hubapi.CapDevicePubSub_ServerToClient(capDeviceSvc)
@@ -39,7 +39,7 @@ func (capsrv *PubSubCapnpServer) CapServicePubSub(
 
 	args := call.Args()
 	serviceID, _ := args.ServiceID()
-	serviceSvc := capsrv.svc.CapServicePubSub(ctx, serviceID)
+	serviceSvc, _ := capsrv.svc.CapServicePubSub(ctx, serviceID)
 
 	capServiceSvc := NewServicePubSubCapnpServer(serviceSvc)
 	capability := hubapi.CapServicePubSub_ServerToClient(capServiceSvc)
@@ -55,7 +55,7 @@ func (capsrv *PubSubCapnpServer) CapUserPubSub(
 
 	args := call.Args()
 	userID, _ := args.UserID()
-	userSvc := capsrv.svc.CapUserPubSub(ctx, userID)
+	userSvc, _ := capsrv.svc.CapUserPubSub(ctx, userID)
 
 	capServiceSvc := NewUserPubSubCapnpServer(userSvc)
 	capability := hubapi.CapUserPubSub_ServerToClient(capServiceSvc)

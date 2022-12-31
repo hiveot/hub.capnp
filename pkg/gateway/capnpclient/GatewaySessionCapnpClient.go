@@ -4,14 +4,13 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"net"
+	"fmt"
 
 	"capnproto.org/go/capnp/v3"
 	"capnproto.org/go/capnp/v3/rpc"
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
-	"github.com/hiveot/hub/internal/caphelp"
 	"github.com/hiveot/hub/internal/listener"
 	"github.com/hiveot/hub/pkg/gateway"
 	"github.com/hiveot/hub/pkg/resolver"
@@ -21,36 +20,6 @@ import (
 type GatewaySessionCapnpClient struct {
 	connection *rpc.Conn                // connection to capnp server
 	capability hubapi.CapGatewaySession // capnp client of the gateway session
-}
-
-// GetCapability obtains the capability with the given name.
-// The caller must release the capability when done.
-func (cl *GatewaySessionCapnpClient) GetCapability(ctx context.Context,
-	clientID string, clientType string, capabilityName string, args []string) (
-	capabilityRef capnp.Client, err error) {
-
-	method, release := cl.capability.GetCapability(ctx,
-		func(params hubapi.CapResolverSession_getCapability_Params) error {
-			_ = params.SetClientID(clientID)
-			_ = params.SetClientType(clientType)
-			_ = params.SetCapName(capabilityName)
-			if args != nil {
-				err = params.SetArgs(caphelp.MarshalStringList(args))
-			}
-			return err
-		})
-	defer release()
-	// return a future. Caller must release
-	//capability = method.Cap().AddRef()
-
-	// Just return the actual capability instead of a future, so the error is obtained if it isn't available.
-	// Would be nice to return the future but this is an infrequent call anyways.
-	resp, err := method.Struct()
-	if err == nil {
-		capability := resp.Capability().AddRef()
-		capabilityRef = capability
-	}
-	return capabilityRef, err
 }
 
 // ListCapabilities lists the available capabilities of the service
@@ -126,22 +95,22 @@ func (cl *GatewaySessionCapnpClient) Refresh(ctx context.Context,
 }
 
 // RegisterCapabilities registers a service's capabilities along with the CapProvider
-func (cl *GatewaySessionCapnpClient) RegisterCapabilities(ctx context.Context,
-	serviceID string, capInfoList []resolver.CapabilityInfo,
-	capProvider hubapi.CapProvider) (err error) {
-
-	capInfoListCapnp := capserializer.MarshalCapabilityInfoList(capInfoList)
-	method, release := cl.capability.RegisterCapabilities(ctx,
-		func(params hubapi.CapResolverSession_registerCapabilities_Params) error {
-			err = params.SetCapInfo(capInfoListCapnp)
-			_ = params.SetServiceID(serviceID)
-			_ = params.SetProvider(capProvider.AddRef()) // don't forget AddRef
-			return err
-		})
-	defer release()
-	_, err = method.Struct()
-	return err
-}
+//func (cl *GatewaySessionCapnpClient) RegisterCapabilities(ctx context.Context,
+//	serviceID string, capInfoList []resolver.CapabilityInfo,
+//	capProvider hubapi.CapProvider) (err error) {
+//
+//	capInfoListCapnp := capserializer.MarshalCapabilityInfoList(capInfoList)
+//	method, release := cl.capability.RegisterCapabilities(ctx,
+//		func(params hubapi.CapResolverSession_registerCapabilities_Params) error {
+//			err = params.SetCapInfo(capInfoListCapnp)
+//			_ = params.SetServiceID(serviceID)
+//			_ = params.SetProvider(capProvider.AddRef()) // don't forget AddRef
+//			return err
+//		})
+//	defer release()
+//	_, err = method.Struct()
+//	return err
+//}
 
 // Release the client
 func (cl *GatewaySessionCapnpClient) Release() {
@@ -159,19 +128,19 @@ func (cl *GatewaySessionCapnpClient) Release() {
 // Hub's gateway. A connection must be established first.
 //
 //	conn is the network connection to use.
-func NewGatewaySessionCapnpClient(ctx context.Context,
-	conn net.Conn) (cl *GatewaySessionCapnpClient, err error) {
-
-	transport := rpc.NewStreamTransport(conn)
-	rpcConn := rpc.NewConn(transport, nil)
-	capGatewaySession := hubapi.CapGatewaySession(rpcConn.Bootstrap(ctx))
-
-	cl = &GatewaySessionCapnpClient{
-		connection: rpcConn,
-		capability: capGatewaySession,
-	}
-	return cl, nil
-}
+//func NewGatewaySessionCapnpClient(ctx context.Context,
+//	conn net.Conn) (cl *GatewaySessionCapnpClient, err error) {
+//
+//	transport := rpc.NewStreamTransport(conn)
+//	rpcConn := rpc.NewConn(transport, nil)
+//	capGatewaySession := hubapi.CapGatewaySession(rpcConn.Bootstrap(ctx))
+//
+//	cl = &GatewaySessionCapnpClient{
+//		connection: rpcConn,
+//		capability: capGatewaySession,
+//	}
+//	return cl, nil
+//}
 
 // ConnectToGatewayTLS is a helper that starts a new connection with the gateway
 // over TLS.
@@ -188,20 +157,53 @@ func NewGatewaySessionCapnpClient(ctx context.Context,
 // This returns a client for a gateway session
 func ConnectToGatewayTLS(network, address string,
 	clientCert *tls.Certificate, caCert *x509.Certificate) (
-
 	gatewayClient gateway.IGatewaySession, err error) {
 
+	proxyClient, err := ConnectToGatewayProxyClient(network, address, clientCert, caCert)
+
+	capGatewaySession := hubapi.CapGatewaySession(proxyClient)
+
+	cl := &GatewaySessionCapnpClient{
+		connection: nil,
+		capability: capGatewaySession,
+	}
+	return cl, err
+}
+
+// ConnectToGatewayProxyClient connects to the gateway over TLS and returns its proxy bootstrap client.
+// The resulting capnp.Client is to be used to invoke any of the methods returned in ListCapabilities
+// using the capnp interface that provides that method.
+//
+// Clients should call Release when done. This will close the connection and any
+// capabilities obtained from the resolver.
+//
+//	 clientCert is the TLS client certificate for mutual authentication. Use nil to connect
+//	   as an unauthenticated client.
+//	 caCert is the server's CA certificate to verify that the gateway service is valid.
+//	   Use nil to not verify the server's certificate.
+//		network is either "unix" or "tcp". Default "" uses "tcp"
+//		address is the UDS or TCP address:port of the gateway
+//
+// This returns a gateway client that can be used as a proxy of any of the available services
+func ConnectToGatewayProxyClient(
+	network, address string, clientCert *tls.Certificate, caCert *x509.Certificate) (
+	cap capnp.Client, err error) {
+
 	if address == "" {
-		panic("need a gateway address")
+		err = fmt.Errorf("missing gateway address")
+		return
 	} else if network == "" {
 		network = "tcp"
 	}
 	// create the TLS connection for use by the RPC
 	clConn, err := listener.CreateTLSClientConnection(network, address, clientCert, caCert)
 	if err != nil {
-		logrus.Panic(err)
+		return
 	}
 	ctx := context.Background()
-	cl, err := NewGatewaySessionCapnpClient(ctx, clConn)
-	return cl, err
+	transport := rpc.NewStreamTransport(clConn)
+	rpcConn := rpc.NewConn(transport, nil)
+	gatewayProxy := rpcConn.Bootstrap(ctx)
+
+	return gatewayProxy, err
 }

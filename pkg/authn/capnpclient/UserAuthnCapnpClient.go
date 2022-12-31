@@ -8,7 +8,6 @@ import (
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/pkg/authn"
 	"github.com/hiveot/hub/pkg/authn/capserializer"
-	"github.com/hiveot/hub/pkg/resolver"
 )
 
 // UserAuthnCapnpClient provides the POGS wrapper around the capnp user API
@@ -110,20 +109,4 @@ func NewUserAuthnCapnpClient(capability hubapi.CapUserAuthn) *UserAuthnCapnpClie
 		capability: capability,
 	}
 	return cl
-}
-
-// ResolveUserAuthn returns a client instance of the UserAuthn capability using the resolver
-func ResolveUserAuthn(
-	resolver resolver.IResolverSession, userID string) (cl authn.IUserAuthn, err error) {
-	ctx := context.Background()
-	// T: use capability names that are compiler checked instead
-	capability, err := resolver.GetCapability(ctx, userID, hubapi.ClientTypeUser,
-		"capUserAuthn", nil)
-	if err == nil {
-		cl = &UserAuthnCapnpClient{
-			capability: hubapi.CapUserAuthn(capability),
-		}
-	}
-
-	return cl, err
 }

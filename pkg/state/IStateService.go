@@ -45,7 +45,7 @@ type IStateService interface {
 	//
 	//  clientID is the service that represents the application. Each client uses a separate DB.
 	//  bucketID is the name of the bucket in the store. Eg a separate table.
-	CapClientState(ctx context.Context, clientID string, bucketID string) (cap IClientState)
+	CapClientState(ctx context.Context, clientID string, bucketID string) (IClientState, error)
 
 	// CapManageStateStore provides the capability to manage the state store
 	//CapManageStateStore(ctx context.Context) IManageStateStore

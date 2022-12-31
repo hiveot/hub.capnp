@@ -5,19 +5,37 @@ import (
 	"fmt"
 
 	"capnproto.org/go/capnp/v3"
+	"capnproto.org/go/capnp/v3/server"
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
-	"github.com/hiveot/hub/pkg/gateway"
-	"github.com/hiveot/hub/pkg/resolver/capnpserver"
+	"github.com/hiveot/hub/pkg/gateway/service"
+	"github.com/hiveot/hub/pkg/resolver/capserializer"
 )
 
 // GatewaySessionCapnpServer implements the capnp server of the gateway session.
 // This implements the capnp hubapi.CapGatewaySession_server interface.
 // Each incoming connection is served by its own session.
 type GatewaySessionCapnpServer struct {
-	capnpserver.ResolverSessionCapnpServer
-	session gateway.IGatewaySession // POGS service
+	session *service.GatewaySession // POGS service
+}
+
+func (capsrv *GatewaySessionCapnpServer) HandleUnknownMethod(m capnp.Method) *server.Method {
+	// Just pass it on to the session that can add validation
+	return capsrv.session.HandleUnknownMethod(m)
+}
+
+// ListCapabilities returns the aggregated list of capabilities from all connected services.
+func (capsrv *GatewaySessionCapnpServer) ListCapabilities(
+	ctx context.Context, call hubapi.CapGatewaySession_listCapabilities) (err error) {
+
+	infoList, err := capsrv.session.ListCapabilities(ctx)
+	resp, err2 := call.AllocResults()
+	if err = err2; err == nil {
+		infoListCapnp := capserializer.MarshalCapabilityInfoList(infoList)
+		err = resp.SetInfoList(infoListCapnp)
+	}
+	return err
 }
 
 // Login to the session
@@ -74,20 +92,26 @@ func (capsrv *GatewaySessionCapnpServer) Ping(
 	return err
 }
 
+// Shutdown shut down the connection
+func (capsrv *GatewaySessionCapnpServer) Shutdown() {
+	capsrv.session.Release()
+}
+
 // NewGatewaySessionCapnpServer creates a capnp server session to serve a new connection
-func NewGatewaySessionCapnpServer(session gateway.IGatewaySession) *GatewaySessionCapnpServer {
+// session is unfortunately the gateway session implementation, not its interface, because
+// access to handling unknown method is needed.
+func NewGatewaySessionCapnpServer(session *service.GatewaySession) *GatewaySessionCapnpServer {
 
 	srv := &GatewaySessionCapnpServer{
 		session: session,
 	}
-	srv.ResolverSessionCapnpServer = *capnpserver.NewResolverSessionCapnpServer(session)
 	return srv
 }
 
-//// StartGatewaySessionCapnpServer instantiates a new session using the given
-//// gateway session.
+// StartGatewaySessionCapnpServer instantiates a new session using the given
+// gateway session.
 //func StartGatewaySessionCapnpServer(
-//	conn net.Conn, session gateway.IGatewaySession) (*rpc.Conn, error) {
+//	session gateway.IGatewaySession, conn net.Conn) (*rpc.Conn, error) {
 //
 //	srv := &GatewaySessionCapnpServer{
 //		session: session,

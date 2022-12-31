@@ -44,7 +44,7 @@ A service certificate is an organization certificate and not a domain certificat
 
 Service certificates have a short validity period. They are renewed by the service on each service restart.
 
-It is recommended to NOT expose any service to the internet unless a proxy service is used. The proxy service can use a certificate from Lets Encrypt.
+It is recommended to NOT expose any service to the internet unless a proxy server is used. The proxy server can use a certificate from Lets Encrypt.
 
 Proposal: bridge services connect to each other over the internet. They are effectively a proxy between Hubs and utilize a - preferably Lets Encrypt - certificate. Bridge services use a manual adoption process where the administrator adds the remote bridge address and accept or reject the offered certificate. Certificate renewal will re-use the keys used to generate the certificate and does not require redistribution. 
 

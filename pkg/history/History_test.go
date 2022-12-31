@@ -86,6 +86,7 @@ func newHistoryService(useCapnp bool) (history.IHistoryService, func()) {
 		return cl, func() {
 			cl.Release()
 			cancelFn()
+			_ = srvListener.Close()
 			_ = svc.Stop()
 			err = store.Close()
 			// give it some time to shut down before the next test

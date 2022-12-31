@@ -44,13 +44,13 @@ type ProvisionStatus struct {
 type IProvisioning interface {
 
 	// CapManageProvisioning provides the capability to manage provisioning requests
-	CapManageProvisioning(ctx context.Context, clientID string) IManageProvisioning
+	CapManageProvisioning(ctx context.Context, clientID string) (IManageProvisioning, error)
 
 	// CapRequestProvisioning provides the capability to provision IoT devices
-	CapRequestProvisioning(ctx context.Context, clientID string) IRequestProvisioning
+	CapRequestProvisioning(ctx context.Context, clientID string) (IRequestProvisioning, error)
 
 	// CapRefreshProvisioning provides the capability for IoT devices to refresh
-	CapRefreshProvisioning(ctx context.Context, clientID string) IRefreshProvisioning
+	CapRefreshProvisioning(ctx context.Context, clientID string) (IRefreshProvisioning, error)
 }
 
 // IManageProvisioning provides the capability to manage provisioning requests and OOB secrets

@@ -55,6 +55,7 @@ func startResolverAndClient(useCapnp bool) (resolver.IResolverService, func()) {
 		}
 		return capClient, func() {
 			capClient.Release()
+			_ = srvListener.Close()
 			time.Sleep(time.Millisecond)
 			_ = svc.Stop()
 			cancelFunc()
@@ -187,7 +188,6 @@ func TestGetCapabilityViaResolver(t *testing.T) {
 	ts := captest.NewTestService()
 	err := ts.Start(testServiceSocket)
 	assert.NoError(t, err)
-	defer ts.Stop()
 
 	// give the resolver time to discover the test service
 	time.Sleep(time.Millisecond * 10)
@@ -203,9 +203,6 @@ func TestGetCapabilityViaResolver(t *testing.T) {
 	rpcConn := rpc.NewConn(transport, nil)
 	capability := captest.CapTestService(rpcConn.Bootstrap(ctx))
 
-	// the watcher notifies the resolver that the test service socket was discovered.
-	// the resolver lists its capabilities and adds the test service capabilities to its bootstrap with a stub
-	// that forwards the request.
 	method, release := capability.CapMethod1(ctx,
 		func(params captest.CapTestService_capMethod1_Params) error {
 			err2 := params.SetClientID(serviceID1)

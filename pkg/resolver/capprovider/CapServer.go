@@ -162,7 +162,7 @@ func NewCapServer(serviceName string, methods []server.Method) *CapServer {
 	}
 	// the following code replaces the usual Xyz_ServerToClient() call. Instead, the capnp server passes
 	// its Methods list to be served by this server.
-	//srv.capProviderCapability = hubapi.CapProvider_ServerToClient(srv)
+	srv.capProviderCapability = hubapi.CapProvider_ServerToClient(srv)
 
 	// get the shutdown method of the server if it has one
 	c, _ := hubapi.CapProvider_Server(srv).(server.Shutdowner)

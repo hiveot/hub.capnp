@@ -19,7 +19,7 @@ type AuthzCapnpClient struct {
 }
 
 // CapClientAuthz provides the capability to verify a specific client's authorization
-func (authz *AuthzCapnpClient) CapClientAuthz(ctx context.Context, clientID string) authz.IClientAuthz {
+func (authz *AuthzCapnpClient) CapClientAuthz(ctx context.Context, clientID string) (authz.IClientAuthz, error) {
 	getCap, release := authz.capability.CapClientAuthz(ctx,
 		func(params hubapi.CapAuthz_capClientAuthz_Params) error {
 			err2 := params.SetClientID(clientID)
@@ -28,32 +28,35 @@ func (authz *AuthzCapnpClient) CapClientAuthz(ctx context.Context, clientID stri
 	defer release()
 	capability := getCap.Cap().AddRef()
 	cl := NewClientAuthzCapnpClient(capability)
-	return cl
+	return cl, nil
 }
 
 // CapManageAuthz provides the capability to manage authorization groups
-func (authz *AuthzCapnpClient) CapManageAuthz(ctx context.Context, clientID string) authz.IManageAuthz {
-	getCap, release := authz.capability.CapManageAuthz(ctx, func(params hubapi.CapAuthz_capManageAuthz_Params) error {
-		err2 := params.SetClientID(clientID)
-		return err2
-	})
+func (authz *AuthzCapnpClient) CapManageAuthz(ctx context.Context, clientID string) (authz.IManageAuthz, error) {
+	getCap, release := authz.capability.CapManageAuthz(ctx,
+		func(params hubapi.CapAuthz_capManageAuthz_Params) error {
+			err2 := params.SetClientID(clientID)
+			return err2
+		})
 	defer release()
 	capability := getCap.Cap().AddRef()
 	cl := NewManageAuthzCapnpClient(capability)
-	return cl
+	return cl, nil
 }
 
 // CapVerifyAuthz provides the capability to verify authorization
 // The type of client, OU of certificate, certsclient.OUService, OUIoTDevice, OUUser, OUAdmin
-func (authz *AuthzCapnpClient) CapVerifyAuthz(ctx context.Context, clientID string) authz.IVerifyAuthz {
-	getCap, release := authz.capability.CapVerifyAuthz(ctx, func(params hubapi.CapAuthz_capVerifyAuthz_Params) error {
-		err2 := params.SetClientID(clientID)
-		return err2
-	})
+func (authz *AuthzCapnpClient) CapVerifyAuthz(ctx context.Context, clientID string) (authz.IVerifyAuthz, error) {
+
+	getCap, release := authz.capability.CapVerifyAuthz(ctx,
+		func(params hubapi.CapAuthz_capVerifyAuthz_Params) error {
+			err2 := params.SetClientID(clientID)
+			return err2
+		})
 	defer release()
 	capability := getCap.Cap().AddRef()
 	cl := NewVerifyAuthzCapnpClient(capability)
-	return cl
+	return cl, nil
 }
 
 func (authz *AuthzCapnpClient) Release() {
@@ -64,7 +67,7 @@ func (authz *AuthzCapnpClient) Release() {
 //
 //	ctx is the context for retrieving capabilities
 //	connection is the client connection to the capnp server
-func NewAuthzCapnpClient(ctx context.Context, connection net.Conn) (*AuthzCapnpClient, error) {
+func NewAuthzCapnpClient(ctx context.Context, connection net.Conn) *AuthzCapnpClient {
 	var cl *AuthzCapnpClient
 	transport := rpc.NewStreamTransport(connection)
 	rpcConn := rpc.NewConn(transport, nil)
@@ -74,5 +77,5 @@ func NewAuthzCapnpClient(ctx context.Context, connection net.Conn) (*AuthzCapnpC
 		connection: rpcConn,
 		capability: capability,
 	}
-	return cl, nil
+	return cl
 }

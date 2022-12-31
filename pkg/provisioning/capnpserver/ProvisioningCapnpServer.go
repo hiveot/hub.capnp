@@ -24,8 +24,9 @@ func (capsrv *ProvisioningCapnpServer) CapManageProvisioning(
 
 	clientID, _ := call.Args().ClientID()
 	// create the service instance for this request
+	capManage, _ := capsrv.svc.CapManageProvisioning(ctx, clientID)
 	mngCapSrv := &ManageProvisioningCapnpServer{
-		pogosrv: capsrv.svc.CapManageProvisioning(ctx, clientID),
+		pogosrv: capManage,
 	}
 
 	// wrap it with a capnp proxy
@@ -43,9 +44,11 @@ func (capsrv *ProvisioningCapnpServer) CapRefreshProvisioning(
 
 	clientID, _ := call.Args().ClientID()
 	// create the service instance for this request
+	capRefresh, _ := capsrv.svc.CapRefreshProvisioning(ctx, clientID)
+
 	// TODO: restrict it to the deviceID of the caller
 	refreshCapSrv := &RefreshProvisioningCapnpServer{
-		pogosrv: capsrv.svc.CapRefreshProvisioning(ctx, clientID),
+		pogosrv: capRefresh,
 	}
 
 	// wrap it with a capnp proxy
@@ -62,8 +65,9 @@ func (capsrv *ProvisioningCapnpServer) CapRequestProvisioning(
 
 	clientID, _ := call.Args().ClientID()
 	// create the service instance for this request
+	capRequest, _ := capsrv.svc.CapRequestProvisioning(ctx, clientID)
 	reqCapSrv := &RequestProvisioningCapnpServer{
-		pogosrv: capsrv.svc.CapRequestProvisioning(ctx, clientID),
+		pogosrv: capRequest,
 	}
 
 	// wrap it with a capnp proxy

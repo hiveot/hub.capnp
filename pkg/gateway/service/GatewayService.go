@@ -1,17 +1,19 @@
 package service
 
 import (
-	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"net"
 	"sync"
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/pkg/authn"
 	"github.com/hiveot/hub/pkg/gateway"
 )
 
-// GatewayService implements the IGatewaySession interface.
+// GatewayService implements the IGatewayService interface.
 // A new instance is created by the capnp server for each incoming connection.
 // This service is intended as a proxy for remote services to the local resolver.
 type GatewayService struct {
@@ -27,18 +29,54 @@ type GatewayService struct {
 // This is invoked by the underlying protocol and returns a new session to use
 // with the connection.
 // If this connection closes then capabilites added in this session are removed.
-func (svc *GatewayService) OnIncomingConnection(conn net.Conn) (session gateway.IGatewaySession) {
+// Returns nil if session is not valid
+func (svc *GatewayService) OnIncomingConnection(conn net.Conn) (session *GatewaySession) {
 	//var err error
-	newSession, err := StartGatewaySession(svc.resolverPath, svc.userAuthn)
+	var clientType = hubapi.ClientTypeUnauthenticated
+	var clientID = ""
+	var clientCert *x509.Certificate
+
+	// mutual auth with client cert. Get clientID and type from cert
+	tlsc, istls := conn.(*tls.Conn)
+	if istls {
+		err := tlsc.Handshake()
+		// not a valid TLS connection so drop it
+		if err != nil {
+			logrus.Warningf("dropping invalid TLS connection from '%s':%s", tlsc.RemoteAddr(), err)
+			_ = conn.Close()
+			return nil
+		}
+		cstate := tlsc.ConnectionState()
+		certs := cstate.PeerCertificates
+		if len(certs) > 0 {
+			clientCert = certs[0]
+			clientID = clientCert.Subject.CommonName
+			if len(clientCert.Subject.OrganizationalUnit) > 0 {
+				clientType = clientCert.Subject.OrganizationalUnit[0]
+			}
+		}
+
+	}
+	newSession, err := StartGatewaySession(svc.resolverPath, svc.userAuthn, tlsc)
+
+	if err != nil {
+		logrus.Warningf("Unable to create gateway session. Closing connection...: %s", err)
+		_ = conn.Close()
+		return nil
+	}
+	if clientCert != nil {
+		// save the new session
+		logrus.Infof("Incoming connection with client cert from client='%s', clientType='%s'", clientID, clientType)
+	} else if tlsc != nil {
+		logrus.Infof("Incoming TLS connection without peer cert from '%s'", tlsc.RemoteAddr())
+	} else {
+		logrus.Infof("Incoming connection without TLS from '%s'", conn.RemoteAddr())
+	}
+	newSession.clientID = clientID
+	newSession.clientType = clientType
 	svc.sessionMutex.Lock()
 	defer svc.sessionMutex.Unlock()
 	svc.sessions[conn] = newSession
-
-	if err != nil {
-		logrus.Warning("Unable to create gateway session. Closing connection...")
-		conn.Close()
-		return nil
-	}
 	return newSession
 }
 
@@ -58,9 +96,8 @@ func (svc *GatewayService) OnConnectionClosed(conn net.Conn, session gateway.IGa
 	}
 }
 
-// Start currently has nothing to do as the capnpserver listens for incoming connections
-func (svc *GatewayService) Start(_ context.Context) error {
-	logrus.Infof("Starting gateway service")
+// Start connects to the resolver and obtains its bootstrap for forwarding requests
+func (svc *GatewayService) Start() error {
 	return nil
 }
 
@@ -74,8 +111,9 @@ func (svc *GatewayService) Stop() (err error) {
 	}
 	svc.sessionMutex.RUnlock()
 
-	logrus.Infof("Stopping gateway service. %d sessions remaining", len(sessionIDList))
-
+	if len(sessionIDList) > 0 {
+		logrus.Warningf("Stopping gateway service. %d sessions remaining", len(sessionIDList))
+	}
 	for _, sessionID := range sessionIDList {
 		svc.sessionMutex.Lock()
 		session := svc.sessions[sessionID]

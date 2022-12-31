@@ -57,6 +57,7 @@ func newServer(useCapnp bool) (l launcher.ILauncher, stopFn func()) {
 		return cl, func() {
 			cl.Release()
 			_ = clConn.Close()
+			_ = srvListener.Close()
 			cancelFunc()
 			_ = svc.StopAll(ctx)
 		}

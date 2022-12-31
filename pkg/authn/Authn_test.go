@@ -62,10 +62,10 @@ func startTestAuthnService(useCapnp bool) (authSvc authn.IAuthnService, stopFn f
 		clConn, err := net.Dial("tcp", srvListener.Addr().String())
 		capClient := capnpclient.NewAuthnCapnpClient(ctx, clConn)
 		return capClient, func() {
-			time.Sleep(time.Millisecond)
-			cancelFunc()
 			capClient.Release()
 			_ = clConn.Close()
+			time.Sleep(time.Millisecond)
+			cancelFunc()
 			_ = svc.Stop()
 		}, err
 	}

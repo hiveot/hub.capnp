@@ -19,7 +19,7 @@ type StateServiceCapnpClient struct {
 }
 
 func (cl *StateServiceCapnpClient) CapClientState(
-	ctx context.Context, clientID string, appID string) state.IClientState {
+	ctx context.Context, clientID string, appID string) (state.IClientState, error) {
 
 	method, release := cl.capability.CapClientState(ctx,
 		func(params hubapi.CapState_capClientState_Params) error {
@@ -30,7 +30,7 @@ func (cl *StateServiceCapnpClient) CapClientState(
 	defer release()
 	capability := method.Cap()
 	newCap := NewClientStateCapnpClient(capability.AddRef())
-	return newCap
+	return newCap, nil
 }
 
 func (cl *StateServiceCapnpClient) Release() {

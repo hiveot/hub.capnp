@@ -26,10 +26,10 @@ type UserProfile struct {
 // IAuthnService defines the interface for simple user management and authentication
 type IAuthnService interface {
 	// CapUserAuthn provides the authentication capabilities for unauthenticated users.
-	CapUserAuthn(ctx context.Context, clientID string) IUserAuthn
+	CapUserAuthn(ctx context.Context, clientID string) (IUserAuthn, error)
 
 	// CapManageAuthn provides the capability manage users for use by administrators.
-	CapManageAuthn(ctx context.Context, clientID string) IManageAuthn
+	CapManageAuthn(ctx context.Context, clientID string) (IManageAuthn, error)
 }
 
 // IManageAuthn defines the interface for managing the authentication service

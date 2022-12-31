@@ -96,13 +96,13 @@ func NewGroup(groupName string) Group {
 type IAuthz interface {
 
 	// CapClientAuthz provides the capability to verify a client's authorization
-	CapClientAuthz(ctx context.Context, clientID string) IClientAuthz
+	CapClientAuthz(ctx context.Context, clientID string) (IClientAuthz, error)
 
 	// CapManageAuthz provides the capability to manage authorization groups
-	CapManageAuthz(ctx context.Context, clientID string) IManageAuthz
+	CapManageAuthz(ctx context.Context, clientID string) (IManageAuthz, error)
 
 	// CapVerifyAuthz provides the capability to verify authorization
-	CapVerifyAuthz(ctx context.Context, clientID string) IVerifyAuthz
+	CapVerifyAuthz(ctx context.Context, clientID string) (IVerifyAuthz, error)
 }
 
 // IClientAuthz defines the capability for verifying authorization of a client.

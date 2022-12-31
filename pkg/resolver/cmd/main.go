@@ -17,8 +17,7 @@ func main() {
 	//resolverSocketPath := resolver.DefaultResolverPath
 
 	f := svcconfig.LoadServiceConfig(pubsub.ServiceName, false, nil)
-	_ = f
-	svc := service.NewResolverService()
+	svc := service.NewResolverService(f.Run)
 
 	// the resolver uses unix sockets to listen for incoming connections
 	listener.RunService(resolver.ServiceName, resolver.DefaultResolverPath, //f.SocketPath,
@@ -26,7 +25,7 @@ func main() {
 			// startup
 			err := svc.Start(ctx)
 			if err == nil {
-				err = capnpserver.StartResolverCapnpServer(lis, svc)
+				capnpserver.StartResolverServiceCapnpServer(svc, lis, svc.HandleUnknownMethod)
 			}
 			return err
 		}, func() error {

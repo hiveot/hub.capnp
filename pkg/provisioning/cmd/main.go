@@ -31,8 +31,13 @@ func main() {
 	if err == nil {
 		certsClient = certsclient.NewCertServiceCapnpClient(certConn)
 		// the provisioning service requires certificate capabilities
-		deviceCap = certsClient.CapDeviceCerts(ctx, provisioning.ServiceName)
-		verifyCap = certsClient.CapVerifyCerts(ctx, provisioning.ServiceName)
+		deviceCap, err = certsClient.CapDeviceCerts(ctx, provisioning.ServiceName)
+		if err == nil {
+			verifyCap, err = certsClient.CapVerifyCerts(ctx, provisioning.ServiceName)
+		}
+		if err != nil {
+			panic("need access to device/verify certs: " + err.Error())
+		}
 		svc = service.NewProvisioningService(deviceCap, verifyCap)
 	}
 	// now we have the capability to create certificates, start the service and start listening for capnp clients

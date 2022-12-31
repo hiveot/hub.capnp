@@ -8,16 +8,15 @@ import (
 
 // CreateTLSListener wraps the given listener in TLS v1.3
 // TODO: verify client certificates
-func CreateTLSListener(lis net.Listener,
-	serverCert *tls.Certificate,
-	caCert *x509.Certificate) net.Listener {
+func CreateTLSListener(
+	lis net.Listener, serverCert *tls.Certificate, caCert *x509.Certificate) net.Listener {
 
 	caCertPool := x509.NewCertPool()
 	caCertPool.AddCert(caCert)
 
 	tlsConfig := tls.Config{
 		Certificates:       []tls.Certificate{*serverCert},
-		ClientAuth:         tls.RequireAndVerifyClientCert, //.VerifyClientCertIfGiven,
+		ClientAuth:         tls.VerifyClientCertIfGiven,
 		ClientCAs:          caCertPool,
 		InsecureSkipVerify: false,
 		MinVersion:         tls.VersionTLS13,

@@ -48,8 +48,9 @@ func RunService(serviceName string, socketPath string,
 	if errors.Is(err, net.ErrClosed) {
 		logrus.Infof("%s service has stopped gracefully", serviceName)
 		os.Exit(0)
-	} else {
+	} else if err != nil {
 		logrus.Errorf("%s service shutdown with error: %s", serviceName, err)
 		os.Exit(-1)
 	}
+	logrus.Infof("%s service has shutdown with no errors", serviceName)
 }

@@ -174,9 +174,9 @@ func HandleCreateDeviceCert(ctx context.Context, f svcconfig.AppFolders, deviceI
 		return err
 	}
 	cc = capnpclient.NewCertServiceCapnpClient(conn)
-	dc = cc.CapDeviceCerts(ctx, "hubcli")
+	dc, _ = cc.CapDeviceCerts(ctx, "hubcli")
 
-	pubKeyPEM, generatedPrivKey, err = loadOrCreateKey(keyFile)
+	pubKeyPEM, generatedPrivKey, err = LoadOrCreateKey(keyFile)
 
 	// finally, create the user certificate
 	if err == nil {
@@ -219,8 +219,8 @@ func HandleCreateServiceCert(ctx context.Context, f svcconfig.AppFolders,
 		return err
 	}
 	cc = capnpclient.NewCertServiceCapnpClient(conn)
-	sc = cc.CapServiceCerts(ctx, "hubcli")
-	pubKeyPEM, generatedPrivKey, err = loadOrCreateKey(keyFile)
+	sc, _ = cc.CapServiceCerts(ctx, "hubcli")
+	pubKeyPEM, generatedPrivKey, err = LoadOrCreateKey(keyFile)
 
 	// finally, create the user certificate
 	if err == nil {
@@ -260,8 +260,8 @@ func HandleCreateUserCert(ctx context.Context, f svcconfig.AppFolders, clientID 
 	}
 	cc = capnpclient.NewCertServiceCapnpClient(conn)
 
-	uc = cc.CapUserCerts(ctx, "hubcli")
-	pubKeyPEM, generatedPrivKey, err = loadOrCreateKey(keyFile)
+	uc, _ = cc.CapUserCerts(ctx, "hubcli")
+	pubKeyPEM, generatedPrivKey, err = LoadOrCreateKey(keyFile)
 
 	// finally, create the user certificate
 	if err == nil {
@@ -299,9 +299,9 @@ func HandleShowCertInfo(_ context.Context, certFile string) error {
 	return err
 }
 
-// Load public key or create a public/private key pair if not given.
+// LoadOrCreateKey loads the public key or create a public/private key pair if not given.
 // If the path is a private key, then extract the public key from it
-func loadOrCreateKey(keyFile string) (
+func LoadOrCreateKey(keyFile string) (
 	pubKeyPEM string, generatedPrivKey *ecdsa.PrivateKey, err error) {
 	var keyAsBytes []byte
 	var pubKey *ecdsa.PublicKey

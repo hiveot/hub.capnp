@@ -52,7 +52,7 @@ type ResolverServiceCapnpServer struct {
 
 // ListCapabilities returns the aggregated list of capabilities from all connected services.
 func (capsrv *ResolverServiceCapnpServer) ListCapabilities(
-	ctx context.Context, call hubapi.CapResolverService_listCapabilities) (err error) {
+	ctx context.Context, call hubapi.CapProvider_listCapabilities) (err error) {
 
 	clientType, _ := call.Args().ClientType()
 	infoList, err := capsrv.service.ListCapabilities(ctx, clientType)
@@ -106,7 +106,7 @@ func (capsrv *ResolverServiceCapnpServer) ListCapabilities(
 
 func StartResolverServiceCapnpServer(
 	service resolver.IResolverService, lis net.Listener,
-	handleUnknownMethod func(ctx context.Context, r capnp.Recv) *server.Method) {
+	handleUnknownMethod func(m capnp.Method) *server.Method) {
 
 	srv := &ResolverServiceCapnpServer{
 		service: service,
@@ -116,7 +116,6 @@ func StartResolverServiceCapnpServer(
 	c, _ := hubapi.CapResolverService_Server(srv).(server.Shutdowner)
 	methods := hubapi.CapResolverService_Methods(nil, srv)
 	clientHook := server.New(methods, srv, c)
-	//clientHook.HandleUnknownMethod = srv.HandleUnknownMethod
 	clientHook.HandleUnknownMethod = handleUnknownMethod
 
 	//resServer := hubapi.CapResolverService_NewServer(s)

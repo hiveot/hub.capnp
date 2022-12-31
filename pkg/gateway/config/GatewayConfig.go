@@ -1,6 +1,6 @@
 package config
 
-const DefaultGatewayAddress = ":8884"
+const DefaultGatewayAddress = "127.0.0.1:8884"
 
 type GatewayConfig struct {
 	// server listening address:port

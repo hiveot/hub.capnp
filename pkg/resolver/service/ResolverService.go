@@ -42,93 +42,22 @@ type ResolverService struct {
 	running bool
 }
 
-// GetCapability returns the capability with the given name, if available.
-// This method will return a 'future' interface for the service providing the capability.
-// The provided capability must be released after use.
-//
-//	clientID is the ID of the client requesting the capability
-//	clientType is the type of client requesting the capability
-//
-// Note: this method only makes sense when using an RPC such as capnp.
-// The RPC Server normally intercepts this method and obtain the capability via RPC routing.
-//func (svc *ResolverService) GetCapability(ctx context.Context, clientID, clientType, capabilityName string, args []string) (
-//	capability capnp.Client, err error) {
-//	var serviceName string
-//
-//	svc.capsMutex.RLock()
-//	defer svc.capsMutex.RUnlock()
-//
-//	// determine which service this belongs to
-//	var capInfo *resolver.CapabilityInfo
-//	for name, capList := range svc.servicesCapabilities {
-//		for _, info := range capList {
-//			if info.CapabilityName == capabilityName {
-//				capInfo = &info
-//				serviceName = name
-//				break
-//			}
-//		}
-//	}
-//
-//	// unknown capability
-//	if capInfo == nil {
-//		err = fmt.Errorf("unknown capability '%s' requested by client '%s'", capabilityName, clientID)
-//		logrus.Warning(err)
-//		return capability, err
-//	}
-//
-//	// get the HiveOT canpn client to use this service
-//	capHiveOTService, _ := svc.connectedServices[serviceName]
-//
-//	if capHiveOTService == nil {
-//		// no existing connection
-//		err = fmt.Errorf("no connection to service '%s'", serviceName)
-//		logrus.Warning(err)
-//		return capability, err
-//	} else if !capHiveOTService.IsValid() {
-//		// this is no longer a valid service connection
-//		err = fmt.Errorf("connection to service '%s' has been lost", capInfo.ServiceName)
-//		logrus.Warning(err)
-//		return capability, err
-//	}
-//
-//	// now we have the service connection, request the capability
-//	// avoid a deadlock if this service itself is requested
-//	if serviceName == gateway.ServiceName {
-//		// can't recurse into ourselves, so just return the service capability
-//		capability = capnp.Client(*capHiveOTService) //.AddRef()
-//	} else {
-//		method, release := capHiveOTService.GetCapability(ctx,
-//			func(params hubapi.CapHiveOTService_getCapability_Params) error {
-//				_ = params.SetCapabilityName(capabilityName)
-//				_ = params.SetClientType(clientType)
-//				_ = params.SetArgs(caphelp.MarshalStringList(args))
-//				err2 := params.SetClientID(clientID)
-//				return err2
-//			})
-//		defer release()
-//		// return the future.
-//		capability = method.Cap().AddRef()
-//	}
-//	return capability, err
-//}
-
 // HandleUnknownMethod looks up the requested method and returns a stub that forwards
 // the request to its remote destination.
 // If the method is not known then nil is returned.
-func (svc *ResolverService) HandleUnknownMethod(
-	ctx context.Context, r capnp.Recv) *server.Method {
+func (svc *ResolverService) HandleUnknownMethod(m capnp.Method) *server.Method {
 
 	var capProvider *hubapi.CapProvider
-	var capInfo resolver.CapabilityInfo
 
 	// lookup the method in our service inventory
 	for serviceID, capList := range svc.servicesCapabilities {
-		for _, capEntry := range capList {
-			if r.Method.InterfaceID == capEntry.InterfaceID &&
-				r.Method.MethodID == capEntry.MethodID {
+		for _, capInfo := range capList {
+			if m.InterfaceID == capInfo.InterfaceID &&
+				m.MethodID == capInfo.MethodID {
 				capProvider = svc.connectedServices[serviceID]
-				capInfo = capEntry
+				// add the names for logging
+				m.InterfaceName = capInfo.InterfaceName
+				m.MethodName = capInfo.MethodName
 				break
 			}
 		}
@@ -137,19 +66,8 @@ func (svc *ResolverService) HandleUnknownMethod(
 		return nil
 	}
 	// return a helper for forwarding the request
-	forwarder := ForwarderMethod{
-		Method: capnp.Method{
-			InterfaceID:   capInfo.InterfaceID,
-			InterfaceName: capInfo.InterfaceName,
-			MethodID:      capInfo.MethodID,
-			MethodName:    capInfo.MethodName,
-		},
-		destination: (*capnp.Client)(capProvider),
-	}
-	return &server.Method{
-		Method: r.Method,
-		Impl:   forwarder.Impl,
-	}
+	forwarder := NewForwarderMethod(m, (*capnp.Client)(capProvider))
+	return forwarder
 }
 
 // ListCapabilities returns list of capabilities of all connected services sorted by service and capability names
@@ -157,8 +75,7 @@ func (svc *ResolverService) ListCapabilities(_ context.Context, clientType strin
 	capList := make([]resolver.CapabilityInfo, 0)
 	svc.capsMutex.RLock()
 	defer svc.capsMutex.RUnlock()
-
-	logrus.Infof("listing %d services", len(svc.servicesCapabilities))
+	logrus.Infof("clientType=%s", clientType)
 	for _, serviceCaps := range svc.servicesCapabilities {
 		for _, capInfo := range serviceCaps {
 			// only include client types that are allowed
@@ -174,16 +91,11 @@ func (svc *ResolverService) ListCapabilities(_ context.Context, clientType strin
 		jName := capList[j].ServiceID + capList[j].MethodName
 		return iName < jName
 	})
+	logrus.Infof("listing %d capabilities from %d services", len(capList), len(svc.servicesCapabilities))
 	return capList, nil
 }
 
-// Login to the gateway
-func (svc *ResolverService) Login(_ context.Context, clientID, password string) (bool, error) {
-	// TODO: add credentials check
-	return true, nil
-}
-
-// Ping capability
+// Ping the resolver
 func (svc *ResolverService) Ping(_ context.Context) (string, error) {
 	return "pong", nil
 }
@@ -211,7 +123,7 @@ func (svc *ResolverService) Refresh(ctx context.Context) error {
 			nrCaps += len(capList)
 			newCapabilityMap[serviceName] = capList
 		} else {
-			logrus.Error(err)
+			logrus.Errorf("socket '%s' offers no services: %s", socketPath, err)
 		}
 	}
 	logrus.Infof("Found '%d' capabilities from '%d' services", nrCaps, len(dirContent))

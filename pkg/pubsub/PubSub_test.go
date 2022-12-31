@@ -25,7 +25,7 @@ import (
 const testAddress = "/tmp/pubsub_test.socket"
 const testUseCapnp = true
 
-func startService(useCapnp bool) (pubsub.IPubSubService, func() error) {
+func startService(useCapnp bool) (pubsub.IPubSubService, func()) {
 	ctx := context.Background()
 	svc := service.NewPubSubService()
 	err := svc.Start()
@@ -44,20 +44,18 @@ func startService(useCapnp bool) (pubsub.IPubSubService, func() error) {
 		clConn, _ := net.Dial("unix", testAddress)
 		capClient := capnpclient.NewPubSubCapnpClient(ctx, clConn)
 
-		return capClient, func() error {
-			err = capClient.Release()
+		return capClient, func() {
+			_ = capClient.Release()
+			_ = srvListener.Close()
 			// allow ongoing releases to finish
 			time.Sleep(time.Millisecond * 1)
 			// catch missing releases
-			err2 := svc.Stop()
-			if err == nil {
-				err = err2
-			}
-			time.Sleep(time.Millisecond * 1)
-			return err
+			_ = svc.Stop()
 		}
 	}
-	return svc, svc.Stop
+	return svc, func() {
+		_ = svc.Stop()
+	}
 }
 
 func TestMain(m *testing.M) {
@@ -71,9 +69,7 @@ func TestStartStop(t *testing.T) {
 	svc, stopFn := startService(testUseCapnp)
 	_ = svc
 
-	err := stopFn()
-	assert.NoError(t, err)
-
+	stopFn()
 }
 
 func TestPubSubAction(t *testing.T) {
@@ -89,9 +85,10 @@ func TestPubSubAction(t *testing.T) {
 
 	ctx := context.Background()
 	svc, stopFn := startService(testUseCapnp)
+	defer stopFn()
 
-	devicePS := svc.CapDevicePubSub(ctx, device1ID)
-	servicePS := svc.CapServicePubSub(ctx, service1ID)
+	devicePS, _ := svc.CapDevicePubSub(ctx, device1ID)
+	servicePS, _ := svc.CapServicePubSub(ctx, service1ID)
 
 	// test subscription of a single action by both service and device
 	err := devicePS.SubAction(ctx, thing1ID, actionName1, func(val *thing.ThingValue) {
@@ -121,8 +118,6 @@ func TestPubSubAction(t *testing.T) {
 
 	devicePS.Release()
 	servicePS.Release()
-	err = stopFn()
-	assert.NoError(t, err)
 }
 
 func TestPubSubEvent(t *testing.T) {
@@ -135,9 +130,10 @@ func TestPubSubEvent(t *testing.T) {
 
 	ctx := context.Background()
 	svc, stopFn := startService(testUseCapnp)
+	defer stopFn()
 
-	devicePS := svc.CapDevicePubSub(ctx, device1ID)
-	userPS := svc.CapUserPubSub(ctx, user1ID)
+	devicePS, _ := svc.CapDevicePubSub(ctx, device1ID)
+	userPS, _ := svc.CapUserPubSub(ctx, user1ID)
 
 	// test subscription of a single event by both service and device
 	err := userPS.SubEvent(ctx, thing1Addr, event1Name, func(val *thing.ThingValue) {
@@ -153,9 +149,7 @@ func TestPubSubEvent(t *testing.T) {
 
 	devicePS.Release()
 	userPS.Release()
-	err = stopFn()
 	assert.NoError(t, err)
-
 }
 
 func TestPubSubTD(t *testing.T) {
@@ -167,9 +161,10 @@ func TestPubSubTD(t *testing.T) {
 
 	ctx := context.Background()
 	svc, stopFn := startService(testUseCapnp)
+	defer stopFn()
 
-	devicePS := svc.CapDevicePubSub(ctx, device1ID)
-	servicePS := svc.CapServicePubSub(ctx, serviceID)
+	devicePS, _ := svc.CapDevicePubSub(ctx, device1ID)
+	servicePS, _ := svc.CapServicePubSub(ctx, serviceID)
 
 	err := servicePS.SubTDs(ctx, func(val *thing.ThingValue) {
 		rxTD = val
@@ -184,8 +179,6 @@ func TestPubSubTD(t *testing.T) {
 
 	devicePS.Release()
 	servicePS.Release()
-	err = stopFn()
-	assert.NoError(t, err)
 }
 
 func TestPubSubProperties(t *testing.T) {
@@ -199,9 +192,10 @@ func TestPubSubProperties(t *testing.T) {
 
 	ctx := context.Background()
 	svc, stopFn := startService(testUseCapnp)
+	defer stopFn()
 
-	devicePS := svc.CapDevicePubSub(ctx, device1ID)
-	userPS := svc.CapUserPubSub(ctx, user1ID)
+	devicePS, _ := svc.CapDevicePubSub(ctx, device1ID)
+	userPS, _ := svc.CapUserPubSub(ctx, user1ID)
 
 	// test subscription of a single event by both service and device
 	err := userPS.SubEvent(ctx, thing1Addr, "properties",
@@ -224,7 +218,5 @@ func TestPubSubProperties(t *testing.T) {
 
 	devicePS.Release()
 	userPS.Release()
-	err = stopFn()
 	assert.NoError(t, err)
-
 }
