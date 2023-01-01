@@ -3,9 +3,10 @@ package capnpserver
 import (
 	"context"
 
+	"github.com/hiveot/hub/lib/thing"
+
 	"github.com/hiveot/hub.capnp/go/hubapi"
-	"github.com/hiveot/hub.go/pkg/thing"
-	"github.com/hiveot/hub/internal/caphelp"
+	"github.com/hiveot/hub/lib/caphelp"
 	"github.com/hiveot/hub/pkg/directory"
 )
 

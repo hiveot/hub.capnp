@@ -6,8 +6,8 @@ import (
 
 	"github.com/urfave/cli/v2"
 
-	"github.com/hiveot/hub/internal/listener"
-	"github.com/hiveot/hub/internal/svcconfig"
+	"github.com/hiveot/hub/lib/listener"
+	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/pkg/authz"
 	"github.com/hiveot/hub/pkg/authz/capnpclient"
 )

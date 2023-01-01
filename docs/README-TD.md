@@ -69,7 +69,7 @@ A bridge that publishes 'Things' from other Hubs include a 'zone' of the origina
 * {publisherID} is the deviceID of the IoT device that provides access to a Thing. It must be unique on the Hub it is publishing to. Publishers MUST be HiveOT compliant and implement the WoT/HiveOT standard and vocabulary. IoT devices that publish their own Thing can omit the publisher. In that case the publisherID and deviceID are the same and must be unique on the Hub.
 * {deviceID} is the ID of the hardware or software Thing being accessed. It must be unique on the publisher that is publishing it. In case of protocol bindings this is the ID of the original protocol. In case of a HiveOT compatible IoT Device this can be a mac address or other locally unique feature of the device.
 * {deviceType} is the type of Thing as defined in
-  the [HiveOT vocabulary](https://github.com/hiveot/hub.go/blob/main/pkg/vocab/IoTVocabulary.go). See the constants with prefix DeviceType. It describes the primary role of the device.
+  the [HiveOT vocabulary](https://github.com/hiveot/hub.capnp/blob/go/vocab/IoTVocabulary.go). See the constants with prefix DeviceType. It describes the primary role of the device.
 
 When integrating with 3rd party systems that use a URI as the ID, the ID can be used as-is. If the ID is not a URI then it must be used as the deviceID, while the publisherID is that of the service that provides the protocol binding. Using a 3rd party ID as-is can lead to reduced capabilities for bridging, queries in the directory and other services.
 

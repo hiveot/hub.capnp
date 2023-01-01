@@ -49,7 +49,7 @@ type ResolverService struct {
 func (svc *ResolverService) HandleUnknownMethod(m capnp.Method) *server.Method {
 
 	var capProvider *hubapi.CapProvider
-
+	svc.capsMutex.RLock()
 	// lookup the method in our service inventory
 	for serviceID, capList := range svc.servicesCapabilities {
 		for _, capInfo := range capList {
@@ -63,6 +63,7 @@ func (svc *ResolverService) HandleUnknownMethod(m capnp.Method) *server.Method {
 			}
 		}
 	}
+	svc.capsMutex.RUnlock()
 	if capProvider == nil {
 		return nil
 	}
@@ -184,8 +185,10 @@ func (svc *ResolverService) scanService(ctx context.Context,
 }
 
 // Start a file watcher on the socket folder
+// create the folder if it doesn't exist.
 func (svc *ResolverService) Start(ctx context.Context) error {
 	logrus.Infof("Starting resolver service")
+	os.MkdirAll(svc.socketDir, 0700)
 	err := svc.Refresh(ctx)
 
 	svc.socketWatcher, _ = fsnotify.NewWatcher()

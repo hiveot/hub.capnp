@@ -1,4 +1,4 @@
-// Package kvmem
+// Package kvbtree
 package kvbtree
 
 import (
@@ -9,7 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/tidwall/btree"
 
-	"github.com/hiveot/hub/internal/caphelp"
+	"github.com/hiveot/hub/lib/caphelp"
 	"github.com/hiveot/hub/pkg/bucketstore"
 )
 

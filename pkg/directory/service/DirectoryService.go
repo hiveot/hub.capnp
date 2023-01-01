@@ -4,8 +4,9 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/hiveot/hub.go/pkg/thing"
-	"github.com/hiveot/hub.go/pkg/vocab"
+	"github.com/hiveot/hub.capnp/go/vocab"
+	"github.com/hiveot/hub/lib/thing"
+
 	"github.com/hiveot/hub/pkg/bucketstore/kvbtree"
 	"github.com/hiveot/hub/pkg/directory"
 )

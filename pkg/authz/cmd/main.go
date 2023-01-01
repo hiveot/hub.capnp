@@ -6,8 +6,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/hiveot/hub/internal/listener"
-	"github.com/hiveot/hub/internal/svcconfig"
+	"github.com/hiveot/hub/lib/listener"
+	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/pkg/authz"
 	"github.com/hiveot/hub/pkg/authz/capnpserver"
 	"github.com/hiveot/hub/pkg/authz/service"

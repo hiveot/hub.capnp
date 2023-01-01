@@ -7,7 +7,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/hiveot/hub.go/pkg/certsclient"
+	"github.com/hiveot/hub/lib/certsclient"
 )
 
 // VerifyCertsService creates certificates for use by services, devices and admin users.

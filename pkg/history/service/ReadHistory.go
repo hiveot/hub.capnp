@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 
-	"github.com/hiveot/hub.go/pkg/thing"
+	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/bucketstore"
 	"github.com/hiveot/hub/pkg/history"
 )

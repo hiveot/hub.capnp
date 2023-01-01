@@ -4,8 +4,9 @@ package caphelp
 import (
 	"capnproto.org/go/capnp/v3"
 
+	"github.com/hiveot/hub/lib/thing"
+
 	"github.com/hiveot/hub.capnp/go/hubapi"
-	"github.com/hiveot/hub.go/pkg/thing"
 )
 
 // UnmarshalThingValue deserializes a ThingValue object from capnp

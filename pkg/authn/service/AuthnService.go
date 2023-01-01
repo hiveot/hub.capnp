@@ -6,7 +6,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/hiveot/hub.go/pkg/signing"
+	"github.com/hiveot/hub/lib/certsclient"
 	"github.com/hiveot/hub/pkg/authn"
 	"github.com/hiveot/hub/pkg/authn/config"
 	"github.com/hiveot/hub/pkg/authn/service/jwtauthn"
@@ -52,7 +52,7 @@ func (svc *AuthnService) Stop() error {
 // NewAuthnService creates new instance of the service.
 // Call Connect before using the service.
 func NewAuthnService(cfg config.AuthnConfig) *AuthnService {
-	signingKey := signing.CreateECDSAKeys()
+	signingKey := certsclient.CreateECDSAKeys()
 	pwStore := unpwstore.NewPasswordFileStore(cfg.PasswordFile)
 	svc := &AuthnService{
 		config:     cfg,

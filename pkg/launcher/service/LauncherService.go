@@ -15,8 +15,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/struCoder/pidusage"
 
-	"github.com/hiveot/hub.go/pkg/proc"
-	"github.com/hiveot/hub/internal/svcconfig"
+	"github.com/hiveot/hub/lib/svcconfig"
+
 	"github.com/hiveot/hub/pkg/launcher"
 	"github.com/hiveot/hub/pkg/launcher/config"
 )
@@ -235,7 +235,7 @@ func (ls *LauncherService) StopService(_ context.Context, name string) (info lau
 		logrus.Error(err)
 		return info, err
 	}
-	err = proc.Stop(serviceInfo.Name, serviceInfo.PID)
+	err = Stop(serviceInfo.Name, serviceInfo.PID)
 	if err == nil {
 		ls.mux.Lock()
 		defer ls.mux.Unlock()

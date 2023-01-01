@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/hiveot/hub.go/pkg/logging"
+	"github.com/hiveot/hub/lib/logging"
 	"github.com/hiveot/hub/pkg/authz"
 	"github.com/hiveot/hub/pkg/authz/capnpclient"
 	"github.com/hiveot/hub/pkg/authz/capnpserver"

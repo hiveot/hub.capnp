@@ -7,7 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
-	"github.com/hiveot/hub/internal/caphelp"
+	"github.com/hiveot/hub/lib/caphelp"
 )
 
 // BucketCursorCapnpClient provides a capnp RPC client of the bucket cursor

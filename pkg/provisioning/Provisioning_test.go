@@ -13,8 +13,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/hiveot/hub.go/pkg/certsclient"
-	"github.com/hiveot/hub.go/pkg/logging"
+	"github.com/hiveot/hub/lib/certsclient"
+	"github.com/hiveot/hub/lib/logging"
 	"github.com/hiveot/hub/pkg/certs"
 	"github.com/hiveot/hub/pkg/certs/service/selfsigned"
 	"github.com/hiveot/hub/pkg/provisioning"

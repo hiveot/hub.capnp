@@ -4,9 +4,8 @@ import (
 	"context"
 	"net"
 
-	"github.com/hiveot/hub/internal/listener"
-	"github.com/hiveot/hub/internal/svcconfig"
-	"github.com/hiveot/hub/pkg/pubsub"
+	"github.com/hiveot/hub/lib/listener"
+	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/pkg/resolver"
 	"github.com/hiveot/hub/pkg/resolver/capnpserver"
 	"github.com/hiveot/hub/pkg/resolver/service"
@@ -16,7 +15,7 @@ import (
 func main() {
 	//resolverSocketPath := resolver.DefaultResolverPath
 
-	f := svcconfig.LoadServiceConfig(pubsub.ServiceName, false, nil)
+	f := svcconfig.LoadServiceConfig(resolver.ServiceName, false, nil)
 	svc := service.NewResolverService(f.Run)
 
 	// the resolver uses unix sockets to listen for incoming connections

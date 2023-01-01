@@ -10,9 +10,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/hiveot/hub.go/pkg/certsclient"
-	"github.com/hiveot/hub.go/pkg/tlsclient"
-	"github.com/hiveot/hub.go/pkg/tlsserver"
+	"github.com/hiveot/hub/lib/certsclient"
+	"github.com/hiveot/hub/lib/tlsclient"
+	"github.com/hiveot/hub/lib/tlsserver"
 )
 
 // JWT token creation and verification test cases

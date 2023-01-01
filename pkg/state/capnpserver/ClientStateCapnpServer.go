@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
-	"github.com/hiveot/hub/internal/caphelp"
+	"github.com/hiveot/hub/lib/caphelp"
 	"github.com/hiveot/hub/pkg/bucketstore/capnpserver"
 	"github.com/hiveot/hub/pkg/state"
 )

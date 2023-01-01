@@ -1,4 +1,4 @@
-package listener
+package listener_test
 
 import (
 	"crypto/tls"
@@ -12,16 +12,17 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/hiveot/hub.go/pkg/testenv"
+	"github.com/hiveot/hub/lib/listener"
+	"github.com/hiveot/hub/lib/test"
 )
 
 // CA, server and plugin test certificate
-var certs testenv.TestCerts
+var certs test.TestCerts
 
 // TestMain runs a http server
 // Used for all test cases in this package
 func TestMain(m *testing.M) {
-	certs = testenv.CreateCertBundle()
+	certs = test.CreateCertBundle()
 	res := m.Run()
 	os.Exit(res)
 }
@@ -37,7 +38,7 @@ func TestConnectWriteRead(t *testing.T) {
 	// create the server listener
 	lis, err := net.Listen(network, address)
 	require.NoError(t, err)
-	tlsLis := CreateTLSListener(lis, certs.ServerCert, certs.CaCert)
+	tlsLis := listener.CreateTLSListener(lis, certs.ServerCert, certs.CaCert)
 	go func() {
 		srvConn, err := tlsLis.Accept()
 		require.NoError(t, err)
@@ -64,7 +65,7 @@ func TestConnectWriteRead(t *testing.T) {
 	time.Sleep(time.Millisecond)
 	// create the TLS client and connect
 	//address = lis.Addr().String()
-	tlsConn, err := CreateTLSClientConnection(network, address, certs.PluginCert, certs.CaCert)
+	tlsConn, err := listener.CreateTLSClientConnection(network, address, certs.PluginCert, certs.CaCert)
 	//tlsConn, err := CreateTLSClientConnection(network, address, nil, certs.CaCert)
 	require.NoError(t, err)
 

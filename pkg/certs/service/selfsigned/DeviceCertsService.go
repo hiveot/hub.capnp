@@ -8,7 +8,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/hiveot/hub.go/pkg/certsclient"
+	"github.com/hiveot/hub/lib/certsclient"
 	"github.com/hiveot/hub/pkg/certs"
 )
 
@@ -67,8 +67,9 @@ func (srv *DeviceCertsService) Release() {
 }
 
 // NewDeviceCertsService returns a new instance of the selfsigned device certificate service
-//  caCert is the CA certificate used to created certificates
-//  caKey is the CA private key used to created certificates
+//
+//	caCert is the CA certificate used to created certificates
+//	caKey is the CA private key used to created certificates
 func NewDeviceCertsService(caCert *x509.Certificate, caKey *ecdsa.PrivateKey) *DeviceCertsService {
 	//caCertPool := x509.NewCertPool()
 	//caCertPool.AddCert(caCert)

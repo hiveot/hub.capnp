@@ -14,8 +14,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/hiveot/hub.capnp/go/vocab"
-	"github.com/hiveot/hub.go/pkg/logging"
-	"github.com/hiveot/hub.go/pkg/thing"
+	"github.com/hiveot/hub/lib/logging"
+	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/pubsub"
 	"github.com/hiveot/hub/pkg/pubsub/capnpclient"
 	"github.com/hiveot/hub/pkg/pubsub/capnpserver"

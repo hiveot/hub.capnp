@@ -12,7 +12,7 @@ import (
 	"capnproto.org/go/capnp/v3/rpc"
 	"github.com/sirupsen/logrus"
 
-	"github.com/hiveot/hub/internal/listener"
+	"github.com/hiveot/hub/lib/listener"
 )
 
 // Serve serves a Cap'n Proto RPC to incoming connections.

@@ -11,7 +11,7 @@ import (
 	"github.com/thanhpk/randstr"
 
 	"github.com/hiveot/hub.capnp/go/vocab"
-	"github.com/hiveot/hub.go/pkg/thing"
+	"github.com/hiveot/hub/lib/thing"
 )
 
 // subscribers  things   events       duration          with capnp    with go background

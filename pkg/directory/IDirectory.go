@@ -5,7 +5,7 @@ package directory
 import (
 	"context"
 
-	"github.com/hiveot/hub.go/pkg/thing"
+	"github.com/hiveot/hub/lib/thing"
 )
 
 // ServiceName is the name of the service to connect to

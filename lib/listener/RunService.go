@@ -15,7 +15,6 @@ import (
 //
 //	serviceName used to create a UDS listening socket
 //	socketPath contains the location of service listening socket file
-//	logsFolder to set logging to, or "" to not set logging output
 //	startup is the method that starts the service and launches the capnp server
 //	shutdown stops the service after the listener closes
 func RunService(serviceName string, socketPath string,

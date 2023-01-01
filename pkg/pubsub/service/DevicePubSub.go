@@ -6,9 +6,10 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/hiveot/hub.go/pkg/thing"
-	"github.com/hiveot/hub.go/pkg/vocab"
-	"github.com/hiveot/hub/internal/caphelp"
+	"github.com/hiveot/hub.capnp/go/vocab"
+	"github.com/hiveot/hub/lib/caphelp"
+
+	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/pubsub"
 	"github.com/hiveot/hub/pkg/pubsub/core"
 )

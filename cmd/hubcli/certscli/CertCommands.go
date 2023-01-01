@@ -12,9 +12,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 
-	"github.com/hiveot/hub.go/pkg/certsclient"
-	"github.com/hiveot/hub/internal/listener"
-	"github.com/hiveot/hub/internal/svcconfig"
+	"github.com/hiveot/hub/lib/certsclient"
+	"github.com/hiveot/hub/lib/listener"
+	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/pkg/certs"
 	"github.com/hiveot/hub/pkg/certs/capnpclient"
 )

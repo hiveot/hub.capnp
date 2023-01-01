@@ -15,7 +15,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/hiveot/hub.go/pkg/watcher"
+	"github.com/hiveot/hub/lib/watcher"
 )
 
 // PasswordFileStore hashes and stores a list of user login name, hashed password and display name
@@ -33,7 +33,7 @@ type PasswordFileStore struct {
 func (pwStore *PasswordFileStore) Close() {
 	logrus.Infof("PasswordFileStore.Release")
 	if pwStore.watcher != nil {
-		pwStore.watcher.Close()
+		_ = pwStore.watcher.Close()
 		pwStore.watcher = nil
 	}
 }
@@ -151,7 +151,10 @@ func (pwStore *PasswordFileStore) save() error {
 
 	folder := path.Dir(pwStore.storePath)
 	// ensure the location exists
-	os.MkdirAll(folder, 0700)
+	err := os.MkdirAll(folder, 0700)
+	if err != nil {
+		return err
+	}
 	tmpPath, err := WritePasswordsToTempFile(folder, pwStore.entries)
 	if err != nil {
 		err = fmt.Errorf("writing password file to temp failed: %s", err)

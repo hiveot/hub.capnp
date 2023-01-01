@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/hiveot/hub.go/pkg/certsclient"
+	"github.com/hiveot/hub/lib/certsclient"
 	"github.com/hiveot/hub/pkg/authn/service/jwtauthn"
 )
 

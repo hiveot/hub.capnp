@@ -12,11 +12,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/hiveot/hub/lib/test"
 	"github.com/hiveot/hub/pkg/resolver/capnpclient"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
-	"github.com/hiveot/hub.go/pkg/logging"
-	"github.com/hiveot/hub/internal/captest"
+	"github.com/hiveot/hub/lib/logging"
 	"github.com/hiveot/hub/pkg/resolver"
 	"github.com/hiveot/hub/pkg/resolver/capnpserver"
 	"github.com/hiveot/hub/pkg/resolver/service"
@@ -125,7 +125,7 @@ func TestConnectDisconnectProviders(t *testing.T) {
 	assert.NoError(t, err)
 
 	// register a capability provider
-	ts := captest.NewTestService()
+	ts := test.NewTestService()
 	err = ts.Start(testServiceSocket)
 	assert.NoError(t, err)
 	time.Sleep(time.Millisecond)
@@ -145,7 +145,7 @@ func TestGetCapabilityDirect(t *testing.T) {
 	//svc, stopFn := startResolverAndClient(testUseCapnp)
 
 	// start the test service
-	ts := captest.NewTestService()
+	ts := test.NewTestService()
 	err := ts.Start(listenerSocket)
 	assert.NoError(t, err)
 	defer ts.Stop()
@@ -160,7 +160,7 @@ func TestGetCapabilityDirect(t *testing.T) {
 	bootClient := rpcConn.Bootstrap(ctx)
 
 	// step 3: convert the bootstrap client to the service client
-	capTestSvc := captest.CapTestService(bootClient)
+	capTestSvc := test.CapTestService(bootClient)
 	// step 4: obtain the capability for method1 from the service
 	method, release := capTestSvc.CapMethod1(ctx, nil)
 	defer release()
@@ -186,7 +186,7 @@ func TestGetCapabilityViaResolver(t *testing.T) {
 	defer stopFn()
 
 	// register a test service
-	ts := captest.NewTestService()
+	ts := test.NewTestService()
 	err := ts.Start(testServiceSocket)
 	assert.NoError(t, err)
 
@@ -202,10 +202,10 @@ func TestGetCapabilityViaResolver(t *testing.T) {
 	resConn, _ := net.Dial("unix", testResolverSocket)
 	transport := rpc.NewStreamTransport(resConn)
 	rpcConn := rpc.NewConn(transport, nil)
-	capability := captest.CapTestService(rpcConn.Bootstrap(ctx))
+	capability := test.CapTestService(rpcConn.Bootstrap(ctx))
 
 	method, release := capability.CapMethod1(ctx,
-		func(params captest.CapTestService_capMethod1_Params) error {
+		func(params test.CapTestService_capMethod1_Params) error {
 			err2 := params.SetClientID(serviceID1)
 			assert.NoError(t, err2)
 			_ = params.SetClientType(hubapi.ClientTypeService)
@@ -237,7 +237,7 @@ func TestGetCapabilityViaResolver(t *testing.T) {
 	// fixme: can we do without the boilerplate please?
 	// when the service disconnects the capabilities should disappear
 	method, release = capability.CapMethod1(ctx,
-		func(params captest.CapTestService_capMethod1_Params) error {
+		func(params test.CapTestService_capMethod1_Params) error {
 			err2 := params.SetClientID(serviceID1)
 			assert.NoError(t, err2)
 			_ = params.SetClientType(hubapi.ClientTypeService)

@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
 
-	"github.com/hiveot/hub.go/pkg/signing"
+	"github.com/hiveot/hub/lib/certsclient"
 	"github.com/hiveot/hub/pkg/authn"
 )
 
@@ -83,8 +83,9 @@ func (jwtauthn *JWTAuthn) InvalidateToken(userID string, refreshToken string) {
 
 // RefreshTokens refreshes a access/refresh token pair for a given user after validation of the existing refresh token.
 //
-//  userID is the ID for whom to issue the refresh token. Must match the existing refresh token
-//  refreshToken must be a valid refresh token
+//	userID is the ID for whom to issue the refresh token. Must match the existing refresh token
+//	refreshToken must be a valid refresh token
+//
 // This returns a short lived auth token and medium lived refresh token
 func (jwtauthn *JWTAuthn) RefreshTokens(userID string, refreshToken string) (
 	newAccessToken, newRefreshToken string, err error) {
@@ -109,6 +110,7 @@ func (jwtauthn *JWTAuthn) RefreshTokens(userID string, refreshToken string) (
 //   - issued to the given userID
 //   - issued by this service
 //   - not be invalidated
+//
 // If the token is invalid then claims will be empty and an error is returned
 // If the token is valid but has an incorrect signature, the token and claims will be returned with an error
 func (jwtauthn *JWTAuthn) ValidateToken(userID, tokenString string) (
@@ -156,12 +158,12 @@ func (jwtauthn *JWTAuthn) ValidateToken(userID, tokenString string) (
 // A private key for signing and verification can be provided in case existing tokens must remain valid.
 // To invalidate existing tokens, provide nil as the signing key or a new key.
 //
-//  signingKey is the private key used for signing. Use nil to have one auto-generated.
-//  accessTokenValidity in seconds. Use 0 for default.
-//  refreshTokenValidity in seconds. Use 0 for default.
+//	signingKey is the private key used for signing. Use nil to have one auto-generated.
+//	accessTokenValidity in seconds. Use 0 for default.
+//	refreshTokenValidity in seconds. Use 0 for default.
 func NewJWTAuthn(signingKey *ecdsa.PrivateKey, accessTokenValidity int, refreshTokenValidity int) *JWTAuthn {
 	if signingKey == nil {
-		signingKey = signing.CreateECDSAKeys()
+		signingKey = certsclient.CreateECDSAKeys()
 	}
 	if accessTokenValidity == 0 {
 		accessTokenValidity = authn.DefaultAccessTokenValiditySec

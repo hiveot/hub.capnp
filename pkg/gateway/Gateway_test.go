@@ -16,11 +16,11 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
-	"github.com/hiveot/hub.go/pkg/certsclient"
-	"github.com/hiveot/hub.go/pkg/logging"
-	"github.com/hiveot/hub/internal/captest"
-	"github.com/hiveot/hub/internal/dummy"
-	"github.com/hiveot/hub/internal/listener"
+	"github.com/hiveot/hub/lib/certsclient"
+	"github.com/hiveot/hub/lib/dummy"
+	"github.com/hiveot/hub/lib/listener"
+	"github.com/hiveot/hub/lib/logging"
+	"github.com/hiveot/hub/lib/test"
 	"github.com/hiveot/hub/pkg/certs/service/selfsigned"
 	"github.com/hiveot/hub/pkg/gateway"
 	"github.com/hiveot/hub/pkg/gateway/capnpclient"
@@ -223,7 +223,7 @@ func TestGetInfo(t *testing.T) {
 	_ = ctx
 
 	// use test service to get the capability
-	ts := captest.NewTestService()
+	ts := test.NewTestService()
 	err := ts.Start(testServiceSocketPath)
 	assert.NoError(t, err)
 	// give the resolver time to discover the test service
@@ -249,7 +249,7 @@ func TestGetCapability(t *testing.T) {
 	defer stopFn()
 
 	// register a test service
-	ts := captest.NewTestService()
+	ts := test.NewTestService()
 	err := ts.Start(testServiceSocketPath)
 	assert.NoError(t, err)
 
@@ -266,10 +266,10 @@ func TestGetCapability(t *testing.T) {
 	gwClient2, err := capnpclient.ConnectToGatewayProxyClient(
 		"tcp", testGatewayAddr, &testServiceCert, testCACert)
 	require.NoError(t, err)
-	capability := captest.CapTestService(gwClient2)
+	capability := test.CapTestService(gwClient2)
 
 	method1, release1 := capability.CapMethod1(ctx,
-		func(params captest.CapTestService_capMethod1_Params) error {
+		func(params test.CapTestService_capMethod1_Params) error {
 			err2 := params.SetClientID(serviceID1)
 			assert.NoError(t, err2)
 			_ = params.SetClientType(hubapi.ClientTypeService)
@@ -305,7 +305,7 @@ func TestGetCapability(t *testing.T) {
 	// fixme: can we do without the boilerplate please?
 	// when the service disconnects the capabilities should disappear
 	method3, release3 := capability.CapMethod1(ctx,
-		func(params captest.CapTestService_capMethod1_Params) error {
+		func(params test.CapTestService_capMethod1_Params) error {
 			err2 := params.SetClientID(serviceID1)
 			assert.NoError(t, err2)
 			_ = params.SetClientType(hubapi.ClientTypeService)

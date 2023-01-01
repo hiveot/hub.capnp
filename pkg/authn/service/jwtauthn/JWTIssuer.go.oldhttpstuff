@@ -10,9 +10,9 @@ import (
 	"github.com/golang-jwt/jwt"
 	"github.com/sirupsen/logrus"
 
-	"github.com/hiveot/hub.go/pkg/hubnet"
-	"github.com/hiveot/hub.go/pkg/tlsclient"
-	"github.com/hiveot/hub.go/pkg/tlsserver"
+	"github.com/hiveot/hub/lib/hubnet"
+	"github.com/hiveot/hub/lib/tlsclient"
+	"github.com/hiveot/hub/lib/tlsserver"
 )
 
 const JwtRefreshCookieName = "refreshtoken"

@@ -16,7 +16,7 @@ import (
 	"github.com/hiveot/hub/cmd/hubcli/historycli"
 	"github.com/hiveot/hub/cmd/hubcli/launchercli"
 	"github.com/hiveot/hub/cmd/hubcli/provcli"
-	"github.com/hiveot/hub/internal/svcconfig"
+	"github.com/hiveot/hub/lib/svcconfig"
 )
 
 const Version = `0.5-alpha`

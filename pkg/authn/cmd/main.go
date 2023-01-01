@@ -4,8 +4,8 @@ import (
 	"context"
 	"net"
 
-	"github.com/hiveot/hub/internal/listener"
-	"github.com/hiveot/hub/internal/svcconfig"
+	"github.com/hiveot/hub/lib/listener"
+	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/pkg/authn"
 	"github.com/hiveot/hub/pkg/authn/capnpserver"
 	"github.com/hiveot/hub/pkg/authn/config"

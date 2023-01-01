@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/hiveot/hub.go/pkg/certsclient"
+	"github.com/hiveot/hub/lib/certsclient"
 	"github.com/hiveot/hub/pkg/provisioning"
 )
 

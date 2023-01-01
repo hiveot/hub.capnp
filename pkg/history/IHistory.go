@@ -5,7 +5,7 @@ package history
 import (
 	"context"
 
-	"github.com/hiveot/hub.go/pkg/thing"
+	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/bucketstore"
 )
 

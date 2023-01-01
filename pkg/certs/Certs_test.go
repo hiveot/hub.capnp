@@ -9,8 +9,8 @@ import (
 	"syscall"
 	"testing"
 
-	"github.com/hiveot/hub.go/pkg/certsclient"
-	"github.com/hiveot/hub.go/pkg/logging"
+	"github.com/hiveot/hub/lib/certsclient"
+	"github.com/hiveot/hub/lib/logging"
 	"github.com/hiveot/hub/pkg/certs"
 	"github.com/hiveot/hub/pkg/certs/capnpclient"
 	"github.com/hiveot/hub/pkg/certs/capnpserver"

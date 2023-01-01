@@ -14,8 +14,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/hiveot/hub.go/pkg/logging"
-	"github.com/hiveot/hub.go/pkg/thing"
+	"github.com/hiveot/hub/lib/thing"
+
+	"github.com/hiveot/hub/lib/logging"
 	"github.com/hiveot/hub/pkg/directory"
 	"github.com/hiveot/hub/pkg/directory/capnpclient"
 	"github.com/hiveot/hub/pkg/directory/capnpserver"

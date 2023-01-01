@@ -6,8 +6,8 @@ import (
 	"net"
 	"path/filepath"
 
-	"github.com/hiveot/hub/internal/listener"
-	"github.com/hiveot/hub/internal/svcconfig"
+	"github.com/hiveot/hub/lib/listener"
+	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/pkg/directory"
 	"github.com/hiveot/hub/pkg/directory/capnpserver"
 	"github.com/hiveot/hub/pkg/directory/service"

@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
-	"github.com/hiveot/hub/internal/captest"
+	"github.com/hiveot/hub/lib/test"
 )
 
 // BenchmarkRPC determines the time it takes for a direct and indirect call to the test service
@@ -25,17 +25,17 @@ func BenchmarkRPC(b *testing.B) {
 	_ = svc
 
 	// create a test server and register it with the resolver
-	ts := captest.NewTestService()
+	ts := test.NewTestService()
 	ts.Start(testServiceSocket)
 
 	// obtain the test service capability for method1 via the resolver
 	resConn, _ := net.Dial("unix", testResolverSocket)
 	transport := rpc.NewStreamTransport(resConn)
 	rpcConn := rpc.NewConn(transport, nil)
-	capability := captest.CapTestService(rpcConn.Bootstrap(ctx))
+	capability := test.CapTestService(rpcConn.Bootstrap(ctx))
 
 	method, release := capability.CapMethod1(ctx,
-		func(params captest.CapTestService_capMethod1_Params) error {
+		func(params test.CapTestService_capMethod1_Params) error {
 			err2 := params.SetClientID("benchrpc")
 			assert.NoError(b, err2)
 			_ = params.SetClientType(hubapi.ClientTypeService)
@@ -43,13 +43,13 @@ func BenchmarkRPC(b *testing.B) {
 		})
 	defer release()
 	indirectMethod1Client := method.Capabilit()
-	capMethod1 := captest.CapMethod1Service(indirectMethod1Client)
+	capMethod1 := test.CapMethod1Service(indirectMethod1Client)
 
 	// obtain the test service capability for method1 directly to the service
 	clConn2, err := net.DialTimeout("unix", testServiceSocket, time.Second)
 	transport2 := rpc.NewStreamTransport(clConn2)
 	rpcConn2 := rpc.NewConn(transport2, nil)
-	capTestService2 := captest.CapTestService(rpcConn2.Bootstrap(ctx))
+	capTestService2 := test.CapTestService(rpcConn2.Bootstrap(ctx))
 	method2, release2 := capTestService2.CapMethod1(ctx, nil)
 	defer release2()
 	resp2, err := method2.Struct()

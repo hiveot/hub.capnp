@@ -5,8 +5,8 @@ import (
 	"context"
 	"net"
 
-	"github.com/hiveot/hub/internal/listener"
-	"github.com/hiveot/hub/internal/svcconfig"
+	"github.com/hiveot/hub/lib/listener"
+	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/pkg/bucketstore/cmd"
 	"github.com/hiveot/hub/pkg/history"
 	"github.com/hiveot/hub/pkg/history/capnpserver"

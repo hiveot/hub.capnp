@@ -9,7 +9,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 
-	"github.com/hiveot/hub.go/pkg/logging"
+	"github.com/hiveot/hub/lib/logging"
 )
 
 // LoadServiceConfig Load a configuration file from the config folder and applies commandline options.

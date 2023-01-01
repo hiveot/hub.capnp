@@ -7,7 +7,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/hiveot/hub.go/pkg/certsclient"
+	"github.com/hiveot/hub/lib/certsclient"
 	"github.com/hiveot/hub/pkg/certs"
 )
 
@@ -67,8 +67,9 @@ func (srv *UserCertsService) Release() {
 }
 
 // NewUserCertsService returns a new instance of the selfsigned user certificate management service
-//  caCert is the CA certificate used to created certificates
-//  caKey is the CA private key used to created certificates
+//
+//	caCert is the CA certificate used to created certificates
+//	caKey is the CA private key used to created certificates
 func NewUserCertsService(caCert *x509.Certificate, caKey *ecdsa.PrivateKey) *UserCertsService {
 	service := &UserCertsService{
 		caCert:    caCert,

@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
-	"github.com/hiveot/hub.go/pkg/thing"
+	"github.com/hiveot/hub/lib/thing"
 )
 
 // ServicePubSubCapnpClient is the capnp RPC client for service pubsub capabilities

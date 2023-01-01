@@ -11,11 +11,12 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/hiveot/hub/lib/listener"
+	"github.com/hiveot/hub/lib/svcconfig"
+
+	"github.com/hiveot/hub/lib/certsclient"
+
 	"github.com/hiveot/hub.capnp/go/hubapi"
-	"github.com/hiveot/hub.go/pkg/certsclient"
-	"github.com/hiveot/hub.go/pkg/hubnet"
-	"github.com/hiveot/hub/internal/listener"
-	"github.com/hiveot/hub/internal/svcconfig"
 	"github.com/hiveot/hub/pkg/authn"
 	capnpclient2 "github.com/hiveot/hub/pkg/authn/capnpclient"
 	"github.com/hiveot/hub/pkg/certs"
@@ -100,7 +101,7 @@ func RenewServiceCerts(serviceID string, keys *ecdsa.PrivateKey, socketFolder st
 	svcCert *tls.Certificate, caCert *x509.Certificate, err error) {
 	var capServiceCert certs.IServiceCerts
 
-	ipAddr := hubnet.GetOutboundIP("")
+	ipAddr := listener.GetOutboundIP("")
 	names := []string{"127.0.0.1", ipAddr.String()}
 	pubKeyPEM, err := certsclient.PublicKeyToPEM(&keys.PublicKey)
 	if err != nil {

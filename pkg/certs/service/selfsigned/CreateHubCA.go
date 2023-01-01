@@ -10,7 +10,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/hiveot/hub.go/pkg/certsclient"
+	"github.com/hiveot/hub/lib/certsclient"
 )
 
 const CertOrgName = "HiveOT"
@@ -20,7 +20,7 @@ const CertOrgLocality = "HiveOT zone"
 // Source: https://shaneutt.com/blog/golang-ca-and-signed-cert-go/
 // This creates a CA certificate used for signing client and server certificates.
 //
-//  temporary set to generate a temporary CA for one-off signing
+//	temporary set to generate a temporary CA for one-off signing
 func CreateHubCA(validityDays int) (cert *x509.Certificate, key *ecdsa.PrivateKey, err error) {
 
 	// set up our CA certificate

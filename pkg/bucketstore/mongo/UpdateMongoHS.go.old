@@ -13,8 +13,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	"github.com/hiveot/hub.go/pkg/thing"
-	"github.com/hiveot/hub.go/pkg/vocab"
+	"github.com/hiveot/hub/lib/thing"
+	"github.com/hiveot/hub/lib/vocab"
 )
 
 // AddAction adds a new action to the history mongoClient

@@ -1,4 +1,4 @@
-package captest
+package test
 
 import (
 	"context"

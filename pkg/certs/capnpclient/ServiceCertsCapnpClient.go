@@ -5,7 +5,7 @@ import (
 	"context"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
-	"github.com/hiveot/hub/internal/caphelp"
+	"github.com/hiveot/hub/lib/caphelp"
 )
 
 // ServiceCertsCapnpClient provides the POGS wrapper around the Capnp API

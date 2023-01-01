@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/thanhpk/randstr"
 
-	"github.com/hiveot/hub.go/pkg/logging"
+	"github.com/hiveot/hub/lib/logging"
 	"github.com/hiveot/hub/pkg/state"
 )
 

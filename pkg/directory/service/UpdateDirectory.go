@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/hiveot/hub.go/pkg/thing"
-	"github.com/hiveot/hub.go/pkg/vocab"
+	"github.com/hiveot/hub.capnp/go/vocab"
+	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/bucketstore"
 	"github.com/hiveot/hub/pkg/directory"
 	"github.com/hiveot/hub/pkg/pubsub"
