@@ -17,6 +17,9 @@ const defaultResolverAddress :Text = "/tmp/hiveot-resolver.socket";
 const clientTypeUnauthenticated  :Text = "noauth";
 # ClientTypeUnauthenticated for clients without authentication
 
+const clientTypeAdmin :Text = "admin";
+# ClientTypeIotDevice for clients authenticated as IoT devices
+
 const clientTypeIotDevice :Text = "iotdevice";
 # ClientTypeIotDevice for clients authenticated as IoT devices
 

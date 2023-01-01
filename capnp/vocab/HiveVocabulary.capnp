@@ -8,10 +8,12 @@ $Go.import("github.com/hiveot/hub.capnp/go/vocab");
 
 # Standard
 
-const timeFormat :Text = "2006-01-02T15:04:05.000-0700";
+const iSO8601Format :Text = "2006-01-02T15:04:05.999-0700";
+# ISO8601Format standardized time format with msec resolution for use by Things using ISO8601 UTC
+
+
+#const timeFormat :Text = "2006-01-02T15:04:05.000-0700";
 # TimeFormat using standard ISO8601
-
-
 
 # Vocabulary of device type names
 const deviceTypeAlarm          :Text = "alarm";          # an alarm emitter
