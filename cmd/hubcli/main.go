@@ -30,7 +30,7 @@ func main() {
 	binFolder = path.Dir(os.Args[0])
 	homeFolder = path.Dir(binFolder)
 	ctx := context.Background()
-	f := svcconfig.LoadServiceConfig("hubcli", false, nil)
+	f, _, _ := svcconfig.LoadServiceConfig("hubcli", false, nil)
 
 	//logrus.Infof("folders is %v", f)
 	app := &cli.App{

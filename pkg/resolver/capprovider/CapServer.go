@@ -132,7 +132,7 @@ func (capsrv *CapServer) Start(lis net.Listener) error {
 	logrus.Infof("CapServer listening on %s", lis.Addr())
 	//err := rpc.Serve(lis, capnp.Client(capsrv.capProviderCapability))
 	capsrv.lis = lis
-	err := caphelp.Serve(lis, capnp.Client(capsrv.capProviderCapability), nil)
+	err := caphelp.Serve(capsrv.serviceName, lis, capnp.Client(capsrv.capProviderCapability), nil)
 	return err
 }
 

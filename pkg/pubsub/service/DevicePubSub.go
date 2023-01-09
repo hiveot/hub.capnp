@@ -18,7 +18,7 @@ import (
 // The IoT device is a gateway for the Things it manages, hence it has a gateway ID that is also
 // its ThingID.
 type DevicePubSub struct {
-	// the publisherID is the thingID of the IoT device or service that publishes
+	// the publisherID is the thingID of the IoT device or service
 	publisherID string
 	// core is the pubsub engine
 	core *core.PubSubCore
@@ -30,11 +30,10 @@ type DevicePubSub struct {
 func (dps *DevicePubSub) PubEvent(
 	_ context.Context, thingID, name string, value []byte) (err error) {
 
-	thingAddr := thing.MakeThingAddr(dps.publisherID, thingID)
-	tv := thing.NewThingValue(thingAddr, name, caphelp.Clone(value))
+	tv := thing.NewThingValue(dps.publisherID, thingID, name, caphelp.Clone(value))
 	// note that marshal will copy the value so its buffer can be reused by capnp
 	tvSerialized, _ := json.Marshal(tv)
-	topic := MakeThingTopic(thingAddr, pubsub.MessageTypeEvent, name)
+	topic := MakeThingTopic(dps.publisherID, thingID, pubsub.MessageTypeEvent, name)
 	go dps.core.Publish(topic, tvSerialized)
 	return
 }
@@ -44,12 +43,12 @@ func (dps *DevicePubSub) PubEvent(
 func (dps *DevicePubSub) PubProperties(
 	_ context.Context, thingID string, props map[string][]byte) (err error) {
 
-	thingAddr := thing.MakeThingAddr(dps.publisherID, thingID)
 	propsValue, _ := json.Marshal(props)
-	tv := thing.NewThingValue(thingAddr, vocab.WoTProperties, propsValue)
+	tv := thing.NewThingValue(dps.publisherID, thingID, vocab.WoTProperties, propsValue)
+
 	// note that marshal will copy the props map so its buffer can be reused by capnp
 	tvSerialized, _ := json.Marshal(tv)
-	topic := MakeThingTopic(thingAddr, pubsub.MessageTypeEvent, vocab.WoTProperties)
+	topic := MakeThingTopic(dps.publisherID, thingID, pubsub.MessageTypeEvent, vocab.WoTProperties)
 	dps.core.Publish(topic, tvSerialized)
 	return
 }
@@ -59,11 +58,14 @@ func (dps *DevicePubSub) PubProperties(
 func (dps *DevicePubSub) PubTD(_ context.Context,
 	thingID string, deviceType string, td []byte) (err error) {
 
-	thingAddr := thing.MakeThingAddr(dps.publisherID, thingID)
-	tv := thing.NewThingValue(thingAddr, pubsub.MessageTypeTD, td)
+	tv := thing.NewThingValue(
+		dps.publisherID, thingID, pubsub.MessageTypeTD, td)
+
 	// note that marshal will copy the TD so its buffer can be reused by capnp
+	topic := MakeThingTopic(
+		dps.publisherID, thingID, pubsub.MessageTypeTD, deviceType)
+
 	tvSerialized, _ := json.Marshal(tv)
-	topic := MakeThingTopic(thingAddr, pubsub.MessageTypeTD, deviceType)
 	dps.core.Publish(topic, tvSerialized)
 	return
 }
@@ -74,9 +76,8 @@ func (dps *DevicePubSub) PubTD(_ context.Context,
 func (dps *DevicePubSub) SubAction(
 	_ context.Context, thingID string, actionName string,
 	handler func(actionValue *thing.ThingValue)) (err error) {
-	thingAddr := thing.MakeThingAddr(dps.publisherID, thingID)
 
-	topic := MakeThingTopic(thingAddr, pubsub.MessageTypeAction, actionName)
+	topic := MakeThingTopic(dps.publisherID, thingID, pubsub.MessageTypeAction, actionName)
 	subscriptionID, err := dps.core.Subscribe(topic,
 		func(topic string, message []byte) {
 

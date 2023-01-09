@@ -10,13 +10,14 @@ import (
 	"path"
 	"sort"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/sirupsen/logrus"
 	"github.com/struCoder/pidusage"
+	"gopkg.in/fsnotify.v1"
 
 	"github.com/hiveot/hub/lib/svcconfig"
-
 	"github.com/hiveot/hub/pkg/launcher"
 	"github.com/hiveot/hub/pkg/launcher/config"
 )
@@ -34,12 +35,16 @@ type LauncherService struct {
 	cmds map[string]*exec.Cmd
 	// mutex to keep things safe
 	mux sync.Mutex
+	// watch service and binding folders for updates
+	serviceWatcher *fsnotify.Watcher
+	// service is running
+	isRunning atomic.Bool
 }
 
 // Add newly discovered executable services
 // If the service is already know, only update its size and timestamp
 func (ls *LauncherService) findServices(folder string) error {
-
+	count := 0
 	entries, err := os.ReadDir(folder)
 	if err != nil {
 		return err
@@ -52,6 +57,7 @@ func (ls *LauncherService) findServices(folder string) error {
 		isExecutable := fileMode&0100 != 0
 		isFile := !entry.IsDir()
 		if isFile && isExecutable && size > 0 {
+			count++
 			serviceInfo, found := ls.services[entry.Name()]
 			if !found {
 				serviceInfo = &launcher.ServiceInfo{
@@ -61,13 +67,12 @@ func (ls *LauncherService) findServices(folder string) error {
 					Running: false,
 				}
 				ls.services[serviceInfo.Name] = serviceInfo
-
 			}
 			serviceInfo.ModifiedTime = fileInfo.ModTime().Format(time.RFC3339)
 			serviceInfo.Size = size
 		}
 	}
-
+	logrus.Infof("found '%d' services in '%s'", count, folder)
 	return nil
 }
 
@@ -129,7 +134,7 @@ func (ls *LauncherService) StartService(
 	if ls.cfg.LogServices {
 		// inspired by https://gist.github.com/jerblack/4b98ba48ed3fb1d9f7544d2b1a1be287
 		logfile := path.Join(ls.f.Logs, name+".log")
-		logrus.Infof("creating new logfile %s", logfile)
+		logrus.Debugf("creating new logfile %s", logfile)
 		fp, err := os.OpenFile(logfile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 		if err == nil {
 			if ls.cfg.AttachStderr {
@@ -311,11 +316,66 @@ func (ls *LauncherService) updateStatus(svcInfo *launcher.ServiceInfo) {
 
 }
 
-// Start the launcher service
-func (ls *LauncherService) Start(ctx context.Context) error {
+// ScanServices scans the service and bindings folders for changes and updates the
+// services list
+func (ls *LauncherService) ScanServices(ctx context.Context) error {
 	err := ls.findServices(ls.f.Services)
 	if err != nil {
 		logrus.Error(err)
+		return err
+	}
+	// ignore bindings folder if not set
+	if ls.f.Bindings != "" {
+		err = ls.findServices(ls.f.Bindings)
+		if err != nil {
+			logrus.Error(err)
+			return err
+		}
+	}
+	return nil
+}
+
+// WatchServices watches the services and bindings folder for changes and reloads
+// This will detect adding new services or bindings without requiring a restart.
+func (ls *LauncherService) WatchServices(ctx context.Context) error {
+	ls.serviceWatcher, _ = fsnotify.NewWatcher()
+	err := ls.serviceWatcher.Add(ls.f.Services)
+	if err == nil && ls.f.Bindings != "" {
+		err = ls.serviceWatcher.Add(ls.f.Bindings)
+	}
+	if err == nil {
+		go func() {
+			for {
+				select {
+				case <-ctx.Done():
+					logrus.Infof("service watcher ended by context")
+					return
+				case event := <-ls.serviceWatcher.Events:
+					isRunning := ls.isRunning.Load()
+					if isRunning {
+						logrus.Infof("watcher event: %v", event)
+						_ = ls.ScanServices(ctx)
+					} else {
+						logrus.Infof("service watcher stopped")
+						return
+					}
+				case err := <-ls.serviceWatcher.Errors:
+					logrus.Errorf("error: %s", err)
+				}
+			}
+		}()
+
+	}
+	return err
+}
+
+// Start the launcher service
+func (ls *LauncherService) Start(ctx context.Context) error {
+	ls.isRunning.Store(true)
+
+	_ = ls.WatchServices(ctx)
+	err := ls.ScanServices(ctx)
+	if err != nil {
 		return err
 	}
 
@@ -331,6 +391,7 @@ func (ls *LauncherService) Start(ctx context.Context) error {
 
 // Stop the launcher and all running services
 func (ls *LauncherService) Stop() error {
+	ls.isRunning.Store(false)
 	return ls.StopAll(context.Background())
 }
 

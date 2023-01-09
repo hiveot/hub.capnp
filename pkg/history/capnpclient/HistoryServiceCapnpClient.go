@@ -35,13 +35,14 @@ func (cl *HistoryServiceCapnpClient) CapAddAnyThing(
 
 // CapAddHistory provides the capability to add to the history
 func (cl *HistoryServiceCapnpClient) CapAddHistory(
-	ctx context.Context, clientID string, thingAddr string) (history.IAddHistory, error) {
+	ctx context.Context, clientID string, publisherID, thingID string) (history.IAddHistory, error) {
 
 	// The use of a result 'future' avoids a round trip, making this more efficient
 	getCap, release := cl.capability.CapAddHistory(ctx,
 		func(params hubapi.CapHistoryService_capAddHistory_Params) error {
 			err2 := params.SetClientID(clientID)
-			_ = params.SetThingAddr(thingAddr)
+			_ = params.SetPublisherID(publisherID)
+			_ = params.SetThingID(thingID)
 			return err2
 		})
 
@@ -54,12 +55,13 @@ func (cl *HistoryServiceCapnpClient) CapAddHistory(
 
 // CapReadHistory the capability to iterate the history
 func (cl *HistoryServiceCapnpClient) CapReadHistory(
-	ctx context.Context, clientID string, thingAddr string) (history.IReadHistory, error) {
+	ctx context.Context, clientID string, publisherID, thingID string) (history.IReadHistory, error) {
 
 	getCap, release := cl.capability.CapReadHistory(ctx,
 		func(params hubapi.CapHistoryService_capReadHistory_Params) error {
 			err2 := params.SetClientID(clientID)
-			_ = params.SetThingAddr(thingAddr)
+			_ = params.SetThingID(thingID)
+			_ = params.SetPublisherID(publisherID)
 			return err2
 		})
 	defer release()

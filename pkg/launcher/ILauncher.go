@@ -1,10 +1,14 @@
 // Package launcher with the launcher interface
 package launcher
 
-import "context"
+import (
+	"context"
+
+	"github.com/hiveot/hub.capnp/go/hubapi"
+)
 
 // ServiceName used to connect to this service
-const ServiceName = "launcher"
+const ServiceName = hubapi.LauncherServiceName
 
 // ServiceInfo contains the running status of a service
 type ServiceInfo struct {

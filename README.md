@@ -1,6 +1,6 @@
 # Hive-Of-Things Hub
 
-The Hub for the *Hive of Things* provides a simple and secure way to view and operate IoT devices. The Hub securely mediates between consumers and IoT device 'Things' using a hub-and-spokes architecture. Consumers interact with Things via the Hub without connecting directly to the IoT devices or services. The Hub is based on the [W3C WoT TD 1.1 specification](https://www.w3.org/TR/wot-thing-description11/) and uses the [cap'n proto](https://capnproto.org/) for Capabilities based secure 
+The Hub for the *Hive of Things* provides a simple and secure base to view and operate IoT devices. The Hub securely mediates between consumers and IoT device 'Things' using a hub-and-spokes architecture. Consumers interact with Things via the Hub without connecting directly to the IoT devices or services. The Hub is based on the [W3C WoT TD 1.1 specification](https://www.w3.org/TR/wot-thing-description11/) and uses the [cap'n proto](https://capnproto.org/) for Capabilities based secure 
 communication.
 
 
@@ -8,41 +8,46 @@ communication.
 
 Status: The status of the Hub is In Development. 
 
-Updated 2022-11-26: completed initial version of:
+Updated 2022-12-31: completed initial version of:
 ```
-- certs         certificate management to manage CA, IoT device, service and user certificates 
-- directory     thing directory store to persist TD, thing description, documents
-- history       thing history store to store and query thing events and actions
-- provisioning  automated provisioning and issuing of auth certificates to IoT devices 
+- certs         certificate management for services
+- directory     storage of the thing directory
+- history       storage of thing event and action values
+- provisioning  automated provisioning of IoT devices 
 - state         easy to use persistance of state for services
 - launcher      manage starting and stopping of services
 - authz         user authorization of capabilities
 - authn         user authentication management
 - pubsub        internal service to publish and subscribe to events and actions
+- resolver      local discovery and access to service capabilities
 - gateway       single entry point to retrieve services by local or remote clients
 ```
 
 Todo in order to reach Alpha:
 ```
 - directory and history    should subscribe to td and value events
-- certificate auth         client certificate authenticate
+- http gateway             provide https/websocket access for web clients 
 - http jwt auth            http JWT token authentication 
 - middleware               hooks to authorize, log, rate limit gateways
-- http gateway service     provide https/websocket access to web client 
-- basic web client         vue3 or svelvte
+- basic web client         vue3, svelvte, hotwire? using SSR? with JS capnp? 
                            - login page
                            - accounts page list publishers and device Things
                            - subscribe to device updates
                            - dashboard with text cards 
-- one working IoT service  options: weather, owserver, snmp, echo, cpumon, inetping
+- one working IoT service  options: weather, owserver, snmp, cpumon, inetping
+- min 90% code coverage
 ```
 
-Stretch goal:
+For future consideration:
 ```
-- queued actions          allow IoT devices to use just http by polling queued actions
+- mosquitto gateway       integrate pubsub with mqtt
+- queued actions          allow IoT devices to use just https by polling queued actions
 - service discovery       discover of remote capabilities 
-- bucketstore             add support for mongodb and SQLite
+- bucketstore mongo       add support for mongodb in the bucket store
+- bucketstore sqlite      add support for SQLite in the bucket store
+- bridge                  bridge two hubs and share select things
 ```
+
 
 
 ## Audience

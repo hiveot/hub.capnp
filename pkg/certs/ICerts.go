@@ -18,7 +18,7 @@ const DefaultUserCertValidityDays = int(hubapi.DefaultUserCertValidityDays)
 const DefaultDeviceCertValidityDays = int(hubapi.DefaultDeviceCertValidityDays)
 
 // ServiceName to connect to the service
-const ServiceName = "certs"
+const ServiceName = hubapi.CertServiceName
 
 // ICerts defines a POGS based capability API of the cert service
 // This interface aggregates all certificate capabilities.

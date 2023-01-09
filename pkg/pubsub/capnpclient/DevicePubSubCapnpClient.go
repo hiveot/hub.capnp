@@ -46,7 +46,9 @@ func (cl *DevicePubSubCapnpClient) PubProperties(ctx context.Context, thingID st
 }
 
 // PubTD publishes the given thing TD. The payload is a serialized TD document.
-func (cl *DevicePubSubCapnpClient) PubTD(ctx context.Context, thingID string, deviceType string, tdDoc []byte) (err error) {
+func (cl *DevicePubSubCapnpClient) PubTD(
+	ctx context.Context, thingID string, deviceType string, tdDoc []byte) (err error) {
+
 	method, release := cl.capability.PubTD(ctx,
 		func(params hubapi.CapDevicePubSub_pubTD_Params) error {
 			_ = params.SetThingID(thingID)
@@ -70,7 +72,8 @@ func (cl *DevicePubSubCapnpClient) Release() {
 //	thingID is the thing to subscribe for, or "" to subscribe to all things of this gateway
 //	name is the action name, or "" to subscribe to all actions
 //	handler will be invoked when an action is received for this device
-func (cl *DevicePubSubCapnpClient) SubAction(ctx context.Context, thingID string, name string,
+func (cl *DevicePubSubCapnpClient) SubAction(
+	ctx context.Context, thingID string, name string,
 	handler func(action *thing.ThingValue)) (err error) {
 
 	method, release := cl.capability.SubAction(ctx,

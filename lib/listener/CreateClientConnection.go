@@ -5,13 +5,58 @@ import (
 	"crypto/x509"
 	"fmt"
 	"net"
+	"os"
 	"path/filepath"
 	"time"
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/lib/svcconfig"
+	"github.com/hiveot/hub/pkg/gateway/config"
 )
+
+// DiscoveryGateway provides the gateway address
+// TODO: add auto-discovery of the gateway
+func DiscoveryGateway() string {
+	address := config.DefaultGatewayAddress
+	return address
+}
+
+// ConnectToHub connects to the Hub's resolver or gateway.
+// Intended for use by bindings or users that use the Hub services. It can be used locally or remotely.
+//
+//	network is optional "unix" for UDS or "tcp" for TCP connections, default "" for auto discovery
+//	address is optional path to UDS socket or address:port for tcp. "" for auto discover
+//	clientCert is optional and only for use with gateway over TCP connections. nil for unauthenticated connections
+//	caCert is optional, but recommended, to verify the gateway certificate and protect against MiM attack
+func ConnectToHub(
+	network, address string, clientCert *tls.Certificate, caCert *x509.Certificate) (conn net.Conn, err error) {
+
+	// check if the resolver can be used
+	if address == "" {
+		_, err = os.Stat(hubapi.DefaultResolverAddress)
+		if err == nil {
+			address = hubapi.DefaultResolverAddress
+			network = "unix"
+		}
+	}
+	// determine the address to connect to
+	if address == "" {
+		if network == "unix" {
+			address = hubapi.DefaultResolverAddress
+		} else {
+			network = "tcp"
+			address = DiscoveryGateway()
+		}
+	}
+	if network == "unix" {
+		conn, err = net.DialTimeout(network, address, time.Second)
+	} else {
+		conn, err = CreateTLSClientConnection(network, address, clientCert, caCert)
+	}
+	return conn, err
+}
 
 // CreateLocalClientConnection returns a local client connection for the given service.
 //

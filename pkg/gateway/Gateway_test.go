@@ -227,7 +227,7 @@ func TestGetInfo(t *testing.T) {
 	err := ts.Start(testServiceSocketPath)
 	assert.NoError(t, err)
 	// give the resolver time to discover the test service
-	time.Sleep(time.Millisecond * 10)
+	time.Sleep(time.Millisecond * 100)
 
 	// the client is logged in with a client cert and should be recognized as a service
 	// the given client type is ignored

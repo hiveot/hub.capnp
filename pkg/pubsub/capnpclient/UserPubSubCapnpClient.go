@@ -14,11 +14,12 @@ type UserPubSubCapnpClient struct {
 }
 
 func (cl *UserPubSubCapnpClient) PubAction(
-	ctx context.Context, thingAddr, name string, value []byte) (err error) {
+	ctx context.Context, publisherID, thingID, name string, value []byte) (err error) {
 
 	method, release := cl.capability.PubAction(ctx,
 		func(params hubapi.CapUserPubSub_pubAction_Params) error {
-			_ = params.SetThingAddr(thingAddr)
+			_ = params.SetPublisherID(publisherID)
+			_ = params.SetThingID(thingID)
 			_ = params.SetActionName(name)
 			err = params.SetValue(value)
 			return err
@@ -33,12 +34,14 @@ func (cl *UserPubSubCapnpClient) Release() {
 	cl.capability.Release()
 }
 
-func (cl *UserPubSubCapnpClient) SubEvent(ctx context.Context, thingAddr string, name string,
+func (cl *UserPubSubCapnpClient) SubEvent(
+	ctx context.Context, publisherID, thingID string, name string,
 	handler func(action *thing.ThingValue)) (err error) {
 
 	method, release := cl.capability.SubEvent(ctx,
 		func(params hubapi.CapUserPubSub_subEvent_Params) error {
-			_ = params.SetThingAddr(thingAddr)
+			_ = params.SetPublisherID(publisherID)
+			_ = params.SetThingID(thingID)
 			_ = params.SetEventName(name)
 			handlerCapnp := NewSubscriptionHandlerCapnpServer(handler)
 			err = params.SetHandler(handlerCapnp)

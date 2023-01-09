@@ -5,11 +5,12 @@ package directory
 import (
 	"context"
 
+	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/lib/thing"
 )
 
 // ServiceName is the name of the service to connect to
-const ServiceName = "directory"
+const ServiceName = hubapi.DirectoryServiceName
 const TDBucketName = "td"
 
 // IDirectory defines the capability to use the thing directory
@@ -47,10 +48,10 @@ type IReadDirectory interface {
 	// Cursor returns an iterator for ThingValue objects containing TD documents
 	Cursor(ctx context.Context) (cursor IDirectoryCursor)
 
-	// GetTD returns the TD document for the given Gateway/Thing ID in JSON format.
+	// GetTD returns the TD document for the given Publisher/Thing ID in JSON format.
 	// Returns the thingValue containing the JSON serialized TD,
-	// or nil if the thingID doesn't exist and an error if the store is not reachable.
-	GetTD(ctx context.Context, thingAddr string) (tv *thing.ThingValue, err error)
+	// or nil if the publisherID/thingID doesn't exist and an error if the store is not reachable.
+	GetTD(ctx context.Context, publisherID, thingID string) (tv *thing.ThingValue, err error)
 
 	// QueryTDs returns the TD's filtered using JSONpath on the TD content
 	// See 'docs/query-tds.md' for examples
@@ -65,12 +66,12 @@ type IReadDirectory interface {
 type IUpdateDirectory interface {
 
 	// RemoveTD removes a TD document from the store
-	RemoveTD(ctx context.Context, thingAddr string) (err error)
+	RemoveTD(ctx context.Context, publisherID, thingID string) (err error)
 
 	// UpdateTD updates the TD document in the directory
-	// If the TD with the given ID doesn't exist it will be added.
+	// If the TD doesn't exist it will be added.
 	//  tv is a ThingValue object containing the JSON serialized TD document
-	UpdateTD(ctx context.Context, thingAddr string, tdDoc []byte) (err error)
+	UpdateTD(ctx context.Context, publisherID, thingID string, tdDoc []byte) (err error)
 
 	// Release this capability and allocated resources after its use
 	Release()

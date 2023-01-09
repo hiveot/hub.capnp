@@ -13,7 +13,7 @@ import (
 
 // Connect the history store service
 func main() {
-	f := svcconfig.LoadServiceConfig(pubsub.ServiceName, false, nil)
+	f, _, _ := svcconfig.LoadServiceConfig(pubsub.ServiceName, false, nil)
 
 	svc := service.NewPubSubService()
 

@@ -19,7 +19,7 @@ func main() {
 
 	f := svcconfig.GetFolders("", false)
 	cfg := config.NewHistoryConfig(f.Stores)
-	f = svcconfig.LoadServiceConfig(history.ServiceName, false, &cfg)
+	f, _, _ = svcconfig.LoadServiceConfig(history.ServiceName, false, &cfg)
 
 	// the service uses the bucket store
 	store := cmd.NewBucketStore(cfg.Directory, cfg.ServiceID, cfg.Backend)

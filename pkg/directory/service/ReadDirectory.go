@@ -19,8 +19,9 @@ type ReadDirectory struct {
 }
 
 // GetTD returns the TD document for the given Thing ID in JSON format
-func (svc *ReadDirectory) GetTD(_ context.Context, thingAddr string) (tdValue *thing.ThingValue, err error) {
+func (svc *ReadDirectory) GetTD(_ context.Context, publisherID, thingID string) (tdValue *thing.ThingValue, err error) {
 	// bucket keys are made of the gatewayID / thingID
+	thingAddr := publisherID + "/" + thingID
 	raw, err := svc.bucket.Get(thingAddr)
 	if raw != nil {
 		err = json.Unmarshal(raw, &tdValue)

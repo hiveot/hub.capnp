@@ -2,10 +2,12 @@ package provisioning
 
 import (
 	"context"
+
+	"github.com/hiveot/hub.capnp/go/hubapi"
 )
 
 // ServiceName is the name of the store for socket connection and logging
-const ServiceName = "provisioning"
+const ServiceName = hubapi.ProvisioningServiceName
 
 // OOBSecret holds a device's Out Of Band secret for automated provisioning
 // If the deviceID and MD5 hash of the secret match with the request it will be approved immediately

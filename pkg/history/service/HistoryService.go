@@ -21,10 +21,11 @@ type HistoryService struct {
 
 // CapAddHistory provides the capability to update history
 func (srv *HistoryService) CapAddHistory(
-	_ context.Context, thingID string, thingAddr string) (history.IAddHistory, error) {
+	_ context.Context, clientID string, publisherID, thingID string) (history.IAddHistory, error) {
+	thingAddr := publisherID + "/" + thingID
 	bucket := srv.bucketStore.GetBucket(thingAddr)
 
-	historyUpdater := NewAddHistory(thingID, thingAddr, bucket, srv.propsStore.HandleAddValue)
+	historyUpdater := NewAddHistory(clientID, publisherID, thingID, bucket, srv.propsStore.HandleAddValue)
 	return historyUpdater, nil
 }
 
@@ -41,9 +42,11 @@ func (srv *HistoryService) CapAddAnyThing(
 
 // CapReadHistory provides the capability to read history
 func (srv *HistoryService) CapReadHistory(
-	_ context.Context, clientID, thingAddr string) (history.IReadHistory, error) {
+	_ context.Context, clientID, publisherID, thingID string) (history.IReadHistory, error) {
+
+	thingAddr := publisherID + "/" + thingID
 	bucket := srv.bucketStore.GetBucket(thingAddr)
-	readHistory := NewReadHistory(clientID, thingAddr, bucket, srv.propsStore.GetProperties)
+	readHistory := NewReadHistory(clientID, publisherID, thingID, bucket, srv.propsStore.GetProperties)
 	return readHistory, nil
 }
 

@@ -207,7 +207,6 @@ func (svc *ResolverService) Start(ctx context.Context) error {
 						logrus.Infof("watcher event: %v", event)
 						_ = svc.Refresh(ctx)
 					} else {
-						// socketWatcher is nil when the service has stopped
 						logrus.Infof("socket watcher stopped")
 						return
 					}

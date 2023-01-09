@@ -19,12 +19,12 @@ type ReadHistoryCapnpServer struct {
 // GetEventHistory returns a cursor to iterate the history of the thing
 // name is the event or action to filter on. Use "" to iterate all events/action of the thing
 // The cursor MUST be released after use.
-func (srv *ReadHistoryCapnpServer) GetEventHistory(
+func (capsrv *ReadHistoryCapnpServer) GetEventHistory(
 	ctx context.Context, call hubapi.CapReadHistory_getEventHistory) error {
 
 	args := call.Args()
 	eventName, _ := args.Name()
-	cursor := srv.svc.GetEventHistory(ctx, eventName)
+	cursor := capsrv.svc.GetEventHistory(ctx, eventName)
 
 	cursorSrv := NewHistoryCursorCapnpServer(cursor)
 	capnpCursorServer := hubapi.CapHistoryCursor_ServerToClient(cursorSrv)
@@ -39,13 +39,13 @@ func (srv *ReadHistoryCapnpServer) GetEventHistory(
 // GetProperties returns the most recent property and event values of the Thing
 //
 //	names is the list of properties to return. Use "" to return all known properties.
-func (srv *ReadHistoryCapnpServer) GetProperties(
+func (capsrv *ReadHistoryCapnpServer) GetProperties(
 	ctx context.Context, call hubapi.CapReadHistory_getProperties) error {
 
 	args := call.Args()
 	capNameList, _ := args.Names()
 	names := caphelp.UnmarshalStringList(capNameList)
-	valueList := srv.svc.GetProperties(ctx, names)
+	valueList := capsrv.svc.GetProperties(ctx, names)
 
 	res, err := call.AllocResults()
 	if err == nil {
@@ -55,16 +55,16 @@ func (srv *ReadHistoryCapnpServer) GetProperties(
 	return err
 }
 
-func (srv *ReadHistoryCapnpServer) Info(
+func (capsrv *ReadHistoryCapnpServer) Info(
 	ctx context.Context, call hubapi.CapReadHistory_info) error {
-	bucketInfo := srv.svc.Info(ctx)
+	bucketInfo := capsrv.svc.Info(ctx)
 	res, err := call.AllocResults()
 	if err == nil {
 		_, seg, _ := capnp.NewMessage(capnp.SingleSegment(nil))
 		infoCapnp, _ := hubapi.NewBucketStoreInfo(seg)
 		infoCapnp.SetDataSize(bucketInfo.DataSize)
-		infoCapnp.SetEngine(bucketInfo.Engine)
-		infoCapnp.SetId(bucketInfo.Id)
+		_ = infoCapnp.SetEngine(bucketInfo.Engine)
+		_ = infoCapnp.SetId(bucketInfo.Id)
 		infoCapnp.SetNrRecords(bucketInfo.NrRecords)
 		err = res.SetInfo(infoCapnp)
 	}

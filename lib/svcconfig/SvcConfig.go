@@ -1,6 +1,8 @@
 package svcconfig
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"flag"
 	"os"
 	"path"
@@ -9,6 +11,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v3"
 
+	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/lib/certsclient"
 	"github.com/hiveot/hub/lib/logging"
 )
 
@@ -17,20 +21,24 @@ import (
 //
 // This invokes flag.Parse(). Flag commandline options added are:
 //
-//		 -c configFile
-//		 --home directory
-//		 --certs directory
-//		 --services directory
-//		 --logs directory
-//	  --loglevel info|warning
-//		 --run directory
+//			 -c configFile
+//			 --home directory
+//			 --certs directory
+//			 --services directory
+//			 --logs directory
+//		  --loglevel info|warning
+//			 --run directory
 //
-//		If a 'cfg' interface is provided, the configuration is loaded from file and parsed as yaml.
+//			If a 'cfg' interface is provided, the configuration is loaded from file and parsed as yaml.
 //
-//		serviceName is used for the configuration file with the '.yaml' extension
-//		required returns an error if the configuration file doesn't exist
-//		cfg is the interface to the configuration object. nil to ignore configuration and just load the folders.
-func LoadServiceConfig(serviceName string, required bool, cfg interface{}) AppFolders {
+//			serviceName is used for the configuration file with the '.yaml' extension
+//			required returns an error if the configuration file doesn't exist
+//			cfg is the interface to the configuration object. nil to ignore configuration and just load the folders.
+//	 Returns the folder, service TLS certificate, and CA Certificate if found
+func LoadServiceConfig(
+	serviceName string, required bool, cfg interface{},
+) (f AppFolders, svcCert *tls.Certificate, caCert *x509.Certificate) {
+
 	// run the commandline options
 	var err error
 	var cfgData []byte
@@ -42,7 +50,7 @@ func LoadServiceConfig(serviceName string, required bool, cfg interface{}) AppFo
 	var servicesFolder = ""
 	var storesFolder = ""
 
-	f := GetFolders(homeFolder, false)
+	f = GetFolders(homeFolder, false)
 	cfgFile := path.Join(f.Config, serviceName+".yaml")
 	if cfg != nil {
 		flag.StringVar(&cfgFile, "c", cfgFile, "Service config file")
@@ -100,5 +108,12 @@ func LoadServiceConfig(serviceName string, required bool, cfg interface{}) AppFo
 		}
 	}
 
-	return f2
+	// load the certificates if available
+	caCertPath := path.Join(f2.Certs, hubapi.DefaultCaCertFile)
+	caCert, _ = certsclient.LoadX509CertFromPEM(caCertPath)
+	svcCertPath := path.Join(f2.Certs, serviceName+"Cert.pem")
+	svcKeyPath := path.Join(f2.Certs, serviceName+"Key.pem")
+	svcCert, _ = certsclient.LoadTLSCertFromPEM(svcCertPath, svcKeyPath)
+
+	return f2, svcCert, caCert
 }

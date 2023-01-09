@@ -5,7 +5,6 @@
       <module fileurl="file://$PROJECT_DIR$/auth/.idea/auth.iml" filepath="$PROJECT_DIR$/auth/.idea/auth.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/hub.iml" filepath="$PROJECT_DIR$/.idea/hub.iml" />
       <module fileurl="file://$PROJECT_DIR$/../hub.capnp/.idea/hub.capnp.iml" filepath="$PROJECT_DIR$/../hub.capnp/.idea/hub.capnp.iml" />
-      <module fileurl="file://$PROJECT_DIR$/../hub.go/.idea/hub.go.iml" filepath="$PROJECT_DIR$/../hub.go/.idea/hub.go.iml" />
       <module fileurl="file://$PROJECT_DIR$/libserve-go/.idea/libserve-go.iml" filepath="$PROJECT_DIR$/libserve-go/.idea/libserve-go.iml" />
       <module fileurl="file://$PROJECT_DIR$/../owserver-pb/.idea/owserver-pb.iml" filepath="$PROJECT_DIR$/../owserver-pb/.idea/owserver-pb.iml" />
     </modules>

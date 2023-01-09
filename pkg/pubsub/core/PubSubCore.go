@@ -56,6 +56,7 @@ func (psc *PubSubCore) findSubscribers(topic string) (subs []*Subscription) {
 // Publish the topic to subscribers
 func (psc *PubSubCore) Publish(topic string, message []byte) {
 	subs := psc.findSubscribers(topic)
+	logrus.Infof("topic=%v; %d subscribers", topic, len(subs))
 	for _, sub := range subs {
 		sub.handler(topic, message)
 	}
@@ -70,7 +71,7 @@ func (psc *PubSubCore) Start() (err error) {
 func (psc *PubSubCore) Stop() (err error) {
 	psc.submux.Lock()
 	if len(psc.subscribers) > 0 {
-		err = fmt.Errorf("%d subscriptions are not released. Releasing them now.", len(psc.subscribers))
+		err = fmt.Errorf("%d subscriptions are not released. Releasing them now", len(psc.subscribers))
 		logrus.Error(err)
 		psc.subscribers = make([]*Subscription, 0)
 	}
@@ -97,6 +98,8 @@ func (psc *PubSubCore) Subscribe(
 	psc.submux.Lock()
 	psc.subscribers = append(psc.subscribers, sub)
 	psc.submux.Unlock()
+	logrus.Infof("topic=%v. => subscriptionID=%s", topic, sub.id)
+
 	return sub.id, nil
 }
 

@@ -122,6 +122,6 @@ func StartResolverServiceCapnpServer(
 	resClient := capnp.NewClient(clientHook)
 	main := hubapi.CapResolverService(resClient)
 
-	_ = caphelp.Serve(lis, capnp.Client(main), nil)
+	_ = caphelp.Serve(resolver.ServiceName, lis, capnp.Client(main), nil)
 
 }

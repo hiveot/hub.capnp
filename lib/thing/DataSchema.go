@@ -40,7 +40,7 @@ type DataSchema struct {
 	// the value true implies read-only.
 	ReadOnly bool `json:"readOnly,omitempty"`
 	// Boolean value to indicate whether a property interaction / value is write-only (=true) or not (=false)
-	// the value true implies writable, except when ReadOnly is true.
+	// the value true implies writable but not readable. Intended for secrets such as passwords.
 	WriteOnly bool `json:"writeOnly,omitempty"`
 	// Allows validation based on a format pattern such as "date-time", "email", "uri", etc.
 	// See vocab DataFormXyz "date-time", "email", "uri" (todo)

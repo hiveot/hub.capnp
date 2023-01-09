@@ -34,29 +34,29 @@ func HistoryListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comman
 			if cCtx.NArg() != 0 {
 				return fmt.Errorf("no arguments expected")
 			}
-			err := HandleListEvents(ctx, f, "", 100)
+			err := HandleListEvents(ctx, f, "", "", 100)
 			return err
 		},
 	}
 }
 
 // HandleListEvents lists the history content
-func HandleListEvents(ctx context.Context, f svcconfig.AppFolders, thingAddr string, limit int) error {
+func HandleListEvents(ctx context.Context, f svcconfig.AppFolders, publisherID, thingID string, limit int) error {
 	var hist history.IHistoryService
 	var rd history.IReadHistory
 
 	conn, err := listener.CreateLocalClientConnection(history.ServiceName, f.Run)
 	if err == nil {
 		hist = capnpclient.NewHistoryCapnpClient(ctx, conn)
-		rd, err = hist.CapReadHistory(ctx, thingAddr, "hubcli")
+		rd, err = hist.CapReadHistory(ctx, publisherID, thingID, "hubcli")
 	}
 	if err != nil {
 		return err
 	}
 	eventName := ""
 	cursor := rd.GetEventHistory(ctx, eventName)
-	fmt.Println("Thing ID                            Timestamp                      Event      Value (truncated)")
-	fmt.Println("--------                            -------                        ----       ---------------- ")
+	fmt.Println("PublisherID      thingID             Timestamp                      Event      Value (truncated)")
+	fmt.Println("-----------      -------             -------                        ----       ---------------- ")
 	count := 0
 	for tv, valid := cursor.Last(); valid && count < limit; tv, valid = cursor.Prev() {
 		count++
@@ -66,8 +66,9 @@ func HandleListEvents(ctx context.Context, f svcconfig.AppFolders, thingAddr str
 			logrus.Infof("Parsing time failed '%s': %s", tv.Created, err)
 		}
 
-		fmt.Printf("%-35s %-30s %-10s %-30s\n",
-			tv.ThingAddr,
+		fmt.Printf("%-15s %-20s %-30s %-10s %-30s\n",
+			tv.PublisherID,
+			tv.ThingID,
 			utime.Format("02 Jan 2006 15:04:05 -0700"),
 			tv.Name,
 			tv.ValueJSON,

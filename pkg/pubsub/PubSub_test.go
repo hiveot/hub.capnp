@@ -73,10 +73,9 @@ func TestStartStop(t *testing.T) {
 }
 
 func TestPubSubAction(t *testing.T) {
-	const device1ID = "urn:device1"
+	const publisherID = "urn:device1"
 	const service1ID = "urn:service1"
 	const thing1ID = "urn:thing1"
-	var thing1Addr = thing.MakeThingAddr(device1ID, thing1ID)
 	const actionName1 = "action1"
 	const actionName2 = "action2"
 	var deviceAction = 0
@@ -87,7 +86,7 @@ func TestPubSubAction(t *testing.T) {
 	svc, stopFn := startService(testUseCapnp)
 	defer stopFn()
 
-	devicePS, _ := svc.CapDevicePubSub(ctx, device1ID)
+	devicePS, _ := svc.CapDevicePubSub(ctx, publisherID)
 	servicePS, _ := svc.CapServicePubSub(ctx, service1ID)
 
 	// test subscription of a single action by both service and device
@@ -95,11 +94,11 @@ func TestPubSubAction(t *testing.T) {
 		deviceAction++
 	})
 	assert.NoError(t, err)
-	err = servicePS.SubActions(ctx, thing1Addr, actionName1, func(val *thing.ThingValue) {
+	err = servicePS.SubActions(ctx, publisherID, thing1ID, actionName1, func(val *thing.ThingValue) {
 		serviceAction++
 	})
 	action1Msg := []byte("action1")
-	err = servicePS.PubAction(ctx, thing1Addr, actionName1, action1Msg)
+	err = servicePS.PubAction(ctx, publisherID, thing1ID, actionName1, action1Msg)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, deviceAction)
 	assert.Equal(t, 1, serviceAction)
@@ -110,7 +109,7 @@ func TestPubSubAction(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	action2Msg := []byte("more of action")
-	err = servicePS.PubAction(ctx, thing1Addr, actionName2, action2Msg)
+	err = servicePS.PubAction(ctx, publisherID, thing1ID, actionName2, action2Msg)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, deviceAction)
 	assert.Equal(t, 1, serviceAction)
@@ -121,22 +120,21 @@ func TestPubSubAction(t *testing.T) {
 }
 
 func TestPubSubEvent(t *testing.T) {
-	const device1ID = "urn:device1"
+	const publisher1ID = "urn:device1"
 	const thing1ID = "urn:thing1"
 	const user1ID = "urn:user"
 	const event1Name = "event1"
-	var thing1Addr = thing.MakeThingAddr(device1ID, thing1ID)
 	var event1Count = int32(0)
 
 	ctx := context.Background()
 	svc, stopFn := startService(testUseCapnp)
 	defer stopFn()
 
-	devicePS, _ := svc.CapDevicePubSub(ctx, device1ID)
+	devicePS, _ := svc.CapDevicePubSub(ctx, publisher1ID)
 	userPS, _ := svc.CapUserPubSub(ctx, user1ID)
 
 	// test subscription of a single event by both service and device
-	err := userPS.SubEvent(ctx, thing1Addr, event1Name, func(val *thing.ThingValue) {
+	err := userPS.SubEvent(ctx, publisher1ID, thing1ID, event1Name, func(val *thing.ThingValue) {
 		atomic.AddInt32(&event1Count, 1)
 	})
 	assert.NoError(t, err)
@@ -153,17 +151,16 @@ func TestPubSubEvent(t *testing.T) {
 }
 
 func TestPubSubTD(t *testing.T) {
-	const device1ID = "urn:device1"
+	const publisher1ID = "urn:device1"
 	const serviceID = "urn:service1"
 	const thing1ID = "urn:thing1"
-	var thing1Addr = thing.MakeThingAddr(device1ID, thing1ID)
 	var rxTD *thing.ThingValue
 
 	ctx := context.Background()
 	svc, stopFn := startService(testUseCapnp)
 	defer stopFn()
 
-	devicePS, _ := svc.CapDevicePubSub(ctx, device1ID)
+	devicePS, _ := svc.CapDevicePubSub(ctx, publisher1ID)
 	servicePS, _ := svc.CapServicePubSub(ctx, serviceID)
 
 	err := servicePS.SubTDs(ctx, func(val *thing.ThingValue) {
@@ -174,7 +171,7 @@ func TestPubSubTD(t *testing.T) {
 	err = devicePS.PubTD(ctx, thing1ID, vocab.DeviceTypeButton, td1)
 	assert.NoError(t, err)
 	require.NotNil(t, rxTD)
-	assert.Equal(t, thing1Addr, rxTD.ThingAddr)
+	assert.Equal(t, thing1ID, rxTD.ThingID)
 	assert.Equal(t, td1, rxTD.ValueJSON)
 
 	devicePS.Release()
@@ -182,10 +179,9 @@ func TestPubSubTD(t *testing.T) {
 }
 
 func TestPubSubProperties(t *testing.T) {
-	const device1ID = "urn:device1"
+	const publisher1ID = "urn:device1"
 	const thing1ID = "urn:thing1"
 	const user1ID = "urn:user"
-	var thing1Addr = thing.MakeThingAddr(device1ID, thing1ID)
 	var event1Count = 0
 	var rxPropsEvent *thing.ThingValue
 	var rxProps map[string][]byte
@@ -194,11 +190,11 @@ func TestPubSubProperties(t *testing.T) {
 	svc, stopFn := startService(testUseCapnp)
 	defer stopFn()
 
-	devicePS, _ := svc.CapDevicePubSub(ctx, device1ID)
+	devicePS, _ := svc.CapDevicePubSub(ctx, publisher1ID)
 	userPS, _ := svc.CapUserPubSub(ctx, user1ID)
 
 	// test subscription of a single event by both service and device
-	err := userPS.SubEvent(ctx, thing1Addr, "properties",
+	err := userPS.SubEvent(ctx, publisher1ID, thing1ID, "properties",
 		func(val *thing.ThingValue) {
 			event1Count++
 			rxPropsEvent = val
@@ -210,7 +206,7 @@ func TestPubSubProperties(t *testing.T) {
 	err = devicePS.PubProperties(ctx, thing1ID, propsIn)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, event1Count)
-	assert.Equal(t, thing1Addr, rxPropsEvent.ThingAddr)
+	assert.Equal(t, thing1ID, rxPropsEvent.ThingID)
 
 	err = json.Unmarshal(rxPropsEvent.ValueJSON, &rxProps)
 	assert.NoError(t, err)

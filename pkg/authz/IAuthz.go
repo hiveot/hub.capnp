@@ -2,10 +2,12 @@ package authz
 
 import (
 	"context"
+
+	"github.com/hiveot/hub.capnp/go/hubapi"
 )
 
 // ServiceName of the service used for logging and connection
-const ServiceName = "authz"
+const ServiceName = hubapi.AuthzServiceName
 
 // Client roles set permissions for operations on Things that are members of the same group
 // The mapping of roles to operations is currently hard coded aimed at managing Things

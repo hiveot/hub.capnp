@@ -24,7 +24,7 @@ func main() {
 	ctx := context.Background()
 
 	// Determine the folder layout and handle commandline options
-	f := svcconfig.LoadServiceConfig(provisioning.ServiceName, false, nil)
+	f, _, _ := svcconfig.LoadServiceConfig(provisioning.ServiceName, false, nil)
 
 	// connect to the certificate service to get its capability for issuing device certificates
 	certConn, err := listener.CreateLocalClientConnection(certs.ServiceName, f.Run)

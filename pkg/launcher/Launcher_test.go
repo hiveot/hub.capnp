@@ -35,6 +35,7 @@ func newServer(useCapnp bool) (l launcher.ILauncher, stopFn func()) {
 	launcherConfig.LogServices = true
 	var f = svcconfig.GetFolders(homeFolder, false)
 	f.Services = "/bin" // for /bin/yes
+	f.Bindings = ""
 	f.Logs = logFolder
 
 	ctx, cancelFunc := context.WithCancel(context.Background())

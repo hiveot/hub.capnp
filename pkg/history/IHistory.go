@@ -5,12 +5,13 @@ package history
 import (
 	"context"
 
+	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/bucketstore"
 )
 
 // ServiceName is the name of this service to connect to
-const ServiceName = "historystore"
+const ServiceName = hubapi.HistoryServiceName
 
 // EventNameProperties 'properties' is the name of the event that holds a JSON encoded map
 // with one or more property values of a thing.
@@ -53,8 +54,9 @@ type IHistoryService interface {
 	// CapAddHistory provides the capability to add to the history of a Thing.
 	// This capability should only be provided to the device or service that have write access to the Thing.
 	//  clientID is the ID of the device or service requesting the capability
-	//  thingAddr is the gateway address of the thing, eg publisherID/thingID
-	CapAddHistory(ctx context.Context, clientID string, thingAddr string) (IAddHistory, error)
+	//  publisherID is the ID of the Thing's publisher
+	//  thingID is the ID of the thing whose history to add
+	CapAddHistory(ctx context.Context, clientID string, publisherID, thingID string) (IAddHistory, error)
 
 	// CapAddAnyThing provides the capability to add to the history of any Thing.
 	// It is similar to CapAddHistory but not constraint to a specific Thing.
@@ -70,8 +72,9 @@ type IHistoryService interface {
 	// This capability can be provided to anyone who has read access to the thing.
 	//
 	//  clientID is the ID of the device or service requesting the capability
-	//  thingAddr is the gateway address of the thing, eg publisherID/thingID
-	CapReadHistory(ctx context.Context, clientID string, thingAddr string) (IReadHistory, error)
+	//  publisherID is the ID of the Thing's publisher
+	//  thingID is the ID of the thing whose history to read
+	CapReadHistory(ctx context.Context, clientID string, publisherID, thingID string) (IReadHistory, error)
 }
 
 // IAddHistory defines the capability to add to a Thing's history

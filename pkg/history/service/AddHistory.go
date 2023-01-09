@@ -24,10 +24,12 @@ import (
 // * where 'e|a' is 'e' for events and 'a' for actions
 type AddHistory struct {
 	// this buckets holds the history updates of events and actions
-	clientID  string
-	bucket    bucketstore.IBucket
-	store     bucketstore.IBucketStore
-	thingAddr string // address of the Thing the bucket belongs to
+	clientID    string
+	bucket      bucketstore.IBucket
+	store       bucketstore.IBucketStore
+	publisherID string
+	thingID     string
+	//thingAddr   string // address of the Thing the bucket belongs to
 
 	// callback to invoke when an event is added. Intended for tracking latest value.
 	onAddedValue func(ev *thing.ThingValue, isAction bool)
@@ -126,16 +128,17 @@ func (svc *AddHistory) Release() {
 // validateValue checks the event has the right thing address and adds a timestamp if missing
 func (svc *AddHistory) validateValue(thingValue *thing.ThingValue) error {
 	if thingValue == nil {
-		return fmt.Errorf("nil event instead of event for Thing '%s'", svc.thingAddr)
+		return fmt.Errorf("nil event instead of event for Thing '%s'", svc.thingID)
 	}
-	if thingValue.ThingAddr == "" {
-		return fmt.Errorf("missing thing address in value with name '%s'", thingValue.Name)
+	if thingValue.ThingID == "" || thingValue.PublisherID == "" {
+		return fmt.Errorf("missing publisher/thing address in value with name '%s'", thingValue.Name)
 	}
-	if thingValue.ThingAddr != svc.thingAddr {
-		return fmt.Errorf("refused adding event for Thing '%s'. Only events for '%s' are allowed", thingValue.ThingAddr, svc.thingAddr)
+	if thingValue.ThingID != svc.thingID || thingValue.PublisherID != svc.publisherID {
+		return fmt.Errorf("refused adding event for Thing '%s/%s'. Only events for '%s/%s' are allowed",
+			thingValue.PublisherID, thingValue.ThingID, svc.publisherID, svc.thingID)
 	}
 	if thingValue.Name == "" {
-		return fmt.Errorf("missing name for event or action for thing '%s'", thingValue.ThingAddr)
+		return fmt.Errorf("missing name for event or action for thing '%s/%s'", thingValue.PublisherID, thingValue.ThingID)
 	}
 	if thingValue.Created == "" {
 		thingValue.Created = time.Now().Format(vocab.ISO8601Format)
@@ -149,17 +152,18 @@ func (svc *AddHistory) validateValue(thingValue *thing.ThingValue) error {
 //	bucket to store values
 //	onAddedValue callback to notify if a value was added
 func NewAddHistory(
-	clientID, thingAddr string,
+	clientID, publisherID, thingID string,
 	bucket bucketstore.IBucket,
 	onAddedValue func(event *thing.ThingValue, isAction bool)) *AddHistory {
 	svc := &AddHistory{
 		bucket:       bucket,
 		clientID:     clientID,
-		thingAddr:    thingAddr,
+		publisherID:  publisherID,
+		thingID:      thingID,
 		onAddedValue: onAddedValue,
 	}
-	if thingAddr == "" {
-		panic("NewAddHistory MUST have an address")
+	if publisherID == "" || thingID == "" {
+		panic("NewAddHistory MUST have a publisherID and thingID")
 	}
 	return svc
 }

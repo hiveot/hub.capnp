@@ -17,7 +17,7 @@ const aclStoreFile = "authz.acl"
 
 // main entry point to start the authorization service
 func main() {
-	f := svcconfig.LoadServiceConfig(authz.ServiceName, false, nil)
+	f, _, _ := svcconfig.LoadServiceConfig(authz.ServiceName, false, nil)
 	aclStoreFolder := filepath.Join(f.Stores, authz.ServiceName)
 	aclStorePath := filepath.Join(aclStoreFolder, aclStoreFile)
 	_ = os.Mkdir(aclStoreFolder, 0700)

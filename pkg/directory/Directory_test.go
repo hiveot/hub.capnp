@@ -69,7 +69,7 @@ func startDirectory(useCapnp bool) (dir directory.IDirectory, stopFn func()) {
 
 // generate a JSON serialized TD document
 func createTDDoc(thingID string, title string) []byte {
-	td := &thing.ThingDescription{
+	td := &thing.TD{
 		ID:    thingID,
 		Title: title,
 	}
@@ -99,8 +99,8 @@ func TestStartStop(t *testing.T) {
 func TestAddRemoveTD(t *testing.T) {
 	logrus.Infof("--- TestRemoveTD start ---")
 	_ = os.Remove(testStoreFile)
+	const publisherID = "urn:test"
 	const thing1ID = "urn:thing1"
-	const thing1Addr = "urn:test/" + thing1ID
 	const title1 = "title1"
 	ctx := context.Background()
 	store, stopFunc := startDirectory(testUseCapnp)
@@ -114,18 +114,18 @@ func TestAddRemoveTD(t *testing.T) {
 	require.NotNil(t, updateCap)
 
 	tdDoc1 := createTDDoc(thing1ID, title1)
-	err = updateCap.UpdateTD(ctx, thing1Addr, tdDoc1)
+	err = updateCap.UpdateTD(ctx, publisherID, thing1ID, tdDoc1)
 	assert.NoError(t, err)
 
-	tv2, err := readCap.GetTD(ctx, thing1Addr)
+	tv2, err := readCap.GetTD(ctx, publisherID, thing1ID)
 	if assert.NoError(t, err) {
 		assert.NotNil(t, tv2)
-		assert.Equal(t, thing1Addr, tv2.ThingAddr)
+		assert.Equal(t, thing1ID, tv2.ThingID)
 		assert.Equal(t, tdDoc1, tv2.ValueJSON)
 	}
-	err = updateCap.RemoveTD(ctx, thing1Addr)
+	err = updateCap.RemoveTD(ctx, publisherID, thing1ID)
 	assert.NoError(t, err)
-	td3, err := readCap.GetTD(ctx, thing1Addr)
+	td3, err := readCap.GetTD(ctx, publisherID, thing1ID)
 	assert.Nil(t, td3)
 	assert.Error(t, err)
 
@@ -165,8 +165,8 @@ func TestAddRemoveTD(t *testing.T) {
 func TestCursor(t *testing.T) {
 	logrus.Infof("--- TestCursor start ---")
 	_ = os.Remove(testStoreFile)
+	const publisherID = "urn:test"
 	const thing1ID = "urn:thing1"
-	const thing1Addr = "urn:test/" + thing1ID
 	const title1 = "title1"
 
 	ctx := context.Background()
@@ -182,7 +182,7 @@ func TestCursor(t *testing.T) {
 
 	// add 1 doc. the service itself also has a doc
 	tdDoc1 := createTDDoc(thing1ID, title1)
-	err = updateCap.UpdateTD(ctx, thing1Addr, tdDoc1)
+	err = updateCap.UpdateTD(ctx, publisherID, thing1ID, tdDoc1)
 	require.NoError(t, err)
 
 	// expect 2 docs, the service itself and the one just added
@@ -247,8 +247,8 @@ func TestCursor(t *testing.T) {
 func TestPerf(t *testing.T) {
 	logrus.Infof("--- start TestPerf ---")
 	_ = os.Remove(testStoreFile)
+	const publisherID = "urn:test"
 	const thing1ID = "urn:thing1"
-	const thing1Addr = "urn:test/" + thing1ID
 	const title1 = "title1"
 	const count = 1000
 
@@ -264,7 +264,7 @@ func TestPerf(t *testing.T) {
 	t1 := time.Now()
 	for i := 0; i < count; i++ {
 		tdDoc1 := createTDDoc(thing1ID, title1)
-		err := updateCap.UpdateTD(ctx, thing1Addr, tdDoc1)
+		err := updateCap.UpdateTD(ctx, publisherID, thing1ID, tdDoc1)
 		require.NoError(t, err)
 	}
 	d1 := time.Now().Sub(t1)
@@ -273,7 +273,7 @@ func TestPerf(t *testing.T) {
 	// test read
 	t2 := time.Now()
 	for i := 0; i < count; i++ {
-		td, err := readCap.GetTD(ctx, thing1Addr)
+		td, err := readCap.GetTD(ctx, publisherID, thing1ID)
 		require.NoError(t, err)
 		assert.NotNil(t, td)
 	}

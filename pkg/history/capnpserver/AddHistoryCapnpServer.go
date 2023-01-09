@@ -21,11 +21,12 @@ func (capsrv *AddHistoryCapnpServer) AddAction(
 
 	args := call.Args()
 	capValue, _ := args.Tv()
-	thingAddr, _ := capValue.ThingAddr()
+	publisherID, _ := capValue.PublisherID()
+	thingID, _ := capValue.ThingID()
 	name, _ := capValue.Name()
 	valueJSON, _ := capValue.ValueJSON()
 	created, _ := capValue.Created()
-	actionValue := thing.NewThingValue(thingAddr, name, valueJSON)
+	actionValue := thing.NewThingValue(publisherID, thingID, name, valueJSON)
 	actionValue.Created = created
 	err := capsrv.svc.AddAction(ctx, actionValue)
 	return err
@@ -36,11 +37,12 @@ func (capsrv *AddHistoryCapnpServer) AddEvent(
 
 	args := call.Args()
 	capValue, _ := args.Tv()
-	thingAddr, _ := capValue.ThingAddr()
+	publisherID, _ := capValue.PublisherID()
+	thingID, _ := capValue.ThingID()
 	name, _ := capValue.Name()
 	valueJSON, _ := capValue.ValueJSON()
 	created, _ := capValue.Created()
-	eventValue := thing.NewThingValue(thingAddr, name, valueJSON)
+	eventValue := thing.NewThingValue(publisherID, thingID, name, valueJSON)
 	eventValue.Created = created
 
 	err := capsrv.svc.AddEvent(ctx, eventValue)

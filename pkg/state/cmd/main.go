@@ -19,7 +19,7 @@ func main() {
 	// set config defaults
 	var cfg = config.NewStateConfig(f.Stores)
 	cfg.Backend = bucketstore.BackendKVBTree
-	f = svcconfig.LoadServiceConfig(state.ServiceName, false, &cfg)
+	f, _, _ = svcconfig.LoadServiceConfig(state.ServiceName, false, &cfg)
 
 	svc := statekvstore.NewStateStoreService(cfg)
 

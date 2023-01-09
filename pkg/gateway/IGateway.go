@@ -3,10 +3,11 @@ package gateway
 import (
 	"context"
 
+	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/pkg/resolver"
 )
 
-const ServiceName = "gateway"
+const ServiceName = hubapi.GatewayServiceName
 
 // ClientInfo contains client info as seen by the gateway
 // Intended for diagnostics and troubleshooting

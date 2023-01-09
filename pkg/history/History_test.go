@@ -117,13 +117,14 @@ func makeValueBatch(nrValues, nrThings, timespanSec int) (batch []*thing.ThingVa
 		randomSeconds := time.Duration(rand.Intn(timespanSec)) * time.Second
 		randomTime := time.Now().Add(-randomSeconds).Format(vocab.ISO8601Format)
 		thingID := thingIDPrefix + strconv.Itoa(randomID)
-		thingaddr := "urn:device1/" + thingID
+		pubID := "urn:device1"
 
 		ev := &thing.ThingValue{
-			ThingAddr: thingaddr,
-			Name:      names[randomName],
-			ValueJSON: []byte(fmt.Sprintf("%2.3f", randomValue)),
-			Created:   randomTime,
+			PublisherID: pubID,
+			ThingID:     thingID,
+			Name:        names[randomName],
+			ValueJSON:   []byte(fmt.Sprintf("%2.3f", randomValue)),
+			Created:     randomTime,
 		}
 		// track the actual most recent event for the name for thing 3
 		if randomID == 0 {
@@ -204,8 +205,9 @@ func TestAddGetEvent(t *testing.T) {
 	const device1 = "urn:device1"
 	const id1 = "urn:thing1"
 	const id2 = "urn:thing2"
-	const thing1Addr = device1 + "/" + id1
-	const thing2Addr = device1 + "/" + id2
+	const publisherID = "urn:device1"
+	const thing1ID = id1
+	const thing2ID = id2
 	const evTemperature = "temperature"
 	const evHumidity = "humidity"
 	var timeafter = ""
@@ -217,8 +219,8 @@ func TestAddGetEvent(t *testing.T) {
 	addHistory(store, 20, 3, 3600)
 
 	// add events for thing 1
-	addHistory1, _ := store.CapAddHistory(ctx, device1, thing1Addr)
-	readHistory1, _ := store.CapReadHistory(ctx, device1, thing1Addr)
+	addHistory1, _ := store.CapAddHistory(ctx, device1, publisherID, thing1ID)
+	readHistory1, _ := store.CapReadHistory(ctx, device1, publisherID, thing1ID)
 
 	// release and cancel is order dependent
 	defer addHistory1.Release()
@@ -226,26 +228,26 @@ func TestAddGetEvent(t *testing.T) {
 	defer cancelFn()
 
 	// add thing1 temperature from 5 minutes ago
-	ev1_1 := &thing.ThingValue{ThingAddr: thing1Addr, Name: evTemperature,
+	ev1_1 := &thing.ThingValue{PublisherID: publisherID, ThingID: thing1ID, Name: evTemperature,
 		ValueJSON: []byte("12.5"), Created: fivemago.Format(vocab.ISO8601Format)}
 	err := addHistory1.AddEvent(ctx, ev1_1)
 	assert.NoError(t, err)
 	// add thing1 humidity from 55 minutes ago
-	ev1_2 := &thing.ThingValue{ThingAddr: thing1Addr, Name: evHumidity,
+	ev1_2 := &thing.ThingValue{PublisherID: publisherID, ThingID: thing1ID, Name: evHumidity,
 		ValueJSON: []byte("70"), Created: fiftyfivemago.Format(vocab.ISO8601Format)}
 	err = addHistory1.AddEvent(ctx, ev1_2)
 	assert.NoError(t, err)
 
 	// add events for thing 2, temperature and humidity
-	addHistory2, _ := store.CapAddHistory(ctx, device1, thing2Addr)
+	addHistory2, _ := store.CapAddHistory(ctx, device1, publisherID, thing2ID)
 	// add thing2 humidity from 5 minutes ago
-	ev2_1 := &thing.ThingValue{ThingAddr: thing2Addr, Name: evHumidity,
+	ev2_1 := &thing.ThingValue{PublisherID: publisherID, ThingID: thing2ID, Name: evHumidity,
 		ValueJSON: []byte("50"), Created: fivemago.Format(vocab.ISO8601Format)}
 	err = addHistory2.AddEvent(ctx, ev2_1)
 	assert.NoError(t, err)
 
 	// add thing2 temperature from 55 minutes ago
-	ev2_2 := &thing.ThingValue{ThingAddr: thing2Addr, Name: evTemperature,
+	ev2_2 := &thing.ThingValue{PublisherID: publisherID, ThingID: thing2ID, Name: evTemperature,
 		ValueJSON: []byte("17.5"), Created: fiftyfivemago.Format(vocab.ISO8601Format)}
 	err = addHistory2.AddEvent(ctx, ev2_2)
 	assert.NoError(t, err)
@@ -257,7 +259,7 @@ func TestAddGetEvent(t *testing.T) {
 	timeafter = time.Now().Add(-time.Minute * 300).Format(vocab.ISO8601Format)
 	res1, valid := cursor1.Seek(timeafter)
 	if assert.True(t, valid) {
-		assert.Equal(t, thing1Addr, res1.ThingAddr)
+		assert.Equal(t, thing1ID, res1.ThingID)
 		assert.Equal(t, evHumidity, res1.Name)
 		// next finds the temperature from 5 minutes ago
 		res1, valid = cursor1.Next()
@@ -271,15 +273,15 @@ func TestAddGetEvent(t *testing.T) {
 	//readHistory = store.CapReadHistory()
 	res2, valid := cursor1.Seek(timeafter)
 	if assert.True(t, valid) {
-		assert.Equal(t, thing1Addr, res2.ThingAddr) // must match the filtered id1
-		assert.Equal(t, evTemperature, res2.Name)   // must match evTemperature from 5 minutes ago
+		assert.Equal(t, thing1ID, res2.ThingID)   // must match the filtered id1
+		assert.Equal(t, evTemperature, res2.Name) // must match evTemperature from 5 minutes ago
 		assert.Equal(t, fivemago.Format(vocab.ISO8601Format), res2.Created)
 	}
 	cursor1.Release()
 	cursor1 = nil
 
 	// Test 3: get first temperature of thing 2 - expect 1 result
-	readHistory2, _ := store.CapReadHistory(ctx, device1, thing2Addr)
+	readHistory2, _ := store.CapReadHistory(ctx, device1, publisherID, thing2ID)
 	cursor2 := readHistory2.GetEventHistory(ctx, "")
 	res3, valid := cursor2.First()
 	cursor2.Release()
@@ -290,41 +292,48 @@ func TestAddGetEvent(t *testing.T) {
 
 func TestAddPropertiesEvent(t *testing.T) {
 	logrus.Info("--- TestAddPropertiesEvent ---")
-	const id1 = "urn:" + thingIDPrefix + "0" // matches a percentage of the random things
-	const thing1Addr = "urn:device1/" + id1
+	const clientID = "device0"
+	const thing1ID = "urn:" + thingIDPrefix + "0" // matches a percentage of the random things
+	const publisherID = "urn:device1"
 	const temp1 = "55"
 	store, closeFn := newHistoryService(useTestCapnp)
 
 	ctx := context.Background()
-	addHist, _ := store.CapAddHistory(ctx, id1, thing1Addr)
-	readHist, _ := store.CapReadHistory(ctx, id1, thing1Addr)
+	addHist, _ := store.CapAddHistory(ctx, clientID, publisherID, thing1ID)
+	readHist, _ := store.CapReadHistory(ctx, clientID, publisherID, thing1ID)
 
 	action1 := &thing.ThingValue{
-		ThingAddr: thing1Addr,
-		Name:      vocab.PropNameSwitch,
-		ValueJSON: []byte("on"),
+		PublisherID: publisherID,
+		ThingID:     thing1ID,
+		Name:        vocab.PropNameSwitch,
+		ValueJSON:   []byte("on"),
 	}
 	event1 := &thing.ThingValue{
-		ThingAddr: thing1Addr,
-		Name:      vocab.PropNameTemperature,
-		ValueJSON: []byte(temp1),
+		PublisherID: publisherID,
+		ThingID:     thing1ID,
+		Name:        vocab.PropNameTemperature,
+		ValueJSON:   []byte(temp1),
 	}
 	badEvent1 := &thing.ThingValue{
-		ThingAddr: thing1Addr,
-		Name:      "", // missing name
+		PublisherID: publisherID,
+		ThingID:     thing1ID,
+		Name:        "", // missing name
 	}
 	badEvent2 := &thing.ThingValue{
-		ThingAddr: "fake", // wrong ID
-		Name:      "name",
+		PublisherID: publisherID,
+		ThingID:     "fake", // wrong ID
+		Name:        "name",
 	}
 	badEvent3 := &thing.ThingValue{
-		ThingAddr: thing1Addr,
-		Name:      "baddate",
-		Created:   "notadate",
+		PublisherID: publisherID,
+		ThingID:     thing1ID,
+		Name:        "baddate",
+		Created:     "notadate",
 	}
 	badEvent4 := &thing.ThingValue{
-		ThingAddr: "", // missing ID
-		Name:      "temperature",
+		PublisherID: publisherID,
+		ThingID:     "", // missing ID
+		Name:        "temperature",
 	}
 	propsList := make(map[string][]byte)
 	propsList[vocab.PropNameBattery] = []byte("50")
@@ -332,9 +341,10 @@ func TestAddPropertiesEvent(t *testing.T) {
 	propsList[vocab.PropNameSwitch] = []byte("off")
 	propsValue, _ := json.Marshal(propsList)
 	props1 := &thing.ThingValue{
-		ThingAddr: thing1Addr,
-		Name:      history.EventNameProperties,
-		ValueJSON: propsValue,
+		PublisherID: publisherID,
+		ThingID:     thing1ID,
+		Name:        history.EventNameProperties,
+		ValueJSON:   propsValue,
 	}
 
 	// in total add 5 properties
@@ -383,7 +393,7 @@ func TestAddPropertiesEvent(t *testing.T) {
 	assert.NoError(t, err)
 
 	// after closing and reopen the store the properties should still be there
-	readHist, _ = svc.CapReadHistory(ctx, id1, thing1Addr)
+	readHist, _ = svc.CapReadHistory(ctx, clientID, publisherID, thing1ID)
 	props = readHist.GetProperties(ctx, []string{vocab.PropNameTemperature, vocab.PropNameSwitch})
 	assert.Equal(t, 2, len(props))
 	assert.Equal(t, props[0].Name, vocab.PropNameTemperature)
@@ -400,8 +410,9 @@ func TestAddPropertiesEvent(t *testing.T) {
 func TestGetLatest(t *testing.T) {
 	logrus.Info("--- TestGetLatest ---")
 	const count = 1000
-	const id1 = thingIDPrefix + "0" // matches a percentage of the random things
-	const thing1Addr = "urn:device1/" + id1
+	const clientID = "client1"
+	const publisherID = "urn:device1"
+	const thing1ID = thingIDPrefix + "0" // matches a percentage of the random things
 	store, closeFn := newHistoryService(useTestCapnp)
 	defer closeFn()
 
@@ -411,7 +422,7 @@ func TestGetLatest(t *testing.T) {
 	// TODO: use different timezones
 	highestFromAdded := addHistory(store, count, 1, 3600*24*30)
 
-	readHistory, _ := store.CapReadHistory(ctx, id1, thing1Addr)
+	readHistory, _ := store.CapReadHistory(ctx, clientID, publisherID, thing1ID)
 	values := readHistory.GetProperties(ctx, nil)
 	cursor := readHistory.GetEventHistory(ctx, "")
 	readHistory.Release()
@@ -442,8 +453,9 @@ func TestGetLatest(t *testing.T) {
 func TestPrevNext(t *testing.T) {
 	logrus.Info("--- TestPrevNext ---")
 	const count = 1000
-	const id0 = thingIDPrefix + "0" // matches a percentage of the random things
-	const thing0Addr = "urn:device1/" + id0
+	const clientID = "client1"
+	const thing0ID = thingIDPrefix + "0" // matches a percentage of the random things
+	const publisherID = "urn:device1"
 	store, closeFn := newHistoryService(useTestCapnp)
 	defer closeFn()
 
@@ -453,7 +465,7 @@ func TestPrevNext(t *testing.T) {
 	// TODO: use different timezones
 	_ = addHistory(store, count, 1, 3600*24*30)
 
-	readHistory, _ := store.CapReadHistory(ctx, id0, thing0Addr)
+	readHistory, _ := store.CapReadHistory(ctx, clientID, publisherID, thing0ID)
 	cursor := readHistory.GetEventHistory(ctx, "")
 	readHistory.Release()
 	readHistory = nil
@@ -498,8 +510,9 @@ func TestPrevNext(t *testing.T) {
 func TestPrevNextFiltered(t *testing.T) {
 	logrus.Info("--- TestPrevNextFiltered ---")
 	const count = 1000
-	const id0 = thingIDPrefix + "0" // matches a percentage of the random things
-	const thing0Addr = "urn:device1/" + id0
+	const publisherID = "urn:device1"
+	const thing0ID = thingIDPrefix + "0" // matches a percentage of the random things
+	const clientID = "client1"
 	store, closeFn := newHistoryService(useTestCapnp)
 	defer closeFn()
 
@@ -510,7 +523,7 @@ func TestPrevNextFiltered(t *testing.T) {
 	_ = addHistory(store, count, 1, 3600*24*30)
 	propName := names[2] // names used to generate the history
 
-	readHistory, _ := store.CapReadHistory(ctx, id0, thing0Addr)
+	readHistory, _ := store.CapReadHistory(ctx, clientID, publisherID, thing0ID)
 	values := readHistory.GetProperties(ctx, []string{propName})
 	cursor := readHistory.GetEventHistory(ctx, propName)
 	readHistory.Release()
@@ -563,6 +576,9 @@ func TestPrevNextFiltered(t *testing.T) {
 
 func TestGetInfo(t *testing.T) {
 	logrus.Info("--- TestGetInfo ---")
+	const publisherID = "urn:device1"
+	const thing0ID = thingIDPrefix + "0"
+
 	store, stopFn := newHistoryService(useTestCapnp)
 	defer stopFn()
 	addHistory(store, 1000, 5, 1000)
@@ -571,7 +587,7 @@ func TestGetInfo(t *testing.T) {
 	//info := store.Info(ctx)
 	//t.Logf("Store ID:%s, records:%d", info.Id, info.NrRecords)
 
-	readHistory, _ := store.CapReadHistory(ctx, "test", thingIDPrefix+"0")
+	readHistory, _ := store.CapReadHistory(ctx, "test", publisherID, thing0ID)
 	defer readHistory.Release()
 
 	info := readHistory.Info(ctx)

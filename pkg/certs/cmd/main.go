@@ -27,15 +27,13 @@ func main() {
 	var caKey *ecdsa.PrivateKey
 	var err error
 
-	f := svcconfig.LoadServiceConfig(certs.ServiceName, false, nil)
+	f, _, caCert := svcconfig.LoadServiceConfig(certs.ServiceName, false, nil)
 	// This service needs the CA certificate and key to operate
-	caCertPath := path.Join(f.Certs, hubapi.DefaultCaCertFile)
 	caKeyPath := path.Join(f.Certs, hubapi.DefaultCaKeyFile)
 
 	logrus.Infof("Loading CA certificate and key from %s", f.Certs)
-	caCert, err = certsclient.LoadX509CertFromPEM(caCertPath)
-	if err != nil {
-		logrus.Fatalf("Error loading CA certificate from '%s': %v", caCertPath, err)
+	if caCert == nil {
+		logrus.Fatalf("Error loading CA certificate : %v", err)
 	}
 	caKey, err = certsclient.LoadKeysFromPEM(caKeyPath)
 	if err != nil {

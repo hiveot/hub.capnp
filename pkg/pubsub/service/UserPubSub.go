@@ -22,20 +22,20 @@ type UserPubSub struct {
 
 // PubAction publishes an action by the user to a thing
 func (cap *UserPubSub) PubAction(
-	_ context.Context, thingAddr, actionName string, value []byte) (err error) {
+	_ context.Context, publisherID, thingID, actionName string, value []byte) (err error) {
 
-	topic := MakeThingTopic(thingAddr, pubsub.MessageTypeAction, actionName)
-	tv := thing.NewThingValue(thingAddr, actionName, value)
+	topic := MakeThingTopic(publisherID, thingID, pubsub.MessageTypeAction, actionName)
+	tv := thing.NewThingValue(publisherID, thingID, actionName, value)
 	// note that marshal will copy the values so changes to the buffer containing value will not affect it
 	message, _ := json.Marshal(tv)
 	cap.core.Publish(topic, message)
 	return
 }
 
-func (cap *UserPubSub) subMessage(thingAddr, msgType, name string,
+func (cap *UserPubSub) subMessage(publisherID, thingID, msgType, name string,
 	handler func(msgValue *thing.ThingValue)) error {
 
-	subTopic := MakeThingTopic(thingAddr, msgType, name)
+	subTopic := MakeThingTopic(publisherID, thingID, msgType, name)
 
 	subID, err := cap.core.Subscribe(subTopic,
 		func(topic string, message []byte) {
@@ -62,10 +62,10 @@ func (cap *UserPubSub) subMessage(thingAddr, msgType, name string,
 //	publisherID publisher of the event. Use "" to subscribe to all publishers
 //	thingID of the publisher event. Use "" to subscribe to events from all Things
 //	eventName of the event. Use "" to subscribe to all events of publisher things
-func (cap *UserPubSub) SubEvent(ctx context.Context, thingAddr, eventName string,
+func (cap *UserPubSub) SubEvent(ctx context.Context, publisherID, thingID, eventName string,
 	handler func(event *thing.ThingValue)) (err error) {
 
-	err = cap.subMessage(thingAddr, pubsub.MessageTypeEvent, eventName, handler)
+	err = cap.subMessage(publisherID, thingID, pubsub.MessageTypeEvent, eventName, handler)
 	return err
 }
 
@@ -75,7 +75,7 @@ func (cap *UserPubSub) SubEvent(ctx context.Context, thingAddr, eventName string
 //		handler is a callback invoked when a TD is received from a thing's publisher
 func (cap *UserPubSub) SubTDs(_ context.Context, handler func(event *thing.ThingValue)) (err error) {
 
-	err = cap.subMessage("", pubsub.MessageTypeTD, "+", handler)
+	err = cap.subMessage("", "", pubsub.MessageTypeTD, "", handler)
 	return
 }
 

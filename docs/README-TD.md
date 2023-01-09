@@ -7,20 +7,21 @@ Interpreting this specification is done as a best effort. In case where discrepa
 
 The WoT specification is closer to a framework than an application. As such it doesn't dictate how an application should use it. This document describes how the HiveOT information model and behavior maps to the WoT TD.
 
-# HiveOT IoT Device Model
+# HiveOT IoT Model
 
-## I/O Devices, Gateways and Publishers are IoT 'Things'
+## I/O Devices, Gateways, Publishers, Services are IoT 'Things'
 
-Most IoT devices are pieces of hardware that have embedded software that manages its behavior. Virtual IoT devices are build with software only but are otherwise considered identical to hardware devices.
+Most IoT 'things' are pieces of hardware that have embedded software that manages its behavior. Virtual IoT devices are build with software only but are otherwise considered identical to hardware devices. Services can also be provided as Things.
 
 IoT devices often fulfill multiple roles: a part provides network access, a part provides access to inputs and outputs, a part reports its state, and a part that manages its configuration.
 
-HiveOT makes the following distinction based on the primary role of the device. These are identified by their device type:
+HiveOT makes the following distinction based on the primary role of the device. These are identified by their device type as provided in the TD @type field and defined in the HiveOT vocabulary.
 
-* A gateway is a Thing that provides access to other independent Things. A Z-Wave controller USB-stick is a gateway that uses the Z-Wave protocol to connect to I/O devices. A gateway is independent of the Things it provides access to and can have its own inputs or outputs. Gateways are often used when integrating with non-HiveOT Things.
-* A publisher is a Thing that publishes Thing information to the HiveOT Hub. Publishers have a publishing ID that is included as part of the Thing ID of all Things that it publishes. A publisher has authorization to publish and subscribe to the things it is the publisher of.
-* An I/O device is Thing whose primary role is to provide access to inputs and outputs and has its own attributes and configuration. 
+* A gateway is a Thing that provides access to other Things. A Z-Wave controller USB-stick is a gateway that uses the Z-Wave protocol to connect to I/O devices. A gateway is independent of the Things it provides access to and can have its own inputs or outputs. 
+* A publisher is a Thing that publishes Thing information to the HiveOT Hub. A publisher has authorization to publish and subscribe to the things it is the publisher of. For example, a gateway is the publisher of the Things obtained through the gateway. 
+* An I/O device or service is Thing whose primary role is to provide access to inputs and outputs and has its own attributes and configuration. 
 * A Hub bridge is a device that connects two Hubs and shares Thing information between them.
+* A service is software that performs a task in the IoT ecosystem. For example, a directory service stores TD documents. Services are also Things.  
 
 ## Thing Description Document (TD)
 
@@ -32,25 +33,26 @@ The TD consists of a set of attributes and properties that HiveOT uses to descri
 
 TD Attributes that HiveOT uses are as follows. Attributes marked here as optional in WoT are recommended in HiveOT:
 
-| name               | mandatory | description                                     |
-|--------------------|-----------|-------------------------------------------------|
-| @context           | mandatory | "http://www.w3.org/ns/td"                       |
-| id                 | mandatory | Unique Thing ID following the HiveOT ID format  |
-| title              | mandatory | Human readable description of the Thing         |
-| modified           | optional  | ISO8601 date this document was last updated     |
-| properties         | optional  | Attributes and Configuration objects            |
-| version            | optional  | Thing version as a map of {'instance':version}  |
-| actions            | optional  | Actions objects supported by the Thing          |
-| events             | optional  | Event objects as submitted by the Thing         |
-| security           | mandatory | Protocol dependent security (see note1)         |
-| securityDefinition | mandatory | Protocol dependent security (see note1)         | 
+| name               | mandatory | description                                    |
+|--------------------|-----------|------------------------------------------------|
+| @context           | mandatory | "http://www.w3.org/ns/td"                      |
+| @type              | optional  | Thing type as per vocabulary                   |
+| id                 | optional  | Unique Thing ID                                |
+| title              | mandatory | Human readable description of the Thing        |
+| modified           | optional  | ISO8601 date this document was last updated    |
+| properties         | optional  | Attributes and Configuration objects           |
+| version            | optional  | Thing version as a map of {'instance':version} |
+| actions            | optional  | Actions objects supported by the Thing         |
+| events             | optional  | Event objects as submitted by the Thing        |
+| security           | mandatory | Protocol dependent security (see note1)        |
+| securityDefinition | mandatory | Protocol dependent security (see note1)        | 
 
 note: Consumers do not connect directly to the IoT device and authentication & authorization is handled by the Hub services. As a result the security definitions in the TD depend on the method used to access the HiveOT Hub, not the IoT device.
 
 * HiveOT compatible IoT devices can simply use the 'nosec' security type when creating their TD and use a NoSecurityScheme as securityDefinition.
 * Consumers, which access devices via 'Consumed Things', only need to know how connect to the Hub service. No knowledge of the IoT device protocol is needed.
 
-## HiveOT Thing ID Format
+## HiveOT Thing ID Format (deprecated)
 
 All Things have an ID that is unique to the Hub. To support uniqueness, authorization, and sharing
 with other Hubs, a HiveOT ID is constructed as follows:

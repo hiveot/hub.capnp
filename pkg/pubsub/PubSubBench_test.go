@@ -46,12 +46,12 @@ var BenchParams = []struct {
 // BenchmarkPubSub measures time needed to receive events
 func BenchmarkPubSub(b *testing.B) {
 	ctx := context.Background()
-	const device1 = "device1"
+	const publisherID = "device1ID"
 	rand.Seed(time.Now().UnixNano())
 	for _, tbl := range BenchParams {
 		// setup
 		svc, stopFn := startService(testUseCapnp)
-		capDevice, _ := svc.CapDevicePubSub(ctx, device1)
+		capDevice, _ := svc.CapDevicePubSub(ctx, publisherID)
 		capUser, _ := svc.CapUserPubSub(ctx, "user1")
 
 		// generate thingIDs
@@ -63,9 +63,8 @@ func BenchmarkPubSub(b *testing.B) {
 		var evCount = 0
 		for i := 0; i < tbl.Subscribers; i++ {
 			thingID := thingIDs[rand.Intn(tbl.Things)]
-			thingAddr := thing.MakeThingAddr(device1, thingID)
 			name := vocab.PropNameTemperature
-			err := capUser.SubEvent(ctx, thingAddr, name, func(tv *thing.ThingValue) {
+			err := capUser.SubEvent(ctx, publisherID, thingID, name, func(tv *thing.ThingValue) {
 				//logrus.Infof("received tv thingAddr=%s name=%s", tv.thingAddr, tv.Name)
 				evCount++
 			})
@@ -85,7 +84,7 @@ func BenchmarkPubSub(b *testing.B) {
 						thingID := thingIDs[rand.Intn(tbl.Things)]
 						name := vocab.PropNameTemperature
 						value := []byte("2.5")
-						capDevice.PubEvent(ctx, thingID, name, value)
+						_ = capDevice.PubEvent(ctx, thingID, name, value)
 					}
 					// just an estimate, expect more thant 80% events and less than 120%
 					// depends on ratio nr Things and nrEvents.

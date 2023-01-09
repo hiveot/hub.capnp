@@ -22,7 +22,7 @@ type PubSubCapnpServer struct {
 func (capsrv *PubSubCapnpServer) CapDevicePubSub(
 	ctx context.Context, call hubapi.CapPubSubService_capDevicePubSub) error {
 	args := call.Args()
-	deviceID, _ := args.DeviceID()
+	deviceID, _ := args.PublisherID()
 	deviceSvc, _ := capsrv.svc.CapDevicePubSub(ctx, deviceID)
 
 	capDeviceSvc := NewDevicePubSubCapnpServer(deviceSvc)
@@ -38,7 +38,7 @@ func (capsrv *PubSubCapnpServer) CapServicePubSub(
 	ctx context.Context, call hubapi.CapPubSubService_capServicePubSub) error {
 
 	args := call.Args()
-	serviceID, _ := args.ServiceID()
+	serviceID, _ := args.PublisherID()
 	serviceSvc, _ := capsrv.svc.CapServicePubSub(ctx, serviceID)
 
 	capServiceSvc := NewServicePubSubCapnpServer(serviceSvc)

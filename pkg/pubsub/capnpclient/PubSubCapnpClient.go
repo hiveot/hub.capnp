@@ -22,7 +22,7 @@ func (cl *PubSubCapnpClient) CapDevicePubSub(
 
 	method, release := cl.capability.CapDevicePubSub(ctx,
 		func(params hubapi.CapPubSubService_capDevicePubSub_Params) error {
-			err := params.SetDeviceID(deviceID)
+			err := params.SetPublisherID(deviceID)
 			return err
 		})
 	defer release()
@@ -37,7 +37,7 @@ func (cl *PubSubCapnpClient) CapServicePubSub(
 
 	method, release := cl.capability.CapServicePubSub(ctx,
 		func(params hubapi.CapPubSubService_capServicePubSub_Params) error {
-			err2 := params.SetServiceID(serviceID)
+			err2 := params.SetPublisherID(serviceID)
 			return err2
 		})
 	defer release()

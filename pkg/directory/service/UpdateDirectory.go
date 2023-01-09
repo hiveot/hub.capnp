@@ -24,20 +24,23 @@ type UpdateDirectory struct {
 	bucket bucketstore.IBucket
 }
 
-func (svc *UpdateDirectory) RemoveTD(_ context.Context, thingAddr string) error {
+func (svc *UpdateDirectory) RemoveTD(_ context.Context, publisherID, thingID string) error {
+	thingAddr := publisherID + "/" + thingID
 	err := svc.bucket.Delete(thingAddr)
 	return err
 }
 
-func (svc *UpdateDirectory) UpdateTD(_ context.Context, thingAddr string, td []byte) error {
+func (svc *UpdateDirectory) UpdateTD(_ context.Context, publisherID, thingID string, td []byte) error {
 
 	bucketValue := &thing.ThingValue{
-		ThingAddr: thingAddr,
-		Name:      pubsub.MessageTypeTD,
-		ValueJSON: td,
-		Created:   time.Now().Format(vocab.ISO8601Format),
+		PublisherID: publisherID,
+		ThingID:     thingID,
+		Name:        pubsub.MessageTypeTD,
+		ValueJSON:   td,
+		Created:     time.Now().Format(vocab.ISO8601Format),
 	}
 	bucketData, _ := json.Marshal(bucketValue)
+	thingAddr := publisherID + "/" + thingID
 	err := svc.bucket.Set(thingAddr, bucketData)
 	return err
 }

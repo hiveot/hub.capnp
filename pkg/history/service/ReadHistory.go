@@ -17,7 +17,9 @@ type GetPropertiesFunc func(thingAddr string, names []string) []*thing.ThingValu
 type ReadHistory struct {
 	clientID string
 	// routing address of the thing to read history of
-	thingAddr string
+	publisherID string
+	thingID     string
+	thingAddr   string
 	// The bucket containing the thing data
 	thingBucket bucketstore.IBucket
 
@@ -30,7 +32,7 @@ type ReadHistory struct {
 // name is used to filter on the event/action name. "" to iterate all events.
 func (svc *ReadHistory) GetEventHistory(_ context.Context, name string) history.IHistoryCursor {
 	cursor := svc.thingBucket.Cursor()
-	historyCursor := NewHistoryCursor(svc.thingAddr, name, cursor)
+	historyCursor := NewHistoryCursor(svc.publisherID, svc.thingID, name, cursor)
 	return historyCursor
 }
 
@@ -50,19 +52,21 @@ func (svc *ReadHistory) Info(_ context.Context) *bucketstore.BucketStoreInfo {
 }
 
 // Release closes the bucket
-func (hc *ReadHistory) Release() {
-	_ = hc.thingBucket.Close()
+func (svc *ReadHistory) Release() {
+	_ = svc.thingBucket.Close()
 }
 
 // NewReadHistory returns the capability to read from a thing's history
 //
-//	thingAddr is the Things's full address, usually publisherID/thingID
+//	publisherID, thingID is the address the thing can be reached at
 //	thingBucket is the bucket used to store history data
 //	gePropertiesFunc implements the aggregation of the Thing's most recent property values
-func NewReadHistory(clientID, thingAddr string, thingBucket bucketstore.IBucket, getPropertiesFunc GetPropertiesFunc) *ReadHistory {
+func NewReadHistory(clientID, publisherID, thingID string, thingBucket bucketstore.IBucket, getPropertiesFunc GetPropertiesFunc) *ReadHistory {
 	svc := &ReadHistory{
 		clientID:          clientID,
-		thingAddr:         thingAddr,
+		publisherID:       publisherID,
+		thingID:           thingID,
+		thingAddr:         publisherID + "/" + thingID,
 		thingBucket:       thingBucket,
 		getPropertiesFunc: getPropertiesFunc,
 	}

@@ -62,11 +62,11 @@ func openNewStore() (store bucketstore.IBucketStore, err error) {
 }
 
 // Create a TD document
-func createTD(id string) *thing.ThingDescription {
-	td := &thing.ThingDescription{
+func createTD(id string) *thing.TD {
+	td := &thing.TD{
 		ID:         id,
 		Title:      fmt.Sprintf("test TD %s", id),
-		AtType:     string(vocab.DeviceTypeSensor),
+		DeviceType: vocab.DeviceTypeSensor,
 		Properties: make(map[string]*thing.PropertyAffordance),
 		Events:     make(map[string]*thing.EventAffordance),
 	}

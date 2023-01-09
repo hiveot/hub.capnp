@@ -1,14 +1,19 @@
 package service
 
 import (
+	"fmt"
+
 	"github.com/hiveot/hub/pkg/pubsub"
 )
 
 // MakeThingTopic makes a new topic address for publishing or subscribing to things.
-// Thing address topics are: thingAddress/messageType/name, where thingAddress is publisherID/thingID
-func MakeThingTopic(thingAddr, messageType, name string) string {
-	if thingAddr == "" {
-		thingAddr = "+/+"
+// Thing address topics are: publisherID/thingID/messageType/name
+func MakeThingTopic(publisherID, thingID, messageType, name string) string {
+	if publisherID == "" {
+		publisherID = "+"
+	}
+	if thingID == "" {
+		thingID = "+"
 	}
 	if messageType == "" {
 		messageType = "+"
@@ -16,7 +21,9 @@ func MakeThingTopic(thingAddr, messageType, name string) string {
 	if name == "" {
 		name = "+"
 	}
-	return pubsub.ThingsPrefix + "/" + thingAddr + "/" + messageType + "/" + name
+	topic := fmt.Sprintf("%s/%s/%s/%s/%s",
+		pubsub.ThingsPrefix, publisherID, thingID, messageType, name)
+	return topic
 }
 
 // MakePublisherThingTopic makes a new topic address from gateway and thingID for publishing or subscribing to things.

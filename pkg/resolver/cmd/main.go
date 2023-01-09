@@ -15,7 +15,7 @@ import (
 func main() {
 	//resolverSocketPath := resolver.DefaultResolverPath
 
-	f := svcconfig.LoadServiceConfig(resolver.ServiceName, false, nil)
+	f, _, _ := svcconfig.LoadServiceConfig(resolver.ServiceName, false, nil)
 	svc := service.NewResolverService(f.Run)
 
 	// the resolver uses unix sockets to listen for incoming connections

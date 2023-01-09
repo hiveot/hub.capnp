@@ -8,7 +8,8 @@ import (
 
 type AppFolders struct {
 	Bin        string // Application binary folder, eg launcher, cli, ...
-	Services   string // Services and plugin folder
+	Bindings   string // Bindings folder, use "" to ignore and have everything in services
+	Services   string // Services folder
 	Home       string // Home folder, default this is the parent of bin, config, certs and logs
 	Config     string // Config folder with application and service yaml configuration files
 	Certs      string // Certificates and keys
@@ -23,9 +24,10 @@ type AppFolders struct {
 // The default 'user based' structure is:
 //
 //	home
-//	  |- bin                Application binaries, cli and launcher
-//	      |- services       Service and plugin binaries
-//	  |- config             Service configuration yaml files
+//	  |- bin                Application cli and launcher binaries
+//	      |- bindings       Protocol binding binaries
+//	      |- services       Service binaries
+//	  |- config             Service and binding configuration yaml files
 //	  |- certs              CA and service certificates
 //	  |- logs               Logging output
 //	  |- run                PID files and sockets
@@ -35,7 +37,8 @@ type AppFolders struct {
 // The system based folder structure is:
 //
 //	/opt/hiveot/bin            Application binaries, cli and launcher
-//	             |-- services  Service and plugin binaries
+//	             |-- bindings  Protocol binding binaries
+//	             |-- services  Service binaries
 //	/etc/hiveot/conf.d         Service configuration yaml files
 //	/etc/hiveot/certs          CA and service certificates
 //	/var/log/hiveot            Logging output
@@ -52,6 +55,8 @@ func GetFolders(homeFolder string, useSystem bool) AppFolders {
 		cwd := filepath.Dir(os.Args[0])
 		if strings.HasSuffix(cwd, "services") {
 			homeFolder = filepath.Join(cwd, "..", "..")
+		} else if strings.HasSuffix(cwd, "bindings") {
+			homeFolder = filepath.Join(cwd, "..", "..")
 		} else if strings.HasSuffix(cwd, "bin") {
 			homeFolder = filepath.Join(cwd, "..")
 		} else {
@@ -61,6 +66,7 @@ func GetFolders(homeFolder string, useSystem bool) AppFolders {
 	}
 	//logrus.Infof("homeFolder is '%s", homeFolder)
 	binFolder := filepath.Join(homeFolder, "bin")
+	bindingsFolder := filepath.Join(binFolder, "bindings")
 	servicesFolder := filepath.Join(binFolder, "services")
 	configFolder := filepath.Join(homeFolder, "config")
 	certsFolder := filepath.Join(homeFolder, "certs")
@@ -71,6 +77,7 @@ func GetFolders(homeFolder string, useSystem bool) AppFolders {
 	if useSystem {
 		homeFolder = filepath.Join("/opt", "hiveot")
 		binFolder = homeFolder
+		bindingsFolder = filepath.Join(binFolder, "bindings")
 		servicesFolder = filepath.Join(binFolder, "services")
 		configFolder = filepath.Join("/etc", "hiveot", "conf.d")
 		certsFolder = filepath.Join("/etc", "hiveot", "certs")
@@ -81,6 +88,7 @@ func GetFolders(homeFolder string, useSystem bool) AppFolders {
 
 	return AppFolders{
 		Bin:      binFolder,
+		Bindings: bindingsFolder,
 		Services: servicesFolder,
 		Home:     homeFolder,
 		Config:   configFolder,

@@ -4,10 +4,11 @@ package state
 import (
 	"context"
 
+	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/pkg/bucketstore"
 )
 
-const ServiceName = "state"
+const ServiceName = hubapi.StateServiceName
 
 // CollectionStatus holds the status of the requested collection
 //type CollectionStatus struct {

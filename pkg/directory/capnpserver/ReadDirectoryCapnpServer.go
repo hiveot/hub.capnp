@@ -33,8 +33,9 @@ func (capsrv *ReadDirectoryCapnpServer) GetTD(ctx context.Context, call hubapi.C
 	var tv *thing.ThingValue
 
 	args := call.Args()
-	thingAddr, _ := args.ThingAddr()
-	tv, err = capsrv.srv.GetTD(ctx, thingAddr)
+	publisherID, _ := args.PublisherID()
+	thingID, _ := args.ThingID()
+	tv, err = capsrv.srv.GetTD(ctx, publisherID, thingID)
 	if err == nil {
 		res, err2 := call.AllocResults()
 		err = err2

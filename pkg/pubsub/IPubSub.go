@@ -3,10 +3,11 @@ package pubsub
 import (
 	"context"
 
+	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/lib/thing"
 )
 
-const ServiceName = "pubsub"
+const ServiceName = hubapi.PubsubServiceName
 
 // A note on pubsub addressing:
 // Any IoT device or service that publishes Thing events and listens for actions is a gateway
@@ -45,17 +46,17 @@ type IPubSubService interface {
 
 	// CapDevicePubSub provides the capability to pub/sub thing information as an IoT device.
 	// The issuer must only provide this capability after verifying the device ID.
-	// The deviceID is the thingID of the device requesting the capability.
-	CapDevicePubSub(ctx context.Context, deviceID string) (IDevicePubSub, error)
+	// The publisherID is the thingID of the device publishing thing information
+	CapDevicePubSub(ctx context.Context, publisherID string) (IDevicePubSub, error)
 
 	// CapServicePubSub provides the capability to pub/sub thing information as a hub service.
 	// Hub services can publish their own information and receive events from any thing.
-	// The serviceID is the thingID of the service requesting the capability.
-	CapServicePubSub(ctx context.Context, serviceID string) (IServicePubSub, error)
+	//  The serviceID is the publisherID of the things published by the service
+	CapServicePubSub(ctx context.Context, publisherID string) (IServicePubSub, error)
 
 	// CapUserPubSub provides the capability for an end-user to publish or subscribe to messages.
 	// The caller must authenticate the user and provide appropriate configuration.
-	//  userID is the login ID of an authenticated user
+	//  userID is the login ID of an authenticated user and is used as the publisherID
 	CapUserPubSub(ctx context.Context, userID string) (IUserPubSub, error)
 }
 
@@ -82,12 +83,14 @@ type IDevicePubSub interface {
 	// Release the capability and end subscriptions
 	Release()
 
-	// SubAction creates a topic and registers a listener for actions to things with this gateway.
+	// SubAction creates a topic and registers a listener for actions to things with this device.
 	// This supports receiving queued messages for this gateway since it last disconnected.
-	//  thingID is the thing to subscribe for, or "" to subscribe to all things of this gateway
+	//  thingID is the ID of the Thing whose action to subscribe to, or "" for all
+	//   things of the publisher.
 	//  name is the action name, or "" to subscribe to all actions
 	//  handler will be invoked when an action is received for this device
-	SubAction(ctx context.Context, thingID string, name string,
+	SubAction(ctx context.Context,
+		thingID string, name string,
 		handler func(action *thing.ThingValue)) (err error)
 }
 
@@ -105,11 +108,15 @@ type IServicePubSub interface {
 	// Services can subscribe to other actions for logging, automation and other use-cases.
 	// For subscribing to service directed actions, use SubAction.
 	//
-	//  thingAddr of the action target. Use "" to subscribe to all Things
+	//  publisherID is the ID of the publisher that is receiving the actions.
+	//   normally that would be the serviceID but services can also subscribe
+	//   to actions send to other things.
+	//  thingID is the ID of the Thing whose action to subscribe to or "" for
+	//   all things published by the publisher.
 	//  actionName or "" to subscribe to all actions
 	//  handler is a callback invoked when actions are received
 	SubActions(ctx context.Context,
-		thingAddr string,
+		publisherID, thingID string,
 		actionName string,
 		handler func(action *thing.ThingValue)) (err error)
 
@@ -122,16 +129,20 @@ type IUserPubSub interface {
 	// PubAction publishes an action request for a Thing.
 	// Authorization will only allow actions to be published for things that are in the same group as the user
 	// and for which the user has the operator or manager role.
-	//  thingAddr is the address of the Thing whose action is being requested
+	// It is recommended that the Thing sends an event to indicate the result of the action.
+	//
+	//  publisherID is the ID of the device or service that is publishing the thing
+	//  thingID is the ID of the Thing whose action is being requested
 	//  name is the action name as defined in the Thing's TD
 	//  value is the JSON encoded value of the action
-	//PubAction(ctx context.Context, action *thing.ThingValue) (err error)
-	PubAction(ctx context.Context, thingAddr, actionName string, value []byte) (err error)
+	// This returns an error if the action request could not be delivered.
+	PubAction(ctx context.Context, publisherID, thingID, actionName string, value []byte) (err error)
 
 	// SubEvent subscribes to events from a thing
-	//  thingAddr to subscribe to.
+	//  publisherID is the ID of the device or service that is publishing the thing event.
+	//  thingID is the ID of the Thing whose event is published.
 	//  eventName of the event. Use "" to subscribe to all events of the things.
-	SubEvent(ctx context.Context, thingAddr, eventName string,
+	SubEvent(ctx context.Context, publisherID, thingID, eventName string,
 		handler func(event *thing.ThingValue)) error
 
 	// SubTDs subscribes to eligible TD events

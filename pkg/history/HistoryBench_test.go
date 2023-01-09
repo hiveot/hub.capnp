@@ -98,7 +98,8 @@ var DataSizeTable = []struct {
 }
 
 func BenchmarkAddEvents(b *testing.B) {
-	const id0 = "thing-0"
+	const publisherID = "urn:device0"
+	const thing0ID = "thing-0"
 	const timespanSec = 3600 * 24 * 10
 
 	logging.SetLogging("error", "")
@@ -111,8 +112,8 @@ func BenchmarkAddEvents(b *testing.B) {
 		addHistory(store, tbl.dataSize, 10, timespanSec)
 
 		updateAnyHistory, _ := store.CapAddAnyThing(ctx, "test")
-		updateHistory, _ := store.CapAddHistory(ctx, "test", id0)
-		readHistory, _ := store.CapReadHistory(ctx, "test", id0)
+		updateHistory, _ := store.CapAddHistory(ctx, "test", publisherID, thing0ID)
+		readHistory, _ := store.CapReadHistory(ctx, "test", publisherID, thing0ID)
 
 		// test adding records one by one
 		b.Run(fmt.Sprintf("[dbsize:%d] #things:%d add-single:%d", tbl.dataSize, tbl.nrThings, tbl.nrSets),

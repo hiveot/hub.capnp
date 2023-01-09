@@ -18,12 +18,13 @@ type ServicePubSubCapnpServer struct {
 func (capsrv *ServicePubSubCapnpServer) SubActions(
 	ctx context.Context, call hubapi.CapServicePubSub_subActions) error {
 	args := call.Args()
-	thingAddr, _ := args.ThingAddr()
+	thingID, _ := args.ThingID()
+	publisherID, _ := args.PublisherID()
 	name, _ := args.ActionName()
 	handlerCap := args.Handler()
 	handlerClient := NewSubscriptionHandlerCapnpClient(handlerCap.AddRef())
 	// the server registers the callback handler and invokes it when actions for the Thing are received
-	err := capsrv.svc.SubActions(ctx, thingAddr, name, handlerClient.HandleValue)
+	err := capsrv.svc.SubActions(ctx, publisherID, thingID, name, handlerClient.HandleValue)
 	return err
 }
 

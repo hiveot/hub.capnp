@@ -17,7 +17,7 @@ func main() {
 	// get defaults
 	f := svcconfig.GetFolders("", false)
 	authServiceConfig := config.NewAuthnConfig(f.Stores)
-	f = svcconfig.LoadServiceConfig(authn.ServiceName, false, &authServiceConfig)
+	f, _, _ = svcconfig.LoadServiceConfig(authn.ServiceName, false, &authServiceConfig)
 
 	svc := service.NewAuthnService(authServiceConfig)
 

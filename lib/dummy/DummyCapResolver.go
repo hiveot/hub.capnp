@@ -22,7 +22,7 @@ func (dummy *DummyCapResolver) GetCapability(ctx context.Context,
 	return cl, nil
 }
 
-func (dummy *DummyCapResolver) ListCapabilities(ctx context.Context) (capInfo []resolver.CapabilityInfo, err error) {
+func (dummy *DummyCapResolver) ListCapabilities(ctx context.Context, clientType string) (capInfo []resolver.CapabilityInfo, err error) {
 	return nil, nil
 }
 

@@ -28,10 +28,10 @@ type ServicePubSub struct {
 //	actionName or "" to subscribe to all actions
 //	handler is a callback invoked when actions are received
 func (cap *ServicePubSub) SubActions(
-	ctx context.Context, thingAddr string, actionName string,
+	_ context.Context, publisherID, thingID, actionName string,
 	handler func(action *thing.ThingValue)) (err error) {
 
-	err = cap.UserPubSub.subMessage(thingAddr, pubsub.MessageTypeAction, actionName, handler)
+	err = cap.UserPubSub.subMessage(publisherID, thingID, pubsub.MessageTypeAction, actionName, handler)
 	return
 }
 

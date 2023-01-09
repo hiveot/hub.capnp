@@ -20,7 +20,7 @@ import (
 // Serve will take ownership of bootstrap client and release it after the listener closes.
 //
 // Serve exits with the listener error if the listener is closed by the owner.
-func Serve(lis net.Listener, boot capnp.Client, onConnection func(rpcConn *rpc.Conn)) error {
+func Serve(serviceID string, lis net.Listener, boot capnp.Client, onConnection func(rpcConn *rpc.Conn)) error {
 
 	if !boot.IsValid() {
 		err := errors.New("BootstrapClient is not valid")
@@ -36,8 +36,8 @@ func Serve(lis net.Listener, boot capnp.Client, onConnection func(rpcConn *rpc.C
 		}
 		connID := GetConnectionID(conn)
 
-		logrus.Infof("New connection from remote client: %s. ID=%s",
-			conn.RemoteAddr().String(), connID)
+		logrus.Infof("New connection to '%s' from remote client: %s. ID=%s",
+			serviceID, conn.RemoteAddr().String(), connID)
 
 		// the RPC connection takes ownership of the bootstrap interface and will release it when the connection
 		// exits, so use AddRef to avoid releasing the provided bootstrap client capability.
@@ -119,7 +119,7 @@ func Serve(lis net.Listener, boot capnp.Client, onConnection func(rpcConn *rpc.C
 // and "tcp" for regular TCP IP4 or IP6 connections.
 //
 // ListenAndServe will take ownership of bootstrapClient and release it on exit.
-func ListenAndServe(ctx context.Context, network, addr string, bootstrapClient capnp.Client) error {
+func ListenAndServe(ctx context.Context, serviceID string, network, addr string, bootstrapClient capnp.Client) error {
 
 	listener, err := net.Listen(network, addr)
 
@@ -129,7 +129,7 @@ func ListenAndServe(ctx context.Context, network, addr string, bootstrapClient c
 			<-ctx.Done()
 			_ = listener.Close()
 		}()
-		err = Serve(listener, bootstrapClient, nil)
+		err = Serve(serviceID, listener, bootstrapClient, nil)
 	}
 	return err
 }
@@ -142,7 +142,7 @@ func ListenAndServe(ctx context.Context, network, addr string, bootstrapClient c
 // serverCert is this server's TLS certificate, signed by the CA.
 // caCert is the CA certificate that has signed the server certificate
 func ListenAndServeTLS(ctx context.Context,
-	lis net.Listener, boot capnp.Client,
+	serviceID string, lis net.Listener, boot capnp.Client,
 	serverCert *tls.Certificate, caCert *x509.Certificate) (err error) {
 
 	tlsLis := listener.CreateTLSListener(lis, serverCert, caCert)
@@ -152,7 +152,7 @@ func ListenAndServeTLS(ctx context.Context,
 		<-ctx.Done()
 		_ = tlsLis.Close()
 	}()
-	err = Serve(tlsLis, boot, nil)
+	err = Serve(serviceID, tlsLis, boot, nil)
 
 	return err
 }

@@ -94,7 +94,8 @@ func (srv *PropertiesStore) GetProperties(thingAddr string, names []string) (pro
 // isAction indicates the value is an action.
 func (srv *PropertiesStore) HandleAddValue(event *thing.ThingValue, isAction bool) {
 	// ensure the Thing has its properties cache loaded
-	srv.LoadProps(event.ThingAddr)
+	thingAddr := event.PublisherID + "/" + event.ThingID
+	srv.LoadProps(thingAddr)
 
 	srv.cacheMux.Lock()
 	defer srv.cacheMux.Unlock()
@@ -104,7 +105,7 @@ func (srv *PropertiesStore) HandleAddValue(event *thing.ThingValue, isAction boo
 	if isAction {
 		return
 	}
-	thingCache, _ := srv.cache[event.ThingAddr]
+	thingCache, _ := srv.cache[thingAddr]
 
 	if event.Name == history.EventNameProperties {
 		// this is a properties event that holds a map of property name:values
@@ -115,7 +116,7 @@ func (srv *PropertiesStore) HandleAddValue(event *thing.ThingValue, isAction boo
 		}
 		// turn each value into a ThingValue object
 		for propName, propValue := range props {
-			tv := thing.NewThingValue(event.ThingAddr, propName, propValue)
+			tv := thing.NewThingValue(event.PublisherID, event.ThingID, propName, propValue)
 			tv.Created = event.Created
 
 			// in case events arrive out of order, only update if the event is newer
@@ -133,7 +134,7 @@ func (srv *PropertiesStore) HandleAddValue(event *thing.ThingValue, isAction boo
 			thingCache[event.Name] = event
 		}
 	}
-	srv.changedThings[event.ThingAddr] = true
+	srv.changedThings[thingAddr] = true
 }
 
 // SaveChanges writes modified cached properties to the underlying store.
@@ -142,7 +143,7 @@ func (srv *PropertiesStore) SaveChanges() (err error) {
 
 	// try to minimize the lock time for each Thing
 	// start with using a read lock to collect the addresses of Things that changed
-	var changedThings = []string{}
+	var changedThings = make([]string, 0)
 	srv.cacheMux.RLock()
 	for thingAddr, hasChanged := range srv.changedThings {
 		if hasChanged {

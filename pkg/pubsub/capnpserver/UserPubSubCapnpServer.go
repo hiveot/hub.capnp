@@ -17,21 +17,23 @@ func (capsrv *UserPubSubCapnpServer) PubAction(
 	ctx context.Context, call hubapi.CapUserPubSub_pubAction) error {
 
 	args := call.Args()
-	thingAddr, _ := args.ThingAddr()
+	thingID, _ := args.ThingID()
+	publisherID, _ := args.PublisherID()
 	name, _ := args.ActionName()
 	value, _ := args.Value()
-	err := capsrv.svc.PubAction(ctx, thingAddr, name, value)
+	err := capsrv.svc.PubAction(ctx, publisherID, thingID, name, value)
 	return err
 }
 
 func (capsrv *UserPubSubCapnpServer) SubEvent(
 	ctx context.Context, call hubapi.CapUserPubSub_subEvent) error {
 	args := call.Args()
-	thingAddr, _ := args.ThingAddr()
+	thingID, _ := args.ThingID()
+	publisherID, _ := args.PublisherID()
 	name, _ := args.EventName()
 	handlerCap := args.Handler()
 	handler := NewSubscriptionHandlerCapnpClient(handlerCap.AddRef())
-	err := capsrv.svc.SubEvent(ctx, thingAddr, name, handler.HandleValue)
+	err := capsrv.svc.SubEvent(ctx, publisherID, thingID, name, handler.HandleValue)
 	return err
 }
 

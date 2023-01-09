@@ -53,7 +53,8 @@ func (svc *AddAnyThing) encodeValue(thingValue *thing.ThingValue, isAction bool)
 // value is json encoded. Optionally include a 'created' ISO8601 timestamp
 func (svc *AddAnyThing) AddAction(_ context.Context, actionValue *thing.ThingValue) error {
 	key, val := svc.encodeValue(actionValue, true)
-	bucket := svc.store.GetBucket(actionValue.ThingAddr)
+	thingAddr := actionValue.PublisherID + "/" + actionValue.ThingID
+	bucket := svc.store.GetBucket(thingAddr)
 	err := bucket.Set(key, val)
 	_ = bucket.Close()
 	if svc.onAddedValue != nil {
@@ -69,7 +70,8 @@ func (svc *AddAnyThing) AddEvent(_ context.Context, eventValue *thing.ThingValue
 		eventValue.Created = time.Now().Format(vocab.ISO8601Format)
 	}
 	key, val := svc.encodeValue(eventValue, false)
-	bucket := svc.store.GetBucket(eventValue.ThingAddr)
+	thingAddr := eventValue.PublisherID + "/" + eventValue.ThingID
+	bucket := svc.store.GetBucket(thingAddr)
 	err := bucket.Set(key, val)
 	_ = bucket.Close()
 	if svc.onAddedValue != nil {
@@ -91,10 +93,11 @@ func (svc *AddAnyThing) AddEvents(ctx context.Context, eventValues []*thing.Thin
 	kvpairsByThingAddr := make(map[string]map[string][]byte)
 	for _, eventValue := range eventValues {
 		// kvpairs hold a map of storage encoded value key and value
-		kvpairs, found := kvpairsByThingAddr[eventValue.ThingAddr]
+		thingAddr := eventValue.PublisherID + "/" + eventValue.ThingID
+		kvpairs, found := kvpairsByThingAddr[thingAddr]
 		if !found {
 			kvpairs = make(map[string][]byte, 0)
-			kvpairsByThingAddr[eventValue.ThingAddr] = kvpairs
+			kvpairsByThingAddr[thingAddr] = kvpairs
 		}
 		key, value := svc.encodeValue(eventValue, false)
 		kvpairs[key] = value

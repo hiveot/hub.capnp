@@ -49,7 +49,7 @@ func DirectoryListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comm
 func HandleListDirectory(ctx context.Context, f svcconfig.AppFolders, limit int, offset int) error {
 	var dir directory.IDirectory
 	var rd directory.IReadDirectory
-	var tdDoc thing.ThingDescription
+	var tdDoc thing.TD
 
 	conn, err := listener.CreateLocalClientConnection(directory.ServiceName, f.Run)
 	if err == nil {
@@ -61,8 +61,8 @@ func HandleListDirectory(ctx context.Context, f svcconfig.AppFolders, limit int,
 	}
 
 	cursor := rd.Cursor(ctx)
-	fmt.Println("Thing ID                            Modified                       type       props  events  actions")
-	fmt.Println("--------                            -------                        ----       -----  ------  -------")
+	fmt.Println("PublisherID    Thing ID              Modified                       type       props  events  actions")
+	fmt.Println("-----------    ---------------       -------                        ----       -----  ------  -------")
 	i := 0
 	tv, valid := cursor.First()
 	if offset > 0 {
@@ -77,11 +77,12 @@ func HandleListDirectory(ctx context.Context, f svcconfig.AppFolders, limit int,
 			logrus.Infof("Parsing time failed '%s': %s", tdDoc.Modified, err)
 		}
 
-		fmt.Printf("%-35s %-30s %-10s %5d\n",
+		fmt.Printf("%-15s %-20s %-30s %-10s %5d\n",
+			tv.PublisherID,
 			tdDoc.ID,
 			//tdDoc.Modified,
 			utime.Format("02 Jan 2006 15:04:05 -0700"),
-			tdDoc.AtType,
+			tdDoc.DeviceType,
 			len(tdDoc.Properties),
 		)
 	}

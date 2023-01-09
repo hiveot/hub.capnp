@@ -17,7 +17,7 @@ func main() {
 	var lc config.LauncherConfig
 
 	lc = config.NewLauncherConfig()
-	f := svcconfig.LoadServiceConfig(launcher.ServiceName, false, &lc)
+	f, _, _ := svcconfig.LoadServiceConfig(launcher.ServiceName, false, &lc)
 
 	svc := service.NewLauncherService(f, lc)
 

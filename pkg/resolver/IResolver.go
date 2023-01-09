@@ -6,7 +6,7 @@ import (
 	"github.com/hiveot/hub.capnp/go/hubapi"
 )
 
-const ServiceName = "resolver"
+const ServiceName = hubapi.ResolverServiceName
 
 const DefaultResolverPath = hubapi.DefaultResolverAddress
 

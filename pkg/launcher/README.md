@@ -1,16 +1,19 @@
 # Launcher
 
-The Launcher service manages running of the Hub services. 
-
 ## Objectives
 
-The main objective is to manage Hub services and monitor their status. 
+The main objective is to manage Hub services and protocol bindings and monitor their status. 
 
-## Roadmap
+## Features
 
-1. Set logging output to log files for each service
-2. Support service autostart on startup. Use launcher.yaml config file.
-3. Auto restart service if exit with error
+Completed:
+1. List, Start and Stop available services and protocol bindings
+2. Set logging output to log files for each service
+3. Support service autostart on startup. Use launcher.yaml config file.
+4. Track service/binding memory and CPU usage. 
+
+Planned:
+4. Auto restart service if exit with error
 4. Restart service if resources (CPU, Memory) exceed configured thresholds
 5. Send event when services are started and stopped
 6. Send event when resource usage exceeds limits
@@ -18,9 +21,9 @@ The main objective is to manage Hub services and monitor their status.
 
 ## Summary
 
-The launcher is responsible for starting and stopping services and monitor their operations.
+The launcher is responsible for starting and stopping services and protocol bindings, and monitor their running status.
 
-When starting a service, it is launched as a new process. The service keeps the handle on the process and is notified if it terminates.
+When starting a service or binding, it is launched as a new process. Services and bindings terminate on the SIGTERM signal.
 
 If a service stops unintentionally it is automatically restarted. If restart fails, a backoff time delays the attempt to start again. This backoff time is slowly increased until a maximum of 1 hour.
 
@@ -28,8 +31,9 @@ To stop a service the launcher simply terminates the process the service runs in
 
 While running, the launcher keeps track of the CPU and memory usage of the service. This is available upon request.
 
+**Limitations:**
 
-> Note: The launcher will not recognize services started on their own. Services will not function properly when started twice. 
+* The launcher will not recognize services started on their own. Services will not function properly when started twice.
 
 
 ## Launcher Configuration
@@ -44,16 +48,16 @@ See the example file for details.
 
 ## Usage
 
-List available services
+List available services and bindings
 ```sh
 launcher list 
 ```
-Start a service
+Start a service or binding, or all services/bindings
 ```sh
-launcher start {serviceName}
+launcher start {serviceName} | all
 ```
 
-Stop a service
+Stop a service/binding
 ```sh
-launcher stop {serviceName}
+launcher stop {serviceName} | all
 ```

@@ -15,9 +15,10 @@ import (
 
 // The HistoryCursor is a bucket cursor that converts the raw stored value to a ThingValue object
 type HistoryCursor struct {
-	thingAddr  string                    // the thing whose values this cursor is iterating
-	filterName string                    // optional event name to filter on
-	bc         bucketstore.IBucketCursor // the cursor of the underlying store
+	publisherID string
+	thingID     string
+	filterName  string                    // optional event name to filter on
+	bc          bucketstore.IBucketCursor // the cursor of the underlying store
 }
 
 // convert the storage key and raw data to a thing value object
@@ -33,10 +34,11 @@ func (hc *HistoryCursor) decodeValue(key string, data []byte) (thingValue *thing
 	ts := time.UnixMilli(millisec)
 	timeIso8601 := ts.Format(vocab.ISO8601Format)
 	thingValue = &thing.ThingValue{
-		ThingAddr: hc.thingAddr,
-		Name:      parts[1],
-		ValueJSON: data,
-		Created:   timeIso8601,
+		ThingID:     hc.thingID,
+		PublisherID: hc.publisherID,
+		Name:        parts[1],
+		ValueJSON:   data,
+		Created:     timeIso8601,
 	}
 	return thingValue, true
 }
@@ -233,7 +235,8 @@ func (hc *HistoryCursor) Seek(isoTimestamp string) (thingValue *thing.ThingValue
 	until := time.Now()
 	ts, err := dateparse.ParseAny(isoTimestamp)
 	if err != nil {
-		logrus.Infof("Seek using invalid timestamp '%s'. Thing address='%s'", isoTimestamp, hc.thingAddr)
+		logrus.Infof("Seek using invalid timestamp '%s'. Pub/ThingID='%s/%s'",
+			isoTimestamp, hc.publisherID, hc.thingID)
 		// can't do anything with this timestamp
 		return
 	}
@@ -256,13 +259,14 @@ func (hc *HistoryCursor) Seek(isoTimestamp string) (thingValue *thing.ThingValue
 
 // NewHistoryCursor creates a new History Cursor for iterating the underlying bucket
 //
-//	thingAddr is the address the Thing can be reached at
+//	publisherID, thingID is the address the Thing can be reached at.
 //	filterName is an optional filter on value names, eg action, event, property or name
-func NewHistoryCursor(thingAddr string, filterName string, bucketCursor bucketstore.IBucketCursor) *HistoryCursor {
+func NewHistoryCursor(publisherID, thingID string, filterName string, bucketCursor bucketstore.IBucketCursor) *HistoryCursor {
 	hc := &HistoryCursor{
-		thingAddr:  thingAddr,
-		bc:         bucketCursor,
-		filterName: filterName,
+		publisherID: publisherID,
+		thingID:     thingID,
+		bc:          bucketCursor,
+		filterName:  filterName,
 	}
 	return hc
 }

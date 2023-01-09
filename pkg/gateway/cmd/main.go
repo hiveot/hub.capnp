@@ -39,7 +39,7 @@ func main() {
 	ctx := context.Background()
 	f := svcconfig.GetFolders("", false)
 	gwConfig := config.NewGatewayConfig(f.Run, f.Certs)
-	f = svcconfig.LoadServiceConfig(serviceName, false, &gwConfig)
+	f, _, caCert := svcconfig.LoadServiceConfig(serviceName, false, &gwConfig)
 
 	// certificates are needed for TLS connections to the capnp server.
 	// on each restart a new set of keys is used and a new certificate is requested.

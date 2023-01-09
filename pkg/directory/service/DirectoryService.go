@@ -38,10 +38,10 @@ func (srv *DirectoryService) CapUpdateDirectory(
 }
 
 // Create a new Thing TD document describing this service
-func (srv *DirectoryService) createServiceTD() *thing.ThingDescription {
+func (srv *DirectoryService) createServiceTD() *thing.TD {
 	title := "Directory Store Service"
 	deviceType := vocab.DeviceTypeService
-	td := thing.CreateTD(srv.serviceID, title, deviceType)
+	td := thing.NewTD(srv.serviceID, title, deviceType)
 
 	return td
 }
@@ -52,11 +52,10 @@ func (srv *DirectoryService) Start(ctx context.Context) error {
 	if err == nil {
 		myTD := srv.createServiceTD()
 		myTDJSON, _ := json.Marshal(myTD)
-		myTDAddr := srv.hubID + "/" + myTD.ID
 		ud, err2 := srv.CapUpdateDirectory(ctx, directory.ServiceName)
 		err = err2
 		if err == nil {
-			err = ud.UpdateTD(ctx, myTDAddr, myTDJSON)
+			err = ud.UpdateTD(ctx, srv.hubID, myTD.ID, myTDJSON)
 			ud.Release()
 		}
 	}

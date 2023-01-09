@@ -2,10 +2,12 @@ package authn
 
 import (
 	"context"
+
+	"github.com/hiveot/hub.capnp/go/hubapi"
 )
 
 // ServiceName of the service used for logging and connecting
-const ServiceName = "authn"
+const ServiceName = hubapi.AuthnServiceName
 
 // DefaultAccessTokenValiditySec with access token validity in seconds
 const DefaultAccessTokenValiditySec = 3600
