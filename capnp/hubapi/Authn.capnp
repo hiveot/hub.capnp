@@ -5,7 +5,7 @@ using Go = import "/go.capnp";
 $Go.package("hubapi");
 $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
 
-const serviceName :Text = "authn";
+const authnServiceName :Text = "authn";
 # ServiceName of the service used for logging and connecting
 
 const defaultAccessTokenValiditySec :Int32 = 3600;

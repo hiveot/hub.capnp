@@ -8,6 +8,8 @@ $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
 using Bucket = import "./Bucket.capnp";
 using Thing = import "./Thing.capnp";
 
+const directoryServiceName :Text = "directory";
+
 const capNameReadDirectory :Text = "capReadDirectory";
 const capNameUpdateDirectory :Text = "capUpdateDirectory";
 
@@ -43,9 +45,10 @@ interface CapReadDirectory {
   cursor @0 () -> (cursor :CapDirectoryCursor);
   # Cursor returns an iterator for TDs 
 
-  getTD @1 (thingAddr :Text) -> (tv :Thing.ThingValue);
+  getTD @1 (publisherID :Text, thingID :Text) -> (tv :Thing.ThingValue);
   # Returns a ThingValue containing a TD document in JSON format.
-  #  thingAddr is the full address of the thing.
+  #  publisherID is the ID of the device publishing the Thing
+  #  thingID is the ID of the thing.
 
 }
 
@@ -53,10 +56,10 @@ interface CapReadDirectory {
 interface CapUpdateDirectory {
 # Capability to update the directory
 
-  removeTD @0 (thingAddr :Text) -> ();
-  # Remove the TD document with the given address from the directory
+  removeTD @0 (publisherID :Text, thingID :Text) -> ();
+  # Remove the TD document with the given publisher/thing from the directory
 
-  updateTD @1 (thingAddr :Text, tdDoc :Data) -> ();
+  updateTD @1 (publisherID :Text, thingID :Text, tdDoc :Data) -> ();
   # Update the TD document in the directory.
-  # If the TD with the given address doesn't exist it will be added.
+  # If the TD doesn't exist it will be added.
 }

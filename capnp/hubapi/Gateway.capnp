@@ -7,6 +7,9 @@ $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
 
 using Resolver = import "Resolver.capnp";
 
+const gatewayServiceName :Text = "gateway";
+
+
 struct ClientInfo {
 # ClientInfo contains client info as seen by the gateway
 # Intended for diagnostics and troubleshooting

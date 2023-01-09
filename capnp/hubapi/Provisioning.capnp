@@ -5,6 +5,9 @@ using Go = import "/go.capnp";
 $Go.package("hubapi");
 $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
 
+const provisioningServiceName :Text = "provisioning";
+
+
 struct OOBSecret {
     # OOBSecret holds a device's Out Of Band secret for automated provisioning
     # If the deviceID and MD5 hash of the secret match with the request it will be approved immediately

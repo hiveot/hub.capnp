@@ -13,18 +13,20 @@ struct ThingValue {
     # ThingValue holds events, actions or TD documents. Anything that comes from a Thing.
     # It contains contextual information related to the Thing such as its publisher (gatewayID)
 
-    thingAddr @0 :Text;
-    # Address of the thing owning the value.
-    # Usually publisherID/thingID, where publisherID is the thingID of the publishing device.
+    publisherID @0 :Text;
+    # ID of the thing publishing the value.
 
-    name @1 :Text;
+    thingID @1 :Text;
+    # ID of the thing owning the value.
+
+    name @2 :Text;
     # Name of event or action as described in the thing TD
     # If the value holds a TD then this is 'td'
 
-    valueJSON @2:Data;
+    valueJSON @3:Data;
     # Value, JSON encoded []byte array.
 
-    created @3:Text;
+    created @4:Text;
     # Timestamp the value was created, in ISO8601 format (see above).
 }
 

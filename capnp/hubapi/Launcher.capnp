@@ -5,6 +5,8 @@ using Go = import "/go.capnp";
 $Go.package("hubapi");
 $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
 
+const launcherServiceName :Text = "launcher";
+
 struct ServiceInfo {
 	cpu @0 :Int32;
 	# CPU usage in %. 0 when not running

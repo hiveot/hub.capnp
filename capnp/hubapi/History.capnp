@@ -8,6 +8,7 @@ using Thing = import "./Thing.capnp";
 using Bucket = import "./Bucket.capnp";
 
 
+const historyServiceName :Text = "history";
 
 const capNameAddHistory :Text = "capAddHistory";
 const capNameAddAnyThing :Text = "capAddAnyThing";
@@ -17,11 +18,12 @@ const capNameReadHistory :Text = "capReadHistory";
 interface CapHistoryService {
 # Available History store capabilities
 
-  capAddHistory @0 (clientID :Text, thingAddr :Text) -> (cap :CapAddHistory);
+  capAddHistory @0 (clientID :Text, publisherID :Text, thingID :Text) -> (cap :CapAddHistory);
   # Capabilities to add to the Thing's history.
   # This capability should only be provided to the device or service that have write access to the Thing.
   #  clientID is the client requesting the capability
-  #  thingAddress is the full address of the thing, usually publisherID/thingID
+  #  publisherID is the thingID of the publisher
+  #  thingID is the ID of the thing whose history to add
 
   capAddAnyThing @1 (clientID :Text) -> (cap :CapAddHistory);
   # CapAddAnyThing provides the capability to add to the history of any Thing.
@@ -30,7 +32,7 @@ interface CapHistoryService {
   # and can verify their authenticity.
   #  clientID is the client requesting the capability
 
-  capReadHistory @2 (clientID :Text, thingAddr :Text) -> (cap :CapReadHistory);
+  capReadHistory @2 (clientID :Text, publisherID :Text, thingID :Text) -> (cap :CapReadHistory);
   # CapReadHistory provides the capability to iterate history.
   # This returns an iterator for the history.
   # Values added after creating the cursor might not be included, depending on the

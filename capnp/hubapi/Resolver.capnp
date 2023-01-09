@@ -5,9 +5,10 @@ using Go = import "/go.capnp";
 $Go.package("hubapi");
 $Go.import("github.com/hiveot/hub.capnp/go/hubapi");
 
-
 annotation clientType(method) :Text;
 # annotation for client type allowed to use the method
+
+const resolverServiceName :Text = "resolver";
 
 const defaultResolverAddress :Text = "/tmp/hiveot-resolver.socket";
 # default socket path for the resolver

@@ -14,6 +14,7 @@ import (
 
 // Constants defined in Directory.capnp.
 const (
+	DirectoryServiceName   = "directory"
 	CapNameReadDirectory   = "capReadDirectory"
 	CapNameUpdateDirectory = "capUpdateDirectory"
 )
@@ -1323,7 +1324,7 @@ func (c CapReadDirectory) GetTD(ctx context.Context, params func(CapReadDirector
 		},
 	}
 	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 2}
 		s.PlaceArgs = func(s capnp.Struct) error { return params(CapReadDirectory_getTD_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
@@ -1647,12 +1648,12 @@ type CapReadDirectory_getTD_Params capnp.Struct
 const CapReadDirectory_getTD_Params_TypeID = 0xfd67831669d4d276
 
 func NewCapReadDirectory_getTD_Params(s *capnp.Segment) (CapReadDirectory_getTD_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
 	return CapReadDirectory_getTD_Params(st), err
 }
 
 func NewRootCapReadDirectory_getTD_Params(s *capnp.Segment) (CapReadDirectory_getTD_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
 	return CapReadDirectory_getTD_Params(st), err
 }
 
@@ -1688,22 +1689,40 @@ func (s CapReadDirectory_getTD_Params) Message() *capnp.Message {
 func (s CapReadDirectory_getTD_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapReadDirectory_getTD_Params) ThingAddr() (string, error) {
+func (s CapReadDirectory_getTD_Params) PublisherID() (string, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.Text(), err
 }
 
-func (s CapReadDirectory_getTD_Params) HasThingAddr() bool {
+func (s CapReadDirectory_getTD_Params) HasPublisherID() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapReadDirectory_getTD_Params) ThingAddrBytes() ([]byte, error) {
+func (s CapReadDirectory_getTD_Params) PublisherIDBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.TextBytes(), err
 }
 
-func (s CapReadDirectory_getTD_Params) SetThingAddr(v string) error {
+func (s CapReadDirectory_getTD_Params) SetPublisherID(v string) error {
 	return capnp.Struct(s).SetText(0, v)
+}
+
+func (s CapReadDirectory_getTD_Params) ThingID() (string, error) {
+	p, err := capnp.Struct(s).Ptr(1)
+	return p.Text(), err
+}
+
+func (s CapReadDirectory_getTD_Params) HasThingID() bool {
+	return capnp.Struct(s).HasPtr(1)
+}
+
+func (s CapReadDirectory_getTD_Params) ThingIDBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(1)
+	return p.TextBytes(), err
+}
+
+func (s CapReadDirectory_getTD_Params) SetThingID(v string) error {
+	return capnp.Struct(s).SetText(1, v)
 }
 
 // CapReadDirectory_getTD_Params_List is a list of CapReadDirectory_getTD_Params.
@@ -1711,7 +1730,7 @@ type CapReadDirectory_getTD_Params_List = capnp.StructList[CapReadDirectory_getT
 
 // NewCapReadDirectory_getTD_Params creates a new list of CapReadDirectory_getTD_Params.
 func NewCapReadDirectory_getTD_Params_List(s *capnp.Segment, sz int32) (CapReadDirectory_getTD_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
 	return capnp.StructList[CapReadDirectory_getTD_Params](l), err
 }
 
@@ -1829,7 +1848,7 @@ func (c CapUpdateDirectory) RemoveTD(ctx context.Context, params func(CapUpdateD
 		},
 	}
 	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 2}
 		s.PlaceArgs = func(s capnp.Struct) error { return params(CapUpdateDirectory_removeTD_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
@@ -1845,7 +1864,7 @@ func (c CapUpdateDirectory) UpdateTD(ctx context.Context, params func(CapUpdateD
 		},
 	}
 	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 2}
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 3}
 		s.PlaceArgs = func(s capnp.Struct) error { return params(CapUpdateDirectory_updateTD_Params(s)) }
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
@@ -2019,12 +2038,12 @@ type CapUpdateDirectory_removeTD_Params capnp.Struct
 const CapUpdateDirectory_removeTD_Params_TypeID = 0xe42c18fae46c41d6
 
 func NewCapUpdateDirectory_removeTD_Params(s *capnp.Segment) (CapUpdateDirectory_removeTD_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
 	return CapUpdateDirectory_removeTD_Params(st), err
 }
 
 func NewRootCapUpdateDirectory_removeTD_Params(s *capnp.Segment) (CapUpdateDirectory_removeTD_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
 	return CapUpdateDirectory_removeTD_Params(st), err
 }
 
@@ -2060,22 +2079,40 @@ func (s CapUpdateDirectory_removeTD_Params) Message() *capnp.Message {
 func (s CapUpdateDirectory_removeTD_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapUpdateDirectory_removeTD_Params) ThingAddr() (string, error) {
+func (s CapUpdateDirectory_removeTD_Params) PublisherID() (string, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.Text(), err
 }
 
-func (s CapUpdateDirectory_removeTD_Params) HasThingAddr() bool {
+func (s CapUpdateDirectory_removeTD_Params) HasPublisherID() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapUpdateDirectory_removeTD_Params) ThingAddrBytes() ([]byte, error) {
+func (s CapUpdateDirectory_removeTD_Params) PublisherIDBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.TextBytes(), err
 }
 
-func (s CapUpdateDirectory_removeTD_Params) SetThingAddr(v string) error {
+func (s CapUpdateDirectory_removeTD_Params) SetPublisherID(v string) error {
 	return capnp.Struct(s).SetText(0, v)
+}
+
+func (s CapUpdateDirectory_removeTD_Params) ThingID() (string, error) {
+	p, err := capnp.Struct(s).Ptr(1)
+	return p.Text(), err
+}
+
+func (s CapUpdateDirectory_removeTD_Params) HasThingID() bool {
+	return capnp.Struct(s).HasPtr(1)
+}
+
+func (s CapUpdateDirectory_removeTD_Params) ThingIDBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(1)
+	return p.TextBytes(), err
+}
+
+func (s CapUpdateDirectory_removeTD_Params) SetThingID(v string) error {
+	return capnp.Struct(s).SetText(1, v)
 }
 
 // CapUpdateDirectory_removeTD_Params_List is a list of CapUpdateDirectory_removeTD_Params.
@@ -2083,7 +2120,7 @@ type CapUpdateDirectory_removeTD_Params_List = capnp.StructList[CapUpdateDirecto
 
 // NewCapUpdateDirectory_removeTD_Params creates a new list of CapUpdateDirectory_removeTD_Params.
 func NewCapUpdateDirectory_removeTD_Params_List(s *capnp.Segment, sz int32) (CapUpdateDirectory_removeTD_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
 	return capnp.StructList[CapUpdateDirectory_removeTD_Params](l), err
 }
 
@@ -2166,12 +2203,12 @@ type CapUpdateDirectory_updateTD_Params capnp.Struct
 const CapUpdateDirectory_updateTD_Params_TypeID = 0x8b29feea8de52fc2
 
 func NewCapUpdateDirectory_updateTD_Params(s *capnp.Segment) (CapUpdateDirectory_updateTD_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 3})
 	return CapUpdateDirectory_updateTD_Params(st), err
 }
 
 func NewRootCapUpdateDirectory_updateTD_Params(s *capnp.Segment) (CapUpdateDirectory_updateTD_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 3})
 	return CapUpdateDirectory_updateTD_Params(st), err
 }
 
@@ -2207,35 +2244,53 @@ func (s CapUpdateDirectory_updateTD_Params) Message() *capnp.Message {
 func (s CapUpdateDirectory_updateTD_Params) Segment() *capnp.Segment {
 	return capnp.Struct(s).Segment()
 }
-func (s CapUpdateDirectory_updateTD_Params) ThingAddr() (string, error) {
+func (s CapUpdateDirectory_updateTD_Params) PublisherID() (string, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.Text(), err
 }
 
-func (s CapUpdateDirectory_updateTD_Params) HasThingAddr() bool {
+func (s CapUpdateDirectory_updateTD_Params) HasPublisherID() bool {
 	return capnp.Struct(s).HasPtr(0)
 }
 
-func (s CapUpdateDirectory_updateTD_Params) ThingAddrBytes() ([]byte, error) {
+func (s CapUpdateDirectory_updateTD_Params) PublisherIDBytes() ([]byte, error) {
 	p, err := capnp.Struct(s).Ptr(0)
 	return p.TextBytes(), err
 }
 
-func (s CapUpdateDirectory_updateTD_Params) SetThingAddr(v string) error {
+func (s CapUpdateDirectory_updateTD_Params) SetPublisherID(v string) error {
 	return capnp.Struct(s).SetText(0, v)
 }
 
-func (s CapUpdateDirectory_updateTD_Params) TdDoc() ([]byte, error) {
+func (s CapUpdateDirectory_updateTD_Params) ThingID() (string, error) {
 	p, err := capnp.Struct(s).Ptr(1)
+	return p.Text(), err
+}
+
+func (s CapUpdateDirectory_updateTD_Params) HasThingID() bool {
+	return capnp.Struct(s).HasPtr(1)
+}
+
+func (s CapUpdateDirectory_updateTD_Params) ThingIDBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(1)
+	return p.TextBytes(), err
+}
+
+func (s CapUpdateDirectory_updateTD_Params) SetThingID(v string) error {
+	return capnp.Struct(s).SetText(1, v)
+}
+
+func (s CapUpdateDirectory_updateTD_Params) TdDoc() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(2)
 	return []byte(p.Data()), err
 }
 
 func (s CapUpdateDirectory_updateTD_Params) HasTdDoc() bool {
-	return capnp.Struct(s).HasPtr(1)
+	return capnp.Struct(s).HasPtr(2)
 }
 
 func (s CapUpdateDirectory_updateTD_Params) SetTdDoc(v []byte) error {
-	return capnp.Struct(s).SetData(1, v)
+	return capnp.Struct(s).SetData(2, v)
 }
 
 // CapUpdateDirectory_updateTD_Params_List is a list of CapUpdateDirectory_updateTD_Params.
@@ -2243,7 +2298,7 @@ type CapUpdateDirectory_updateTD_Params_List = capnp.StructList[CapUpdateDirecto
 
 // NewCapUpdateDirectory_updateTD_Params creates a new list of CapUpdateDirectory_updateTD_Params.
 func NewCapUpdateDirectory_updateTD_Params_List(s *capnp.Segment, sz int32) (CapUpdateDirectory_updateTD_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 3}, sz)
 	return capnp.StructList[CapUpdateDirectory_updateTD_Params](l), err
 }
 
@@ -2320,89 +2375,95 @@ func (f CapUpdateDirectory_updateTD_Results_Future) Struct() (CapUpdateDirectory
 	return CapUpdateDirectory_updateTD_Results(p.Struct()), err
 }
 
-const schema_c8da54a8b024bd49 = "x\xda\xb4Vo\x88TU\x14?\xe7\xfd\x99\xf7&f" +
-	"V/O]\x93dp\x1dC\xb7uu\xc7$3t" +
-	"G]?(\xb5\xcd\x9bQ*\x8b\xe8\xf9\xf6\xb9;\xb1" +
-	"\xeeNo\xden.A\x14&\xa2i\xb4i\x82\x9b&" +
-	"~\x10\xda0\x09!\x10\xc1\xc2\x7fiQA\xb6\x0a\x1a" +
-	"\xc6Jn\x7f\xa6$\xa2>\x84Y/\xee\x9d\xb9\xf3\xde" +
-	"\xec\x8c\xfb\x0f\xfa6\xf3\xee\xb9\xe7w\xce\xef\x9c\xf3;" +
-	"w\xe1^1.5\x84\x9f\xb8\x07\x04}\x8b\x1cp\x9f" +
-	"\xfe\xe5\xaboS\x9du[A\xafE\x04\x90\x14\x80E" +
-	"D>\x89\x80\xda,\xb9\x11\xd0=\xa6\x1d\xfa.\xb6\xb7" +
-	"o\x1b\x90j\xd1]s*\xfa\xe1{\xeb\xae]\x04\xc0" +
-	"E+\xe4$j\xebe\x05@\xd3\xe5\xedZ?\xfd\xe5" +
-	"\x9eY0\xb4;\xf7\xef\xbc\xd7\x81\xd4\"\x80,Pw" +
-	"\xbd\xf2%\xea\xee\x88\xfc\"\xa0\x1b\xaa\xbe\xf0\x10\xdex" +
-	"io\x01OFj!\x07\xceP\x8b\xa9\x01j\xf1h" +
-	"\xc7\x94\xea\x95\xb3g\xf7\x01y\xa0h\xf0B\xa0F\x00" +
-	"\xd4v\x04hDK\xfa\x96/O\xd5~q\x00H\xb5" +
-	"T\x12Q\x7f\xc0F\xedT@\x01H\x9d\x08\x88\x98:" +
-	"\x17\x10\x10\xc0=\x9a\x0b\x99\x8fL\xfd\xfc\xdd\x12\xc8\xd3" +
-	"y\xc8\xaf\x19dU\xef\xb1\xb37?\xeb;\\\x96\xe3" +
-	"2e%j\x8f)4\xc75\xcavm?\xfd\xe56" +
-	"?i\xee\xbfu\xfa\xd8\xf12\xebW\x95$jo3" +
-	"\xeb^\xe5\x82\x16T\xa9uv\x9fz\xe6\xf1\xb3\xad\xe7" +
-	"\xf2\x8c0~\x7fW\xae!H\xeey\xa9.=\xf4\xfd" +
-	"_\x17}'C\xcaqz2\xfb\x9b\xdeC\xaf\xe5j" +
-	"\x06\x80\xcc\xe5'\x97\xf3'5\x9f\x0cU\x09mk\x07" +
-	"Jr9\xaf\xb0z]Vh.\xe7\x16?\x9f\x0b\xb7" +
-	"={\xd5\xe7\xb5AexG~lF\xb5?4\xe8" +
-	"'v\x8e:\x83\x12\xbbL\xa5\xc4JoL\xde\xb2\xeb" +
-	"\xe3\xe7\x06}W\x0d\xf5$\xbdzeE\xfb\xcd\xdb\xd3" +
-	"\xebn\x16\xca\xca\xae\xea*+\xab\xc5\xae\xee\x96b\xdb" +
-	"\xb6\xfe\xb4\xe1g\xbf\xef\x1dj-\xf5}\x98\x19\x98s" +
-	"7\xfd\x9a\xbb\xff\x99\\Y\xd1\xce\xab\x1bQ\xbbJ\xa9" +
-	"J\x0d\xa8\"\xa6\x06UV\xb4]\xb9\xf8o\x9f\xbey" +
-	"\xe0\x8f<\x05y\x87\xd7U\x96\xe7-\xe6p\xf0\xe8\x9e" +
-	"\x9a=\xa9;\x7f\xfa\x11\xc3\xc1\x18E\x9c\x13\xa4\x06\x07" +
-	"\xef\xb3z_\xbeq\xe7vY\x99V\x077\xa0\xf6T" +
-	"\x90\x96i}p\xbb\xf6\x11\xfd\xe5.:\xbd\xb8\xbf;" +
-	"3\xedo?\xde\xc1\xe0q\x8a\xf7\x01s\xd7}i " +
-	"=mk\xeb?~\x83/\x83\xefS\x83\xeb\xc1FX" +
-	"\xe5\xb6um42\xe9\x05Mr\xda\xb6L\xa7\xd3\xee" +
-	"\xa97\x8dLGf\xe9*#\xd3\xc4?\xad\xea\xb2\xb3" +
-	"\x9dv}\x87\xb5\xc5i\x8e6&\x0c\xdb\xd8\x9c\xd5%" +
-	"Q\x02\x90\x10\x80\x84c\x00\xba*\xa2>E\xc0H\xd6" +
-	"\xb12YTA@\x15\xb0\xe8]*\xf7\xbe>\xd3b" +
-	"8\x16\xc7\xc0\x9e\x04\xa2\xae\x8a2@\xb1l\xc8\x9b\x82" +
-	"4\xac\x05\x81\xccS\x10\x8b\x93\x8a\xbcA\xc9Lz6" +
-	"Uqmksg\xb7\xb5\xae\x09\x00\xe2\xe8v1\xef" +
-	"\x85\x7f\x09\xf4\"\x09\x8c\x16IO=\xbf\x1be\x99b" +
-	"VW\x8b\xa9\xceK\x02\xe8sE\xd4\x1f\x14\x90 N" +
-	"\xa1\xddL\x1ah\xfeu\"\xeaK\x04t\x9d\xb6tG" +
-	"\xeb\x8a\x96\x16@\x1bC `\x080\xe2\xb44u\x9a" +
-	"\x18\x06\x01\xc30b$\xc3\x19\xdf\x94\xb6\xb3N4i" +
-	"e\xbb\xda\x9d,\xf8\xe3\x98\x01\xa0GE\xd4\x17\x0a\xc8" +
-	"\xc3\x98\x1f\xf3b\x13\x9dn\x9c\xec\xbe\xf5\xca\xbe\x13\x07" +
-	"\x7f\xb8\xf2\x0e\x00\xe2d\xc0H\xb7\xd1\x9enA\x04\x01" +
-	"\xd1\x17\x872B\x1c)\xcb\xeeN\x9b\x16=IZF" +
-	"K\xf1;\x8bIiwJ\xda\xa0\xc6k\x03\xc542" +
-	"H<\x85\x02D2B;\x98F\xa6\xd9\xd8ly\x85" +
-	"\x88\xb0\xd3\x04b\x81C \xd8\xe7\x9a\x85R!\xaf\x95" +
-	"h\xf7\x8c\x87\xcd|\xffVb3V`3\xee\xb1\xb9" +
-	"\x8c~[\"\xa2\xde$`d\xa3\xe1\x98mX\x05\x98" +
-	"\x10q\x18\xafUw\xe5\xb5B\xcf\x97p\x08^\xc7s" +
-	"\xe5D\xae\x1f\xa4a)\x08d\x0e\xedx>\xc1\xc8g" +
-	"\x9d\xdc\x1b\x03\x81\x84\x95F\x93\xa5\x15\xc7H\xab\xe5\xac" +
-	"k*msi4:\xd0\xa6\xf0!\x06\xcf\x15\x14\xf9" +
-	"\x9a#:\x85XM\xe1\xb9\xdc#\xd7p\xf2p-\x08" +
-	"d\xbe\x82Bq\x0b#\xdfUdV\x8c\x0dc\x845" +
-	"n\x1c'Q\xca\xe3\x18a\xccO|\x0eY\xc9D'" +
-	";^\xb1\x8a&\"L\xabF\xbaWR\x92\xfa<\xa5" +
-	"c\xb9W\x11/\xd9\x98o\xae\xffiR\xc7\xc0\x19W" +
-	"\xc1r\xce&4\xe6T\x01\xc5R\xb1_\x0b\xa0\x87D" +
-	"\xd4\xa7\x0b\xe8\x9a\xedi\xab\xc3YCU\x96\x8b\xddx" +
-	"8\xcb\xcb[a\xa1L(K\xae\xd0\xbe\xf8\x92\xbe\xf8" +
-	"*\x88\xf1x\xf9\x18\x06\x1dM\x18\x93\x86\xaf\xbf\xb12" +
-	"r\x17\xd5\xf3\x18W\x86k\xdeN\x97W\x04\x8b\xaa\x01" +
-	"\xe3\xee\xe6bW\xfab^\xeaiuAG\x90xO" +
-	"\xc4ar=A\xaa\x92V\xa4\x0c\xb7|G\x14_\xea" +
-	"\xa3\xec\x882P\xd1\xb4<\x05\xe5\xafD\xe4\xefp\xd2" +
-	"\xb03/S\xde+\x0f\xf9\xe3\x8b\xcc\xea\x03\x81\xccT" +
-	"*\xb1\x1b\xc7\x8a{\xa6T\xbcFe\x9e)rE\x02" +
-	"fx\x04T\x1c\xfd\xf1bT\xe8\xc7Q&\xe0\xbf\x00" +
-	"\x00\x00\xff\xff\xa9K\xf6="
+const schema_c8da54a8b024bd49 = "x\xda\xb4Wk\x8c\x13U\x14>g\xa6\xdd\x996\xed" +
+	"\xc2\xcd,,\x12Ie)\x86]\x97\x85-\x12\x01\x03" +
+	"[\xa0\x18!\xb0v\xda%\x014\xc6\xe9\xec\xb0-\xd9" +
+	"\xee\xd6vva\xa3\xf8\x08\x12\x12\x04\xe3\xca#ZA" +
+	"\xc2\x0f\x121\x08Jb\xa2&Hx\x09\x1a5\x11\x91" +
+	"\x04\x14\x03\x11T\xaa\xc6\x18MT\x04\xc7\xdcio\xa7" +
+	"/\xf6\x15\xfd\xd7\xf6\x9e9\xdf\xb9\xdfw\xcew\xa6\xd3" +
+	"\xbf\xe6\xfd\xb6f\xf7!'p\xf2\x93\xf6*\xe3\xe1\x1f" +
+	"?\xfb*\xdc\xdd\xb8\x01\xe4\x06D\x00\x9b\x000c\xae" +
+	"\xfd}\x04\x94\x96\xd9[\x00\x8d\x83\xd2\x9eo|\xdb\xd3" +
+	"\x1b\x81\xd4\xf2\xc6\xe2#\xde\xb7^o\xbbx\x06\x00g" +
+	"\xc4\xed!\x94\x9e\xb5\x0b\x00\xd2z\xfb&\xe9K\xfa\xc9" +
+	"8>\xed\xda\xd6\xcc?\xf5\xcf\x03i@\x00;O\xd3" +
+	"\x1d\xb1\x9f\xa5\xe9>\xb7\x1f\x024\\\xb5\xa7\xef\xc3+" +
+	"Ol\xcf\xe1\xd9\x91F\xc4\xab\x8e\xd3\x88\xf5Uk\x01" +
+	"\x8d\xa5]5\xb5\x0b&MJ\x03\xb9'\x1fp\xa1\xaa" +
+	"\x8e\x03\x94~\xad\xa2\x15\xcdJ\xcf\x9b\x17n\xf8d\x17" +
+	"\x90Z[QEDH\xa24Y\x10\x00\xc2w\x09<" +
+	"\x86\x1b\x05\x0e\x01\x8c\x03\x19\x97z\xff\x98\x8f_+\x82" +
+	"\xac\x17L\xc8\xd9\x02\x85\xac\xee?x\xe2\xeaG\xe9\xbd" +
+	"ew\xdc',@\xe9\x1d\x9aQz[\xd8$\xa1H" +
+	"\xef\xd8\xbaB}\xe5\xe7c\x07\x0f\x97E_\x17B(" +
+	"\xdd2\xa3\xff\x12NK\x8f\x9b\xd1m\xd7\xd7\xa4\xa7\xff" +
+	"\xf1\xc0\xd1\xb2jW\x8a\x11\x94\xe24&\x1c\x15y\x0c" +
+	"\xeb\xa2Ymj\xa7x\xfc\xa1\x13\x1d'\xb3\x0c\x9az" +
+	"\xc4\xc5\x8b\x086\xe3\x94\xad1v\xed\xdb?\xcf\x14\x9c" +
+	"(\xe2az2\xe9\x8b\xfe=\xcfe\xea\xce\x01\x99\xc2" +
+	"N\xe4\xecI\xdd\xd1k\xd5\\t\xc9\xb9\xa2\xbb\xcf\x17" +
+	"M}e\x91\xde\xfd\xe4\xcc5\x19w\xf4\xd1\x0b\x05Y" +
+	"\xdf\xcc\xe2\xed\xfb\xbe\x15\xc5\xfd\xae\xcb\x85B\xec\x15\xc7" +
+	"S!\xde\x13\xa9\x10\xb6\x17F\xaf\xdb\xf2\xc1c\x97\x0b" +
+	"\x1e\xbdDS\xdb\x8c\xf3\xf3;\xaf\xde\x18\xd7x5\xd7" +
+	"\x06\x1c=\xfaT4\xdb\xe0\x8a\x89\xba\xd5\xe6\xdb\xb8\xe1" +
+	"\x87U\xd7\x0bs\xcfw4\xd0\xdc+\x1d4\xb7:e" +
+	"\xf5O\x99\xbb\x1f\xc9\x94\xd1\xb6\xde\x11A\xa9\xdfAi" +
+	"\xdb\xe2\xe01\xfc\xb2\xc3\xa4mK\xc6\xff\xcb\x87/\xee" +
+	"\xfa-KA6\xe1\x0e\x87y\xcf}f\xc2\xcb\x07\xb6" +
+	"\xd5m\x0b\xdf\xfc\xbd\x10\xf1\x94\xc3G\x11/\x99\x01\xbb" +
+	"\xef\xd4\xfa\x9f\xbar\xf3F\x99\xac\xb7\x1c\xabP\"N" +
+	"*\xab\xdb\xb9I\x8a\xd3O\xc6\x8cc3\xf7\xf7&\xc6" +
+	"\xfe]\x88\xb7\xdcy\x98\xe2iN\x9a\xae\xf7\xec\xb9\xd8" +
+	"\xd8\x0d\x1d\xb7r\x01&\x05\x1b\x9do\xd0\x80\x1d\xce\xb5" +
+	"\xb0\xd0\x88\xf6D\x94DlZ\xc0\x1eKj\xaa\xde\x9d" +
+	"\xeckR\x95DWb\xceB%\x11`?-\xecI" +
+	"\xa6\xba\x93M]\xda:\xbd\xd5\xdb\x12T\x92J<%" +
+	"\xdbx\x1b\x80\x0d\x01\x88\xdb\x07 \x8b<\xca5\x1cz" +
+	"R\xba\x96H\xa1\x08\x1c\x8a\x80\xf9\xec\xb6\xf2\xec\xcb\x13" +
+	"\xed\x8a\xae1\x0c\xec\x0b\"\xca\"o\x07\xc8\xcb\x86\xac" +
+	")H\xf3\x12\xe0H\xbd\x80\x98\x9fld\x0dJ&\xd0" +
+	"\xb31\x82\x91\xd4\xe2\xdd\xbdZ[\x00\x00\xfch\xf4\x98" +
+	"\xd9s\xdf\x82hUR5X%}M\xecY\xafy" +
+	"SL\xc9\xae\xfcU\x17E\x00\xe4\x00\x8fr\x90C\x82" +
+	"XC\xbb\x99,[\x00 ?\xc8\xa3\xdc\xc6!\xe1\xb8" +
+	"\x1a\xe4\x00\x88LIY\xca\xa3\xbc\x82C#\xd1\x13\xe9" +
+	"\x8c\xa5\xa2\x1a\x08\xc9\xc5\x01t\x01\x87.\xc0\xa7\xf5h" +
+	"\xac\xab\xc3\xfa\xee\xd1\xdb\x03\xdd*\xba\x81C7\x0cX" +
+	"p\xa90\xabc\xc9\x94\xee\x0di\xa9\x9eN=E\xa5" +
+	"`\xe5\xd6\x8f\x07\x90\xbd<\xca\xd39d\xd5N\xa5\x85" +
+	"M\xe1Q\xbe\x97C^\xef\xc5\xd1\xc6K\xcf\xec|w" +
+	"\xf7w\xe7_\x05@\x1c\x0d\xe8\xe9U:c\xed\x88\xc0" +
+	"!\x16\xd4!\x0cPGXK\xf6\xc6T\x8d\x9e\x844" +
+	"\xa5=\xff\xbbY\x93\xd0\xa9\x17uK\x9d\xd5-\x82\xaa" +
+	"$\x90X\xc6\x07\x88d\x80\xaeQ\x95D\xab\x12\xd7," +
+	"\xbd<\xe6i\x101\xc7!\x10L\x1bjNQd\x92" +
+	"\xf2\xc9\xbe\xe1\xb0\x99m\xf3Jl\xfarl\xfa-6" +
+	"\xe7\xd2\xdff\xf1(\x078\xf4D\x14]\x8db5`" +
+	"\x90\xc7\x12^\xabo\xcbk\x85\xd1(\xe2\x10\xac\xc1`" +
+	"\x06\x8b\xccfH\xf3\x1c\xe0\xc8d:\x18l\xd0\x91Y" +
+	"\x02\xb9\xc3\x07\x1cq\x0b-\xaay-?z:4\xbd" +
+	"-P<\x0d\xb6\xc1\xe8\xc0$\x85w\x99\xf0\xcch\x91" +
+	"mO\xda\xe4\x1cYD\xe1\xd9V@f\xf5dv\x03" +
+	"pd\xaa\x80\\~\xb9#[\x81d\xa2\xcf\x9cY\x8f" +
+	"\xd9\xb8~\x1cE)\xf7\xa3\xc7d~\xe0\x02\xdbKZ" +
+	"\xaeUP\xe2ZQ\x03\x84\x0c\x16\x03\xd87\xa2\xb17" +
+	"\xa5\xe7\xf5\xd4p\xbd\xd1\x1b\xf4\x98\xd68\xd0sE\xd2" +
+	"6e\xa5\x19\xcas\x15\xf1B-\xd9&\xfd\x9f&~" +
+	"\x08\x9c1\xd3-\xe7lDvA\x0d\x97/\xde-K" +
+	"\x00d\x17\x8f\xf28\x0e\x0d\xb53\xa6u\xe9\x8b\xa9\xa9" +
+	"3\xd3\x1c\x0egY\x9b\xcc\xed\xaf\x11\xdd\x92-\x84\x02" +
+	"\xbe#\x16\xb7\xf9\x85\xd0L\x17B#\x8f\xf2\xac\xa1z" +
+	"\xffpi+\xa9\xd0\x1bTF\x95.\xe5\xa1\x12w\x1b" +
+	"\x93\xb5\x84\x11J-v\xb3\xc1\x84\xc3\xbcI\xc1\xb0\x9b" +
+	">\xdf\xbc\x055\xcf\xb1VC\xce\xb6\x90X/\xba%" +
+	"\xdba\x84T\x854O\x19n\xf9J\xca\xff\xdf\x18d" +
+	"%\x95\x81\xf2\xaaf\x196{wE\xf6o\x824o" +
+	"\xce\xba\xa2\xf5\xee\x89\xec\x95\x90LL\x03G&\x08\x95" +
+	"\xd8\xf5c\xc5\xb5V\xec\x95\x832o.\x80\x8a\x04\x8c" +
+	"\xb7\x08\xa8\xe8\x10\xc3\xc5`\xfd\xf8\x9f\x0f\xca\xbf\x01\x00" +
+	"\x00\xff\xff\x97\xc00\xd2"
 
 func init() {
 	schemas.Register(schema_c8da54a8b024bd49,
@@ -2415,6 +2476,7 @@ func init() {
 		0x9eca153b630ceaac,
 		0xa19ac9e4c3ae910e,
 		0xb2aec1ed9963584e,
+		0xbf46f7309a6ae954,
 		0xc467c34fc2089673,
 		0xc8f8e3e5692c04c5,
 		0xd422ea849f91d323,
