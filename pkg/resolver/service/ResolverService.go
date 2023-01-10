@@ -37,10 +37,10 @@ type ResolverService struct {
 	socketDir string
 	// mutex for updating serviceCapabilities and connectedServices
 	capsMutex sync.RWMutex
-	// mutex for running Refresh scans
+	// mutex for isRunning Refresh scans
 	refreshMutex sync.Mutex
 	//
-	running atomic.Bool
+	isRunning atomic.Bool
 }
 
 // HandleUnknownMethod looks up the requested method and returns a stub that forwards
@@ -188,43 +188,52 @@ func (svc *ResolverService) scanService(ctx context.Context,
 // create the folder if it doesn't exist.
 func (svc *ResolverService) Start(ctx context.Context) error {
 	logrus.Infof("Starting resolver service")
-	os.MkdirAll(svc.socketDir, 0700)
-	err := svc.Refresh(ctx)
+	_ = os.MkdirAll(svc.socketDir, 0700)
 
+	svc.isRunning.Store(true)
+	err := svc.Watch(ctx)
+	//if err == nil {
+	//	err = svc.Refresh(ctx)
+	//}
+	return err
+}
+
+// Watch for changes in available service sockets
+func (svc *ResolverService) Watch(ctx context.Context) (err error) {
 	svc.socketWatcher, _ = fsnotify.NewWatcher()
 	err = svc.socketWatcher.Add(svc.socketDir)
-	if err == nil {
-		svc.running.Store(true)
-		go func() {
-			for {
-				select {
-				case <-ctx.Done():
-					logrus.Infof("socket watcher ended by context")
-					return
-				case event := <-svc.socketWatcher.Events:
-					isRunning := svc.running.Load()
-					if isRunning {
-						logrus.Infof("watcher event: %v", event)
-						_ = svc.Refresh(ctx)
-					} else {
-						logrus.Infof("socket watcher stopped")
-						return
-					}
-				case err := <-svc.socketWatcher.Errors:
-					logrus.Errorf("error: %s", err)
-				}
-			}
-		}()
+	if err != nil {
+		return err
 	}
-	return err
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				logrus.Infof("socket watcher ended by context")
+				return
+			case event := <-svc.socketWatcher.Events:
+				isRunning := svc.isRunning.Load()
+				if isRunning {
+					logrus.Infof("watcher event: %v", event)
+					_ = svc.Refresh(ctx)
+				} else {
+					logrus.Infof("socket watcher stopped")
+					return
+				}
+			case err := <-svc.socketWatcher.Errors:
+				logrus.Errorf("error: %s", err)
+			}
+		}
+	}()
+	return nil
 }
 
 // Stop releases the connections
 func (svc *ResolverService) Stop() (err error) {
 	logrus.Infof("Stopping resolver service")
-	isRunning := svc.running.Load()
+	isRunning := svc.isRunning.Load()
 	if isRunning {
-		svc.running.Store(false)
+		svc.isRunning.Store(false)
 		err = svc.socketWatcher.Close()
 
 		for _, hiveService := range svc.connectedServices {

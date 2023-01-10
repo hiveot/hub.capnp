@@ -34,7 +34,7 @@ func (dps *DevicePubSub) PubEvent(
 	// note that marshal will copy the value so its buffer can be reused by capnp
 	tvSerialized, _ := json.Marshal(tv)
 	topic := MakeThingTopic(dps.publisherID, thingID, pubsub.MessageTypeEvent, name)
-	go dps.core.Publish(topic, tvSerialized)
+	go dps.core.Publish(dps.publisherID, topic, tvSerialized)
 	return
 }
 
@@ -49,7 +49,7 @@ func (dps *DevicePubSub) PubProperties(
 	// note that marshal will copy the props map so its buffer can be reused by capnp
 	tvSerialized, _ := json.Marshal(tv)
 	topic := MakeThingTopic(dps.publisherID, thingID, pubsub.MessageTypeEvent, vocab.WoTProperties)
-	dps.core.Publish(topic, tvSerialized)
+	dps.core.Publish(dps.publisherID, topic, tvSerialized)
 	return
 }
 
@@ -66,7 +66,7 @@ func (dps *DevicePubSub) PubTD(_ context.Context,
 		dps.publisherID, thingID, pubsub.MessageTypeTD, deviceType)
 
 	tvSerialized, _ := json.Marshal(tv)
-	dps.core.Publish(topic, tvSerialized)
+	dps.core.Publish(dps.publisherID, topic, tvSerialized)
 	return
 }
 
@@ -78,7 +78,7 @@ func (dps *DevicePubSub) SubAction(
 	handler func(actionValue *thing.ThingValue)) (err error) {
 
 	topic := MakeThingTopic(dps.publisherID, thingID, pubsub.MessageTypeAction, actionName)
-	subscriptionID, err := dps.core.Subscribe(topic,
+	subscriptionID, err := dps.core.Subscribe(dps.publisherID, topic,
 		func(topic string, message []byte) {
 
 			msgValue := &thing.ThingValue{}

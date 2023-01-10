@@ -8,14 +8,15 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 
-	"github.com/hiveot/hub/cmd/hubcli/authn"
-	"github.com/hiveot/hub/cmd/hubcli/authz"
+	"github.com/hiveot/hub/cmd/hubcli/authncli"
+	"github.com/hiveot/hub/cmd/hubcli/authzcli"
 	"github.com/hiveot/hub/cmd/hubcli/certscli"
 	"github.com/hiveot/hub/cmd/hubcli/directorycli"
 	"github.com/hiveot/hub/cmd/hubcli/gatewaycli"
 	"github.com/hiveot/hub/cmd/hubcli/historycli"
 	"github.com/hiveot/hub/cmd/hubcli/launchercli"
 	"github.com/hiveot/hub/cmd/hubcli/provcli"
+	"github.com/hiveot/hub/cmd/hubcli/pubsubcli"
 	"github.com/hiveot/hub/lib/svcconfig"
 )
 
@@ -50,9 +51,10 @@ func main() {
 		Commands: []*cli.Command{
 			certscli.CACommands(ctx, f),
 			launchercli.LauncherCommands(ctx, f),
-			authn.AuthnCommands(ctx, f),
-			authz.AuthzCommands(ctx, f),
+			authncli.AuthnCommands(ctx, f),
+			authzcli.AuthzCommands(ctx, f),
 			certscli.CertCommands(ctx, f),
+			pubsubcli.PubSubCommands(ctx, f),
 			directorycli.DirectoryCommands(ctx, f),
 			historycli.HistoryCommands(ctx, f),
 			provcli.ProvisioningCommands(ctx, f),

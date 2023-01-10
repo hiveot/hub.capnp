@@ -51,8 +51,8 @@ type IPubSubService interface {
 
 	// CapServicePubSub provides the capability to pub/sub thing information as a hub service.
 	// Hub services can publish their own information and receive events from any thing.
-	//  The serviceID is the publisherID of the things published by the service
-	CapServicePubSub(ctx context.Context, publisherID string) (IServicePubSub, error)
+	//  The serviceID is identifies the service publishing or subscribing
+	CapServicePubSub(ctx context.Context, serviceID string) (IServicePubSub, error)
 
 	// CapUserPubSub provides the capability for an end-user to publish or subscribe to messages.
 	// The caller must authenticate the user and provide appropriate configuration.

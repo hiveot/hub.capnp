@@ -24,27 +24,36 @@ type DataSchema struct {
 	Description string `json:"description,omitempty"`
 	// Provides additional nulti-language information
 	Descriptions []string `json:"descriptions,omitempty"`
+
 	// Provides a constant value of any type as per data Schema
 	Const interface{} `json:"const,omitempty"`
+
 	// Provides a default value of any type as per data Schema
 	Default interface{} `json:"default,omitempty"`
+
 	// Unit as used in international science, engineering, and business.
 	// See vocab UnitNameXyz for units in the vocabulary
 	Unit string `json:"unit,omitempty"`
+
 	// OneOf provides constraint of data as one of the given data schemas
 	OneOf []interface{} `json:"oneOf,omitempty"`
+
 	// Restricted set of values provided as an array.
 	//  for example: ["option1", "option2"]
 	Enum []interface{} `json:"enum,omitempty"`
+
 	// Boolean value to indicate whether a property interaction / value is read-only (=true) or not (=false)
 	// the value true implies read-only.
 	ReadOnly bool `json:"readOnly,omitempty"`
+
 	// Boolean value to indicate whether a property interaction / value is write-only (=true) or not (=false)
 	// the value true implies writable but not readable. Intended for secrets such as passwords.
 	WriteOnly bool `json:"writeOnly,omitempty"`
+
 	// Allows validation based on a format pattern such as "date-time", "email", "uri", etc.
 	// See vocab DataFormXyz "date-time", "email", "uri" (todo)
 	Format string `json:"format,omitempty"`
+
 	// Type provides JSON based data type,  one of WoTDataTypeNumber, ...object, array, string, integer, boolean or null
 	Type string `json:"type,omitempty"`
 

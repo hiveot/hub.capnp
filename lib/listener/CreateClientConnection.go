@@ -55,6 +55,11 @@ func ConnectToHub(
 	} else {
 		conn, err = CreateTLSClientConnection(network, address, clientCert, caCert)
 	}
+	if err != nil {
+		logrus.Infof("connection failed. network='%s', address='%s'. Err=%s", network, address, err)
+	} else {
+		logrus.Infof("successfully connected. network='%s', address='%s'", network, address)
+	}
 	return conn, err
 }
 

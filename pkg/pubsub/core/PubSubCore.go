@@ -54,9 +54,9 @@ func (psc *PubSubCore) findSubscribers(topic string) (subs []*Subscription) {
 }
 
 // Publish the topic to subscribers
-func (psc *PubSubCore) Publish(topic string, message []byte) {
+func (psc *PubSubCore) Publish(publisherID, topic string, message []byte) {
 	subs := psc.findSubscribers(topic)
-	logrus.Infof("topic=%v; %d subscribers", topic, len(subs))
+	logrus.Infof("publisherID='%s'; topic=%v; %d subscribers", publisherID, topic, len(subs))
 	for _, sub := range subs {
 		sub.handler(topic, message)
 	}
@@ -81,12 +81,13 @@ func (psc *PubSubCore) Stop() (err error) {
 
 // Subscribe to a topic
 //
-//	topic is the topic to subscribe to. The use of '+' wildcard is supported
-//	handler is the callback to invoke when a message is received
+//	 subscriberID is the device, user or serviceID
+//		topic is the topic to subscribe to. The use of '+' wildcard is supported
+//		handler is the callback to invoke when a message is received
 //
 // This returns a subscription ID, used to unsubscribe
 func (psc *PubSubCore) Subscribe(
-	topic string,
+	subscriberID string, topic string,
 	handler func(topic string, message []byte)) (subscriptionID string, err error) {
 
 	sub := &Subscription{

@@ -23,12 +23,13 @@ loglevel: info
 
 # Order of services to start
 autostart:
-  - certs           # certificate service
-  - gateway         # gateway service for network access
-  #- state           # service state storage
-  #- pubsub          # publish/subscribe service
-  #- authn           # user authentication service
-  #- authz           # user authorization service
-  #- directory       # directory service
-  #- history         # history service
-  #- provisioning    # IoT device provisioning service
+  - resolver
+  - state
+  - pubsub          # publish/subscribe service
+  - certs
+  - authn           # user authentication service
+  - authz           # user authorization service
+  - directory       # directory service
+  - history         # history service
+  - provisioning    # IoT device provisioning service
+  - gateway

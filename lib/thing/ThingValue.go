@@ -1,5 +1,11 @@
 package thing
 
+import (
+	"time"
+
+	"github.com/hiveot/hub.capnp/go/vocab"
+)
+
 // ThingValue contains an event, action value or TD of a thing
 type ThingValue struct {
 
@@ -36,6 +42,7 @@ func NewThingValue(publisherID, thingID, name string, valueJSON []byte) *ThingVa
 		PublisherID: publisherID,
 		ThingID:     thingID,
 		Name:        name,
+		Created:     time.Now().Format(vocab.ISO8601Format),
 		// DO NOT REMOVE THE TYPE CONVERSION
 		// this clones the valueJSON so the valueJSON buffer can be reused
 		ValueJSON: []byte(string(valueJSON)),

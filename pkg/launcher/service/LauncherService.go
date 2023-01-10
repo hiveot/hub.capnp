@@ -189,7 +189,6 @@ func (ls *LauncherService) StartService(
 		ls.mux.Lock()
 		defer ls.mux.Unlock()
 
-		// TODO: send event when started and stopped
 		serviceInfo.StopTime = time.Now().Format(time.RFC3339)
 		serviceInfo.Running = false
 		// processState holds exit info
@@ -207,8 +206,9 @@ func (ls *LauncherService) StartService(
 		delete(ls.cmds, name)
 	}()
 
-	// FIXME: wait until started
-	time.Sleep(time.Millisecond * 10)
+	// Give it some time to get up and running in case it is needed as a dependency
+	// TODO: wait for channel
+	time.Sleep(time.Millisecond * 100)
 
 	// last, update the CPU and memory status
 	ls.updateStatus(serviceInfo)
