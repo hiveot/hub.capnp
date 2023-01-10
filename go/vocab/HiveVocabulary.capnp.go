@@ -13,6 +13,7 @@ const (
 	DeviceTypeAVControl            = "avControl"
 	DeviceTypeAVReceiver           = "avReceiver"
 	DeviceTypeBeacon               = "beacon"
+	DeviceTypeBinding              = "binding"
 	DeviceTypeButton               = "button"
 	DeviceTypeAdapter              = "adapter"
 	DeviceTypePhone                = "phone"
