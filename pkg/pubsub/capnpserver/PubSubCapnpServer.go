@@ -82,13 +82,13 @@ func StartPubSubCapnpServer(svc pubsub.IPubSubService, lis net.Listener) error {
 	capProv := capprovider.NewCapServer(
 		serviceName, hubapi.CapPubSubService_Methods(nil, capsrv))
 
-	capProv.ExportCapability("capDevicePubSub",
+	capProv.ExportCapability(hubapi.CapNameDevicePubSub,
 		[]string{hubapi.ClientTypeService, hubapi.ClientTypeIotDevice})
 
-	capProv.ExportCapability("capServicePubSub",
+	capProv.ExportCapability(hubapi.CapNameServicePubSub,
 		[]string{hubapi.ClientTypeService})
 
-	capProv.ExportCapability("capUserPubSub",
+	capProv.ExportCapability(hubapi.CapNameUserPubSub,
 		[]string{hubapi.ClientTypeService, hubapi.ClientTypeUser})
 
 	logrus.Infof("Starting '%s' service capnp adapter on: %s", serviceName, lis.Addr())

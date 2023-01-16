@@ -14,9 +14,9 @@ import (
 // ThingPropertyValues is a collection of thing property values by property/event name
 type ThingPropertyValues map[string]*thing.ThingValue
 
-// PropertiesStore holds the most recent property and event values of things.
+// LastPropertiesStore holds the most recent property and event values of things.
 // It persists a record for each Thing containing a map of the most recent properties.
-type PropertiesStore struct {
+type LastPropertiesStore struct {
 	// bucket to persist thing properties with a serialized property map for each thing
 	store bucketstore.IBucket
 
@@ -32,7 +32,7 @@ type PropertiesStore struct {
 // To be invoked before reading and writing Thing properties to ensure the cache is loaded.
 // This immediately returns if a record for the Thing was already loaded.
 // Returns true if a cache value exists, false if the thing address was added to the cache
-func (srv *PropertiesStore) LoadProps(thingAddr string) (found bool) {
+func (srv *LastPropertiesStore) LoadProps(thingAddr string) (found bool) {
 	srv.cacheMux.Lock()
 	props, found := srv.cache[thingAddr]
 	defer srv.cacheMux.Unlock()
@@ -62,7 +62,7 @@ func (srv *PropertiesStore) LoadProps(thingAddr string) (found bool) {
 //
 //	 thingAddr is the address the thing is reachable at. Usually the publisherID/thingID.
 //		names is optional and can be used to limit the resulting array of values. Use nil to get all properties.
-func (srv *PropertiesStore) GetProperties(thingAddr string, names []string) (propList []*thing.ThingValue) {
+func (srv *LastPropertiesStore) GetProperties(thingAddr string, names []string) (propList []*thing.ThingValue) {
 	propList = make([]*thing.ThingValue, 0)
 
 	// ensure this thing has its properties cache loaded
@@ -92,7 +92,7 @@ func (srv *PropertiesStore) GetProperties(thingAddr string, names []string) (pro
 // HandleAddValue is the handler of update to a thing's event/property values
 // used to update the properties cache.
 // isAction indicates the value is an action.
-func (srv *PropertiesStore) HandleAddValue(event *thing.ThingValue, isAction bool) {
+func (srv *LastPropertiesStore) HandleAddValue(event *thing.ThingValue, isAction bool) {
 	// ensure the Thing has its properties cache loaded
 	thingAddr := event.PublisherID + "/" + event.ThingID
 	srv.LoadProps(thingAddr)
@@ -139,7 +139,7 @@ func (srv *PropertiesStore) HandleAddValue(event *thing.ThingValue, isAction boo
 
 // SaveChanges writes modified cached properties to the underlying store.
 // this returns the last encountered error, although writing is attempted for all changes
-func (srv *PropertiesStore) SaveChanges() (err error) {
+func (srv *LastPropertiesStore) SaveChanges() (err error) {
 
 	// try to minimize the lock time for each Thing
 	// start with using a read lock to collect the addresses of Things that changed
@@ -179,8 +179,9 @@ func (srv *PropertiesStore) SaveChanges() (err error) {
 }
 
 // NewPropertiesStore creates a new instance of the storage for Thing's latest property values
-func NewPropertiesStore(storage bucketstore.IBucket) *PropertiesStore {
-	propsStore := &PropertiesStore{
+func NewPropertiesStore(storage bucketstore.IBucket) *LastPropertiesStore {
+
+	propsStore := &LastPropertiesStore{
 		store:         storage,
 		cache:         make(map[string]ThingPropertyValues),
 		cacheMux:      sync.RWMutex{},

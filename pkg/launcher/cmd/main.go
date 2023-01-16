@@ -14,12 +14,11 @@ import (
 
 // Connect the launcher service
 func main() {
-	var lc config.LauncherConfig
+	f, _, _ := svcconfig.SetupFolderConfig(launcher.ServiceName)
+	cfg := config.NewLauncherConfig()
+	_ = f.LoadConfig(&cfg)
 
-	lc = config.NewLauncherConfig()
-	f, _, _ := svcconfig.LoadServiceConfig(launcher.ServiceName, false, &lc)
-
-	svc := service.NewLauncherService(f, lc)
+	svc := service.NewLauncherService(f, cfg)
 
 	listener.RunService(launcher.ServiceName, f.SocketPath,
 		func(ctx context.Context, lis net.Listener) error {

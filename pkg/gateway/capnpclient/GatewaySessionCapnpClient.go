@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
-	"github.com/hiveot/hub/lib/listener"
+	"github.com/hiveot/hub/lib/hubclient"
 	"github.com/hiveot/hub/pkg/gateway"
 	"github.com/hiveot/hub/pkg/resolver"
 	"github.com/hiveot/hub/pkg/resolver/capserializer"
@@ -196,7 +196,7 @@ func ConnectToGatewayProxyClient(
 		network = "tcp"
 	}
 	// create the TLS connection for use by the RPC
-	clConn, err := listener.CreateTLSClientConnection(network, address, clientCert, caCert)
+	clConn, err := hubclient.CreateTLSClientConnection(network, address, clientCert, caCert)
 	if err != nil {
 		return
 	}

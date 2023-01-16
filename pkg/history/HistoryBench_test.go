@@ -22,14 +22,16 @@ const timespanYear = timespanDay * 365
 // Performance without capnp in msec:
 //
 //	DBSize #Things                  kvbtree     pebble (cap)    bbolt  (cap)
-//	 10K       1    add 1K single   1.9            3.6          4700
-//	 10K       1    add 1K batch    1.8            2.9            11
-//	 10K       1    add 1K multi    1.8            2.9            11
+//	 10K       1    add 1K single   2.5            3.6          4700
+//	 10K       1    add 1K batch    2.0            2.9            11
+//	 10K       1    add 1K multi    2.1            2.9            11
 //	 10K       1    get 1K          1.3            2.8             1.4
+//	 10K       1    get 1K batch    0.7
 //
 //	 10K      10    add 1K single   2.3            4.0          4800
 //	 10K      10    add 1K multi    1.9            2.8            73
 //	 10K      10    get 1K          1.3            1.4             1.4
+//	 10K      10    get 1K batch    0.7
 //
 //	100K       1    add 1K single   1.9 msec       3.5          4900
 //	100K       1    add 1K batch    1.6 msec       2.7            15
@@ -52,38 +54,38 @@ const timespanYear = timespanDay * 365
 // Performance with capnp:
 //
 //	DBSize #Things                  kvbtree     pebble (cap)    bbolt  (cap)
-//	 10K       1    add 1K single    140          140            4900
-//	 10K       1    add 1K batch       6.7          8.1            16
-//	 10K       1    add 1K multi       6.7          8.0            16
-//	 10K       1    get 1K single    140          140             140
-//	 10K       1    get 1K multi       6.1          6.7           6.3
+//	 10K       1    add 1K single     94          140            4900
+//	 10K       1    add 1K batch       9.4          8.1            16
+//	 10K       1    add 1K multi       9.3          8.0            16
+//	 10K       1    get 1K single     91          140             140
+//	 10K       1    get 1K multi       8.2          6.7           6.3
 //
-//	 10K      10    add 1K single    130          140            4900
-//	 10K      10    add 1K multi       6.8          8.0            74
-//	 10K      10    get 1K single    130          140             140
-//	 10K       1    get 1K multi       5.9          6.2             6.0
+//	 10K      10    add 1K single     97          140            4900
+//	 10K      10    add 1K multi       9.4          8.0            74
+//	 10K      10    get 1K single     91          140             140
+//	 10K       1    get 1K multi       8.1          6.2             6.0
 //
-//	100K       1    add 1K single    130          140           5200
-//	100K       1    add 1K batch       6.5          7.7           20
-//	100K       1    add 1K multi       6.5          7.7           20
-//	100K       1    get 1K           130          140            140
-//	100K       1    get 1K multi       5.7          8.2            5.7
+//	100K       1    add 1K single    102          140           5200
+//	100K       1    add 1K batch       9.3          7.7           20
+//	100K       1    add 1K multi      10.2          7.7           20
+//	100K       1    get 1K            91          140            140
+//	100K       1    get 1K multi       7.8          8.2            5.7
 //
-//	100K      10    add 1K single    140          140           5200
-//	100K      10    add 1K multi       6.6          7.8           88
-//	100K      10    get 1K           140          140            140
-//	100K      10    get 1K multi       5.7          5.9            5.6
+//	100K      10    add 1K single    100          140           5200
+//	100K      10    add 1K multi       9.6          7.8           88
+//	100K      10    get 1K            92          140            140
+//	100K      10    get 1K multi       8.6          5.9            5.6
 //
-//	  1M       1    add 1K single    140          140           6900
-//	  1M       1    add 1K batch       6.8          7.8           58
-//	  1M       1    add 1K multi       7.4          7.6           48
-//	  1M       1    get 1K           140          140            140
-//	  1M       1    get 1K multi       5.6          6.5            5.6
+//	  1M       1    add 1K single     90          140           6900
+//	  1M       1    add 1K batch      12            7.8           58
+//	  1M       1    add 1K multi       8.8          7.6           48
+//	  1M       1    get 1K            92          140            140
+//	  1M       1    get 1K multi       7.8          6.5            5.6
 //
-//	  1M     100    add 1K single    150          140           5900
-//	  1M     100    add 1K multi       7.7          7.6          540
-//	  1M     100    get 1K           130          136            140
-//	  1M     100    get 1K multi       6.1          5.7            5.6
+//	  1M     100    add 1K single     99          140           5900
+//	  1M     100    add 1K multi      12            7.6          540
+//	  1M     100    get 1K            78          136            140
+//	  1M     100    get 1K multi       8.2          5.7            5.6
 var DataSizeTable = []struct {
 	dataSize int
 	nrThings int
@@ -91,29 +93,28 @@ var DataSizeTable = []struct {
 }{
 	{dataSize: 10000, nrThings: 1, nrSets: 1000},
 	{dataSize: 10000, nrThings: 10, nrSets: 1000},
-	//{dataSize: 100000, nrThings: 1, nrSets: 1000},
-	//{dataSize: 100000, nrThings: 10, nrSets: 1000},
-	//{dataSize: 1000000, nrThings: 1, nrSets: 1000},
-	//{dataSize: 1000000, nrThings: 100, nrSets: 1000},
+	{dataSize: 100000, nrThings: 1, nrSets: 1000},
+	{dataSize: 100000, nrThings: 10, nrSets: 1000},
+	{dataSize: 1000000, nrThings: 1, nrSets: 1000},
+	{dataSize: 1000000, nrThings: 100, nrSets: 1000},
 }
 
 func BenchmarkAddEvents(b *testing.B) {
-	const publisherID = "urn:device0"
-	const thing0ID = "thing-0"
+	const publisherID = "device1"
+	const thing0ID = thingIDPrefix + "0"
 	const timespanSec = 3600 * 24 * 10
 
 	logging.SetLogging("error", "")
 
 	for _, tbl := range DataSizeTable {
 		ctx := context.Background()
-		testData, _ := makeValueBatch(tbl.dataSize, tbl.nrThings, timespanMonth)
-		store, closeFn := newHistoryService(useTestCapnp)
+		testData, _ := makeValueBatch("device1", tbl.dataSize, tbl.nrThings, timespanMonth)
+		svc, closeFn := newHistoryService(useTestCapnp)
 		// build a dataset in the store
-		addHistory(store, tbl.dataSize, 10, timespanSec)
+		addHistory(svc, tbl.dataSize, 10, timespanSec)
 
-		updateAnyHistory, _ := store.CapAddAnyThing(ctx, "test")
-		updateHistory, _ := store.CapAddHistory(ctx, "test", publisherID, thing0ID)
-		readHistory, _ := store.CapReadHistory(ctx, "test", publisherID, thing0ID)
+		updateHistory, _ := svc.CapAddHistory(ctx, "test", true)
+		readHistory, _ := svc.CapReadHistory(ctx, "test", publisherID, thing0ID)
 
 		// test adding records one by one
 		b.Run(fmt.Sprintf("[dbsize:%d] #things:%d add-single:%d", tbl.dataSize, tbl.nrThings, tbl.nrSets),
@@ -122,13 +123,8 @@ func BenchmarkAddEvents(b *testing.B) {
 
 					for i := 0; i < tbl.nrSets; i++ {
 						ev := testData[i]
-						if tbl.nrThings == 1 {
-							err := updateHistory.AddEvent(ctx, ev)
-							require.NoError(b, err)
-						} else {
-							err := updateAnyHistory.AddEvent(ctx, ev)
-							require.NoError(b, err)
-						}
+						err := updateHistory.AddEvent(ctx, ev)
+						require.NoError(b, err)
 					}
 
 				}
@@ -149,7 +145,7 @@ func BenchmarkAddEvents(b *testing.B) {
 			func(b *testing.B) {
 				bulk := testData[0:tbl.nrSets]
 				for n := 0; n < b.N; n++ {
-					err := updateAnyHistory.AddEvents(ctx, bulk)
+					err := updateHistory.AddEvents(ctx, bulk)
 					require.NoError(b, err)
 				}
 			})
@@ -192,8 +188,8 @@ func BenchmarkAddEvents(b *testing.B) {
 				}
 			})
 		updateHistory.Release()
-		updateAnyHistory.Release()
 		readHistory.Release()
+
 		//b.Log("- next round -")
 		time.Sleep(time.Second) // cleanup delay
 		fmt.Println("--- next round ---")

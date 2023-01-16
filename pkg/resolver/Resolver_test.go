@@ -191,7 +191,7 @@ func TestGetCapabilityViaResolver(t *testing.T) {
 	assert.NoError(t, err)
 
 	// give the resolver time to discover the test service
-	time.Sleep(time.Millisecond * 100)
+	time.Sleep(time.Millisecond * 10)
 
 	// Phase 2 - obtain the test service capability from the resolver
 	caps, err := svc.ListCapabilities(ctx, hubapi.ClientTypeService)
@@ -227,14 +227,14 @@ func TestGetCapabilityViaResolver(t *testing.T) {
 
 	// Phase 4 - stop the test service. Its capabilities should disappear
 	ts.Stop()
+
 	// remote side needs time to discover disconnect
-	time.Sleep(time.Millisecond * 1)
+	time.Sleep(time.Millisecond * 10)
 	caps, err = svc.ListCapabilities(ctx, hubapi.ClientTypeService)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(caps))
 
 	// Phase 5 - capabilities should no longer resolve
-	// fixme: can we do without the boilerplate please?
 	// when the service disconnects the capabilities should disappear
 	method, release = capability.CapMethod1(ctx,
 		func(params test.CapTestService_capMethod1_Params) error {
@@ -243,7 +243,6 @@ func TestGetCapabilityViaResolver(t *testing.T) {
 			_ = params.SetClientType(hubapi.ClientTypeService)
 			return err2
 		})
-
 	capMethod1b := method.Capabilit()
 
 	// invoke method 1

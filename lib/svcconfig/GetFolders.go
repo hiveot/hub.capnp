@@ -4,6 +4,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/sirupsen/logrus"
+	"gopkg.in/yaml.v3"
 )
 
 type AppFolders struct {
@@ -12,6 +15,7 @@ type AppFolders struct {
 	Services   string // Services folder
 	Home       string // Home folder, default this is the parent of bin, config, certs and logs
 	Config     string // Config folder with application and service yaml configuration files
+	ConfigFile string
 	Certs      string // Certificates and keys
 	Logs       string // Logging output
 	Run        string // PID and sockets folder.
@@ -97,4 +101,21 @@ func GetFolders(homeFolder string, useSystem bool) AppFolders {
 		Run:      runFolder,
 		Stores:   storesFolder,
 	}
+}
+
+// LoadConfig loads a configuration file from the config folder
+func (f *AppFolders) LoadConfig(cfg interface{}) error {
+	cfgData, err := os.ReadFile(f.ConfigFile)
+	if err == nil {
+		logrus.Infof("Loaded configuration file: %s", f.ConfigFile)
+		err = yaml.Unmarshal(cfgData, cfg)
+		if err != nil {
+			logrus.Fatalf("Loading configuration file '%s' failed with: %s", f.ConfigFile, err)
+		}
+	} else {
+		logrus.Infof("Configuration file '%s' not found. Ignored.", f.ConfigFile)
+		err = nil
+	}
+
+	return err
 }

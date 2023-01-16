@@ -35,21 +35,25 @@ func RunService(serviceName string, socketPath string,
 	logrus.Infof("Listening on %v", socketPath)
 
 	ctx := ExitOnSignal(context.Background(), func() {
+		logrus.Infof("Stopping service '%s'", serviceName)
 		_ = lis.Close()
 		_ = os.Remove(lis.Addr().String())
-		err = shutdown()
 	})
 
 	// startup will wait until connection drops or  context is cancelled after signal is received
 	// the result is the error indicating the reason
 	err = startup(ctx, lis)
 
+	logrus.Infof("Service '%s' shutting down", serviceName)
+
+	err = shutdown()
+
 	if errors.Is(err, net.ErrClosed) {
-		logrus.Infof("%s service has stopped gracefully", serviceName)
+		logrus.Infof("Service '%s' has stopped gracefully", serviceName)
 		os.Exit(0)
 	} else if err != nil {
-		logrus.Errorf("%s service shutdown with error: %s", serviceName, err)
+		logrus.Errorf("Service '%s' shutdown with error: %s", serviceName, err)
 		os.Exit(-1)
 	}
-	logrus.Infof("%s service has shutdown with no errors", serviceName)
+	logrus.Infof("Service '%s' has shutdown with no errors", serviceName)
 }

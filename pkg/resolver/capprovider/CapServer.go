@@ -57,54 +57,6 @@ func (capsrv *CapServer) ExportCapability(methodName string, clientTypes []strin
 	capsrv.exportedCapabilities[methodName] = newCap
 }
 
-// GetCapability invokes the requested method to return the capability it provides
-//func (capsrv *CapServer) GetCapability(
-//	ctx context.Context, call hubapi.CapProvider_getCapability) (err error) {
-//
-//	args := call.Args()
-//	clientID, _ := args.ClientID()
-//	capabilityName, _ := args.CapName()
-//	clientType, _ := args.ClientType()
-//	methodArgsCapnp, _ := args.Args()
-//	methodArgs := caphelp.UnmarshalStringList(methodArgsCapnp)
-//
-//	capInfo, found := capsrv.exportedCapabilities[capabilityName]
-//	if !found {
-//		err = fmt.Errorf("capability '%s' not found", capabilityName)
-//		return err
-//	}
-//	logrus.Infof("clientID='%s', clientType='%s', capabilityName='%s', args='%v'",
-//		clientID, clientType, capabilityName, methodArgs)
-//
-//	// validate the client type is allowed on this method
-//	allowedTypes := strings.Join(capInfo.ClientTypes, ",")
-//	isAllowed := clientType != "" && strings.Contains(allowedTypes, clientType)
-//	if !isAllowed {
-//		err = fmt.Errorf("denied: capability '%s' is not available to client '%s' of type '%s'",
-//			capabilityName, clientID, clientType)
-//		logrus.Warning(err)
-//		return err
-//	}
-//	// invoke the method to get the capability
-//	// the clientID and clientType arguments from this call are passed on to the capability request
-//	// and available in the method.
-//	// okay, not quite sure how this works but the results of the method are applied to 'call'
-//	// and returned by this method. The 'Capability' result doesn't need a matching name apparently as
-//	// the first result from the capability table in the message is used. Quite convenient.
-//	// TBD: Can this behavior be relied on in future versions of go-capnp?
-//	method, _ := capsrv.knownMethods[capabilityName]
-//	mc := call.Call
-//	err = method.Impl(ctx, mc)
-//
-//	return err
-//}
-
-//func (capsrv *CapServer) HandleUnknownMethod(ctx context.Context, r capnp.Recv) *server.Method {
-//	r.Reject(capnp.Unimplemented("unimplemented"))
-//	return nil
-//}
-//
-
 // ListCapabilities returns the list of exported capabilities
 func (capsrv *CapServer) ListCapabilities(
 	_ context.Context, call hubapi.CapProvider_listCapabilities) (err error) {
@@ -122,6 +74,7 @@ func (capsrv *CapServer) ListCapabilities(
 			err = resp.SetInfoList(infoListCapnp)
 		}
 	}
+	logrus.Infof("returned %d capabilities for '%s'", len(infoList), capsrv.serviceName)
 	return err
 }
 

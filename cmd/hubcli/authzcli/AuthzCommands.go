@@ -6,7 +6,7 @@ import (
 
 	"github.com/urfave/cli/v2"
 
-	"github.com/hiveot/hub/lib/listener"
+	"github.com/hiveot/hub/lib/hubclient"
 	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/pkg/authz"
 	"github.com/hiveot/hub/pkg/authz/capnpclient"
@@ -54,7 +54,7 @@ func HandleListGroups(ctx context.Context, f svcconfig.AppFolders, clientID stri
 	var authzClient authz.IAuthz
 	var manageAuthz authz.IManageAuthz
 
-	conn, err := listener.CreateLocalClientConnection(authz.ServiceName, f.Run)
+	conn, err := hubclient.CreateLocalClientConnection(authz.ServiceName, f.Run)
 	if err == nil {
 		authzClient = capnpclient.NewAuthzCapnpClient(ctx, conn)
 	}

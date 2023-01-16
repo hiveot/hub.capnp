@@ -80,6 +80,9 @@ func (bucket *PebbleBucket) Delete(key string) (err error) {
 // Get returns the document for the given key
 func (bucket *PebbleBucket) Get(key string) (doc []byte, err error) {
 	bucketKey := bucket.rangeStart + key
+	if bucket.closed || bucket.db == nil {
+		logrus.Panicf("Bad state getting key='%s'. Bucket closed (%v) or DB nil.", key, bucket.closed)
+	}
 	byteValue, closer, err := bucket.db.Get([]byte(bucketKey))
 	if err == nil {
 		doc = bytes.NewBuffer(byteValue).Bytes()
@@ -178,6 +181,9 @@ func (bucket *PebbleBucket) SetMultiple(docs map[string][]byte) (err error) {
 
 // NewPebbleBucket creates a new bucket
 func NewPebbleBucket(clientID, bucketID string, pebbleDB *pebble.DB) *PebbleBucket {
+	if pebbleDB == nil {
+		logrus.Panicf("clientID='%s', bucketID='%s'. pebbleDB is nil", clientID, bucketID)
+	}
 	srv := &PebbleBucket{
 		clientID:   clientID,
 		bucketID:   bucketID,

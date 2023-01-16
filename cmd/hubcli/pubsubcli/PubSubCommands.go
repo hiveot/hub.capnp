@@ -10,7 +10,7 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/hiveot/hub.capnp/go/vocab"
-	"github.com/hiveot/hub/lib/listener"
+	"github.com/hiveot/hub/lib/hubclient"
 	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/pubsub"
@@ -63,16 +63,13 @@ func SubEventsCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command 
 func HandleSubTD(ctx context.Context, f svcconfig.AppFolders) error {
 	var pubSubSvc pubsub.IPubSubService
 
-	conn, err := listener.CreateLocalClientConnection(pubsub.ServiceName, f.Run)
+	conn, err := hubclient.CreateLocalClientConnection(pubsub.ServiceName, f.Run)
 	if err == nil {
 		pubSubSvc = capnpclient.NewPubSubCapnpClient(ctx, conn)
 	}
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Created          Publisher            ThingID                   Type            Valid TD  \n")
-	fmt.Printf("---------------  -------------------  ------------------------  --------------  ----\n")
-
 	pubSubUser, _ := pubSubSvc.CapUserPubSub(ctx, "hubcli")
 	err = pubSubUser.SubTDs(ctx, func(event *thing.ThingValue) {
 		var td thing.TD
@@ -84,6 +81,9 @@ func HandleSubTD(ctx context.Context, f svcconfig.AppFolders) error {
 		fmt.Printf("%-16s %-20s %-25s %-15s %v \n",
 			timeStr, event.PublisherID, event.ThingID, td.DeviceType, valid)
 	})
+	fmt.Printf("Created          Publisher            ThingID                   Type            Valid TD  \n")
+	fmt.Printf("---------------  -------------------  ------------------------  --------------  ----\n")
+
 	if err != nil {
 		return err
 	}
@@ -95,7 +95,7 @@ func HandleSubTD(ctx context.Context, f svcconfig.AppFolders) error {
 func HandleSubEvents(ctx context.Context, f svcconfig.AppFolders) error {
 	var pubSubSvc pubsub.IPubSubService
 
-	conn, err := listener.CreateLocalClientConnection(pubsub.ServiceName, f.Run)
+	conn, err := hubclient.CreateLocalClientConnection(pubsub.ServiceName, f.Run)
 	if err == nil {
 		pubSubSvc = capnpclient.NewPubSubCapnpClient(ctx, conn)
 	}

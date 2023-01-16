@@ -18,12 +18,13 @@ type HistoryServiceCapnpClient struct {
 	capability hubapi.CapHistoryService // capnp client
 }
 
-func (cl *HistoryServiceCapnpClient) CapAddAnyThing(
-	ctx context.Context, clientID string) (history.IAddHistory, error) {
+func (cl *HistoryServiceCapnpClient) CapAddHistory(
+	ctx context.Context, clientID string, ignoreRetention bool) (history.IAddHistory, error) {
 
-	getCap, release := cl.capability.CapAddAnyThing(ctx,
-		func(params hubapi.CapHistoryService_capAddAnyThing_Params) error {
+	getCap, release := cl.capability.CapAddHistory(ctx,
+		func(params hubapi.CapHistoryService_capAddHistory_Params) error {
 			err2 := params.SetClientID(clientID)
+			params.SetIgnoreRetention(ignoreRetention)
 			return err2
 		})
 	defer release()
@@ -33,23 +34,39 @@ func (cl *HistoryServiceCapnpClient) CapAddAnyThing(
 	return newCap, nil
 }
 
-// CapAddHistory provides the capability to add to the history
-func (cl *HistoryServiceCapnpClient) CapAddHistory(
-	ctx context.Context, clientID string, publisherID, thingID string) (history.IAddHistory, error) {
+//
+//// CapAddHistory provides the capability to add to the history
+//func (cl *HistoryServiceCapnpClient) CapAddHistory(
+//	ctx context.Context, clientID string, publisherID, thingID string) (history.IAddHistory, error) {
+//
+//	// The use of a result 'future' avoids a round trip, making this more efficient
+//	getCap, release := cl.capability.CapAddHistory(ctx,
+//		func(params hubapi.CapHistoryService_capAddHistory_Params) error {
+//			err2 := params.SetClientID(clientID)
+//			_ = params.SetPublisherID(publisherID)
+//			_ = params.SetThingID(thingID)
+//			return err2
+//		})
+//
+//	defer release()
+//	capability := getCap.Cap().AddRef()
+//
+//	newCap := NewAddHistoryCapnpClient(capability)
+//	return newCap, nil
+//}
 
-	// The use of a result 'future' avoids a round trip, making this more efficient
-	getCap, release := cl.capability.CapAddHistory(ctx,
-		func(params hubapi.CapHistoryService_capAddHistory_Params) error {
+func (cl *HistoryServiceCapnpClient) CapManageRetention(
+	ctx context.Context, clientID string) (history.IManageRetention, error) {
+
+	getCap, release := cl.capability.CapManageRetention(ctx,
+		func(params hubapi.CapHistoryService_capManageRetention_Params) error {
 			err2 := params.SetClientID(clientID)
-			_ = params.SetPublisherID(publisherID)
-			_ = params.SetThingID(thingID)
 			return err2
 		})
-
 	defer release()
 	capability := getCap.Cap().AddRef()
 
-	newCap := NewAddHistoryCapnpClient(capability)
+	newCap := NewManageRetentionCapnpClient(capability)
 	return newCap, nil
 }
 

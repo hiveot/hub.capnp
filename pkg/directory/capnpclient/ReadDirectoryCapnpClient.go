@@ -31,7 +31,8 @@ func (cl *ReadDirectoryCapnpClient) Cursor(
 }
 
 // GetTD returns a thing value containing the TD document for the given Thing address
-func (cl *ReadDirectoryCapnpClient) GetTD(ctx context.Context, publisherID, thingID string) (tv *thing.ThingValue, err error) {
+func (cl *ReadDirectoryCapnpClient) GetTD(
+	ctx context.Context, publisherID, thingID string) (tv *thing.ThingValue, err error) {
 
 	method, release := cl.capability.GetTD(ctx,
 		func(params hubapi.CapReadDirectory_getTD_Params) error {

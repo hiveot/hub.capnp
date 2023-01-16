@@ -231,13 +231,11 @@ func (store *KVBTreeStore) GetBucket(bucketID string) (bucket bucketstore.IBucke
 	kvBucket, _ := store.buckets[bucketID]
 	if kvBucket == nil {
 		kvBucket = NewKVMemBucket(store.clientID, bucketID)
+		kvBucket.setUpdateHandler(store.onBucketUpdated)
 		store.buckets[bucketID] = kvBucket
 		bucket = kvBucket
 	}
 	if kvBucket != nil {
-		// first time use of this bucket it might not have the callback yet.
-		// also, after loading the store all handlers are empty
-		kvBucket.setUpdateHandler(store.onBucketUpdated)
 		kvBucket.incrRefCounter()
 	}
 	store.mutex.Unlock()
@@ -279,6 +277,11 @@ func (store *KVBTreeStore) Open() error {
 			return err
 		}
 	}
+	// after loading set the handler for all buckets
+	for _, kvBucket := range store.buckets {
+		kvBucket.setUpdateHandler(store.onBucketUpdated)
+	}
+
 	store.backgroundLoopEnding = make(chan bool)
 	store.backgroundLoopEnded = make(chan bool)
 	if err == nil {

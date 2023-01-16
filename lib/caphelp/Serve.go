@@ -36,7 +36,7 @@ func Serve(serviceID string, lis net.Listener, boot capnp.Client, onConnection f
 		}
 		connID := GetConnectionID(conn)
 
-		logrus.Infof("New connection to '%s' from remote client: %s. ID=%s",
+		logrus.Infof("Incoming connection to '%s' from remote client: %s. ID=%s",
 			serviceID, conn.RemoteAddr().String(), connID)
 
 		// the RPC connection takes ownership of the bootstrap interface and will release it when the connection
@@ -53,6 +53,11 @@ func Serve(serviceID string, lis net.Listener, boot capnp.Client, onConnection f
 		if onConnection != nil {
 			onConnection(rpcConn)
 		}
+		go func() {
+			logrus.Infof("Connection to '%s' with ID='%s' established", serviceID, connID)
+			<-rpcConn.Done()
+			logrus.Infof("Connection to '%s' with ID='%s' closed", serviceID, connID)
+		}()
 	}
 }
 

@@ -25,13 +25,15 @@ import (
 	"github.com/hiveot/hub/pkg/history/capnpserver"
 	"github.com/hiveot/hub/pkg/history/config"
 	"github.com/hiveot/hub/pkg/history/service"
+	"github.com/hiveot/hub/pkg/pubsub"
+	service2 "github.com/hiveot/hub/pkg/pubsub/service"
 
 	"github.com/hiveot/hub/lib/logging"
 
 	"github.com/hiveot/hub/lib/thing"
 )
 
-const thingIDPrefix = "urn:thing-"
+const thingIDPrefix = "thing-"
 
 // when testing using the capnp RPC
 var testFolder = path.Join(os.TempDir(), "test-history")
@@ -39,7 +41,7 @@ var testSocket = path.Join(testFolder, history.ServiceName+".socket")
 
 const testClientID = "testclient"
 const useTestCapnp = true
-const HistoryStoreBackend = bucketstore.BackendKVBTree
+const HistoryStoreBackend = bucketstore.BackendPebble
 
 //var svcConfig = config.HistoryStoreConfig{
 //	DatabaseType:    "mongodb",
@@ -57,19 +59,16 @@ var names = []string{"temperature", "humidity", "pressure", "wind", "speed", "sw
 
 // Create a new store, delete if it already exists
 func newHistoryService(useCapnp bool) (history.IHistoryService, func()) {
+	var sub pubsub.IServicePubSub
 	svcConfig := config.NewHistoryConfig(testFolder)
 
 	// create a new empty store to use
 	_ = os.RemoveAll(svcConfig.Directory)
 	store := cmd.NewBucketStore(testFolder, testClientID, HistoryStoreBackend)
-	err := store.Open()
-	if err != nil {
-		logrus.Fatalf("Unable to open test store: %s", err)
-	}
-	// start the service
-	svc := service.NewHistoryService(store, history.ServiceName)
+	// start the service ; not using pubsub
+	svc := service.NewHistoryService(&svcConfig, store, sub)
 	ctx, cancelFn := context.WithCancel(context.Background())
-	err = svc.Start(ctx)
+	err := svc.Start()
 	if err != nil {
 		logrus.Fatalf("Failed starting the state service: %s", err)
 	}
@@ -89,7 +88,6 @@ func newHistoryService(useCapnp bool) (history.IHistoryService, func()) {
 			cancelFn()
 			_ = srvListener.Close()
 			_ = svc.Stop()
-			err = store.Close()
 			// give it some time to shut down before the next test
 			time.Sleep(time.Millisecond)
 		}
@@ -97,7 +95,6 @@ func newHistoryService(useCapnp bool) (history.IHistoryService, func()) {
 
 	return svc, func() {
 		_ = svc.Stop()
-		err = store.Close()
 		cancelFn()
 	}
 }
@@ -107,7 +104,7 @@ func newHistoryService(useCapnp bool) (history.IHistoryService, func()) {
 //}
 
 // generate a random batch of values for testing
-func makeValueBatch(nrValues, nrThings, timespanSec int) (batch []*thing.ThingValue, highest map[string]*thing.ThingValue) {
+func makeValueBatch(publisherID string, nrValues, nrThings, timespanSec int) (batch []*thing.ThingValue, highest map[string]*thing.ThingValue) {
 	highest = make(map[string]*thing.ThingValue)
 	valueBatch := make([]*thing.ThingValue, 0, nrValues)
 	for j := 0; j < nrValues; j++ {
@@ -117,10 +114,9 @@ func makeValueBatch(nrValues, nrThings, timespanSec int) (batch []*thing.ThingVa
 		randomSeconds := time.Duration(rand.Intn(timespanSec)) * time.Second
 		randomTime := time.Now().Add(-randomSeconds).Format(vocab.ISO8601Format)
 		thingID := thingIDPrefix + strconv.Itoa(randomID)
-		pubID := "urn:device1"
 
 		ev := &thing.ThingValue{
-			PublisherID: pubID,
+			PublisherID: publisherID,
 			ThingID:     thingID,
 			Name:        names[randomName],
 			ValueJSON:   []byte(fmt.Sprintf("%2.3f", randomValue)),
@@ -138,22 +134,22 @@ func makeValueBatch(nrValues, nrThings, timespanSec int) (batch []*thing.ThingVa
 	return valueBatch, highest
 }
 
-// add some history to the store
+// add some history to the store using publisher 'device1'
 func addHistory(svc history.IHistoryService, count int, nrThings int, timespanSec int) (
 	highest map[string]*thing.ThingValue) {
-
+	const publisherID = "device1"
 	var batchSize = 1000
 	if batchSize > count {
 		batchSize = count
 	}
 	ctx := context.Background()
 
-	evBatch, highest := makeValueBatch(count, nrThings, timespanSec)
+	evBatch, highest := makeValueBatch(publisherID, count, nrThings, timespanSec)
 
 	// use add multiple in 100's
 	for i := 0; i < count/batchSize; i++ {
 		// no thingID constraint allows adding events from any thing
-		capAdd, err := svc.CapAddAnyThing(ctx, "test")
+		capAdd, err := svc.CapAddHistory(ctx, "test", true)
 		if err != nil {
 			panic("failed cap add")
 		}
@@ -181,51 +177,39 @@ func TestMain(m *testing.M) {
 // This requires a local unsecured MongoDB instance
 func TestStartStop(t *testing.T) {
 	logrus.Info("--- TestStartStop ---")
-	ctx := context.Background()
 	cfg := config.NewHistoryConfig(testFolder)
 
-	//store := NewBucketStore()
 	store := cmd.NewBucketStore(cfg.Directory, testClientID, bucketstore.BackendKVBTree)
-	err := store.Open()
-	assert.NoError(t, err)
-	svc := service.NewHistoryService(store, history.ServiceName)
+	svc := service.NewHistoryService(&cfg, store, nil)
 
-	err = svc.Start(ctx)
+	err := svc.Start()
 	assert.NoError(t, err)
 
 	err = svc.Stop()
-	assert.NoError(t, err)
-
-	err = store.Close()
 	assert.NoError(t, err)
 }
 
 func TestAddGetEvent(t *testing.T) {
 	logrus.Info("--- TestAddGetEvent ---")
-	const device1 = "urn:device1"
-	const id1 = "urn:thing1"
-	const id2 = "urn:thing2"
-	const publisherID = "urn:device1"
+	const device1 = "device1"
+	const id1 = "thing1"
+	const id2 = "thing2"
+	const publisherID = "device1"
 	const thing1ID = id1
 	const thing2ID = id2
 	const evTemperature = "temperature"
 	const evHumidity = "humidity"
 	var timeafter = ""
 
-	store, cancelFn := newHistoryService(useTestCapnp)
+	svc, cancelFn := newHistoryService(useTestCapnp)
 	ctx := context.Background()
 	fivemago := time.Now().Add(-time.Minute * 5)
 	fiftyfivemago := time.Now().Add(-time.Minute * 55)
-	addHistory(store, 20, 3, 3600)
+	addHistory(svc, 20, 3, 3600)
 
 	// add events for thing 1
-	addHistory1, _ := store.CapAddHistory(ctx, device1, publisherID, thing1ID)
-	readHistory1, _ := store.CapReadHistory(ctx, device1, publisherID, thing1ID)
-
-	// release and cancel is order dependent
-	defer addHistory1.Release()
-	defer readHistory1.Release()
-	defer cancelFn()
+	addHistory1, _ := svc.CapAddHistory(ctx, device1, true)
+	readHistory1, _ := svc.CapReadHistory(ctx, device1, publisherID, thing1ID)
 
 	// add thing1 temperature from 5 minutes ago
 	ev1_1 := &thing.ThingValue{PublisherID: publisherID, ThingID: thing1ID, Name: evTemperature,
@@ -239,7 +223,7 @@ func TestAddGetEvent(t *testing.T) {
 	assert.NoError(t, err)
 
 	// add events for thing 2, temperature and humidity
-	addHistory2, _ := store.CapAddHistory(ctx, device1, publisherID, thing2ID)
+	addHistory2, _ := svc.CapAddHistory(ctx, device1, true)
 	// add thing2 humidity from 5 minutes ago
 	ev2_1 := &thing.ThingValue{PublisherID: publisherID, ThingID: thing2ID, Name: evHumidity,
 		ValueJSON: []byte("50"), Created: fivemago.Format(vocab.ISO8601Format)}
@@ -270,7 +254,7 @@ func TestAddGetEvent(t *testing.T) {
 	timeafter = time.Now().Add(-time.Minute * 30).Format(vocab.ISO8601Format)
 
 	// do we need to get a new cursor?
-	//readHistory = store.CapReadHistory()
+	//readHistory = svc.CapReadHistory()
 	res2, valid := cursor1.Seek(timeafter)
 	if assert.True(t, valid) {
 		assert.Equal(t, thing1ID, res2.ThingID)   // must match the filtered id1
@@ -278,28 +262,39 @@ func TestAddGetEvent(t *testing.T) {
 		assert.Equal(t, fivemago.Format(vocab.ISO8601Format), res2.Created)
 	}
 	cursor1.Release()
-	cursor1 = nil
+	readHistory1.Release()
+	addHistory1.Release()
+	cancelFn()
+
+	// after closing and reopening the svc the event should still be there
+	store2 := cmd.NewBucketStore(testFolder, testClientID, HistoryStoreBackend)
+	svcConfig2 := config.NewHistoryConfig(testFolder)
+	svc2 := service.NewHistoryService(&svcConfig2, store2, nil)
+	err = svc2.Start()
+	require.NoError(t, err)
 
 	// Test 3: get first temperature of thing 2 - expect 1 result
-	readHistory2, _ := store.CapReadHistory(ctx, device1, publisherID, thing2ID)
+	readHistory2, _ := svc2.CapReadHistory(ctx, device1, publisherID, thing2ID)
 	cursor2 := readHistory2.GetEventHistory(ctx, "")
 	res3, valid := cursor2.First()
-	cursor2.Release()
-	cursor2 = nil
 	require.True(t, valid)
 	assert.Equal(t, evTemperature, res3.Name)
+
+	cursor2.Release()
+	readHistory2.Release()
+	store2.Close()
 }
 
 func TestAddPropertiesEvent(t *testing.T) {
 	logrus.Info("--- TestAddPropertiesEvent ---")
 	const clientID = "device0"
-	const thing1ID = "urn:" + thingIDPrefix + "0" // matches a percentage of the random things
-	const publisherID = "urn:device1"
+	const thing1ID = thingIDPrefix + "0" // matches a percentage of the random things
+	const publisherID = "device1"
 	const temp1 = "55"
 	store, closeFn := newHistoryService(useTestCapnp)
 
 	ctx := context.Background()
-	addHist, _ := store.CapAddHistory(ctx, clientID, publisherID, thing1ID)
+	addHist, _ := store.CapAddHistory(ctx, clientID, true)
 	readHist, _ := store.CapReadHistory(ctx, clientID, publisherID, thing1ID)
 
 	action1 := &thing.ThingValue{
@@ -320,8 +315,8 @@ func TestAddPropertiesEvent(t *testing.T) {
 		Name:        "", // missing name
 	}
 	badEvent2 := &thing.ThingValue{
-		PublisherID: publisherID,
-		ThingID:     "fake", // wrong ID
+		PublisherID: "", // missing publisher
+		ThingID:     thing1ID,
 		Name:        "name",
 	}
 	badEvent3 := &thing.ThingValue{
@@ -366,8 +361,6 @@ func TestAddPropertiesEvent(t *testing.T) {
 	assert.Error(t, err)
 	err = addHist.AddEvent(ctx, nil)
 	assert.Error(t, err)
-	err = addHist.AddEvents(ctx, []*thing.ThingValue{badEvent1, badEvent2, badEvent3, badEvent4})
-	assert.Error(t, err)
 	err = addHist.AddAction(ctx, badEvent1)
 	assert.Error(t, err)
 	err = addHist.AddAction(ctx, nil)
@@ -386,10 +379,9 @@ func TestAddPropertiesEvent(t *testing.T) {
 	closeFn()
 
 	backend := cmd.NewBucketStore(testFolder, testClientID, HistoryStoreBackend)
-	err = backend.Open()
-	assert.NoError(t, err)
-	svc := service.NewHistoryService(backend, history.ServiceName)
-	err = svc.Start(ctx)
+	cfg := config.NewHistoryConfig(testFolder)
+	svc := service.NewHistoryService(&cfg, backend, nil)
+	err = svc.Start()
 	assert.NoError(t, err)
 
 	// after closing and reopen the store the properties should still be there
@@ -399,19 +391,17 @@ func TestAddPropertiesEvent(t *testing.T) {
 	assert.Equal(t, props[0].Name, vocab.PropNameTemperature)
 	assert.Equal(t, props[0].ValueJSON, []byte(temp1))
 	assert.Equal(t, props[1].Name, vocab.PropNameSwitch)
+	readHist.Release()
 
 	err = svc.Stop()
 	assert.NoError(t, err)
-	err = backend.Close()
-	assert.NoError(t, err)
-
 }
 
 func TestGetLatest(t *testing.T) {
 	logrus.Info("--- TestGetLatest ---")
 	const count = 1000
 	const clientID = "client1"
-	const publisherID = "urn:device1"
+	const publisherID = "device1"
 	const thing1ID = thingIDPrefix + "0" // matches a percentage of the random things
 	store, closeFn := newHistoryService(useTestCapnp)
 	defer closeFn()
@@ -455,7 +445,7 @@ func TestPrevNext(t *testing.T) {
 	const count = 1000
 	const clientID = "client1"
 	const thing0ID = thingIDPrefix + "0" // matches a percentage of the random things
-	const publisherID = "urn:device1"
+	const publisherID = "device1"
 	store, closeFn := newHistoryService(useTestCapnp)
 	defer closeFn()
 
@@ -510,7 +500,7 @@ func TestPrevNext(t *testing.T) {
 func TestPrevNextFiltered(t *testing.T) {
 	logrus.Info("--- TestPrevNextFiltered ---")
 	const count = 1000
-	const publisherID = "urn:device1"
+	const publisherID = "device1"
 	const thing0ID = thingIDPrefix + "0" // matches a percentage of the random things
 	const clientID = "client1"
 	store, closeFn := newHistoryService(useTestCapnp)
@@ -576,7 +566,7 @@ func TestPrevNextFiltered(t *testing.T) {
 
 func TestGetInfo(t *testing.T) {
 	logrus.Info("--- TestGetInfo ---")
-	const publisherID = "urn:device1"
+	const publisherID = "device1"
 	const thing0ID = thingIDPrefix + "0"
 
 	store, stopFn := newHistoryService(useTestCapnp)
@@ -594,4 +584,135 @@ func TestGetInfo(t *testing.T) {
 	assert.NotEmpty(t, info.Engine)
 	assert.NotEmpty(t, info.Id)
 	t.Logf("ID:%s records:%d", info.Id, info.NrRecords)
+}
+
+func TestPubSub(t *testing.T) {
+	const publisherID = "device1"
+	const thing0ID = thingIDPrefix + "0"
+
+	logrus.Info("--- TestPubSub ---")
+	// start the pubsub server
+	ctx := context.Background()
+	svcConfig := config.NewHistoryConfig(testFolder)
+	svcConfig.Retention = []history.EventRetention{
+		{Name: vocab.PropNameTemperature},
+		{Name: vocab.PropNameBattery},
+	}
+	pubSubSvc := service2.NewPubSubService()
+	err := pubSubSvc.Start()
+	require.NoError(t, err)
+	// get the pubsub client for the history service
+	psClient, err := pubSubSvc.CapServicePubSub(ctx, svcConfig.ServiceID)
+	require.NoError(t, err)
+
+	// create a new empty store to use
+	_ = os.RemoveAll(svcConfig.Directory)
+	store := cmd.NewBucketStore(testFolder, testClientID, HistoryStoreBackend)
+
+	// start the service using pubsub
+	svc := service.NewHistoryService(&svcConfig, store, psClient)
+	err = svc.Start()
+	if err != nil {
+		logrus.Fatalf("Failed starting the state service: %s", err)
+	}
+
+	// publish events
+	names := []string{
+		vocab.PropNameTemperature, vocab.PropNameSwitch,
+		vocab.PropNameSwitch, vocab.PropNameBattery,
+		vocab.PropNameAlarm, "noname",
+		"tttt", vocab.PropNameTemperature,
+		vocab.PropNameSwitch, vocab.PropNameTemperature}
+	_ = names
+
+	// only valid names should be added
+	for i := 0; i < 10; i++ {
+		err = psClient.PubEvent(ctx, thing0ID, names[i], []byte("0.3"))
+		assert.NoError(t, err)
+		time.Sleep(time.Millisecond * 3)
+	}
+
+	time.Sleep(time.Millisecond * 100)
+	// read back
+	readHistory, _ := svc.CapReadHistory(ctx, "test", svcConfig.ServiceID, thing0ID)
+	cursor := readHistory.GetEventHistory(ctx, "")
+	ev, valid := cursor.First()
+	assert.True(t, valid)
+	assert.NotEmpty(t, ev)
+	batched, _ := cursor.NextN(10)
+	// expect 4 entries total from valid events
+	assert.Equal(t, 3, len(batched))
+	cursor.Release()
+
+	// cleanup
+	readHistory.Release()
+	err = svc.Stop()
+	assert.NoError(t, err)
+	err = pubSubSvc.Stop()
+	assert.NoError(t, err)
+}
+
+func TestManageRetention(t *testing.T) {
+	logrus.Info("--- TestManageRetention ---")
+	const publisherID = "device1"
+	const thing0ID = thingIDPrefix + "0"
+
+	svc, stopFn := newHistoryService(useTestCapnp)
+	addHistory(svc, 1000, 5, 1000)
+	ctx := context.Background()
+
+	//info := store.Info(ctx)
+	//t.Logf("Store ID:%s, records:%d", info.Id, info.NrRecords)
+	mr, err := svc.CapManageRetention(ctx, "testclient")
+	require.NoError(t, err)
+
+	// verify the default retention list
+	retList, err := mr.GetEvents(ctx)
+	require.NoError(t, err)
+	assert.Greater(t, 1, len(retList))
+
+	// add a couple of retention
+	newRet := history.EventRetention{Name: vocab.PropNameTemperature}
+	err = mr.SetEventRetention(ctx, newRet)
+	newRet = history.EventRetention{
+		Name: "blob1", Publishers: []string{publisherID}}
+	err = mr.SetEventRetention(ctx, newRet)
+	require.NoError(t, err)
+
+	// The new retention should now exist
+	retList2, err := mr.GetEvents(ctx)
+	require.NoError(t, err)
+	assert.Equal(t, len(retList)+2, len(retList2))
+	ret3, err := mr.GetEventRetention(ctx, "blob1")
+	require.NoError(t, err)
+	assert.Equal(t, "blob1", ret3.Name)
+	valid, err := mr.TestEvent(ctx, &thing.ThingValue{
+		PublisherID: publisherID,
+		ThingID:     thing0ID,
+		Name:        "blob1",
+	})
+	assert.NoError(t, err)
+	assert.True(t, valid)
+
+	// events of blob1 should be accepted now
+	addHist, _ := svc.CapAddHistory(ctx, "testclient", false)
+	err = addHist.AddEvent(ctx, thing.NewThingValue(
+		publisherID, thing0ID, "blob1", []byte("hi)")))
+	assert.NoError(t, err)
+	//
+	readHistory, _ := svc.CapReadHistory(ctx, "test", publisherID, thing0ID)
+	cursor := readHistory.GetEventHistory(ctx, "blob1")
+	histEv, valid := cursor.First()
+	assert.True(t, valid)
+	assert.Equal(t, "blob1", histEv.Name)
+
+	//
+	err = mr.RemoveEventRetention(ctx, "blob1")
+	assert.NoError(t, err)
+
+	// cleanup
+	addHist.Release()
+	readHistory.Release()
+	mr.Release()
+	stopFn()
 }

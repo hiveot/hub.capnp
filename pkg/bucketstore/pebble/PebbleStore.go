@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/cockroachdb/pebble"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/sys/unix"
 
 	"github.com/hiveot/hub/pkg/bucketstore"
@@ -86,6 +87,8 @@ func (store *PebbleStore) Open() (err error) {
 	}
 	if err == nil {
 		store.db, err = pebble.Open(store.storeDirectory, options)
+	} else {
+		logrus.Error(err)
 	}
 	return err
 }

@@ -8,7 +8,7 @@ communication.
 
 Status: The status of the Hub is In Development. 
 
-Updated 2022-12-31: completed initial version of:
+Updated 2023-01-09: completed initial version of:
 ```
 - certs         certificate management for services
 - directory     storage of the thing directory
@@ -21,11 +21,13 @@ Updated 2022-12-31: completed initial version of:
 - pubsub        internal service to publish and subscribe to events and actions
 - resolver      local discovery and access to service capabilities
 - gateway       single entry point to retrieve services by local or remote clients
+- owserver      1-wire binding
 ```
 
 Todo in order to reach Alpha:
 ```
-- directory and history    should subscribe to td and value events
+- autoreconnect            clients should attempt auto-reconnect to services (resiliency)
+- directory                should subscribe to td events
 - http gateway             provide https/websocket access for web clients 
 - http jwt auth            http JWT token authentication 
 - middleware               hooks to authorize, log, rate limit gateways
@@ -34,7 +36,6 @@ Todo in order to reach Alpha:
                            - accounts page list publishers and device Things
                            - subscribe to device updates
                            - dashboard with text cards 
-- one working IoT service  options: weather, owserver, snmp, cpumon, inetping
 - min 90% code coverage
 ```
 

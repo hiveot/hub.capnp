@@ -15,11 +15,11 @@ import (
 
 // Connect the service
 func main() {
-	f := svcconfig.GetFolders("", false)
 	// set config defaults
+	f, _, _ := svcconfig.SetupFolderConfig(state.ServiceName)
 	var cfg = config.NewStateConfig(f.Stores)
+	_ = f.LoadConfig(&cfg)
 	cfg.Backend = bucketstore.BackendKVBTree
-	f, _, _ = svcconfig.LoadServiceConfig(state.ServiceName, false, &cfg)
 
 	svc := statekvstore.NewStateStoreService(cfg)
 

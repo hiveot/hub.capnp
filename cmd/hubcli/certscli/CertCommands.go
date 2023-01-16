@@ -13,7 +13,7 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/hiveot/hub/lib/certsclient"
-	"github.com/hiveot/hub/lib/listener"
+	"github.com/hiveot/hub/lib/hubclient"
 	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/pkg/certs"
 	"github.com/hiveot/hub/pkg/certs/capnpclient"
@@ -169,7 +169,7 @@ func HandleCreateDeviceCert(ctx context.Context, f svcconfig.AppFolders, deviceI
 	var cc certs.ICerts
 	var dc certs.IDeviceCerts
 
-	conn, err := listener.CreateLocalClientConnection(certs.ServiceName, f.Run)
+	conn, err := hubclient.CreateLocalClientConnection(certs.ServiceName, f.Run)
 	if err != nil {
 		return err
 	}
@@ -214,7 +214,7 @@ func HandleCreateServiceCert(ctx context.Context, f svcconfig.AppFolders,
 	var cc certs.ICerts
 	var sc certs.IServiceCerts
 
-	conn, err := listener.CreateLocalClientConnection(certs.ServiceName, f.Run)
+	conn, err := hubclient.CreateLocalClientConnection(certs.ServiceName, f.Run)
 	if err != nil {
 		return err
 	}
@@ -254,7 +254,7 @@ func HandleCreateUserCert(ctx context.Context, f svcconfig.AppFolders, clientID 
 	var cc certs.ICerts
 	var uc certs.IUserCerts
 
-	conn, err := listener.CreateLocalClientConnection(certs.ServiceName, f.Run)
+	conn, err := hubclient.CreateLocalClientConnection(certs.ServiceName, f.Run)
 	if err != nil {
 		return err
 	}

@@ -9,10 +9,9 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 
-	"github.com/hiveot/hub/lib/thing"
-
-	"github.com/hiveot/hub/lib/listener"
+	"github.com/hiveot/hub/lib/hubclient"
 	"github.com/hiveot/hub/lib/svcconfig"
+	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/directory"
 	"github.com/hiveot/hub/pkg/directory/capnpclient"
 )
@@ -51,7 +50,7 @@ func HandleListDirectory(ctx context.Context, f svcconfig.AppFolders, limit int,
 	var rd directory.IReadDirectory
 	var tdDoc thing.TD
 
-	conn, err := listener.CreateLocalClientConnection(directory.ServiceName, f.Run)
+	conn, err := hubclient.CreateLocalClientConnection(directory.ServiceName, f.Run)
 	if err == nil {
 		dir = capnpclient.NewDirectoryCapnpClient(ctx, conn)
 		rd, err = dir.CapReadDirectory(ctx, "hubcli")

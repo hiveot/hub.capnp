@@ -1,4 +1,4 @@
-package listener
+package hubclient
 
 import (
 	"crypto/tls"
@@ -23,8 +23,9 @@ func DiscoveryGateway() string {
 	return address
 }
 
-// ConnectToHub connects to the Hub's resolver or gateway.
-// Intended for use by bindings or users that use the Hub services. It can be used locally or remotely.
+// ConnectToHub provides a 'reconnectable' connection to the HiveOT Hub. It is intended to improve
+// resiliency in cases where the connection with hub services can be broken, whether it is due to a
+// network interruption or due to a service restart.
 //
 //	network is optional "unix" for UDS or "tcp" for TCP connections, default "" for auto discovery
 //	address is optional path to UDS socket or address:port for tcp. "" for auto discover
@@ -147,51 +148,3 @@ func CreateTLSClientConnection(network, address string, clientCert *tls.Certific
 	}
 	return conn, err
 }
-
-// CreateTLSClient2 wraps a net dial into TLS
-//
-// This listener accepts a client certificate for client authentication and a server CA certificate
-// to verify the server connection.
-//
-//	 lis TCP listener
-//	 clientCert is the client certificate to authenticate with. Use nil to not use client authentication
-//		caCert is the CA certificate used to verify the server authenticity. Use nil if server auth is not yet established.
-//func CreateTLSClient2(conn net.Conn, clientCert *tls.Certificate, caCert *x509.Certificate) (*tls.Conn, error) {
-//	var clientCertList = make([]tls.Certificate, 0)
-//	var checkServerCert bool
-//	caCertPool := x509.NewCertPool()
-//
-//	// Use CA certificate for server authentication if it exists
-//	if caCert == nil {
-//		// No CA certificate so no client authentication either
-//		checkServerCert = false
-//	} else {
-//		caCertPool.AddCert(caCert)
-//		checkServerCert = true
-//
-//		opts := x509.VerifyOptions{
-//			Roots:     caCertPool,
-//			KeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
-//		}
-//		x509Cert, err := x509.ParseCertificate(clientCert.Certificate[0])
-//		_, err = x509Cert.Verify(opts)
-//		if err != nil {
-//			logrus.Errorf("certificate verfication failed: %s", err)
-//			return nil, err
-//		}
-//	}
-//
-//	// setup the tls client authentication
-//	clientCertList = append(clientCertList, *clientCert)
-//
-//	tlsConfig := &tls.Config{
-//		RootCAs:            caCertPool,
-//		Certificates:       clientCertList,
-//		InsecureSkipVerify: !checkServerCert,
-//		ServerName:         "HiveOT Hub",
-//	}
-//
-//	// finally, connect
-//	tlsConn := tls.Client(conn, tlsConfig)
-//	return tlsConn, nil
-//}

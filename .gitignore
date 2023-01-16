@@ -8,6 +8,7 @@
 # sensitive data
 *.pem
 *.log
+.idea
 
 # Test binary, built with `go test -c`
 *.test

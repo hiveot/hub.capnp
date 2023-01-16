@@ -42,7 +42,7 @@ func (ts *TestService) CapMethod1(_ context.Context, call CapTestService_capMeth
 
 func (ts *TestService) Stop() {
 	//ts.capServer.Stop()
-	ts.lis.Close()
+	_ = ts.lis.Close()
 	_ = os.Remove(ts.listenSocket)
 }
 

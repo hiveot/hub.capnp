@@ -26,8 +26,8 @@ func main() {
 	var caCert *x509.Certificate
 	var caKey *ecdsa.PrivateKey
 	var err error
+	f, _, caCert := svcconfig.SetupFolderConfig(certs.ServiceName)
 
-	f, _, caCert := svcconfig.LoadServiceConfig(certs.ServiceName, false, nil)
 	// This service needs the CA certificate and key to operate
 	caKeyPath := path.Join(f.Certs, hubapi.DefaultCaKeyFile)
 

@@ -18,8 +18,8 @@ const storeFile = "directorystore.json"
 
 // Connect the service
 func main() {
-	hubID := "urn:hub" // FIXME: get HubID from the Hub somewhere
-	f, _, _ := svcconfig.LoadServiceConfig(directory.ServiceName, false, nil)
+	hubID := "hub-1" // FIXME: get HubID from the Hub somewhere
+	f, _, _ := svcconfig.SetupFolderConfig(directory.ServiceName)
 
 	storePath := filepath.Join(f.Stores, directory.ServiceName, storeFile)
 	svc := service.NewDirectoryService(hubID, storePath)

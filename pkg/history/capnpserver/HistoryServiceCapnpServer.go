@@ -23,26 +23,8 @@ func (capsrv *HistoryServiceCapnpServer) CapAddHistory(
 	// create a client instance for adding history
 	args := call.Args()
 	clientID, _ := args.ClientID()
-	publisherID, _ := args.PublisherID()
-	thingID, _ := args.ThingID()
-	capAdd, _ := capsrv.svc.CapAddHistory(ctx, clientID, publisherID, thingID)
-	ahCapSrv := &AddHistoryCapnpServer{
-		svc: capAdd,
-	}
-
-	capnpAddHistory := hubapi.CapAddHistory_ServerToClient(ahCapSrv)
-	res, err := call.AllocResults()
-	if err == nil {
-		err = res.SetCap(capnpAddHistory)
-	}
-	return err
-}
-
-func (capsrv *HistoryServiceCapnpServer) CapAddAnyThing(
-	ctx context.Context, call hubapi.CapHistoryService_capAddAnyThing) error {
-	// create a client instance for adding history
-	clientID, _ := call.Args().ClientID()
-	capAny, _ := capsrv.svc.CapAddAnyThing(ctx, clientID)
+	ignoreRetention := args.IgnoreRetention()
+	capAny, _ := capsrv.svc.CapAddHistory(ctx, clientID, ignoreRetention)
 	ahCapSrv := &AddHistoryCapnpServer{
 		svc: capAny,
 	}
@@ -55,14 +37,30 @@ func (capsrv *HistoryServiceCapnpServer) CapAddAnyThing(
 	return err
 }
 
+func (capsrv *HistoryServiceCapnpServer) CapManageRetention(
+	ctx context.Context, call hubapi.CapHistoryService_capManageRetention) error {
+	args := call.Args()
+	clientID, _ := args.ClientID()
+	capManageRet, _ := capsrv.svc.CapManageRetention(ctx, clientID)
+	manageRetCapnpServer := &ManageRetentionCapnpServer{
+		svc: capManageRet,
+	}
+	// reuse the add history marshalling
+	capnpManageRet := hubapi.CapManageRetention_ServerToClient(manageRetCapnpServer)
+	res, err := call.AllocResults()
+	if err == nil {
+		err = res.SetCap(capnpManageRet)
+	}
+	return err
+}
 func (capsrv *HistoryServiceCapnpServer) CapReadHistory(
 	ctx context.Context, call hubapi.CapHistoryService_capReadHistory) error {
 
 	// create a client instance for reading the history
 	args := call.Args()
+	clientID, _ := args.ClientID()
 	publisherID, _ := args.PublisherID()
 	thingID, _ := args.ThingID()
-	clientID, _ := args.ClientID()
 	capRead, _ := capsrv.svc.CapReadHistory(ctx, clientID, publisherID, thingID)
 	readSrv := &ReadHistoryCapnpServer{
 		svc: capRead,
@@ -107,7 +105,7 @@ func StartHistoryServiceCapnpServer(svc history.IHistoryService, lis net.Listene
 
 	capProv.ExportCapability(hubapi.CapNameAddHistory, []string{hubapi.ClientTypeService})
 
-	capProv.ExportCapability(hubapi.CapNameAddAnyThing, []string{hubapi.ClientTypeService})
+	capProv.ExportCapability(hubapi.CapNameManageRetention, []string{hubapi.ClientTypeService})
 
 	capProv.ExportCapability(hubapi.CapNameReadHistory,
 		[]string{hubapi.ClientTypeService, hubapi.ClientTypeUser})

@@ -5,6 +5,7 @@ import (
 	"context"
 	"net"
 
+	"github.com/hiveot/hub/lib/hubclient"
 	"github.com/hiveot/hub/lib/listener"
 	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/pkg/bucketstore/cmd"
@@ -16,22 +17,28 @@ import (
 
 // Connect the history store service
 func main() {
-
-	f := svcconfig.GetFolders("", false)
+	f, clientCert, caCert := svcconfig.SetupFolderConfig(history.ServiceName)
 	cfg := config.NewHistoryConfig(f.Stores)
-	f, _, _ = svcconfig.LoadServiceConfig(history.ServiceName, false, &cfg)
+	_ = f.LoadConfig(&cfg)
 
-	// the service uses the bucket store
+	// the service uses the bucket store to store history
 	store := cmd.NewBucketStore(cfg.Directory, cfg.ServiceID, cfg.Backend)
-	svc := service.NewHistoryService(store, "urn:"+cfg.ServiceID)
+
+	// the service receives the events to store from pubsub.
+	conn, err := hubclient.ConnectToHub("", "", clientCert, caCert)
+
+	//conn, err := hubclient.CreateLocalClientConnection(pubsub.ServiceName, f.Run)
+	pubSubClient, err := hubclient.GetServicePubSubClient(conn, history.ServiceName)
+	if err != nil {
+		panic("can't connect to pubsub")
+	}
+
+	svc := service.NewHistoryService(&cfg, store, pubSubClient)
 
 	listener.RunService(history.ServiceName, f.SocketPath,
 		func(ctx context.Context, lis net.Listener) error {
 			// startup
-			err := store.Open()
-			if err == nil {
-				err = svc.Start(ctx)
-			}
+			err = svc.Start()
 			if err == nil {
 				err = capnpserver.StartHistoryServiceCapnpServer(svc, lis)
 			}
@@ -39,10 +46,6 @@ func main() {
 		}, func() error {
 			// shutdown
 			err := svc.Stop()
-			err2 := store.Close()
-			if err == nil {
-				err = err2
-			}
 			return err
 		})
 

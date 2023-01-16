@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/hiveot/hub/lib/hubclient"
 	"github.com/hiveot/hub/lib/listener"
 	"github.com/hiveot/hub/lib/test"
 )
@@ -65,7 +66,7 @@ func TestConnectWriteRead(t *testing.T) {
 	time.Sleep(time.Millisecond)
 	// create the TLS client and connect
 	//address = lis.Addr().String()
-	tlsConn, err := listener.CreateTLSClientConnection(network, address, certs.PluginCert, certs.CaCert)
+	tlsConn, err := hubclient.CreateTLSClientConnection(network, address, certs.PluginCert, certs.CaCert)
 	//tlsConn, err := CreateTLSClientConnection(network, address, nil, certs.CaCert)
 	require.NoError(t, err)
 

@@ -3,6 +3,8 @@ package capnpclient
 import (
 	"context"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/lib/thing"
 )
@@ -38,6 +40,7 @@ func (cl *UserPubSubCapnpClient) SubEvent(
 	ctx context.Context, publisherID, thingID string, name string,
 	handler func(action *thing.ThingValue)) (err error) {
 
+	//logrus.Infof("subscribing to event %s/%s/%s", publisherID, thingID, name)
 	method, release := cl.capability.SubEvent(ctx,
 		func(params hubapi.CapUserPubSub_subEvent_Params) error {
 			_ = params.SetPublisherID(publisherID)
@@ -49,6 +52,7 @@ func (cl *UserPubSubCapnpClient) SubEvent(
 		})
 	defer release()
 	_, err = method.Struct()
+	logrus.Infof("subscribed to event %s/%s/%s. err=%v", publisherID, thingID, name, err)
 	return err
 }
 

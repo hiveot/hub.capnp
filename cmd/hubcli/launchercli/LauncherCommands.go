@@ -6,7 +6,7 @@ import (
 
 	"github.com/urfave/cli/v2"
 
-	"github.com/hiveot/hub/lib/listener"
+	"github.com/hiveot/hub/lib/hubclient"
 	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/pkg/launcher"
 	"github.com/hiveot/hub/pkg/launcher/capnpclient"
@@ -77,7 +77,7 @@ func LauncherStopCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comma
 func HandleListServices(ctx context.Context, f svcconfig.AppFolders) error {
 	var ls launcher.ILauncher
 
-	conn, err := listener.CreateLocalClientConnection(launcher.ServiceName, f.Run)
+	conn, err := hubclient.CreateLocalClientConnection(launcher.ServiceName, f.Run)
 	if err == nil {
 		ls, err = capnpclient.NewLauncherCapnpClient(ctx, conn)
 	}
@@ -115,7 +115,9 @@ func HandleListServices(ctx context.Context, f svcconfig.AppFolders) error {
 // HandleStartService starts a service
 func HandleStartService(ctx context.Context, f svcconfig.AppFolders, serviceName string) error {
 	var ls launcher.ILauncher
-	conn, err := listener.CreateLocalClientConnection(launcher.ServiceName, f.Run)
+
+	conn, err := hubclient.CreateLocalClientConnection(launcher.ServiceName, f.Run)
+
 	if err == nil {
 		ls, err = capnpclient.NewLauncherCapnpClient(ctx, conn)
 	}
@@ -148,7 +150,8 @@ func HandleStartService(ctx context.Context, f svcconfig.AppFolders, serviceName
 // HandleStopService stops a service
 func HandleStopService(ctx context.Context, f svcconfig.AppFolders, serviceName string) error {
 	var ls launcher.ILauncher
-	conn, err := listener.CreateLocalClientConnection(launcher.ServiceName, f.Run)
+
+	conn, err := hubclient.CreateLocalClientConnection(launcher.ServiceName, f.Run)
 	if err == nil {
 		ls, err = capnpclient.NewLauncherCapnpClient(ctx, conn)
 	}

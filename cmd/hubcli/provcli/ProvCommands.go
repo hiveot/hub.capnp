@@ -6,7 +6,7 @@ import (
 
 	"github.com/urfave/cli/v2"
 
-	"github.com/hiveot/hub/lib/listener"
+	"github.com/hiveot/hub/lib/hubclient"
 	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/pkg/provisioning"
 	"github.com/hiveot/hub/pkg/provisioning/capnpclient"
@@ -106,7 +106,7 @@ func HandleAddOobSecret(ctx context.Context, f svcconfig.AppFolders, deviceID st
 	var pc provisioning.IProvisioning
 	var secrets []provisioning.OOBSecret
 
-	conn, err := listener.CreateLocalClientConnection(provisioning.ServiceName, f.Run)
+	conn, err := hubclient.CreateLocalClientConnection(provisioning.ServiceName, f.Run)
 	if err == nil {
 		pc = capnpclient.NewProvisioningCapnpClient(ctx, conn)
 	}
@@ -132,7 +132,7 @@ func HandleAddOobSecret(ctx context.Context, f svcconfig.AppFolders, deviceID st
 func HandleApproveRequest(ctx context.Context, f svcconfig.AppFolders, deviceID string) error {
 	var pc provisioning.IProvisioning
 
-	conn, err := listener.CreateLocalClientConnection(provisioning.ServiceName, f.Run)
+	conn, err := hubclient.CreateLocalClientConnection(provisioning.ServiceName, f.Run)
 	if err == nil {
 		pc = capnpclient.NewProvisioningCapnpClient(ctx, conn)
 		manage, _ := pc.CapManageProvisioning(ctx, "hubcli")
@@ -146,7 +146,7 @@ func HandleGetApprovedRequests(ctx context.Context, f svcconfig.AppFolders) erro
 	var pc provisioning.IProvisioning
 	var provStatus []provisioning.ProvisionStatus
 
-	conn, err := listener.CreateLocalClientConnection(provisioning.ServiceName, f.Run)
+	conn, err := hubclient.CreateLocalClientConnection(provisioning.ServiceName, f.Run)
 	if err == nil {
 		pc = capnpclient.NewProvisioningCapnpClient(ctx, conn)
 		manage, _ := pc.CapManageProvisioning(ctx, "hubcli")
@@ -172,7 +172,7 @@ func HandleGetPendingRequests(ctx context.Context, f svcconfig.AppFolders) error
 	var pc provisioning.IProvisioning
 	var provStatus []provisioning.ProvisionStatus
 
-	conn, err := listener.CreateLocalClientConnection(provisioning.ServiceName, f.Run)
+	conn, err := hubclient.CreateLocalClientConnection(provisioning.ServiceName, f.Run)
 	if err == nil {
 		pc = capnpclient.NewProvisioningCapnpClient(ctx, conn)
 		manage, _ := pc.CapManageProvisioning(ctx, "hubcli")

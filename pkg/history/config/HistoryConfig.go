@@ -5,26 +5,26 @@ import (
 	"github.com/hiveot/hub/pkg/history"
 )
 
-// DefaultBackend is the default database type to use
-const DefaultBackend = bucketstore.BackendPebble
-
 // HistoryConfig with history store database configuration
 type HistoryConfig struct {
 	// Name of the backend to store
-	// kvbtree, pebble (default), bbolt. See IBucketStore for options.
+	// kvbtree, pebble (default), bbolt. See IBucketStore for details.
 	Backend string `yaml:"backend"`
 
 	// Location where to store the history
 	Directory string `yaml:"directory"`
 
-	// instance ID of the service, eg: "history". urn: prefix will be added when used as thingID
+	// instance ID of the service, eg: "history".
 	ServiceID string `yaml:"serviceID"`
+
+	// Default retention from config by event name
+	Retention []history.EventRetention `yaml:"retention"`
 }
 
 // NewHistoryConfig creates a new config with default values
 func NewHistoryConfig(storeDirectory string) HistoryConfig {
 	cfg := HistoryConfig{
-		Backend:   DefaultBackend,
+		Backend:   bucketstore.BackendPebble,
 		Directory: storeDirectory,
 		ServiceID: history.ServiceName,
 	}

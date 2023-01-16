@@ -5,6 +5,7 @@ import (
 	"context"
 	"net"
 
+	"github.com/hiveot/hub/lib/hubclient"
 	"github.com/hiveot/hub/lib/listener"
 	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/pkg/certs"
@@ -24,10 +25,10 @@ func main() {
 	ctx := context.Background()
 
 	// Determine the folder layout and handle commandline options
-	f, _, _ := svcconfig.LoadServiceConfig(provisioning.ServiceName, false, nil)
+	f, _, _ := svcconfig.SetupFolderConfig(provisioning.ServiceName)
 
 	// connect to the certificate service to get its capability for issuing device certificates
-	certConn, err := listener.CreateLocalClientConnection(certs.ServiceName, f.Run)
+	certConn, err := hubclient.CreateLocalClientConnection(certs.ServiceName, f.Run)
 	if err == nil {
 		certsClient = certsclient.NewCertServiceCapnpClient(certConn)
 		// the provisioning service requires certificate capabilities

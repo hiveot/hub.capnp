@@ -11,10 +11,10 @@ import (
 
 	"github.com/sirupsen/logrus"
 
+	"github.com/hiveot/hub/lib/certsclient"
+	"github.com/hiveot/hub/lib/hubclient"
 	"github.com/hiveot/hub/lib/listener"
 	"github.com/hiveot/hub/lib/svcconfig"
-
-	"github.com/hiveot/hub/lib/certsclient"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/pkg/authn"
@@ -35,11 +35,11 @@ func main() {
 	var err error
 	var svc *service.GatewayService
 	var userAuthn authn.IUserAuthn
-
 	ctx := context.Background()
-	f := svcconfig.GetFolders("", false)
-	gwConfig := config.NewGatewayConfig(f.Run, f.Certs)
-	f, _, caCert := svcconfig.LoadServiceConfig(serviceName, false, &gwConfig)
+
+	f, _, _ := svcconfig.SetupFolderConfig(serviceName)
+	cfg := config.NewGatewayConfig(f.Run, f.Certs)
+	_ = f.LoadConfig(&cfg)
 
 	// certificates are needed for TLS connections to the capnp server.
 	// on each restart a new set of keys is used and a new certificate is requested.
@@ -48,7 +48,7 @@ func main() {
 	if err != nil {
 		logrus.Panicf("certs service not reachable when starting the gateway: %s", err)
 	}
-	lis, err := net.Listen("tcp", gwConfig.Address)
+	lis, err := net.Listen("tcp", cfg.Address)
 	if err != nil {
 		logrus.Panicf("gateway unable to listen for connections: %s", err)
 	}
@@ -57,9 +57,10 @@ func main() {
 
 	// the gateway uses the authn service to authenticate logins from users
 	// without authn it still functions with certificates
-	authnConn, err := listener.CreateLocalClientConnection(authn.ServiceName, f.Run)
+	//authnConn, err := listener.CreateLocalClientConnection(authn.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToHub("", "", nil, nil)
 	if err == nil {
-		authnService := capnpclient2.NewAuthnCapnpClient(context.Background(), authnConn)
+		authnService := capnpclient2.NewAuthnCapnpClient(context.Background(), conn)
 		defer authnService.Release()
 		userAuthn, err = authnService.CapUserAuthn(ctx, serviceName)
 	}
@@ -110,7 +111,7 @@ func RenewServiceCerts(serviceID string, keys *ecdsa.PrivateKey, socketFolder st
 	}
 
 	ctx := context.Background()
-	csConn, err := listener.CreateLocalClientConnection(certs.ServiceName, socketFolder)
+	csConn, err := hubclient.CreateLocalClientConnection(certs.ServiceName, socketFolder)
 	if err != nil {
 		logrus.Errorf("unable to connect to certs service: %s. Workaround with local instance", err)
 		// FIXME: workaround or panic?

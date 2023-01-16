@@ -15,9 +15,9 @@ import (
 // main entry point to start the authentication service
 func main() {
 	// get defaults
-	f := svcconfig.GetFolders("", false)
+	f, _, _ := svcconfig.SetupFolderConfig(authn.ServiceName)
 	authServiceConfig := config.NewAuthnConfig(f.Stores)
-	f, _, _ = svcconfig.LoadServiceConfig(authn.ServiceName, false, &authServiceConfig)
+	_ = f.LoadConfig(&authServiceConfig)
 
 	svc := service.NewAuthnService(authServiceConfig)
 
