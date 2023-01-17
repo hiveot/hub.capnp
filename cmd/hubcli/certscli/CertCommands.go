@@ -19,33 +19,17 @@ import (
 	"github.com/hiveot/hub/pkg/certs/capnpclient"
 )
 
-// CertCommands returns the certificate handling commands
-func CertCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
-
-	cmd := &cli.Command{
-		// certs ca | client | device --certs=folder --pubkey=path ID
-
-		Name:  "certs",
-		Usage: "Create certificates",
-		Subcommands: []*cli.Command{
-			CertCreateDeviceCommands(ctx, f),
-			CertsCreateServiceCommand(ctx, f),
-			CertsCreateUserCommand(ctx, f),
-			CertsShowInfoCommand(ctx),
-		},
-	}
-	return cmd
-}
-
 // CertsCreateUserCommand - requires the certs service to run
 // hubcli certs client [--certs=CertFolder --pubkey=pubkeyfile] <loginID>
 func CertsCreateUserCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	validityDays := certs.DefaultUserCertValidityDays
 
 	return &cli.Command{
-		Name:      "user",
-		Usage:     "Create a user certificate",
-		ArgsUsage: "<loginID>",
+		Name:      "createusercert <loginID>",
+		Aliases:   []string{"cruc"},
+		Usage:     "Create user certificate",
+		UsageText: "Create a new user client auuthentication certificate for the given user's login",
+		Category:  "certs",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "pubkey",
@@ -76,9 +60,11 @@ func CertCreateDeviceCommands(ctx context.Context, f svcconfig.AppFolders) *cli.
 	validityDays := certs.DefaultDeviceCertValidityDays
 
 	return &cli.Command{
-		Name:      "device",
-		Usage:     "Create an IoT device certificate",
-		ArgsUsage: "<deviceID>",
+		Name:      "createdevicecert <deviceID>",
+		Aliases:   []string{"crdc"},
+		Usage:     "Create device certificate",
+		UsageText: "Create an IoT device authentication certificate for a device with the given instance ID",
+		Category:  "certs",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "pubkey",
@@ -110,9 +96,11 @@ func CertsCreateServiceCommand(ctx context.Context, f svcconfig.AppFolders) *cli
 	ipAddr := ""
 
 	return &cli.Command{
-		Name:      "service",
-		Usage:     "Create a service certificate",
-		ArgsUsage: "<serviceID>",
+		Name:      "creatservicecert <serviceID>",
+		Aliases:   []string{"crsc"},
+		Usage:     "Create service certificate",
+		UsageText: "Create a service authentication certificate for the given service instance ID",
+		Category:  "certs",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:  "pubkey",
@@ -141,11 +129,13 @@ func CertsCreateServiceCommand(ctx context.Context, f svcconfig.AppFolders) *cli
 		},
 	}
 }
-func CertsShowInfoCommand(ctx context.Context) *cli.Command {
+func CertsShowInfoCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	return &cli.Command{
-		Name:      "info",
-		Usage:     "Show certificate info",
-		ArgsUsage: "<certFile>",
+		Name:      "viewcert <certFile.pem>",
+		Aliases:   []string{"vci"},
+		Usage:     "View certificate",
+		UsageText: "View certificate details for the given certificate PEM file",
+		Category:  "certs",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 1 {
 				return fmt.Errorf("expected 1 argument. Got %d instead", cCtx.NArg())

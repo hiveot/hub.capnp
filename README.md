@@ -26,21 +26,28 @@ Updated 2023-01-09: completed initial version of:
 
 Todo in order to reach Alpha:
 ```
-- autoreconnect            clients should attempt auto-reconnect to services (resiliency)
-- directory                should subscribe to td events
-- http gateway             provide https/websocket access for web clients 
+- stop services in reverse order
+- http gateway             provide https/websocket access for web clients
 - http jwt auth            http JWT token authentication 
-- middleware               hooks to authorize, log, rate limit gateways
-- basic web client         vue3, svelvte, hotwire? using SSR? with JS capnp? 
+- basic web client         vue3, svelvte, hotwire? using SSR? with JS capnp?
                            - login page
                            - accounts page list publishers and device Things
                            - subscribe to device updates
                            - dashboard with text cards 
+- min 85% code coverage
+```
+
+Todo for beta (stable API)
+```
+- autoreconnect            clients should attempt auto-reconnect to services (resiliency)
+- 30 days nonstop operation without error
+- min 5 bindings
 - min 90% code coverage
 ```
 
 For future consideration:
 ```
+- middleware               hooks to authorize, log, rate limit gateways
 - mosquitto gateway       integrate pubsub with mqtt
 - queued actions          allow IoT devices to use just https by polling queued actions
 - service discovery       discover of remote capabilities 

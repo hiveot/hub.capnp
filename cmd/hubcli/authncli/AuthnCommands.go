@@ -12,27 +12,14 @@ import (
 	"github.com/hiveot/hub/pkg/authn/capnpclient"
 )
 
-// AuthnCommands returns the list of Authentication service commands
-func AuthnCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
-	cmd := &cli.Command{
-		Name:      "authn",
-		Usage:     "Manage authentication",
-		ArgsUsage: ";", // no args
-		Subcommands: []*cli.Command{
-			AuthnListUsersCommand(ctx, f),
-			AuthnAddUserCommand(ctx, f),
-			AuthnRemoveUserCommand(ctx, f),
-		},
-	}
-	return cmd
-}
-
 // AuthnAddUserCommand adds a user
 func AuthnAddUserCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	return &cli.Command{
-		Name:      "add",
+		Name:      "adduser <loginID>", // loginID is ignored in the command
 		Usage:     "Add a user",
-		ArgsUsage: "{loginID}",
+		Aliases:   []string{"addu"},
+		UsageText: "Add a Hub user and generate a temporary password.",
+		Category:  "authentication",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 1 {
 				err := fmt.Errorf("expected 1 argument")
@@ -48,10 +35,11 @@ func AuthnAddUserCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comma
 // AuthnListUsersCommand lists user profiles
 func AuthnListUsersCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	return &cli.Command{
-		Name:      "list",
+		Name:      "listusers",
+		Aliases:   []string{"liu"},
 		Usage:     "List users",
-		ArgsUsage: "(no args)", // no args
-		//UsageText: "list",
+		UsageText: "List all registered Hub users",
+		Category:  "authentication",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() > 0 {
 				err := fmt.Errorf("too many arguments")
@@ -66,9 +54,11 @@ func AuthnListUsersCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Com
 // AuthnRemoveUserCommand removes a user
 func AuthnRemoveUserCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	return &cli.Command{
-		Name:      "remove",
+		Name:      "removeuser <loginID>",
+		Aliases:   []string{"remu"},
 		Usage:     "Remove a user",
-		ArgsUsage: "{loginID}",
+		UsageText: "Remove a user from the Hub. Use with care. This does not ask for confirmation",
+		Category:  "authentication",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 1 {
 				err := fmt.Errorf("expected 1 arguments")

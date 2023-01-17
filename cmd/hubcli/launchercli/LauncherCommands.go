@@ -12,25 +12,14 @@ import (
 	"github.com/hiveot/hub/pkg/launcher/capnpclient"
 )
 
-func LauncherCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
-	cmd := &cli.Command{
-		Name:  "launcher",
-		Usage: "Connect stop Hub services",
-		Subcommands: []*cli.Command{
-			LauncherListCommand(ctx, f),
-			LauncherStartCommand(ctx, f),
-			LauncherStopCommand(ctx, f),
-		},
-	}
-	return cmd
-}
-
 func LauncherListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 
 	return &cli.Command{
-		Name:      "list",
+		Name:      "listservices",
+		Aliases:   []string{"lis"},
 		Usage:     "List services",
-		ArgsUsage: "(no args)",
+		UsageText: "List services and their runtime status",
+		Category:  "launcher",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 0 {
 				return fmt.Errorf("no arguments expected")
@@ -44,9 +33,12 @@ func LauncherListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comma
 func LauncherStartCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 
 	return &cli.Command{
-		Name:      "start",
-		Usage:     "Connect a service or all services",
-		ArgsUsage: "start <serviceName> | all",
+		Name:      "startservice <servicename>",
+		Aliases:   []string{"start"},
+		Usage:     "Start a service",
+		UsageText: "Start a service or use 'all' to start all services",
+		Category:  "launcher",
+		//ArgsUsage: "start <serviceName> | all",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 1 {
 				return fmt.Errorf("expected service name")
@@ -60,9 +52,11 @@ func LauncherStartCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comm
 func LauncherStopCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 
 	return &cli.Command{
-		Name:      "stop",
-		Usage:     "Stop a running service or all services",
-		ArgsUsage: "stop <serviceName> | all",
+		Name:      "stopservice <servicename>",
+		Aliases:   []string{"stop"},
+		Usage:     "Stop a service",
+		UsageText: "Stop a running service or use 'all' to stop all services",
+		Category:  "launcher",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 1 {
 				return fmt.Errorf("expected service name")

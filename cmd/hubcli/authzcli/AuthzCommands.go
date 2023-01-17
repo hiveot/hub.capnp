@@ -12,29 +12,16 @@ import (
 	"github.com/hiveot/hub/pkg/authz/capnpclient"
 )
 
-// AuthzCommands returns the list of Authorization commands
-func AuthzCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
-	cmd := &cli.Command{
-		Name:      "authz",
-		Usage:     "Manage authorization",
-		ArgsUsage: ";", // no args
-		Subcommands: []*cli.Command{
-			AuthzListGroupsCommand(ctx, f),
-			//AuthzSetClientRoleCommand(ctx, f),
-			//AuthzRemoveClientCommand(ctx, f),
-		},
-	}
-	return cmd
-}
-
 // AuthzListGroupsCommand lists the groups a client is a member off
 // hubcli authz groups [clientID]
 func AuthzListGroupsCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	clientID := ""
 	return &cli.Command{
-		Name:      "groups",
+		Name:      "listgroups [clientID]",
+		Aliases:   []string{"lig"},
 		Usage:     "List groups",
-		ArgsUsage: "[clientID]",
+		UsageText: "List groups the given client is a member of, or all groups.",
+		Category:  "authorization",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() > 0 {
 				clientID = cCtx.Args().Get(0)

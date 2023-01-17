@@ -49,20 +49,49 @@ func main() {
 			},
 		},
 		Commands: []*cli.Command{
-			certscli.CACommands(ctx, f),
-			launchercli.LauncherCommands(ctx, f),
-			authncli.AuthnCommands(ctx, f),
-			authzcli.AuthzCommands(ctx, f),
-			certscli.CertCommands(ctx, f),
-			pubsubcli.PubSubCommands(ctx, f),
-			directorycli.DirectoryCommands(ctx, f),
-			historycli.HistoryCommands(ctx, f),
-			provcli.ProvisioningCommands(ctx, f),
-			gatewaycli.GatewayCommands(ctx, f),
+			launchercli.LauncherListCommand(ctx, f),
+			launchercli.LauncherStartCommand(ctx, f),
+			launchercli.LauncherStopCommand(ctx, f),
+
+			authncli.AuthnListUsersCommand(ctx, f),
+			authncli.AuthnAddUserCommand(ctx, f),
+			authncli.AuthnRemoveUserCommand(ctx, f),
+
+			authzcli.AuthzListGroupsCommand(ctx, f),
+			//authzcli.AuthzSetClientRoleCommand(ctx, f),
+			//authzcli.AuthzRemoveClientCommand(ctx, f),
+
+			certscli.CreateCACommand(ctx, f.Certs),
+			certscli.ViewCACommand(ctx, f.Certs),
+			certscli.CertCreateDeviceCommands(ctx, f),
+			certscli.CertsCreateServiceCommand(ctx, f),
+			certscli.CertsCreateUserCommand(ctx, f),
+			certscli.CertsShowInfoCommand(ctx, f),
+
+			pubsubcli.SubTDCommand(ctx, f),
+			pubsubcli.SubEventsCommand(ctx, f),
+			//pubsubcli.PubActionCommand(ctx, f),
+
+			directorycli.DirectoryListCommand(ctx, f),
+
+			//historycli.HistoryCommands(ctx, f),
+			historycli.HistoryInfoCommand(ctx, f),
+			historycli.HistoryListCommand(ctx, f),
+			historycli.HistoryLatestCommand(ctx, f),
+			historycli.HistoryRetainCommand(ctx, f),
+
+			provcli.ProvisionAddOOBSecretsCommand(ctx, f),
+			provcli.ProvisionApproveRequestCommand(ctx, f),
+			provcli.ProvisionGetPendingRequestsCommand(ctx, f),
+			provcli.ProvisionGetApprovedRequestsCommand(ctx, f),
+
+			gatewaycli.GatewayListCommand(ctx, f),
 		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
 		logrus.Error("ERROR: ", err)
+		helpArgs := append(os.Args, "-h")
+		app.Run(helpArgs)
 	}
 }

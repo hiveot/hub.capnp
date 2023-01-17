@@ -112,7 +112,7 @@ func (svc *HistoryService) Stop() error {
 //
 //	serviceID is the thingID of the service
 //	store contains the bucket store to use. This will be opened on Start() and closed on Stop()
-//	sub pubsub client to store events. nil to not subscribe to events
+//	sub pubsub client to store events. nil to not subscribe to events. Will be released on Stop().
 func NewHistoryService(
 	config *config.HistoryConfig, store bucketstore.IBucketStore, sub pubsub.IServicePubSub) *HistoryService {
 

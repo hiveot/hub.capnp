@@ -16,24 +16,15 @@ import (
 	"github.com/hiveot/hub/pkg/directory/capnpclient"
 )
 
-func DirectoryCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
-	cmd := &cli.Command{
-		Name:  "dir",
-		Usage: "List and query directory content",
-		Subcommands: []*cli.Command{
-			DirectoryListCommand(ctx, f),
-		},
-	}
-	return cmd
-}
-
 func DirectoryListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	var limit = 100
 	var offset = 0
 	return &cli.Command{
-		Name:      "list",
-		Usage:     "List services",
-		ArgsUsage: "(no args)",
+		Name:      "listdir",
+		Aliases:   []string{"lid"},
+		Category:  "directory",
+		Usage:     "List directory",
+		UsageText: "List all Things in the directory",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 0 {
 				return fmt.Errorf("no arguments expected")
@@ -60,8 +51,8 @@ func HandleListDirectory(ctx context.Context, f svcconfig.AppFolders, limit int,
 	}
 
 	cursor := rd.Cursor(ctx)
-	fmt.Println("PublisherID    Thing ID              Modified                       type       props  events  actions")
-	fmt.Println("-----------    ---------------       -------                        ----       -----  ------  -------")
+	fmt.Println("PublisherID    Thing ID              Modified                       type            nr props   events  actions")
+	fmt.Println("-----------    ---------------       --------                       ----            --------   ------  -------")
 	i := 0
 	tv, valid := cursor.First()
 	if offset > 0 {
@@ -76,13 +67,15 @@ func HandleListDirectory(ctx context.Context, f svcconfig.AppFolders, limit int,
 			logrus.Infof("Parsing time failed '%s': %s", tdDoc.Modified, err)
 		}
 
-		fmt.Printf("%-15s %-20s %-30s %-10s %5d\n",
+		fmt.Printf("%-15s %-20s %-30s %-15s %8d %8d %8d\n",
 			tv.PublisherID,
 			tdDoc.ID,
 			//tdDoc.Modified,
 			utime.Format("02 Jan 2006 15:04:05 -0700"),
 			tdDoc.DeviceType,
 			len(tdDoc.Properties),
+			len(tdDoc.Events),
+			len(tdDoc.Actions),
 		)
 	}
 	return nil

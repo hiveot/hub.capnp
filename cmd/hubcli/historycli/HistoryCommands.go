@@ -3,6 +3,7 @@ package historycli
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"github.com/araddon/dateparse"
 	"github.com/sirupsen/logrus"
@@ -16,8 +17,9 @@ import (
 
 func HistoryCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	cmd := &cli.Command{
-		Name:  "history",
-		Usage: "List and query Thing events",
+		Name:    "history",
+		Aliases: []string{"hi"},
+		Usage:   "List and query Thing events",
 		Subcommands: []*cli.Command{
 			HistoryInfoCommand(ctx, f),
 			HistoryListCommand(ctx, f),
@@ -30,8 +32,10 @@ func HistoryCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 
 func HistoryInfoCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	return &cli.Command{
-		Name:      "info",
+		Name:      "histinfo",
+		Aliases:   []string{"hin"},
 		Usage:     "Show history store info",
+		Category:  "history",
 		ArgsUsage: "(no args)",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 0 {
@@ -45,14 +49,16 @@ func HistoryInfoCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comman
 
 func HistoryListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	return &cli.Command{
-		Name:      "list",
-		Usage:     "List recent events",
-		ArgsUsage: "publisherID thingID",
+		Name:      "histevents <pubID> <thingID>",
+		Aliases:   []string{"hev"},
+		Usage:     "List historical events",
+		UsageText: "List the history of events from a Thing by its publisher and Thing ID",
+		Category:  "history",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 2 {
 				return fmt.Errorf("publisherID and thingID expected")
 			}
-			err := HandleListEvents(ctx, f, cCtx.Args().First(), cCtx.Args().Get(1), 100)
+			err := HandleListEvents(ctx, f, cCtx.Args().First(), cCtx.Args().Get(1), 30)
 			return err
 		},
 	}
@@ -60,23 +66,27 @@ func HistoryListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comman
 
 func HistoryLatestCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	return &cli.Command{
-		Name:      "latest",
-		Usage:     "List latest event/property values",
-		ArgsUsage: "(no args)",
+		Name:      "histlatest <pubID> <thingID>",
+		Usage:     "List latest values of a thing",
+		UsageText: "List the latest value of each property/event of a thing by its publisher/thing ID",
+		Aliases:   []string{"hla"},
+		Category:  "history",
 		Action: func(cCtx *cli.Context) error {
-			if cCtx.NArg() != 0 {
-				return fmt.Errorf("no arguments expected")
+			if cCtx.NArg() != 2 {
+				return fmt.Errorf("publisherID and thingID expected")
 			}
-			err := HandleListLatestEvents(ctx, f)
+			err := HandleListLatestEvents(ctx, f, cCtx.Args().First(), cCtx.Args().Get(1))
 			return err
 		},
 	}
 }
 func HistoryRetainCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	return &cli.Command{
-		Name:      "retain",
+		Name:      "histretained",
+		Aliases:   []string{"hrt"},
 		Usage:     "List retained events",
-		ArgsUsage: "(no args)",
+		UsageText: "List the events that are retained in the history store",
+		Category:  "history",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 0 {
 				return fmt.Errorf("no arguments expected")
@@ -125,8 +135,8 @@ func HandleListEvents(ctx context.Context, f svcconfig.AppFolders, publisherID, 
 	}
 	eventName := ""
 	cursor := rd.GetEventHistory(ctx, eventName)
-	fmt.Println("PublisherID    thingID           Timestamp                    Event           Value (truncated)")
-	fmt.Println("-----------    -------           ---------                    -----           ---------------- ")
+	fmt.Println("PublisherID    ThingID            Timestamp                    Event           Value (truncated)")
+	fmt.Println("-----------    -------            ---------                    -----           ---------------- ")
 	count := 0
 	for tv, valid := cursor.Last(); valid && count < limit; tv, valid = cursor.Prev() {
 		count++
@@ -136,21 +146,22 @@ func HandleListEvents(ctx context.Context, f svcconfig.AppFolders, publisherID, 
 			logrus.Infof("Parsing time failed '%s': %s", tv.Created, err)
 		}
 
-		fmt.Printf("%-13s %-18s %-28s %-15s %-30s\n",
+		fmt.Printf("%-14s %-18s %-28s %-15s %-30s\n",
 			tv.PublisherID,
 			tv.ThingID,
-			utime.Format("02 Jan 2006 15:04:05 -0700"),
+			utime.Format("02 Jan 2006 15:04:05 MST"),
 			tv.Name,
 			tv.ValueJSON,
 		)
 	}
 	rd.Release()
-	conn.Close()
-	return nil
+	err = conn.Close()
+	return err
 }
 
 // HandleListRetainedEvents lists the events that are retained
 func HandleListRetainedEvents(ctx context.Context, f svcconfig.AppFolders) error {
+
 	var hist history.IHistoryService
 	var mngRet history.IManageRetention
 
@@ -163,47 +174,53 @@ func HandleListRetainedEvents(ctx context.Context, f svcconfig.AppFolders) error
 		return err
 	}
 	evList, _ := mngRet.GetEvents(ctx)
+	sort.Slice(evList, func(i, j int) bool {
+		return evList[i].Name < evList[j].Name
+	})
 
-	fmt.Println("Event Name      days     publishers          Things                         Excluded")
-	fmt.Println("----------      ----     ----------          ------                         -------- ")
+	fmt.Printf("Events (%2d)      days     publishers                     Things                         Excluded\n", len(evList))
+	fmt.Println("----------       ----     ----------                     ------                         -------- ")
 	for _, evRet := range evList {
 
-		fmt.Printf("%-15s %-8d %-30s %-30s %-30s,\n",
+		fmt.Printf("%-16.16s %-8d %-30.30s %-30.30s %-30.30s\n",
 			evRet.Name,
 			evRet.RetentionDays,
-			evRet.Publishers,
-			evRet.Things,
-			evRet.Exclude,
+			fmt.Sprintf("%s", evRet.Publishers),
+			fmt.Sprintf("%s", evRet.Things),
+			fmt.Sprintf("%s", evRet.Exclude),
 		)
 	}
 	mngRet.Release()
-	conn.Close()
-	return nil
+	err = conn.Close()
+	return err
 }
 
-func HandleListLatestEvents(ctx context.Context, f svcconfig.AppFolders) error {
+func HandleListLatestEvents(
+	ctx context.Context, f svcconfig.AppFolders, publisherID, thingID string) error {
 	var hist history.IHistoryService
 	var readHist history.IReadHistory
 
 	conn, err := hubclient.CreateLocalClientConnection(history.ServiceName, f.Run)
 	if err == nil {
 		hist = capnpclient.NewHistoryCapnpClient(ctx, conn)
-		readHist, err = hist.CapReadHistory(ctx, "hubcli", "", "")
+		readHist, err = hist.CapReadHistory(ctx, "hubcli", publisherID, thingID)
 	}
 	if err != nil {
 		return err
 	}
 	props := readHist.GetProperties(ctx, nil)
 
-	fmt.Println("Event Name      Publisher       Thing           Created         Value")
-	fmt.Println("----------      ---------       -----           -------         -----")
+	fmt.Println("Event Name         Publisher       Thing                Created                     Value")
+	fmt.Println("----------         ---------       -----                -------                     -----")
 	for _, prop := range props {
+		utime, _ := dateparse.ParseAny(prop.Created)
 
-		fmt.Printf("%-15s %-15s %-15s %-15s %s\n",
+		fmt.Printf("%-18.18s %-15.15s %-20s %-27s %s\n",
 			prop.Name,
 			prop.PublisherID,
 			prop.ThingID,
-			prop.Created,
+			//utime.Format("02 Jan 2006 15:04:05 -0700"),
+			utime.Format("02 Jan 2006 15:04:05 MST"),
 			prop.ValueJSON,
 		)
 	}

@@ -17,29 +17,14 @@ import (
 	"github.com/hiveot/hub/pkg/pubsub/capnpclient"
 )
 
-// PubSubCommands returns the publish/subscribe service commands
-// This requires the pubsub service to run.
-func PubSubCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
-
-	cmd := &cli.Command{
-		//hub prov add|list  <deviceID> <secret>
-
-		Name:  "pubsub",
-		Usage: "Publish/Subscribe",
-		Subcommands: cli.Commands{
-			SubTDCommand(ctx, f),
-			SubEventsCommand(ctx, f),
-			//PubActionCommand(ctx, f),
-		},
-	}
-	return cmd
-}
-
+// SubTDCommand shows TD publications
 func SubTDCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	return &cli.Command{
 		Name:      "subtd",
-		Usage:     "Subscribe to TD publications. Use Ctrl-C to stop watching.",
-		ArgsUsage: "(no arguments)",
+		Aliases:   []string{"std"},
+		Usage:     "Show TD publications",
+		UsageText: "Live show TD publications from the pubsub message bus. Use Ctrl-C to stop watching.",
+		Category:  "pubsub",
 		Action: func(cCtx *cli.Context) error {
 			err := HandleSubTD(ctx, f)
 			return err
@@ -50,8 +35,10 @@ func SubTDCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 func SubEventsCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	return &cli.Command{
 		Name:      "subevents",
-		Usage:     "Subscribe to Thing events. Use Ctrl-C to stop watching.",
-		ArgsUsage: "(no arguments)",
+		Aliases:   []string{"sev"},
+		Usage:     "Show Thing events",
+		UsageText: "Live show Thing event publications from the pubsub message bus. Use Ctrl-C to stop watching.",
+		Category:  "pubsub",
 		Action: func(cCtx *cli.Context) error {
 			err := HandleSubEvents(ctx, f)
 			return err
@@ -74,15 +61,15 @@ func HandleSubTD(ctx context.Context, f svcconfig.AppFolders) error {
 	err = pubSubUser.SubTDs(ctx, func(event *thing.ThingValue) {
 		var td thing.TD
 		err = json.Unmarshal(event.ValueJSON, &td)
-		valid := err == nil
+
 		//createdTime, _ := dateparse.ParseAny(event.Created)
 		createdTime, _ := dateparse.ParseAny(td.Modified)
 		timeStr := createdTime.Format("15:04:05.000")
-		fmt.Printf("%-16s %-20s %-25s %-15s %v \n",
-			timeStr, event.PublisherID, event.ThingID, td.DeviceType, valid)
+		fmt.Printf("%-16s %-20s %-25s %-15s\n",
+			timeStr, event.PublisherID, event.ThingID, td.DeviceType)
 	})
-	fmt.Printf("Created          Publisher            ThingID                   Type            Valid TD  \n")
-	fmt.Printf("---------------  -------------------  ------------------------  --------------  ----\n")
+	fmt.Printf("Created          Publisher            ThingID                   Type            \n")
+	fmt.Printf("---------------  -------------------  ------------------------  --------------  \n")
 
 	if err != nil {
 		return err

@@ -67,8 +67,9 @@ func connectToGateway(f svcconfig.AppFolders, gwAddr string) (gateway.IGatewaySe
 
 func GatewayCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	cmd := &cli.Command{
-		Name:  "gw",
-		Usage: "List gateway capabilities",
+		Name:    "gateway",
+		Aliases: []string{"gw"},
+		Usage:   "List gateway capabilities",
 		Subcommands: []*cli.Command{
 			GatewayListCommand(ctx, f),
 		},
@@ -78,8 +79,10 @@ func GatewayCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 
 func GatewayListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	return &cli.Command{
-		Name:      "list",
+		Name:      "listgw",
+		Aliases:   []string{"lgw"},
 		Usage:     "List gateway capabilities",
+		Category:  "gateway",
 		ArgsUsage: "(no args)",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 0 {

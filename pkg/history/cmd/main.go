@@ -13,10 +13,12 @@ import (
 	"github.com/hiveot/hub/pkg/history/capnpserver"
 	"github.com/hiveot/hub/pkg/history/config"
 	"github.com/hiveot/hub/pkg/history/service"
+	"github.com/hiveot/hub/pkg/pubsub/capnpclient"
 )
 
 // Connect the history store service
 func main() {
+	ctx := context.Background()
 	f, clientCert, caCert := svcconfig.SetupFolderConfig(history.ServiceName)
 	cfg := config.NewHistoryConfig(f.Stores)
 	_ = f.LoadConfig(&cfg)
@@ -26,14 +28,13 @@ func main() {
 
 	// the service receives the events to store from pubsub.
 	conn, err := hubclient.ConnectToHub("", "", clientCert, caCert)
-
-	//conn, err := hubclient.CreateLocalClientConnection(pubsub.ServiceName, f.Run)
-	pubSubClient, err := hubclient.GetServicePubSubClient(conn, history.ServiceName)
+	pubSubClient := capnpclient.NewPubSubCapnpClient(ctx, conn)
+	svcPubSub, err := pubSubClient.CapServicePubSub(ctx, cfg.ServiceID)
 	if err != nil {
 		panic("can't connect to pubsub")
 	}
 
-	svc := service.NewHistoryService(&cfg, store, pubSubClient)
+	svc := service.NewHistoryService(&cfg, store, svcPubSub)
 
 	listener.RunService(history.ServiceName, f.SocketPath,
 		func(ctx context.Context, lis net.Listener) error {
@@ -46,6 +47,7 @@ func main() {
 		}, func() error {
 			// shutdown
 			err := svc.Stop()
+			_ = pubSubClient.Release()
 			return err
 		})
 

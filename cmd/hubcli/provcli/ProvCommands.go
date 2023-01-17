@@ -18,9 +18,9 @@ func ProvisioningCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Comm
 
 	cmd := &cli.Command{
 		//hub prov add|list  <deviceID> <secret>
-
-		Name:  "prov",
-		Usage: "IoT device provisioning",
+		Name:    "provision",
+		Aliases: []string{"pr"},
+		Usage:   "IoT device provisioning",
 		Subcommands: cli.Commands{
 			ProvisionAddOOBSecretsCommand(ctx, f),
 			ProvisionApproveRequestCommand(ctx, f),
@@ -36,9 +36,11 @@ func ProvisioningCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Comm
 // prov add  <deviceID> <oobsecret>
 func ProvisionAddOOBSecretsCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	return &cli.Command{
-		Name:      "add",
-		Usage:     "Add an out-of-band device provisioning secret for automatic provisioning",
-		ArgsUsage: "<deviceID> <oobSecret>",
+		Name:      "addoob <deviceID> <secret>",
+		Aliases:   []string{"ados"},
+		Usage:     "Add a provisioning secret",
+		UsageText: "Add an out-of-band device provisioning secret for automatic provisioning",
+		Category:  "provisioning",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 2 {
 				return fmt.Errorf("expected 2 arguments. Got %d instead", cCtx.NArg())
@@ -56,9 +58,11 @@ func ProvisionAddOOBSecretsCommand(ctx context.Context, f svcconfig.AppFolders) 
 // prov approve <deviceID>
 func ProvisionApproveRequestCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	return &cli.Command{
-		Name:      "approve",
-		Usage:     "Approve a pending provisioning request",
-		ArgsUsage: "<deviceID> ",
+		Name:      "approveprov <deviceID>",
+		Aliases:   []string{"appr"},
+		Usage:     "Approve provisioning request",
+		UsageText: "Approvide a pending provisioning request to issue a device authentication certificate",
+		Category:  "provisioning",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 1 {
 				return fmt.Errorf("expected 1 arguments. Got %d instead", cCtx.NArg())
@@ -74,9 +78,11 @@ func ProvisionApproveRequestCommand(ctx context.Context, f svcconfig.AppFolders)
 // prov approved
 func ProvisionGetApprovedRequestsCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	return &cli.Command{
-		Name:      "approved",
-		Usage:     "Get a list of approved provisioning requests",
-		ArgsUsage: "(no arguments)",
+		Name:      "listapproved",
+		Aliases:   []string{"lap"},
+		Usage:     "List approved provisioning requests",
+		UsageText: "View a list of recent approved provisioning requests. ",
+		Category:  "provisioning",
 		Action: func(cCtx *cli.Context) error {
 			err := HandleGetApprovedRequests(ctx, f)
 			return err
@@ -88,9 +94,11 @@ func ProvisionGetApprovedRequestsCommand(ctx context.Context, f svcconfig.AppFol
 // prov approved
 func ProvisionGetPendingRequestsCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	return &cli.Command{
-		Name:      "pending",
-		Usage:     "Get a list of pending provisioning requests",
-		ArgsUsage: "(no arguments)",
+		Name:      "listpending",
+		Aliases:   []string{"lip"},
+		Usage:     "List pending provisioning requests",
+		UsageText: "View a list of recent pending provisioning requests",
+		Category:  "provisioning",
 		Action: func(cCtx *cli.Context) error {
 			err := HandleGetPendingRequests(ctx, f)
 			return err
