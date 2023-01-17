@@ -13,6 +13,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/samber/lo"
 	"github.com/sirupsen/logrus"
 	"github.com/struCoder/pidusage"
 	"gopkg.in/fsnotify.v1"
@@ -31,8 +32,9 @@ type LauncherService struct {
 
 	// map of service name to running status
 	services map[string]*launcher.ServiceInfo
-	// map of started commands
-	cmds map[string]*exec.Cmd
+	// list of started commands in startup order
+	cmds []*exec.Cmd
+
 	// mutex to keep things safe
 	mux sync.Mutex
 	// watch service and binding folders for updates
@@ -43,7 +45,7 @@ type LauncherService struct {
 
 // Add newly discovered executable services
 // If the service is already know, only update its size and timestamp
-func (ls *LauncherService) findServices(folder string) error {
+func (svc *LauncherService) findServices(folder string) error {
 	count := 0
 	entries, err := os.ReadDir(folder)
 	if err != nil {
@@ -58,7 +60,7 @@ func (ls *LauncherService) findServices(folder string) error {
 		isFile := !entry.IsDir()
 		if isFile && isExecutable && size > 0 {
 			count++
-			serviceInfo, found := ls.services[entry.Name()]
+			serviceInfo, found := svc.services[entry.Name()]
 			if !found {
 				serviceInfo = &launcher.ServiceInfo{
 					Name:    entry.Name(),
@@ -66,7 +68,7 @@ func (ls *LauncherService) findServices(folder string) error {
 					Uptime:  0,
 					Running: false,
 				}
-				ls.services[serviceInfo.Name] = serviceInfo
+				svc.services[serviceInfo.Name] = serviceInfo
 			}
 			serviceInfo.ModifiedTime = fileInfo.ModTime().Format(time.RFC3339)
 			serviceInfo.Size = size
@@ -78,13 +80,13 @@ func (ls *LauncherService) findServices(folder string) error {
 
 // List all available or just the running services and their status
 // This returns the list of services sorted by name
-func (ls *LauncherService) List(_ context.Context, onlyRunning bool) ([]launcher.ServiceInfo, error) {
-	ls.mux.Lock()
-	defer ls.mux.Unlock()
+func (svc *LauncherService) List(_ context.Context, onlyRunning bool) ([]launcher.ServiceInfo, error) {
+	svc.mux.Lock()
+	defer svc.mux.Unlock()
 
 	// get the keys of the services to include and sort them
-	keys := make([]string, 0, len(ls.services))
-	for key, val := range ls.services {
+	keys := make([]string, 0, len(svc.services))
+	for key, val := range svc.services {
 		if !onlyRunning || val.Running {
 			keys = append(keys, key)
 		}
@@ -93,21 +95,38 @@ func (ls *LauncherService) List(_ context.Context, onlyRunning bool) ([]launcher
 
 	res := make([]launcher.ServiceInfo, 0, len(keys))
 	for _, key := range keys {
-		svcInfo := ls.services[key]
-		ls.updateStatus(svcInfo)
+		svcInfo := svc.services[key]
+		svc.updateStatus(svcInfo)
 		res = append(res, *svcInfo)
 	}
 	return res, nil
-
 }
 
-func (ls *LauncherService) StartService(
+// ScanServices scans the service and bindings folders for changes and updates the
+// services list
+func (svc *LauncherService) ScanServices(ctx context.Context) error {
+	err := svc.findServices(svc.f.Services)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
+	// ignore bindings folder if not set
+	if svc.f.Bindings != "" {
+		err = svc.findServices(svc.f.Bindings)
+		if err != nil {
+			logrus.Error(err)
+			return err
+		}
+	}
+	return nil
+}
+func (svc *LauncherService) StartService(
 	_ context.Context, name string) (info launcher.ServiceInfo, err error) {
-	ls.mux.Lock()
-	defer ls.mux.Unlock()
+	svc.mux.Lock()
+	defer svc.mux.Unlock()
 
 	// step 1: pre-checks
-	serviceInfo, found := ls.services[name]
+	serviceInfo, found := svc.services[name]
 	if !found {
 		info.Status = fmt.Sprintf("service '%s' not found", name)
 		logrus.Error(info.Status)
@@ -118,26 +137,29 @@ func (ls *LauncherService) StartService(
 		logrus.Error(err)
 		return *serviceInfo, err
 	}
-	svcCmd, hasCmd := ls.cmds[name]
-	if hasCmd {
-		err = fmt.Errorf("process for service '%s' already exists using PID %d. This is unexpected", name, svcCmd.Process.Pid)
-		logrus.Error(err)
-		return *serviceInfo, err
+	// don't start twice
+	for _, cmd := range svc.cmds {
+		if cmd.Path == serviceInfo.Path {
+			err = fmt.Errorf("process for service '%s' already exists using PID %d",
+				serviceInfo.Name, cmd.Process.Pid)
+			logrus.Error(err)
+			return *serviceInfo, err
+		}
 	}
 
 	// step 2: create the command to start the service ... but wait for step 3
-	svcCmd = exec.Command(serviceInfo.Path)
+	svcCmd := exec.Command(serviceInfo.Path)
 
 	// step3: setup logging before starting service
 	logrus.Infof("Starting service '%s'", name)
 
-	if ls.cfg.LogServices {
+	if svc.cfg.LogServices {
 		// inspired by https://gist.github.com/jerblack/4b98ba48ed3fb1d9f7544d2b1a1be287
-		logfile := path.Join(ls.f.Logs, name+".log")
+		logfile := path.Join(svc.f.Logs, name+".log")
 		logrus.Debugf("creating new logfile %s", logfile)
 		fp, err := os.OpenFile(logfile, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 		if err == nil {
-			if ls.cfg.AttachStderr {
+			if svc.cfg.AttachStderr {
 				// log stderr to launcher stderr and to file
 				multiwriter := io.MultiWriter(os.Stderr, fp)
 				svcCmd.Stderr = multiwriter
@@ -145,7 +167,7 @@ func (ls *LauncherService) StartService(
 				// just log stderr to file
 				svcCmd.Stderr = fp
 			}
-			if ls.cfg.AttachStdout {
+			if svc.cfg.AttachStdout {
 				// log stdout to launcher stdout and to file
 				multiwriter := io.MultiWriter(os.Stdout, fp)
 				svcCmd.Stdout = multiwriter
@@ -157,10 +179,10 @@ func (ls *LauncherService) StartService(
 			logrus.Warningf("creating logfile %s failed: %s", logfile, err)
 		}
 	} else {
-		if ls.cfg.AttachStderr {
+		if svc.cfg.AttachStderr {
 			svcCmd.Stderr = os.Stderr
 		}
-		if ls.cfg.AttachStdout {
+		if svc.cfg.AttachStdout {
 			svcCmd.Stdout = os.Stdout
 		}
 	}
@@ -172,7 +194,7 @@ func (ls *LauncherService) StartService(
 		logrus.Error(err)
 		return *serviceInfo, err
 	}
-	ls.cmds[name] = svcCmd
+	svc.cmds = append(svc.cmds, svcCmd)
 	//logrus.Warningf("Service '%s' has started", name)
 
 	serviceInfo.StartTime = time.Now().Format(time.RFC3339)
@@ -186,8 +208,8 @@ func (ls *LauncherService) StartService(
 		// cleanup after the process ends
 		status := svcCmd.Wait()
 		_ = status
-		ls.mux.Lock()
-		defer ls.mux.Unlock()
+		svc.mux.Lock()
+		defer svc.mux.Unlock()
 
 		serviceInfo.StopTime = time.Now().Format(time.RFC3339)
 		serviceInfo.Running = false
@@ -202,8 +224,11 @@ func (ls *LauncherService) StartService(
 			serviceInfo.Status = fmt.Sprintf("Service '%s' has stopped without info", name)
 		}
 		logrus.Warningf(serviceInfo.Status)
-		ls.updateStatus(serviceInfo)
-		delete(ls.cmds, name)
+		svc.updateStatus(serviceInfo)
+		// find the service to delete
+		i := lo.IndexOf(svc.cmds, svcCmd)
+		//lo.Delete(svc.cmds, i)  - why doesn't this exist?
+		svc.cmds = append(svc.cmds[:i], svc.cmds[i+1:]...) // this is so daft!
 	}()
 
 	// Give it some time to get up and running in case it is needed as a dependency
@@ -211,17 +236,30 @@ func (ls *LauncherService) StartService(
 	time.Sleep(time.Millisecond * 100)
 
 	// last, update the CPU and memory status
-	ls.updateStatus(serviceInfo)
+	svc.updateStatus(serviceInfo)
 	return *serviceInfo, err
 }
 
 // StartAll starts all enabled services
-func (ls *LauncherService) StartAll(ctx context.Context) (err error) {
+func (svc *LauncherService) StartAll(ctx context.Context) (err error) {
 	logrus.Infof("Starting all enabled services")
 
-	for svcName, svcInfo := range ls.services {
+	// ensure they start in order
+	for _, svcName := range svc.cfg.Autostart {
+		svcInfo := svc.services[svcName]
+		if svcInfo != nil && svcInfo.Running {
+			// skip
+		} else {
+			_, err2 := svc.StartService(ctx, svcName)
+			if err2 != nil {
+				err = err2
+			}
+		}
+	}
+	// start the remaining services
+	for svcName, svcInfo := range svc.services {
 		if !svcInfo.Running {
-			_, err2 := ls.StartService(ctx, svcName)
+			_, err2 := svc.StartService(ctx, svcName)
 			if err2 != nil {
 				err = err2
 			}
@@ -230,10 +268,10 @@ func (ls *LauncherService) StartAll(ctx context.Context) (err error) {
 	return err
 }
 
-func (ls *LauncherService) StopService(_ context.Context, name string) (info launcher.ServiceInfo, err error) {
+func (svc *LauncherService) StopService(_ context.Context, name string) (info launcher.ServiceInfo, err error) {
 	logrus.Infof("Stopping service %s", name)
 
-	serviceInfo, found := ls.services[name]
+	serviceInfo, found := svc.services[name]
 	if !found {
 		info.Status = fmt.Sprintf("service '%s' not found", name)
 		err = errors.New(info.Status)
@@ -242,37 +280,36 @@ func (ls *LauncherService) StopService(_ context.Context, name string) (info lau
 	}
 	err = Stop(serviceInfo.Name, serviceInfo.PID)
 	if err == nil {
-		ls.mux.Lock()
-		defer ls.mux.Unlock()
+		svc.mux.Lock()
+		defer svc.mux.Unlock()
 		serviceInfo.Running = false
 		serviceInfo.Status = "stopped by user"
 	}
 	return *serviceInfo, err
 }
 
-// StopAll stops all running services
-func (ls *LauncherService) StopAll(ctx context.Context) (err error) {
+// StopAll stops all running services in reverse order they were started
+func (svc *LauncherService) StopAll(ctx context.Context) (err error) {
 
-	ls.mux.Lock()
-	logrus.Infof("Stopping all (%d) services", len(ls.cmds))
-	// get the list of running services
-	names := make([]string, 0)
-	for name := range ls.cmds {
-		names = append(names, name)
-	}
-	ls.mux.Unlock()
+	svc.mux.Lock()
+	logrus.Infof("Stopping all (%d) services", len(svc.cmds))
+
+	// use a copy of the commands as the command list will be mutated
+	cmdsToStop := svc.cmds[:]
+
+	svc.mux.Unlock()
 
 	// stop each service
-	for _, name := range names {
-		_, _ = ls.StopService(ctx, name)
-		delete(ls.cmds, name)
+	for i := len(cmdsToStop) - 1; i >= 0; i-- {
+		c := cmdsToStop[i]
+		err = Stop(c.Path, c.Process.Pid)
 	}
 	time.Sleep(time.Millisecond)
 	return err
 }
 
 // updateStatus updates the service  status
-func (ls *LauncherService) updateStatus(svcInfo *launcher.ServiceInfo) {
+func (svc *LauncherService) updateStatus(svcInfo *launcher.ServiceInfo) {
 	if svcInfo.PID != 0 {
 
 		//Option A: use pidusage - doesn't work on Windows though
@@ -316,32 +353,13 @@ func (ls *LauncherService) updateStatus(svcInfo *launcher.ServiceInfo) {
 
 }
 
-// ScanServices scans the service and bindings folders for changes and updates the
-// services list
-func (ls *LauncherService) ScanServices(ctx context.Context) error {
-	err := ls.findServices(ls.f.Services)
-	if err != nil {
-		logrus.Error(err)
-		return err
-	}
-	// ignore bindings folder if not set
-	if ls.f.Bindings != "" {
-		err = ls.findServices(ls.f.Bindings)
-		if err != nil {
-			logrus.Error(err)
-			return err
-		}
-	}
-	return nil
-}
-
 // WatchServices watches the services and bindings folder for changes and reloads
 // This will detect adding new services or bindings without requiring a restart.
-func (ls *LauncherService) WatchServices(ctx context.Context) error {
-	ls.serviceWatcher, _ = fsnotify.NewWatcher()
-	err := ls.serviceWatcher.Add(ls.f.Services)
-	if err == nil && ls.f.Bindings != "" {
-		err = ls.serviceWatcher.Add(ls.f.Bindings)
+func (svc *LauncherService) WatchServices(ctx context.Context) error {
+	svc.serviceWatcher, _ = fsnotify.NewWatcher()
+	err := svc.serviceWatcher.Add(svc.f.Services)
+	if err == nil && svc.f.Bindings != "" {
+		err = svc.serviceWatcher.Add(svc.f.Bindings)
 	}
 	if err == nil {
 		go func() {
@@ -350,16 +368,16 @@ func (ls *LauncherService) WatchServices(ctx context.Context) error {
 				case <-ctx.Done():
 					logrus.Infof("service watcher ended by context")
 					return
-				case event := <-ls.serviceWatcher.Events:
-					isRunning := ls.isRunning.Load()
+				case event := <-svc.serviceWatcher.Events:
+					isRunning := svc.isRunning.Load()
 					if isRunning {
 						logrus.Infof("watcher event: %v", event)
-						_ = ls.ScanServices(ctx)
+						_ = svc.ScanServices(ctx)
 					} else {
 						logrus.Infof("service watcher stopped")
 						return
 					}
-				case err := <-ls.serviceWatcher.Errors:
+				case err := <-svc.serviceWatcher.Errors:
 					logrus.Errorf("error: %s", err)
 				}
 			}
@@ -370,18 +388,18 @@ func (ls *LauncherService) WatchServices(ctx context.Context) error {
 }
 
 // Start the launcher service
-func (ls *LauncherService) Start(ctx context.Context) error {
-	ls.isRunning.Store(true)
+func (svc *LauncherService) Start(ctx context.Context) error {
+	svc.isRunning.Store(true)
 
-	_ = ls.WatchServices(ctx)
-	err := ls.ScanServices(ctx)
+	_ = svc.WatchServices(ctx)
+	err := svc.ScanServices(ctx)
 	if err != nil {
 		return err
 	}
 
 	// autostart the services
-	for _, name := range ls.cfg.Autostart {
-		_, err2 := ls.StartService(ctx, name)
+	for _, name := range svc.cfg.Autostart {
+		_, err2 := svc.StartService(ctx, name)
 		if err2 != nil {
 			err = err2
 		}
@@ -390,9 +408,9 @@ func (ls *LauncherService) Start(ctx context.Context) error {
 }
 
 // Stop the launcher and all running services
-func (ls *LauncherService) Stop() error {
-	ls.isRunning.Store(false)
-	return ls.StopAll(context.Background())
+func (svc *LauncherService) Stop() error {
+	svc.isRunning.Store(false)
+	return svc.StopAll(context.Background())
 }
 
 // NewLauncherService returns a new launcher instance for the services in the given services folder.
@@ -404,7 +422,7 @@ func NewLauncherService(f svcconfig.AppFolders, cfg config.LauncherConfig) *Laun
 		f:        f,
 		cfg:      cfg,
 		services: make(map[string]*launcher.ServiceInfo),
-		cmds:     make(map[string]*exec.Cmd),
+		cmds:     make([]*exec.Cmd, 0),
 	}
 
 	return ls

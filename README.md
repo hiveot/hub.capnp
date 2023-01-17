@@ -26,7 +26,6 @@ Updated 2023-01-09: completed initial version of:
 
 Todo in order to reach Alpha:
 ```
-- stop services in reverse order
 - http gateway             provide https/websocket access for web clients
 - http jwt auth            http JWT token authentication 
 - basic web client         vue3, svelvte, hotwire? using SSR? with JS capnp?
