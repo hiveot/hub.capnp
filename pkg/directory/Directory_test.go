@@ -14,7 +14,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/hiveot/hub.capnp/go/vocab"
 	"github.com/hiveot/hub/lib/thing"
+	"github.com/hiveot/hub/pkg/bucketstore/kvbtree"
+	"github.com/hiveot/hub/pkg/pubsub"
+	service2 "github.com/hiveot/hub/pkg/pubsub/service"
 
 	"github.com/hiveot/hub/lib/logging"
 	"github.com/hiveot/hub/pkg/directory"
@@ -29,13 +33,14 @@ var testStoreFile = path.Join(testFolder, "directory.json")
 const testUseCapnp = true
 
 // startDirectory initializes a Directory service, optionally using capnp RPC
-func startDirectory(useCapnp bool) (dir directory.IDirectory, stopFn func()) {
+func startDirectory(useCapnp bool, svcPubSub pubsub.IServicePubSub) (dir directory.IDirectory, stopFn func()) {
 
 	ctx, cancelFunc := context.WithCancel(context.Background())
 	logrus.Infof("startDirectory start")
 	defer logrus.Infof("startDirectory ended")
 	_ = os.Remove(testStoreFile)
-	svc := service.NewDirectoryService("urn:hubtest", testStoreFile)
+	store := kvbtree.NewKVStore(directory.ServiceName, testStoreFile)
+	svc := service.NewDirectoryService("", store, svcPubSub)
 	err := svc.Start(ctx)
 	if err != nil {
 		panic("service fails to start")
@@ -90,20 +95,20 @@ func TestMain(m *testing.M) {
 func TestStartStop(t *testing.T) {
 	logrus.Infof("--- TestStartStop start ---")
 	_ = os.Remove(testStoreFile)
-	store, stopFunc := startDirectory(testUseCapnp)
+	store, stopFunc := startDirectory(testUseCapnp, nil)
 	defer stopFunc()
 	assert.NotNil(t, store)
 	logrus.Infof("--- TestStartStop end ---")
 }
 
 func TestAddRemoveTD(t *testing.T) {
-	logrus.Infof("--- TestRemoveTD start ---")
+	logrus.Infof("--- TestAddRemoveTD start ---")
 	_ = os.Remove(testStoreFile)
 	const publisherID = "urn:test"
 	const thing1ID = "urn:thing1"
 	const title1 = "title1"
 	ctx := context.Background()
-	store, stopFunc := startDirectory(testUseCapnp)
+	store, stopFunc := startDirectory(testUseCapnp, nil)
 	defer stopFunc()
 
 	readCap, err := store.CapReadDirectory(ctx, thing1ID)
@@ -170,7 +175,7 @@ func TestCursor(t *testing.T) {
 	const title1 = "title1"
 
 	ctx := context.Background()
-	store, stopFunc := startDirectory(testUseCapnp)
+	store, stopFunc := startDirectory(testUseCapnp, nil)
 	defer stopFunc()
 
 	readCap, err := store.CapReadDirectory(ctx, thing1ID)
@@ -212,6 +217,45 @@ func TestCursor(t *testing.T) {
 	logrus.Infof("--- TestCursor end ---")
 }
 
+func TestPubSub(t *testing.T) {
+	logrus.Infof("--- TestPubSub start ---")
+	_ = os.Remove(testStoreFile)
+	const publisherID = "test"
+	const thing1ID = "thing3"
+	const title1 = "title1"
+	ctx := context.Background()
+
+	// need a pubsub for the service
+	pubSubSvc := service2.NewPubSubService()
+	err := pubSubSvc.Start()
+	require.NoError(t, err)
+	// get the pubsub client for the history service
+	svcPubSub, err := pubSubSvc.CapServicePubSub(ctx, "test")
+	require.NoError(t, err)
+
+	store, stopFunc := startDirectory(testUseCapnp, svcPubSub)
+	defer stopFunc()
+
+	// publish the TD
+	tdDoc := createTDDoc(thing1ID, title1)
+	err = svcPubSub.PubTD(ctx, thing1ID, vocab.DeviceTypeSensor, tdDoc)
+	assert.NoError(t, err)
+
+	// expect it to be added to the directory
+	readCap, err := store.CapReadDirectory(ctx, thing1ID)
+	assert.NoError(t, err)
+
+	tv2, err := readCap.GetTD(ctx, publisherID, thing1ID)
+	if assert.NoError(t, err) {
+		assert.NotNil(t, tv2)
+		assert.Equal(t, thing1ID, tv2.ThingID)
+		assert.Equal(t, tdDoc, tv2.ValueJSON)
+	}
+
+	// cleanup
+	svcPubSub.Release()
+}
+
 //func TestQueryTDs(t *testing.T) {
 //	logrus.Infof("--- TestQueryTDs start ---")
 //	_ = os.Remove(dirStoreFile)
@@ -244,6 +288,7 @@ func TestCursor(t *testing.T) {
 //}
 
 // simple performance test update/read, comparing direct vs capnp access
+// TODO: turn into bench test
 func TestPerf(t *testing.T) {
 	logrus.Infof("--- start TestPerf ---")
 	_ = os.Remove(testStoreFile)
@@ -253,7 +298,7 @@ func TestPerf(t *testing.T) {
 	const count = 1000
 
 	ctx := context.Background()
-	store, stopFunc := startDirectory(true)
+	store, stopFunc := startDirectory(true, nil)
 	defer stopFunc()
 	readCap, err := store.CapReadDirectory(ctx, thing1ID)
 	assert.NoError(t, err)
