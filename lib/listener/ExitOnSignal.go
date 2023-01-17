@@ -6,8 +6,6 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-
-	"github.com/sirupsen/logrus"
 )
 
 // ExitOnSignal starts a background process and closes the context when a SIGINT or SIGTERM is received.
@@ -24,8 +22,8 @@ func ExitOnSignal(ctx context.Context, release func()) context.Context {
 
 		signal.Notify(exitChannel, syscall.SIGINT, syscall.SIGTERM)
 
-		sig := <-exitChannel
-		logrus.Warningf("RECEIVED SIGNAL: %s", sig)
+		<-exitChannel
+		//logrus.Warningf("RECEIVED SIGNAL: %s", sig)
 
 		// cancel the context. This should invoke Done()
 		cancelFn()

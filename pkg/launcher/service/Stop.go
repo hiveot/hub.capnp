@@ -27,11 +27,17 @@ func Stop(name string, pid int) error {
 	// not clear what to do with err in this case
 	_ = err
 
-	// give it a millisecond or so to update process status
-	time.Sleep(time.Millisecond * 10)
-
-	// FIXME: continue once process has stopped
-	//time.Sleep(timeout)
+	// Give the processes time to finish, wait for up to 1 second
+	for i := 0; i < 1000; i += 10 {
+		// if signal is 0, no signal is sent but error checking is still performed.
+		err = process.Signal(syscall.Signal(0))
+		if err != nil {
+			// error occurs if process no longer running
+			break
+		}
+		// still running
+		time.Sleep(time.Millisecond * 10)
+	}
 
 	// Check that PID is no longer running
 	// On Linux FindProcess always succeeds
