@@ -69,8 +69,7 @@ func StartAuthnCapnpServer(svc authn.IAuthnService, lis net.Listener) (err error
 	}
 	// the provider serves the exported capabilities
 	capProv := capprovider.NewCapServer(
-		serviceName,
-		hubapi.CapAuthn_Methods(nil, srv))
+		serviceName, hubapi.CapAuthn_Methods(nil, srv))
 
 	capProv.ExportCapability(hubapi.CapNameUserAuthn,
 		[]string{hubapi.ClientTypeService, hubapi.ClientTypeUser, hubapi.ClientTypeUnauthenticated})

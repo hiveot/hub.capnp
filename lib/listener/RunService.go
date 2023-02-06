@@ -41,19 +41,19 @@ func RunService(serviceName string, socketPath string,
 	})
 
 	// startup will wait until connection drops or  context is cancelled after signal is received
-	// the result is the error indicating the reason
+	// the result is the error indicating the stopped reason
 	err = startup(ctx, lis)
-
 	logrus.Infof("Service '%s' shutting down", serviceName)
-
-	err = shutdown()
 
 	if errors.Is(err, net.ErrClosed) {
 		logrus.Infof("Service '%s' has stopped gracefully", serviceName)
+		_ = shutdown()
 		os.Exit(0)
 	} else if err != nil {
 		logrus.Errorf("Service '%s' shutdown with error: %s", serviceName, err)
+		_ = shutdown()
 		os.Exit(-1)
 	}
+	_ = shutdown()
 	logrus.Infof("Service '%s' has shutdown with no errors", serviceName)
 }

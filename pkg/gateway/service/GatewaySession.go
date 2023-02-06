@@ -91,6 +91,7 @@ func (session *GatewaySession) Login(ctx context.Context, clientID, password str
 
 // Ping capability
 func (session *GatewaySession) Ping(_ context.Context) (gateway.ClientInfo, error) {
+	logrus.Infof("Ping")
 	ci := gateway.ClientInfo{
 		ClientID:   session.clientID,
 		ClientType: session.clientType,

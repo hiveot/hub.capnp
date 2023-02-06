@@ -1,14 +1,2 @@
 {
-	"folders": [
-		{
-			"path": "."
-		},
-		{
-			"path": "../hub.capnp"
-		},
-		{
-			"path": "../hub.go"
-		}
-	],
-    "settings": {}
 }

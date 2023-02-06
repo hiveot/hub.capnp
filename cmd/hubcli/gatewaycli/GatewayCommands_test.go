@@ -30,6 +30,8 @@ import (
 
 const testHomeDir = "/tmp/test-hubcli"
 
+var useWS = false
+
 // var testSocketDir = path.Join(testHomeDir, "run")
 var resolverSocketPath = path.Join(testHomeDir, resolver.ServiceName+".socket")
 
@@ -47,17 +49,17 @@ func TestConnectToGateway(t *testing.T) {
 	//testCACert, testCAKey, err := selfsigned.CreateHubCA(1)
 	caCertPath := path.Join(f.Certs, hubapi.DefaultCaCertFile)
 	caKeyPath := path.Join(f.Certs, hubapi.DefaultCaKeyFile)
-	testCAKey, err2 := certsclient.LoadKeysFromPEM(caKeyPath)
+	testCAKey, _ := certsclient.LoadKeysFromPEM(caKeyPath)
 	testCACert, err := certsclient.LoadX509CertFromPEM(caCertPath)
 	require.NoError(t, err)
 
 	// step 2: generate the gateway server cert
 	certSvc := selfsigned.NewSelfSignedCertsService(testCACert, testCAKey)
-	capServiceCert, err := certSvc.CapServiceCerts(context.Background(), "hubcli")
+	capServiceCert, _ := certSvc.CapServiceCerts(context.Background(), "hubcli")
 	testServiceKeys := certsclient.CreateECDSAKeys()
 	testServicePubKeyPEM, _ := certsclient.PublicKeyToPEM(&testServiceKeys.PublicKey)
 	testServicePrivKeyPEM, _ := certsclient.PrivateKeyToPEM(testServiceKeys)
-	testServiceCertPEM, _, err := capServiceCert.CreateServiceCert(
+	testServiceCertPEM, _, _ := capServiceCert.CreateServiceCert(
 		context.Background(), "hubcli-test", testServicePubKeyPEM, []string{"localhost", "127.0.0.1"}, 1)
 	testServiceCert, err := tls.X509KeyPair([]byte(testServiceCertPEM), []byte(testServicePrivKeyPEM))
 	require.NoError(t, err)
@@ -73,7 +75,7 @@ func TestConnectToGateway(t *testing.T) {
 		logrus.Panicf("Unable to create a listener, can't run test: %s", err2)
 	}
 	srvListener = listener.CreateTLSListener(srvListener, &testServiceCert, testCACert)
-	go capnpserver.StartGatewayCapnpServer(svc, srvListener)
+	go capnpserver.StartGatewayCapnpServer(svc, srvListener, useWS)
 
 	// gateway uses resolver
 	rsvc := service2.NewResolverService(f.Run)

@@ -8,7 +8,7 @@ import (
 	"capnproto.org/go/capnp/v3/server"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
-	"github.com/hiveot/hub/lib/caphelp"
+	"github.com/hiveot/hub/lib/listener"
 	"github.com/hiveot/hub/pkg/resolver"
 	"github.com/hiveot/hub/pkg/resolver/capserializer"
 )
@@ -56,10 +56,12 @@ func (capsrv *ResolverServiceCapnpServer) ListCapabilities(
 
 	clientType, _ := call.Args().ClientType()
 	infoList, err := capsrv.service.ListCapabilities(ctx, clientType)
-	resp, err2 := call.AllocResults()
-	if err = err2; err == nil {
-		infoListCapnp := capserializer.MarshalCapabilityInfoList(infoList)
-		err = resp.SetInfoList(infoListCapnp)
+	if err == nil {
+		resp, err2 := call.AllocResults()
+		if err = err2; err == nil {
+			infoListCapnp := capserializer.MarshalCapabilityInfoList(infoList)
+			err = resp.SetInfoList(infoListCapnp)
+		}
 	}
 	return err
 }
@@ -122,6 +124,6 @@ func StartResolverServiceCapnpServer(
 	resClient := capnp.NewClient(clientHook)
 	main := hubapi.CapResolverService(resClient)
 
-	_ = caphelp.Serve(resolver.ServiceName, lis, capnp.Client(main), nil)
+	_ = listener.Serve(resolver.ServiceName, lis, capnp.Client(main), nil, nil)
 
 }

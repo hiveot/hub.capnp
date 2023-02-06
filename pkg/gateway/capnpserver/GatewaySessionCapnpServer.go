@@ -21,6 +21,7 @@ type GatewaySessionCapnpServer struct {
 }
 
 func (capsrv *GatewaySessionCapnpServer) HandleUnknownMethod(m capnp.Method) *server.Method {
+	logrus.Infof("unknown method '%s.%s' requested", m.InterfaceName, m.MethodName)
 	// Just pass it on to the session that can add validation
 	return capsrv.session.HandleUnknownMethod(m)
 }
@@ -63,10 +64,13 @@ func (capsrv *GatewaySessionCapnpServer) Refresh(
 	args := call.Args()
 	oldRefreshToken, _ := args.RefreshToken()
 	authToken, refreshToken, err := capsrv.session.Refresh(ctx, oldRefreshToken)
-	res, err := call.AllocResults()
 	if err == nil {
-		err = res.SetAuthToken(authToken)
-		_ = res.SetRefreshToken(refreshToken)
+		res, err2 := call.AllocResults()
+		err = err2
+		if err == nil {
+			err = res.SetAuthToken(authToken)
+			_ = res.SetRefreshToken(refreshToken)
+		}
 	}
 	return err
 }

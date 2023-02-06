@@ -27,6 +27,8 @@ func BenchmarkRPC(b *testing.B) {
 	// create a test server and register it with the resolver
 	ts := test.NewTestService()
 	ts.Start(testServiceSocket)
+	// wait for the resolver to discover the test service socket
+	time.Sleep(time.Millisecond * 1000)
 
 	// obtain the test service capability for method1 via the resolver
 	resConn, _ := net.Dial("unix", testResolverSocket)
@@ -70,6 +72,8 @@ func BenchmarkRPC(b *testing.B) {
 			}
 		})
 
+	// give resolver time to discover the test service
+	time.Sleep(time.Millisecond * 100)
 	b.Run(fmt.Sprintf("GetCapability via resolver"),
 		func(b *testing.B) {
 

@@ -46,7 +46,7 @@ func connectToGateway(f svcconfig.AppFolders, gwAddr string) (gateway.IGatewaySe
 			pubKeyPem, _ := certsclient.PublicKeyToPEM(&clientKey.PublicKey)
 			clientKeyPem, _ := certsclient.PrivateKeyToPEM(clientKey)
 			clientCertPem, _, _ := svc.CreateServiceCert(
-				nil, "hubcli", pubKeyPem, []string{"localhost", "127.0.0.1"}, 1)
+				context.TODO(), "hubcli", pubKeyPem, []string{"localhost", "127.0.0.1"}, 1)
 
 			c, err3 := tls.X509KeyPair([]byte(clientCertPem), []byte(clientKeyPem))
 			clientCert = &c
@@ -56,7 +56,8 @@ func connectToGateway(f svcconfig.AppFolders, gwAddr string) (gateway.IGatewaySe
 	if err != nil {
 		logrus.Warningf("unable to load or create the hubcli client cert: %s", err)
 	}
-	gw, err := capnpclient.ConnectToGatewayTLS("tcp", gwAddr, clientCert, caCert)
+	fullURL := "tcp://" + gwAddr
+	gw, err := capnpclient.ConnectToGatewayTLS(fullURL, clientCert, caCert)
 	if err == nil {
 		clientInfo, err2 := gw.Ping(context.Background())
 		err = err2
@@ -94,6 +95,7 @@ func GatewayListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comman
 	}
 }
 
+// Handle the list capabilities request and print the list of gateway capabilities
 func HandleListGateway(ctx context.Context, f svcconfig.AppFolders) error {
 
 	gwConfig := config.NewGatewayConfig(f.Run, f.Certs)
@@ -117,5 +119,5 @@ func HandleListGateway(ctx context.Context, f svcconfig.AppFolders) error {
 			clientTypeAsText,
 		)
 	}
-	return nil
+	return err
 }

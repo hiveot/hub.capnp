@@ -6,55 +6,77 @@ communication.
 
 ## Project Status
 
-Status: The status of the Hub is In Development. 
+THIS PROJECT IS NOT READY FOR USE AND HEAVILY IN DEVELOPMENT
+ONCE ALPHA IS REACHED IT WILL BE FUNCTIONAL BUT LIMITED
 
-Updated 2023-01-09: completed initial version of:
+Status: The status of the Hub is In Development. Closing in on alpha.
+
+2023-01-16: completed initial version of:
+
+Core micro services of the Hub
 ```
+- launcher      manage starting and stopping of services
 - certs         certificate management for services
 - directory     storage of the thing directory
 - history       storage of thing event and action values
-- provisioning  automated provisioning of IoT devices 
-- state         easy to use persistance of state for services
-- launcher      manage starting and stopping of services
-- authz         user authorization of capabilities
-- authn         user authentication management
-- pubsub        internal service to publish and subscribe to events and actions
+- pubsub        publish and subscribe message bus for notifications between services
 - resolver      local discovery and access to service capabilities
-- gateway       single entry point to retrieve services by local or remote clients
+- authn         user authentication management
+- authz         user authorization of capabilities
+- gateway       single entry point to obtain service capabilities for remote clients
+- state         easy to use persistance of state for services
+- provisioning  automated provisioning of IoT devices using certificate authentication
+```
+Bindings for the Hub
+```
 - owserver      1-wire binding
 ```
 
 Todo in order to reach Alpha:
 ```
-- http gateway             provide https/websocket access for web clients
-- http jwt auth            http JWT token authentication 
-- basic web client         vue3, svelvte, hotwire? using SSR? with JS capnp?
-                           - login page
-                           - accounts page list publishers and device Things
-                           - subscribe to device updates
-                           - dashboard with text cards 
-- min 85% code coverage
+- http gateway
+  - provide https/websocket access for web clients
+- http jwt auth
+  - http JWT token authentication
+- basic web client
+  - vue3, svelvte, templates? using SSR? with JS capnp?
+  - login page
+  - accounts page list publishers and device Things
+  - subscribe to device updates
+  - dashboard with text cards
+- 3 bindings
+  - owserver [done]
+  - zwave [in progress]
+  - tbd
+- update documentation
+  - git readme and github landing page
+
 ```
 
 Todo for beta (stable API)
 ```
 - autoreconnect            clients should attempt auto-reconnect to services (resiliency)
-- 30 days nonstop operation without error
-- min 5 bindings
-- min 90% code coverage
+- python client            capnproto python client api library
+- javascript client        capnproto python client api library
+- scripting engine         build IoT applications using JS or python on the fly
+- 10 bindings              wider range of bindings to verify APIs and services meet the needs
+- min 90% code coverage    improved testing framework including coverage, fuzzing
 ```
 
 For future consideration:
 ```
 - middleware               hooks to authorize, log, rate limit gateways
 - mosquitto gateway       integrate pubsub with mqtt
-- queued actions          allow IoT devices to use just https by polling queued actions
-- service discovery       discover of remote capabilities 
+- queued actions          allow 'sleepy' IoT devices to poll for queued actions after waking up
+- service discovery       discover of remote capabilities
 - bucketstore mongo       add support for mongodb in the bucket store
 - bucketstore sqlite      add support for SQLite in the bucket store
 - bridge                  bridge two hubs and share select things
 ```
 
+Documention:
+* [HiveOT design](docs/hive-design.md)
+* [Thing TDs](docs/README-TD.md)
 
 
 ## Audience
@@ -224,7 +246,7 @@ sudo chown -R hiveot:hiveot /var/lib/hiveot
 
 ## Configuration
 
-All Hub services will run out of the box with their default configuration. Each service has an optional yaml based configuration file in the config folder.
+All Hub services will run out of the box with their default configuration. Service can use an optional yaml based configuration file found in the config folder.
 
 Before starting the hub, a CA certificate must be created. By default the hub uses a self-signed CA certificate. It is possible to use a CA certificate from a 3rd party source, but this isn't needed as the certificates are used for client authentication, not for domain verification.
 
@@ -277,6 +299,6 @@ This project builds on the Web of Things (WoT) standardization by the W3C.org st
 
 This project is inspired by the Mozilla Thing draft API [published here](https://iot.mozilla.org/wot/#web-thing-description). However, the Mozilla API is intended to be implemented by Things and is not intended for Things to register themselves. The HiveOT Hub will therefore deviate where necessary.
 
-The [capnproto](https://capnproto.org/) project provides Capabilities based RPC infrastructure for the Hub. Capabilities based services are a great fit for a decentralized Hub as it is performant, low cpu and memory footprint and intrinsic secure.
+The [capnproto](https://capnproto.org/) project provides Capabilities based RPC infrastructure for Hub services. Capabilities based services are a great fit for a decentralized Hub as it is performant, low cpu and memory footprint and intrinsic secure.
 
 Many thanks go to JetBrains for sponsoring the HiveOT open source project with development tools.  

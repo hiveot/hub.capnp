@@ -57,7 +57,7 @@ func TestConnectWriteRead(t *testing.T) {
 			assert.Equal(t, "Plugin", clientID)
 		}
 		rwmux.Lock()
-		n, err = srvConn.Read(readBuf)
+		n, _ = srvConn.Read(readBuf)
 		readBuf = readBuf[0:n]
 		remoteClient := srvConn.RemoteAddr().String()
 		logrus.Infof("read %d bytes from '%s'", n, remoteClient)
@@ -65,9 +65,8 @@ func TestConnectWriteRead(t *testing.T) {
 	}()
 	time.Sleep(time.Millisecond)
 	// create the TLS client and connect
-	//address = lis.Addr().String()
-	tlsConn, err := hubclient.CreateTLSClientConnection(network, address, certs.PluginCert, certs.CaCert)
-	//tlsConn, err := CreateTLSClientConnection(network, address, nil, certs.CaCert)
+	fullURL := address
+	tlsConn, err := hubclient.CreateTLSClientConnection(fullURL, certs.PluginCert, certs.CaCert)
 	require.NoError(t, err)
 
 	state := tlsConn.ConnectionState()

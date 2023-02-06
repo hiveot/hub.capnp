@@ -191,7 +191,7 @@ func TestGetCapabilityViaResolver(t *testing.T) {
 	assert.NoError(t, err)
 
 	// give the resolver time to discover the test service
-	time.Sleep(time.Millisecond * 10)
+	time.Sleep(time.Millisecond * 100)
 
 	// Phase 2 - obtain the test service capability from the resolver
 	caps, err := svc.ListCapabilities(ctx, hubapi.ClientTypeService)

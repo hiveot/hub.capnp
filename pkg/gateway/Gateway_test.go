@@ -5,6 +5,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/tls"
 	"crypto/x509"
+	"fmt"
 	"net"
 	"os"
 	"path"
@@ -34,12 +35,12 @@ import (
 const testSocketDir = "/tmp/test-gateway"
 const testClientID = "client1"
 const testUseCapnp = true
+const testUseWS = false
 
 var resolverSocketPath = path.Join(testSocketDir, resolver.ServiceName+".socket")
 var testServiceSocketPath = path.Join(testSocketDir, "testService.socket")
 
-// var testAddress = "127.0.0.1:0"
-var testGatewayAddr = ""
+var testGatewayURL = ""
 var testCACert *x509.Certificate
 var testCAKey *ecdsa.PrivateKey
 
@@ -62,9 +63,9 @@ func createCerts() error {
 	var err error
 	var ctx = context.Background()
 	// a CA is needed
-	testCACert, testCAKey, err = selfsigned.CreateHubCA(1)
+	testCACert, testCAKey, _ = selfsigned.CreateHubCA(1)
 	certSvc := selfsigned.NewSelfSignedCertsService(testCACert, testCAKey)
-	capServiceCert, err := certSvc.CapServiceCerts(ctx, testClientID)
+	capServiceCert, _ := certSvc.CapServiceCerts(ctx, testClientID)
 	capDeviceCert, err := certSvc.CapDeviceCerts(ctx, testClientID)
 	if err != nil {
 		return err
@@ -78,7 +79,7 @@ func createCerts() error {
 	if err != nil {
 		return err
 	}
-	testServiceCert, err = tls.X509KeyPair([]byte(testServiceCertPEM), []byte(testServicePrivKeyPEM))
+	testServiceCert, _ = tls.X509KeyPair([]byte(testServiceCertPEM), []byte(testServicePrivKeyPEM))
 
 	// and a client cert, also signed by the CA
 	testClientKeys = certsclient.CreateECDSAKeys()
@@ -130,21 +131,28 @@ func startService(useCapnp bool) (gwSession gateway.IGatewaySession, stopFn func
 
 	// optionally test with capnp RPC over TLS
 	if useCapnp {
-		// start the capnpserver for the service
+
+		// --- start the capnpserver for the service
 		// TLS only works on tcp sockets as address must match certificate name
 		srvListener, err2 := net.Listen("tcp", "127.0.0.1:0")
+
 		if err2 != nil {
 			logrus.Panicf("Unable to create a listener, can't run test: %s", err2)
 		}
 		srvListener = listener.CreateTLSListener(srvListener, &testServiceCert, testCACert)
-		go capnpserver.StartGatewayCapnpServer(svc, srvListener)
+		go capnpserver.StartGatewayCapnpServer(svc, srvListener, testUseWS)
 
 		time.Sleep(time.Millisecond)
 
-		// connect the client to the server above, using the same service certificate
-		testGatewayAddr = srvListener.Addr().String()
+		// --- connect the client to the server above, using the same service certificate
+		testGatewayAddr := srvListener.Addr().String()
+		testGatewayURL = fmt.Sprintf("tcp://%s/", testGatewayAddr)
+		if testUseWS {
+			testGatewayURL = fmt.Sprintf("wss://%s/ws", testGatewayAddr)
+		}
+
 		gwClient, err2 := capnpclient.ConnectToGatewayTLS(
-			"tcp", testGatewayAddr, &testClientCert, testCACert)
+			testGatewayURL, &testClientCert, testCACert)
 		if err2 != nil {
 			panic("unable to connect the client to the gateway:" + err2.Error())
 		}
@@ -263,8 +271,10 @@ func TestGetCapability(t *testing.T) {
 
 	// Phase 3 - obtain the test service capability for method1 using the gateway connection
 	// use the gateway as a proxy for the test service
+	// gwClient2, err := capnpclient.ConnectToGatewayProxyClient(
+	// 	"tcp", testGatewayAddr, &testServiceCert, testCACert)
 	gwClient2, err := capnpclient.ConnectToGatewayProxyClient(
-		"tcp", testGatewayAddr, &testServiceCert, testCACert)
+		testGatewayURL, &testServiceCert, testCACert)
 	require.NoError(t, err)
 	capability := test.CapTestService(gwClient2)
 

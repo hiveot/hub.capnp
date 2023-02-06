@@ -74,11 +74,11 @@ func StartLauncherCapnpServer(lis net.Listener, svc launcher.ILauncher) (err err
 	}
 	// the provider serves the exported capabilities
 	// this replaces CapLauncher_ServerToClient
-	capProv := capprovider.NewCapServer(serviceName,
-		hubapi.CapLauncher_Methods(nil, capsrv))
+	capProv := capprovider.NewCapServer(
+		serviceName, hubapi.CapLauncher_Methods(nil, capsrv))
 
 	// the launcher does not have any exported capabilities (yet)
-	//capRegSrv.ExportCapability("", []string{hubapi.ClientTypeService})
+	// capProv.ExportCapability("", []string{hubapi.ClientTypeService})
 
 	logrus.Infof("Starting launcher service capnp adapter on: %s", lis.Addr())
 	err = capProv.Start(lis)

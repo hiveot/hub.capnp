@@ -4,10 +4,14 @@ const DefaultGatewayAddress = "127.0.0.1:8884"
 
 type GatewayConfig struct {
 	// server listening address:port
-	Address string `json:"address"`
+	Address string `yaml:"address"`
 
 	// noTLS disables TLS. Default is enabled. Intended for testing.
-	//NoTLS bool `json:"noTLS"`
+	NoTLS bool `yaml:"noTLS"`
+
+	// useWS upgrades incoming connections to websockets
+	// Intended to support capnp connections from nodejs and browsers over websockets
+	UseWS bool `yaml:"useWS"`
 
 	// location of services sockets. Default is {home}/run.
 	//SocketFolder string `json:"socketFolder"`
@@ -21,6 +25,7 @@ func NewGatewayConfig(socketFolder string, certsFolder string) *GatewayConfig {
 	gwConfig := GatewayConfig{
 		Address: DefaultGatewayAddress,
 		//SocketFolder: socketFolder,
+		UseWS: false,
 	}
 	return &gwConfig
 }

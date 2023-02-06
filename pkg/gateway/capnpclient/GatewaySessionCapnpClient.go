@@ -5,10 +5,13 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"net/url"
 
 	"capnproto.org/go/capnp/v3"
 	"capnproto.org/go/capnp/v3/rpc"
+	"capnproto.org/go/capnp/v3/rpc/transport"
 	"github.com/sirupsen/logrus"
+	websocketcapnp "zenhack.net/go/websocket-capnp"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/lib/hubclient"
@@ -123,43 +126,25 @@ func (cl *GatewaySessionCapnpClient) Release() {
 	}
 }
 
-// NewGatewaySessionCapnpClient create a new gateway client for obtaining capabilities.
-// Intended for remote clients such as IoT devices, services or users to connect to the
-// Hub's gateway. A connection must be established first.
-//
-//	conn is the network connection to use.
-//func NewGatewaySessionCapnpClient(ctx context.Context,
-//	conn net.Conn) (cl *GatewaySessionCapnpClient, err error) {
-//
-//	transport := rpc.NewStreamTransport(conn)
-//	rpcConn := rpc.NewConn(transport, nil)
-//	capGatewaySession := hubapi.CapGatewaySession(rpcConn.Bootstrap(ctx))
-//
-//	cl = &GatewaySessionCapnpClient{
-//		connection: rpcConn,
-//		capability: capGatewaySession,
-//	}
-//	return cl, nil
-//}
-
 // ConnectToGatewayTLS is a helper that starts a new connection with the gateway
 // over TLS.
 // Users should call Release when done. This will close the connection and any
 // capabilities obtained from the resolver.
 //
-//	 clientCert is the TLS client certificate for mutual authentication. Use nil to connect
-//	   as an unauthenticated client.
-//	 caCert is the server's CA certificate to verify that the gateway service is valid.
-//	   Use nil to not verify the server's certificate.
-//		network is either "unix" or "tcp". Default "" uses "tcp"
-//		address is the UDS or TCP address:port of the gateway
+//	fullUrl of the server: eg tcp://server:port, or wss://server:port/ws
+//	clientCert is the TLS client certificate for mutual authentication. Use nil to connect
+//			   as an unauthenticated client.
+//	caCert is the server's CA certificate to verify that the gateway service is valid.
+//			   Use nil to not verify the server's certificate.
+//				network is either "unix" or "tcp". Default "" uses "tcp"
+//				address is the UDS or TCP address:port of the gateway
 //
 // This returns a client for a gateway session
-func ConnectToGatewayTLS(network, address string,
+func ConnectToGatewayTLS(fullUrl string,
 	clientCert *tls.Certificate, caCert *x509.Certificate) (
 	gatewayClient gateway.IGatewaySession, err error) {
 
-	proxyClient, err := ConnectToGatewayProxyClient(network, address, clientCert, caCert)
+	proxyClient, err := ConnectToGatewayProxyClient(fullUrl, clientCert, caCert)
 
 	capGatewaySession := hubapi.CapGatewaySession(proxyClient)
 
@@ -177,32 +162,43 @@ func ConnectToGatewayTLS(network, address string,
 // Clients should call Release when done. This will close the connection and any
 // capabilities obtained from the resolver.
 //
-//	 clientCert is the TLS client certificate for mutual authentication. Use nil to connect
-//	   as an unauthenticated client.
-//	 caCert is the server's CA certificate to verify that the gateway service is valid.
-//	   Use nil to not verify the server's certificate.
-//		network is either "unix" or "tcp". Default "" uses "tcp"
-//		address is the UDS or TCP address:port of the gateway
+//	fullUrl of the server: eg tcp://server:port, or wss://server:port/ws
+//	clientCert is the TLS client certificate for mutual authentication. Use nil to connect
+//			   as an unauthenticated client.
+//	caCert is the server's CA certificate to verify that the gateway service is valid.
+//			   Use nil to not verify the server's certificate.
+//				network is either "unix" or "tcp". Default "" uses "tcp"
+//				address is the UDS or TCP address:port of the gateway
 //
 // This returns a gateway client that can be used as a proxy of any of the available services
 func ConnectToGatewayProxyClient(
-	network, address string, clientCert *tls.Certificate, caCert *x509.Certificate) (
+	fullUrl string,
+	clientCert *tls.Certificate, caCert *x509.Certificate) (
 	cap capnp.Client, err error) {
 
-	if address == "" {
-		err = fmt.Errorf("missing gateway address")
+	var tp transport.Transport
+	urlInfo, err := url.Parse(fullUrl)
+
+	if err != nil {
+		err = fmt.Errorf("bad URL: %s", err)
 		return
-	} else if network == "" {
-		network = "tcp"
+	} else if urlInfo.Scheme == "" {
+		// network = "tcp"
 	}
 	// create the TLS connection for use by the RPC
-	clConn, err := hubclient.CreateTLSClientConnection(network, address, clientCert, caCert)
+	clConn, err := hubclient.CreateTLSClientConnection(fullUrl, clientCert, caCert)
 	if err != nil {
 		return
 	}
 	ctx := context.Background()
-	transport := rpc.NewStreamTransport(clConn)
-	rpcConn := rpc.NewConn(transport, nil)
+	// websockets use a capnp protocol en/decoder for its transport
+	if urlInfo.Scheme == "ws" || urlInfo.Scheme == "wss" {
+		codec := websocketcapnp.NewCodec(clConn, true)
+		tp = transport.New(codec)
+	} else {
+		tp = rpc.NewStreamTransport(clConn)
+	}
+	rpcConn := rpc.NewConn(tp, nil)
 	gatewayProxy := rpcConn.Bootstrap(ctx)
 
 	return gatewayProxy, err

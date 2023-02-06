@@ -48,12 +48,19 @@ func main() {
 	if err != nil {
 		logrus.Panicf("certs service not reachable when starting the gateway: %s", err)
 	}
+
 	lis, err := net.Listen("tcp", cfg.Address)
 	if err != nil {
 		logrus.Panicf("gateway unable to listen for connections: %s", err)
 	}
 
-	tlsLis := listener.CreateTLSListener(lis, serverCert, caCert)
+	if cfg.NoTLS {
+		// just use the regular listener
+		logrus.Warn("TLS disabled")
+	} else {
+		logrus.Infof("Listening requiring TLS")
+		lis = listener.CreateTLSListener(lis, serverCert, caCert)
+	}
 
 	// the gateway uses the authn service to authenticate logins from users
 	// without authn it still functions with certificates
@@ -71,14 +78,14 @@ func main() {
 		svc = service.NewGatewayService(resolverPath, userAuthn)
 	}
 
-	ctx = listener.ExitOnSignal(context.Background(), func() {
+	_ = listener.ExitOnSignal(context.Background(), func() {
 		_ = lis.Close()
 		err = svc.Stop()
 	})
 
 	err = svc.Start()
 	if err == nil {
-		err = capnpserver.StartGatewayCapnpServer(svc, tlsLis)
+		err = capnpserver.StartGatewayCapnpServer(svc, lis, cfg.UseWS)
 	}
 
 	if errors.Is(err, net.ErrClosed) {
@@ -120,6 +127,7 @@ func RenewServiceCerts(serviceID string, keys *ecdsa.PrivateKey, socketFolder st
 	} else {
 		cs := capnpclient.NewCertServiceCapnpClient(csConn)
 		capServiceCert, err = cs.CapServiceCerts(ctx, hubapi.ClientTypeService)
+		_ = err
 	}
 	svcPEM, caPEM, err := capServiceCert.CreateServiceCert(ctx, serviceID, pubKeyPEM, names, 0)
 	if err != nil {

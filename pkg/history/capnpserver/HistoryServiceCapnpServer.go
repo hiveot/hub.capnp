@@ -100,8 +100,7 @@ func StartHistoryServiceCapnpServer(svc history.IHistoryService, lis net.Listene
 	// the provider serves the exported capabilities
 	// this replaces CapHistoryService_ServerToClient
 	capProv := capprovider.NewCapServer(
-		serviceName,
-		hubapi.CapHistoryService_Methods(nil, capsrv))
+		serviceName, hubapi.CapHistoryService_Methods(nil, capsrv))
 
 	capProv.ExportCapability(hubapi.CapNameAddHistory, []string{hubapi.ClientTypeService})
 

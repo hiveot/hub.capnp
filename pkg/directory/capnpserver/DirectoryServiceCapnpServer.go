@@ -59,9 +59,8 @@ func StartDirectoryServiceCapnpServer(svc directory.IDirectory, lis net.Listener
 		svc: svc,
 	}
 	// the provider serves the exported capabilities
-	capProv := capprovider.NewCapServer(
-		serviceName,
-		hubapi.CapDirectoryService_Methods(nil, srv))
+	methods := hubapi.CapDirectoryService_Methods(nil, srv)
+	capProv := capprovider.NewCapServer(serviceName, methods)
 
 	capProv.ExportCapability(hubapi.CapNameReadDirectory,
 		[]string{hubapi.ClientTypeUser, hubapi.ClientTypeService})

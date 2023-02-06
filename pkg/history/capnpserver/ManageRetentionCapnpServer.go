@@ -21,7 +21,7 @@ type ManageRetentionCapnpServer struct {
 func (capsrv *ManageRetentionCapnpServer) GetEvents(
 	ctx context.Context, call hubapi.CapManageRetention_getEvents) error {
 
-	evList, err := capsrv.svc.GetEvents(ctx)
+	evList, _ := capsrv.svc.GetEvents(ctx)
 	logrus.Infof("%v", evList)
 	capRetList := capserializer.MarshalRetList(evList)
 	res, err := call.AllocResults()
@@ -36,7 +36,7 @@ func (capsrv *ManageRetentionCapnpServer) GetEventRetention(
 
 	args := call.Args()
 	eventName, _ := args.Name()
-	evRet, err := capsrv.svc.GetEventRetention(ctx, eventName)
+	evRet, _ := capsrv.svc.GetEventRetention(ctx, eventName)
 
 	capEvRet := capserializer.MarshalEventRetention(evRet)
 	res, err := call.AllocResults()
