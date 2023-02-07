@@ -4,6 +4,7 @@ import (
 	"context"
 	"net"
 
+	"capnproto.org/go/capnp/v3"
 	"capnproto.org/go/capnp/v3/rpc"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
@@ -67,19 +68,30 @@ func (cl *PubSubCapnpClient) Release() error {
 	return err
 }
 
-// NewPubSubCapnpClient creates a new client for using the pubsub service.
-//
-// connection is optional and intended for direct connection to the pubsub service
-// if nil, the resolver is used to find the pubsub capability.
+// NewPubSubCapnpClient creates a new client for using the pubsub service with the given connection.
 // After use, the caller must invoke Release
-func NewPubSubCapnpClient(ctx context.Context, connection net.Conn) *PubSubCapnpClient {
+func NewPubSubCapnpClient(ctx context.Context, c net.Conn) *PubSubCapnpClient {
 	var cl *PubSubCapnpClient
 
 	// use a direct connection to the service
-	transport := rpc.NewStreamTransport(connection)
+	transport := rpc.NewStreamTransport(c)
 	rpcConn := rpc.NewConn(transport, nil)
 	capPubSub := hubapi.CapPubSubService(rpcConn.Bootstrap(ctx))
 
+	cl = &PubSubCapnpClient{
+		connection: rpcConn,
+		capability: capPubSub,
+	}
+	return cl
+}
+
+// NewPubSubClient creates a new client for using the pubsub service with the given capnp client.
+// The capnp client can be that of the service, the resolver or the gateway
+func NewPubSubClient(rpcConn *rpc.Conn, capClient capnp.Client) *PubSubCapnpClient {
+	var cl *PubSubCapnpClient
+
+	// use a direct connection to the service
+	capPubSub := hubapi.CapPubSubService(capClient)
 	cl = &PubSubCapnpClient{
 		connection: rpcConn,
 		capability: capPubSub,

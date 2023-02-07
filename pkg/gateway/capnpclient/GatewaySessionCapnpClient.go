@@ -139,12 +139,12 @@ func ConnectToGateway(fullUrl string,
 	clientCert *tls.Certificate, caCert *x509.Certificate) (
 	gatewayClient gateway.IGatewaySession, err error) {
 
-	hubClient, err := hubclient.ConnectToHubClient(fullUrl, clientCert, caCert)
+	rpcCon, hubClient, err := hubclient.ConnectToHubClient(fullUrl, clientCert, caCert)
 
 	capGatewaySession := hubapi.CapGatewaySession(hubClient)
 
 	cl := &GatewaySessionCapnpClient{
-		connection: nil,
+		connection: rpcCon,
 		capability: capGatewaySession,
 	}
 	return cl, err
