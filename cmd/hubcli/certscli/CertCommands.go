@@ -159,7 +159,7 @@ func HandleCreateDeviceCert(ctx context.Context, f svcconfig.AppFolders, deviceI
 	var cc certs.ICerts
 	var dc certs.IDeviceCerts
 
-	conn, err := hubclient.CreateLocalClientConnection(certs.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(certs.ServiceName, f.Run)
 	if err != nil {
 		return err
 	}
@@ -204,7 +204,7 @@ func HandleCreateServiceCert(ctx context.Context, f svcconfig.AppFolders,
 	var cc certs.ICerts
 	var sc certs.IServiceCerts
 
-	conn, err := hubclient.CreateLocalClientConnection(certs.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(certs.ServiceName, f.Run)
 	if err != nil {
 		return err
 	}
@@ -244,7 +244,7 @@ func HandleCreateUserCert(ctx context.Context, f svcconfig.AppFolders, clientID 
 	var cc certs.ICerts
 	var uc certs.IUserCerts
 
-	conn, err := hubclient.CreateLocalClientConnection(certs.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(certs.ServiceName, f.Run)
 	if err != nil {
 		return err
 	}

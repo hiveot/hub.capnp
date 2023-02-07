@@ -38,6 +38,7 @@ type StateService struct {
 func (srv *StateService) CapClientState(
 	_ context.Context, clientID string, bucketID string) (state.IClientState, error) {
 
+	logrus.Infof("clientID=%s, bucketID=%s", clientID, bucketID)
 	srv.mux.Lock()
 	defer srv.mux.Unlock()
 	if !srv.running {

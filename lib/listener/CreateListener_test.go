@@ -2,7 +2,6 @@ package listener_test
 
 import (
 	"crypto/tls"
-	"net"
 	"os"
 	"sync"
 	"testing"
@@ -32,14 +31,12 @@ func TestConnectWriteRead(t *testing.T) {
 	readBuf := make([]byte, 100)
 	var message = []byte("hello world")
 	var n int
-	network := "tcp"
 	address := "127.0.0.1:9999"
 	rwmux := sync.RWMutex{}
 
 	// create the server listener
-	lis, err := net.Listen(network, address)
+	tlsLis, err := listener.CreateListener(address, false, certs.ServerCert, certs.CaCert)
 	require.NoError(t, err)
-	tlsLis := listener.CreateTLSListener(lis, certs.ServerCert, certs.CaCert)
 	go func() {
 		srvConn, err := tlsLis.Accept()
 		require.NoError(t, err)
@@ -66,15 +63,17 @@ func TestConnectWriteRead(t *testing.T) {
 	time.Sleep(time.Millisecond)
 	// create the TLS client and connect
 	fullURL := address
-	tlsConn, err := hubclient.CreateTLSClientConnection(fullURL, certs.PluginCert, certs.CaCert)
+	conn, err := hubclient.CreateClientConnection(fullURL, certs.PluginCert, certs.CaCert)
 	require.NoError(t, err)
 
-	state := tlsConn.ConnectionState()
-	t.Logf("SSL ServerName: %s", state.ServerName)
-	t.Logf("SSL Handshake: %v", state.HandshakeComplete)
-	t.Logf("SSL Mutual: %s", state.NegotiatedProtocol)
-
-	m, err := tlsConn.Write(message)
+	tlsConn, valid := conn.(*tls.Conn)
+	if valid {
+		state := tlsConn.ConnectionState()
+		t.Logf("SSL ServerName: %s", state.ServerName)
+		t.Logf("SSL Handshake: %v", state.HandshakeComplete)
+		t.Logf("SSL Mutual: %s", state.NegotiatedProtocol)
+	}
+	m, err := conn.Write(message)
 	assert.NoError(t, err)
 	assert.Equal(t, 11, m)
 

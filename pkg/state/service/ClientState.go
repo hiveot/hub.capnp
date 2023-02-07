@@ -31,6 +31,7 @@ func (svc *ClientState) Cursor(_ context.Context) (cursor bucketstore.IBucketCur
 
 // Delete a key from the bucket
 func (svc *ClientState) Delete(_ context.Context, key string) (err error) {
+	logrus.Infof("key=%s", key)
 	err = svc.bucket.Delete(key)
 	return err
 }
@@ -68,6 +69,7 @@ func (svc *ClientState) Release() {
 // Set writes a document with the given key.
 // Set takes ownership of value.
 func (svc *ClientState) Set(_ context.Context, key string, value []byte) error {
+	logrus.Infof("key=%s", key)
 	err := svc.bucket.Set(key, value)
 	return err
 }
@@ -75,7 +77,7 @@ func (svc *ClientState) Set(_ context.Context, key string, value []byte) error {
 // SetMultiple writes a batch of key-values.
 // SetMultiple takes ownership of value.
 func (svc *ClientState) SetMultiple(_ context.Context, docs map[string][]byte) (err error) {
-	logrus.Infof("--- SetMultiple")
+	logrus.Infof("count=%d", len(docs))
 	err = svc.bucket.SetMultiple(docs)
 	return err
 }

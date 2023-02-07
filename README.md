@@ -9,11 +9,11 @@ communication.
 THIS PROJECT IS NOT READY FOR USE AND HEAVILY IN DEVELOPMENT
 ONCE ALPHA IS REACHED IT WILL BE FUNCTIONAL BUT LIMITED
 
-Status: The status of the Hub is In Development. Closing in on alpha.
+Status: The status of the Hub is pre-alpha. Closing in on alpha.
 
 2023-01-16: completed initial version of:
 
-Core micro services of the Hub
+Core micro-services of the Hub
 ```
 - launcher      manage starting and stopping of services
 - certs         certificate management for services
@@ -24,18 +24,18 @@ Core micro services of the Hub
 - authn         user authentication management
 - authz         user authorization of capabilities
 - gateway       single entry point to obtain service capabilities for remote clients
+                added websocket support for Node clients and web browsers
 - state         easy to use persistance of state for services
 - provisioning  automated provisioning of IoT devices using certificate authentication
 ```
 Bindings for the Hub
 ```
 - owserver      1-wire binding
+- zwave [in progress - needs websocket support]
 ```
 
 Todo in order to reach Alpha:
 ```
-- http gateway
-  - provide https/websocket access for web clients
 - http jwt auth
   - http JWT token authentication
 - basic web client
@@ -45,9 +45,7 @@ Todo in order to reach Alpha:
   - subscribe to device updates
   - dashboard with text cards
 - 3 bindings
-  - owserver [done]
-  - zwave [in progress]
-  - tbd
+  - isy99 Insteon binding (legacy protocol)
 - update documentation
   - git readme and github landing page
 

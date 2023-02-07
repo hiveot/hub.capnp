@@ -38,6 +38,8 @@ type HistoryService struct {
 func (svc *HistoryService) CapAddHistory(
 	_ context.Context, clientID string, ignoreRetention bool) (history.IAddHistory, error) {
 
+	logrus.Infof("clientID=%s", clientID)
+
 	var retentionMgr *ManageRetention
 	if !ignoreRetention {
 		retentionMgr = svc.retentionMgr
@@ -51,6 +53,8 @@ func (svc *HistoryService) CapAddHistory(
 // CapManageRetention returns the capability to manage the retention of events
 func (svc *HistoryService) CapManageRetention(
 	_ context.Context, clientID string) (history.IManageRetention, error) {
+
+	logrus.Infof("clientID=%s", clientID)
 	evRet := svc.retentionMgr
 	_ = clientID
 	return evRet, nil
@@ -60,6 +64,7 @@ func (svc *HistoryService) CapManageRetention(
 func (svc *HistoryService) CapReadHistory(
 	_ context.Context, clientID, publisherID, thingID string) (history.IReadHistory, error) {
 
+	logrus.Infof("clientID=%s", clientID)
 	thingAddr := publisherID + "/" + thingID
 	bucket := svc.bucketStore.GetBucket(thingAddr)
 	readHistory := NewReadHistory(clientID, publisherID, thingID, bucket, svc.propsStore.GetProperties)

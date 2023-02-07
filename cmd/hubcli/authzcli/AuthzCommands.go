@@ -41,7 +41,7 @@ func HandleListGroups(ctx context.Context, f svcconfig.AppFolders, clientID stri
 	var authzClient authz.IAuthz
 	var manageAuthz authz.IManageAuthz
 
-	conn, err := hubclient.CreateLocalClientConnection(authz.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(authz.ServiceName, f.Run)
 	if err == nil {
 		authzClient = capnpclient.NewAuthzCapnpClient(ctx, conn)
 	}

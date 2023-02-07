@@ -101,7 +101,7 @@ func HandleHistoryInfo(ctx context.Context, f svcconfig.AppFolders) error {
 	var hist history.IHistoryService
 	var rd history.IReadHistory
 
-	conn, err := hubclient.CreateLocalClientConnection(history.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(history.ServiceName, f.Run)
 	if err == nil {
 		hist = capnpclient.NewHistoryCapnpClient(ctx, conn)
 		rd, err = hist.CapReadHistory(ctx, "hubcli", "", "")
@@ -125,7 +125,7 @@ func HandleListEvents(ctx context.Context, f svcconfig.AppFolders, publisherID, 
 	var hist history.IHistoryService
 	var rd history.IReadHistory
 
-	conn, err := hubclient.CreateLocalClientConnection(history.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(history.ServiceName, f.Run)
 	if err == nil {
 		hist = capnpclient.NewHistoryCapnpClient(ctx, conn)
 		rd, err = hist.CapReadHistory(ctx, "hubcli", publisherID, thingID)
@@ -165,7 +165,7 @@ func HandleListRetainedEvents(ctx context.Context, f svcconfig.AppFolders) error
 	var hist history.IHistoryService
 	var mngRet history.IManageRetention
 
-	conn, err := hubclient.CreateLocalClientConnection(history.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(history.ServiceName, f.Run)
 	if err == nil {
 		hist = capnpclient.NewHistoryCapnpClient(ctx, conn)
 		mngRet, err = hist.CapManageRetention(ctx, "hubcli")
@@ -200,7 +200,7 @@ func HandleListLatestEvents(
 	var hist history.IHistoryService
 	var readHist history.IReadHistory
 
-	conn, err := hubclient.CreateLocalClientConnection(history.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(history.ServiceName, f.Run)
 	if err == nil {
 		hist = capnpclient.NewHistoryCapnpClient(ctx, conn)
 		readHist, err = hist.CapReadHistory(ctx, "hubcli", publisherID, thingID)

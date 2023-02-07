@@ -10,6 +10,7 @@ import (
 	"github.com/hiveot/hub/pkg/bucketstore"
 	"github.com/hiveot/hub/pkg/directory"
 	"github.com/hiveot/hub/pkg/pubsub"
+	"github.com/sirupsen/logrus"
 )
 
 // UpdateDirectory is a provides the capability to update the directory
@@ -25,12 +26,14 @@ type UpdateDirectory struct {
 }
 
 func (svc *UpdateDirectory) RemoveTD(_ context.Context, publisherID, thingID string) error {
+	logrus.Infof("clientID=%s, thingID=%s", svc.clientID, thingID)
 	thingAddr := publisherID + "/" + thingID
 	err := svc.bucket.Delete(thingAddr)
 	return err
 }
 
 func (svc *UpdateDirectory) UpdateTD(_ context.Context, publisherID, thingID string, td []byte) error {
+	logrus.Infof("clientID=%s, thingID=%s", svc.clientID, thingID)
 
 	bucketValue := &thing.ThingValue{
 		PublisherID: publisherID,

@@ -41,7 +41,7 @@ func HandleListDirectory(ctx context.Context, f svcconfig.AppFolders, limit int,
 	var rd directory.IReadDirectory
 	var tdDoc thing.TD
 
-	conn, err := hubclient.CreateLocalClientConnection(directory.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(directory.ServiceName, f.Run)
 	if err == nil {
 		dir = capnpclient.NewDirectoryCapnpClient(ctx, conn)
 		rd, err = dir.CapReadDirectory(ctx, "hubcli")

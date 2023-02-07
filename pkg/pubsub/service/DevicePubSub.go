@@ -30,6 +30,8 @@ type DevicePubSub struct {
 func (dps *DevicePubSub) PubEvent(
 	_ context.Context, thingID, name string, value []byte) (err error) {
 
+	logrus.Infof("publisherID=%s, thingID=%s, name=%s", dps.publisherID, thingID, name)
+
 	tv := thing.NewThingValue(dps.publisherID, thingID, name, caphelp.Clone(value))
 	// note that marshal will copy the value so its buffer can be reused by capnp
 	tvSerialized, _ := json.Marshal(tv)
@@ -42,6 +44,8 @@ func (dps *DevicePubSub) PubEvent(
 // The props is a map of property name-value pairs.
 func (dps *DevicePubSub) PubProperties(
 	_ context.Context, thingID string, props map[string][]byte) (err error) {
+
+	logrus.Infof("publisherID=%s, thingID=%s, nrProps=%d", dps.publisherID, thingID, len(props))
 
 	propsValue, _ := json.Marshal(props)
 	tv := thing.NewThingValue(dps.publisherID, thingID, vocab.WoTProperties, propsValue)
@@ -57,6 +61,8 @@ func (dps *DevicePubSub) PubProperties(
 // The event MUST be from the same device.
 func (dps *DevicePubSub) PubTD(_ context.Context,
 	thingID string, deviceType string, td []byte) (err error) {
+
+	logrus.Infof("publisherID=%s, thingID=%s, deviceType=%s", dps.publisherID, thingID, deviceType)
 
 	tv := thing.NewThingValue(
 		dps.publisherID, thingID, pubsub.MessageTypeTD, td)
@@ -76,6 +82,8 @@ func (dps *DevicePubSub) PubTD(_ context.Context,
 func (dps *DevicePubSub) SubAction(
 	_ context.Context, thingID string, actionName string,
 	handler func(actionValue *thing.ThingValue)) (err error) {
+
+	logrus.Infof("publisherID=%s, thingID=%s, actionName=%s", dps.publisherID, thingID, actionName)
 
 	topic := MakeThingTopic(dps.publisherID, thingID, pubsub.MessageTypeAction, actionName)
 	subscriptionID, err := dps.core.Subscribe(dps.publisherID, topic,

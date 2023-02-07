@@ -19,6 +19,7 @@ import (
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/lib/certsclient"
 	"github.com/hiveot/hub/lib/dummy"
+	"github.com/hiveot/hub/lib/hubclient"
 	"github.com/hiveot/hub/lib/listener"
 	"github.com/hiveot/hub/lib/logging"
 	"github.com/hiveot/hub/lib/test"
@@ -35,7 +36,7 @@ import (
 const testSocketDir = "/tmp/test-gateway"
 const testClientID = "client1"
 const testUseCapnp = true
-const testUseWS = false
+const testUseWS = false //true
 
 var resolverSocketPath = path.Join(testSocketDir, resolver.ServiceName+".socket")
 var testServiceSocketPath = path.Join(testSocketDir, "testService.socket")
@@ -131,16 +132,22 @@ func startService(useCapnp bool) (gwSession gateway.IGatewaySession, stopFn func
 
 	// optionally test with capnp RPC over TLS
 	if useCapnp {
-
+		wsPath := ""
+		if testUseWS {
+			// Can't register a path twice. Using "/" seems to work
+			wsPath = "/ws" // TODO: use const
+		}
 		// --- start the capnpserver for the service
 		// TLS only works on tcp sockets as address must match certificate name
+		// This can be converted to a socket connection if wsPath is set
 		srvListener, err2 := net.Listen("tcp", "127.0.0.1:0")
 
 		if err2 != nil {
 			logrus.Panicf("Unable to create a listener, can't run test: %s", err2)
 		}
 		srvListener = listener.CreateTLSListener(srvListener, &testServiceCert, testCACert)
-		go capnpserver.StartGatewayCapnpServer(svc, srvListener, testUseWS)
+		// TODO: cleanup the need for wsPath
+		go capnpserver.StartGatewayCapnpServer(svc, srvListener, wsPath)
 
 		time.Sleep(time.Millisecond)
 
@@ -148,10 +155,10 @@ func startService(useCapnp bool) (gwSession gateway.IGatewaySession, stopFn func
 		testGatewayAddr := srvListener.Addr().String()
 		testGatewayURL = fmt.Sprintf("tcp://%s/", testGatewayAddr)
 		if testUseWS {
-			testGatewayURL = fmt.Sprintf("wss://%s/ws", testGatewayAddr)
+			testGatewayURL = fmt.Sprintf("wss://%s%s", testGatewayAddr, wsPath)
 		}
 
-		gwClient, err2 := capnpclient.ConnectToGatewayTLS(
+		gwClient, err2 := capnpclient.ConnectToGateway(
 			testGatewayURL, &testClientCert, testCACert)
 		if err2 != nil {
 			panic("unable to connect the client to the gateway:" + err2.Error())
@@ -273,7 +280,7 @@ func TestGetCapability(t *testing.T) {
 	// use the gateway as a proxy for the test service
 	// gwClient2, err := capnpclient.ConnectToGatewayProxyClient(
 	// 	"tcp", testGatewayAddr, &testServiceCert, testCACert)
-	gwClient2, err := capnpclient.ConnectToGatewayProxyClient(
+	gwClient2, err := hubclient.ConnectToHubClient(
 		testGatewayURL, &testServiceCert, testCACert)
 	require.NoError(t, err)
 	capability := test.CapTestService(gwClient2)

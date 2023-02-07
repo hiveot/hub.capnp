@@ -6,6 +6,7 @@ import (
 	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/pubsub"
 	"github.com/hiveot/hub/pkg/pubsub/core"
+	"github.com/sirupsen/logrus"
 )
 
 // ServicePubSub provides the capability to pub/sub for services
@@ -31,6 +32,7 @@ func (cap *ServicePubSub) SubActions(
 	_ context.Context, publisherID, thingID, actionName string,
 	handler func(action *thing.ThingValue)) (err error) {
 
+	logrus.Infof("thingID=%s, actionName=%s", thingID, actionName)
 	err = cap.UserPubSub.subMessage(publisherID, thingID, pubsub.MessageTypeAction, actionName, handler)
 	return
 }

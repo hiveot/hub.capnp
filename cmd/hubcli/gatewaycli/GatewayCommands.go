@@ -3,6 +3,7 @@ package gatewaycli
 import (
 	"context"
 	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"path"
 	"strings"
@@ -14,25 +15,23 @@ import (
 	"github.com/hiveot/hub/lib/certsclient"
 	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/pkg/certs/service/selfsigned"
-	"github.com/hiveot/hub/pkg/gateway"
 	"github.com/hiveot/hub/pkg/gateway/capnpclient"
 	"github.com/hiveot/hub/pkg/gateway/config"
 )
 
-// load the hubcli key and certificate or use a temporary certificate to connect as hubcli service to the gateway
-func connectToGateway(f svcconfig.AppFolders, gwAddr string) (gateway.IGatewaySession, error) {
-
+func loadCerts(f svcconfig.AppFolders) (clientCert *tls.Certificate, caCert *x509.Certificate) {
+	var err error
 	// load the CA
 	caCertPath := path.Join(f.Certs, hubapi.DefaultCaCertFile)
 	caKeyPath := path.Join(f.Certs, hubapi.DefaultCaKeyFile)
-	caCert, err := certsclient.LoadX509CertFromPEM(caCertPath)
+	caCert, err = certsclient.LoadX509CertFromPEM(caCertPath)
 	if err != nil {
 		logrus.Fatalf("unable to load the CA cert: %s", err)
 	}
 	// load the client cert
 	clientKeyPath := path.Join(f.Certs, "hubcliKey.pem")
 	clientCertPath := path.Join(f.Certs, "hubcliCert.pem")
-	clientCert, err := certsclient.LoadTLSCertFromPEM(clientCertPath, clientKeyPath)
+	clientCert, err = certsclient.LoadTLSCertFromPEM(clientCertPath, clientKeyPath)
 
 	// hubcli cert not found, create a temporary client cert
 	if err != nil {
@@ -56,26 +55,7 @@ func connectToGateway(f svcconfig.AppFolders, gwAddr string) (gateway.IGatewaySe
 	if err != nil {
 		logrus.Warningf("unable to load or create the hubcli client cert: %s", err)
 	}
-	fullURL := "tcp://" + gwAddr
-	gw, err := capnpclient.ConnectToGatewayTLS(fullURL, clientCert, caCert)
-	if err == nil {
-		clientInfo, err2 := gw.Ping(context.Background())
-		err = err2
-		logrus.Infof("Connected to gateway as client='%s' clientType='%s'", clientInfo.ClientID, clientInfo.ClientType)
-	}
-	return gw, err
-}
-
-func GatewayCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
-	cmd := &cli.Command{
-		Name:    "gateway",
-		Aliases: []string{"gw"},
-		Usage:   "List gateway capabilities",
-		Subcommands: []*cli.Command{
-			GatewayListCommand(ctx, f),
-		},
-	}
-	return cmd
+	return clientCert, caCert
 }
 
 func GatewayListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
@@ -95,12 +75,28 @@ func GatewayListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comman
 	}
 }
 
-// Handle the list capabilities request and print the list of gateway capabilities
+// HandleListGateway handles list capabilities request and print the list of gateway capabilities
 func HandleListGateway(ctx context.Context, f svcconfig.AppFolders) error {
+	logrus.Infof("f.Config: %v", f.Config)
+	var clientCert *tls.Certificate
+	var caCert *x509.Certificate
 
-	gwConfig := config.NewGatewayConfig(f.Run, f.Certs)
+	gwConfig := config.NewGatewayConfig()
+	f.ConfigFile = path.Join(f.Config, "gateway.yaml")
+	f.LoadConfig(&gwConfig)
 
-	gw, err := connectToGateway(f, gwConfig.Address)
+	fullUrl := "tcp://" + gwConfig.Address
+	if !gwConfig.NoWS {
+		if gwConfig.NoTLS {
+			fullUrl = "ws://" + gwConfig.WSAddress
+		} else {
+			fullUrl = "wss://" + gwConfig.WSAddress
+		}
+	}
+	if !gwConfig.NoTLS {
+		clientCert, caCert = loadCerts(f)
+	}
+	gw, err := capnpclient.ConnectToGateway(fullUrl, clientCert, caCert)
 	if err != nil {
 		return err
 	}

@@ -41,7 +41,7 @@ type ProvisioningService struct {
 // CapManageProvisioning provides the capability to manage provisioning
 func (svc *ProvisioningService) CapManageProvisioning(
 	_ context.Context, clientID string) (provisioning.IManageProvisioning, error) {
-
+	logrus.Infof("clientID=%s", clientID)
 	// TODO: separate instances of each capability
 	return svc, nil
 }
@@ -49,6 +49,7 @@ func (svc *ProvisioningService) CapManageProvisioning(
 // CapRefreshProvisioning provides the capability to refresh device provisioning
 func (svc *ProvisioningService) CapRefreshProvisioning(
 	_ context.Context, clientID string) (provisioning.IRefreshProvisioning, error) {
+	logrus.Infof("clientID=%s", clientID)
 	// TODO: separate instances of each capability
 	return svc, nil
 }
@@ -56,6 +57,7 @@ func (svc *ProvisioningService) CapRefreshProvisioning(
 // CapRequestProvisioning provides the capability to request device provisioning
 func (svc *ProvisioningService) CapRequestProvisioning(
 	_ context.Context, clientID string) (provisioning.IRequestProvisioning, error) {
+	logrus.Infof("clientID=%s", clientID)
 	// TODO: separate instances of each capability and lifecycle
 	return svc, nil
 }

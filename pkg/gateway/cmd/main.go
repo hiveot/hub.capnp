@@ -8,6 +8,7 @@ import (
 	"errors"
 	"net"
 	"os"
+	"strings"
 
 	"github.com/sirupsen/logrus"
 
@@ -35,10 +36,12 @@ func main() {
 	var err error
 	var svc *service.GatewayService
 	var userAuthn authn.IUserAuthn
+	var lisTcp net.Listener
+	var lisWS net.Listener
 	ctx := context.Background()
 
 	f, _, _ := svcconfig.SetupFolderConfig(serviceName)
-	cfg := config.NewGatewayConfig(f.Run, f.Certs)
+	cfg := config.NewGatewayConfig()
 	_ = f.LoadConfig(&cfg)
 
 	// certificates are needed for TLS connections to the capnp server.
@@ -49,23 +52,13 @@ func main() {
 		logrus.Panicf("certs service not reachable when starting the gateway: %s", err)
 	}
 
-	lis, err := net.Listen("tcp", cfg.Address)
-	if err != nil {
-		logrus.Panicf("gateway unable to listen for connections: %s", err)
-	}
-
-	if cfg.NoTLS {
-		// just use the regular listener
-		logrus.Warn("TLS disabled")
-	} else {
-		logrus.Infof("Listening requiring TLS")
-		lis = listener.CreateTLSListener(lis, serverCert, caCert)
-	}
-
-	// the gateway uses the authn service to authenticate logins from users
+	// The authn service is used to authenticate logins from users.
 	// without authn it still functions with certificates
 	//authnConn, err := listener.CreateLocalClientConnection(authn.ServiceName, f.Run)
-	conn, err := hubclient.ConnectToHub("", "", nil, nil)
+	// conn, err := hubclient.ConnectToHub("", "", nil, nil)
+	fullURL := "unix://" + hubapi.DefaultResolverAddress
+	conn, err := hubclient.CreateClientConnection(fullURL, nil, nil)
+
 	if err == nil {
 		authnService := capnpclient2.NewAuthnCapnpClient(context.Background(), conn)
 		defer authnService.Release()
@@ -77,16 +70,48 @@ func main() {
 		resolverPath := resolver.DefaultResolverPath
 		svc = service.NewGatewayService(resolverPath, userAuthn)
 	}
+	err = svc.Start()
+	if err != nil {
+		logrus.Errorf("Error starting gateway: %s", err)
+		os.Exit(-1)
+	}
+
+	if cfg.NoTLS {
+		// just use the regular listener
+		logrus.Warn("TLS disabled")
+	} else {
+		logrus.Infof("Listening requiring TLS")
+	}
+
+	// optionally serve websockets
+	if !cfg.NoWS {
+		lisWS, err = listener.CreateListener(cfg.WSAddress, cfg.NoTLS, serverCert, caCert)
+		if err == nil {
+			// the WS runs in the background
+			parts := strings.Split(cfg.WSAddress, "/")
+			wsPath := "/" + parts[len(parts)-1]
+			go capnpserver.StartGatewayCapnpServer(svc, lisWS, wsPath)
+		}
+	}
+
+	// always listen on tcp
+	if err == nil {
+		lisTcp, err = listener.CreateListener(cfg.Address, cfg.NoTLS, serverCert, caCert)
+		if err == nil {
+			err = capnpserver.StartGatewayCapnpServer(svc, lisTcp, "")
+		}
+	}
+	if err != nil {
+		logrus.Fatalf("Gateway startup error: %s", err)
+	}
 
 	_ = listener.ExitOnSignal(context.Background(), func() {
-		_ = lis.Close()
+		_ = lisTcp.Close()
+		if lisWS != nil {
+			_ = lisWS.Close()
+		}
 		err = svc.Stop()
 	})
-
-	err = svc.Start()
-	if err == nil {
-		err = capnpserver.StartGatewayCapnpServer(svc, lis, cfg.UseWS)
-	}
 
 	if errors.Is(err, net.ErrClosed) {
 		logrus.Warningf("%s service has shutdown gracefully", serviceName)
@@ -118,7 +143,7 @@ func RenewServiceCerts(serviceID string, keys *ecdsa.PrivateKey, socketFolder st
 	}
 
 	ctx := context.Background()
-	csConn, err := hubclient.CreateLocalClientConnection(certs.ServiceName, socketFolder)
+	csConn, err := hubclient.ConnectToService(certs.ServiceName, socketFolder)
 	if err != nil {
 		logrus.Errorf("unable to connect to certs service: %s. Workaround with local instance", err)
 		// FIXME: workaround or panic?

@@ -19,14 +19,16 @@ import (
 // Each client therefore operates in its own session.
 //
 //	svc is the gateway service to serve
-//	lis is the socket listener
-//	useWS set to use a websocket transport
-func StartGatewayCapnpServer(svc *service.GatewayService, lis net.Listener, useWS bool) error {
-	useWSText := ""
-	if useWS {
-		useWSText = " using websockets"
+//	lis is the tcp or TLS socket listener
+//	wsPath to use a websocket transport. "" to not use WS (FIXME: hidden dependency on lis)
+func StartGatewayCapnpServer(
+	svc *service.GatewayService, lis net.Listener, wsPath string) error {
+
+	if wsPath != "" {
+		logrus.Infof("listening on Websocket address %s%s", lis.Addr(), wsPath)
+	} else {
+		logrus.Infof("listening on TCP address %s", lis.Addr())
 	}
-	logrus.Infof("listening on %s%s", lis.Addr(), useWSText)
 
 	// Each incoming connection is handled in a separate session.
 	// This handler will create a new capnp client and a gateway session object.
@@ -60,66 +62,9 @@ func StartGatewayCapnpServer(svc *service.GatewayService, lis net.Listener, useW
 		}()
 	}
 
-	if useWS {
-		return listener.ServeWSCB(lis, onConnect)
+	if wsPath != "" {
+		return listener.ServeWSCB(lis, wsPath, onConnect)
 	} else {
 		return listener.ServeCB(lis, onConnect)
 	}
 }
-
-// StartGatewayCapnpServer starts listening for incoming capnp connections to the gateway.
-// For each new connection new instances of the capnp server and gateway session are created.
-// Each client therefore operates in its own session.
-//
-//	svc is the gateway service to serve
-//	lis is the socket listener
-//	useWS set to use a websocket transport
-// func StartGatewayCapnpServerOrg(svc *service.GatewayService, lis net.Listener, useWS bool) error {
-// 	useWSText := ""
-// 	if useWS {
-// 		useWSText = " using websockets"
-// 	}
-// 	logrus.Infof("listening on %s%s", lis.Addr(), useWSText)
-
-// 	for {
-// 		// Listen for incoming connections
-// 		conn, err := lis.Accept()
-// 		if err != nil {
-// 			return err
-// 		}
-
-// 		// Each incoming connection is handled in a separate session.
-// 		session := svc.OnIncomingConnection(conn)
-// 		if session != nil {
-// 			var tp transport.Transport
-
-// 			capsrv := NewGatewaySessionCapnpServer(session)
-
-// 			// Instead of using ServerToClient, use server.New to be able to
-// 			// add the 'handleUnknownMethod' hook.
-// 			//boot := hubapi.CapGatewaySession_ServerToClient(capsrv)
-// 			c, _ := hubapi.CapGatewaySession_Server(capsrv).(server.Shutdowner)
-// 			methods := hubapi.CapGatewaySession_Methods(nil, capsrv)
-// 			clientHook := server.New(methods, capsrv, c)
-// 			clientHook.HandleUnknownMethod = capsrv.HandleUnknownMethod
-
-// 			resClient := capnp.NewClient(clientHook)
-// 			boot := hubapi.CapGatewaySession(resClient)
-
-// 			if useWS {
-// 				codec := websocketcapnp.NewCodec(conn, true)
-// 				tp = transport.New(codec)
-// 			} else {
-// 				tp = rpc.NewStreamTransport(conn)
-// 			}
-
-// 			listener.ServeTransport(
-// 				gateway.ServiceName,
-// 				tp,
-// 				capnp.Client(boot),
-// 				nil,
-// 				func(c *rpc.Conn) { svc.OnConnectionClosed(conn, session) },
-// 			)
-// 		}
-// 	}
-// }

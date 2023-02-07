@@ -50,7 +50,7 @@ func SubEventsCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command 
 func HandleSubTD(ctx context.Context, f svcconfig.AppFolders) error {
 	var pubSubSvc pubsub.IPubSubService
 
-	conn, err := hubclient.CreateLocalClientConnection(pubsub.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(pubsub.ServiceName, f.Run)
 	if err == nil {
 		pubSubSvc = capnpclient.NewPubSubCapnpClient(ctx, conn)
 	}
@@ -82,7 +82,7 @@ func HandleSubTD(ctx context.Context, f svcconfig.AppFolders) error {
 func HandleSubEvents(ctx context.Context, f svcconfig.AppFolders) error {
 	var pubSubSvc pubsub.IPubSubService
 
-	conn, err := hubclient.CreateLocalClientConnection(pubsub.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(pubsub.ServiceName, f.Run)
 	if err == nil {
 		pubSubSvc = capnpclient.NewPubSubCapnpClient(ctx, conn)
 	}

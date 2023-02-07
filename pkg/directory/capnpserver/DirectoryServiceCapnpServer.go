@@ -20,6 +20,7 @@ type DirectoryServiceCapnpServer struct {
 
 func (capsrv *DirectoryServiceCapnpServer) CapReadDirectory(
 	ctx context.Context, call hubapi.CapDirectoryService_capReadDirectory) error {
+
 	clientID, _ := call.Args().ClientID()
 	capReadDirectory, _ := capsrv.svc.CapReadDirectory(ctx, clientID)
 	readCapSrv := &ReadDirectoryCapnpServer{

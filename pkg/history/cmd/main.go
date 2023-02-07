@@ -18,6 +18,7 @@ import (
 
 // Connect the history store service
 func main() {
+	var fullUrl = "" // TODO, from config
 	ctx := context.Background()
 	f, clientCert, caCert := svcconfig.SetupFolderConfig(history.ServiceName)
 	cfg := config.NewHistoryConfig(f.Stores)
@@ -27,7 +28,7 @@ func main() {
 	store := cmd.NewBucketStore(cfg.Directory, cfg.ServiceID, cfg.Backend)
 
 	// the service receives the events to store from pubsub.
-	conn, err := hubclient.ConnectToHub("", "", clientCert, caCert)
+	conn, err := hubclient.ConnectToHub(fullUrl, clientCert, caCert)
 	pubSubClient := capnpclient.NewPubSubCapnpClient(ctx, conn)
 	svcPubSub, err := pubSubClient.CapServicePubSub(ctx, cfg.ServiceID)
 	if err != nil {

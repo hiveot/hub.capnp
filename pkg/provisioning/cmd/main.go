@@ -28,7 +28,7 @@ func main() {
 	f, _, _ := svcconfig.SetupFolderConfig(provisioning.ServiceName)
 
 	// connect to the certificate service to get its capability for issuing device certificates
-	certConn, err := hubclient.CreateLocalClientConnection(certs.ServiceName, f.Run)
+	certConn, err := hubclient.ConnectToService(certs.ServiceName, f.Run)
 	if err == nil {
 		certsClient = certsclient.NewCertServiceCapnpClient(certConn)
 		// the provisioning service requires certificate capabilities

@@ -65,8 +65,10 @@ func (svc *ResolverService) HandleUnknownMethod(m capnp.Method) *server.Method {
 	}
 	svc.capsMutex.RUnlock()
 	if capProvider == nil {
+		logrus.Infof("interfaceName=%s, methodName=%s: Not Found", m.InterfaceName, m.MethodName)
 		return nil
 	}
+	logrus.Infof("interfaceName=%s, methodName=%s: Found.", m.InterfaceName, m.MethodName)
 	// return a helper for forwarding the request
 	forwarder := NewForwarderMethod(m, (*capnp.Client)(capProvider))
 	return forwarder
@@ -104,6 +106,7 @@ func (svc *ResolverService) ListCapabilities(_ context.Context, clientType strin
 
 // Ping the resolver
 func (svc *ResolverService) Ping(_ context.Context) (string, error) {
+	logrus.Infof("")
 	return "pong", nil
 }
 
@@ -113,6 +116,7 @@ func (svc *ResolverService) Ping(_ context.Context) (string, error) {
 func (svc *ResolverService) Refresh(ctx context.Context) error {
 	var nrCaps int
 	newCapabilityMap := make(map[string][]resolver.CapabilityInfo)
+
 	svc.refreshMutex.Lock()
 	defer svc.refreshMutex.Unlock()
 
@@ -138,7 +142,7 @@ func (svc *ResolverService) Refresh(ctx context.Context) error {
 //
 //	serviceName is the name under which to store the connection and capabilities
 func (svc *ResolverService) RemoveService(serviceName string) (err error) {
-	logrus.Info(serviceName)
+	logrus.Infof("serviceName=%s", serviceName)
 	svc.capsMutex.Lock()
 	defer svc.capsMutex.Unlock()
 

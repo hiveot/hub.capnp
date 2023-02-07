@@ -35,7 +35,6 @@ type ManageRetention struct {
 
 // GetEvents returns the event retention configuration
 func (svc *ManageRetention) GetEvents(_ context.Context) ([]history.EventRetention, error) {
-
 	retList := make([]history.EventRetention, 0, len(svc.configuredRetentions))
 	for _, ret := range svc.configuredRetentions {
 		retList = append(retList, ret)
@@ -45,17 +44,18 @@ func (svc *ManageRetention) GetEvents(_ context.Context) ([]history.EventRetenti
 }
 
 // GetEventRetention returns the retention configuration of an event by name
-// If the event isn't found and error is returned
+// If the event isn't found an error is returned
 //
 //	eventName whose retention to return
 func (svc *ManageRetention) GetEventRetention(
 	_ context.Context, eventName string) (ret history.EventRetention, err error) {
 
+	logrus.Infof("")
 	evRet, found := svc.configuredRetentions[eventName]
 	if !found {
 		err = fmt.Errorf("event '%s' not found in the retention list", eventName)
 	}
-	return evRet, nil
+	return evRet, err
 }
 
 // Release the capability and its resources
@@ -65,6 +65,7 @@ func (svc *ManageRetention) Release() {
 
 // RemoveEventRetention removes the retention configuration of an event.
 func (svc *ManageRetention) RemoveEventRetention(_ context.Context, eventName string) error {
+	logrus.Infof("")
 	delete(svc.configuredRetentions, eventName)
 	// TODO: save
 	return nil
@@ -72,6 +73,7 @@ func (svc *ManageRetention) RemoveEventRetention(_ context.Context, eventName st
 
 // SetEventRetention configures the retention of a Thing event
 func (svc *ManageRetention) SetEventRetention(_ context.Context, eventRet history.EventRetention) error {
+	logrus.Infof("")
 	svc.configuredRetentions[eventRet.Name] = eventRet
 	// TODO: save
 	return nil

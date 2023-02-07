@@ -7,6 +7,7 @@ import (
 	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/bucketstore"
 	"github.com/hiveot/hub/pkg/directory"
+	"github.com/sirupsen/logrus"
 )
 
 // ReadDirectory is a provides the capability to read and iterate the directory
@@ -20,6 +21,7 @@ type ReadDirectory struct {
 
 // GetTD returns the TD document for the given Thing ID in JSON format
 func (svc *ReadDirectory) GetTD(_ context.Context, publisherID, thingID string) (tdValue *thing.ThingValue, err error) {
+	logrus.Infof("clientID=%s, thingID=%s", svc.clientID, thingID)
 	// bucket keys are made of the gatewayID / thingID
 	thingAddr := publisherID + "/" + thingID
 	raw, err := svc.bucket.Get(thingAddr)
@@ -31,6 +33,7 @@ func (svc *ReadDirectory) GetTD(_ context.Context, publisherID, thingID string) 
 
 // Cursor returns an iterator for ThingValues containing a TD document
 func (svc *ReadDirectory) Cursor(_ context.Context) (cursor directory.IDirectoryCursor) {
+	logrus.Infof("clientID=%s", svc.clientID)
 	dirCursor := NewDirectoryCursor(svc.bucket.Cursor())
 	return dirCursor
 
@@ -94,6 +97,7 @@ func (svc *ReadDirectory) Cursor(_ context.Context) (cursor directory.IDirectory
 
 // Release this capability and allocated resources after its use
 func (svc *ReadDirectory) Release() {
+	// logrus.Infof("Released")
 	err := svc.bucket.Close()
 	_ = err
 }
@@ -101,6 +105,7 @@ func (svc *ReadDirectory) Release() {
 // NewReadDirectory returns the capability to read the directory
 // bucket with the TD documents. Will be closed when done.
 func NewReadDirectory(clientID string, bucket bucketstore.IBucket) directory.IReadDirectory {
+	// logrus.Infof("NewReadDirectory for bucket: ", bucket.ID())
 	svc := &ReadDirectory{
 		clientID: clientID,
 		bucket:   bucket,

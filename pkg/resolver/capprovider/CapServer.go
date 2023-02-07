@@ -127,14 +127,16 @@ func (capsrv *CapServer) Start(lis net.Listener) error {
 //
 // This transfers ownership of the transport to this server and waits until the it is closed
 // Use Stop() to stop listening and close the transport.
-func (capsrv *CapServer) StartWithWS(lis net.Listener,
+func (capsrv *CapServer) StartWithWS(
+	lis net.Listener, wsPath string,
 	onConnection func(conn net.Conn, capTransport transport.Transport)) error {
-	logrus.Infof("CapServer listening on %s", lis.Addr())
+	logrus.Infof("CapServer listening on WS %s%s", lis.Addr(), wsPath)
 
 	capsrv.lis = lis
 	err := listener.ServeWS(
 		capsrv.serviceName,
 		lis,
+		wsPath,
 		capnp.Client(capsrv.capProviderCapability),
 		nil, nil)
 	return err
@@ -168,6 +170,7 @@ func (capsrv *CapServer) StartWithWS(lis net.Listener,
 //
 // This returns a capnp server that can handle all given methods.
 func NewCapServer(serviceName string, methods []server.Method) *CapServer {
+	// logrus.Infof("serviceName=%s", serviceName)
 
 	srv := &CapServer{
 		exportedCapabilities: make(map[string]resolver.CapabilityInfo),

@@ -6,6 +6,7 @@ import (
 	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/bucketstore"
 	"github.com/hiveot/hub/pkg/history"
+	"github.com/sirupsen/logrus"
 )
 
 // GetPropertiesFunc is a callback function to retrieve latest properties of a Thing
@@ -31,6 +32,7 @@ type ReadHistory struct {
 // GetEventHistory provides a cursor to iterate the event history of the thing
 // name is used to filter on the event/action name. "" to iterate all events.
 func (svc *ReadHistory) GetEventHistory(_ context.Context, name string) history.IHistoryCursor {
+	logrus.Infof("clientID=%s, thingID=%s, name=%s", svc.clientID, svc.thingID, name)
 	cursor := svc.thingBucket.Cursor()
 	historyCursor := NewHistoryCursor(svc.publisherID, svc.thingID, name, cursor)
 	return historyCursor
@@ -41,6 +43,7 @@ func (svc *ReadHistory) GetEventHistory(_ context.Context, name string) history.
 //
 //	providing 'names' can speed up read access significantly
 func (svc *ReadHistory) GetProperties(_ context.Context, names []string) (values []*thing.ThingValue) {
+	logrus.Infof("clientID=%s, thingID=%s", svc.clientID, svc.thingID)
 	values = svc.getPropertiesFunc(svc.thingAddr, names)
 	return values
 }
@@ -48,6 +51,7 @@ func (svc *ReadHistory) GetProperties(_ context.Context, names []string) (values
 // Info returns the history storage information of the thing
 // availability of information depends on the underlying store to use.
 func (svc *ReadHistory) Info(_ context.Context) *bucketstore.BucketStoreInfo {
+	logrus.Infof("clientID=%s", svc.clientID)
 	return svc.thingBucket.Info()
 }
 

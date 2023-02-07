@@ -55,6 +55,8 @@ func (svc *AddHistory) encodeValue(thingValue *thing.ThingValue, isAction bool) 
 // AddAction adds a Thing action with the given name and value to the action history
 // value is json encoded. Optionally include a 'created' ISO8601 timestamp
 func (svc *AddHistory) AddAction(_ context.Context, actionValue *thing.ThingValue) error {
+	logrus.Infof("clientID=%s, thingID=%s, name=%s", svc.clientID, actionValue.ThingID, actionValue.Name)
+
 	if err := svc.validateValue(actionValue); err != nil {
 		logrus.Info(err)
 		return err
@@ -73,6 +75,12 @@ func (svc *AddHistory) AddAction(_ context.Context, actionValue *thing.ThingValu
 // AddEvent adds an event to the event history
 // If the event has no created time, it will be set to 'now'
 func (svc *AddHistory) AddEvent(ctx context.Context, eventValue *thing.ThingValue) error {
+
+	valueStr := eventValue.ValueJSON
+	if len(valueStr) > 20 {
+		valueStr = valueStr[:20]
+	}
+	logrus.Infof("clientID=%s, thingID=%s, name=%s, value=%s", svc.clientID, eventValue.ThingID, eventValue.Name, valueStr)
 	if err := svc.validateValue(eventValue); err != nil {
 		logrus.Info(err)
 		return err
@@ -95,6 +103,7 @@ func (svc *AddHistory) AddEvent(ctx context.Context, eventValue *thing.ThingValu
 // AddEvents provides a bulk-add of events to the event history
 // Events that are invalid are skipped.
 func (svc *AddHistory) AddEvents(ctx context.Context, eventValues []*thing.ThingValue) (err error) {
+	logrus.Infof("clientID=%s, nrEvents=%d", svc.clientID, len(eventValues))
 	if eventValues == nil || len(eventValues) == 0 {
 		return nil
 	} else if len(eventValues) == 1 {

@@ -119,17 +119,18 @@ func (srv *ServiceCertsService) Release() {
 
 // NewServiceCertsService returns a new instance of the selfsigned service certificate service
 //
-//	caCert is the CA certificate used to created certificates
-//	caKey is the CA private key used to created certificates
+//	caCert is the CA certificate used to create certificates
+//	caKey is the CA private key used to create certificates
 func NewServiceCertsService(caCert *x509.Certificate, caKey *ecdsa.PrivateKey) *ServiceCertsService {
+	if caCert == nil || caKey == nil || caCert.PublicKey == nil {
+		logrus.Fatal("Missing CA certificate or key")
+	}
+
 	service := &ServiceCertsService{
 		caCert:    caCert,
 		caKey:     caKey,
 		caCertPEM: certsclient.X509CertToPEM(caCert),
 		//caCertPool: caCertPool,
-	}
-	if caCert == nil || caKey == nil || caCert.PublicKey == nil {
-		logrus.Panic("Missing CA certificate or key")
 	}
 
 	return service

@@ -3,8 +3,6 @@ package capnpclient
 import (
 	"context"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/lib/thing"
 )
@@ -52,7 +50,7 @@ func (cl *UserPubSubCapnpClient) SubEvent(
 		})
 	defer release()
 	_, err = method.Struct()
-	logrus.Infof("subscribed to event %s/%s/%s. err=%v", publisherID, thingID, name, err)
+	// logrus.Infof("subscribed to event %s/%s/%s. err=%v", publisherID, thingID, name, err)
 	return err
 }
 

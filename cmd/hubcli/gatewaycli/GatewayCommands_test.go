@@ -21,6 +21,7 @@ import (
 	"github.com/hiveot/hub/lib/logging"
 	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/pkg/certs/service/selfsigned"
+	"github.com/hiveot/hub/pkg/gateway/capnpclient"
 	"github.com/hiveot/hub/pkg/gateway/capnpserver"
 	"github.com/hiveot/hub/pkg/gateway/service"
 	"github.com/hiveot/hub/pkg/resolver"
@@ -75,7 +76,7 @@ func TestConnectToGateway(t *testing.T) {
 		logrus.Panicf("Unable to create a listener, can't run test: %s", err2)
 	}
 	srvListener = listener.CreateTLSListener(srvListener, &testServiceCert, testCACert)
-	go capnpserver.StartGatewayCapnpServer(svc, srvListener, useWS)
+	go capnpserver.StartGatewayCapnpServer(svc, srvListener, "")
 
 	// gateway uses resolver
 	rsvc := service2.NewResolverService(f.Run)
@@ -84,7 +85,8 @@ func TestConnectToGateway(t *testing.T) {
 	go capnpserver2.StartResolverServiceCapnpServer(rsvc, rlis, nil)
 
 	// step 4: client connects
-	gw, err := connectToGateway(f, srvListener.Addr().String())
+	fullURL := "tcp://" + srvListener.Addr().String()
+	gw, err := capnpclient.ConnectToGateway(fullURL, &testServiceCert, testCACert)
 
 	assert.NoError(t, err)
 	assert.NotEmpty(t, gw)

@@ -8,6 +8,7 @@ import (
 	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/bucketstore"
 	"github.com/hiveot/hub/pkg/pubsub"
+	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub/pkg/directory"
 )
@@ -24,6 +25,8 @@ type DirectoryService struct {
 // CapReadDirectory provides the service to read the directory
 func (svc *DirectoryService) CapReadDirectory(
 	_ context.Context, clientID string) (directory.IReadDirectory, error) {
+
+	logrus.Infof("clientID=%s", clientID)
 	bucket := svc.store.GetBucket(svc.tdBucketName)
 	rd := NewReadDirectory(clientID, bucket)
 	return rd, nil
@@ -32,6 +35,7 @@ func (svc *DirectoryService) CapReadDirectory(
 // CapUpdateDirectory provides the service to update the directory
 func (svc *DirectoryService) CapUpdateDirectory(
 	_ context.Context, clientID string) (directory.IUpdateDirectory, error) {
+	logrus.Infof("clientID=%s", clientID)
 	bucket := svc.store.GetBucket(svc.tdBucketName)
 	ud := NewUpdateDirectory(clientID, bucket)
 	return ud, nil

@@ -24,6 +24,8 @@ type UserPubSub struct {
 func (cap *UserPubSub) PubAction(
 	_ context.Context, publisherID, thingID, actionName string, value []byte) (err error) {
 
+	logrus.Infof("userID=%s, thingID=%s, actionName=%s", cap.userID, thingID, actionName)
+
 	topic := MakeThingTopic(publisherID, thingID, pubsub.MessageTypeAction, actionName)
 	tv := thing.NewThingValue(publisherID, thingID, actionName, value)
 	// note that marshal will copy the values so changes to the buffer containing value will not affect it
@@ -66,6 +68,7 @@ func (cap *UserPubSub) subMessage(publisherID, thingID, msgType, name string,
 func (cap *UserPubSub) SubEvent(ctx context.Context, publisherID, thingID, eventName string,
 	handler func(event *thing.ThingValue)) (err error) {
 
+	logrus.Infof("userID=%s, thingID=%s, eventName=%s", cap.userID, thingID, eventName)
 	err = cap.subMessage(publisherID, thingID, pubsub.MessageTypeEvent, eventName, handler)
 	return err
 }
@@ -76,6 +79,7 @@ func (cap *UserPubSub) SubEvent(ctx context.Context, publisherID, thingID, event
 //		handler is a callback invoked when a TD is received from a thing's publisher
 func (cap *UserPubSub) SubTDs(_ context.Context, handler func(event *thing.ThingValue)) (err error) {
 
+	logrus.Infof("userID=%s", cap.userID)
 	err = cap.subMessage("", "", pubsub.MessageTypeTD, "", handler)
 	return
 }

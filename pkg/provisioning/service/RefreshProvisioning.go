@@ -7,6 +7,7 @@ import (
 
 	"github.com/hiveot/hub/lib/certsclient"
 	"github.com/hiveot/hub/pkg/provisioning"
+	"github.com/sirupsen/logrus"
 )
 
 // RefreshDeviceCert renews the given device certificate
@@ -55,7 +56,9 @@ func (svc *ProvisioningService) RefreshDeviceCert(ctx context.Context, certPEM s
 
 	}
 	if err != nil {
-		err = fmt.Errorf("refresh certificate for device '%s' failed: %s", deviceID, err)
+		err = fmt.Errorf("deviceID=%s Failed: %s", deviceID, err)
+	} else {
+		logrus.Infof("deviceID=%s. Success.", deviceID)
 	}
 	return provStatus, err
 }

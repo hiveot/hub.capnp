@@ -95,8 +95,8 @@ var DataSizeTable = []struct {
 	{dataSize: 10000, nrThings: 10, nrSets: 1000},
 	{dataSize: 100000, nrThings: 1, nrSets: 1000},
 	{dataSize: 100000, nrThings: 10, nrSets: 1000},
-	{dataSize: 1000000, nrThings: 1, nrSets: 1000},
-	{dataSize: 1000000, nrThings: 100, nrSets: 1000},
+	// {dataSize: 1000000, nrThings: 1, nrSets: 1000},
+	// {dataSize: 1000000, nrThings: 100, nrSets: 1000},
 }
 
 func BenchmarkAddEvents(b *testing.B) {
