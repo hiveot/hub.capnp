@@ -72,10 +72,10 @@ func StartAuthnCapnpServer(svc authn.IAuthnService, lis net.Listener) (err error
 		serviceName, hubapi.CapAuthn_Methods(nil, srv))
 
 	capProv.ExportCapability(hubapi.CapNameUserAuthn,
-		[]string{hubapi.ClientTypeService, hubapi.ClientTypeUser, hubapi.ClientTypeUnauthenticated})
+		[]string{hubapi.AuthTypeService, hubapi.AuthTypeUser, hubapi.AuthTypeUnauthenticated})
 
 	capProv.ExportCapability(hubapi.CapNameManageAuthn,
-		[]string{hubapi.ClientTypeService})
+		[]string{hubapi.AuthTypeService})
 
 	logrus.Infof("Starting '%s' service capnp adapter listening on: %s", serviceName, lis.Addr())
 	err = capProv.Start(lis)

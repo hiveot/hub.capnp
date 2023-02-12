@@ -22,7 +22,8 @@ import (
 	"github.com/hiveot/hub/lib/hubclient"
 	"github.com/hiveot/hub/lib/listener"
 	"github.com/hiveot/hub/lib/logging"
-	"github.com/hiveot/hub/lib/test"
+	"github.com/hiveot/hub/lib/testsvc"
+	"github.com/hiveot/hub/pkg/authn"
 	"github.com/hiveot/hub/pkg/certs/service/selfsigned"
 	"github.com/hiveot/hub/pkg/gateway"
 	"github.com/hiveot/hub/pkg/gateway/capnpclient"
@@ -96,6 +97,7 @@ func createCerts() error {
 	return err
 }
 
+// start resolver and register a dummy authn
 func startResolver() (stopfn func()) {
 	_ = os.RemoveAll(resolverSocketPath)
 	svc := service2.NewResolverService(testSocketDir)
@@ -108,6 +110,7 @@ func startResolver() (stopfn func()) {
 		panic("need resolver")
 	}
 	go capnpserver2.StartResolverServiceCapnpServer(svc, lis, svc.HandleUnknownMethod)
+
 	return func() {
 		_ = lis.Close()
 		_ = svc.Stop()
@@ -121,10 +124,11 @@ func startService(useCapnp bool) (gwSession gateway.IGatewaySession, stopFn func
 	if err != nil {
 		panic(err)
 	}
-	// test needs a resolver with authn service
+	// authn service is needed for login
+	var authnDummy authn.IAuthnService = dummy.NewDummyAuthnService()
+	//
 	stopResolver := startResolver()
-	authnService := dummy.NewDummyAuthnService()
-	svc := service.NewGatewayService(resolverSocketPath, authnService)
+	svc := service.NewGatewayService(resolverSocketPath, authnDummy)
 	err = svc.Start()
 	if err != nil {
 		panic(err)
@@ -170,7 +174,6 @@ func startService(useCapnp bool) (gwSession gateway.IGatewaySession, stopFn func
 			err = srvListener.Close()
 			time.Sleep(time.Millisecond)
 			stopResolver()
-
 		}
 	}
 	// unfortunately can't do this without capnp
@@ -193,7 +196,7 @@ func TestStartStop(t *testing.T) {
 
 	clientInfo, err := svc.Ping(ctx)
 	assert.NoError(t, err)
-	assert.Equal(t, hubapi.ClientTypeIotDevice, clientInfo.ClientType)
+	assert.Equal(t, hubapi.AuthTypeIotDevice, clientInfo.AuthType)
 	stopFn()
 	time.Sleep(time.Millisecond)
 }
@@ -210,7 +213,7 @@ func TestLogin(t *testing.T) {
 
 	clientInfo, err := svc.Ping(ctx)
 	assert.NoError(t, err)
-	assert.Equal(t, hubapi.ClientTypeUser, clientInfo.ClientType)
+	assert.Equal(t, hubapi.AuthTypeUser, clientInfo.AuthType)
 	assert.Equal(t, testClientID, clientInfo.ClientID)
 }
 
@@ -224,7 +227,7 @@ func TestRefresh(t *testing.T) {
 	assert.NotEmpty(t, authToken)
 	assert.NotEmpty(t, refreshToken)
 
-	newAuthToken, newRefreshToken, err := svc.Refresh(ctx, refreshToken)
+	newAuthToken, newRefreshToken, err := svc.Refresh(ctx, testClientID, refreshToken)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, newAuthToken)
 	assert.NotEmpty(t, newRefreshToken)
@@ -238,7 +241,7 @@ func TestGetInfo(t *testing.T) {
 	_ = ctx
 
 	// use test service to get the capability
-	ts := test.NewTestService()
+	ts := testsvc.NewTestService()
 	err := ts.Start(testServiceSocketPath)
 	assert.NoError(t, err)
 	// give the resolver time to discover the test service
@@ -264,7 +267,7 @@ func TestGetCapability(t *testing.T) {
 	defer stopFn()
 
 	// register a test service
-	ts := test.NewTestService()
+	ts := testsvc.NewTestService()
 	err := ts.Start(testServiceSocketPath)
 	assert.NoError(t, err)
 
@@ -280,16 +283,17 @@ func TestGetCapability(t *testing.T) {
 	// use the gateway as a proxy for the test service
 	// gwClient2, err := capnpclient.ConnectToGatewayProxyClient(
 	// 	"tcp", testGatewayAddr, &testServiceCert, testCACert)
-	gwClient2, err := hubclient.ConnectToHubClient(
+	rpcConn, gwClient2, err := hubclient.ConnectToHubClient(
 		testGatewayURL, &testServiceCert, testCACert)
 	require.NoError(t, err)
-	capability := test.CapTestService(gwClient2)
+	_ = rpcConn
+	capability := testsvc.CapTestService(gwClient2)
 
 	method1, release1 := capability.CapMethod1(ctx,
-		func(params test.CapTestService_capMethod1_Params) error {
+		func(params testsvc.CapTestService_capMethod1_Params) error {
 			err2 := params.SetClientID(serviceID1)
 			assert.NoError(t, err2)
-			_ = params.SetClientType(hubapi.ClientTypeService)
+			_ = params.SetAuthType(hubapi.AuthTypeService)
 			return err2
 		})
 	defer release1()
@@ -322,10 +326,10 @@ func TestGetCapability(t *testing.T) {
 	// fixme: can we do without the boilerplate please?
 	// when the service disconnects the capabilities should disappear
 	method3, release3 := capability.CapMethod1(ctx,
-		func(params test.CapTestService_capMethod1_Params) error {
+		func(params testsvc.CapTestService_capMethod1_Params) error {
 			err2 := params.SetClientID(serviceID1)
 			assert.NoError(t, err2)
-			_ = params.SetClientType(hubapi.ClientTypeService)
+			_ = params.SetAuthType(hubapi.AuthTypeService)
 			return err2
 		})
 	defer release3()
@@ -344,14 +348,14 @@ func TestGetCapability(t *testing.T) {
 
 //
 //func TestGetCapabilityNotExists(t *testing.T) {
-//	const clientType = hubapi.ClientTypeService
+//	const authType = hubapi.AuthTypeService
 //	ctx := context.Background()
 //
 //	svc, stopFn := startService(testUseCapnp)
 //	defer stopFn()
 //
 //	// get capability that doesn't exist
-//	capability, err := svc.GetCapability(ctx, testClientID, clientType, "notacapability", nil)
+//	capability, err := svc.GetCapability(ctx, testClientID, authType, "notacapability", nil)
 //	if err == nil {
 //		err = capability.Resolve(ctx)
 //	}

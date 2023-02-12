@@ -17,12 +17,12 @@ type DummyCapResolver struct {
 // --- Provider ---
 
 func (dummy *DummyCapResolver) GetCapability(ctx context.Context,
-	clientID string, clientType string, capName string, args []string) (capnp.Client, error) {
+	clientID string, authType string, capName string, args []string) (capnp.Client, error) {
 	cl := capnp.Client{}
 	return cl, nil
 }
 
-func (dummy *DummyCapResolver) ListCapabilities(ctx context.Context, clientType string) (capInfo []resolver.CapabilityInfo, err error) {
+func (dummy *DummyCapResolver) ListCapabilities(ctx context.Context, authType string) (capInfo []resolver.CapabilityInfo, err error) {
 	return nil, nil
 }
 

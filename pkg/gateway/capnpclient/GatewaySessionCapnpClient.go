@@ -69,18 +69,19 @@ func (cl *GatewaySessionCapnpClient) Ping(
 		clInfoCapnp, err2 := resp.Reply()
 		err = err2
 		clientInfo.ClientID, _ = clInfoCapnp.ClientID()
-		clientInfo.ClientType, _ = clInfoCapnp.ClientType()
+		clientInfo.AuthType, _ = clInfoCapnp.AuthType()
 	}
 	return clientInfo, err
 }
 
 // Refresh auth tokens
 func (cl *GatewaySessionCapnpClient) Refresh(ctx context.Context,
-	oldRefreshToken string) (authToken, refreshToken string, err error) {
+	clientID string, oldRefreshToken string) (authToken, refreshToken string, err error) {
 
 	method, release := cl.capability.Refresh(ctx,
 		func(params hubapi.CapGatewaySession_refresh_Params) error {
 			err = params.SetRefreshToken(oldRefreshToken)
+			_ = params.SetClientID(clientID)
 			return err
 		})
 	defer release()
@@ -148,4 +149,10 @@ func ConnectToGateway(fullUrl string,
 		capability: capGatewaySession,
 	}
 	return cl, err
+}
+
+// NewGatewaySessionFromCapnpCapability returns a POGS wrapper around the gateway capnp instance
+func NewGatewaySessionFromCapnpCapability(capability hubapi.CapGatewaySession) gateway.IGatewaySession {
+	gws := GatewaySessionCapnpClient{capability: capability}
+	return &gws
 }

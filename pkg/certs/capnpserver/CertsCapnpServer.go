@@ -118,14 +118,14 @@ func StartCertsCapnpServer(svc certs.ICerts, lis net.Listener) (err error) {
 		hubapi.CapCerts_Methods(nil, srv))
 
 	// register the methods available through getCapability
-	capProv.ExportCapability("capDeviceCerts", []string{hubapi.ClientTypeService})
-	capProv.ExportCapability("capServiceCerts", []string{hubapi.ClientTypeService})
-	capProv.ExportCapability("capUserCerts", []string{hubapi.ClientTypeService})
+	capProv.ExportCapability("capDeviceCerts", []string{hubapi.AuthTypeService})
+	capProv.ExportCapability("capServiceCerts", []string{hubapi.AuthTypeService})
+	capProv.ExportCapability("capUserCerts", []string{hubapi.AuthTypeService})
 	capProv.ExportCapability("capVerifyCerts", []string{
-		hubapi.ClientTypeService,
-		hubapi.ClientTypeIotDevice,
-		hubapi.ClientTypeUser,
-		hubapi.ClientTypeUnauthenticated,
+		hubapi.AuthTypeService,
+		hubapi.AuthTypeIotDevice,
+		hubapi.AuthTypeUser,
+		hubapi.AuthTypeUnauthenticated,
 	})
 
 	logrus.Infof("Starting '%s' service capnp adapter listening on: %s", serviceName, lis.Addr())

@@ -60,13 +60,13 @@ func HandleSubTD(ctx context.Context, f svcconfig.AppFolders) error {
 	pubSubUser, _ := pubSubSvc.CapUserPubSub(ctx, "hubcli")
 	err = pubSubUser.SubTDs(ctx, func(event *thing.ThingValue) {
 		var td thing.TD
+		//fmt.Printf("%s\n", event.ValueJSON)
 		err = json.Unmarshal(event.ValueJSON, &td)
 
-		//createdTime, _ := dateparse.ParseAny(event.Created)
-		createdTime, _ := dateparse.ParseAny(td.Modified)
-		timeStr := createdTime.Format("15:04:05.000")
+		//createdTime, _ := dateparse.ParseAny(td.Modified)
+		//timeStr := createdTime.Format("15:04:05.000")
 		fmt.Printf("%-16s %-20s %-25s %-15s\n",
-			timeStr, event.PublisherID, event.ThingID, td.DeviceType)
+			td.Modified, event.PublisherID, event.ThingID, td.DeviceType)
 	})
 	fmt.Printf("Created          Publisher            ThingID                   Type            \n")
 	fmt.Printf("---------------  -------------------  ------------------------  --------------  \n")

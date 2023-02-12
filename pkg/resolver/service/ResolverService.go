@@ -75,20 +75,20 @@ func (svc *ResolverService) HandleUnknownMethod(m capnp.Method) *server.Method {
 }
 
 // ListCapabilities returns list of capabilities of all connected services sorted by service and capability names
-func (svc *ResolverService) ListCapabilities(_ context.Context, clientType string) ([]resolver.CapabilityInfo, error) {
+func (svc *ResolverService) ListCapabilities(_ context.Context, authType string) ([]resolver.CapabilityInfo, error) {
 	capList := make([]resolver.CapabilityInfo, 0)
 	svc.capsMutex.RLock()
 	defer svc.capsMutex.RUnlock()
 
-	logrus.Infof("clientType=%s", clientType)
+	logrus.Infof("authType=%s", authType)
 	for serviceName, serviceCaps := range svc.servicesCapabilities {
 		// only add the capability if its connection is still valid
 		capProv, _ := svc.connectedServices[serviceName]
 		if capProv != nil && capProv.IsValid() {
 			for _, capInfo := range serviceCaps {
 				// only include client types that are allowed
-				allowedTypes := strings.Join(capInfo.ClientTypes, ",")
-				isAllowed := clientType != "" && strings.Contains(allowedTypes, clientType)
+				allowedTypes := strings.Join(capInfo.AuthTypes, ",")
+				isAllowed := authType != "" && strings.Contains(allowedTypes, authType)
 				if isAllowed {
 					capList = append(capList, capInfo)
 				}

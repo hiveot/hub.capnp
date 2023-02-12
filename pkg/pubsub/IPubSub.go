@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
+
 	"github.com/hiveot/hub/lib/thing"
 )
 
@@ -47,7 +48,7 @@ type IPubSubService interface {
 	// CapDevicePubSub provides the capability to pub/sub thing information as an IoT device.
 	// The issuer must only provide this capability after verifying the device ID.
 	// The publisherID is the thingID of the device publishing thing information
-	CapDevicePubSub(ctx context.Context, publisherID string) (IDevicePubSub, error)
+	CapDevicePubSub(ctx context.Context, deviceID string) (IDevicePubSub, error)
 
 	// CapServicePubSub provides the capability to pub/sub thing information as a hub service.
 	// Hub services can publish their own information and receive events from any thing.

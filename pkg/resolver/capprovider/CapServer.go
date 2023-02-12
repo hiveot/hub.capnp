@@ -55,8 +55,8 @@ type CapServer struct {
 // A method of this name must have been included when creating this NewCapServer.
 //
 //	methodName is the name of the method to include in ListCapabilities.
-//	clientTypes defines the type of clients for whom this capability is intended.
-func (capsrv *CapServer) ExportCapability(methodName string, clientTypes []string) {
+//	authTypes defines the required authentication type needed to use this capability
+func (capsrv *CapServer) ExportCapability(methodName string, authTypes []string) {
 	methodInfo, found := capsrv.knownMethods[methodName]
 	if !found {
 		err := fmt.Errorf("method '%s' is not a known method. Unable to enable it", methodName)
@@ -68,7 +68,7 @@ func (capsrv *CapServer) ExportCapability(methodName string, clientTypes []strin
 		MethodID:      methodInfo.MethodID,
 		InterfaceName: methodInfo.InterfaceName,
 		MethodName:    methodName,
-		ClientTypes:   clientTypes,
+		AuthTypes:     authTypes,
 		ServiceID:     capsrv.serviceName,
 	}
 	capsrv.exportedCapabilities[methodName] = newCap
@@ -161,7 +161,7 @@ func (capsrv *CapServer) StartWithWS(
 //	 svc := MyService{}
 //	 svcMethods := TestService_Methods(nil, svc)
 //	 capServer = capprovider.NewCapServer("testService", svcMethods)
-//	 capServer.ExportCapability("method1", []string{hubapi.ClientTypeService})
+//	 capServer.ExportCapability("method1", []string{hubapi.AuthTypeService})
 //	 lis,_ := net.dial("unix","/path/to/socket")
 //	 capServer.Start(lis)
 //

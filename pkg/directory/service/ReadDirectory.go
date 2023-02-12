@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/bucketstore"
 	"github.com/hiveot/hub/pkg/directory"
-	"github.com/sirupsen/logrus"
 )
 
 // ReadDirectory is a provides the capability to read and iterate the directory

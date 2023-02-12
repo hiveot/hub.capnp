@@ -7,13 +7,13 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/hiveot/hub/lib/certsclient"
-	"github.com/hiveot/hub/lib/test"
+	"github.com/hiveot/hub/lib/testsvc"
 )
 
 // ! This uses the TestMain of main_test.go !
 
 func TestX509ToFromPem(t *testing.T) {
-	testCerts := test.CreateCertBundle()
+	testCerts := testsvc.CreateCertBundle()
 	asPem := certsclient.X509CertToPEM(testCerts.CaCert)
 	assert.NotEmpty(t, asPem)
 	asX509, err := certsclient.X509CertFromPEM(asPem)
@@ -25,7 +25,7 @@ func TestSaveLoadX509Cert(t *testing.T) {
 	// hostnames := []string{"localhost"}
 	caPemFile := path.Join(TestCertFolder, "caCert.pem")
 
-	testCerts := test.CreateCertBundle()
+	testCerts := testsvc.CreateCertBundle()
 
 	// save the test x509 cert
 	err := certsclient.SaveX509CertToPEM(testCerts.CaCert, caPemFile)
@@ -37,7 +37,7 @@ func TestSaveLoadX509Cert(t *testing.T) {
 }
 
 func TestPublicKeyFromCert(t *testing.T) {
-	testCerts := test.CreateCertBundle()
+	testCerts := testsvc.CreateCertBundle()
 	pubKey := certsclient.PublicKeyFromCert(testCerts.CaCert)
 	assert.NotEmpty(t, pubKey)
 }
@@ -47,7 +47,7 @@ func TestSaveLoadTLSCert(t *testing.T) {
 	certFile := path.Join(TestCertFolder, "tlscert.pem")
 	keyFile := path.Join(TestCertFolder, "tlskey.pem")
 
-	testCerts := test.CreateCertBundle()
+	testCerts := testsvc.CreateCertBundle()
 
 	// save the test x509 part of the TLS cert
 	err := certsclient.SaveTLSCertToPEM(testCerts.DeviceCert, certFile, keyFile)
@@ -62,7 +62,7 @@ func TestSaveLoadTLSCert(t *testing.T) {
 func TestSaveLoadCertNoFile(t *testing.T) {
 	certFile := "/root/notavalidcert.pem"
 	keyFile := "/root/notavalidkey.pem"
-	testCerts := test.CreateCertBundle()
+	testCerts := testsvc.CreateCertBundle()
 	// save the test x509 cert
 	err := certsclient.SaveX509CertToPEM(testCerts.CaCert, certFile)
 	assert.Error(t, err)

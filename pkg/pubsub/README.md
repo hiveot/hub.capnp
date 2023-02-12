@@ -100,9 +100,9 @@ Rate limiting can be added as a middleware task, injected in the publish capabil
 
 The term topic comes from MQTT and defines the address of the message. A topic consists of multiple address parts: part1/part2/... 
 
-In the Hub's internal pubsub, a topic is constructed as: things/{gatewayID}/{thingID}/{msgType}/{name}. This will match the default schema used for the MQTT binding. 
+In the Hub's internal pubsub, a topic is constructed as: things/{publisherID}/{thingID}/{msgType}/{name}. This will match the default schema used for the MQTT binding.
 * where things is the prefix used to indicate the topic is that of a Thing event, action or td 
-* where {gatewayID} is the ThingID of the device that publishes the Thing.
+* where {publisherID} is the ThingID of the device that publishes the Thing.
 * where {thingID} is the unique ID of the thing to subscribe to. ThingID's start with "urn:" as per WoT standard.
 * where {msgType} is the type of message: "td", "event" or "action" as defined per vocabulary. 
 * where {name} is the name of the event or action, or the devicetype of the thing TD. 

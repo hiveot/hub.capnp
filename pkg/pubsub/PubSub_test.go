@@ -45,7 +45,7 @@ func startService(useCapnp bool) (pubsub.IPubSubService, func()) {
 		capClient := capnpclient.NewPubSubCapnpClient(ctx, clConn)
 
 		return capClient, func() {
-			_ = capClient.Release()
+			capClient.Release()
 			_ = srvListener.Close()
 			// allow ongoing releases to finish
 			time.Sleep(time.Millisecond * 1)

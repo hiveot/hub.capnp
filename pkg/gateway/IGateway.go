@@ -15,12 +15,12 @@ type ClientInfo struct {
 	// ClientID that is connected. loginID, serviceID, or IoT device ID
 	ClientID string
 
-	// ClientType identifies how the client is authenticated. See also the resolver:
-	//  ClientTypeUnauthenticated   - client is not authenticated
-	//  ClientTypeUser              - client is authenticated as a user with login/password
-	//  ClientTypeIoTDevice         - client is authenticated as an IoT device with certificate
-	//  ClientTypeService           - client is authenticated as a service with certificate
-	ClientType string
+	// AuthType identifies how the client is authenticated. See also the resolver:
+	//  AuthTypeUnauthenticated   - client is not authenticated
+	//  AuthTypeUser              - client is authenticated as a user with login/password
+	//  AuthTypeIoTDevice         - client is authenticated as an IoT device with certificate
+	//  AuthTypeService           - client is authenticated as a service with certificate
+	AuthType string
 }
 
 // IGatewayService provides the capability to accept new sessions with remote clients
@@ -45,6 +45,8 @@ type IGatewaySession interface {
 	ListCapabilities(ctx context.Context) (capInfo []resolver.CapabilityInfo, err error)
 
 	// Login to the gateway as a user in order to get additional capabilities.
+	//
+	// If successful this sets the session clientID to the given client ID.
 	// This returns an authToken and refreshToken that can be used with services that require
 	// authentication.
 	// If the authentication token has expired then call refresh.
@@ -53,8 +55,8 @@ type IGatewaySession interface {
 	// Ping helps determine if the gateway is reachable
 	Ping(ctx context.Context) (reply ClientInfo, err error)
 
-	// Refresh the token pair
-	Refresh(ctx context.Context, oldRefreshToken string) (newAuthToken, newRefreshToken string, err error)
+	// Refresh the auth token pair
+	Refresh(ctx context.Context, clientID string, oldRefreshToken string) (newAuthToken, newRefreshToken string, err error)
 
 	// Release the session when its incoming RPC connection closes
 	Release()

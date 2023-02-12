@@ -2,14 +2,14 @@
 @0x9f9160fd7c4ae45f;
 
 using Go = import "/go.capnp";
-$Go.package("captest");
+$Go.package("testsvc");
 $Go.import("github.com/hiveot/hub/internal/captest");
 
 using Resolver = import "/Resolver.capnp";
 
 
 interface CapTestService {
-    capMethod1 @0 (clientID :Text, clientType :Text) -> (capabilit :CapMethod1Service);
+    capMethod1 @0 (clientID :Text, authType :Text) -> (capabilit :CapMethod1Service);
     # obtain the capability to run test method1.
     # FIXME: there should be no need to name result property 'capability'
 }

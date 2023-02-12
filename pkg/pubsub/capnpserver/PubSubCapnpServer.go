@@ -22,7 +22,7 @@ type PubSubCapnpServer struct {
 func (capsrv *PubSubCapnpServer) CapDevicePubSub(
 	ctx context.Context, call hubapi.CapPubSubService_capDevicePubSub) error {
 	args := call.Args()
-	deviceID, _ := args.PublisherID()
+	deviceID, _ := args.DeviceID()
 	deviceSvc, _ := capsrv.svc.CapDevicePubSub(ctx, deviceID)
 
 	capDeviceSvc := NewDevicePubSubCapnpServer(deviceSvc)
@@ -38,7 +38,7 @@ func (capsrv *PubSubCapnpServer) CapServicePubSub(
 	ctx context.Context, call hubapi.CapPubSubService_capServicePubSub) error {
 
 	args := call.Args()
-	serviceID, _ := args.PublisherID()
+	serviceID, _ := args.ServiceID()
 	serviceSvc, _ := capsrv.svc.CapServicePubSub(ctx, serviceID)
 
 	capServiceSvc := NewServicePubSubCapnpServer(serviceSvc)
@@ -83,13 +83,13 @@ func StartPubSubCapnpServer(svc pubsub.IPubSubService, lis net.Listener) error {
 		serviceName, hubapi.CapPubSubService_Methods(nil, capsrv))
 
 	capProv.ExportCapability(hubapi.CapNameDevicePubSub,
-		[]string{hubapi.ClientTypeService, hubapi.ClientTypeIotDevice})
+		[]string{hubapi.AuthTypeService, hubapi.AuthTypeIotDevice})
 
 	capProv.ExportCapability(hubapi.CapNameServicePubSub,
-		[]string{hubapi.ClientTypeService})
+		[]string{hubapi.AuthTypeService})
 
 	capProv.ExportCapability(hubapi.CapNameUserPubSub,
-		[]string{hubapi.ClientTypeService, hubapi.ClientTypeUser})
+		[]string{hubapi.AuthTypeService, hubapi.AuthTypeUser})
 
 	logrus.Infof("Starting '%s' service capnp adapter on: %s", serviceName, lis.Addr())
 	err := capProv.Start(lis)

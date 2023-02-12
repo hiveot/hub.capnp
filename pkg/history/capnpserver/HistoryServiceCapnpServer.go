@@ -102,12 +102,12 @@ func StartHistoryServiceCapnpServer(svc history.IHistoryService, lis net.Listene
 	capProv := capprovider.NewCapServer(
 		serviceName, hubapi.CapHistoryService_Methods(nil, capsrv))
 
-	capProv.ExportCapability(hubapi.CapNameAddHistory, []string{hubapi.ClientTypeService})
+	capProv.ExportCapability(hubapi.CapNameAddHistory, []string{hubapi.AuthTypeService})
 
-	capProv.ExportCapability(hubapi.CapNameManageRetention, []string{hubapi.ClientTypeService})
+	capProv.ExportCapability(hubapi.CapNameManageRetention, []string{hubapi.AuthTypeService})
 
 	capProv.ExportCapability(hubapi.CapNameReadHistory,
-		[]string{hubapi.ClientTypeService, hubapi.ClientTypeUser})
+		[]string{hubapi.AuthTypeService, hubapi.AuthTypeUser})
 
 	logrus.Infof("Starting '%s' service capnp adapter listening on: %s", serviceName, lis.Addr())
 	err = capProv.Start(lis)

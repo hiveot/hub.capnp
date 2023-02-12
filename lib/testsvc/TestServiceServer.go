@@ -1,4 +1,4 @@
-package test
+package testsvc
 
 import (
 	"context"
@@ -27,11 +27,11 @@ func (svc *TestService) CapMethod1(_ context.Context, call CapTestService_capMet
 	args := call.Args()
 	_ = args
 	clientID, _ := args.ClientID()
-	clientType, _ := args.ClientType()
+	authType, _ := args.AuthType()
 
 	res, err := call.AllocResults()
 	if err == nil {
-		testMethod1 := NewMethod1ServiceCapnpServer(clientID, clientType)
+		testMethod1 := NewMethod1ServiceCapnpServer(clientID, authType)
 		capMethod1 := CapMethod1Service_ServerToClient(testMethod1)
 		// the name doesn't matter as the first capability returned is used
 		_ = res.SetCapabilit(capMethod1.AddRef())
@@ -73,7 +73,7 @@ func NewTestService() *TestService {
 
 	// export the methods that are available as capabilities
 	svc.capServer.ExportCapability("capMethod1",
-		[]string{hubapi.ClientTypeService, hubapi.ClientTypeIotDevice})
+		[]string{hubapi.AuthTypeService, hubapi.AuthTypeIotDevice})
 
 	return svc
 }

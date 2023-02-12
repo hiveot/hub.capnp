@@ -17,21 +17,21 @@ import (
 const (
 	//OUAdmin lets a client approve thing provisioning (postOOB), add and remove users
 	// Provision API permissions: GetDirectory, ProvisionRequest, GetStatus, PostOOB
-	OUAdmin = hubapi.ClientTypeAdmin
+	OUAdmin = hubapi.AuthTypeAdmin
 
 	// OUNone is the default OU with no API access permissions
-	OUNone = hubapi.ClientTypeUnauthenticated
+	OUNone = hubapi.AuthTypeUnauthenticated
 
 	// OUUser for consumers with mutual authentication
-	OUUser = hubapi.ClientTypeUser
+	OUUser = hubapi.AuthTypeUser
 
 	// OUIoTDevice for IoT devices with mutual authentication
-	OUIoTDevice = hubapi.ClientTypeIotDevice
+	OUIoTDevice = hubapi.AuthTypeIotDevice
 
 	// OUService for Hub services with mutual authentication
 	// By default, services have access to other services
 	// Provision API permissions: Any
-	OUService = hubapi.ClientTypeService
+	OUService = hubapi.AuthTypeService
 )
 
 // LoadX509CertFromPEM loads the x509 certificate from a PEM file format.

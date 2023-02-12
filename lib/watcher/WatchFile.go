@@ -58,11 +58,12 @@ func WatchFile(ctx context.Context, path string,
 				logrus.Infof("Event: '%s'. Modified file: %s", event, event.Name)
 				callbackTimer.Reset(time.Millisecond * watcherDebounceDelay)
 			case err2, ok := <-watcher.Errors:
-				if !ok {
+				if !ok && err2 != nil {
 					logrus.Errorf("Unexpected error: %s", err2)
 					return
 				}
-				logrus.Errorf("Error: %s", err2)
+				// end of watcher.
+				//logrus.Errorf("Error: %s", err2)
 			}
 		}
 	}()

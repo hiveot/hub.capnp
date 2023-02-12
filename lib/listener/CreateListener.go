@@ -15,13 +15,12 @@ func CreateTLSListener(
 	caCertPool.AddCert(caCert)
 
 	tlsConfig := tls.Config{
-		Certificates:       []tls.Certificate{*serverCert},
-		ClientAuth:         tls.VerifyClientCertIfGiven,
-		ClientCAs:          caCertPool,
-		InsecureSkipVerify: false,
-		MinVersion:         tls.VersionTLS13,
-		RootCAs:            caCertPool,
-		ServerName:         "HiveOT Hub",
+		Certificates: []tls.Certificate{*serverCert},
+		ClientAuth:   tls.VerifyClientCertIfGiven,
+		ClientCAs:    caCertPool,
+		MinVersion:   tls.VersionTLS13,
+		RootCAs:      caCertPool,
+		ServerName:   "HiveOT Hub",
 	}
 	tlsLis := tls.NewListener(lis, &tlsConfig)
 	return tlsLis

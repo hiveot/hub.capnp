@@ -83,13 +83,13 @@ func StartAuthzCapnpServer(svc authz.IAuthz, lis net.Listener) (err error) {
 
 	// register the methods available through getCapability
 	capProv.ExportCapability(hubapi.CapNameClientAuthz,
-		[]string{hubapi.ClientTypeService, hubapi.ClientTypeUser})
+		[]string{hubapi.AuthTypeService, hubapi.AuthTypeUser})
 
 	capProv.ExportCapability(hubapi.CapNameManageAuthz,
-		[]string{hubapi.ClientTypeService})
+		[]string{hubapi.AuthTypeService})
 
 	capProv.ExportCapability(hubapi.CapNameVerifyAuthz,
-		[]string{hubapi.ClientTypeService})
+		[]string{hubapi.AuthTypeService})
 
 	// listen for direct connections
 	logrus.Infof("Starting 'authz' service capnp adapter listening on: %s", lis.Addr())

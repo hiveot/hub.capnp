@@ -64,10 +64,10 @@ func StartDirectoryServiceCapnpServer(svc directory.IDirectory, lis net.Listener
 	capProv := capprovider.NewCapServer(serviceName, methods)
 
 	capProv.ExportCapability(hubapi.CapNameReadDirectory,
-		[]string{hubapi.ClientTypeUser, hubapi.ClientTypeService})
+		[]string{hubapi.AuthTypeUser, hubapi.AuthTypeService})
 
 	capProv.ExportCapability(hubapi.CapNameUpdateDirectory,
-		[]string{hubapi.ClientTypeService})
+		[]string{hubapi.AuthTypeService})
 
 	logrus.Infof("Starting '%s' service capnp adapter listening on: %s", serviceName, lis.Addr())
 	err := capProv.Start(lis)

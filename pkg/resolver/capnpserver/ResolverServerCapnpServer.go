@@ -26,11 +26,11 @@ type ResolverServiceCapnpServer struct {
 //	args := call.Args()
 //	capabilityName, _ := args.CapName()
 //	clientID, _ := args.ClientID()
-//	clientType, _ := args.ClientType()
+//	authType, _ := args.AuthType()
 //	methodArgsCapnp, _ := args.Args()
 //	methodArgs := caphelp.UnmarshalStringList(methodArgsCapnp)
 //	logrus.Infof("get capability '%s'", capabilityName)
-//	capability, err := capsrv.service.GetCapability(ctx, clientID, clientType, capabilityName, methodArgs)
+//	capability, err := capsrv.service.GetCapability(ctx, clientID, authType, capabilityName, methodArgs)
 //	if err != nil {
 //		return err
 //	} else if !capability.IsValid() {
@@ -54,8 +54,8 @@ type ResolverServiceCapnpServer struct {
 func (capsrv *ResolverServiceCapnpServer) ListCapabilities(
 	ctx context.Context, call hubapi.CapProvider_listCapabilities) (err error) {
 
-	clientType, _ := call.Args().ClientType()
-	infoList, err := capsrv.service.ListCapabilities(ctx, clientType)
+	authType, _ := call.Args().AuthType()
+	infoList, err := capsrv.service.ListCapabilities(ctx, authType)
 	if err == nil {
 		resp, err2 := call.AllocResults()
 		if err = err2; err == nil {

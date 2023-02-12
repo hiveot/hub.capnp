@@ -29,12 +29,12 @@ func (cl *CapClient) Boot() capnp.Client {
 
 // GetCapability obtains a capability from the connected service provider
 //func (cl *CapClient) GetCapability(ctx context.Context,
-//	clientID, clientType string, capabilityName string, args []string) (capability capnp.Client, err error) {
+//	clientID, authType string, capabilityName string, args []string) (capability capnp.Client, err error) {
 //
 //	method, release := cl.capProvider.GetCapability(ctx,
 //		func(params hubapi.CapProvider_getCapability_Params) error {
 //			err := params.SetClientID(clientID)
-//			_ = params.SetClientType(clientType)
+//			_ = params.SetAuthType(authType)
 //			_ = params.SetCapName(capabilityName)
 //			if args != nil {
 //				err = params.SetArgs(caphelp.MarshalStringList(args))

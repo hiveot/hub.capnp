@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/hiveot/hub.capnp/go/vocab"
 	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/bucketstore"
 	"github.com/hiveot/hub/pkg/directory"
 	"github.com/hiveot/hub/pkg/pubsub"
-	"github.com/sirupsen/logrus"
 )
 
 // UpdateDirectory is a provides the capability to update the directory

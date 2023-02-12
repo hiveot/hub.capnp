@@ -59,7 +59,7 @@ func main() {
 		}, func() error {
 			// shutdown
 			err := svc.Stop()
-			_ = pubSubClient.Release()
+			pubSubClient.Release()
 			return err
 		})
 }

@@ -105,14 +105,14 @@ func HandleListGateway(ctx context.Context, f svcconfig.AppFolders) error {
 
 	// ask as a service. we might want to make this a parameter
 	capList, err := gw.ListCapabilities(ctx)
-	fmt.Println("Capability                          Service                        ClientTypes")
+	fmt.Println("Capability                          Service                        AuthTypes")
 	fmt.Println("--------                            -------                        ----       ")
 	for _, capInfo := range capList {
-		clientTypeAsText := strings.Join(capInfo.ClientTypes, ",")
+		authTypeAsText := strings.Join(capInfo.AuthTypes, ",")
 		fmt.Printf("%-35s %-30s %-30s\n",
 			capInfo.MethodName,
 			capInfo.ServiceID,
-			clientTypeAsText,
+			authTypeAsText,
 		)
 	}
 	return err

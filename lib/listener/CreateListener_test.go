@@ -13,16 +13,16 @@ import (
 
 	"github.com/hiveot/hub/lib/hubclient"
 	"github.com/hiveot/hub/lib/listener"
-	"github.com/hiveot/hub/lib/test"
+	"github.com/hiveot/hub/lib/testsvc"
 )
 
 // CA, server and plugin test certificate
-var certs test.TestCerts
+var certs testsvc.TestCerts
 
 // TestMain runs a http server
 // Used for all test cases in this package
 func TestMain(m *testing.M) {
-	certs = test.CreateCertBundle()
+	certs = testsvc.CreateCertBundle()
 	res := m.Run()
 	os.Exit(res)
 }

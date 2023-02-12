@@ -79,7 +79,7 @@ func HandleAddUser(ctx context.Context, f svcconfig.AppFolders, loginID string) 
 
 	conn, err := hubclient.ConnectToService(authn.ServiceName, f.Run)
 	if err == nil {
-		authnClient = capnpclient.NewAuthnCapnpClient(ctx, conn)
+		authnClient = capnpclient.NewAuthnClientFromCapnpConnection(ctx, conn)
 	}
 	if err == nil {
 		manageAuthn, _ = authnClient.CapManageAuthn(ctx, "hubcli")
@@ -106,7 +106,7 @@ func HandleListUsers(ctx context.Context, f svcconfig.AppFolders) error {
 
 	conn, err := hubclient.ConnectToService(authn.ServiceName, f.Run)
 	if err == nil {
-		authnClient = capnpclient.NewAuthnCapnpClient(ctx, conn)
+		authnClient = capnpclient.NewAuthnClientFromCapnpConnection(ctx, conn)
 	}
 	if err == nil {
 		manageAuthn, _ = authnClient.CapManageAuthn(ctx, "hubcli")
@@ -136,7 +136,7 @@ func HandleRemoveUser(ctx context.Context, f svcconfig.AppFolders, loginID strin
 
 	conn, err := hubclient.ConnectToService(authn.ServiceName, f.Run)
 	if err == nil {
-		authnClient = capnpclient.NewAuthnCapnpClient(ctx, conn)
+		authnClient = capnpclient.NewAuthnClientFromCapnpConnection(ctx, conn)
 	}
 	if err == nil {
 		manageAuthn, _ = authnClient.CapManageAuthn(ctx, "hubcli")

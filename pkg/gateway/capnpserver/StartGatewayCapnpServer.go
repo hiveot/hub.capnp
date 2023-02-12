@@ -35,7 +35,7 @@ func StartGatewayCapnpServer(
 	onConnect := func(conn net.Conn, tp transport.Transport) {
 		session := svc.OnIncomingConnection(conn)
 		if session == nil {
-			conn.Close()
+			_ = conn.Close()
 			return
 		}
 		capSession := NewGatewaySessionCapnpServer(session)

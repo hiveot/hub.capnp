@@ -18,11 +18,11 @@ import (
 // This service is intended as a proxy for remote services to the local resolver.
 type GatewayService struct {
 	resolverPath string
-	// user authentication service connection. This instance is owned by the service and 'on loan' to the session
-	userAuthn authn.IUserAuthn
-	sessions  map[net.Conn]*GatewaySession
+	sessions     map[net.Conn]*GatewaySession
 	// mutex for updating sessions
 	sessionMutex sync.RWMutex
+	// for testing
+	testAuthn authn.IAuthnService
 }
 
 // OnIncomingConnection notifies the service of a new incoming connection.
@@ -32,7 +32,7 @@ type GatewayService struct {
 // Returns nil if session is not valid
 func (svc *GatewayService) OnIncomingConnection(conn net.Conn) (session *GatewaySession) {
 	//var err error
-	var clientType = hubapi.ClientTypeUnauthenticated
+	var authType = hubapi.AuthTypeUnauthenticated
 	var clientID = ""
 	var clientCert *x509.Certificate
 
@@ -52,12 +52,12 @@ func (svc *GatewayService) OnIncomingConnection(conn net.Conn) (session *Gateway
 			clientCert = certs[0]
 			clientID = clientCert.Subject.CommonName
 			if len(clientCert.Subject.OrganizationalUnit) > 0 {
-				clientType = clientCert.Subject.OrganizationalUnit[0]
+				authType = clientCert.Subject.OrganizationalUnit[0]
 			}
 		}
 
 	}
-	newSession, err := StartGatewaySession(svc.resolverPath, svc.userAuthn, tlsc)
+	newSession, err := StartGatewaySession(svc.resolverPath, clientID, authType, tlsc, svc.testAuthn)
 
 	if err != nil {
 		logrus.Warningf("Unable to create gateway session. Closing connection...: %s", err)
@@ -66,14 +66,14 @@ func (svc *GatewayService) OnIncomingConnection(conn net.Conn) (session *Gateway
 	}
 	if clientCert != nil {
 		// save the new session
-		logrus.Infof("Incoming connection with client cert from client='%s', clientType='%s'", clientID, clientType)
+		logrus.Infof("Incoming connection with client cert from client='%s', authType='%s'", clientID, authType)
 	} else if tlsc != nil {
 		logrus.Infof("Incoming TLS connection without peer cert from '%s'", tlsc.RemoteAddr())
 	} else {
 		logrus.Infof("Incoming connection without TLS from '%s'", conn.RemoteAddr())
 	}
 	newSession.clientID = clientID
-	newSession.clientType = clientType
+	newSession.authType = authType
 	svc.sessionMutex.Lock()
 	defer svc.sessionMutex.Unlock()
 	svc.sessions[conn] = newSession
@@ -121,19 +121,17 @@ func (svc *GatewayService) Stop() (err error) {
 		session.Release()
 		svc.sessionMutex.Unlock()
 	}
-	if svc.userAuthn != nil {
-		svc.userAuthn.Release()
-	}
 	return err
 }
 
 // NewGatewayService returns a new instance of the gateway service.
 //
 //	resolverPath is the path to the resolver unix socket to pass requests to.
-func NewGatewayService(resolverPath string, userAuthn authn.IUserAuthn) *GatewayService {
+//	testAuthn for creating authentication clients. Used for testing only. Do not release this service.
+func NewGatewayService(resolverPath string, testAuthn authn.IAuthnService) *GatewayService {
 	svc := &GatewayService{
 		resolverPath: resolverPath,
-		userAuthn:    userAuthn,
+		testAuthn:    testAuthn,
 		sessions:     make(map[net.Conn]*GatewaySession),
 	}
 	return svc

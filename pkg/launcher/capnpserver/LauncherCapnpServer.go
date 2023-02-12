@@ -78,7 +78,7 @@ func StartLauncherCapnpServer(lis net.Listener, svc launcher.ILauncher) (err err
 		serviceName, hubapi.CapLauncher_Methods(nil, capsrv))
 
 	// the launcher does not have any exported capabilities (yet)
-	// capProv.ExportCapability("", []string{hubapi.ClientTypeService})
+	// capProv.ExportCapability("", []string{hubapi.AuthTypeService})
 
 	logrus.Infof("Starting launcher service capnp adapter on: %s", lis.Addr())
 	err = capProv.Start(lis)

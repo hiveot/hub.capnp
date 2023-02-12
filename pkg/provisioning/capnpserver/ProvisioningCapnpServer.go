@@ -90,13 +90,13 @@ func StartProvisioningCapnpServer(svc provisioning.IProvisioning, lis net.Listen
 		serviceName, hubapi.CapProvisioning_Methods(nil, srv))
 
 	capProv.ExportCapability("capManageProvisioning",
-		[]string{hubapi.ClientTypeService})
+		[]string{hubapi.AuthTypeService})
 
 	capProv.ExportCapability("capRequestProvisioning",
-		[]string{hubapi.ClientTypeService, hubapi.ClientTypeIotDevice})
+		[]string{hubapi.AuthTypeService, hubapi.AuthTypeIotDevice})
 
 	capProv.ExportCapability("capRefreshProvisioning",
-		[]string{hubapi.ClientTypeService, hubapi.ClientTypeIotDevice})
+		[]string{hubapi.AuthTypeService, hubapi.AuthTypeIotDevice})
 
 	logrus.Infof("Starting provisioning service capnp adapter on: %s", lis.Addr())
 	err := capProv.Start(lis)

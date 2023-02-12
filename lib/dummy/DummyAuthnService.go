@@ -11,13 +11,15 @@ type DummyAuthnService struct {
 	pwMap map[string]string
 }
 
-func (dummy *DummyAuthnService) CapUserAuthn(_ context.Context, clientID string) authn.IUserAuthn {
+func (dummy *DummyAuthnService) CapUserAuthn(
+	_ context.Context, clientID string) (authn.IUserAuthn, error) {
 	_ = clientID
-	return dummy
+	return dummy, nil
 }
 
-func (dummy *DummyAuthnService) CapManageAuthn(_ context.Context) authn.IManageAuthn {
-	return dummy
+func (dummy *DummyAuthnService) CapManageAuthn(
+	_ context.Context, clientID string) (authn.IManageAuthn, error) {
+	return dummy, nil
 }
 
 // --- Manage ---

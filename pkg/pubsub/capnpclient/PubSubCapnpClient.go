@@ -23,7 +23,7 @@ func (cl *PubSubCapnpClient) CapDevicePubSub(
 
 	method, release := cl.capability.CapDevicePubSub(ctx,
 		func(params hubapi.CapPubSubService_capDevicePubSub_Params) error {
-			err := params.SetPublisherID(deviceID)
+			err := params.SetDeviceID(deviceID)
 			return err
 		})
 	defer release()
@@ -38,7 +38,7 @@ func (cl *PubSubCapnpClient) CapServicePubSub(
 
 	method, release := cl.capability.CapServicePubSub(ctx,
 		func(params hubapi.CapPubSubService_capServicePubSub_Params) error {
-			err2 := params.SetPublisherID(serviceID)
+			err2 := params.SetServiceID(serviceID)
 			return err2
 		})
 	defer release()
@@ -61,11 +61,13 @@ func (cl *PubSubCapnpClient) CapUserPubSub(
 	return userCl, err
 }
 
-// Release stops the client connection and free its resources
-func (cl *PubSubCapnpClient) Release() error {
+// Release stops the client and frees its resources
+// If the rpc connection was made on instantiation, it will be closed.
+func (cl *PubSubCapnpClient) Release() {
 	cl.capability.Release()
-	err := cl.connection.Close()
-	return err
+	if cl.connection != nil {
+		_ = cl.connection.Close()
+	}
 }
 
 // NewPubSubCapnpClient creates a new client for using the pubsub service with the given connection.
@@ -87,13 +89,13 @@ func NewPubSubCapnpClient(ctx context.Context, c net.Conn) *PubSubCapnpClient {
 
 // NewPubSubClient creates a new client for using the pubsub service with the given capnp client.
 // The capnp client can be that of the service, the resolver or the gateway
-func NewPubSubClient(rpcConn *rpc.Conn, capClient capnp.Client) *PubSubCapnpClient {
+func NewPubSubClient(capClient capnp.Client) *PubSubCapnpClient {
 	var cl *PubSubCapnpClient
 
 	// use a direct connection to the service
 	capPubSub := hubapi.CapPubSubService(capClient)
 	cl = &PubSubCapnpClient{
-		connection: rpcConn,
+		connection: nil,
 		capability: capPubSub,
 	}
 	return cl

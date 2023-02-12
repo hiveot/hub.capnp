@@ -9,13 +9,14 @@ Allow any Hub service to obtain capabilities from other services by name, regard
 
 ## Resolver Requirements
 
-1. The resolver has no hard coded knowledge of the services and their capabilities themselves. As more services and capabilities are added it must be easy to make them available without changes to the resolver.
-2. The resolver works with any capnp client.
-3. The resolver is not directly remotely accessible. 
-3. Remote clients are supported using a gateway that validates credentials and authorizes access.
-4. Remote capabilities can be registered. This is the role of a discovery service.
-5. Capabilities that are no longer accessible are automatically removed. 
-6. QoS support can be added in future to handle failover and multiple instance services.
+1. The resolver has no hard coded knowledge of the services and their capabilities themselves.
+2. As more services and capabilities are added it must be easy to make them available without changes to the resolver.
+3. The resolver works with any capnp client.
+4. The resolver is not directly remotely accessible.
+5. Remote clients are supported using a gateway that validates credentials and authorizes access.
+6. Remote capabilities can be registered. This is the role of a discovery service.
+7. Capabilities that are no longer accessible are automatically removed.
+8. QoS support can be added in future to handle failover and multiple instance services.
 
 
 ## Design
@@ -31,6 +32,8 @@ The resolver can operate in two modes. Direct and indirect:
 
 * In Indirect mode the client requests the capability from the resolver, which forwards the request to the service that supports it. When a request for a method that doesn't exist comes in, the resolver determines the service that does have the method and forwards the request. The result is passed back to the caller.
 
-Note that getting a capability through the resolver adds approx 40% to the duration of calls of that capability, as traffic flows through the resolver to the service. This can be avoided using the connection information from ListCapabilities a direct connection to the service can be made that does not suffer this overhead.
+Note that getting a capability through the resolver adds approx 40% to the call overhead of that capability, as traffic flows through the resolver to the service. This can be avoided using the connection information from ListCapabilities a direct connection to the service can be made that does not suffer this overhead.
+
+The resolver service does not perform authentication.
 
 The resolver service itself is not remotely reachable. Remote clients connect to a gateway service that handles authentication and authorization of the capabilities. The gateway uses the resolver to get the list of capabilities and connects directly to the services.

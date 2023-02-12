@@ -2,11 +2,9 @@ package capnpserver
 
 import (
 	"context"
-	"fmt"
 
 	"capnproto.org/go/capnp/v3"
 	"capnproto.org/go/capnp/v3/server"
-	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
 	"github.com/hiveot/hub/pkg/gateway/service"
@@ -21,7 +19,6 @@ type GatewaySessionCapnpServer struct {
 }
 
 func (capsrv *GatewaySessionCapnpServer) HandleUnknownMethod(m capnp.Method) *server.Method {
-	logrus.Infof("unknown method '%s.%s' requested", m.InterfaceName, m.MethodName)
 	// Just pass it on to the session that can add validation
 	return capsrv.session.HandleUnknownMethod(m)
 }
@@ -39,7 +36,7 @@ func (capsrv *GatewaySessionCapnpServer) ListCapabilities(
 	return err
 }
 
-// Login to the session
+// Login authenticates the session for the given user
 func (capsrv *GatewaySessionCapnpServer) Login(
 	ctx context.Context, call hubapi.CapGatewaySession_login) error {
 
@@ -62,8 +59,9 @@ func (capsrv *GatewaySessionCapnpServer) Login(
 func (capsrv *GatewaySessionCapnpServer) Refresh(
 	ctx context.Context, call hubapi.CapGatewaySession_refresh) error {
 	args := call.Args()
+	clientID, _ := args.ClientID()
 	oldRefreshToken, _ := args.RefreshToken()
-	authToken, refreshToken, err := capsrv.session.Refresh(ctx, oldRefreshToken)
+	authToken, refreshToken, err := capsrv.session.Refresh(ctx, clientID, oldRefreshToken)
 	if err == nil {
 		res, err2 := call.AllocResults()
 		err = err2
@@ -80,8 +78,6 @@ func (capsrv *GatewaySessionCapnpServer) Ping(
 
 	response, err := capsrv.session.Ping(ctx)
 	if err != nil {
-		err = fmt.Errorf("ping somehow managed to fail")
-		logrus.Error(err)
 		return err
 	}
 	res, err := call.AllocResults()
@@ -90,7 +86,7 @@ func (capsrv *GatewaySessionCapnpServer) Ping(
 		_, seg, _ := capnp.NewMessage(capnp.SingleSegment(nil))
 		clientInfoCapnp, _ := hubapi.NewClientInfo(seg)
 		_ = clientInfoCapnp.SetClientID(response.ClientID)
-		_ = clientInfoCapnp.SetClientType(response.ClientType)
+		_ = clientInfoCapnp.SetAuthType(response.AuthType)
 		err = res.SetReply(clientInfoCapnp)
 	}
 	return err

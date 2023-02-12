@@ -60,7 +60,7 @@ func startTestAuthnService(useCapnp bool) (authSvc authn.IAuthnService, stopFn f
 
 		// connect the client to the server above
 		clConn, err := net.Dial("tcp", srvListener.Addr().String())
-		capClient := capnpclient.NewAuthnCapnpClient(ctx, clConn)
+		capClient := capnpclient.NewAuthnClientFromCapnpConnection(ctx, clConn)
 		return capClient, func() {
 			capClient.Release()
 			_ = clConn.Close()
@@ -101,7 +101,7 @@ func TestStartStop(t *testing.T) {
 	srv, stopFn, err := startTestAuthnService(testUseCapnp)
 	require.NoError(t, err)
 	assert.NotNil(t, srv)
-
+	time.Sleep(time.Millisecond * 10)
 	stopFn()
 }
 

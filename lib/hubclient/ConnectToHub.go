@@ -31,13 +31,13 @@ func ConnectToHub(fullUrl string, clientCert *tls.Certificate, caCert *x509.Cert
 	return CreateClientConnection(fullUrl, clientCert, caCert)
 }
 
-// ConnectToHubClient returns the connect and capnp client of the gateway or resolver service.
+// ConnectToHubClient returns the connection and capnp client of the gateway or resolver service.
 //
-// This client is special in that a request for a published capability is dynamically
-// forwarded to the actual service. Effectively it all services.
+// This client is special in that a request for a capability is dynamically forwarded to the actual service.
+// If the client does not have the proper authentication type then the capability is not available and this fails
+// with 'unimplemented'.
 //
-// Note that when connecting without client certificate to the gateway, Login must be called
-// to authenticate.
+// Note that when connecting without client certificate to the gateway, Login must be called to authenticate.
 //
 // This auto-discovers the gateway or default to 127.0.0.1:8883
 func ConnectToHubClient(

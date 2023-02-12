@@ -25,12 +25,12 @@ func (cl *ResolverServiceCapnpClient) Capability() hubapi.CapResolverService {
 // ListCapabilities lists the available capabilities of the service
 // Returns a list of capabilities that can be obtained through the service
 func (cl *ResolverServiceCapnpClient) ListCapabilities(
-	ctx context.Context, clientType string) (infoList []resolver.CapabilityInfo, err error) {
+	ctx context.Context, authType string) (infoList []resolver.CapabilityInfo, err error) {
 
 	infoList = make([]resolver.CapabilityInfo, 0)
 	method, release := cl.capability.ListCapabilities(ctx,
 		func(params hubapi.CapProvider_listCapabilities_Params) error {
-			err2 := params.SetClientType(clientType)
+			err2 := params.SetAuthType(authType)
 			return err2
 		})
 	defer release()

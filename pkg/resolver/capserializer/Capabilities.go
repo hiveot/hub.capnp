@@ -23,9 +23,9 @@ func MarshalCapabilityInfoList(infoList []resolver.CapabilityInfo) (infoListCapn
 func MarshalCapabilityInfo(capInfo *resolver.CapabilityInfo) hubapi.CapabilityInfo {
 	_, seg, _ := capnp.NewMessage(capnp.SingleSegment(nil))
 	capInfoCapnp, _ := hubapi.NewCapabilityInfo(seg)
-	if capInfo.ClientTypes != nil {
-		clientTypesCapnp := caphelp.MarshalStringList(capInfo.ClientTypes)
-		_ = capInfoCapnp.SetClientTypes(clientTypesCapnp)
+	if capInfo.AuthTypes != nil {
+		authTypesCapnp := caphelp.MarshalStringList(capInfo.AuthTypes)
+		_ = capInfoCapnp.SetAuthTypes(authTypesCapnp)
 	}
 	capInfoCapnp.SetInterfaceID(capInfo.InterfaceID)
 	capInfoCapnp.SetMethodID(capInfo.MethodID)
@@ -53,8 +53,8 @@ func UnmarshalCapabilyInfoList(infoListCapnp hubapi.CapabilityInfo_List) (infoLi
 // UnmarshalCapabilityInfo deserializes capnp CapabilityInfo into a POGS type
 func UnmarshalCapabilityInfo(infoCapnp hubapi.CapabilityInfo) (info resolver.CapabilityInfo) {
 
-	clientTypesCapnp, _ := infoCapnp.ClientTypes()
-	info.ClientTypes = caphelp.UnmarshalStringList(clientTypesCapnp)
+	authTypesCapnp, _ := infoCapnp.AuthTypes()
+	info.AuthTypes = caphelp.UnmarshalStringList(authTypesCapnp)
 	info.InterfaceID = infoCapnp.InterfaceID()
 	info.MethodID = infoCapnp.MethodID()
 	info.InterfaceName, _ = infoCapnp.InterfaceName()

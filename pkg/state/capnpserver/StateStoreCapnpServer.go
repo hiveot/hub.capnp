@@ -60,7 +60,7 @@ func StartStateCapnpServer(svc state.IStateService, lis net.Listener) error {
 		serviceName, hubapi.CapState_Methods(nil, capsrv))
 
 	capProv.ExportCapability("capClientState",
-		[]string{hubapi.ClientTypeService, hubapi.ClientTypeUser})
+		[]string{hubapi.AuthTypeService, hubapi.AuthTypeUser})
 
 	logrus.Infof("Starting '%s' service capnp adapter on: %s", serviceName, lis.Addr())
 	err := capProv.Start(lis)

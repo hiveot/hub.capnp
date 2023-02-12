@@ -1,5 +1,5 @@
-// Package test with managing certificates for testing
-package test
+// Package testsvc with managing certificates for testing
+package testsvc
 
 import (
 	"bytes"
@@ -46,9 +46,9 @@ func CreateCertBundle() TestCerts {
 	testCerts.DeviceKey = certsclient.CreateECDSAKeys()
 	testCerts.ServerCert = CreateTlsCert("Server", "hiveot", true,
 		testCerts.ServerKey, testCerts.CaCert, testCerts.CaKey)
-	testCerts.PluginCert = CreateTlsCert("Plugin", hubapi.ClientTypeService, false,
+	testCerts.PluginCert = CreateTlsCert("Plugin", hubapi.AuthTypeService, false,
 		testCerts.PluginKey, testCerts.CaCert, testCerts.CaKey)
-	testCerts.DeviceCert = CreateTlsCert("Device", hubapi.ClientTypeIotDevice, false,
+	testCerts.DeviceCert = CreateTlsCert("Device", hubapi.AuthTypeIotDevice, false,
 		testCerts.DeviceKey, testCerts.CaCert, testCerts.CaKey)
 	return testCerts
 }

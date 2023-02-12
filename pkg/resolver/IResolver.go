@@ -14,7 +14,7 @@ const DefaultResolverPath = hubapi.DefaultResolverAddress
 type IResolverService interface {
 
 	// ListCapabilities returns the list of capabilities provided by capability providers.
-	ListCapabilities(ctx context.Context, clientType string) (capInfo []CapabilityInfo, err error)
+	ListCapabilities(ctx context.Context, authType string) (capInfo []CapabilityInfo, err error)
 
 	// RegisterCapabilities is invoked by capability providers to register their capabilities
 	// along with a callback to retrieve a capability. Capability provides can also provide

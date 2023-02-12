@@ -24,8 +24,8 @@ type CapabilityInfo struct {
 	// provides the capability. Method names must be unique.
 	MethodName string
 
-	// Type of clients that can use the capability. See ClientTypeXyz above
-	ClientTypes []string
+	// Type of authentication that is allowed to use the capability. See hubapi.AuthTypeXyz
+	AuthTypes []string
 
 	// Protocol indicates what protocol to use to get the capability
 	// The default is 'capnp' protocol. Other services can use protocols such as https and rtsp.

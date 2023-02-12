@@ -18,8 +18,6 @@ import (
 	"github.com/hiveot/hub/lib/svcconfig"
 
 	"github.com/hiveot/hub.capnp/go/hubapi"
-	"github.com/hiveot/hub/pkg/authn"
-	capnpclient2 "github.com/hiveot/hub/pkg/authn/capnpclient"
 	"github.com/hiveot/hub/pkg/certs"
 	"github.com/hiveot/hub/pkg/certs/capnpclient"
 	"github.com/hiveot/hub/pkg/certs/service/selfsigned"
@@ -35,10 +33,8 @@ func main() {
 	var serviceName = gateway.ServiceName
 	var err error
 	var svc *service.GatewayService
-	var userAuthn authn.IUserAuthn
 	var lisTcp net.Listener
 	var lisWS net.Listener
-	ctx := context.Background()
 
 	f, _, _ := svcconfig.SetupFolderConfig(serviceName)
 	cfg := config.NewGatewayConfig()
@@ -52,23 +48,12 @@ func main() {
 		logrus.Panicf("certs service not reachable when starting the gateway: %s", err)
 	}
 
-	// The authn service is used to authenticate logins from users.
-	// without authn it still functions with certificates
-	//authnConn, err := listener.CreateLocalClientConnection(authn.ServiceName, f.Run)
-	// conn, err := hubclient.ConnectToHub("", "", nil, nil)
-	fullURL := "unix://" + hubapi.DefaultResolverAddress
-	conn, err := hubclient.CreateClientConnection(fullURL, nil, nil)
-
-	if err == nil {
-		authnService := capnpclient2.NewAuthnCapnpClient(context.Background(), conn)
-		defer authnService.Release()
-		userAuthn, err = authnService.CapUserAuthn(ctx, serviceName)
-	}
 	// need certs but not authn
 	if err == nil {
 		//resolverPath := path.Join(f.Run, resolver.ServiceName+".socket")
 		resolverPath := resolver.DefaultResolverPath
-		svc = service.NewGatewayService(resolverPath, userAuthn)
+		// get the authn service from the resolver when needed
+		svc = service.NewGatewayService(resolverPath, nil)
 	}
 	err = svc.Start()
 	if err != nil {
@@ -83,7 +68,7 @@ func main() {
 		logrus.Infof("Listening requiring TLS")
 	}
 
-	// optionally serve websockets
+	// serve for websocket connections
 	if !cfg.NoWS {
 		lisWS, err = listener.CreateListener(cfg.WSAddress, cfg.NoTLS, serverCert, caCert)
 		if err == nil {
@@ -94,10 +79,11 @@ func main() {
 		}
 	}
 
-	// always listen on tcp
+	// listen from TCP connections
 	if err == nil {
 		lisTcp, err = listener.CreateListener(cfg.Address, cfg.NoTLS, serverCert, caCert)
 		if err == nil {
+			// this blocks until done
 			err = capnpserver.StartGatewayCapnpServer(svc, lisTcp, "")
 		}
 	}
@@ -151,7 +137,7 @@ func RenewServiceCerts(serviceID string, keys *ecdsa.PrivateKey, socketFolder st
 		return nil, nil, err
 	} else {
 		cs := capnpclient.NewCertServiceCapnpClient(csConn)
-		capServiceCert, err = cs.CapServiceCerts(ctx, hubapi.ClientTypeService)
+		capServiceCert, err = cs.CapServiceCerts(ctx, hubapi.AuthTypeService)
 		_ = err
 	}
 	svcPEM, caPEM, err := capServiceCert.CreateServiceCert(ctx, serviceID, pubKeyPEM, names, 0)
