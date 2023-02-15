@@ -63,13 +63,13 @@ func HandleSubTD(ctx context.Context, f svcconfig.AppFolders) error {
 		//fmt.Printf("%s\n", event.ValueJSON)
 		err = json.Unmarshal(event.ValueJSON, &td)
 
-		//createdTime, _ := dateparse.ParseAny(td.Modified)
-		//timeStr := createdTime.Format("15:04:05.000")
-		fmt.Printf("%-16s %-20s %-25s %-15s\n",
-			td.Modified, event.PublisherID, event.ThingID, td.DeviceType)
+		createdTime, _ := dateparse.ParseAny(td.Modified)                  // can be in any TZ
+		timeStr := createdTime.In(time.Local).Format("15:04:05.000 -0700") // want local time
+		fmt.Printf("%-18s %-20s %-25s %-15s\n",
+			timeStr, event.PublisherID, event.ThingID, td.DeviceType)
 	})
-	fmt.Printf("Created          Publisher            ThingID                   Type            \n")
-	fmt.Printf("---------------  -------------------  ------------------------  --------------  \n")
+	fmt.Printf("Created            Publisher            ThingID                   Type            \n")
+	fmt.Printf("-----------------  -------------------  ------------------------  --------------  \n")
 
 	if err != nil {
 		return err

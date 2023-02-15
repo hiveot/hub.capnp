@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/araddon/dateparse"
-	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 
 	"github.com/hiveot/hub/lib/hubclient"
@@ -61,17 +61,21 @@ func HandleListDirectory(ctx context.Context, f svcconfig.AppFolders, limit int,
 	}
 	for ; valid && i < limit; tv, valid = cursor.Next() {
 		err = json.Unmarshal(tv.ValueJSON, &tdDoc)
-
-		utime, err := dateparse.ParseAny(tdDoc.Modified)
-		if err != nil {
-			logrus.Infof("Parsing time failed '%s': %s", tdDoc.Modified, err)
+		var utime time.Time
+		if tdDoc.Modified != "" {
+			utime, err = dateparse.ParseAny(tdDoc.Modified)
+		} else if tdDoc.Created != "" {
+			utime, err = dateparse.ParseAny(tdDoc.Created)
 		}
+		timeStr := utime.In(time.Local).Format("02 Jan 2006 15:04:05 -0700")
+		//if err != nil {
+		//	logrus.Infof("Parsing time failed '%s': %s", tdDoc.Modified, err)
+		//}
 
 		fmt.Printf("%-15s %-20s %-30s %-15s %8d %8d %8d\n",
 			tv.PublisherID,
 			tdDoc.ID,
-			//tdDoc.Modified,
-			utime.Format("02 Jan 2006 15:04:05 -0700"),
+			timeStr,
 			tdDoc.DeviceType,
 			len(tdDoc.Properties),
 			len(tdDoc.Events),

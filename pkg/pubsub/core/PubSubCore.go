@@ -56,7 +56,7 @@ func (psc *PubSubCore) findSubscribers(topic string) (subs []*Subscription) {
 // Publish the topic to subscribers
 func (psc *PubSubCore) Publish(publisherID, topic string, message []byte) {
 	subs := psc.findSubscribers(topic)
-	logrus.Infof("publisherID='%s'; topic=%v; %d subscribers", publisherID, topic, len(subs))
+	//logrus.Infof("publisherID='%s'; topic=%v; %d subscribers", publisherID, topic, len(subs))
 	for _, sub := range subs {
 		sub.handler(topic, message)
 	}
