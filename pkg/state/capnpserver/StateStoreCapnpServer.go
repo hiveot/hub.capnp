@@ -6,14 +6,14 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/pkg/resolver/capprovider"
 	"github.com/hiveot/hub/pkg/state"
 )
 
 // StateStoreCapnpServer provides the capnp RPC server for state store
 // This implements the capnproto generated interface State_Server
-// See hub.capnp/go/hubapi/State.capnp.go for the interface.
+// See hub/api/go/hubapi/State.capnp.go for the interface.
 type StateStoreCapnpServer struct {
 	svc state.IStateService
 }

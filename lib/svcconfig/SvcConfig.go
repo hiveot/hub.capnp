@@ -7,7 +7,7 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/lib/certsclient"
 	"github.com/hiveot/hub/lib/logging"
 )

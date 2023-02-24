@@ -6,14 +6,14 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/pkg/provisioning"
 	"github.com/hiveot/hub/pkg/resolver/capprovider"
 )
 
 // ProvisioningCapnpServer provides the capnproto RPC server for IOT device provisioning.
 // This implements the capnproto generated interface Provisioning_Server
-// See hub.capnp/go/hubapi/Provisioning.capnp.go for the interface.
+// See hub/api/go/hubapi/Provisioning.capnp.go for the interface.
 type ProvisioningCapnpServer struct {
 	// the plain-old-go-object provisioning server
 	svc provisioning.IProvisioning

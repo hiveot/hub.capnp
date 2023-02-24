@@ -10,7 +10,7 @@ import (
 	"errors"
 	"os"
 
-	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/api/go/hubapi"
 )
 
 // Certificate Organization Unit for client certificate based authorization

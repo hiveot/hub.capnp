@@ -7,13 +7,13 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/pkg/certs"
 	"github.com/hiveot/hub/pkg/resolver/capprovider"
 )
 
 // CertsCapnpServer provides the capnpr RPC server for interface hubapi.CapCerts_Server
-// See hub.capnp/go/hubapi/Certs.capnp.go for the interface
+// See hub/api/go/hubapi/Certs.capnp.go for the interface
 type CertsCapnpServer struct {
 	svc certs.ICerts
 }

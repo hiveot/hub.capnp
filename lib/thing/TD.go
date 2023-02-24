@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hiveot/hub.capnp/go/vocab"
+	"github.com/hiveot/hub/api/go/vocab"
 )
 
 // TD contains the Thing Description document

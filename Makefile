@@ -1,5 +1,7 @@
 # Makefile to build and test the HiveOT Hub launcher
 BIN_FOLDER=./dist/bin
+CAPNP_SRC=./api/capnp
+CAPNP_GO=capnp compile "-I$(GOPATH)/src/capnproto.org/go/capnp/std" -ogo:./api/go/ --src-prefix=api/capnp/
 SERVICE_FOLDER=$(BIN_FOLDER)/services
 DIST_FOLDER=./dist
 INSTALL_HOME=~/bin/hiveot
@@ -7,7 +9,29 @@ INSTALL_HOME=~/bin/hiveot
 
 .FORCE: 
 
-all: hubcli launcher services   ## Build all
+all: hubapi hub  ## Build APIs, CLI, Hub services
+
+hub: hubcli launcher services   ## Build hub services and cli
+
+hubapi: hubapi-go  ## Build the hub api for all languages (currently only golang)
+
+hubapi-go: .FORCE  ## Build the golang API from capnp
+	$(CAPNP_GO)  $(CAPNP_SRC)/hubapi/Resolver.capnp
+	$(CAPNP_GO)  $(CAPNP_SRC)/hubapi/Authn.capnp
+	$(CAPNP_GO)  $(CAPNP_SRC)/hubapi/Authz.capnp
+	$(CAPNP_GO)  $(CAPNP_SRC)/hubapi/Bucket.capnp
+	$(CAPNP_GO)  $(CAPNP_SRC)/hubapi/Certs.capnp
+	$(CAPNP_GO)  $(CAPNP_SRC)/hubapi/Directory.capnp
+	$(CAPNP_GO)  $(CAPNP_SRC)/hubapi/Gateway.capnp
+	$(CAPNP_GO)  $(CAPNP_SRC)/hubapi/History.capnp
+	$(CAPNP_GO)  $(CAPNP_SRC)/hubapi/Launcher.capnp
+	$(CAPNP_GO)  $(CAPNP_SRC)/hubapi/Provisioning.capnp
+	$(CAPNP_GO)  $(CAPNP_SRC)/hubapi/PubSub.capnp
+	$(CAPNP_GO)  $(CAPNP_SRC)/hubapi/State.capnp
+	$(CAPNP_GO)  $(CAPNP_SRC)/hubapi/Thing.capnp
+	$(CAPNP_GO)  $(CAPNP_SRC)/vocab/HiveVocabulary.capnp
+	$(CAPNP_GO)  $(CAPNP_SRC)/vocab/WoTVocabulary.capnp
+	go mod tidy
 
 services: authn authz certs directory gateway history provisioning pubsub resolver state ## Build all services
 
@@ -64,7 +88,7 @@ clean: ## Clean distribution files
 help: ## Show this help
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-install:  all ## build and install the services
+install:  hub  ## build and install the services
 	mkdir -p $(INSTALL_HOME)/bin
 	mkdir -p $(INSTALL_HOME)/bin/services
 	mkdir -p $(INSTALL_HOME)/certs
@@ -76,7 +100,7 @@ install:  all ## build and install the services
 	cp -a $(SERVICE_FOLDER)/* $(INSTALL_HOME)/bin/services
 	cp -n $(DIST_FOLDER)/config/* $(INSTALL_HOME)/config/
 
-test: all  ## Run tests (stop on first error, don't run parallel)
+test: hub  ## Run tests (stop on first error, don't run parallel)
 	go test -race -failfast -p 1 ./...
 
 upgrade:

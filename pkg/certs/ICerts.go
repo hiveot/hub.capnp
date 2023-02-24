@@ -5,7 +5,7 @@ package certs
 import (
 	"context"
 
-	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/api/go/hubapi"
 )
 
 // DefaultServiceCertValidityDays with validity of generated service certificates

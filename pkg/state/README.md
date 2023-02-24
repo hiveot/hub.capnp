@@ -20,7 +20,7 @@ The state service is intended for a relatively small amount of state data. Perfo
 The service is intended to be started by the launcher. For testing purposes a manual startup is also possible. In this case the configuration file can be specified using the -c commandline option.
 
 The service API is defined with capnproto IDL at:
-> github.com/hiveot/hub.capnp/hubapi/state.capnp
+> github.com/hiveot/hub/api/hubapi/state.capnp
 
 A goland interface can be found at:
 > github.com/hiveot/hub/pkg/state/IStateStore

@@ -10,7 +10,7 @@ import (
 	"capnproto.org/go/capnp/v3/server"
 	"github.com/sirupsen/logrus"
 
-	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/pkg/authn"
 	capnpclient2 "github.com/hiveot/hub/pkg/authn/capnpclient"
 	"github.com/hiveot/hub/pkg/gateway"

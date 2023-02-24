@@ -9,7 +9,7 @@ import (
 	"github.com/araddon/dateparse"
 	"github.com/urfave/cli/v2"
 
-	"github.com/hiveot/hub.capnp/go/vocab"
+	"github.com/hiveot/hub/api/go/vocab"
 	"github.com/hiveot/hub/lib/hubclient"
 	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/lib/thing"

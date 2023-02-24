@@ -6,14 +6,14 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/pkg/history"
 	"github.com/hiveot/hub/pkg/resolver/capprovider"
 )
 
 // HistoryServiceCapnpServer is a capnproto adapter for the history store
 // This implements the capnproto generated interface History_Server
-// See hub.capnp/go/hubapi/HistoryStore.capnp.go for the interface.
+// See hub/api/go/hubapi/HistoryStore.capnp.go for the interface.
 type HistoryServiceCapnpServer struct {
 	svc history.IHistoryService
 }

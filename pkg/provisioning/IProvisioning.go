@@ -3,7 +3,7 @@ package provisioning
 import (
 	"context"
 
-	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/api/go/hubapi"
 )
 
 // ServiceName is the name of the store for socket connection and logging

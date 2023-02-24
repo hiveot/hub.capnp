@@ -18,7 +18,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"gopkg.in/fsnotify.v1"
 
-	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/pkg/resolver"
 	"github.com/hiveot/hub/pkg/resolver/capserializer"
 )

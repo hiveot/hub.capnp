@@ -103,7 +103,7 @@ The Hub CLI provides a commandline interface for managing certificates. For more
 > hubcli certs -h
 
 The service API is defined with capnproto IDL at:
-> github.com/hiveot/hub.capnp/capnp/hubapi/certs.capnp
+> github.com/hiveot/hub/api/capnp/hubapi/certs.capnp
 
 A golang interface at:
 > github.com/hiveot/hub/pkg/certs/ICerts

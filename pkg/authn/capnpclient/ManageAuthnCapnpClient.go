@@ -5,7 +5,7 @@ import (
 
 	"capnproto.org/go/capnp/v3/rpc"
 
-	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/pkg/authn"
 	"github.com/hiveot/hub/pkg/authn/capserializer"
 )

@@ -6,7 +6,7 @@ import (
 
 	"github.com/hiveot/hub/lib/thing"
 
-	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/api/go/hubapi"
 )
 
 // UnmarshalThingValue deserializes a ThingValue object from capnp

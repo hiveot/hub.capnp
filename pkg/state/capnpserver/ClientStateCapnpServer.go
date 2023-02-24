@@ -3,7 +3,7 @@ package capnpserver
 import (
 	"context"
 
-	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/lib/caphelp"
 	"github.com/hiveot/hub/pkg/bucketstore/capnpserver"
 	"github.com/hiveot/hub/pkg/state"
@@ -11,7 +11,7 @@ import (
 
 // ClientStateCapnpServer provides the capnp RPC server for state store
 // This implements the capnproto generated interface ClientState_Server
-// See hub.capnp/go/hubapi/State.capnp.go for the interface.
+// See hub/api/go/hubapi/State.capnp.go for the interface.
 type ClientStateCapnpServer struct {
 	srv state.IClientState
 }

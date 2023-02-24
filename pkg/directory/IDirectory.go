@@ -5,7 +5,7 @@ package directory
 import (
 	"context"
 
-	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/lib/thing"
 )
 

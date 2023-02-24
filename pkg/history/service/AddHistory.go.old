@@ -9,7 +9,7 @@ import (
 	"github.com/araddon/dateparse"
 	"github.com/sirupsen/logrus"
 
-	"github.com/hiveot/hub.capnp/go/vocab"
+	"github.com/hiveot/hub/api/go/vocab"
 	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/bucketstore"
 )

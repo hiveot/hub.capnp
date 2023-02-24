@@ -6,14 +6,14 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/pkg/authn"
 	"github.com/hiveot/hub/pkg/resolver/capprovider"
 )
 
 // AuthnCapnpServer provides the capnp RPC server for authentication services
 // This implements the capnproto generated interface Authn_Server
-// See hub.capnp/go/hubapi/Authn.capnp.go for the interface.
+// See hub/api/go/hubapi/Authn.capnp.go for the interface.
 type AuthnCapnpServer struct {
 	svc authn.IAuthnService
 }

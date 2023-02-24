@@ -13,7 +13,7 @@ import (
 
 	"github.com/hiveot/hub/lib/testsvc"
 
-	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/api/go/hubapi"
 )
 
 // BenchmarkRPC determines the time it takes for a direct and indirect call to the test service

@@ -15,7 +15,7 @@ import (
 	"github.com/hiveot/hub/lib/testsvc"
 	"github.com/hiveot/hub/pkg/resolver/capnpclient"
 
-	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/lib/logging"
 	"github.com/hiveot/hub/pkg/resolver"
 	"github.com/hiveot/hub/pkg/resolver/capnpserver"

@@ -58,7 +58,7 @@ The Hub CLI provides a commandline interface for viewing the directory. For more
 
 
 The service API is defined with capnproto IDL at:
-> github.com/hiveot/hub.capnp/capnp/hubapi/directory.capnp
+> github.com/hiveot/hub/api/capnp/hubapi/directory.capnp
 
 A golang interface at:
 > github.com/hiveot/hub/pkg/directory/IDirectory

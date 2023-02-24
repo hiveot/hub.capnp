@@ -6,8 +6,8 @@ communication.
 
 ## Project Status
 
-THIS PROJECT IS NOT READY FOR USE AND HEAVILY IN DEVELOPMENT
-ONCE ALPHA IS REACHED IT WILL BE FUNCTIONAL BUT LIMITED
+THIS PROJECT IS NOT READY FOR USE AND HEAVILY IN DEVELOPMENT. 
+ONCE ALPHA IS REACHED IT WILL BE FUNCTIONAL BUT APIs ARE STILL SUBJECT TO CHANGE.
 
 Status: The status of the Hub is pre-alpha. Closing in on alpha.
 
@@ -24,28 +24,30 @@ Core micro-services of the Hub
 - authn         user authentication management
 - authz         user authorization of capabilities
 - gateway       single entry point to obtain service capabilities for remote clients
-                added websocket support for Node clients and web browsers
+                websocket support for Node clients and web browsers
 - state         easy to use persistance of state for services
 - provisioning  automated provisioning of IoT devices using certificate authentication
 ```
 Bindings for the Hub
 ```
 - owserver      1-wire binding
-- zwave [in progress - needs websocket support]
+- zwavejs       Z-Wave support using node-zwavejs [in progress]
 ```
 
 Todo in order to reach Alpha:
 ```
 - http jwt auth
   - http JWT token authentication
-- basic web client
-  - vue3, svelvte, templates? using SSR? with JS capnp?
+- basic web client:
+  - use one of: vue3, svelvte, templates? using SSR? with JS capnp?
   - login page
   - accounts page list publishers and device Things
   - subscribe to device updates
   - dashboard with text cards
-- 3 bindings
-  - isy99 Insteon binding (legacy protocol)
+- 3 bindings:
+  - owserver 1-wire (done)
+  - zwave (in progress)
+  - isy99 Insteon binding (legacy protocol, for consideration)
 - update documentation
   - git readme and github landing page
 
@@ -91,11 +93,11 @@ This security objective is supported by not allowing direct access to IoT device
 
 > The HiveOT mandate is: 'Things Do Not Run (TCP) Servers'.
 
-When IoT devices don't run TCP servers they cannot be connected to. This removes a broad attack surface. Instead IoT devices connect to the hub using standard protocols for provisioning, publishing events, and subscribing to actions.
+When IoT devices don't run TCP servers they cannot be connected to. This removes a broad attack surface. Instead, IoT devices connect to the hub using standard protocols for provisioning, publishing events, and subscribing to actions.
 
 2. The secondary objective is to simplify development of IoT devices for the web of things. 
 
-The HiveOT Hub supports this objective by handling authentication, authorization, logging, tracing, persistence, rate limiting, resiliency and user interface. The IoT device only has to send the TD of things it has on board, submit events for changes, and accept actions by subscribing to the Hub.
+The HiveOT Hub supports this objective by handling authentication, authorization, logging, tracing, persistence, rate limiting, resiliency and user interface. The IoT device only has to send the TD document describing the things it has on board, submit events for changes, and accept actions by subscribing to the Hub.
 
 3. The third objective is to follow the WoT and other open standard where possible.
 
@@ -127,66 +129,67 @@ Since the Hub acts as the intermediary, it is responsible for features such as a
 Last but not least, the 'hive' can be expanded by connecting hubs to each other through a 'bridge'. The bridge lets the Hub owner share select IoT information with other hubs.
 
 
-## Installation
+## Build From Source
 
-Before installation, either download binaries, if available, or build from source as described below. 
-
-### Build From Source
-
-To build the core and bundled plugins from source, a Linux system with golang and make tools must be available on the target system. 3rd party plugins are out of scope for these instructions and can require nodejs, python and golang.
+To build the hub and bindings from source, a Linux system with golang and make tools must be available on the target system. 3rd party plugins are out of scope for these instructions and can require nodejs, python and golang.
 
 Prerequisites:
 
-1. A Linux based system 
+1. An x86 or arm based Linuxsystem. Ubuntu, Debian, Raspberrian 
 2. Golang 1.19 or newer
-3. GCC Make
-4. Cap'n proto tools
+3. GCC Make any 2020+ version
+4. Cap'n proto v0.8 or newer: https://capnproto.org/install.html (only when rebuilding the API)
 5. tsc (typescript compiler) for javascript bindings
 
-Build from source (tentative):
 
+### Build Hub Services And CLI
+
+1. Download source code:
 ```sh
-# install capnproto tools for go
+git clone git@github.com:hiveot/hub
+cd hub
+``` 
+2. Install capnp tools
+```sh
+sudo apt get install capnproto (for Ubuntu) 
 go install capnproto.org/go/capnp/v3/capnpc-go@latest
 GO111MODULE=off go get -u capnproto.org/go/capnp/v3/
-git clone https://github.com/hiveot/hub
-cd hub
-make all
+```
+3. Build the hub
+```sh
+make hub
 ```
 
-After the build is complete, the distribution files can be found in the 'dist' folder.
-The makefile also support a quick install for the current user:
+After the build is successful, the distribution files can be found in the 'dist' folder.
 
-### Local Installation 
+### Build Bindings
 
-To install and run the Hub as a dedicated user.
+See the README of the bindings repository. 
+In short:
+```bash
+git clone https://github.com/hiveot/bindings
+cd {plugin}
+make all 
+```
 
-After building from source:
+## Install To User 
+
+To install and run the Hub as the current user to ~/bin/hiveot.
+
 ```sh
 make install
 ```
 
 This copies the distribution files to ~/bin/hiveot. The method can also be used to upgrade an existing installation. Executables are always replaced but only new configuration files are installed. Existing configuration remains untouched to prevent wrecking your working setup.
 
-Additional plugins are built similarly:
 
-```bash
-$ git clone https://github.com/hiveot/bindings
-$ cd {plugin}
-$ make all 
-$ make install                    (to install as user to ~/bin/hiveot/...)
-```
-
-#### Create a user
-1. Create a user, for example a 'hiveot' user. Login as that user.
-2. Download the source, eg git clone http://github.com/hiveot/hub
-3. make all
-4. make install
-
-This installs the Hub into the ~/bin/hiveot directory.
+### Uninstall:
+To uninstall simply remove the ~/bin/hiveot folder.
 
 
-#### Install To System (tenative)
+## Install To System (tenative)
+
+While it is a bit early to install hiveot as a system application, this is how it could work:
 
 For systemd installation to run as user 'hiveot'. When changing the user and folders make sure to edit the init/hiveot.service file accordingly. From the dist folder run:
 
@@ -219,42 +222,39 @@ sudo chown -R hiveot:hiveot /var/log/hiveot
 sudo chown -R hiveot:hiveot /var/lib/hiveot
 ```
 
+## Docker Installation
+
+This is planned for the future with the beta release.
 
 ## Configuration
 
 All Hub services will run out of the box with their default configuration. Service can use an optional yaml based configuration file found in the config folder.
 
-Before starting the hub, a CA certificate must be created. By default the hub uses a self-signed CA certificate. It is possible to use a CA certificate from a 3rd party source, but this isn't needed as the certificates are used for client authentication, not for domain verification.
+### Generate a CA certificate
+Before starting the hub, a CA certificate must be created. By default, the hub uses a self-signed CA certificate. It is possible to use a CA certificate from a 3rd party source, but this isn't needed as the certificates are used for client authentication, not for domain verification.
 
 Generate the CA certificate using the CLI:
 
 ```sh
-cd ~/bin/hiveot
-bin/hubcli ca create   
+cd ~/bin/hiveot        # when installed locally
+bin/hubcli ca create   # or simply "hubcli ca create" when the path is set 
 ```
 
+### Service Autostart Configuration
 To configure autostart of services edit the provided launcher.yaml and add the services to the autostart section.
 > vi config/launcher.yaml
 
-## Launching
+### Systemd Configuration
 
-To start manually when installed as a user, run:
+Automatic startup after boot is supported through a systemd service. This can be used when installed system wide or as a user. 
+
 
 ```shell
-~/bin/hiveot/bin/launcher&
-```
-
-The launcher automatically scans the plugin/services in the services folder. In order to autostart services on start of the launcher, add them to the 'autostart' section of the config/launcher.yaml configuration file. 
-
-
-Automatic startup after boot is supported through a system.d service:
-
-```shell
-sudo cp init/hiveot.service /etc/systemd/system
-sudo vi /etc/systmd/system/hiveot.service      (edit user, group and working directories)
+vi init/hivehub.service    #  (edit user, group, paths)
+sudo cp init/hivehub.service /etc/systemd/system
 sudo systemctl daemon-reload
-sudo systemctl enable hiveot
-sudo systemctl start hiveot
+sudo systemctl enable hivehub
+sudo systemctl start hivehub
 ```
 
 Once running, the running services can be viewed using the hub cli:
@@ -267,8 +267,7 @@ To stop or start a service:
 
 # Contributing
 
-
-Contributions to HiveOT projects are always welcome. There are many areas where help is needed, especially with documentation and building plugins for IoT and other devices. See [CONTRIBUTING](CONTRIBUTING.md) for guidelines.
+Contributions to HiveOT projects are always welcome. There are many areas where help is needed, especially with documentation, testing and building bindings for IoT and other devices. See [CONTRIBUTING](CONTRIBUTING.md) for guidelines.
 
 # Credits
 

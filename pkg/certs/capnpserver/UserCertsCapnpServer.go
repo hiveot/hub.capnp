@@ -4,12 +4,12 @@ package capnpserver
 import (
 	"context"
 
-	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/pkg/certs"
 )
 
 // UserCertsCapnpServer provides the capnpr RPC server for user certificates
-// See hub.capnp/go/hubapi/Cert.capnp.go for the interface
+// See hub/api/go/hubapi/Cert.capnp.go for the interface
 type UserCertsCapnpServer struct {
 	srv certs.IUserCerts
 }

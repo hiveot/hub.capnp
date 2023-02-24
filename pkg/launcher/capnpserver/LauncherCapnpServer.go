@@ -6,7 +6,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/hiveot/hub.capnp/go/hubapi"
+	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/pkg/launcher"
 	"github.com/hiveot/hub/pkg/launcher/capserializer"
 	"github.com/hiveot/hub/pkg/resolver/capprovider"
@@ -14,7 +14,7 @@ import (
 
 // LauncherCapnpServer provides the capnproto RPC server for the service launcher
 // This implements the capnproto generated interface Launcher_Server
-// See hub.capnp/go/hubapi/launcher.capnp.go for the interface.
+// See hub/api/go/hubapi/launcher.capnp.go for the interface.
 type LauncherCapnpServer struct {
 	svc launcher.ILauncher
 }

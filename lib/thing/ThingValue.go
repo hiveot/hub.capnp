@@ -3,7 +3,7 @@ package thing
 import (
 	"time"
 
-	"github.com/hiveot/hub.capnp/go/vocab"
+	"github.com/hiveot/hub/api/go/vocab"
 )
 
 // ThingValue contains an event, action value or TD of a thing
