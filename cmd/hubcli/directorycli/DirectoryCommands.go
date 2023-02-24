@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/hiveot/hub/lib/utils"
 	"time"
 
 	"github.com/araddon/dateparse"
@@ -16,20 +17,44 @@ import (
 	"github.com/hiveot/hub/pkg/directory/capnpclient"
 )
 
+const Reset = "\033[0m"
+const Red = "\033[31m"
+const Green = "\033[32m"
+const Yellow = "\033[33m"
+const Blue = "\033[34m"
+const Purple = "\033[35m"
+const Cyan = "\033[36m"
+const Gray = "\033[37m"
+const White = "\033[97m"
+
 func DirectoryListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	var limit = 100
 	var offset = 0
+	var verbose = false
 	return &cli.Command{
-		Name:      "listdir",
+		Name:      "listdir [<publisherID> <thingID> [-v]]",
 		Aliases:   []string{"lid"},
 		Category:  "directory",
 		Usage:     "List directory",
-		UsageText: "List all Things in the directory",
-		Action: func(cCtx *cli.Context) error {
-			if cCtx.NArg() != 0 {
-				return fmt.Errorf("no arguments expected")
+		UsageText: "List all Things or a selected Thing in the directory",
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:        "v",
+				Usage:       "Verbose, display raw json",
+				Value:       false,
+				Destination: &verbose,
+			},
+		}, Action: func(cCtx *cli.Context) error {
+			var err error = fmt.Errorf("expected 0 or 2 parameters")
+			if cCtx.NArg() == 0 {
+				err = HandleListDirectory(ctx, f, limit, offset)
+			} else if cCtx.NArg() == 2 {
+				if !verbose {
+					err = HandleListThing(ctx, f, cCtx.Args().First(), cCtx.Args().Get(1))
+				} else {
+					err = HandleListThingVerbose(ctx, f, cCtx.Args().First(), cCtx.Args().Get(1))
+				}
 			}
-			err := HandleListDirectory(ctx, f, limit, offset)
 			return err
 		},
 	}
@@ -51,8 +76,8 @@ func HandleListDirectory(ctx context.Context, f svcconfig.AppFolders, limit int,
 	}
 
 	cursor := rd.Cursor(ctx)
-	fmt.Println("PublisherID    Thing ID              Modified                       type            nr props   events  actions")
-	fmt.Println("-----------    ---------------       --------                       ----            --------   ------  -------")
+	fmt.Println("Publisher ID    Thing ID             Title                          Type                   #props  #events #actions  Modified         ")
+	fmt.Println("-------------   -------------------  -----------------------------  --------------------   ------  ------- --------  --------------------------")
 	i := 0
 	tv, valid := cursor.First()
 	if offset > 0 {
@@ -68,19 +93,98 @@ func HandleListDirectory(ctx context.Context, f svcconfig.AppFolders, limit int,
 			utime, err = dateparse.ParseAny(tdDoc.Created)
 		}
 		timeStr := utime.In(time.Local).Format("02 Jan 2006 15:04:05 -0700")
-		//if err != nil {
-		//	logrus.Infof("Parsing time failed '%s': %s", tdDoc.Modified, err)
-		//}
 
-		fmt.Printf("%-15s %-20s %-30s %-15s %8d %8d %8d\n",
+		fmt.Printf("%-15s %-20s %-30s %-20s %7d  %7d  %7d   %-30s\n",
 			tv.PublisherID,
 			tdDoc.ID,
-			timeStr,
-			tdDoc.DeviceType,
+			tdDoc.Title,
+			tdDoc.AtType,
 			len(tdDoc.Properties),
 			len(tdDoc.Events),
 			len(tdDoc.Actions),
+			timeStr,
 		)
 	}
 	return nil
+}
+
+// HandleListThing lists a Thing in the directory
+func HandleListThing(ctx context.Context, f svcconfig.AppFolders, pubID, thingID string) error {
+	var dir directory.IDirectory
+	var rd directory.IReadDirectory
+	var tdDoc thing.TD
+
+	conn, err := hubclient.ConnectToService(directory.ServiceName, f.Run)
+	if err == nil {
+		dir = capnpclient.NewDirectoryCapnpClient(ctx, conn)
+		rd, err = dir.CapReadDirectory(ctx, "hubcli")
+	}
+	if err != nil {
+		return err
+	}
+	tv, err := rd.GetTD(ctx, pubID, thingID)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(tv.ValueJSON, &tdDoc)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%sTD of %s %s:%s\n", Blue, pubID, thingID, Reset)
+	fmt.Printf(" title:       %s\n", tdDoc.Title)
+	fmt.Printf(" description: %s\n", tdDoc.Description)
+	fmt.Printf(" deviceType:  %s\n", tdDoc.AtType)
+	fmt.Printf(" modified:    %s\n", tdDoc.Modified)
+	fmt.Println("")
+
+	fmt.Println("Properties:")
+	fmt.Println(" ID                             Title                                    DataType   Default    Initial Value   ReadOnly   WriteOnly  Description")
+	fmt.Println(" -----------------------------  ---------------------------------------  ---------  ---------  --------------  --------   ---------  -----------")
+
+	keys := utils.OrderedMapKeys(tdDoc.Properties)
+	for _, key := range keys {
+		prop := tdDoc.Properties[key]
+		fmt.Printf(" %-30.30s %-40.40s %-10s %-10v %-15.15v %-10v %-10v %-20.20s\n", key, prop.Title, prop.Type, prop.Default, prop.InitialValue, prop.ReadOnly, prop.WriteOnly, prop.Description)
+	}
+
+	fmt.Println("\nEvents:")
+	fmt.Println(" ID                             Title                                    Type       Description")
+	fmt.Println(" -----------------------------  ---------------------------------------  ---------  -----------")
+	keys = utils.OrderedMapKeys(tdDoc.Events)
+	for _, key := range keys {
+		ev := tdDoc.Events[key]
+		fmt.Printf(" %-30s %-40s %-10s %s\n", key, ev.Title, ev.AtType, ev.Description)
+	}
+
+	fmt.Println("\nActions:")
+	fmt.Println(" ID                             Title                                    Type       Description")
+	fmt.Println(" -----------------------------  ---------------------------------------  ---------  -----------")
+	keys = utils.OrderedMapKeys(tdDoc.Actions)
+	for _, key := range keys {
+		action := tdDoc.Actions[key]
+		fmt.Printf(" %-30s %-40s %-10s %s \n", key, action.Title, action.AtType, action.Description)
+	}
+	return err
+}
+
+// HandleListThingVerbose lists a Thing in the directory
+func HandleListThingVerbose(ctx context.Context, f svcconfig.AppFolders, pubID, thingID string) error {
+	var dir directory.IDirectory
+	var rd directory.IReadDirectory
+
+	conn, err := hubclient.ConnectToService(directory.ServiceName, f.Run)
+	if err == nil {
+		dir = capnpclient.NewDirectoryCapnpClient(ctx, conn)
+		rd, err = dir.CapReadDirectory(ctx, "hubcli")
+	}
+	if err != nil {
+		return err
+	}
+	tv, err := rd.GetTD(ctx, pubID, thingID)
+	if err != nil {
+		return err
+	}
+	fmt.Println("TD of", pubID, thingID)
+	fmt.Printf("%s\n", tv.ValueJSON)
+	return err
 }

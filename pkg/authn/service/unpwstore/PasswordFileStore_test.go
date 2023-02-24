@@ -221,7 +221,7 @@ func TestConcurrentReadWrite(t *testing.T) {
 	}()
 	wg.Wait()
 	// time to catch up the file watcher debouncing
-	time.Sleep(time.Second * 2)
+	time.Sleep(time.Second * 3)
 
 	// both stores should be fully up to date
 	assert.Equal(t, i, pwStore1.Count())

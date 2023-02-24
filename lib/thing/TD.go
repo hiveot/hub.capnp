@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	vocab "github.com/hiveot/hub.capnp/go/vocab"
+	"github.com/hiveot/hub.capnp/go/vocab"
 )
 
 // TD contains the Thing Description document
@@ -27,8 +27,8 @@ type TD struct {
 
 	// JSON-LD keyword to label the object with semantic tags (or types).
 	// in HiveOT this contains the device type defined in the vocabulary
-	DeviceType string `json:"@type,omitempty"`
-	AtTypes    string `json:"@types,omitempty"`
+	AtType  string `json:"@type,omitempty"`
+	AtTypes string `json:"@types,omitempty"`
 
 	// base: Define the base URI that is used for all relative URI references throughout a TD document.
 	Base string `json:"base,omitempty"`
@@ -94,12 +94,16 @@ type TD struct {
 // AddAction provides a simple way to add an action affordance Schema to the TD
 // This returns the action affordance that can be augmented/modified directly
 //
-// name is the name under which it is stored in the action affordance map. Any existing name will be replaced.
+// name is the action name instance under which it is stored in the action affordance map.
+//
+//	in case of multiple instances append the instance ID to the name and set AtType to the actual action type.
+//
 // title is the title used in the action. It is okay to use name if not sure.
 // dataType is the type of data the action holds, WoTDataTypeNumber, ..Object, ..Array, ..String, ..Integer, ..Boolean or null
 func (tdoc *TD) AddAction(name string, title string, dataType string) *ActionAffordance {
 	actionAff := &ActionAffordance{
-		Title: title,
+		AtType: name,
+		Title:  title,
 		Input: DataSchema{
 			Title:    title,
 			Type:     dataType,
@@ -120,6 +124,7 @@ func (tdoc *TD) AddAction(name string, title string, dataType string) *ActionAff
 func (tdoc *TD) AddProperty(name string, title string, dataType string) *PropertyAffordance {
 	prop := &PropertyAffordance{
 		DataSchema: DataSchema{
+			AtType:   name,
 			Title:    title,
 			Type:     dataType,
 			ReadOnly: true,
@@ -132,12 +137,16 @@ func (tdoc *TD) AddProperty(name string, title string, dataType string) *Propert
 // AddEvent provides a simple way to add an event to the TD
 // This returns the event affordance that can be augmented/modified directly
 //
-// name is the name under which it is stored in the property affordance map. Any existing name will be replaced.
+// name is the event name instance under which it is stored in the affordance map.
+//
+//	in case of multiple instances append the instance ID to the name and set AtType to the actual event type.
+//
 // title is the title used in the event. It is okay to use name if not sure.
 // dataType is the type of data the event holds, WoTDataTypeNumber, ..Object, ..Array, ..String, ..Integer, ..Boolean or null
 func (tdoc *TD) AddEvent(name string, title string, dataType string) *EventAffordance {
 	evAff := &EventAffordance{
-		Title: title,
+		AtType: name,
+		Title:  title,
 		Data: DataSchema{
 			Title:    title,
 			Type:     dataType,
@@ -302,7 +311,7 @@ func NewTD(thingID string, title string, deviceType string) *TD {
 	// TODO @type is a JSON-LD keyword to label using semantic tags, eg it needs a Schema
 	if deviceType != "" {
 		// deviceType must be a string for serialization and querying
-		td.DeviceType = string(deviceType)
+		td.AtType = deviceType
 	}
 	return &td
 }

@@ -3,7 +3,7 @@ module github.com/hiveot/hub
 go 1.19
 
 require (
-	capnproto.org/go/capnp/v3 v3.0.0-alpha.23
+	capnproto.org/go/capnp/v3 v3.0.0-alpha.24
 	github.com/alexedwards/argon2id v0.0.0-20211130144151-3585854a6387
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
 	github.com/cockroachdb/pebble v0.0.0-20230201230940-fcc9067e90e2
@@ -39,6 +39,7 @@ require (
 	github.com/cockroachdb/redact v1.1.3 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/getsentry/sentry-go v0.17.0 // indirect
 	github.com/gobwas/httphead v0.1.0 // indirect
 	github.com/gobwas/pool v0.2.1 // indirect

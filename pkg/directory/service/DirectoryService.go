@@ -75,7 +75,7 @@ func (svc *DirectoryService) Start(ctx context.Context) error {
 		myTDJSON, _ := json.Marshal(myTD)
 		if svc.servicePubSub != nil {
 			// publish the TD
-			err = svc.servicePubSub.PubTD(ctx, svc.serviceID, myTD.DeviceType, myTDJSON)
+			err = svc.servicePubSub.PubTD(ctx, svc.serviceID, myTD.AtType, myTDJSON)
 		} else {
 			// no pubsub, so store the TD
 			ud, err2 := svc.CapUpdateDirectory(ctx, directory.ServiceName)

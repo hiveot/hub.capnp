@@ -63,13 +63,13 @@ func HandleSubTD(ctx context.Context, f svcconfig.AppFolders) error {
 		//fmt.Printf("%s\n", event.ValueJSON)
 		err = json.Unmarshal(event.ValueJSON, &td)
 
-		createdTime, _ := dateparse.ParseAny(td.Modified)                  // can be in any TZ
-		timeStr := createdTime.In(time.Local).Format("15:04:05.000 -0700") // want local time
-		fmt.Printf("%-18s %-20s %-25s %-15s\n",
-			timeStr, event.PublisherID, event.ThingID, td.DeviceType)
+		modifiedTime, _ := dateparse.ParseAny(td.Modified)                  // can be in any TZ
+		timeStr := modifiedTime.In(time.Local).Format("15:04:05.000 -0700") // want local time
+		fmt.Printf("%-20s %-25s %-20s %-20s %-18s\n",
+			event.PublisherID, event.ThingID, td.Title, td.AtType, timeStr)
 	})
-	fmt.Printf("Created            Publisher            ThingID                   Type            \n")
-	fmt.Printf("-----------------  -------------------  ------------------------  --------------  \n")
+	fmt.Printf("Publisher ID         Thing ID                  Title                Type                 Modified          \n")
+	fmt.Printf("-------------------  ------------------------  -------------------  -------------------  ------------------\n")
 
 	if err != nil {
 		return err
@@ -89,8 +89,8 @@ func HandleSubEvents(ctx context.Context, f svcconfig.AppFolders) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Time             Publisher            ThingID                   Name                 Value\n")
-	fmt.Printf("---------------  -------------------  ------------------------  -------------------  ---------\n")
+	fmt.Printf("Time             Publisher            ThingID                   PropID                         Value\n")
+	fmt.Printf("---------------  -------------------  ------------------------  -----------------------------  ---------\n")
 
 	pubSubUser, _ := pubSubSvc.CapUserPubSub(ctx, "hubcli")
 	err = pubSubUser.SubEvent(ctx, "", "", "", func(event *thing.ThingValue) {
@@ -103,7 +103,7 @@ func HandleSubEvents(ctx context.Context, f svcconfig.AppFolders) error {
 			value = fmt.Sprintf("(%d): %s", len(props), props)
 		}
 
-		fmt.Printf("%-16s %-20s %-25s %-20s %-30s\n",
+		fmt.Printf("%-16s %-20s %-25s %-30s %-30s\n",
 			timeStr, event.PublisherID, event.ThingID, event.Name, value)
 	})
 	if err != nil {

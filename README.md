@@ -127,9 +127,11 @@ Since the Hub acts as the intermediary, it is responsible for features such as a
 Last but not least, the 'hive' can be expanded by connecting hubs to each other through a 'bridge'. The bridge lets the Hub owner share select IoT information with other hubs.
 
 
-## Build
+## Installation
 
-### Quick Build And Install From Source
+Before installation, either download binaries, if available, or build from source as described below. 
+
+### Build From Source
 
 To build the core and bundled plugins from source, a Linux system with golang and make tools must be available on the target system. 3rd party plugins are out of scope for these instructions and can require nodejs, python and golang.
 
@@ -139,6 +141,7 @@ Prerequisites:
 2. Golang 1.19 or newer
 3. GCC Make
 4. Cap'n proto tools
+5. tsc (typescript compiler) for javascript bindings
 
 Build from source (tentative):
 
@@ -154,6 +157,11 @@ make all
 After the build is complete, the distribution files can be found in the 'dist' folder.
 The makefile also support a quick install for the current user:
 
+### Local Installation 
+
+To install and run the Hub as a dedicated user.
+
+After building from source:
 ```sh
 make install
 ```
@@ -163,43 +171,13 @@ This copies the distribution files to ~/bin/hiveot. The method can also be used 
 Additional plugins are built similarly:
 
 ```bash
-$ git clone https://github.com/hiveot/{plugin}
+$ git clone https://github.com/hiveot/bindings
 $ cd {plugin}
 $ make all 
 $ make install                    (to install as user to ~/bin/hiveot/...)
 ```
 
-## Installation (draft)
-
-The Hub is designed to run on Linux based computers. It might be able to work on other platforms but at this stage this is not tested nor a priority.
-
-### System Requirements
-
-The Hub can run on most small to large Intel and Arm based systems.
-
-The minimal requirement for the Hub is 100MB of RAM and an Intel Celeron, or ARMv7 CPU. Additional resources might be required for some add-on services such as a MongoDB database. 
-
-### Install From Package Manager
-
-Installation from package managers is currently not available. Ubuntu and raspberry packages will be made available once the system reaches version 1 stable.  
-
-### Install From Binaries
-
-Binaries are currently not available. They will be made available once the system reaches full Beta.
-
-### Install from Source
-
-
-#### Manual Install As User
-
-Prerequisites:
-1. A linux based system like Ubuntu or Raspberry pi
-2. golang 1.18+
-3. git
-4. make
-
-The Hub can be installed and run as a dedicated user or system user. This section describes to install the Hub in a dedicated user home directory.
-
+#### Create a user
 1. Create a user, for example a 'hiveot' user. Login as that user.
 2. Download the source, eg git clone http://github.com/hiveot/hub
 3. make all
@@ -215,7 +193,7 @@ For systemd installation to run as user 'hiveot'. When changing the user and fol
 1. Create the folders and install the files
 
 ```sh
-sudo mkdir -P /opt/hiveot/services
+sudo mkdir -P /opt/hiveot/services/bindings
 sudo mkdir -P /etc/hiveot/conf.d/ 
 sudo mkdir -P /etc/hiveot/certs/ 
 sudo mkdir /var/log/hiveot/   
@@ -288,6 +266,7 @@ To stop or start a service:
 > hubcli launcher start {serviceName}
 
 # Contributing
+
 
 Contributions to HiveOT projects are always welcome. There are many areas where help is needed, especially with documentation and building plugins for IoT and other devices. See [CONTRIBUTING](CONTRIBUTING.md) for guidelines.
 

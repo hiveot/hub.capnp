@@ -63,7 +63,7 @@ func BenchmarkPubSub(b *testing.B) {
 		var evCount = 0
 		for i := 0; i < tbl.Subscribers; i++ {
 			thingID := thingIDs[rand.Intn(tbl.Things)]
-			name := vocab.PropNameTemperature
+			name := vocab.VocabTemperature
 			err := capUser.SubEvent(ctx, publisherID, thingID, name, func(tv *thing.ThingValue) {
 				//logrus.Infof("received tv thingAddr=%s name=%s", tv.thingAddr, tv.Name)
 				evCount++
@@ -82,7 +82,7 @@ func BenchmarkPubSub(b *testing.B) {
 					// send N events
 					for i := 0; i < tbl.Events; i++ {
 						thingID := thingIDs[rand.Intn(tbl.Things)]
-						name := vocab.PropNameTemperature
+						name := vocab.VocabTemperature
 						value := []byte("2.5")
 						_ = capDevice.PubEvent(ctx, thingID, name, value)
 					}

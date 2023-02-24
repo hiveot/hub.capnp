@@ -66,11 +66,11 @@ func createTD(id string) *thing.TD {
 	td := &thing.TD{
 		ID:         id,
 		Title:      fmt.Sprintf("test TD %s", id),
-		DeviceType: vocab.DeviceTypeSensor,
+		AtType:     vocab.DeviceTypeSensor,
 		Properties: make(map[string]*thing.PropertyAffordance),
 		Events:     make(map[string]*thing.EventAffordance),
 	}
-	td.Properties[vocab.PropNameTitle] = &thing.PropertyAffordance{
+	td.Properties[vocab.VocabTitle] = &thing.PropertyAffordance{
 		DataSchema: thing.DataSchema{
 			Title:       "Sensor title",
 			Description: "This is a smart sensor",
@@ -78,7 +78,7 @@ func createTD(id string) *thing.TD {
 			Default:     "Default value",
 		},
 	}
-	td.Properties[vocab.PropNameSoftwareVersion] = &thing.PropertyAffordance{
+	td.Properties[vocab.VocabSoftwareVersion] = &thing.PropertyAffordance{
 		DataSchema: thing.DataSchema{
 			Title:       "Version",
 			Description: "Embedded firmware",
@@ -87,7 +87,7 @@ func createTD(id string) *thing.TD {
 			Const:       "v1.0",
 		},
 	}
-	td.Events[vocab.PropNameValue] = &thing.EventAffordance{
+	td.Events[vocab.VocabValue] = &thing.EventAffordance{
 		Title:       "Event 1",
 		Description: "Name of this event",
 		Data: thing.DataSchema{
@@ -96,7 +96,7 @@ func createTD(id string) *thing.TD {
 			Title:       "Event name data",
 			Description: "String with friendly name of the event"},
 	}
-	td.Events[vocab.PropNameBattery] = &thing.EventAffordance{
+	td.Events[vocab.VocabBatteryLevel] = &thing.EventAffordance{
 		Title: "Event 2",
 		Data: thing.DataSchema{
 			Type:        vocab.WoTDataTypeInteger,

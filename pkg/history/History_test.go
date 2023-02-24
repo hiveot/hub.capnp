@@ -300,13 +300,13 @@ func TestAddPropertiesEvent(t *testing.T) {
 	action1 := &thing.ThingValue{
 		PublisherID: publisherID,
 		ThingID:     thing1ID,
-		Name:        vocab.PropNameSwitch,
+		Name:        vocab.VocabSwitch,
 		ValueJSON:   []byte("on"),
 	}
 	event1 := &thing.ThingValue{
 		PublisherID: publisherID,
 		ThingID:     thing1ID,
-		Name:        vocab.PropNameTemperature,
+		Name:        vocab.VocabTemperature,
 		ValueJSON:   []byte(temp1),
 	}
 	badEvent1 := &thing.ThingValue{
@@ -331,9 +331,9 @@ func TestAddPropertiesEvent(t *testing.T) {
 		Name:        "temperature",
 	}
 	propsList := make(map[string][]byte)
-	propsList[vocab.PropNameBattery] = []byte("50")
-	propsList[vocab.PropNameCPULevel] = []byte("30")
-	propsList[vocab.PropNameSwitch] = []byte("off")
+	propsList[vocab.VocabBatteryLevel] = []byte("50")
+	propsList[vocab.VocabCPULevel] = []byte("30")
+	propsList[vocab.VocabSwitch] = []byte("off")
 	propsValue, _ := json.Marshal(propsList)
 	props1 := &thing.ThingValue{
 		PublisherID: publisherID,
@@ -367,11 +367,11 @@ func TestAddPropertiesEvent(t *testing.T) {
 	assert.Error(t, err)
 
 	// verify named properties from different sources
-	props := readHist.GetProperties(ctx, []string{vocab.PropNameTemperature, vocab.PropNameSwitch})
+	props := readHist.GetProperties(ctx, []string{vocab.VocabTemperature, vocab.VocabSwitch})
 	assert.Equal(t, 2, len(props))
-	assert.Equal(t, vocab.PropNameTemperature, props[0].Name)
+	assert.Equal(t, vocab.VocabTemperature, props[0].Name)
 	assert.Equal(t, []byte(temp1), props[0].ValueJSON)
-	assert.Equal(t, vocab.PropNameSwitch, props[1].Name)
+	assert.Equal(t, vocab.VocabSwitch, props[1].Name)
 
 	// restart
 	readHist.Release()
@@ -386,11 +386,11 @@ func TestAddPropertiesEvent(t *testing.T) {
 
 	// after closing and reopen the store the properties should still be there
 	readHist, _ = svc.CapReadHistory(ctx, clientID, publisherID, thing1ID)
-	props = readHist.GetProperties(ctx, []string{vocab.PropNameTemperature, vocab.PropNameSwitch})
+	props = readHist.GetProperties(ctx, []string{vocab.VocabTemperature, vocab.VocabSwitch})
 	assert.Equal(t, 2, len(props))
-	assert.Equal(t, props[0].Name, vocab.PropNameTemperature)
+	assert.Equal(t, props[0].Name, vocab.VocabTemperature)
 	assert.Equal(t, props[0].ValueJSON, []byte(temp1))
-	assert.Equal(t, props[1].Name, vocab.PropNameSwitch)
+	assert.Equal(t, props[1].Name, vocab.VocabSwitch)
 	readHist.Release()
 
 	err = svc.Stop()
@@ -595,8 +595,8 @@ func TestPubSub(t *testing.T) {
 	ctx := context.Background()
 	svcConfig := config.NewHistoryConfig(testFolder)
 	svcConfig.Retention = []history.EventRetention{
-		{Name: vocab.PropNameTemperature},
-		{Name: vocab.PropNameBattery},
+		{Name: vocab.VocabTemperature},
+		{Name: vocab.VocabBatteryLevel},
 	}
 	pubSubSvc := service2.NewPubSubService()
 	err := pubSubSvc.Start()
@@ -618,11 +618,11 @@ func TestPubSub(t *testing.T) {
 
 	// publish events
 	names := []string{
-		vocab.PropNameTemperature, vocab.PropNameSwitch,
-		vocab.PropNameSwitch, vocab.PropNameBattery,
-		vocab.PropNameAlarm, "noname",
-		"tttt", vocab.PropNameTemperature,
-		vocab.PropNameSwitch, vocab.PropNameTemperature}
+		vocab.VocabTemperature, vocab.VocabSwitch,
+		vocab.VocabSwitch, vocab.VocabBatteryLevel,
+		vocab.VocabAlarm, "noname",
+		"tttt", vocab.VocabTemperature,
+		vocab.VocabSwitch, vocab.VocabTemperature}
 	_ = names
 
 	// only valid names should be added
@@ -672,7 +672,7 @@ func TestManageRetention(t *testing.T) {
 	assert.Greater(t, 1, len(retList))
 
 	// add a couple of retention
-	newRet := history.EventRetention{Name: vocab.PropNameTemperature}
+	newRet := history.EventRetention{Name: vocab.VocabTemperature}
 	err = mr.SetEventRetention(ctx, newRet)
 	newRet = history.EventRetention{
 		Name: "blob1", Publishers: []string{publisherID}}

@@ -6,7 +6,7 @@ package thing
 // Note: https://github.com/w3c/wot-thing-description/issues/1390
 // The spec simply cannot be implemented in golang without dynamic types.
 // PropertyAffordance must be able to have a Schema based on the type, not just DataSchema, as
-// a property can be of any of the types integer, boolean, object, array, number...
+// a property can be any of the types integer, boolean, object, array, number...
 type PropertyAffordance struct {
 	DataSchema
 
@@ -26,6 +26,10 @@ type PropertyAffordance struct {
 	// this Property.
 	// This is implied for Things that are using the message bus and not documented here.
 	//Observable bool `json:"observable,omitempty" default:"false"`
+
+	// Initial value at time of TD creation
+	// not part of the WoT definition but useful for testing and debugging
+	InitialValue any `json:"initialValue,omitempty"`
 
 	// Optional nested properties. Map with PropertyAffordance
 	Properties map[string]PropertyAffordance `json:"properties,omitempty"`

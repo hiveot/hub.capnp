@@ -23,7 +23,7 @@ func TestCreateTD(t *testing.T) {
 			Title: "version",
 		},
 	}
-	tdoc.UpdateProperty(vocab.PropNameSoftwareVersion, propAffordance)
+	tdoc.UpdateProperty(vocab.VocabSoftwareVersion, propAffordance)
 
 	// Define TD property
 	propAffordance = &thing.PropertyAffordance{
