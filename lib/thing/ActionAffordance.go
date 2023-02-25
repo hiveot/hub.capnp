@@ -26,10 +26,10 @@ type ActionAffordance struct {
 	//---InteractionAffordance ends
 
 	// Define the input data Schema of the action
-	Input DataSchema `json:"input,omitempty"`
+	Input *DataSchema `json:"input,omitempty"`
 
 	// Defines the output data Schema of the action
-	Output DataSchema `json:"output,omitempty"`
+	Output *DataSchema `json:"output,omitempty"`
 
 	// Signals if the Action is state safe (=true) or not
 	// Safe actions do not change the internal state of a resource

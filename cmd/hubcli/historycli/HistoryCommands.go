@@ -15,25 +15,10 @@ import (
 	"github.com/hiveot/hub/pkg/history/capnpclient"
 )
 
-func HistoryCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
-	cmd := &cli.Command{
-		Name:    "history",
-		Aliases: []string{"hi"},
-		Usage:   "List and query Thing events",
-		Subcommands: []*cli.Command{
-			HistoryInfoCommand(ctx, f),
-			HistoryListCommand(ctx, f),
-			HistoryLatestCommand(ctx, f),
-			HistoryRetainCommand(ctx, f),
-		},
-	}
-	return cmd
-}
-
 func HistoryInfoCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	return &cli.Command{
-		Name:      "histinfo",
-		Aliases:   []string{"hin"},
+		Name: "histinfo",
+		//Aliases:   []string{"hin"},
 		Usage:     "Show history store info",
 		Category:  "history",
 		ArgsUsage: "(no args)",
@@ -50,7 +35,7 @@ func HistoryInfoCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comman
 func HistoryListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	return &cli.Command{
 		Name:      "histevents <pubID> <thingID>",
-		Aliases:   []string{"hev"},
+		Aliases:   []string{"hev", "lev"},
 		Usage:     "List historical events",
 		UsageText: "List the history of events from a Thing by its publisher and Thing ID",
 		Category:  "history",

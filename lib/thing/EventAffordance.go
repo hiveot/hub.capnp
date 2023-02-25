@@ -25,8 +25,8 @@ type EventAffordance struct {
 	UriVariables map[string]DataSchema `json:"uriVariables,omitempty"`
 	//---InteractionAffordance ends
 
-	// Data Schema of the event instance message, eg the event payload
-	Data DataSchema `json:"data,omitempty"`
+	// Data Schema of the event payload, if any. nil if the event comes without data
+	Data *DataSchema `json:"data,omitempty"`
 
 	// subscription is not applicable
 	// dataResponse is not applicable

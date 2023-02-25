@@ -90,7 +90,7 @@ func createTD(id string) *thing.TD {
 	td.Events[vocab.VocabValue] = &thing.EventAffordance{
 		Title:       "Event 1",
 		Description: "Name of this event",
-		Data: thing.DataSchema{
+		Data: &thing.DataSchema{
 			Type:        vocab.WoTDataTypeString,
 			Const:       "123",
 			Title:       "Event name data",
@@ -98,7 +98,7 @@ func createTD(id string) *thing.TD {
 	}
 	td.Events[vocab.VocabBatteryLevel] = &thing.EventAffordance{
 		Title: "Event 2",
-		Data: thing.DataSchema{
+		Data: &thing.DataSchema{
 			Type:        vocab.WoTDataTypeInteger,
 			Title:       "Battery level",
 			Unit:        vocab.UnitNamePercent,

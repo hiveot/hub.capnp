@@ -33,7 +33,7 @@ func DirectoryListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comm
 	var verbose = false
 	return &cli.Command{
 		Name:      "listdir [<publisherID> <thingID> [-v]]",
-		Aliases:   []string{"lid"},
+		Aliases:   []string{"ld"},
 		Category:  "directory",
 		Usage:     "List directory",
 		UsageText: "List all Things or a selected Thing in the directory",
@@ -148,21 +148,29 @@ func HandleListThing(ctx context.Context, f svcconfig.AppFolders, pubID, thingID
 	}
 
 	fmt.Println("\nEvents:")
-	fmt.Println(" ID                             Title                                    Type       Description")
-	fmt.Println(" -----------------------------  ---------------------------------------  ---------  -----------")
+	fmt.Println(" ID                             Title                                    DataType   EventType       Description")
+	fmt.Println(" -----------------------------  ---------------------------------------  ---------  --------------  -----------")
 	keys = utils.OrderedMapKeys(tdDoc.Events)
 	for _, key := range keys {
 		ev := tdDoc.Events[key]
-		fmt.Printf(" %-30s %-40s %-10s %s\n", key, ev.Title, ev.AtType, ev.Description)
+		dataType := "(n/a)"
+		if ev.Data != nil {
+			dataType = ev.Data.Type
+		}
+		fmt.Printf(" %-30.30s %-40.40s %-10.10s %-15.15s %s\n", key, ev.Title, dataType, ev.AtType, ev.Description)
 	}
 
 	fmt.Println("\nActions:")
-	fmt.Println(" ID                             Title                                    Type       Description")
-	fmt.Println(" -----------------------------  ---------------------------------------  ---------  -----------")
+	fmt.Println(" ID                             Title                                    Arg(s)     ActionType      Description")
+	fmt.Println(" -----------------------------  ---------------------------------------  ---------  --------------  -----------")
 	keys = utils.OrderedMapKeys(tdDoc.Actions)
 	for _, key := range keys {
 		action := tdDoc.Actions[key]
-		fmt.Printf(" %-30s %-40s %-10s %s \n", key, action.Title, action.AtType, action.Description)
+		dataType := "(n/a)"
+		if action.Input != nil {
+			dataType = action.Input.Type
+		}
+		fmt.Printf(" %-30.30s %-40.40s %-10.10s %-15.15s %s\n", key, action.Title, dataType, action.AtType, action.Description)
 	}
 	return err
 }

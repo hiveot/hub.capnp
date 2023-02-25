@@ -99,10 +99,10 @@ func TestAddProp(t *testing.T) {
 func TestAddEvent(t *testing.T) {
 	thingID := "urn:thing1"
 	tdoc := thing.NewTD(thingID, "test TD", vocab.DeviceTypeSensor)
-	tdoc.AddEvent("event1", "test event", vocab.WoTDataTypeBool)
+	tdoc.AddEvent("event1", "test", "Test Event", "")
 
 	go func() {
-		tdoc.AddEvent("event2", "test event 2", vocab.WoTDataTypeBool)
+		tdoc.AddEvent("event2", "test", "Test Event", "")
 	}()
 
 	ev := tdoc.GetEvent("event1")
@@ -115,10 +115,10 @@ func TestAddEvent(t *testing.T) {
 func TestAddAction(t *testing.T) {
 	thingID := "urn:thing1"
 	tdoc := thing.NewTD(thingID, "test TD", vocab.DeviceTypeSensor)
-	tdoc.AddAction("action1", "test action", vocab.WoTDataTypeBool)
+	tdoc.AddAction("action1", "test", "Test Action", "")
 
 	go func() {
-		tdoc.AddAction("action2", "test action", vocab.WoTDataTypeBool)
+		tdoc.AddAction("action2", "test", "test Action", "")
 	}()
 
 	action := tdoc.GetAction("action1")

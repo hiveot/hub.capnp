@@ -91,36 +91,52 @@ type TD struct {
 	updateMutex sync.RWMutex
 }
 
-// AddAction provides a simple way to add an action affordance Schema to the TD
-// This returns the action affordance that can be augmented/modified directly
+// AddAction provides a simple way to add an action affordance Schema to the TD.
+// This returns the action affordance that can be augmented/modified directly.
 //
-// name is the action name instance under which it is stored in the action affordance map.
+// If the action accepts input parameters then set the .Data field to a DataSchema instance that
+// describes the parameter(s).
 //
-//	in case of multiple instances append the instance ID to the name and set AtType to the actual action type.
-//
-// title is the title used in the action. It is okay to use name if not sure.
-// dataType is the type of data the action holds, WoTDataTypeNumber, ..Object, ..Array, ..String, ..Integer, ..Boolean or null
-func (tdoc *TD) AddAction(name string, title string, dataType string) *ActionAffordance {
+//	id is the action instance ID under which it is stored in the action affordance map.
+//	actionType from the vocabulary
+//	title is the short display title of the action
+//	description optional explanation of the action
+func (tdoc *TD) AddAction(id string, actionType string, title string, description string) *ActionAffordance {
 	actionAff := &ActionAffordance{
-		AtType: name,
-		Title:  title,
-		Input: DataSchema{
-			Title:    title,
-			Type:     dataType,
-			ReadOnly: true,
-		},
+		AtType:      actionType,
+		Title:       title,
+		Description: description,
 	}
-	tdoc.UpdateAction(name, actionAff)
+	tdoc.UpdateAction(id, actionAff)
 	return actionAff
+}
+
+// AddEvent provides a simple way to add an event to the TD.
+// This returns the event affordance that can be augmented/modified directly.
+//
+// If the event returns data then set the .Data field to a DataSchema instance that describes it.
+//
+//	id is the unique event instance ID under which it is stored in the affordance map.
+//	eventType describes the type of event in HiveOT vocabulary if available, or the event name.
+//	title is the short display title of the event
+//	dataType is the type of data the event holds, WoTDataTypeNumber, ..Object, ..Array, ..String, ..Integer, ..Boolean or null
+func (tdoc *TD) AddEvent(id string, eventType string, title string, description string) *EventAffordance {
+	evAff := &EventAffordance{
+		AtType:      eventType,
+		Title:       title,
+		Description: description,
+	}
+	tdoc.UpdateEvent(id, evAff)
+	return evAff
 }
 
 // AddProperty provides a simple way to add a property to the TD
 // This returns the property affordance that can be augmented/modified directly
 // By default the property is a read-only attribute.
 //
-// name is the name under which it is stored in the property affordance map. Any existing name will be replaced.
-// title is the title used in the property. It is okay to use name if not sure.
-// dataType is the type of data the property holds, WoTDataTypeNumber, ..Object, ..Array, ..String, ..Integer, ..Boolean or null
+//	name is the name under which it is stored in the property affordance map. Any existing name will be replaced.
+//	title is the title used in the property. It is okay to use name if not sure.
+//	dataType is the type of data the property holds, WoTDataTypeNumber, ..Object, ..Array, ..String, ..Integer, ..Boolean or null
 func (tdoc *TD) AddProperty(name string, title string, dataType string) *PropertyAffordance {
 	prop := &PropertyAffordance{
 		DataSchema: DataSchema{
@@ -132,29 +148,6 @@ func (tdoc *TD) AddProperty(name string, title string, dataType string) *Propert
 	}
 	tdoc.UpdateProperty(name, prop)
 	return prop
-}
-
-// AddEvent provides a simple way to add an event to the TD
-// This returns the event affordance that can be augmented/modified directly
-//
-// name is the event name instance under which it is stored in the affordance map.
-//
-//	in case of multiple instances append the instance ID to the name and set AtType to the actual event type.
-//
-// title is the title used in the event. It is okay to use name if not sure.
-// dataType is the type of data the event holds, WoTDataTypeNumber, ..Object, ..Array, ..String, ..Integer, ..Boolean or null
-func (tdoc *TD) AddEvent(name string, title string, dataType string) *EventAffordance {
-	evAff := &EventAffordance{
-		AtType: name,
-		Title:  title,
-		Data: DataSchema{
-			Title:    title,
-			Type:     dataType,
-			ReadOnly: true,
-		},
-	}
-	tdoc.UpdateEvent(name, evAff)
-	return evAff
 }
 
 // AsMap returns the TD document as a map
