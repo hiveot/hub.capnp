@@ -12,7 +12,7 @@ const ServiceName = hubapi.StateServiceName
 
 // CollectionStatus holds the status of the requested collection
 //type CollectionStatus struct {
-//	Name            string // name of the collection,
+//	ID            string // name of the collection,
 //	ErrorCount      int    // total commit error count for the collection, if available
 //	MaxSize         int64  // Maximum allowed memory size in bytes to store
 //	MaxDocumentSize int    // Maximum allowed size of a single document in bytes

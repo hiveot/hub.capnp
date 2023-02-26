@@ -39,7 +39,7 @@ func (svc *UpdateDirectory) UpdateTD(_ context.Context, publisherID, thingID str
 	bucketValue := &thing.ThingValue{
 		PublisherID: publisherID,
 		ThingID:     thingID,
-		Name:        pubsub.MessageTypeTD,
+		ID:          pubsub.MessageTypeTD,
 		ValueJSON:   td,
 		Created:     time.Now().Format(vocab.ISO8601Format),
 	}

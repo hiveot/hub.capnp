@@ -83,10 +83,10 @@ func TestMissingAffordance(t *testing.T) {
 func TestAddProp(t *testing.T) {
 	thingID := "urn:thing1"
 	tdoc := thing.NewTD(thingID, "test TD", vocab.DeviceTypeSensor)
-	tdoc.AddProperty("prop1", "test property", vocab.WoTDataTypeBool)
+	tdoc.AddProperty("prop1", vocab.VocabUnknown, "test property", vocab.WoTDataTypeBool)
 
 	go func() {
-		tdoc.AddProperty("prop2", "test property2", vocab.WoTDataTypeString)
+		tdoc.AddProperty("prop2", vocab.VocabUnknown, "test property2", vocab.WoTDataTypeString)
 	}()
 
 	prop := tdoc.GetProperty("prop1")
@@ -99,10 +99,10 @@ func TestAddProp(t *testing.T) {
 func TestAddEvent(t *testing.T) {
 	thingID := "urn:thing1"
 	tdoc := thing.NewTD(thingID, "test TD", vocab.DeviceTypeSensor)
-	tdoc.AddEvent("event1", "test", "Test Event", "")
+	tdoc.AddEvent("event1", vocab.VocabUnknown, "Test Event", "")
 
 	go func() {
-		tdoc.AddEvent("event2", "test", "Test Event", "")
+		tdoc.AddEvent("event2", vocab.VocabUnknown, "Test Event", "")
 	}()
 
 	ev := tdoc.GetEvent("event1")

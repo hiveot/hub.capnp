@@ -20,11 +20,11 @@ func (capsrv *ServicePubSubCapnpServer) SubActions(
 	args := call.Args()
 	thingID, _ := args.ThingID()
 	publisherID, _ := args.PublisherID()
-	name, _ := args.ActionName()
+	actionID, _ := args.ActionID()
 	handlerCap := args.Handler()
 	handlerClient := NewSubscriptionHandlerCapnpClient(handlerCap.AddRef())
 	// the server registers the callback handler and invokes it when actions for the Thing are received
-	err := capsrv.svc.SubActions(ctx, publisherID, thingID, name, handlerClient.HandleValue)
+	err := capsrv.svc.SubActions(ctx, publisherID, thingID, actionID, handlerClient.HandleValue)
 	return err
 }
 

@@ -41,7 +41,7 @@ func (svc *AddHistory) encodeValue(thingValue *thing.ThingValue, isAction bool) 
 
 	// the index uses milliseconds for timestamp
 	timestamp := ts.UnixMilli()
-	key = strconv.FormatInt(timestamp, 10) + "/" + thingValue.Name
+	key = strconv.FormatInt(timestamp, 10) + "/" + thingValue.ID
 	if isAction {
 		key = key + "/a"
 	} else {
@@ -55,7 +55,7 @@ func (svc *AddHistory) encodeValue(thingValue *thing.ThingValue, isAction bool) 
 // AddAction adds a Thing action with the given name and value to the action history
 // value is json encoded. Optionally include a 'created' ISO8601 timestamp
 func (svc *AddHistory) AddAction(_ context.Context, actionValue *thing.ThingValue) error {
-	logrus.Infof("clientID=%s, thingID=%s, name=%s", svc.clientID, actionValue.ThingID, actionValue.Name)
+	logrus.Infof("clientID=%s, thingID=%s, name=%s", svc.clientID, actionValue.ThingID, actionValue.ID)
 
 	if err := svc.validateValue(actionValue); err != nil {
 		logrus.Info(err)
@@ -80,7 +80,7 @@ func (svc *AddHistory) AddEvent(ctx context.Context, eventValue *thing.ThingValu
 	if len(valueStr) > 20 {
 		valueStr = valueStr[:20]
 	}
-	logrus.Infof("clientID=%s, thingID=%s, name=%s, value=%s", svc.clientID, eventValue.ThingID, eventValue.Name, valueStr)
+	logrus.Infof("clientID=%s, thingID=%s, name=%s, value=%s", svc.clientID, eventValue.ThingID, eventValue.ID, valueStr)
 	if err := svc.validateValue(eventValue); err != nil {
 		logrus.Info(err)
 		return err
@@ -149,9 +149,9 @@ func (svc *AddHistory) validateValue(thingValue *thing.ThingValue) error {
 		return fmt.Errorf("nil event")
 	}
 	if thingValue.ThingID == "" || thingValue.PublisherID == "" {
-		return fmt.Errorf("missing publisher/thing address in value with name '%s'", thingValue.Name)
+		return fmt.Errorf("missing publisher/thing address in value with name '%s'", thingValue.ID)
 	}
-	if thingValue.Name == "" {
+	if thingValue.ID == "" {
 		return fmt.Errorf("missing name for event or action for thing '%s/%s'", thingValue.PublisherID, thingValue.ThingID)
 	}
 	if thingValue.Created == "" {
@@ -160,7 +160,7 @@ func (svc *AddHistory) validateValue(thingValue *thing.ThingValue) error {
 	if svc.retentionMgr != nil {
 		isValid, err := svc.retentionMgr.TestEvent(context.Background(), thingValue)
 		if !isValid || err != nil {
-			return fmt.Errorf("no retention for event '%s'", thingValue.Name)
+			return fmt.Errorf("no retention for event '%s'", thingValue.ID)
 		}
 	}
 

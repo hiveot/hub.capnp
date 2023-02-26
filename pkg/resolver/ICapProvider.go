@@ -12,7 +12,7 @@ type CapabilityInfo struct {
 	// This is typically the bootstrap interface of the service providing the method to get the capability.
 	InterfaceID uint64
 
-	// Name of the interfaceInternal capnp ID of the interface that provides the capability.
+	// ID of the interfaceInternal capnp ID of the interface that provides the capability.
 	// This is typically the bootstrap interface of the service providing the method to get the capability.
 	InterfaceName string
 

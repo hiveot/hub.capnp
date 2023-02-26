@@ -118,15 +118,15 @@ func makeValueBatch(publisherID string, nrValues, nrThings, timespanSec int) (ba
 		ev := &thing.ThingValue{
 			PublisherID: publisherID,
 			ThingID:     thingID,
-			Name:        names[randomName],
+			ID:          names[randomName],
 			ValueJSON:   []byte(fmt.Sprintf("%2.3f", randomValue)),
 			Created:     randomTime,
 		}
 		// track the actual most recent event for the name for thing 3
 		if randomID == 0 {
-			if _, exists := highest[ev.Name]; !exists ||
-				highest[ev.Name].Created < ev.Created {
-				highest[ev.Name] = ev
+			if _, exists := highest[ev.ID]; !exists ||
+				highest[ev.ID].Created < ev.Created {
+				highest[ev.ID] = ev
 			}
 		}
 		valueBatch = append(valueBatch, ev)
@@ -212,12 +212,12 @@ func TestAddGetEvent(t *testing.T) {
 	readHistory1, _ := svc.CapReadHistory(ctx, device1, publisherID, thing1ID)
 
 	// add thing1 temperature from 5 minutes ago
-	ev1_1 := &thing.ThingValue{PublisherID: publisherID, ThingID: thing1ID, Name: evTemperature,
+	ev1_1 := &thing.ThingValue{PublisherID: publisherID, ThingID: thing1ID, ID: evTemperature,
 		ValueJSON: []byte("12.5"), Created: fivemago.Format(vocab.ISO8601Format)}
 	err := addHistory1.AddEvent(ctx, ev1_1)
 	assert.NoError(t, err)
 	// add thing1 humidity from 55 minutes ago
-	ev1_2 := &thing.ThingValue{PublisherID: publisherID, ThingID: thing1ID, Name: evHumidity,
+	ev1_2 := &thing.ThingValue{PublisherID: publisherID, ThingID: thing1ID, ID: evHumidity,
 		ValueJSON: []byte("70"), Created: fiftyfivemago.Format(vocab.ISO8601Format)}
 	err = addHistory1.AddEvent(ctx, ev1_2)
 	assert.NoError(t, err)
@@ -225,13 +225,13 @@ func TestAddGetEvent(t *testing.T) {
 	// add events for thing 2, temperature and humidity
 	addHistory2, _ := svc.CapAddHistory(ctx, device1, true)
 	// add thing2 humidity from 5 minutes ago
-	ev2_1 := &thing.ThingValue{PublisherID: publisherID, ThingID: thing2ID, Name: evHumidity,
+	ev2_1 := &thing.ThingValue{PublisherID: publisherID, ThingID: thing2ID, ID: evHumidity,
 		ValueJSON: []byte("50"), Created: fivemago.Format(vocab.ISO8601Format)}
 	err = addHistory2.AddEvent(ctx, ev2_1)
 	assert.NoError(t, err)
 
 	// add thing2 temperature from 55 minutes ago
-	ev2_2 := &thing.ThingValue{PublisherID: publisherID, ThingID: thing2ID, Name: evTemperature,
+	ev2_2 := &thing.ThingValue{PublisherID: publisherID, ThingID: thing2ID, ID: evTemperature,
 		ValueJSON: []byte("17.5"), Created: fiftyfivemago.Format(vocab.ISO8601Format)}
 	err = addHistory2.AddEvent(ctx, ev2_2)
 	assert.NoError(t, err)
@@ -244,11 +244,11 @@ func TestAddGetEvent(t *testing.T) {
 	res1, valid := cursor1.Seek(timeafter)
 	if assert.True(t, valid) {
 		assert.Equal(t, thing1ID, res1.ThingID)
-		assert.Equal(t, evHumidity, res1.Name)
+		assert.Equal(t, evHumidity, res1.ID)
 		// next finds the temperature from 5 minutes ago
 		res1, valid = cursor1.Next()
 		assert.True(t, valid)
-		assert.Equal(t, evTemperature, res1.Name)
+		assert.Equal(t, evTemperature, res1.ID)
 	}
 	// Test 2: get events of thing 1 newer than 30 minutes ago - expect 1 temperature
 	timeafter = time.Now().Add(-time.Minute * 30).Format(vocab.ISO8601Format)
@@ -257,8 +257,8 @@ func TestAddGetEvent(t *testing.T) {
 	//readHistory = svc.CapReadHistory()
 	res2, valid := cursor1.Seek(timeafter)
 	if assert.True(t, valid) {
-		assert.Equal(t, thing1ID, res2.ThingID)   // must match the filtered id1
-		assert.Equal(t, evTemperature, res2.Name) // must match evTemperature from 5 minutes ago
+		assert.Equal(t, thing1ID, res2.ThingID) // must match the filtered id1
+		assert.Equal(t, evTemperature, res2.ID) // must match evTemperature from 5 minutes ago
 		assert.Equal(t, fivemago.Format(vocab.ISO8601Format), res2.Created)
 	}
 	cursor1.Release()
@@ -278,7 +278,7 @@ func TestAddGetEvent(t *testing.T) {
 	cursor2 := readHistory2.GetEventHistory(ctx, "")
 	res3, valid := cursor2.First()
 	require.True(t, valid)
-	assert.Equal(t, evTemperature, res3.Name)
+	assert.Equal(t, evTemperature, res3.ID)
 
 	cursor2.Release()
 	readHistory2.Release()
@@ -300,35 +300,35 @@ func TestAddPropertiesEvent(t *testing.T) {
 	action1 := &thing.ThingValue{
 		PublisherID: publisherID,
 		ThingID:     thing1ID,
-		Name:        vocab.VocabSwitch,
+		ID:          vocab.VocabSwitch,
 		ValueJSON:   []byte("on"),
 	}
 	event1 := &thing.ThingValue{
 		PublisherID: publisherID,
 		ThingID:     thing1ID,
-		Name:        vocab.VocabTemperature,
+		ID:          vocab.VocabTemperature,
 		ValueJSON:   []byte(temp1),
 	}
 	badEvent1 := &thing.ThingValue{
 		PublisherID: publisherID,
 		ThingID:     thing1ID,
-		Name:        "", // missing name
+		ID:          "", // missing name
 	}
 	badEvent2 := &thing.ThingValue{
 		PublisherID: "", // missing publisher
 		ThingID:     thing1ID,
-		Name:        "name",
+		ID:          "name",
 	}
 	badEvent3 := &thing.ThingValue{
 		PublisherID: publisherID,
 		ThingID:     thing1ID,
-		Name:        "baddate",
+		ID:          "baddate",
 		Created:     "notadate",
 	}
 	badEvent4 := &thing.ThingValue{
 		PublisherID: publisherID,
 		ThingID:     "", // missing ID
-		Name:        "temperature",
+		ID:          "temperature",
 	}
 	propsList := make(map[string][]byte)
 	propsList[vocab.VocabBatteryLevel] = []byte("50")
@@ -338,7 +338,7 @@ func TestAddPropertiesEvent(t *testing.T) {
 	props1 := &thing.ThingValue{
 		PublisherID: publisherID,
 		ThingID:     thing1ID,
-		Name:        history.EventNameProperties,
+		ID:          history.EventNameProperties,
 		ValueJSON:   propsValue,
 	}
 
@@ -369,9 +369,9 @@ func TestAddPropertiesEvent(t *testing.T) {
 	// verify named properties from different sources
 	props := readHist.GetProperties(ctx, []string{vocab.VocabTemperature, vocab.VocabSwitch})
 	assert.Equal(t, 2, len(props))
-	assert.Equal(t, vocab.VocabTemperature, props[0].Name)
+	assert.Equal(t, vocab.VocabTemperature, props[0].ID)
 	assert.Equal(t, []byte(temp1), props[0].ValueJSON)
-	assert.Equal(t, vocab.VocabSwitch, props[1].Name)
+	assert.Equal(t, vocab.VocabSwitch, props[1].ID)
 
 	// restart
 	readHist.Release()
@@ -388,9 +388,9 @@ func TestAddPropertiesEvent(t *testing.T) {
 	readHist, _ = svc.CapReadHistory(ctx, clientID, publisherID, thing1ID)
 	props = readHist.GetProperties(ctx, []string{vocab.VocabTemperature, vocab.VocabSwitch})
 	assert.Equal(t, 2, len(props))
-	assert.Equal(t, props[0].Name, vocab.VocabTemperature)
+	assert.Equal(t, props[0].ID, vocab.VocabTemperature)
 	assert.Equal(t, props[0].ValueJSON, []byte(temp1))
-	assert.Equal(t, props[1].Name, vocab.VocabSwitch)
+	assert.Equal(t, props[1].ID, vocab.VocabSwitch)
 	readHist.Release()
 
 	err = svc.Stop()
@@ -424,16 +424,16 @@ func TestGetLatest(t *testing.T) {
 	assert.Greater(t, len(values), 0, "Expected multiple properties, got none")
 	// compare the results with the highest value tracked during creation of the test data
 	for _, val := range values {
-		logrus.Infof("Result %s: %s", val.Name, val.Created)
-		highest := highestFromAdded[val.Name]
+		logrus.Infof("Result %s: %s", val.ID, val.Created)
+		highest := highestFromAdded[val.ID]
 		if assert.NotNil(t, highest) {
-			logrus.Infof("Expect %s: %v", highest.Name, highest.Created)
+			logrus.Infof("Expect %s: %v", highest.ID, highest.Created)
 			assert.Equal(t, highest.Created, val.Created)
 		}
 	}
 	// getting the Last should get the same result
 	lastItem, valid := cursor.Last()
-	highest := highestFromAdded[lastItem.Name]
+	highest := highestFromAdded[lastItem.ID]
 
 	assert.True(t, valid)
 	assert.Equal(t, lastItem.Created, highest.Created)
@@ -491,7 +491,7 @@ func TestPrevNext(t *testing.T) {
 	item11 := items2to11[9]
 	item11b, valid := cursor.Seek(item11.Created)
 	assert.True(t, valid)
-	assert.Equal(t, item11.Name, item11b.Name)
+	assert.Equal(t, item11.ID, item11b.ID)
 
 	cursor.Release()
 }
@@ -525,14 +525,14 @@ func TestPrevNextFiltered(t *testing.T) {
 	// go forward
 	item0, valid := cursor.First()
 	assert.True(t, valid)
-	assert.Equal(t, propName, item0.Name)
+	assert.Equal(t, propName, item0.ID)
 	item1, valid := cursor.Next()
 	assert.True(t, valid)
-	assert.Equal(t, propName, item1.Name)
+	assert.Equal(t, propName, item1.ID)
 	items2to11, itemsRemaining := cursor.NextN(10)
 	assert.True(t, itemsRemaining)
 	assert.Equal(t, 10, len(items2to11))
-	assert.Equal(t, propName, items2to11[9].Name)
+	assert.Equal(t, propName, items2to11[9].ID)
 
 	// go backwards
 	item10to1, itemsRemaining := cursor.PrevN(10)
@@ -543,7 +543,7 @@ func TestPrevNextFiltered(t *testing.T) {
 	item0b, valid := cursor.Prev()
 	assert.True(t, valid)
 	assert.Equal(t, item0.Created, item0b.Created)
-	assert.Equal(t, propName, item0b.Name)
+	assert.Equal(t, propName, item0b.ID)
 
 	// can't skip before the beginning of time
 	iteminv, valid := cursor.Prev()
@@ -554,12 +554,12 @@ func TestPrevNextFiltered(t *testing.T) {
 	item11 := items2to11[9]
 	item11b, valid := cursor.Seek(item11.Created)
 	assert.True(t, valid)
-	assert.Equal(t, item11.Name, item11b.Name)
+	assert.Equal(t, item11.ID, item11b.ID)
 
 	// last item should be of the name
 	lastItem, valid := cursor.Last()
 	assert.True(t, valid)
-	assert.Equal(t, propName, lastItem.Name)
+	assert.Equal(t, propName, lastItem.ID)
 
 	cursor.Release()
 }
@@ -689,7 +689,7 @@ func TestManageRetention(t *testing.T) {
 	valid, err := mr.TestEvent(ctx, &thing.ThingValue{
 		PublisherID: publisherID,
 		ThingID:     thing0ID,
-		Name:        "blob1",
+		ID:          "blob1",
 	})
 	assert.NoError(t, err)
 	assert.True(t, valid)
@@ -704,7 +704,7 @@ func TestManageRetention(t *testing.T) {
 	cursor := readHistory.GetEventHistory(ctx, "blob1")
 	histEv, valid := cursor.First()
 	assert.True(t, valid)
-	assert.Equal(t, "blob1", histEv.Name)
+	assert.Equal(t, "blob1", histEv.ID)
 
 	//
 	err = mr.RemoveEventRetention(ctx, "blob1")

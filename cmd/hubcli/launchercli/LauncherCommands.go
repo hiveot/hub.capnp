@@ -16,7 +16,7 @@ func LauncherListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comma
 
 	return &cli.Command{
 		Name:      "listservices",
-		Aliases:   []string{"lis"},
+		Aliases:   []string{"ls"},
 		Usage:     "List services",
 		UsageText: "List services and their runtime status",
 		Category:  "launcher",

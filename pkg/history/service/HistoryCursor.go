@@ -36,7 +36,7 @@ func (hc *HistoryCursor) decodeValue(key string, data []byte) (thingValue *thing
 	thingValue = &thing.ThingValue{
 		ThingID:     hc.thingID,
 		PublisherID: hc.publisherID,
-		Name:        parts[1],
+		ID:          parts[1],
 		ValueJSON:   data,
 		Created:     timeIso8601,
 	}
@@ -130,7 +130,7 @@ func (hc *HistoryCursor) First() (thingValue *thing.ThingValue, valid bool) {
 		return thingValue, false
 	}
 	thingValue, valid = hc.decodeValue(k, v)
-	if valid && hc.filterName != "" && thingValue.Name != hc.filterName {
+	if valid && hc.filterName != "" && thingValue.ID != hc.filterName {
 		thingValue, valid = hc.findNextName(hc.filterName, until)
 	}
 	return thingValue, valid
@@ -146,7 +146,7 @@ func (hc *HistoryCursor) Last() (thingValue *thing.ThingValue, valid bool) {
 		return thingValue, false
 	}
 	thingValue, valid = hc.decodeValue(k, v)
-	if valid && hc.filterName != "" && thingValue.Name != hc.filterName {
+	if valid && hc.filterName != "" && thingValue.ID != hc.filterName {
 		thingValue, valid = hc.findPrevName(hc.filterName, until)
 	}
 	return thingValue, valid
@@ -242,7 +242,7 @@ func (hc *HistoryCursor) Seek(isoTimestamp string) (thingValue *thing.ThingValue
 	}
 
 	timeMilli := ts.UnixMilli()
-	searchKey := strconv.FormatInt(timeMilli, 10) //+ "/" + thingValue.Name
+	searchKey := strconv.FormatInt(timeMilli, 10) //+ "/" + thingValue.ID
 
 	k, v, valid := hc.bc.Seek(searchKey)
 	if !valid {
@@ -250,7 +250,7 @@ func (hc *HistoryCursor) Seek(isoTimestamp string) (thingValue *thing.ThingValue
 		return thingValue, false
 	}
 	thingValue, valid = hc.decodeValue(k, v)
-	if valid && hc.filterName != "" && thingValue.Name != hc.filterName {
+	if valid && hc.filterName != "" && thingValue.ID != hc.filterName {
 		thingValue, valid = hc.findNextName(hc.filterName, until)
 	}
 

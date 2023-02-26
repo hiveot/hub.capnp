@@ -116,7 +116,7 @@ func HandleListUsers(ctx context.Context, f svcconfig.AppFolders) error {
 	}
 	profileList, err := manageAuthn.ListUsers(ctx)
 
-	fmt.Println("Login ID                             User Name")
+	fmt.Println("Login ID                             User ID")
 	fmt.Println("--------                             ---------")
 	for _, profile := range profileList {
 

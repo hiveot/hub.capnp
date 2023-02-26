@@ -66,7 +66,7 @@ func createTD(id string) *thing.TD {
 	td := &thing.TD{
 		ID:         id,
 		Title:      fmt.Sprintf("test TD %s", id),
-		AtType:     vocab.DeviceTypeSensor,
+		DeviceType: vocab.DeviceTypeSensor,
 		Properties: make(map[string]*thing.PropertyAffordance),
 		Events:     make(map[string]*thing.EventAffordance),
 	}
@@ -89,7 +89,7 @@ func createTD(id string) *thing.TD {
 	}
 	td.Events[vocab.VocabValue] = &thing.EventAffordance{
 		Title:       "Event 1",
-		Description: "Name of this event",
+		Description: "ID of this event",
 		Data: &thing.DataSchema{
 			Type:        vocab.WoTDataTypeString,
 			Const:       "123",

@@ -42,7 +42,7 @@ type CapServer struct {
 	// Known methods of this service initialized on start
 	knownMethods map[string]server.Method
 
-	// Name of the service offering the capabilities
+	// ID of the service offering the capabilities
 	serviceName string
 
 	// The hook into the capnp protocol server

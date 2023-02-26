@@ -28,14 +28,14 @@ type DevicePubSub struct {
 
 // PubEvent publishes the given thing event. The payload is an event value as per TD.
 func (dps *DevicePubSub) PubEvent(
-	_ context.Context, thingID, name string, value []byte) (err error) {
+	_ context.Context, thingID, eventID string, value []byte) (err error) {
 
-	logrus.Infof("publisherID=%s, thingID=%s, name=%s", dps.publisherID, thingID, name)
+	logrus.Infof("publisherID=%s, thingID=%s, name=%s", dps.publisherID, thingID, eventID)
 
-	tv := thing.NewThingValue(dps.publisherID, thingID, name, caphelp.Clone(value))
+	tv := thing.NewThingValue(dps.publisherID, thingID, eventID, caphelp.Clone(value))
 	// note that marshal will copy the value so its buffer can be reused by capnp
 	tvSerialized, _ := json.Marshal(tv)
-	topic := MakeThingTopic(dps.publisherID, thingID, pubsub.MessageTypeEvent, name)
+	topic := MakeThingTopic(dps.publisherID, thingID, pubsub.MessageTypeEvent, eventID)
 	go dps.core.Publish(dps.publisherID, topic, tvSerialized)
 	return
 }
@@ -58,18 +58,15 @@ func (dps *DevicePubSub) PubProperties(
 }
 
 // PubTD publishes the given thing TD as an event. The payload is a TD document.
-// The event MUST be from the same device.
-func (dps *DevicePubSub) PubTD(_ context.Context,
-	thingID string, deviceType string, td []byte) (err error) {
+func (dps *DevicePubSub) PubTD(_ context.Context, thingID string, td []byte) (err error) {
 
-	logrus.Infof("publisherID=%s, thingID=%s, deviceType=%s", dps.publisherID, thingID, deviceType)
+	logrus.Infof("publisherID=%s, thingID=%s", dps.publisherID, thingID)
 
 	tv := thing.NewThingValue(
 		dps.publisherID, thingID, pubsub.MessageTypeTD, td)
 
 	// note that marshal will copy the TD so its buffer can be reused by capnp
-	topic := MakeThingTopic(
-		dps.publisherID, thingID, pubsub.MessageTypeTD, deviceType)
+	topic := MakeThingTopic(dps.publisherID, thingID, pubsub.MessageTypeTD, "")
 
 	tvSerialized, _ := json.Marshal(tv)
 	dps.core.Publish(dps.publisherID, topic, tvSerialized)
@@ -78,14 +75,14 @@ func (dps *DevicePubSub) PubTD(_ context.Context,
 
 // SubAction subscribes to messages for the given thingID and action name
 //
-//	thingID and actionName are optional. Use "" to receive actions for all things or names.
+//	thingID and actionID are optional. Use "" to receive actions for all things or names.
 func (dps *DevicePubSub) SubAction(
-	_ context.Context, thingID string, actionName string,
+	_ context.Context, thingID string, actionID string,
 	handler func(actionValue *thing.ThingValue)) (err error) {
 
-	logrus.Infof("publisherID=%s, thingID=%s, actionName=%s", dps.publisherID, thingID, actionName)
+	logrus.Infof("publisherID=%s, thingID=%s, actionName=%s", dps.publisherID, thingID, actionID)
 
-	topic := MakeThingTopic(dps.publisherID, thingID, pubsub.MessageTypeAction, actionName)
+	topic := MakeThingTopic(dps.publisherID, thingID, pubsub.MessageTypeAction, actionID)
 	subscriptionID, err := dps.core.Subscribe(dps.publisherID, topic,
 		func(topic string, message []byte) {
 

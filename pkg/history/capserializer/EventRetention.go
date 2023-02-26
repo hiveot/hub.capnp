@@ -14,7 +14,7 @@ func MarshalRetList(retList []history.EventRetention) hubapi.EventRetention_List
 
 	for i := 0; i < len(retList); i++ {
 		ret := retList[i]
-		//logrus.Infof("ret name=%s", ret.Name)
+		//logrus.Infof("ret name=%s", ret.ID)
 		capRet := MarshalEventRetention(ret)
 		capRetList.Set(i, capRet)
 	}

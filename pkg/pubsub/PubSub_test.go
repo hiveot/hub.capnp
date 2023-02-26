@@ -13,7 +13,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/hiveot/hub/api/go/vocab"
 	"github.com/hiveot/hub/lib/logging"
 	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/pubsub"
@@ -168,7 +167,7 @@ func TestPubSubTD(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	td1 := []byte("hi")
-	err = devicePS.PubTD(ctx, thing1ID, vocab.DeviceTypeButton, td1)
+	err = devicePS.PubTD(ctx, thing1ID, td1)
 	assert.NoError(t, err)
 	require.NotNil(t, rxTD)
 	assert.Equal(t, thing1ID, rxTD.ThingID)

@@ -3,10 +3,11 @@ package service
 import (
 	"context"
 
+	"github.com/sirupsen/logrus"
+
 	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/pubsub"
 	"github.com/hiveot/hub/pkg/pubsub/core"
-	"github.com/sirupsen/logrus"
 )
 
 // ServicePubSub provides the capability to pub/sub for services
@@ -26,14 +27,14 @@ type ServicePubSub struct {
 //
 //	publisherID of the action target. Use "" to subscribe to all publishers
 //	thingID of the action target. Use "" to subscribe to all Things
-//	actionName or "" to subscribe to all actions
+//	actionID or "" to subscribe to all actions
 //	handler is a callback invoked when actions are received
 func (cap *ServicePubSub) SubActions(
-	_ context.Context, publisherID, thingID, actionName string,
+	_ context.Context, publisherID, thingID, actionID string,
 	handler func(action *thing.ThingValue)) (err error) {
 
-	logrus.Infof("thingID=%s, actionName=%s", thingID, actionName)
-	err = cap.UserPubSub.subMessage(publisherID, thingID, pubsub.MessageTypeAction, actionName, handler)
+	logrus.Infof("thingID=%s, actionName=%s", thingID, actionID)
+	err = cap.UserPubSub.subMessage(publisherID, thingID, pubsub.MessageTypeAction, actionID, handler)
 	return
 }
 

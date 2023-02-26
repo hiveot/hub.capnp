@@ -5,8 +5,10 @@ package thing
 // event data to Consumers (e.g., overheating alerts).
 type EventAffordance struct {
 	//---InteractionAffordance starts
-	// JSON-LD keyword to label the object with semantic tags (or types)
-	AtType string `json:"@type,omitempty"`
+
+	// EventType is the JSON-LD @type keyword to classify the event using standard vocabulary, or "" if not known
+	// Intended for grouping and querying similar events, and standardized presentation such as icons
+	EventType string `json:"@type,omitempty"`
 	// Provides a human-readable title in the default language
 	Title string `json:"title,omitempty"`
 	// Provides a multi-language human-readable titles
@@ -27,6 +29,11 @@ type EventAffordance struct {
 
 	// Data Schema of the event payload, if any. nil if the event comes without data
 	Data *DataSchema `json:"data,omitempty"`
+
+	// Initial value at time of TD creation
+	// this is always a string with optionally a unit
+	// not part of the WoT definition but useful for testing and debugging
+	InitialValue string `json:"initialValue,omitempty"`
 
 	// subscription is not applicable
 	// dataResponse is not applicable

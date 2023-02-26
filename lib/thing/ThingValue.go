@@ -15,10 +15,11 @@ type ThingValue struct {
 	// ThingID of the thing itself
 	ThingID string
 
-	// Name of event or action as described in the thing TD
-	Name string
+	// ID of event or action. This is the key used in the TD event/action map to describe the event or action.
+	// Note that this ID is the instance ID provided by the device and not the vocabulary name for this event/action.
+	ID string
 
-	// Event Value, JSON encoded
+	// Event payload, JSON encoded, as defined by the TD event affordance 'data' DataSchema
 	ValueJSON []byte
 
 	// Timestamp the value was created, in ISO8601 UTC format. Default "" is now()
@@ -35,13 +36,13 @@ type ThingValue struct {
 	//Sequence int64
 }
 
-// NewThingValue creates a new ThingValue object with the address of the thing, the value name and the serialized value
+// NewThingValue creates a new ThingValue object with the address of the thing, the action or event id and the serialized value
 // This copies the value buffer.
-func NewThingValue(publisherID, thingID, name string, valueJSON []byte) *ThingValue {
+func NewThingValue(publisherID, thingID, id string, valueJSON []byte) *ThingValue {
 	return &ThingValue{
 		PublisherID: publisherID,
 		ThingID:     thingID,
-		Name:        name,
+		ID:          id,
 		Created:     time.Now().Format(vocab.ISO8601Format),
 		// DO NOT REMOVE THE TYPE CONVERSION
 		// this clones the valueJSON so the valueJSON buffer can be reused

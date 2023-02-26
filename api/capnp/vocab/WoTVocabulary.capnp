@@ -42,6 +42,9 @@ const woTDataTypeUnsignedInt  :Text = "unsignedInt"; # simple type
 const woTDataTypeNumber       :Text = "number";
 const woTDataTypeObject       :Text = "object";
 const woTDataTypeString       :Text = "string"; # simple type
+
+const woTDataTypeNone        :Text = ""; # no data
+
 	# WoTDouble               :Text = "double"; # min, max of number are doubles
 const woTEnum       :Text = "enum";
 const woTFormat     :Text = "format";

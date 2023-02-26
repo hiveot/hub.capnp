@@ -13,8 +13,11 @@ package thing
 //
 // based on https://www.w3.org/TR/wot-thing-description/#dataschema
 type DataSchema struct {
-	// JSON-LD keyword to label the object with semantic tags (or types)
-	// Used to indicate input, output, attribute. See vocab.AtType
+	// JSON-LD keyword to classify the object with semantic tags, if any
+	// Intended for grouping and querying similar data, and standardized presentation such as icons
+	// For properties this would be the property type, eg temperature, humidity, etc.
+	// For action input this is the action parameter type
+	// For event data this is the event payload type
 	AtType string `json:"@type,omitempty"`
 	// Provides a human-readable title in the default language
 	Title string `json:"title,omitempty"`

@@ -20,7 +20,7 @@ func (svc *PubSubEventHandler) Start() error {
 	ctx := context.Background()
 	err := svc.serviceSub.SubEvent(ctx, "", "", "",
 		func(eventValue *thing.ThingValue) {
-			logrus.Infof("received event '%s'", eventValue.Name)
+			logrus.Infof("received event '%s'", eventValue.ID)
 
 			_ = svc.addHistory.AddEvent(ctx, eventValue)
 		})

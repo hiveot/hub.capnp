@@ -7,7 +7,7 @@ import (
 
 // HistoryConfig with history store database configuration
 type HistoryConfig struct {
-	// Name of the backend to store
+	// ID of the backend to store
 	// kvbtree, pebble (default), bbolt. See IBucketStore for details.
 	Backend string `yaml:"backend"`
 

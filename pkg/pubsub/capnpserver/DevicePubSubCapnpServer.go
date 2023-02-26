@@ -19,9 +19,9 @@ func (capsrv *DevicePubSubCapnpServer) PubEvent(
 
 	args := call.Args()
 	thingID, _ := args.ThingID()
-	name, _ := args.Name()
+	eventID, _ := args.EventID()
 	value, _ := args.Value()
-	err := capsrv.svc.PubEvent(ctx, thingID, name, value)
+	err := capsrv.svc.PubEvent(ctx, thingID, eventID, value)
 	return err
 }
 
@@ -40,9 +40,8 @@ func (capsrv *DevicePubSubCapnpServer) PubTD(
 	ctx context.Context, call hubapi.CapDevicePubSub_pubTD) error {
 	args := call.Args()
 	thingID, _ := args.ThingID()
-	deviceType, _ := args.DeviceType()
 	tdDoc, _ := args.TdDoc()
-	err := capsrv.svc.PubTD(ctx, thingID, deviceType, tdDoc)
+	err := capsrv.svc.PubTD(ctx, thingID, tdDoc)
 	return err
 }
 
@@ -50,11 +49,11 @@ func (capsrv *DevicePubSubCapnpServer) SubAction(
 	ctx context.Context, call hubapi.CapDevicePubSub_subAction) error {
 	args := call.Args()
 	thingID, _ := args.ThingID()
-	name, _ := args.Name()
+	actionID, _ := args.ActionID()
 	handlerCap := args.Handler()
 	handlerClient := NewSubscriptionHandlerCapnpClient(handlerCap.AddRef())
 	// The server registers the handler and invokes it when an action request is received
-	err := capsrv.svc.SubAction(ctx, thingID, name, handlerClient.HandleValue)
+	err := capsrv.svc.SubAction(ctx, thingID, actionID, handlerClient.HandleValue)
 	return err
 }
 

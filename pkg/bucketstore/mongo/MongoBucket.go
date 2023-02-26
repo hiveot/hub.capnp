@@ -79,8 +79,8 @@ func (bucket *MongoBucket) Set(key string, doc []byte) error {
 	//timestamp := primitive.NewDateTimeFromTime(createdTime)
 	//evBson := bson.M{
 	//	TimeStampField: timestamp,
-	//	"metadata":     bson.M{"thingID": actionValue.ThingID, "name": actionValue.Name},
-	//	"name":         actionValue.Name,
+	//	"metadata":     bson.M{"thingID": actionValue.ThingID, "name": actionValue.ID},
+	//	"name":         actionValue.ID,
 	//	"thingID":      actionValue.ThingID,
 	//	"value":        actionValue.ValueJSON,
 	//	"created":      actionValue.Created,

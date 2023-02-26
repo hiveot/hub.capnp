@@ -53,7 +53,7 @@ func HandleListGroups(ctx context.Context, f svcconfig.AppFolders, clientID stri
 	}
 	groupRoles, err := manageAuthz.GetGroupRoles(ctx, clientID)
 
-	fmt.Println("Group Name                          role")
+	fmt.Println("Group ID                          role")
 	fmt.Println("----------                          role")
 	for groupName, role := range groupRoles {
 

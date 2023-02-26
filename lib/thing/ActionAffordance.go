@@ -5,8 +5,10 @@ package thing
 // its state, eg toggle lamp on/off or trigger a process
 type ActionAffordance struct {
 	//---InteractionAffordance starts
-	// JSON-LD keyword to label the object with semantic tags (or types)
-	AtType string `json:"@type,omitempty"`
+
+	// ActionType is the JSON-LD @type keyword to classify the action using standard vocabulary, or "" if not known
+	// Intended for grouping and querying similar actions, and standardized presentation such as icons
+	ActionType string `json:"@type,omitempty"`
 	// Provides a human-readable title in the default language
 	Title string `json:"title,omitempty"`
 	// Provides a multi-language human-readable titles

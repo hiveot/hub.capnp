@@ -107,7 +107,7 @@ func (svc *ManageRetention) TestEvent(_ context.Context, eventValue *thing.Thing
 		return true, nil
 	}
 	// unlisted event are rejected
-	rule, found := rules[eventValue.Name]
+	rule, found := rules[eventValue.ID]
 	if !found {
 		return false, nil
 	}

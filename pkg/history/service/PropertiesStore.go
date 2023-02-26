@@ -107,7 +107,7 @@ func (srv *LastPropertiesStore) HandleAddValue(event *thing.ThingValue, isAction
 	}
 	thingCache, _ := srv.cache[thingAddr]
 
-	if event.Name == history.EventNameProperties {
+	if event.ID == history.EventNameProperties {
 		// this is a properties event that holds a map of property name:values
 		props := make(map[string][]byte)
 		err := json.Unmarshal(event.ValueJSON, &props)
@@ -128,10 +128,10 @@ func (srv *LastPropertiesStore) HandleAddValue(event *thing.ThingValue, isAction
 		}
 	} else {
 		// in case events arrive out of order, only update if the event is newer
-		existingLatest, found := thingCache[event.Name]
+		existingLatest, found := thingCache[event.ID]
 		// FIXME. This will be wrong with different timezones
 		if !found || event.Created > existingLatest.Created {
-			thingCache[event.Name] = event
+			thingCache[event.ID] = event
 		}
 	}
 	srv.changedThings[thingAddr] = true

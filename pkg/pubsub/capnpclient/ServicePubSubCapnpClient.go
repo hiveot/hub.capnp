@@ -16,14 +16,14 @@ type ServicePubSubCapnpClient struct {
 }
 
 func (cl *ServicePubSubCapnpClient) SubActions(
-	ctx context.Context, publisherID, thingID, name string,
+	ctx context.Context, publisherID, thingID, actionID string,
 	handler func(action *thing.ThingValue)) (err error) {
 
 	method, release := cl.capability.SubActions(ctx,
 		func(params hubapi.CapServicePubSub_subActions_Params) error {
 			_ = params.SetPublisherID(publisherID)
 			_ = params.SetThingID(thingID)
-			_ = params.SetActionName(name)
+			_ = params.SetActionID(actionID)
 			handlerCapnp := NewSubscriptionHandlerCapnpServer(handler)
 			err = params.SetHandler(handlerCapnp)
 			return err

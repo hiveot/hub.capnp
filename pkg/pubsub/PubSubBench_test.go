@@ -65,7 +65,7 @@ func BenchmarkPubSub(b *testing.B) {
 			thingID := thingIDs[rand.Intn(tbl.Things)]
 			name := vocab.VocabTemperature
 			err := capUser.SubEvent(ctx, publisherID, thingID, name, func(tv *thing.ThingValue) {
-				//logrus.Infof("received tv thingAddr=%s name=%s", tv.thingAddr, tv.Name)
+				//logrus.Infof("received tv thingAddr=%s name=%s", tv.thingAddr, tv.ID)
 				evCount++
 			})
 			assert.NoError(b, err)

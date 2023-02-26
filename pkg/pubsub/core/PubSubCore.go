@@ -55,7 +55,9 @@ func (psc *PubSubCore) findSubscribers(topic string) (subs []*Subscription) {
 
 // Publish the topic to subscribers
 func (psc *PubSubCore) Publish(publisherID, topic string, message []byte) {
+	psc.submux.RLock()
 	subs := psc.findSubscribers(topic)
+	psc.submux.RUnlock()
 	//logrus.Infof("publisherID='%s'; topic=%v; %d subscribers", publisherID, topic, len(subs))
 	for _, sub := range subs {
 		sub.handler(topic, message)

@@ -66,9 +66,9 @@ type IDevicePubSub interface {
 	// PubEvent publishes the given thing event. The payload is an event value as per TD.
 	// This will combine the thingID with the device's thingID to publish it under the thing address
 	//  thingID of the Thing whose event is published
-	//  name is the event name
+	//  eventID is the event's key in the TD event map
 	//  value is the serialized event value, or nil if the event has no value
-	PubEvent(ctx context.Context, thingID, name string, value []byte) (err error)
+	PubEvent(ctx context.Context, thingID, eventID string, value []byte) (err error)
 
 	// PubProperties creates a topic and publishes properties of a thing.
 	// This will combine the thingID with the device's thingID to publish it under the thing address
@@ -76,10 +76,10 @@ type IDevicePubSub interface {
 	//  The props is a map of property name-value pairs.
 	PubProperties(ctx context.Context, thingID string, props map[string][]byte) (err error)
 
-	// PubTD publishes the given thing TD. The payload is a serialized TD document.
-	// This will combine the thingID with the device's thingID to publish it under the thing address
-	//  thingID of the Thing whose event is published (not the thing address)
-	PubTD(ctx context.Context, thingID string, deviceType string, tdDoc []byte) (err error)
+	// PubTD publishes the given serialized thing TD document.
+	// This will combine the publisher's thingID with the device's thingID to publish it under the thing address
+	//  thingID of the Thing whose event is published
+	PubTD(ctx context.Context, thingID string, tdDoc []byte) (err error)
 
 	// Release the capability and end subscriptions
 	Release()
@@ -88,10 +88,10 @@ type IDevicePubSub interface {
 	// This supports receiving queued messages for this gateway since it last disconnected.
 	//  thingID is the ID of the Thing whose action to subscribe to, or "" for all
 	//   things of the publisher.
-	//  name is the action name, or "" to subscribe to all actions
+	//  actionID is the action ID, the ke in TD action map. Use "" to subscribe to all actions
 	//  handler will be invoked when an action is received for this device
 	SubAction(ctx context.Context,
-		thingID string, name string,
+		thingID string, actionID string,
 		handler func(action *thing.ThingValue)) (err error)
 }
 
@@ -114,11 +114,11 @@ type IServicePubSub interface {
 	//   to actions send to other things.
 	//  thingID is the ID of the Thing whose action to subscribe to or "" for
 	//   all things published by the publisher.
-	//  actionName or "" to subscribe to all actions
+	//  actionID or "" to subscribe to all actions
 	//  handler is a callback invoked when actions are received
 	SubActions(ctx context.Context,
 		publisherID, thingID string,
-		actionName string,
+		actionID string,
 		handler func(action *thing.ThingValue)) (err error)
 
 	// Release the capability and end subscriptions
@@ -134,16 +134,16 @@ type IUserPubSub interface {
 	//
 	//  publisherID is the ID of the device or service that is publishing the thing
 	//  thingID is the ID of the Thing whose action is being requested
-	//  name is the action name as defined in the Thing's TD
+	//  actionID is the action ID as defined in the Thing's TD actions map
 	//  value is the JSON encoded value of the action
 	// This returns an error if the action request could not be delivered.
-	PubAction(ctx context.Context, publisherID, thingID, actionName string, value []byte) (err error)
+	PubAction(ctx context.Context, publisherID, thingID, actionID string, value []byte) (err error)
 
 	// SubEvent subscribes to events from a thing
 	//  publisherID is the ID of the device or service that is publishing the thing event.
 	//  thingID is the ID of the Thing whose event is published.
-	//  eventName of the event. Use "" to subscribe to all events of the things.
-	SubEvent(ctx context.Context, publisherID, thingID, eventName string,
+	//  eventID of the event. Use "" to subscribe to all events of the things.
+	SubEvent(ctx context.Context, publisherID, thingID, eventID string,
 		handler func(event *thing.ThingValue)) error
 
 	// SubTDs subscribes to eligible TD events

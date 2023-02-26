@@ -14,7 +14,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/hiveot/hub/api/go/vocab"
 	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/bucketstore/kvbtree"
 	"github.com/hiveot/hub/pkg/pubsub"
@@ -238,7 +237,7 @@ func TestPubSub(t *testing.T) {
 
 	// publish the TD
 	tdDoc := createTDDoc(thing1ID, title1)
-	err = svcPubSub.PubTD(ctx, thing1ID, vocab.DeviceTypeSensor, tdDoc)
+	err = svcPubSub.PubTD(ctx, thing1ID, tdDoc)
 	assert.NoError(t, err)
 
 	// expect it to be added to the directory

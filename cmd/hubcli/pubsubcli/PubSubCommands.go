@@ -66,7 +66,7 @@ func HandleSubTD(ctx context.Context, f svcconfig.AppFolders) error {
 		modifiedTime, _ := dateparse.ParseAny(td.Modified)                  // can be in any TZ
 		timeStr := modifiedTime.In(time.Local).Format("15:04:05.000 -0700") // want local time
 		fmt.Printf("%-20s %-25s %-20s %-20s %-18s\n",
-			event.PublisherID, event.ThingID, td.Title, td.AtType, timeStr)
+			event.PublisherID, event.ThingID, td.Title, td.DeviceType, timeStr)
 	})
 	fmt.Printf("Publisher ID         Thing ID                  Title                Type                 Modified          \n")
 	fmt.Printf("-------------------  ------------------------  -------------------  -------------------  ------------------\n")
@@ -97,14 +97,14 @@ func HandleSubEvents(ctx context.Context, f svcconfig.AppFolders) error {
 		createdTime, _ := dateparse.ParseAny(event.Created)
 		timeStr := createdTime.Format("15:04:05.000")
 		value := fmt.Sprintf("%-.30s", event.ValueJSON)
-		if event.Name == vocab.WoTProperties {
+		if event.ID == vocab.WoTProperties {
 			var props map[string][]byte
 			json.Unmarshal(event.ValueJSON, &props)
 			value = fmt.Sprintf("(%d): %s", len(props), props)
 		}
 
 		fmt.Printf("%-16s %-20s %-25s %-30s %-30s\n",
-			timeStr, event.PublisherID, event.ThingID, event.Name, value)
+			timeStr, event.PublisherID, event.ThingID, event.ID, value)
 	})
 	if err != nil {
 		return err

@@ -16,12 +16,12 @@ type DevicePubSubCapnpClient struct {
 }
 
 func (cl *DevicePubSubCapnpClient) PubEvent(
-	ctx context.Context, thingID, name string, value []byte) (err error) {
+	ctx context.Context, thingID, eventID string, value []byte) (err error) {
 
 	method, release := cl.capability.PubEvent(ctx,
 		func(params hubapi.CapDevicePubSub_pubEvent_Params) error {
 			_ = params.SetThingID(thingID)
-			_ = params.SetName(name)
+			_ = params.SetEventID(eventID)
 			err = params.SetValue(value)
 			return err
 		})
@@ -47,12 +47,11 @@ func (cl *DevicePubSubCapnpClient) PubProperties(ctx context.Context, thingID st
 
 // PubTD publishes the given thing TD. The payload is a serialized TD document.
 func (cl *DevicePubSubCapnpClient) PubTD(
-	ctx context.Context, thingID string, deviceType string, tdDoc []byte) (err error) {
+	ctx context.Context, thingID string, tdDoc []byte) (err error) {
 
 	method, release := cl.capability.PubTD(ctx,
 		func(params hubapi.CapDevicePubSub_pubTD_Params) error {
 			_ = params.SetThingID(thingID)
-			_ = params.SetDeviceType(deviceType)
 			err = params.SetTdDoc(tdDoc)
 			return err
 		})
@@ -70,16 +69,16 @@ func (cl *DevicePubSubCapnpClient) Release() {
 // This supports receiving queued messages for this gateway since it last disconnected.
 //
 //	thingID is the thing to subscribe for, or "" to subscribe to all things of this gateway
-//	name is the action name, or "" to subscribe to all actions
+//	actionID is the action ID, or "" to subscribe to all actions
 //	handler will be invoked when an action is received for this device
 func (cl *DevicePubSubCapnpClient) SubAction(
-	ctx context.Context, thingID string, name string,
+	ctx context.Context, thingID string, actionID string,
 	handler func(action *thing.ThingValue)) (err error) {
 
 	method, release := cl.capability.SubAction(ctx,
 		func(params hubapi.CapDevicePubSub_subAction_Params) error {
 			_ = params.SetThingID(thingID)
-			_ = params.SetName(name)
+			_ = params.SetActionID(actionID)
 			handlerCapnp := NewSubscriptionHandlerCapnpServer(handler)
 			err = params.SetHandler(handlerCapnp)
 			return err

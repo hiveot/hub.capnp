@@ -14,13 +14,13 @@ type UserPubSubCapnpClient struct {
 }
 
 func (cl *UserPubSubCapnpClient) PubAction(
-	ctx context.Context, publisherID, thingID, name string, value []byte) (err error) {
+	ctx context.Context, publisherID, thingID, actionID string, value []byte) (err error) {
 
 	method, release := cl.capability.PubAction(ctx,
 		func(params hubapi.CapUserPubSub_pubAction_Params) error {
 			_ = params.SetPublisherID(publisherID)
 			_ = params.SetThingID(thingID)
-			_ = params.SetActionName(name)
+			_ = params.SetActionID(actionID)
 			err = params.SetValue(value)
 			return err
 		})
@@ -35,7 +35,7 @@ func (cl *UserPubSubCapnpClient) Release() {
 }
 
 func (cl *UserPubSubCapnpClient) SubEvent(
-	ctx context.Context, publisherID, thingID string, name string,
+	ctx context.Context, publisherID, thingID string, eventID string,
 	handler func(action *thing.ThingValue)) (err error) {
 
 	//logrus.Infof("subscribing to event %s/%s/%s", publisherID, thingID, name)
@@ -43,7 +43,7 @@ func (cl *UserPubSubCapnpClient) SubEvent(
 		func(params hubapi.CapUserPubSub_subEvent_Params) error {
 			_ = params.SetPublisherID(publisherID)
 			_ = params.SetThingID(thingID)
-			_ = params.SetEventName(name)
+			_ = params.SetEventID(eventID)
 			handlerCapnp := NewSubscriptionHandlerCapnpServer(handler)
 			err = params.SetHandler(handlerCapnp)
 			return err

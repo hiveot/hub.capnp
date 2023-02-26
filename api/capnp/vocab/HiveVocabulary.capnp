@@ -16,20 +16,25 @@ const iSO8601Format :Text = "2006-01-02T15:04:05.999-0700";
 # TimeFormat using standard ISO8601
 
 # Vocabulary of device type names
+const deviceTypeAdapter        :Text = "adapter";        # software adapter or service, eg virtual device
 const deviceTypeAlarm          :Text = "alarm";          # an alarm emitter
 const deviceTypeAVControl      :Text = "avControl";      # Audio/Video controller
 const deviceTypeAVReceiver     :Text = "avReceiver";     # Node is a (not so) smart radio/receiver/amp (eg, denon)
+const deviceTypeBatteryMon     :Text = "batteryMonitor"; # Batter charge(ing) monitor
 const deviceTypeBeacon         :Text = "beacon";         # device is a location beacon
-const deviceTypeBinding        :Text = "binding";         # device is a protocol binding service
+const deviceTypeBinding        :Text = "binding";        # device is a protocol binding service
+const deviceTypeBinarySwitch   :Text = "switch";         # device is a electronic on/off switch
 const deviceTypeButton         :Text = "button";         # device is a physical button device with one or more buttons
-const deviceTypeAdapter        :Text = "adapter";        # software adapter or service, eg virtual device
 const deviceTypePhone          :Text = "phone";          # device is a phone
 const deviceTypeCamera         :Text = "camera";         # Node with camera
 const deviceTypeComputer       :Text = "computer";       # General purpose computer
 const deviceTypeDimmer         :Text = "dimmer";         # light dimmer
+const deviceTypeEeprom         :Text = "eeprom";         # Electric Erasable Programmable Memory
 const deviceTypeGateway        :Text = "gateway";        # Node is a gateway for other nodes (onewire, zwave, etc)
+const deviceTypeIndicator      :Text = "indicator";      # Indicator light or gauge
 const deviceTypeKeypad         :Text = "keypad";         # Entry key pad
 const deviceTypeLock           :Text = "lock";           # Electronic door lock
+const deviceTypeMemory         :Text = "memory";         # Memory chip
 const deviceTypeMultisensor    :Text = "multisensor";    # Node with multiple sensors
 const deviceTypeNetRepeater    :Text = "netRepeater";    # Node is a zwave or other network repeater
 const deviceTypeNetRouter      :Text = "netRouter";      # Node is a network router
@@ -42,6 +47,7 @@ const deviceTypeService        :Text = "service";        # Node provides a servi
 const deviceTypeSmartlight     :Text = "smartlight";     # Node is a smart light, eg philips hue
 const deviceTypeThermometer    :Text = "thermometer";    # Node is a temperature meter
 const deviceTypeThermostat     :Text = "thermostat";     # Node is a thermostat control unit
+const deviceTypeTime           :Text = "time";           # embedded time keeper
 const deviceTypeTV             :Text = "tv";             # Node is a (not so) smart TV
 const deviceTypeUnknown        :Text = "unknown";        # type not identified
 const deviceTypeWallpaper      :Text = "wallpaper";      # Node is a wallpaper montage of multiple images
@@ -50,7 +56,7 @@ const deviceTypeWeatherService :Text = "weatherService"; # Node is a service pro
 const deviceTypeWeatherStation :Text = "weatherStation"; # Node is a weatherstation device
 const deviceTypeWeighScale     :Text = "weighScale";     # Node is an electronic weight scale
 
-# Vocabulary of Standardized thing property names
+# Vocabulary of Standardized thing property, event and action names
 const vocabAcceleration           :Text = "acceleration";
 const vocabActive                 :Text = "active";
 const vocabAddress                :Text = "address";     # device domain or ip address
@@ -149,6 +155,15 @@ const vocabWaterLevel        :Text = "waterLevel";      #
 const vocabWeather           :Text = "weather";         # description of weather, eg sunny
 const vocabWindHeading       :Text = "windHeading";      #
 const vocabWindSpeed         :Text = "windSpeed";       #
+
+# Standardized names for action values
+const vocabActionEnable :Text = "enable";     # enable the device
+const vocabActionDisable :Text = "disable";   # disable the device
+const vocabActionOn :Text = "on";             # turn device on  (eg binary switch)
+const vocabActionOff :Text = "off";           # turn device off
+const vocabActionToggle :Text = "toggle";     # toggle device on/off status
+const vocabActionSetValue :Text = "set";      # set device value (eg multilevel switch)
+
 
 
 

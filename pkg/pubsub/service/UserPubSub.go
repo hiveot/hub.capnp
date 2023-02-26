@@ -22,12 +22,12 @@ type UserPubSub struct {
 
 // PubAction publishes an action by the user to a thing
 func (cap *UserPubSub) PubAction(
-	_ context.Context, publisherID, thingID, actionName string, value []byte) (err error) {
+	_ context.Context, publisherID, thingID, actionID string, value []byte) (err error) {
 
-	logrus.Infof("userID=%s, thingID=%s, actionName=%s", cap.userID, thingID, actionName)
+	logrus.Infof("userID=%s, thingID=%s, actionName=%s", cap.userID, thingID, actionID)
 
-	topic := MakeThingTopic(publisherID, thingID, pubsub.MessageTypeAction, actionName)
-	tv := thing.NewThingValue(publisherID, thingID, actionName, value)
+	topic := MakeThingTopic(publisherID, thingID, pubsub.MessageTypeAction, actionID)
+	tv := thing.NewThingValue(publisherID, thingID, actionID, value)
 	// note that marshal will copy the values so changes to the buffer containing value will not affect it
 	message, _ := json.Marshal(tv)
 	cap.core.Publish(cap.userID, topic, message)
@@ -35,10 +35,10 @@ func (cap *UserPubSub) PubAction(
 }
 
 // SubMessage subscribes to topic
-func (cap *UserPubSub) subMessage(publisherID, thingID, msgType, name string,
+func (cap *UserPubSub) subMessage(publisherID, thingID, msgType, id string,
 	handler func(msgValue *thing.ThingValue)) error {
 
-	subTopic := MakeThingTopic(publisherID, thingID, msgType, name)
+	subTopic := MakeThingTopic(publisherID, thingID, msgType, id)
 
 	subID, err := cap.core.Subscribe(cap.userID, subTopic,
 		func(topic string, message []byte) {
@@ -64,12 +64,12 @@ func (cap *UserPubSub) subMessage(publisherID, thingID, msgType, name string,
 //
 //	publisherID publisher of the event. Use "" to subscribe to all publishers
 //	thingID of the publisher event. Use "" to subscribe to events from all Things
-//	eventName of the event. Use "" to subscribe to all events of publisher things
-func (cap *UserPubSub) SubEvent(ctx context.Context, publisherID, thingID, eventName string,
+//	eventID of the event. Use "" to subscribe to all events of publisher things
+func (cap *UserPubSub) SubEvent(ctx context.Context, publisherID, thingID, eventID string,
 	handler func(event *thing.ThingValue)) (err error) {
 
-	logrus.Infof("userID=%s, thingID=%s, eventName=%s", cap.userID, thingID, eventName)
-	err = cap.subMessage(publisherID, thingID, pubsub.MessageTypeEvent, eventName, handler)
+	logrus.Infof("userID=%s, thingID=%s, eventName=%s", cap.userID, thingID, eventID)
+	err = cap.subMessage(publisherID, thingID, pubsub.MessageTypeEvent, eventID, handler)
 	return err
 }
 

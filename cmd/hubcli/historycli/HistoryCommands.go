@@ -135,7 +135,7 @@ func HandleListEvents(ctx context.Context, f svcconfig.AppFolders, publisherID, 
 			tv.PublisherID,
 			tv.ThingID,
 			utime.Format("02 Jan 2006 15:04:05 MST"),
-			tv.Name,
+			tv.ID,
 			tv.ValueJSON,
 		)
 	}
@@ -195,13 +195,13 @@ func HandleListLatestEvents(
 	}
 	props := readHist.GetProperties(ctx, nil)
 
-	fmt.Println("Event Name         Publisher       Thing                Created                     Value")
+	fmt.Println("Event ID         Publisher       Thing                Created                     Value")
 	fmt.Println("----------         ---------       -----                -------                     -----")
 	for _, prop := range props {
 		utime, _ := dateparse.ParseAny(prop.Created)
 
 		fmt.Printf("%-18.18s %-15.15s %-20s %-27s %s\n",
-			prop.Name,
+			prop.ID,
 			prop.PublisherID,
 			prop.ThingID,
 			//utime.Format("02 Jan 2006 15:04:05 -0700"),

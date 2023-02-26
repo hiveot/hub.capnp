@@ -26,9 +26,10 @@ type TD struct {
 	AtContext []string `json:"@context"`
 
 	// JSON-LD keyword to label the object with semantic tags (or types).
-	// in HiveOT this contains the device type defined in the vocabulary
-	AtType  string `json:"@type,omitempty"`
-	AtTypes string `json:"@types,omitempty"`
+	// in HiveOT this contains the device type defined in the vocabulary.
+	// Intended for grouping and querying similar devices, and standardized presentation such as icons
+	DeviceType string `json:"@type,omitempty"`
+	AtTypes    string `json:"@types,omitempty"`
 
 	// base: Define the base URI that is used for all relative URI references throughout a TD document.
 	Base string `json:"base,omitempty"`
@@ -98,12 +99,12 @@ type TD struct {
 // describes the parameter(s).
 //
 //	id is the action instance ID under which it is stored in the action affordance map.
-//	actionType from the vocabulary
+//	actionType from the vocabulary or "" if this is a non-standardized action
 //	title is the short display title of the action
 //	description optional explanation of the action
 func (tdoc *TD) AddAction(id string, actionType string, title string, description string) *ActionAffordance {
 	actionAff := &ActionAffordance{
-		AtType:      actionType,
+		ActionType:  actionType,
 		Title:       title,
 		Description: description,
 	}
@@ -117,12 +118,12 @@ func (tdoc *TD) AddAction(id string, actionType string, title string, descriptio
 // If the event returns data then set the .Data field to a DataSchema instance that describes it.
 //
 //	id is the unique event instance ID under which it is stored in the affordance map.
-//	eventType describes the type of event in HiveOT vocabulary if available, or the event name.
+//	eventType describes the type of event in HiveOT vocabulary if available, or "" if non-standard.
 //	title is the short display title of the event
 //	dataType is the type of data the event holds, WoTDataTypeNumber, ..Object, ..Array, ..String, ..Integer, ..Boolean or null
 func (tdoc *TD) AddEvent(id string, eventType string, title string, description string) *EventAffordance {
 	evAff := &EventAffordance{
-		AtType:      eventType,
+		EventType:   eventType,
 		Title:       title,
 		Description: description,
 	}
@@ -134,19 +135,20 @@ func (tdoc *TD) AddEvent(id string, eventType string, title string, description 
 // This returns the property affordance that can be augmented/modified directly
 // By default the property is a read-only attribute.
 //
-//	name is the name under which it is stored in the property affordance map. Any existing name will be replaced.
-//	title is the title used in the property. It is okay to use name if not sure.
+//	id is the unique property instance ID under which it is stored in the affordance map.
+//	propType describes the type of property in HiveOT vocabulary if available, or "" if this is a non-standard property.
+//	title is the short display title of the property.
 //	dataType is the type of data the property holds, WoTDataTypeNumber, ..Object, ..Array, ..String, ..Integer, ..Boolean or null
-func (tdoc *TD) AddProperty(name string, title string, dataType string) *PropertyAffordance {
+func (tdoc *TD) AddProperty(id string, propType string, title string, dataType string) *PropertyAffordance {
 	prop := &PropertyAffordance{
 		DataSchema: DataSchema{
-			AtType:   name,
+			AtType:   propType,
 			Title:    title,
 			Type:     dataType,
 			ReadOnly: true,
 		},
 	}
-	tdoc.UpdateProperty(name, prop)
+	tdoc.UpdateProperty(id, prop)
 	return prop
 }
 
@@ -287,7 +289,9 @@ func (tdoc *TD) UpdateTitleDescription(title string, description string) {
 //	}
 func NewTD(thingID string, title string, deviceType string) *TD {
 	td := TD{
-		AtContext:  []string{"http://www.w3.org/ns/thing"},
+		AtContext: []string{"http://www.w3.org/ns/thing"},
+		// TODO @type is a JSON-LD keyword to label using semantic tags, eg it needs a Schema
+		DeviceType: deviceType,
 		Actions:    map[string]*ActionAffordance{},
 		Created:    time.Now().Format(vocab.ISO8601Format),
 		Events:     map[string]*EventAffordance{},
@@ -301,10 +305,5 @@ func NewTD(thingID string, title string, deviceType string) *TD {
 		updateMutex: sync.RWMutex{},
 	}
 
-	// TODO @type is a JSON-LD keyword to label using semantic tags, eg it needs a Schema
-	if deviceType != "" {
-		// deviceType must be a string for serialization and querying
-		td.AtType = deviceType
-	}
 	return &td
 }

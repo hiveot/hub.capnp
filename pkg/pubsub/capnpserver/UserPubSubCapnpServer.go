@@ -21,9 +21,9 @@ func (capsrv *UserPubSubCapnpServer) PubAction(
 	args := call.Args()
 	thingID, _ := args.ThingID()
 	publisherID, _ := args.PublisherID()
-	name, _ := args.ActionName()
+	actionID, _ := args.ActionID()
 	value, _ := args.Value()
-	err := capsrv.svc.PubAction(ctx, publisherID, thingID, name, value)
+	err := capsrv.svc.PubAction(ctx, publisherID, thingID, actionID, value)
 	return err
 }
 
@@ -32,13 +32,13 @@ func (capsrv *UserPubSubCapnpServer) SubEvent(
 	args := call.Args()
 	thingID, _ := args.ThingID()
 	publisherID, _ := args.PublisherID()
-	name, _ := args.EventName()
+	eventID, _ := args.EventID()
 	handlerCap := args.Handler()
 	handler := NewSubscriptionHandlerCapnpClient(handlerCap.AddRef())
 
-	logrus.Infof("subscribing to event %s/%s/%s", publisherID, thingID, name)
+	logrus.Infof("subscribing to event %s/%s/%s", publisherID, thingID, eventID)
 
-	err := capsrv.svc.SubEvent(ctx, publisherID, thingID, name, handler.HandleValue)
+	err := capsrv.svc.SubEvent(ctx, publisherID, thingID, eventID, handler.HandleValue)
 	return err
 }
 
