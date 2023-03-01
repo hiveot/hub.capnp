@@ -4,11 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/hiveot/hub/lib/utils"
-	"time"
-
 	"github.com/araddon/dateparse"
+	"github.com/hiveot/hub/lib/utils"
 	"github.com/urfave/cli/v2"
+	"time"
 
 	"github.com/hiveot/hub/lib/hubclient"
 	"github.com/hiveot/hub/lib/svcconfig"
@@ -16,16 +15,6 @@ import (
 	"github.com/hiveot/hub/pkg/directory"
 	"github.com/hiveot/hub/pkg/directory/capnpclient"
 )
-
-const Reset = "\033[0m"
-const Red = "\033[31m"
-const Green = "\033[32m"
-const Yellow = "\033[33m"
-const Blue = "\033[34m"
-const Purple = "\033[35m"
-const Cyan = "\033[36m"
-const Gray = "\033[37m"
-const White = "\033[97m"
 
 func DirectoryListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 	var limit = 100
@@ -109,7 +98,7 @@ func HandleListDirectory(ctx context.Context, f svcconfig.AppFolders, limit int,
 	return nil
 }
 
-// HandleListThing lists a Thing in the directory
+// HandleListThing lists details of a Thing in the directory
 func HandleListThing(ctx context.Context, f svcconfig.AppFolders, pubID, thingID string) error {
 	var dir directory.IDirectory
 	var rd directory.IReadDirectory
@@ -131,34 +120,39 @@ func HandleListThing(ctx context.Context, f svcconfig.AppFolders, pubID, thingID
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%sTD of %s %s:%s\n", Blue, pubID, thingID, Reset)
+	fmt.Printf("%sTD of %s %s:%s\n", utils.COBlue, pubID, thingID, utils.COReset)
 	fmt.Printf(" title:       %s\n", tdDoc.Title)
 	fmt.Printf(" description: %s\n", tdDoc.Description)
 	fmt.Printf(" deviceType:  %s\n", tdDoc.DeviceType)
 	fmt.Printf(" modified:    %s\n", tdDoc.Modified)
 	fmt.Println("")
 
-	fmt.Println("Properties:")
-	fmt.Println(" ID                             Attr/Config     Title                                    DataType   Initial Value   Description")
-	fmt.Println(" -----------------------------  -----------     ---------------------------------------  ---------  -------------   -----------")
-
+	fmt.Println(utils.COGreen + "Attributes:")
+	fmt.Println(" ID                              Title                                    Initial Value   Description")
+	fmt.Println(" -----------------------------   ---------------------------------------  -------------   -----------" + utils.COReset)
 	keys := utils.OrderedMapKeys(tdDoc.Properties)
 	for _, key := range keys {
-		prop := tdDoc.Properties[key]
-		attrConfig := Green + "attr" + Reset
-		if prop.WriteOnly {
-			attrConfig = Red + "action" + Reset // should not happen
-		} else if !prop.ReadOnly {
-			attrConfig = Blue + "config" + Reset
+		prop, found := tdDoc.Properties[key]
+		if found && prop.ReadOnly {
+			fmt.Printf(" %-30.30s  %-40.40s %s%-15.15v%s %s\n",
+				key, prop.Title, utils.COGreen, prop.InitialValue, utils.COReset, prop.Description)
 		}
-		// %-23s to account for the color
-		fmt.Printf(" %-30.30s %-23.23s  %-40.40s %-10s %-15.15s %s\n",
-			key, attrConfig, prop.Title, prop.Type, prop.InitialValue, prop.Description)
+	}
+	fmt.Println()
+	fmt.Println(utils.COBlue + "Configuration:")
+	fmt.Println(" ID                              Title                                    DataType   Initial Value   Description")
+	fmt.Println(" -----------------------------   ---------------------------------------  ---------  -------------   -----------" + utils.COReset)
+	for _, key := range keys {
+		prop, found := tdDoc.Properties[key]
+		if found && !prop.ReadOnly {
+			fmt.Printf(" %-30.30s  %-40.40s %-10s %s%-15.15v%s %s\n",
+				key, prop.Title, prop.Type, utils.COBlue, prop.InitialValue, utils.COReset, prop.Description)
+		}
 	}
 
-	fmt.Println("\nEvents:")
+	fmt.Println(utils.COYellow + "\nEvents:")
 	fmt.Println(" ID                             EventType       Title                                    DataType   Initial Value   Description")
-	fmt.Println(" -----------------------------  --------------  ---------------------------------------  ---------  --------------  -----------")
+	fmt.Println(" -----------------------------  --------------  ---------------------------------------  ---------  --------------  -----------" + utils.COReset)
 	keys = utils.OrderedMapKeys(tdDoc.Events)
 	for _, key := range keys {
 		ev := tdDoc.Events[key]
@@ -166,13 +160,17 @@ func HandleListThing(ctx context.Context, f svcconfig.AppFolders, pubID, thingID
 		if ev.Data != nil {
 			dataType = ev.Data.Type
 		}
-		fmt.Printf(" %-30.30s %-15.15s %-40.40s %-10.10s %-15.15s %s\n",
-			key, ev.EventType, ev.Title, dataType, ev.InitialValue, ev.Description)
+		initialValue := ""
+		if ev.Data != nil {
+			initialValue = ev.Data.InitialValue
+		}
+		fmt.Printf(" %-30.30s %-15.15s %-40.40s %-10.10v %s%-15.15s%s %s\n",
+			key, ev.EventType, ev.Title, dataType, utils.COYellow, initialValue, utils.COReset, ev.Description)
 	}
 
-	fmt.Println("\nActions:")
+	fmt.Println(utils.CORed + "\nActions:")
 	fmt.Println(" ID                             ActionType      Title                                    Arg(s)     Description")
-	fmt.Println(" -----------------------------  --------------  ---------------------------------------  ---------  -----------")
+	fmt.Println(" -----------------------------  --------------  ---------------------------------------  ---------  -----------" + utils.COReset)
 	keys = utils.OrderedMapKeys(tdDoc.Actions)
 	for _, key := range keys {
 		action := tdDoc.Actions[key]

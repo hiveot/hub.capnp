@@ -27,11 +27,6 @@ type PropertyAffordance struct {
 	// This is implied for Things that are using the message bus and not documented here.
 	//Observable bool `json:"observable,omitempty" default:"false"`
 
-	// Initial value at time of TD creation
-	// this is always a string with optionally a unit
-	// not part of the WoT definition but useful for testing and debugging
-	InitialValue string `json:"initialValue,omitempty"`
-
 	// Optional nested properties. Map with PropertyAffordance
 	Properties map[string]PropertyAffordance `json:"properties,omitempty"`
 }

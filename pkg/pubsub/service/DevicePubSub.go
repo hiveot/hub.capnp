@@ -36,7 +36,7 @@ func (dps *DevicePubSub) PubEvent(
 	// note that marshal will copy the value so its buffer can be reused by capnp
 	tvSerialized, _ := json.Marshal(tv)
 	topic := MakeThingTopic(dps.publisherID, thingID, pubsub.MessageTypeEvent, eventID)
-	go dps.core.Publish(dps.publisherID, topic, tvSerialized)
+	go dps.core.Publish(topic, tvSerialized)
 	return
 }
 
@@ -53,7 +53,7 @@ func (dps *DevicePubSub) PubProperties(
 	// note that marshal will copy the props map so its buffer can be reused by capnp
 	tvSerialized, _ := json.Marshal(tv)
 	topic := MakeThingTopic(dps.publisherID, thingID, pubsub.MessageTypeEvent, vocab.WoTProperties)
-	dps.core.Publish(dps.publisherID, topic, tvSerialized)
+	dps.core.Publish(topic, tvSerialized)
 	return
 }
 
@@ -69,7 +69,7 @@ func (dps *DevicePubSub) PubTD(_ context.Context, thingID string, td []byte) (er
 	topic := MakeThingTopic(dps.publisherID, thingID, pubsub.MessageTypeTD, "")
 
 	tvSerialized, _ := json.Marshal(tv)
-	dps.core.Publish(dps.publisherID, topic, tvSerialized)
+	dps.core.Publish(topic, tvSerialized)
 	return
 }
 
@@ -83,7 +83,7 @@ func (dps *DevicePubSub) SubAction(
 	logrus.Infof("publisherID=%s, thingID=%s, actionName=%s", dps.publisherID, thingID, actionID)
 
 	topic := MakeThingTopic(dps.publisherID, thingID, pubsub.MessageTypeAction, actionID)
-	subscriptionID, err := dps.core.Subscribe(dps.publisherID, topic,
+	subscriptionID, err := dps.core.Subscribe(topic,
 		func(topic string, message []byte) {
 
 			msgValue := &thing.ThingValue{}

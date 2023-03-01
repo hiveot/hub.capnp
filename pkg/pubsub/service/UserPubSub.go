@@ -30,7 +30,7 @@ func (cap *UserPubSub) PubAction(
 	tv := thing.NewThingValue(publisherID, thingID, actionID, value)
 	// note that marshal will copy the values so changes to the buffer containing value will not affect it
 	message, _ := json.Marshal(tv)
-	cap.core.Publish(cap.userID, topic, message)
+	cap.core.Publish(topic, message)
 	return
 }
 
@@ -40,7 +40,7 @@ func (cap *UserPubSub) subMessage(publisherID, thingID, msgType, id string,
 
 	subTopic := MakeThingTopic(publisherID, thingID, msgType, id)
 
-	subID, err := cap.core.Subscribe(cap.userID, subTopic,
+	subID, err := cap.core.Subscribe(subTopic,
 		func(topic string, message []byte) {
 
 			msgValue := &thing.ThingValue{}

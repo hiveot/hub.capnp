@@ -34,9 +34,14 @@ type DataSchema struct {
 	// Provides a default value of any type as per data Schema
 	Default interface{} `json:"default,omitempty"`
 
-	// Unit as used in international science, engineering, and business.
-	// See vocab UnitNameXyz for units in the vocabulary
-	Unit string `json:"unit,omitempty"`
+	// Allows validation based on a format pattern such as "date-time", "email", "uri", etc.
+	// See vocab DataFormXyz "date-time", "email", "uri" (todo)
+	Format string `json:"format,omitempty"`
+
+	// Initial value at time of creation
+	// this is always a string with optionally a unit
+	// not part of the WoT definition but useful for testing and debugging
+	InitialValue string `json:"initialValue,omitempty"`
 
 	// OneOf provides constraint of data as one of the given data schemas
 	OneOf []interface{} `json:"oneOf,omitempty"`
@@ -53,12 +58,12 @@ type DataSchema struct {
 	// the value true implies writable but not readable. Intended for secrets such as passwords.
 	WriteOnly bool `json:"writeOnly,omitempty"`
 
-	// Allows validation based on a format pattern such as "date-time", "email", "uri", etc.
-	// See vocab DataFormXyz "date-time", "email", "uri" (todo)
-	Format string `json:"format,omitempty"`
-
 	// Type provides JSON based data type,  one of WoTDataTypeNumber, ...object, array, string, integer, boolean or null
 	Type string `json:"type,omitempty"`
+
+	// Unit as used in international science, engineering, and business.
+	// See vocab UnitNameXyz for units in the vocabulary
+	Unit string `json:"unit,omitempty"`
 
 	// ArraySchema with metadata describing data of type Array.
 	// https://www.w3.org/TR/wot-thing-description/#arrayschema

@@ -54,7 +54,7 @@ func (psc *PubSubCore) findSubscribers(topic string) (subs []*Subscription) {
 }
 
 // Publish the topic to subscribers
-func (psc *PubSubCore) Publish(publisherID, topic string, message []byte) {
+func (psc *PubSubCore) Publish(topic string, message []byte) {
 	psc.submux.RLock()
 	subs := psc.findSubscribers(topic)
 	psc.submux.RUnlock()
@@ -83,13 +83,12 @@ func (psc *PubSubCore) Stop() (err error) {
 
 // Subscribe to a topic
 //
-//	 subscriberID is the device, user or serviceID
-//		topic is the topic to subscribe to. The use of '+' wildcard is supported
-//		handler is the callback to invoke when a message is received
+//	topic is the topic to subscribe to. The use of '+' wildcard is supported
+//	handler is the callback to invoke when a message is received
 //
 // This returns a subscription ID, used to unsubscribe
 func (psc *PubSubCore) Subscribe(
-	subscriberID string, topic string,
+	topic string,
 	handler func(topic string, message []byte)) (subscriptionID string, err error) {
 
 	sub := &Subscription{

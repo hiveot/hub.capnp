@@ -30,11 +30,6 @@ type EventAffordance struct {
 	// Data Schema of the event payload, if any. nil if the event comes without data
 	Data *DataSchema `json:"data,omitempty"`
 
-	// Initial value at time of TD creation
-	// this is always a string with optionally a unit
-	// not part of the WoT definition but useful for testing and debugging
-	InitialValue string `json:"initialValue,omitempty"`
-
 	// subscription is not applicable
 	// dataResponse is not applicable
 	// cancellation is not applicable

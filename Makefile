@@ -74,8 +74,7 @@ state: .FORCE ## Build State store
 	cp ./pkg/$@/config/*.yaml $(DIST_FOLDER)/config
 
 clean: ## Clean distribution files
-	go mod tidy
-	go clean -cache -testcache
+	go clean -cache -testcache -modcache
 	rm -rf $(DIST_FOLDER)
 	mkdir -p $(BIN_FOLDER)
 	mkdir -p $(SERVICE_FOLDER)
@@ -84,6 +83,8 @@ clean: ## Clean distribution files
 	mkdir -p $(DIST_FOLDER)/logs
 	mkdir -p $(DIST_FOLDER)/run
 	mkdir -p $(DIST_FOLDER)/stores
+	go mod tidy
+	go get all
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
