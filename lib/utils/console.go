@@ -25,6 +25,6 @@ const (
 )
 
 const (
-	WrapOff = "\x1b[7l"
-	WrapOn  = "\x1b[7h"
+	WrapOff = "\033[?7l"
+	WrapOn  = "\033[?7h"
 )

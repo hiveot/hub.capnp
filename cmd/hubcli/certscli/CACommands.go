@@ -12,40 +12,15 @@ import (
 
 	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/lib/certsclient"
-	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/pkg/certs/service/selfsigned"
 )
-
-// CACommands returns the list of CA commands
-func CACommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
-
-	cmd := &cli.Command{
-		// ca view | ca create | ca renew
-		Name:      "ca",
-		Usage:     "View or create the CA certificate",
-		ArgsUsage: ";", //(no args)",
-		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:        "certs",
-				Usage:       "Path to certificate `folder`.",
-				Value:       f.Certs,
-				Destination: &f.Certs,
-			},
-		},
-		Subcommands: []*cli.Command{
-			CreateCACommand(ctx, f.Certs),
-			ViewCACommand(ctx, f.Certs),
-		},
-	}
-	return cmd
-}
 
 // CreateCACommand create the Hub self-signed CA, valid for 5 years
 // This does not require any services to run.
 // After creating a new CA, services have to be restarted.
 //
 //	hubcli certs ca [--certs=CertFolder]  [--hostname=hostname]
-func CreateCACommand(_ context.Context, certsFolder string) *cli.Command {
+func CreateCACommand(_ context.Context, certsFolder *string) *cli.Command {
 	var force = false
 	var validityDays = 365 * 5
 
@@ -72,7 +47,7 @@ func CreateCACommand(_ context.Context, certsFolder string) *cli.Command {
 			if cCtx.NArg() > 0 {
 				return fmt.Errorf("unexpected argument(s) '%s'", cCtx.Args().First())
 			}
-			err := HandleCreateCACert(certsFolder, cCtx.Int("days"), cCtx.Bool("force"))
+			err := HandleCreateCACert(*certsFolder, cCtx.Int("days"), cCtx.Bool("force"))
 			return err
 		},
 	}
@@ -82,7 +57,7 @@ func CreateCACommand(_ context.Context, certsFolder string) *cli.Command {
 // This does not require any services to run.
 //
 //	hubcli ca [--certs=CertFolder] view
-func ViewCACommand(ctx context.Context, certsFolder string) *cli.Command {
+func ViewCACommand(ctx context.Context, certsFolder *string) *cli.Command {
 
 	return &cli.Command{
 		Name:      "viewca",
@@ -95,7 +70,7 @@ func ViewCACommand(ctx context.Context, certsFolder string) *cli.Command {
 			if cCtx.NArg() > 0 {
 				return fmt.Errorf("unexpected argument(s) '%s'", cCtx.Args().First())
 			}
-			err := HandleViewCACert(ctx, certsFolder)
+			err := HandleViewCACert(ctx, *certsFolder)
 			return err
 		},
 	}

@@ -7,14 +7,13 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/hiveot/hub/lib/hubclient"
-	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/pkg/provisioning"
 	"github.com/hiveot/hub/pkg/provisioning/capnpclient"
 )
 
 // ProvisioningCommands returns the provisioning handling commands
 // This requires the provisioning service to run.
-func ProvisioningCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
+func ProvisioningCommands(ctx context.Context, runFolder *string) *cli.Command {
 
 	cmd := &cli.Command{
 		//hub prov add|list  <deviceID> <secret>
@@ -22,10 +21,10 @@ func ProvisioningCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Comm
 		Aliases: []string{"pr"},
 		Usage:   "IoT device provisioning",
 		Subcommands: cli.Commands{
-			ProvisionAddOOBSecretsCommand(ctx, f),
-			ProvisionApproveRequestCommand(ctx, f),
-			ProvisionGetPendingRequestsCommand(ctx, f),
-			ProvisionGetApprovedRequestsCommand(ctx, f),
+			ProvisionAddOOBSecretsCommand(ctx, runFolder),
+			ProvisionApproveRequestCommand(ctx, runFolder),
+			ProvisionGetPendingRequestsCommand(ctx, runFolder),
+			ProvisionGetApprovedRequestsCommand(ctx, runFolder),
 		},
 	}
 
@@ -34,7 +33,7 @@ func ProvisioningCommands(ctx context.Context, f svcconfig.AppFolders) *cli.Comm
 
 // ProvisionAddOOBSecretsCommand
 // prov add  <deviceID> <oobsecret>
-func ProvisionAddOOBSecretsCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
+func ProvisionAddOOBSecretsCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
 		Name:      "addoob <deviceID> <secret>",
 		Aliases:   []string{"ados"},
@@ -45,7 +44,7 @@ func ProvisionAddOOBSecretsCommand(ctx context.Context, f svcconfig.AppFolders) 
 			if cCtx.NArg() != 2 {
 				return fmt.Errorf("expected 2 arguments. Got %d instead", cCtx.NArg())
 			}
-			err := HandleAddOobSecret(ctx, f,
+			err := HandleAddOobSecret(ctx, *runFolder,
 				cCtx.Args().Get(0),
 				cCtx.Args().Get(1))
 			fmt.Println("Adding secret for device: ", cCtx.Args().First())
@@ -56,7 +55,7 @@ func ProvisionAddOOBSecretsCommand(ctx context.Context, f svcconfig.AppFolders) 
 
 // ProvisionApproveRequestCommand
 // prov approve <deviceID>
-func ProvisionApproveRequestCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
+func ProvisionApproveRequestCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
 		Name:      "approveprov <deviceID>",
 		Aliases:   []string{"appr"},
@@ -68,7 +67,7 @@ func ProvisionApproveRequestCommand(ctx context.Context, f svcconfig.AppFolders)
 				return fmt.Errorf("expected 1 arguments. Got %d instead", cCtx.NArg())
 			}
 			deviceID := cCtx.Args().First()
-			err := HandleApproveRequest(ctx, f, deviceID)
+			err := HandleApproveRequest(ctx, *runFolder, deviceID)
 			return err
 		},
 	}
@@ -76,7 +75,7 @@ func ProvisionApproveRequestCommand(ctx context.Context, f svcconfig.AppFolders)
 
 // ProvisionGetApprovedRequestsCommand
 // prov approved
-func ProvisionGetApprovedRequestsCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
+func ProvisionGetApprovedRequestsCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
 		Name:      "listapproved",
 		Aliases:   []string{"lap"},
@@ -84,7 +83,7 @@ func ProvisionGetApprovedRequestsCommand(ctx context.Context, f svcconfig.AppFol
 		UsageText: "View a list of recent approved provisioning requests. ",
 		Category:  "provisioning",
 		Action: func(cCtx *cli.Context) error {
-			err := HandleGetApprovedRequests(ctx, f)
+			err := HandleGetApprovedRequests(ctx, *runFolder)
 			return err
 		},
 	}
@@ -92,7 +91,7 @@ func ProvisionGetApprovedRequestsCommand(ctx context.Context, f svcconfig.AppFol
 
 // ProvisionGetPendingRequestsCommand
 // prov approved
-func ProvisionGetPendingRequestsCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
+func ProvisionGetPendingRequestsCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
 		Name:      "listpending",
 		Aliases:   []string{"lip"},
@@ -100,7 +99,7 @@ func ProvisionGetPendingRequestsCommand(ctx context.Context, f svcconfig.AppFold
 		UsageText: "View a list of recent pending provisioning requests",
 		Category:  "provisioning",
 		Action: func(cCtx *cli.Context) error {
-			err := HandleGetPendingRequests(ctx, f)
+			err := HandleGetPendingRequests(ctx, *runFolder)
 			return err
 		},
 	}
@@ -110,11 +109,11 @@ func ProvisionGetPendingRequestsCommand(ctx context.Context, f svcconfig.AppFold
 //
 //	deviceID is the ID of the device whose secret to set
 //	secret to set
-func HandleAddOobSecret(ctx context.Context, f svcconfig.AppFolders, deviceID string, secret string) error {
+func HandleAddOobSecret(ctx context.Context, runFolder string, deviceID string, secret string) error {
 	var pc provisioning.IProvisioning
 	var secrets []provisioning.OOBSecret
 
-	conn, err := hubclient.ConnectToService(provisioning.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(provisioning.ServiceName, runFolder)
 	if err == nil {
 		pc = capnpclient.NewProvisioningCapnpClient(ctx, conn)
 	}
@@ -137,10 +136,10 @@ func HandleAddOobSecret(ctx context.Context, f svcconfig.AppFolders, deviceID st
 // HandleApproveRequest
 //
 //	deviceID is the ID of the device to approve
-func HandleApproveRequest(ctx context.Context, f svcconfig.AppFolders, deviceID string) error {
+func HandleApproveRequest(ctx context.Context, runFolder string, deviceID string) error {
 	var pc provisioning.IProvisioning
 
-	conn, err := hubclient.ConnectToService(provisioning.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(provisioning.ServiceName, runFolder)
 	if err == nil {
 		pc = capnpclient.NewProvisioningCapnpClient(ctx, conn)
 		manage, _ := pc.CapManageProvisioning(ctx, "hubcli")
@@ -150,11 +149,11 @@ func HandleApproveRequest(ctx context.Context, f svcconfig.AppFolders, deviceID 
 	return err
 }
 
-func HandleGetApprovedRequests(ctx context.Context, f svcconfig.AppFolders) error {
+func HandleGetApprovedRequests(ctx context.Context, runFolder string) error {
 	var pc provisioning.IProvisioning
 	var provStatus []provisioning.ProvisionStatus
 
-	conn, err := hubclient.ConnectToService(provisioning.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(provisioning.ServiceName, runFolder)
 	if err == nil {
 		pc = capnpclient.NewProvisioningCapnpClient(ctx, conn)
 		manage, _ := pc.CapManageProvisioning(ctx, "hubcli")
@@ -176,11 +175,11 @@ func HandleGetApprovedRequests(ctx context.Context, f svcconfig.AppFolders) erro
 	return err
 }
 
-func HandleGetPendingRequests(ctx context.Context, f svcconfig.AppFolders) error {
+func HandleGetPendingRequests(ctx context.Context, runFolder string) error {
 	var pc provisioning.IProvisioning
 	var provStatus []provisioning.ProvisionStatus
 
-	conn, err := hubclient.ConnectToService(provisioning.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(provisioning.ServiceName, runFolder)
 	if err == nil {
 		pc = capnpclient.NewProvisioningCapnpClient(ctx, conn)
 		manage, _ := pc.CapManageProvisioning(ctx, "hubcli")

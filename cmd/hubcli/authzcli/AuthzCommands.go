@@ -7,14 +7,13 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/hiveot/hub/lib/hubclient"
-	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/pkg/authz"
 	"github.com/hiveot/hub/pkg/authz/capnpclient"
 )
 
 // AuthzListGroupsCommand lists the groups a client is a member off
 // hubcli authz groups [clientID]
-func AuthzListGroupsCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
+func AuthzListGroupsCommand(ctx context.Context, runFolder *string) *cli.Command {
 	clientID := ""
 	return &cli.Command{
 		Name:      "listgroups [clientID]",
@@ -29,19 +28,19 @@ func AuthzListGroupsCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Co
 				err := fmt.Errorf("multiple arguments, expected only a single clientID")
 				return err
 			}
-			err := HandleListGroups(ctx, f, clientID)
+			err := HandleListGroups(ctx, *runFolder, clientID)
 			return err
 		},
 	}
 }
 
 // HandleListGroups shows a list of groups the client is a member of
-func HandleListGroups(ctx context.Context, f svcconfig.AppFolders, clientID string) error {
+func HandleListGroups(ctx context.Context, runFolder, clientID string) error {
 	var err error
 	var authzClient authz.IAuthz
 	var manageAuthz authz.IManageAuthz
 
-	conn, err := hubclient.ConnectToService(authz.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(authz.ServiceName, runFolder)
 	if err == nil {
 		authzClient = capnpclient.NewAuthzCapnpClient(ctx, conn)
 	}

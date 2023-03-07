@@ -7,12 +7,11 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/hiveot/hub/lib/hubclient"
-	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/pkg/launcher"
 	"github.com/hiveot/hub/pkg/launcher/capnpclient"
 )
 
-func LauncherListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
+func LauncherListCommand(ctx context.Context, runFolder *string) *cli.Command {
 
 	return &cli.Command{
 		Name:      "listservices",
@@ -24,13 +23,13 @@ func LauncherListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comma
 			if cCtx.NArg() != 0 {
 				return fmt.Errorf("no arguments expected")
 			}
-			err := HandleListServices(ctx, f)
+			err := HandleListServices(ctx, *runFolder)
 			return err
 		},
 	}
 }
 
-func LauncherStartCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
+func LauncherStartCommand(ctx context.Context, runFolder *string) *cli.Command {
 
 	return &cli.Command{
 		Name:      "startservice <servicename>",
@@ -43,13 +42,13 @@ func LauncherStartCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comm
 			if cCtx.NArg() != 1 {
 				return fmt.Errorf("expected service name")
 			}
-			err := HandleStartService(ctx, f, cCtx.Args().First())
+			err := HandleStartService(ctx, *runFolder, cCtx.Args().First())
 			return err
 		},
 	}
 }
 
-func LauncherStopCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
+func LauncherStopCommand(ctx context.Context, runFolder *string) *cli.Command {
 
 	return &cli.Command{
 		Name:      "stopservice <servicename>",
@@ -61,17 +60,17 @@ func LauncherStopCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comma
 			if cCtx.NArg() != 1 {
 				return fmt.Errorf("expected service name")
 			}
-			err := HandleStopService(ctx, f, cCtx.Args().First())
+			err := HandleStopService(ctx, *runFolder, cCtx.Args().First())
 			return err
 		},
 	}
 }
 
 // HandleListServices prints a list of available services
-func HandleListServices(ctx context.Context, f svcconfig.AppFolders) error {
+func HandleListServices(ctx context.Context, runFolder string) error {
 	var ls launcher.ILauncher
 
-	conn, err := hubclient.ConnectToService(launcher.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(launcher.ServiceName, runFolder)
 	if err == nil {
 		ls, err = capnpclient.NewLauncherCapnpClient(ctx, conn)
 	}
@@ -107,10 +106,10 @@ func HandleListServices(ctx context.Context, f svcconfig.AppFolders) error {
 }
 
 // HandleStartService starts a service
-func HandleStartService(ctx context.Context, f svcconfig.AppFolders, serviceName string) error {
+func HandleStartService(ctx context.Context, runFolder string, serviceName string) error {
 	var ls launcher.ILauncher
 
-	conn, err := hubclient.ConnectToService(launcher.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(launcher.ServiceName, runFolder)
 
 	if err == nil {
 		ls, err = capnpclient.NewLauncherCapnpClient(ctx, conn)
@@ -137,15 +136,15 @@ func HandleStartService(ctx context.Context, f svcconfig.AppFolders, serviceName
 		fmt.Printf("Service '%s' started\n", info.Name)
 	}
 	// last, show a list of running services
-	err = HandleListServices(ctx, f)
+	err = HandleListServices(ctx, runFolder)
 	return err
 }
 
 // HandleStopService stops a service
-func HandleStopService(ctx context.Context, f svcconfig.AppFolders, serviceName string) error {
+func HandleStopService(ctx context.Context, runFolder string, serviceName string) error {
 	var ls launcher.ILauncher
 
-	conn, err := hubclient.ConnectToService(launcher.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(launcher.ServiceName, runFolder)
 	if err == nil {
 		ls, err = capnpclient.NewLauncherCapnpClient(ctx, conn)
 	}
@@ -171,6 +170,6 @@ func HandleStopService(ctx context.Context, f svcconfig.AppFolders, serviceName 
 		fmt.Printf("Service '%s' stopped\n", info.Name)
 	}
 	// last, show a list of running services
-	err = HandleListServices(ctx, f)
+	err = HandleListServices(ctx, runFolder)
 	return err
 }

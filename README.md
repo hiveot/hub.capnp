@@ -136,7 +136,7 @@ To build the hub and bindings from source, a Linux system with golang and make t
 Prerequisites:
 
 1. An x86 or arm based Linuxsystem. Ubuntu, Debian, Raspberrian 
-2. Golang 1.19 or newer
+2. Golang 1.19 or newer (with GOPATH set)
 3. GCC Make any 2020+ version
 4. Cap'n proto v0.8 or newer: https://capnproto.org/install.html (only when rebuilding the API)
 5. tsc (typescript compiler) for javascript bindings
@@ -151,9 +151,8 @@ cd hub
 ``` 
 2. Install capnp tools
 ```sh
-sudo apt get install capnproto (for Ubuntu) 
-go install capnproto.org/go/capnp/v3/capnpc-go@latest
-GO111MODULE=off go get -u capnproto.org/go/capnp/v3/
+sudo apt get install capnproto (for Ubuntu)
+make setup 
 ```
 3. Build the hub
 ```sh

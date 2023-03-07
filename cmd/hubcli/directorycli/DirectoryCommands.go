@@ -10,13 +10,12 @@ import (
 	"time"
 
 	"github.com/hiveot/hub/lib/hubclient"
-	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/directory"
 	"github.com/hiveot/hub/pkg/directory/capnpclient"
 )
 
-func DirectoryListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
+func DirectoryListCommand(ctx context.Context, runFolder *string) *cli.Command {
 	var limit = 100
 	var offset = 0
 	var verbose = false
@@ -33,15 +32,16 @@ func DirectoryListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comm
 				Value:       false,
 				Destination: &verbose,
 			},
-		}, Action: func(cCtx *cli.Context) error {
+		},
+		Action: func(cCtx *cli.Context) error {
 			var err error = fmt.Errorf("expected 0 or 2 parameters")
 			if cCtx.NArg() == 0 {
-				err = HandleListDirectory(ctx, f, limit, offset)
+				err = HandleListDirectory(ctx, *runFolder, limit, offset)
 			} else if cCtx.NArg() == 2 {
 				if !verbose {
-					err = HandleListThing(ctx, f, cCtx.Args().First(), cCtx.Args().Get(1))
+					err = HandleListThing(ctx, *runFolder, cCtx.Args().First(), cCtx.Args().Get(1))
 				} else {
-					err = HandleListThingVerbose(ctx, f, cCtx.Args().First(), cCtx.Args().Get(1))
+					err = HandleListThingVerbose(ctx, *runFolder, cCtx.Args().First(), cCtx.Args().Get(1))
 				}
 			}
 			return err
@@ -50,11 +50,11 @@ func DirectoryListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comm
 }
 
 // HandleListDirectory lists the directory content
-func HandleListDirectory(ctx context.Context, f svcconfig.AppFolders, limit int, offset int) error {
+func HandleListDirectory(ctx context.Context, runFolder string, limit int, offset int) error {
 	var dir directory.IDirectory
 	var rd directory.IReadDirectory
 
-	conn, err := hubclient.ConnectToService(directory.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(directory.ServiceName, runFolder)
 	if err == nil {
 		dir = capnpclient.NewDirectoryCapnpClient(ctx, conn)
 		rd, err = dir.CapReadDirectory(ctx, "hubcli")
@@ -64,8 +64,8 @@ func HandleListDirectory(ctx context.Context, f svcconfig.AppFolders, limit int,
 	}
 
 	cursor := rd.Cursor(ctx)
-	fmt.Println("Publisher ID    Thing ID             Device Type          Title                           #props  #events #actions   Modified         ")
-	fmt.Println("-------------   -------------------  -------------------  ----------------------------    ------  ------- --------   --------------------------")
+	fmt.Printf("Publisher ID    Thing ID             Device Type          Title                           #props  #events #actions   Modified         \n")
+	fmt.Printf("-------------   -------------------  -------------------  ----------------------------    ------  ------- --------   --------------------------\n")
 	i := 0
 	tv, valid := cursor.First()
 	if offset > 0 {
@@ -99,12 +99,12 @@ func HandleListDirectory(ctx context.Context, f svcconfig.AppFolders, limit int,
 }
 
 // HandleListThing lists details of a Thing in the directory
-func HandleListThing(ctx context.Context, f svcconfig.AppFolders, pubID, thingID string) error {
+func HandleListThing(ctx context.Context, runFolder string, pubID, thingID string) error {
 	var dir directory.IDirectory
 	var rd directory.IReadDirectory
 	var tdDoc thing.TD
 
-	conn, err := hubclient.ConnectToService(directory.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(directory.ServiceName, runFolder)
 	if err == nil {
 		dir = capnpclient.NewDirectoryCapnpClient(ctx, conn)
 		rd, err = dir.CapReadDirectory(ctx, "hubcli")
@@ -169,27 +169,30 @@ func HandleListThing(ctx context.Context, f svcconfig.AppFolders, pubID, thingID
 	}
 
 	fmt.Println(utils.CORed + "\nActions:")
-	fmt.Println(" ID                             ActionType      Title                                    Arg(s)     Description")
-	fmt.Println(" -----------------------------  --------------  ---------------------------------------  ---------  -----------" + utils.COReset)
+	fmt.Println(" ID                             ActionType      Title                                    Arg(s)     Initial Value   Description")
+	fmt.Println(" -----------------------------  --------------  ---------------------------------------  ---------  --------------  -----------" + utils.COReset)
 	keys = utils.OrderedMapKeys(tdDoc.Actions)
 	for _, key := range keys {
 		action := tdDoc.Actions[key]
 		dataType := "(n/a)"
+		initialValue := ""
 		if action.Input != nil {
 			dataType = action.Input.Type
+			initialValue = action.Input.InitialValue
 		}
-		fmt.Printf(" %-30.30s %-15.15s %-40.40s %-10.10s %s\n", key, action.ActionType, action.Title, dataType, action.Description)
+		fmt.Printf(" %-30.30s %-15.15s %-40.40s %-10.10s %s%-15.15s%s %s\n",
+			key, action.ActionType, action.Title, dataType, utils.CORed, initialValue, utils.COReset, action.Description)
 	}
 	fmt.Println()
 	return err
 }
 
 // HandleListThingVerbose lists a Thing in the directory
-func HandleListThingVerbose(ctx context.Context, f svcconfig.AppFolders, pubID, thingID string) error {
+func HandleListThingVerbose(ctx context.Context, runFolder string, pubID, thingID string) error {
 	var dir directory.IDirectory
 	var rd directory.IReadDirectory
 
-	conn, err := hubclient.ConnectToService(directory.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(directory.ServiceName, runFolder)
 	if err == nil {
 		dir = capnpclient.NewDirectoryCapnpClient(ctx, conn)
 		rd, err = dir.CapReadDirectory(ctx, "hubcli")

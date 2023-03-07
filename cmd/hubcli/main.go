@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"github.com/hiveot/hub/lib/svcconfig"
+	"github.com/hiveot/hub/lib/utils"
 	"os"
 	"path"
 
@@ -17,21 +20,23 @@ import (
 	"github.com/hiveot/hub/cmd/hubcli/launchercli"
 	"github.com/hiveot/hub/cmd/hubcli/provcli"
 	"github.com/hiveot/hub/cmd/hubcli/pubsubcli"
-	"github.com/hiveot/hub/lib/svcconfig"
 )
 
 const Version = `0.5-alpha`
 
 var binFolder string
 var homeFolder string
+var runFolder string
+var nowrap bool
 
 // CLI Main entry
 func main() {
 	//logging.SetLogging("info", "")
 	binFolder = path.Dir(os.Args[0])
 	homeFolder = path.Dir(binFolder)
+	nowrap = false
 	ctx := context.Background()
-	f, _, _ := svcconfig.SetupFolderConfig("hubcli")
+	f := svcconfig.GetFolders(homeFolder, false)
 
 	//logrus.Infof("folders is %v", f)
 	app := &cli.App{
@@ -43,47 +48,61 @@ func main() {
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:        "home",
-				Usage:       "Path to home `folder`.",
+				Usage:       "Path to home `folder`",
 				Value:       homeFolder,
 				Destination: &homeFolder,
 			},
+			&cli.BoolFlag{
+				Name:        "nowrap",
+				Usage:       "Disable konsole wrapping",
+				Value:       nowrap,
+				Destination: &nowrap,
+			},
+		},
+		Before: func(c *cli.Context) error {
+			f = svcconfig.GetFolders(homeFolder, false)
+			runFolder = f.Run
+			if nowrap {
+				fmt.Printf(utils.WrapOff)
+			}
+			return nil
 		},
 		Commands: []*cli.Command{
-			launchercli.LauncherListCommand(ctx, f),
-			launchercli.LauncherStartCommand(ctx, f),
-			launchercli.LauncherStopCommand(ctx, f),
+			launchercli.LauncherListCommand(ctx, &runFolder),
+			launchercli.LauncherStartCommand(ctx, &runFolder),
+			launchercli.LauncherStopCommand(ctx, &runFolder),
 
-			authncli.AuthnListUsersCommand(ctx, f),
-			authncli.AuthnAddUserCommand(ctx, f),
-			authncli.AuthnRemoveUserCommand(ctx, f),
+			authncli.AuthnListUsersCommand(ctx, &runFolder),
+			authncli.AuthnAddUserCommand(ctx, &runFolder),
+			authncli.AuthnRemoveUserCommand(ctx, &runFolder),
 
-			authzcli.AuthzListGroupsCommand(ctx, f),
+			authzcli.AuthzListGroupsCommand(ctx, &runFolder),
 			//authzcli.AuthzSetClientRoleCommand(ctx, f),
 			//authzcli.AuthzRemoveClientCommand(ctx, f),
 
-			certscli.CreateCACommand(ctx, f.Certs),
-			certscli.ViewCACommand(ctx, f.Certs),
-			certscli.CertCreateDeviceCommands(ctx, f),
-			certscli.CertsCreateServiceCommand(ctx, f),
-			certscli.CertsCreateUserCommand(ctx, f),
-			certscli.CertsShowInfoCommand(ctx, f),
+			certscli.CreateCACommand(ctx, &f.Certs),
+			certscli.ViewCACommand(ctx, &f.Certs),
+			certscli.CertCreateDeviceCommands(ctx, &runFolder),
+			certscli.CertsCreateServiceCommand(ctx, &runFolder),
+			certscli.CertsCreateUserCommand(ctx, &runFolder),
+			certscli.CertsShowInfoCommand(ctx, &runFolder),
 
-			pubsubcli.SubTDCommand(ctx, f),
-			pubsubcli.SubEventsCommand(ctx, f),
-			//pubsubcli.PubActionCommand(ctx, f),
+			pubsubcli.SubTDCommand(ctx, &runFolder),
+			pubsubcli.SubEventsCommand(ctx, &runFolder),
+			//pubsubcli.PubActionCommand(ctx, &runFolder),
 
-			directorycli.DirectoryListCommand(ctx, f),
+			directorycli.DirectoryListCommand(ctx, &runFolder),
 
-			//historycli.HistoryCommands(ctx, f),
-			historycli.HistoryInfoCommand(ctx, f),
-			historycli.HistoryListCommand(ctx, f),
-			historycli.HistoryLatestCommand(ctx, f),
-			historycli.HistoryRetainCommand(ctx, f),
+			//historycli.HistoryCommands(ctx, &runFolder),
+			historycli.HistoryInfoCommand(ctx, &runFolder),
+			historycli.HistoryListCommand(ctx, &runFolder),
+			historycli.HistoryLatestCommand(ctx, &runFolder),
+			historycli.HistoryRetainCommand(ctx, &runFolder),
 
-			provcli.ProvisionAddOOBSecretsCommand(ctx, f),
-			provcli.ProvisionApproveRequestCommand(ctx, f),
-			provcli.ProvisionGetPendingRequestsCommand(ctx, f),
-			provcli.ProvisionGetApprovedRequestsCommand(ctx, f),
+			provcli.ProvisionAddOOBSecretsCommand(ctx, &runFolder),
+			provcli.ProvisionApproveRequestCommand(ctx, &runFolder),
+			provcli.ProvisionGetPendingRequestsCommand(ctx, &runFolder),
+			provcli.ProvisionGetApprovedRequestsCommand(ctx, &runFolder),
 
 			gatewaycli.GatewayListCommand(ctx, f),
 		},

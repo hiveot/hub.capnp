@@ -10,12 +10,11 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/hiveot/hub/lib/hubclient"
-	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/pkg/history"
 	"github.com/hiveot/hub/pkg/history/capnpclient"
 )
 
-func HistoryInfoCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
+func HistoryInfoCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
 		Name: "histinfo",
 		//Aliases:   []string{"hin"},
@@ -26,13 +25,13 @@ func HistoryInfoCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comman
 			if cCtx.NArg() != 0 {
 				return fmt.Errorf("no arguments expected")
 			}
-			err := HandleHistoryInfo(ctx, f)
+			err := HandleHistoryInfo(ctx, *runFolder)
 			return err
 		},
 	}
 }
 
-func HistoryListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
+func HistoryListCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
 		Name:      "histevents <pubID> <thingID>",
 		Aliases:   []string{"hev", "lev"},
@@ -43,13 +42,13 @@ func HistoryListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comman
 			if cCtx.NArg() != 2 {
 				return fmt.Errorf("publisherID and thingID expected")
 			}
-			err := HandleListEvents(ctx, f, cCtx.Args().First(), cCtx.Args().Get(1), 30)
+			err := HandleListEvents(ctx, *runFolder, cCtx.Args().First(), cCtx.Args().Get(1), 30)
 			return err
 		},
 	}
 }
 
-func HistoryLatestCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
+func HistoryLatestCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
 		Name:      "histlatest <pubID> <thingID>",
 		Usage:     "List latest values of a thing",
@@ -60,12 +59,12 @@ func HistoryLatestCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comm
 			if cCtx.NArg() != 2 {
 				return fmt.Errorf("publisherID and thingID expected")
 			}
-			err := HandleListLatestEvents(ctx, f, cCtx.Args().First(), cCtx.Args().Get(1))
+			err := HandleListLatestEvents(ctx, *runFolder, cCtx.Args().First(), cCtx.Args().Get(1))
 			return err
 		},
 	}
 }
-func HistoryRetainCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
+func HistoryRetainCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
 		Name:      "histretained",
 		Aliases:   []string{"hrt"},
@@ -76,17 +75,17 @@ func HistoryRetainCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comm
 			if cCtx.NArg() != 0 {
 				return fmt.Errorf("no arguments expected")
 			}
-			err := HandleListRetainedEvents(ctx, f)
+			err := HandleListRetainedEvents(ctx, *runFolder)
 			return err
 		},
 	}
 }
 
-func HandleHistoryInfo(ctx context.Context, f svcconfig.AppFolders) error {
+func HandleHistoryInfo(ctx context.Context, runFolder string) error {
 	var hist history.IHistoryService
 	var rd history.IReadHistory
 
-	conn, err := hubclient.ConnectToService(history.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(history.ServiceName, runFolder)
 	if err == nil {
 		hist = capnpclient.NewHistoryCapnpClient(ctx, conn)
 		rd, err = hist.CapReadHistory(ctx, "hubcli", "", "")
@@ -106,11 +105,11 @@ func HandleHistoryInfo(ctx context.Context, f svcconfig.AppFolders) error {
 }
 
 // HandleListEvents lists the history content
-func HandleListEvents(ctx context.Context, f svcconfig.AppFolders, publisherID, thingID string, limit int) error {
+func HandleListEvents(ctx context.Context, runFolder string, publisherID, thingID string, limit int) error {
 	var hist history.IHistoryService
 	var rd history.IReadHistory
 
-	conn, err := hubclient.ConnectToService(history.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(history.ServiceName, runFolder)
 	if err == nil {
 		hist = capnpclient.NewHistoryCapnpClient(ctx, conn)
 		rd, err = hist.CapReadHistory(ctx, "hubcli", publisherID, thingID)
@@ -145,12 +144,12 @@ func HandleListEvents(ctx context.Context, f svcconfig.AppFolders, publisherID, 
 }
 
 // HandleListRetainedEvents lists the events that are retained
-func HandleListRetainedEvents(ctx context.Context, f svcconfig.AppFolders) error {
+func HandleListRetainedEvents(ctx context.Context, runFolder string) error {
 
 	var hist history.IHistoryService
 	var mngRet history.IManageRetention
 
-	conn, err := hubclient.ConnectToService(history.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(history.ServiceName, runFolder)
 	if err == nil {
 		hist = capnpclient.NewHistoryCapnpClient(ctx, conn)
 		mngRet, err = hist.CapManageRetention(ctx, "hubcli")
@@ -181,11 +180,11 @@ func HandleListRetainedEvents(ctx context.Context, f svcconfig.AppFolders) error
 }
 
 func HandleListLatestEvents(
-	ctx context.Context, f svcconfig.AppFolders, publisherID, thingID string) error {
+	ctx context.Context, runFolder string, publisherID, thingID string) error {
 	var hist history.IHistoryService
 	var readHist history.IReadHistory
 
-	conn, err := hubclient.ConnectToService(history.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(history.ServiceName, runFolder)
 	if err == nil {
 		hist = capnpclient.NewHistoryCapnpClient(ctx, conn)
 		readHist, err = hist.CapReadHistory(ctx, "hubcli", publisherID, thingID)

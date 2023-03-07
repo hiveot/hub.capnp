@@ -7,13 +7,12 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/hiveot/hub/lib/hubclient"
-	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/pkg/authn"
 	"github.com/hiveot/hub/pkg/authn/capnpclient"
 )
 
 // AuthnAddUserCommand adds a user
-func AuthnAddUserCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
+func AuthnAddUserCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
 		Name:      "adduser <loginID>", // loginID is ignored in the command
 		Usage:     "Add a user",
@@ -26,14 +25,14 @@ func AuthnAddUserCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Comma
 				return err
 			}
 			loginID := cCtx.Args().Get(0)
-			err := HandleAddUser(ctx, f, loginID)
+			err := HandleAddUser(ctx, *runFolder, loginID)
 			return err
 		},
 	}
 }
 
 // AuthnListUsersCommand lists user profiles
-func AuthnListUsersCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
+func AuthnListUsersCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
 		Name:      "listusers",
 		Aliases:   []string{"liu"},
@@ -45,14 +44,14 @@ func AuthnListUsersCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Com
 				err := fmt.Errorf("too many arguments")
 				return err
 			}
-			err := HandleListUsers(ctx, f)
+			err := HandleListUsers(ctx, *runFolder)
 			return err
 		},
 	}
 }
 
 // AuthnRemoveUserCommand removes a user
-func AuthnRemoveUserCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
+func AuthnRemoveUserCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
 		Name:      "removeuser <loginID>",
 		Aliases:   []string{"remu"},
@@ -65,19 +64,19 @@ func AuthnRemoveUserCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Co
 				return err
 			}
 			loginID := cCtx.Args().Get(0)
-			err := HandleRemoveUser(ctx, f, loginID)
+			err := HandleRemoveUser(ctx, *runFolder, loginID)
 			return err
 		},
 	}
 }
 
 // HandleAddUser adds a user
-func HandleAddUser(ctx context.Context, f svcconfig.AppFolders, loginID string) error {
+func HandleAddUser(ctx context.Context, runFolder string, loginID string) error {
 	var err error
 	var authnClient authn.IAuthnService
 	var manageAuthn authn.IManageAuthn
 
-	conn, err := hubclient.ConnectToService(authn.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(authn.ServiceName, runFolder)
 	if err == nil {
 		authnClient = capnpclient.NewAuthnClientFromCapnpConnection(ctx, conn)
 	}
@@ -99,12 +98,12 @@ func HandleAddUser(ctx context.Context, f svcconfig.AppFolders, loginID string) 
 }
 
 // HandleListUsers shows a list of user profiles
-func HandleListUsers(ctx context.Context, f svcconfig.AppFolders) error {
+func HandleListUsers(ctx context.Context, runFolder string) error {
 	var err error
 	var authnClient authn.IAuthnService
 	var manageAuthn authn.IManageAuthn
 
-	conn, err := hubclient.ConnectToService(authn.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(authn.ServiceName, runFolder)
 	if err == nil {
 		authnClient = capnpclient.NewAuthnClientFromCapnpConnection(ctx, conn)
 	}
@@ -129,12 +128,12 @@ func HandleListUsers(ctx context.Context, f svcconfig.AppFolders) error {
 }
 
 // HandleRemoveUser removes a user
-func HandleRemoveUser(ctx context.Context, f svcconfig.AppFolders, loginID string) error {
+func HandleRemoveUser(ctx context.Context, runFolder string, loginID string) error {
 	var err error
 	var authnClient authn.IAuthnService
 	var manageAuthn authn.IManageAuthn
 
-	conn, err := hubclient.ConnectToService(authn.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(authn.ServiceName, runFolder)
 	if err == nil {
 		authnClient = capnpclient.NewAuthnClientFromCapnpConnection(ctx, conn)
 	}

@@ -11,14 +11,13 @@ import (
 
 	"github.com/hiveot/hub/api/go/vocab"
 	"github.com/hiveot/hub/lib/hubclient"
-	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/pubsub"
 	"github.com/hiveot/hub/pkg/pubsub/capnpclient"
 )
 
 // SubTDCommand shows TD publications
-func SubTDCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
+func SubTDCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
 		Name:      "subtd",
 		Aliases:   []string{"std"},
@@ -26,13 +25,13 @@ func SubTDCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
 		UsageText: "Live show TD publications from the pubsub message bus. Use Ctrl-C to stop watching.",
 		Category:  "pubsub",
 		Action: func(cCtx *cli.Context) error {
-			err := HandleSubTD(ctx, f)
+			err := HandleSubTD(ctx, *runFolder)
 			return err
 		},
 	}
 }
 
-func SubEventsCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
+func SubEventsCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
 		Name:      "subevents",
 		Aliases:   []string{"sev"},
@@ -40,17 +39,17 @@ func SubEventsCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command 
 		UsageText: "Live show Thing event publications from the pubsub message bus. Use Ctrl-C to stop watching.",
 		Category:  "pubsub",
 		Action: func(cCtx *cli.Context) error {
-			err := HandleSubEvents(ctx, f)
+			err := HandleSubEvents(ctx, *runFolder)
 			return err
 		},
 	}
 }
 
 // HandleSubTD subscribes and prints TD publications
-func HandleSubTD(ctx context.Context, f svcconfig.AppFolders) error {
+func HandleSubTD(ctx context.Context, runFolder string) error {
 	var pubSubSvc pubsub.IPubSubService
 
-	conn, err := hubclient.ConnectToService(pubsub.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(pubsub.ServiceName, runFolder)
 	if err == nil {
 		pubSubSvc = capnpclient.NewPubSubCapnpClient(ctx, conn)
 	}
@@ -79,10 +78,10 @@ func HandleSubTD(ctx context.Context, f svcconfig.AppFolders) error {
 }
 
 // HandleSubEvents subscribes and prints value and property events
-func HandleSubEvents(ctx context.Context, f svcconfig.AppFolders) error {
+func HandleSubEvents(ctx context.Context, runFolder string) error {
 	var pubSubSvc pubsub.IPubSubService
 
-	conn, err := hubclient.ConnectToService(pubsub.ServiceName, f.Run)
+	conn, err := hubclient.ConnectToService(pubsub.ServiceName, runFolder)
 	if err == nil {
 		pubSubSvc = capnpclient.NewPubSubCapnpClient(ctx, conn)
 	}
