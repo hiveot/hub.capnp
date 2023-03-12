@@ -18,6 +18,12 @@ const (
 	CapNameDevicePubSub  = "capDevicePubSub"
 	CapNameServicePubSub = "capServicePubSub"
 	CapNameUserPubSub    = "capUserPubSub"
+	ThingsPrefix         = "things"
+	MessageTypeAction    = "action"
+	MessageTypeEvent     = "event"
+	EventNameProperties  = "properties"
+	EventNameTD          = "td"
+	ActionNameConfig     = "configuration"
 )
 
 type CapPubSubService capnp.Client
@@ -788,43 +794,11 @@ func (c CapDevicePubSub) PubEvent(ctx context.Context, params func(CapDevicePubS
 	ans, release := capnp.Client(c).SendCall(ctx, s)
 	return CapDevicePubSub_pubEvent_Results_Future{Future: ans.Future()}, release
 }
-func (c CapDevicePubSub) PubProperties(ctx context.Context, params func(CapDevicePubSub_pubProperties_Params) error) (CapDevicePubSub_pubProperties_Results_Future, capnp.ReleaseFunc) {
-	s := capnp.Send{
-		Method: capnp.Method{
-			InterfaceID:   0xdfb8a690e8697e4a,
-			MethodID:      1,
-			InterfaceName: "hubapi/PubSub.capnp:CapDevicePubSub",
-			MethodName:    "pubProperties",
-		},
-	}
-	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 2}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapDevicePubSub_pubProperties_Params(s)) }
-	}
-	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapDevicePubSub_pubProperties_Results_Future{Future: ans.Future()}, release
-}
-func (c CapDevicePubSub) PubTD(ctx context.Context, params func(CapDevicePubSub_pubTD_Params) error) (CapDevicePubSub_pubTD_Results_Future, capnp.ReleaseFunc) {
-	s := capnp.Send{
-		Method: capnp.Method{
-			InterfaceID:   0xdfb8a690e8697e4a,
-			MethodID:      2,
-			InterfaceName: "hubapi/PubSub.capnp:CapDevicePubSub",
-			MethodName:    "pubTD",
-		},
-	}
-	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 2}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapDevicePubSub_pubTD_Params(s)) }
-	}
-	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapDevicePubSub_pubTD_Results_Future{Future: ans.Future()}, release
-}
 func (c CapDevicePubSub) SubAction(ctx context.Context, params func(CapDevicePubSub_subAction_Params) error) (CapDevicePubSub_subAction_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
 			InterfaceID:   0xdfb8a690e8697e4a,
-			MethodID:      3,
+			MethodID:      1,
 			InterfaceName: "hubapi/PubSub.capnp:CapDevicePubSub",
 			MethodName:    "subAction",
 		},
@@ -906,10 +880,6 @@ func (c CapDevicePubSub) GetFlowLimiter() fc.FlowLimiter {
 type CapDevicePubSub_Server interface {
 	PubEvent(context.Context, CapDevicePubSub_pubEvent) error
 
-	PubProperties(context.Context, CapDevicePubSub_pubProperties) error
-
-	PubTD(context.Context, CapDevicePubSub_pubTD) error
-
 	SubAction(context.Context, CapDevicePubSub_subAction) error
 }
 
@@ -929,7 +899,7 @@ func CapDevicePubSub_ServerToClient(s CapDevicePubSub_Server) CapDevicePubSub {
 // This can be used to create a more complicated Server.
 func CapDevicePubSub_Methods(methods []server.Method, s CapDevicePubSub_Server) []server.Method {
 	if cap(methods) == 0 {
-		methods = make([]server.Method, 0, 4)
+		methods = make([]server.Method, 0, 2)
 	}
 
 	methods = append(methods, server.Method{
@@ -948,30 +918,6 @@ func CapDevicePubSub_Methods(methods []server.Method, s CapDevicePubSub_Server) 
 		Method: capnp.Method{
 			InterfaceID:   0xdfb8a690e8697e4a,
 			MethodID:      1,
-			InterfaceName: "hubapi/PubSub.capnp:CapDevicePubSub",
-			MethodName:    "pubProperties",
-		},
-		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.PubProperties(ctx, CapDevicePubSub_pubProperties{call})
-		},
-	})
-
-	methods = append(methods, server.Method{
-		Method: capnp.Method{
-			InterfaceID:   0xdfb8a690e8697e4a,
-			MethodID:      2,
-			InterfaceName: "hubapi/PubSub.capnp:CapDevicePubSub",
-			MethodName:    "pubTD",
-		},
-		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.PubTD(ctx, CapDevicePubSub_pubTD{call})
-		},
-	})
-
-	methods = append(methods, server.Method{
-		Method: capnp.Method{
-			InterfaceID:   0xdfb8a690e8697e4a,
-			MethodID:      3,
 			InterfaceName: "hubapi/PubSub.capnp:CapDevicePubSub",
 			MethodName:    "subAction",
 		},
@@ -998,40 +944,6 @@ func (c CapDevicePubSub_pubEvent) Args() CapDevicePubSub_pubEvent_Params {
 func (c CapDevicePubSub_pubEvent) AllocResults() (CapDevicePubSub_pubEvent_Results, error) {
 	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 0})
 	return CapDevicePubSub_pubEvent_Results(r), err
-}
-
-// CapDevicePubSub_pubProperties holds the state for a server call to CapDevicePubSub.pubProperties.
-// See server.Call for documentation.
-type CapDevicePubSub_pubProperties struct {
-	*server.Call
-}
-
-// Args returns the call's arguments.
-func (c CapDevicePubSub_pubProperties) Args() CapDevicePubSub_pubProperties_Params {
-	return CapDevicePubSub_pubProperties_Params(c.Call.Args())
-}
-
-// AllocResults allocates the results struct.
-func (c CapDevicePubSub_pubProperties) AllocResults() (CapDevicePubSub_pubProperties_Results, error) {
-	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapDevicePubSub_pubProperties_Results(r), err
-}
-
-// CapDevicePubSub_pubTD holds the state for a server call to CapDevicePubSub.pubTD.
-// See server.Call for documentation.
-type CapDevicePubSub_pubTD struct {
-	*server.Call
-}
-
-// Args returns the call's arguments.
-func (c CapDevicePubSub_pubTD) Args() CapDevicePubSub_pubTD_Params {
-	return CapDevicePubSub_pubTD_Params(c.Call.Args())
-}
-
-// AllocResults allocates the results struct.
-func (c CapDevicePubSub_pubTD) AllocResults() (CapDevicePubSub_pubTD_Results, error) {
-	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapDevicePubSub_pubTD_Results(r), err
 }
 
 // CapDevicePubSub_subAction holds the state for a server call to CapDevicePubSub.subAction.
@@ -1238,344 +1150,10 @@ func (f CapDevicePubSub_pubEvent_Results_Future) Struct() (CapDevicePubSub_pubEv
 	return CapDevicePubSub_pubEvent_Results(p.Struct()), err
 }
 
-type CapDevicePubSub_pubProperties_Params capnp.Struct
-
-// CapDevicePubSub_pubProperties_Params_TypeID is the unique identifier for the type CapDevicePubSub_pubProperties_Params.
-const CapDevicePubSub_pubProperties_Params_TypeID = 0x8654dd0285fb2417
-
-func NewCapDevicePubSub_pubProperties_Params(s *capnp.Segment) (CapDevicePubSub_pubProperties_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
-	return CapDevicePubSub_pubProperties_Params(st), err
-}
-
-func NewRootCapDevicePubSub_pubProperties_Params(s *capnp.Segment) (CapDevicePubSub_pubProperties_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
-	return CapDevicePubSub_pubProperties_Params(st), err
-}
-
-func ReadRootCapDevicePubSub_pubProperties_Params(msg *capnp.Message) (CapDevicePubSub_pubProperties_Params, error) {
-	root, err := msg.Root()
-	return CapDevicePubSub_pubProperties_Params(root.Struct()), err
-}
-
-func (s CapDevicePubSub_pubProperties_Params) String() string {
-	str, _ := text.Marshal(0x8654dd0285fb2417, capnp.Struct(s))
-	return str
-}
-
-func (s CapDevicePubSub_pubProperties_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapDevicePubSub_pubProperties_Params) DecodeFromPtr(p capnp.Ptr) CapDevicePubSub_pubProperties_Params {
-	return CapDevicePubSub_pubProperties_Params(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapDevicePubSub_pubProperties_Params) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapDevicePubSub_pubProperties_Params) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapDevicePubSub_pubProperties_Params) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapDevicePubSub_pubProperties_Params) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s CapDevicePubSub_pubProperties_Params) ThingID() (string, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.Text(), err
-}
-
-func (s CapDevicePubSub_pubProperties_Params) HasThingID() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s CapDevicePubSub_pubProperties_Params) ThingIDBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.TextBytes(), err
-}
-
-func (s CapDevicePubSub_pubProperties_Params) SetThingID(v string) error {
-	return capnp.Struct(s).SetText(0, v)
-}
-
-func (s CapDevicePubSub_pubProperties_Params) Props() (KeyValueMap, error) {
-	p, err := capnp.Struct(s).Ptr(1)
-	return KeyValueMap(p.Struct()), err
-}
-
-func (s CapDevicePubSub_pubProperties_Params) HasProps() bool {
-	return capnp.Struct(s).HasPtr(1)
-}
-
-func (s CapDevicePubSub_pubProperties_Params) SetProps(v KeyValueMap) error {
-	return capnp.Struct(s).SetPtr(1, capnp.Struct(v).ToPtr())
-}
-
-// NewProps sets the props field to a newly
-// allocated KeyValueMap struct, preferring placement in s's segment.
-func (s CapDevicePubSub_pubProperties_Params) NewProps() (KeyValueMap, error) {
-	ss, err := NewKeyValueMap(capnp.Struct(s).Segment())
-	if err != nil {
-		return KeyValueMap{}, err
-	}
-	err = capnp.Struct(s).SetPtr(1, capnp.Struct(ss).ToPtr())
-	return ss, err
-}
-
-// CapDevicePubSub_pubProperties_Params_List is a list of CapDevicePubSub_pubProperties_Params.
-type CapDevicePubSub_pubProperties_Params_List = capnp.StructList[CapDevicePubSub_pubProperties_Params]
-
-// NewCapDevicePubSub_pubProperties_Params creates a new list of CapDevicePubSub_pubProperties_Params.
-func NewCapDevicePubSub_pubProperties_Params_List(s *capnp.Segment, sz int32) (CapDevicePubSub_pubProperties_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
-	return capnp.StructList[CapDevicePubSub_pubProperties_Params](l), err
-}
-
-// CapDevicePubSub_pubProperties_Params_Future is a wrapper for a CapDevicePubSub_pubProperties_Params promised by a client call.
-type CapDevicePubSub_pubProperties_Params_Future struct{ *capnp.Future }
-
-func (f CapDevicePubSub_pubProperties_Params_Future) Struct() (CapDevicePubSub_pubProperties_Params, error) {
-	p, err := f.Future.Ptr()
-	return CapDevicePubSub_pubProperties_Params(p.Struct()), err
-}
-func (p CapDevicePubSub_pubProperties_Params_Future) Props() KeyValueMap_Future {
-	return KeyValueMap_Future{Future: p.Future.Field(1, nil)}
-}
-
-type CapDevicePubSub_pubProperties_Results capnp.Struct
-
-// CapDevicePubSub_pubProperties_Results_TypeID is the unique identifier for the type CapDevicePubSub_pubProperties_Results.
-const CapDevicePubSub_pubProperties_Results_TypeID = 0x963848ac762fb0d0
-
-func NewCapDevicePubSub_pubProperties_Results(s *capnp.Segment) (CapDevicePubSub_pubProperties_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapDevicePubSub_pubProperties_Results(st), err
-}
-
-func NewRootCapDevicePubSub_pubProperties_Results(s *capnp.Segment) (CapDevicePubSub_pubProperties_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapDevicePubSub_pubProperties_Results(st), err
-}
-
-func ReadRootCapDevicePubSub_pubProperties_Results(msg *capnp.Message) (CapDevicePubSub_pubProperties_Results, error) {
-	root, err := msg.Root()
-	return CapDevicePubSub_pubProperties_Results(root.Struct()), err
-}
-
-func (s CapDevicePubSub_pubProperties_Results) String() string {
-	str, _ := text.Marshal(0x963848ac762fb0d0, capnp.Struct(s))
-	return str
-}
-
-func (s CapDevicePubSub_pubProperties_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapDevicePubSub_pubProperties_Results) DecodeFromPtr(p capnp.Ptr) CapDevicePubSub_pubProperties_Results {
-	return CapDevicePubSub_pubProperties_Results(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapDevicePubSub_pubProperties_Results) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapDevicePubSub_pubProperties_Results) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapDevicePubSub_pubProperties_Results) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapDevicePubSub_pubProperties_Results) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-
-// CapDevicePubSub_pubProperties_Results_List is a list of CapDevicePubSub_pubProperties_Results.
-type CapDevicePubSub_pubProperties_Results_List = capnp.StructList[CapDevicePubSub_pubProperties_Results]
-
-// NewCapDevicePubSub_pubProperties_Results creates a new list of CapDevicePubSub_pubProperties_Results.
-func NewCapDevicePubSub_pubProperties_Results_List(s *capnp.Segment, sz int32) (CapDevicePubSub_pubProperties_Results_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
-	return capnp.StructList[CapDevicePubSub_pubProperties_Results](l), err
-}
-
-// CapDevicePubSub_pubProperties_Results_Future is a wrapper for a CapDevicePubSub_pubProperties_Results promised by a client call.
-type CapDevicePubSub_pubProperties_Results_Future struct{ *capnp.Future }
-
-func (f CapDevicePubSub_pubProperties_Results_Future) Struct() (CapDevicePubSub_pubProperties_Results, error) {
-	p, err := f.Future.Ptr()
-	return CapDevicePubSub_pubProperties_Results(p.Struct()), err
-}
-
-type CapDevicePubSub_pubTD_Params capnp.Struct
-
-// CapDevicePubSub_pubTD_Params_TypeID is the unique identifier for the type CapDevicePubSub_pubTD_Params.
-const CapDevicePubSub_pubTD_Params_TypeID = 0xf42f5607f8b83318
-
-func NewCapDevicePubSub_pubTD_Params(s *capnp.Segment) (CapDevicePubSub_pubTD_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
-	return CapDevicePubSub_pubTD_Params(st), err
-}
-
-func NewRootCapDevicePubSub_pubTD_Params(s *capnp.Segment) (CapDevicePubSub_pubTD_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2})
-	return CapDevicePubSub_pubTD_Params(st), err
-}
-
-func ReadRootCapDevicePubSub_pubTD_Params(msg *capnp.Message) (CapDevicePubSub_pubTD_Params, error) {
-	root, err := msg.Root()
-	return CapDevicePubSub_pubTD_Params(root.Struct()), err
-}
-
-func (s CapDevicePubSub_pubTD_Params) String() string {
-	str, _ := text.Marshal(0xf42f5607f8b83318, capnp.Struct(s))
-	return str
-}
-
-func (s CapDevicePubSub_pubTD_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapDevicePubSub_pubTD_Params) DecodeFromPtr(p capnp.Ptr) CapDevicePubSub_pubTD_Params {
-	return CapDevicePubSub_pubTD_Params(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapDevicePubSub_pubTD_Params) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapDevicePubSub_pubTD_Params) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapDevicePubSub_pubTD_Params) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapDevicePubSub_pubTD_Params) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s CapDevicePubSub_pubTD_Params) ThingID() (string, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.Text(), err
-}
-
-func (s CapDevicePubSub_pubTD_Params) HasThingID() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s CapDevicePubSub_pubTD_Params) ThingIDBytes() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(0)
-	return p.TextBytes(), err
-}
-
-func (s CapDevicePubSub_pubTD_Params) SetThingID(v string) error {
-	return capnp.Struct(s).SetText(0, v)
-}
-
-func (s CapDevicePubSub_pubTD_Params) TdDoc() ([]byte, error) {
-	p, err := capnp.Struct(s).Ptr(1)
-	return []byte(p.Data()), err
-}
-
-func (s CapDevicePubSub_pubTD_Params) HasTdDoc() bool {
-	return capnp.Struct(s).HasPtr(1)
-}
-
-func (s CapDevicePubSub_pubTD_Params) SetTdDoc(v []byte) error {
-	return capnp.Struct(s).SetData(1, v)
-}
-
-// CapDevicePubSub_pubTD_Params_List is a list of CapDevicePubSub_pubTD_Params.
-type CapDevicePubSub_pubTD_Params_List = capnp.StructList[CapDevicePubSub_pubTD_Params]
-
-// NewCapDevicePubSub_pubTD_Params creates a new list of CapDevicePubSub_pubTD_Params.
-func NewCapDevicePubSub_pubTD_Params_List(s *capnp.Segment, sz int32) (CapDevicePubSub_pubTD_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 2}, sz)
-	return capnp.StructList[CapDevicePubSub_pubTD_Params](l), err
-}
-
-// CapDevicePubSub_pubTD_Params_Future is a wrapper for a CapDevicePubSub_pubTD_Params promised by a client call.
-type CapDevicePubSub_pubTD_Params_Future struct{ *capnp.Future }
-
-func (f CapDevicePubSub_pubTD_Params_Future) Struct() (CapDevicePubSub_pubTD_Params, error) {
-	p, err := f.Future.Ptr()
-	return CapDevicePubSub_pubTD_Params(p.Struct()), err
-}
-
-type CapDevicePubSub_pubTD_Results capnp.Struct
-
-// CapDevicePubSub_pubTD_Results_TypeID is the unique identifier for the type CapDevicePubSub_pubTD_Results.
-const CapDevicePubSub_pubTD_Results_TypeID = 0x8a5bb4a2615ad89f
-
-func NewCapDevicePubSub_pubTD_Results(s *capnp.Segment) (CapDevicePubSub_pubTD_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapDevicePubSub_pubTD_Results(st), err
-}
-
-func NewRootCapDevicePubSub_pubTD_Results(s *capnp.Segment) (CapDevicePubSub_pubTD_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapDevicePubSub_pubTD_Results(st), err
-}
-
-func ReadRootCapDevicePubSub_pubTD_Results(msg *capnp.Message) (CapDevicePubSub_pubTD_Results, error) {
-	root, err := msg.Root()
-	return CapDevicePubSub_pubTD_Results(root.Struct()), err
-}
-
-func (s CapDevicePubSub_pubTD_Results) String() string {
-	str, _ := text.Marshal(0x8a5bb4a2615ad89f, capnp.Struct(s))
-	return str
-}
-
-func (s CapDevicePubSub_pubTD_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapDevicePubSub_pubTD_Results) DecodeFromPtr(p capnp.Ptr) CapDevicePubSub_pubTD_Results {
-	return CapDevicePubSub_pubTD_Results(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapDevicePubSub_pubTD_Results) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapDevicePubSub_pubTD_Results) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapDevicePubSub_pubTD_Results) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapDevicePubSub_pubTD_Results) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-
-// CapDevicePubSub_pubTD_Results_List is a list of CapDevicePubSub_pubTD_Results.
-type CapDevicePubSub_pubTD_Results_List = capnp.StructList[CapDevicePubSub_pubTD_Results]
-
-// NewCapDevicePubSub_pubTD_Results creates a new list of CapDevicePubSub_pubTD_Results.
-func NewCapDevicePubSub_pubTD_Results_List(s *capnp.Segment, sz int32) (CapDevicePubSub_pubTD_Results_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
-	return capnp.StructList[CapDevicePubSub_pubTD_Results](l), err
-}
-
-// CapDevicePubSub_pubTD_Results_Future is a wrapper for a CapDevicePubSub_pubTD_Results promised by a client call.
-type CapDevicePubSub_pubTD_Results_Future struct{ *capnp.Future }
-
-func (f CapDevicePubSub_pubTD_Results_Future) Struct() (CapDevicePubSub_pubTD_Results, error) {
-	p, err := f.Future.Ptr()
-	return CapDevicePubSub_pubTD_Results(p.Struct()), err
-}
-
 type CapDevicePubSub_subAction_Params capnp.Struct
 
 // CapDevicePubSub_subAction_Params_TypeID is the unique identifier for the type CapDevicePubSub_subAction_Params.
-const CapDevicePubSub_subAction_Params_TypeID = 0x8efab8ac3a0cf3ae
+const CapDevicePubSub_subAction_Params_TypeID = 0x8654dd0285fb2417
 
 func NewCapDevicePubSub_subAction_Params(s *capnp.Segment) (CapDevicePubSub_subAction_Params, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 3})
@@ -1593,7 +1171,7 @@ func ReadRootCapDevicePubSub_subAction_Params(msg *capnp.Message) (CapDevicePubS
 }
 
 func (s CapDevicePubSub_subAction_Params) String() string {
-	str, _ := text.Marshal(0x8efab8ac3a0cf3ae, capnp.Struct(s))
+	str, _ := text.Marshal(0x8654dd0285fb2417, capnp.Struct(s))
 	return str
 }
 
@@ -1696,7 +1274,7 @@ func (p CapDevicePubSub_subAction_Params_Future) Handler() CapSubscriptionHandle
 type CapDevicePubSub_subAction_Results capnp.Struct
 
 // CapDevicePubSub_subAction_Results_TypeID is the unique identifier for the type CapDevicePubSub_subAction_Results.
-const CapDevicePubSub_subAction_Results_TypeID = 0xf69c375c3a85d655
+const CapDevicePubSub_subAction_Results_TypeID = 0x963848ac762fb0d0
 
 func NewCapDevicePubSub_subAction_Results(s *capnp.Segment) (CapDevicePubSub_subAction_Results, error) {
 	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
@@ -1714,7 +1292,7 @@ func ReadRootCapDevicePubSub_subAction_Results(msg *capnp.Message) (CapDevicePub
 }
 
 func (s CapDevicePubSub_subAction_Results) String() string {
-	str, _ := text.Marshal(0xf69c375c3a85d655, capnp.Struct(s))
+	str, _ := text.Marshal(0x963848ac762fb0d0, capnp.Struct(s))
 	return str
 }
 
@@ -1779,6 +1357,22 @@ func (c CapServicePubSub) SubActions(ctx context.Context, params func(CapService
 	ans, release := capnp.Client(c).SendCall(ctx, s)
 	return CapServicePubSub_subActions_Results_Future{Future: ans.Future()}, release
 }
+func (c CapServicePubSub) SubEvents(ctx context.Context, params func(CapServicePubSub_subEvents_Params) error) (CapServicePubSub_subEvents_Results_Future, capnp.ReleaseFunc) {
+	s := capnp.Send{
+		Method: capnp.Method{
+			InterfaceID:   0xf9bfff17720dccba,
+			MethodID:      1,
+			InterfaceName: "hubapi/PubSub.capnp:CapServicePubSub",
+			MethodName:    "subEvents",
+		},
+	}
+	if params != nil {
+		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 4}
+		s.PlaceArgs = func(s capnp.Struct) error { return params(CapServicePubSub_subEvents_Params(s)) }
+	}
+	ans, release := capnp.Client(c).SendCall(ctx, s)
+	return CapServicePubSub_subEvents_Results_Future{Future: ans.Future()}, release
+}
 func (c CapServicePubSub) PubEvent(ctx context.Context, params func(CapDevicePubSub_pubEvent_Params) error) (CapDevicePubSub_pubEvent_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
@@ -1795,43 +1389,11 @@ func (c CapServicePubSub) PubEvent(ctx context.Context, params func(CapDevicePub
 	ans, release := capnp.Client(c).SendCall(ctx, s)
 	return CapDevicePubSub_pubEvent_Results_Future{Future: ans.Future()}, release
 }
-func (c CapServicePubSub) PubProperties(ctx context.Context, params func(CapDevicePubSub_pubProperties_Params) error) (CapDevicePubSub_pubProperties_Results_Future, capnp.ReleaseFunc) {
-	s := capnp.Send{
-		Method: capnp.Method{
-			InterfaceID:   0xdfb8a690e8697e4a,
-			MethodID:      1,
-			InterfaceName: "hubapi/PubSub.capnp:CapDevicePubSub",
-			MethodName:    "pubProperties",
-		},
-	}
-	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 2}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapDevicePubSub_pubProperties_Params(s)) }
-	}
-	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapDevicePubSub_pubProperties_Results_Future{Future: ans.Future()}, release
-}
-func (c CapServicePubSub) PubTD(ctx context.Context, params func(CapDevicePubSub_pubTD_Params) error) (CapDevicePubSub_pubTD_Results_Future, capnp.ReleaseFunc) {
-	s := capnp.Send{
-		Method: capnp.Method{
-			InterfaceID:   0xdfb8a690e8697e4a,
-			MethodID:      2,
-			InterfaceName: "hubapi/PubSub.capnp:CapDevicePubSub",
-			MethodName:    "pubTD",
-		},
-	}
-	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 2}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapDevicePubSub_pubTD_Params(s)) }
-	}
-	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapDevicePubSub_pubTD_Results_Future{Future: ans.Future()}, release
-}
 func (c CapServicePubSub) SubAction(ctx context.Context, params func(CapDevicePubSub_subAction_Params) error) (CapDevicePubSub_subAction_Results_Future, capnp.ReleaseFunc) {
 	s := capnp.Send{
 		Method: capnp.Method{
 			InterfaceID:   0xdfb8a690e8697e4a,
-			MethodID:      3,
+			MethodID:      1,
 			InterfaceName: "hubapi/PubSub.capnp:CapDevicePubSub",
 			MethodName:    "subAction",
 		},
@@ -1874,22 +1436,6 @@ func (c CapServicePubSub) SubEvent(ctx context.Context, params func(CapUserPubSu
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
 	return CapUserPubSub_subEvent_Results_Future{Future: ans.Future()}, release
-}
-func (c CapServicePubSub) SubTDs(ctx context.Context, params func(CapUserPubSub_subTDs_Params) error) (CapUserPubSub_subTDs_Results_Future, capnp.ReleaseFunc) {
-	s := capnp.Send{
-		Method: capnp.Method{
-			InterfaceID:   0xad556cb9c8905a7b,
-			MethodID:      2,
-			InterfaceName: "hubapi/PubSub.capnp:CapUserPubSub",
-			MethodName:    "subTDs",
-		},
-	}
-	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapUserPubSub_subTDs_Params(s)) }
-	}
-	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapUserPubSub_subTDs_Results_Future{Future: ans.Future()}, release
 }
 
 // String returns a string that identifies this capability for debugging
@@ -1961,19 +1507,15 @@ func (c CapServicePubSub) GetFlowLimiter() fc.FlowLimiter {
 type CapServicePubSub_Server interface {
 	SubActions(context.Context, CapServicePubSub_subActions) error
 
+	SubEvents(context.Context, CapServicePubSub_subEvents) error
+
 	PubEvent(context.Context, CapDevicePubSub_pubEvent) error
-
-	PubProperties(context.Context, CapDevicePubSub_pubProperties) error
-
-	PubTD(context.Context, CapDevicePubSub_pubTD) error
 
 	SubAction(context.Context, CapDevicePubSub_subAction) error
 
 	PubAction(context.Context, CapUserPubSub_pubAction) error
 
 	SubEvent(context.Context, CapUserPubSub_subEvent) error
-
-	SubTDs(context.Context, CapUserPubSub_subTDs) error
 }
 
 // CapServicePubSub_NewServer creates a new Server from an implementation of CapServicePubSub_Server.
@@ -1992,7 +1534,7 @@ func CapServicePubSub_ServerToClient(s CapServicePubSub_Server) CapServicePubSub
 // This can be used to create a more complicated Server.
 func CapServicePubSub_Methods(methods []server.Method, s CapServicePubSub_Server) []server.Method {
 	if cap(methods) == 0 {
-		methods = make([]server.Method, 0, 8)
+		methods = make([]server.Method, 0, 6)
 	}
 
 	methods = append(methods, server.Method{
@@ -2004,6 +1546,18 @@ func CapServicePubSub_Methods(methods []server.Method, s CapServicePubSub_Server
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
 			return s.SubActions(ctx, CapServicePubSub_subActions{call})
+		},
+	})
+
+	methods = append(methods, server.Method{
+		Method: capnp.Method{
+			InterfaceID:   0xf9bfff17720dccba,
+			MethodID:      1,
+			InterfaceName: "hubapi/PubSub.capnp:CapServicePubSub",
+			MethodName:    "subEvents",
+		},
+		Impl: func(ctx context.Context, call *server.Call) error {
+			return s.SubEvents(ctx, CapServicePubSub_subEvents{call})
 		},
 	})
 
@@ -2023,30 +1577,6 @@ func CapServicePubSub_Methods(methods []server.Method, s CapServicePubSub_Server
 		Method: capnp.Method{
 			InterfaceID:   0xdfb8a690e8697e4a,
 			MethodID:      1,
-			InterfaceName: "hubapi/PubSub.capnp:CapDevicePubSub",
-			MethodName:    "pubProperties",
-		},
-		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.PubProperties(ctx, CapDevicePubSub_pubProperties{call})
-		},
-	})
-
-	methods = append(methods, server.Method{
-		Method: capnp.Method{
-			InterfaceID:   0xdfb8a690e8697e4a,
-			MethodID:      2,
-			InterfaceName: "hubapi/PubSub.capnp:CapDevicePubSub",
-			MethodName:    "pubTD",
-		},
-		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.PubTD(ctx, CapDevicePubSub_pubTD{call})
-		},
-	})
-
-	methods = append(methods, server.Method{
-		Method: capnp.Method{
-			InterfaceID:   0xdfb8a690e8697e4a,
-			MethodID:      3,
 			InterfaceName: "hubapi/PubSub.capnp:CapDevicePubSub",
 			MethodName:    "subAction",
 		},
@@ -2079,18 +1609,6 @@ func CapServicePubSub_Methods(methods []server.Method, s CapServicePubSub_Server
 		},
 	})
 
-	methods = append(methods, server.Method{
-		Method: capnp.Method{
-			InterfaceID:   0xad556cb9c8905a7b,
-			MethodID:      2,
-			InterfaceName: "hubapi/PubSub.capnp:CapUserPubSub",
-			MethodName:    "subTDs",
-		},
-		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.SubTDs(ctx, CapUserPubSub_subTDs{call})
-		},
-	})
-
 	return methods
 }
 
@@ -2109,6 +1627,23 @@ func (c CapServicePubSub_subActions) Args() CapServicePubSub_subActions_Params {
 func (c CapServicePubSub_subActions) AllocResults() (CapServicePubSub_subActions_Results, error) {
 	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 0})
 	return CapServicePubSub_subActions_Results(r), err
+}
+
+// CapServicePubSub_subEvents holds the state for a server call to CapServicePubSub.subEvents.
+// See server.Call for documentation.
+type CapServicePubSub_subEvents struct {
+	*server.Call
+}
+
+// Args returns the call's arguments.
+func (c CapServicePubSub_subEvents) Args() CapServicePubSub_subEvents_Params {
+	return CapServicePubSub_subEvents_Params(c.Call.Args())
+}
+
+// AllocResults allocates the results struct.
+func (c CapServicePubSub_subEvents) AllocResults() (CapServicePubSub_subEvents_Results, error) {
+	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapServicePubSub_subEvents_Results(r), err
 }
 
 // CapServicePubSub_List is a list of CapServicePubSub.
@@ -2324,6 +1859,210 @@ func (f CapServicePubSub_subActions_Results_Future) Struct() (CapServicePubSub_s
 	return CapServicePubSub_subActions_Results(p.Struct()), err
 }
 
+type CapServicePubSub_subEvents_Params capnp.Struct
+
+// CapServicePubSub_subEvents_Params_TypeID is the unique identifier for the type CapServicePubSub_subEvents_Params.
+const CapServicePubSub_subEvents_Params_TypeID = 0xe6bca3833ee86dc4
+
+func NewCapServicePubSub_subEvents_Params(s *capnp.Segment) (CapServicePubSub_subEvents_Params, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4})
+	return CapServicePubSub_subEvents_Params(st), err
+}
+
+func NewRootCapServicePubSub_subEvents_Params(s *capnp.Segment) (CapServicePubSub_subEvents_Params, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4})
+	return CapServicePubSub_subEvents_Params(st), err
+}
+
+func ReadRootCapServicePubSub_subEvents_Params(msg *capnp.Message) (CapServicePubSub_subEvents_Params, error) {
+	root, err := msg.Root()
+	return CapServicePubSub_subEvents_Params(root.Struct()), err
+}
+
+func (s CapServicePubSub_subEvents_Params) String() string {
+	str, _ := text.Marshal(0xe6bca3833ee86dc4, capnp.Struct(s))
+	return str
+}
+
+func (s CapServicePubSub_subEvents_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapServicePubSub_subEvents_Params) DecodeFromPtr(p capnp.Ptr) CapServicePubSub_subEvents_Params {
+	return CapServicePubSub_subEvents_Params(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapServicePubSub_subEvents_Params) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapServicePubSub_subEvents_Params) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapServicePubSub_subEvents_Params) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapServicePubSub_subEvents_Params) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+func (s CapServicePubSub_subEvents_Params) PublisherID() (string, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.Text(), err
+}
+
+func (s CapServicePubSub_subEvents_Params) HasPublisherID() bool {
+	return capnp.Struct(s).HasPtr(0)
+}
+
+func (s CapServicePubSub_subEvents_Params) PublisherIDBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(0)
+	return p.TextBytes(), err
+}
+
+func (s CapServicePubSub_subEvents_Params) SetPublisherID(v string) error {
+	return capnp.Struct(s).SetText(0, v)
+}
+
+func (s CapServicePubSub_subEvents_Params) ThingID() (string, error) {
+	p, err := capnp.Struct(s).Ptr(1)
+	return p.Text(), err
+}
+
+func (s CapServicePubSub_subEvents_Params) HasThingID() bool {
+	return capnp.Struct(s).HasPtr(1)
+}
+
+func (s CapServicePubSub_subEvents_Params) ThingIDBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(1)
+	return p.TextBytes(), err
+}
+
+func (s CapServicePubSub_subEvents_Params) SetThingID(v string) error {
+	return capnp.Struct(s).SetText(1, v)
+}
+
+func (s CapServicePubSub_subEvents_Params) EventID() (string, error) {
+	p, err := capnp.Struct(s).Ptr(2)
+	return p.Text(), err
+}
+
+func (s CapServicePubSub_subEvents_Params) HasEventID() bool {
+	return capnp.Struct(s).HasPtr(2)
+}
+
+func (s CapServicePubSub_subEvents_Params) EventIDBytes() ([]byte, error) {
+	p, err := capnp.Struct(s).Ptr(2)
+	return p.TextBytes(), err
+}
+
+func (s CapServicePubSub_subEvents_Params) SetEventID(v string) error {
+	return capnp.Struct(s).SetText(2, v)
+}
+
+func (s CapServicePubSub_subEvents_Params) Handler() CapSubscriptionHandler {
+	p, _ := capnp.Struct(s).Ptr(3)
+	return CapSubscriptionHandler(p.Interface().Client())
+}
+
+func (s CapServicePubSub_subEvents_Params) HasHandler() bool {
+	return capnp.Struct(s).HasPtr(3)
+}
+
+func (s CapServicePubSub_subEvents_Params) SetHandler(v CapSubscriptionHandler) error {
+	if !v.IsValid() {
+		return capnp.Struct(s).SetPtr(3, capnp.Ptr{})
+	}
+	seg := s.Segment()
+	in := capnp.NewInterface(seg, seg.Message().AddCap(capnp.Client(v)))
+	return capnp.Struct(s).SetPtr(3, in.ToPtr())
+}
+
+// CapServicePubSub_subEvents_Params_List is a list of CapServicePubSub_subEvents_Params.
+type CapServicePubSub_subEvents_Params_List = capnp.StructList[CapServicePubSub_subEvents_Params]
+
+// NewCapServicePubSub_subEvents_Params creates a new list of CapServicePubSub_subEvents_Params.
+func NewCapServicePubSub_subEvents_Params_List(s *capnp.Segment, sz int32) (CapServicePubSub_subEvents_Params_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 4}, sz)
+	return capnp.StructList[CapServicePubSub_subEvents_Params](l), err
+}
+
+// CapServicePubSub_subEvents_Params_Future is a wrapper for a CapServicePubSub_subEvents_Params promised by a client call.
+type CapServicePubSub_subEvents_Params_Future struct{ *capnp.Future }
+
+func (f CapServicePubSub_subEvents_Params_Future) Struct() (CapServicePubSub_subEvents_Params, error) {
+	p, err := f.Future.Ptr()
+	return CapServicePubSub_subEvents_Params(p.Struct()), err
+}
+func (p CapServicePubSub_subEvents_Params_Future) Handler() CapSubscriptionHandler {
+	return CapSubscriptionHandler(p.Future.Field(3, nil).Client())
+}
+
+type CapServicePubSub_subEvents_Results capnp.Struct
+
+// CapServicePubSub_subEvents_Results_TypeID is the unique identifier for the type CapServicePubSub_subEvents_Results.
+const CapServicePubSub_subEvents_Results_TypeID = 0xbd14e777dcf88e74
+
+func NewCapServicePubSub_subEvents_Results(s *capnp.Segment) (CapServicePubSub_subEvents_Results, error) {
+	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapServicePubSub_subEvents_Results(st), err
+}
+
+func NewRootCapServicePubSub_subEvents_Results(s *capnp.Segment) (CapServicePubSub_subEvents_Results, error) {
+	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
+	return CapServicePubSub_subEvents_Results(st), err
+}
+
+func ReadRootCapServicePubSub_subEvents_Results(msg *capnp.Message) (CapServicePubSub_subEvents_Results, error) {
+	root, err := msg.Root()
+	return CapServicePubSub_subEvents_Results(root.Struct()), err
+}
+
+func (s CapServicePubSub_subEvents_Results) String() string {
+	str, _ := text.Marshal(0xbd14e777dcf88e74, capnp.Struct(s))
+	return str
+}
+
+func (s CapServicePubSub_subEvents_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
+	return capnp.Struct(s).EncodeAsPtr(seg)
+}
+
+func (CapServicePubSub_subEvents_Results) DecodeFromPtr(p capnp.Ptr) CapServicePubSub_subEvents_Results {
+	return CapServicePubSub_subEvents_Results(capnp.Struct{}.DecodeFromPtr(p))
+}
+
+func (s CapServicePubSub_subEvents_Results) ToPtr() capnp.Ptr {
+	return capnp.Struct(s).ToPtr()
+}
+func (s CapServicePubSub_subEvents_Results) IsValid() bool {
+	return capnp.Struct(s).IsValid()
+}
+
+func (s CapServicePubSub_subEvents_Results) Message() *capnp.Message {
+	return capnp.Struct(s).Message()
+}
+
+func (s CapServicePubSub_subEvents_Results) Segment() *capnp.Segment {
+	return capnp.Struct(s).Segment()
+}
+
+// CapServicePubSub_subEvents_Results_List is a list of CapServicePubSub_subEvents_Results.
+type CapServicePubSub_subEvents_Results_List = capnp.StructList[CapServicePubSub_subEvents_Results]
+
+// NewCapServicePubSub_subEvents_Results creates a new list of CapServicePubSub_subEvents_Results.
+func NewCapServicePubSub_subEvents_Results_List(s *capnp.Segment, sz int32) (CapServicePubSub_subEvents_Results_List, error) {
+	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
+	return capnp.StructList[CapServicePubSub_subEvents_Results](l), err
+}
+
+// CapServicePubSub_subEvents_Results_Future is a wrapper for a CapServicePubSub_subEvents_Results promised by a client call.
+type CapServicePubSub_subEvents_Results_Future struct{ *capnp.Future }
+
+func (f CapServicePubSub_subEvents_Results_Future) Struct() (CapServicePubSub_subEvents_Results, error) {
+	p, err := f.Future.Ptr()
+	return CapServicePubSub_subEvents_Results(p.Struct()), err
+}
+
 type CapUserPubSub capnp.Client
 
 // CapUserPubSub_TypeID is the unique identifier for the type CapUserPubSub.
@@ -2360,22 +2099,6 @@ func (c CapUserPubSub) SubEvent(ctx context.Context, params func(CapUserPubSub_s
 	}
 	ans, release := capnp.Client(c).SendCall(ctx, s)
 	return CapUserPubSub_subEvent_Results_Future{Future: ans.Future()}, release
-}
-func (c CapUserPubSub) SubTDs(ctx context.Context, params func(CapUserPubSub_subTDs_Params) error) (CapUserPubSub_subTDs_Results_Future, capnp.ReleaseFunc) {
-	s := capnp.Send{
-		Method: capnp.Method{
-			InterfaceID:   0xad556cb9c8905a7b,
-			MethodID:      2,
-			InterfaceName: "hubapi/PubSub.capnp:CapUserPubSub",
-			MethodName:    "subTDs",
-		},
-	}
-	if params != nil {
-		s.ArgsSize = capnp.ObjectSize{DataSize: 0, PointerCount: 1}
-		s.PlaceArgs = func(s capnp.Struct) error { return params(CapUserPubSub_subTDs_Params(s)) }
-	}
-	ans, release := capnp.Client(c).SendCall(ctx, s)
-	return CapUserPubSub_subTDs_Results_Future{Future: ans.Future()}, release
 }
 
 // String returns a string that identifies this capability for debugging
@@ -2448,8 +2171,6 @@ type CapUserPubSub_Server interface {
 	PubAction(context.Context, CapUserPubSub_pubAction) error
 
 	SubEvent(context.Context, CapUserPubSub_subEvent) error
-
-	SubTDs(context.Context, CapUserPubSub_subTDs) error
 }
 
 // CapUserPubSub_NewServer creates a new Server from an implementation of CapUserPubSub_Server.
@@ -2468,7 +2189,7 @@ func CapUserPubSub_ServerToClient(s CapUserPubSub_Server) CapUserPubSub {
 // This can be used to create a more complicated Server.
 func CapUserPubSub_Methods(methods []server.Method, s CapUserPubSub_Server) []server.Method {
 	if cap(methods) == 0 {
-		methods = make([]server.Method, 0, 3)
+		methods = make([]server.Method, 0, 2)
 	}
 
 	methods = append(methods, server.Method{
@@ -2492,18 +2213,6 @@ func CapUserPubSub_Methods(methods []server.Method, s CapUserPubSub_Server) []se
 		},
 		Impl: func(ctx context.Context, call *server.Call) error {
 			return s.SubEvent(ctx, CapUserPubSub_subEvent{call})
-		},
-	})
-
-	methods = append(methods, server.Method{
-		Method: capnp.Method{
-			InterfaceID:   0xad556cb9c8905a7b,
-			MethodID:      2,
-			InterfaceName: "hubapi/PubSub.capnp:CapUserPubSub",
-			MethodName:    "subTDs",
-		},
-		Impl: func(ctx context.Context, call *server.Call) error {
-			return s.SubTDs(ctx, CapUserPubSub_subTDs{call})
 		},
 	})
 
@@ -2542,23 +2251,6 @@ func (c CapUserPubSub_subEvent) Args() CapUserPubSub_subEvent_Params {
 func (c CapUserPubSub_subEvent) AllocResults() (CapUserPubSub_subEvent_Results, error) {
 	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 0})
 	return CapUserPubSub_subEvent_Results(r), err
-}
-
-// CapUserPubSub_subTDs holds the state for a server call to CapUserPubSub.subTDs.
-// See server.Call for documentation.
-type CapUserPubSub_subTDs struct {
-	*server.Call
-}
-
-// Args returns the call's arguments.
-func (c CapUserPubSub_subTDs) Args() CapUserPubSub_subTDs_Params {
-	return CapUserPubSub_subTDs_Params(c.Call.Args())
-}
-
-// AllocResults allocates the results struct.
-func (c CapUserPubSub_subTDs) AllocResults() (CapUserPubSub_subTDs_Results, error) {
-	r, err := c.Call.AllocResults(capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapUserPubSub_subTDs_Results(r), err
 }
 
 // CapUserPubSub_List is a list of CapUserPubSub.
@@ -2970,156 +2662,6 @@ func (f CapUserPubSub_subEvent_Results_Future) Struct() (CapUserPubSub_subEvent_
 	return CapUserPubSub_subEvent_Results(p.Struct()), err
 }
 
-type CapUserPubSub_subTDs_Params capnp.Struct
-
-// CapUserPubSub_subTDs_Params_TypeID is the unique identifier for the type CapUserPubSub_subTDs_Params.
-const CapUserPubSub_subTDs_Params_TypeID = 0xa1fcad99b548f00c
-
-func NewCapUserPubSub_subTDs_Params(s *capnp.Segment) (CapUserPubSub_subTDs_Params, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapUserPubSub_subTDs_Params(st), err
-}
-
-func NewRootCapUserPubSub_subTDs_Params(s *capnp.Segment) (CapUserPubSub_subTDs_Params, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1})
-	return CapUserPubSub_subTDs_Params(st), err
-}
-
-func ReadRootCapUserPubSub_subTDs_Params(msg *capnp.Message) (CapUserPubSub_subTDs_Params, error) {
-	root, err := msg.Root()
-	return CapUserPubSub_subTDs_Params(root.Struct()), err
-}
-
-func (s CapUserPubSub_subTDs_Params) String() string {
-	str, _ := text.Marshal(0xa1fcad99b548f00c, capnp.Struct(s))
-	return str
-}
-
-func (s CapUserPubSub_subTDs_Params) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapUserPubSub_subTDs_Params) DecodeFromPtr(p capnp.Ptr) CapUserPubSub_subTDs_Params {
-	return CapUserPubSub_subTDs_Params(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapUserPubSub_subTDs_Params) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapUserPubSub_subTDs_Params) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapUserPubSub_subTDs_Params) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapUserPubSub_subTDs_Params) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-func (s CapUserPubSub_subTDs_Params) Handler() CapSubscriptionHandler {
-	p, _ := capnp.Struct(s).Ptr(0)
-	return CapSubscriptionHandler(p.Interface().Client())
-}
-
-func (s CapUserPubSub_subTDs_Params) HasHandler() bool {
-	return capnp.Struct(s).HasPtr(0)
-}
-
-func (s CapUserPubSub_subTDs_Params) SetHandler(v CapSubscriptionHandler) error {
-	if !v.IsValid() {
-		return capnp.Struct(s).SetPtr(0, capnp.Ptr{})
-	}
-	seg := s.Segment()
-	in := capnp.NewInterface(seg, seg.Message().AddCap(capnp.Client(v)))
-	return capnp.Struct(s).SetPtr(0, in.ToPtr())
-}
-
-// CapUserPubSub_subTDs_Params_List is a list of CapUserPubSub_subTDs_Params.
-type CapUserPubSub_subTDs_Params_List = capnp.StructList[CapUserPubSub_subTDs_Params]
-
-// NewCapUserPubSub_subTDs_Params creates a new list of CapUserPubSub_subTDs_Params.
-func NewCapUserPubSub_subTDs_Params_List(s *capnp.Segment, sz int32) (CapUserPubSub_subTDs_Params_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 1}, sz)
-	return capnp.StructList[CapUserPubSub_subTDs_Params](l), err
-}
-
-// CapUserPubSub_subTDs_Params_Future is a wrapper for a CapUserPubSub_subTDs_Params promised by a client call.
-type CapUserPubSub_subTDs_Params_Future struct{ *capnp.Future }
-
-func (f CapUserPubSub_subTDs_Params_Future) Struct() (CapUserPubSub_subTDs_Params, error) {
-	p, err := f.Future.Ptr()
-	return CapUserPubSub_subTDs_Params(p.Struct()), err
-}
-func (p CapUserPubSub_subTDs_Params_Future) Handler() CapSubscriptionHandler {
-	return CapSubscriptionHandler(p.Future.Field(0, nil).Client())
-}
-
-type CapUserPubSub_subTDs_Results capnp.Struct
-
-// CapUserPubSub_subTDs_Results_TypeID is the unique identifier for the type CapUserPubSub_subTDs_Results.
-const CapUserPubSub_subTDs_Results_TypeID = 0x8f93aea5ec1f82bf
-
-func NewCapUserPubSub_subTDs_Results(s *capnp.Segment) (CapUserPubSub_subTDs_Results, error) {
-	st, err := capnp.NewStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapUserPubSub_subTDs_Results(st), err
-}
-
-func NewRootCapUserPubSub_subTDs_Results(s *capnp.Segment) (CapUserPubSub_subTDs_Results, error) {
-	st, err := capnp.NewRootStruct(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0})
-	return CapUserPubSub_subTDs_Results(st), err
-}
-
-func ReadRootCapUserPubSub_subTDs_Results(msg *capnp.Message) (CapUserPubSub_subTDs_Results, error) {
-	root, err := msg.Root()
-	return CapUserPubSub_subTDs_Results(root.Struct()), err
-}
-
-func (s CapUserPubSub_subTDs_Results) String() string {
-	str, _ := text.Marshal(0x8f93aea5ec1f82bf, capnp.Struct(s))
-	return str
-}
-
-func (s CapUserPubSub_subTDs_Results) EncodeAsPtr(seg *capnp.Segment) capnp.Ptr {
-	return capnp.Struct(s).EncodeAsPtr(seg)
-}
-
-func (CapUserPubSub_subTDs_Results) DecodeFromPtr(p capnp.Ptr) CapUserPubSub_subTDs_Results {
-	return CapUserPubSub_subTDs_Results(capnp.Struct{}.DecodeFromPtr(p))
-}
-
-func (s CapUserPubSub_subTDs_Results) ToPtr() capnp.Ptr {
-	return capnp.Struct(s).ToPtr()
-}
-func (s CapUserPubSub_subTDs_Results) IsValid() bool {
-	return capnp.Struct(s).IsValid()
-}
-
-func (s CapUserPubSub_subTDs_Results) Message() *capnp.Message {
-	return capnp.Struct(s).Message()
-}
-
-func (s CapUserPubSub_subTDs_Results) Segment() *capnp.Segment {
-	return capnp.Struct(s).Segment()
-}
-
-// CapUserPubSub_subTDs_Results_List is a list of CapUserPubSub_subTDs_Results.
-type CapUserPubSub_subTDs_Results_List = capnp.StructList[CapUserPubSub_subTDs_Results]
-
-// NewCapUserPubSub_subTDs_Results creates a new list of CapUserPubSub_subTDs_Results.
-func NewCapUserPubSub_subTDs_Results_List(s *capnp.Segment, sz int32) (CapUserPubSub_subTDs_Results_List, error) {
-	l, err := capnp.NewCompositeList(s, capnp.ObjectSize{DataSize: 0, PointerCount: 0}, sz)
-	return capnp.StructList[CapUserPubSub_subTDs_Results](l), err
-}
-
-// CapUserPubSub_subTDs_Results_Future is a wrapper for a CapUserPubSub_subTDs_Results promised by a client call.
-type CapUserPubSub_subTDs_Results_Future struct{ *capnp.Future }
-
-func (f CapUserPubSub_subTDs_Results_Future) Struct() (CapUserPubSub_subTDs_Results, error) {
-	p, err := f.Future.Ptr()
-	return CapUserPubSub_subTDs_Results(p.Struct()), err
-}
-
 type CapSubscriptionHandler capnp.Client
 
 // CapSubscriptionHandler_TypeID is the unique identifier for the type CapSubscriptionHandler.
@@ -3428,156 +2970,161 @@ func (f CapSubscriptionHandler_handleValue_Results_Future) Struct() (CapSubscrip
 	return CapSubscriptionHandler_handleValue_Results(p.Struct()), err
 }
 
-const schema_f33c8b5943a21269 = "x\xda\xacX}l\x1cW\x11\x9f\xd9=g\xcf\xe7\xfb" +
-	"\xf0\xeb\xba\xea\x07\x8a\xae\x89\xec\xd6)4\x89\x1dR\x82" +
-	"\x8b9\xe38j\x9c\xa6\xd5\xad/\xa9H\xc0\x12{\xe7" +
-	"\x05\x9ftv6\xbb\xb7N\xab~[J[\x99\x02\x89" +
-	"[G\xe4\xab\xd0\xa0\x92\xaaiLU\x12\xe1\xa6@\xa0" +
-	"UI\x05\x15*A\x89*$HE\xa1!\x08Z\xd4" +
-	"4\x047\x0d[\xbd\xb7\xf7v\xdf\xf9b\xe7l\xe5\xbf" +
-	"\xd3\xee\xcc{\xbf\x99\xdf\xccogn\xe9\x1d5\x1d\xa1" +
-	"\x96\xd8\x968H\xdas5\xf3\xdcs\xc3\x1f\xbd\xb7\xb8" +
-	"}\xe5\xc3@\x1ad7\x7f\xd5\xbe\x95\x1b\xbe\xfd\xa5\xb3" +
-	"\x00\xb8l\x81\xb2\x11\xd5\xe5\x8a\x02\xa0\xb6(\xb7\xab\xbd" +
-	"\xf4\x97{M\xe3\x85\xad\xd2\x9f\xd7=\x0a\xa4\x11\x01j" +
-	"$\x05`\xd9*\xe5\xb7\x08\xa8nP\xb6\x00\xbaOl" +
-	"y\xeb\xff\xdfL\xbf\xf9X\xc9@\xa6\x06\x87\x95}\xd4" +
-	"\xe0u\xe5'\x80\xee\x0f\xde\xde\xa8\xef;\xf4\xb5\x11\xcf" +
-	" D\xdf\xf7\x86G\x11B\xee\xf8\xd9h\xdb\x0b\x13\x1f" +
-	"\x7fWt\xbd3\xfc<u\xed\x0dS\xd7\xa3\xc3\xc9\x7f" +
-	"=;\xfe\xe4\xf7\x80,\xe4\xae\x93\xe1\x11\xeaj\xf7\xb9" +
-	"\xcd\xe3\xe1\x15\xdb\xbd75\xec\xd5\x99\xf0.\xea:\x19" +
-	">\x0d\xe8\xae\xa8=\xdd6zj\xdb(\x90\xcfR\x03" +
-	"\xa4\x06'j?\xa4\x06gjS\x80\xee\x81fw\xf4" +
-	"\x83W^y\x0aHC\xa8,\x0d\xb5\x91VT\xaf\x8b" +
-	"(\x00\x99\x86\x88\x8c\x99\x1b\"\x12\x02\xb8\xd7\xb7\xefm" +
-	"N\x8e\xfdjL\xc0rud\x17\xc5\xf2\xd6\x8bK\x86" +
-	"^X\xbdb\x87\x10`M\xe48}\xd3=\xfe\xe2/" +
-	"nz\xf5\xbe\x9d@\x9a|\x10\x93\xb5\x7f\xa5 b\x11" +
-	"\x0a\"\xfa\x9f\xd5\x87w\x1e\xfc\xe4\x99R\x18\xcc\xa0%" +
-	"2L\x0d\xda\x99\xc1\x9e\xa7\xce\x1f~\xe7@\xcb\x81\x0a" +
-	"\x94\xbd\x915\xa8nf(\x0b\x14\xe5=\x1e\xca\xfb6" +
-	"n{\xe3\xe5\xc2\xfa\x83\x15\xe4:\x91\xabP\xddJ\xed" +
-	"\xd5G\"\xc7T\xac\xa3\xe4\xee\xfa\xdd\xf8\xde\x1b\xde\xbd" +
-	"\x7f\xbc,\x8b\x91Q\x96\xc5\x08\xcd\xe2\xcf\x8e\xdf\x95\xd8" +
-	"}\xe3\xd8!/\x00\xf6\xfe\x0fu\xaf\xd2\xd0\xae\xff\xe1" +
-	"c\xf2\xfeH\xec\xe7bh\xbf\xae\xfb'u=QG" +
-	"\x91?~\xf4\xd1\x1dz\xf3\x91\xd7D\xee\xea\xf6Q\xd7" +
-	"\x0b\x87\xcf/X\x91\xdb\xff\xba\xe8z\xa6\xee8u\xbd" +
-	"\xc8\\?w0\xb5V\x7fi\xffo<\xee\x98\xeb\xfc" +
-	"\xe8\xc7\xd4\xf5\xb6\xa5o/O|r\xe3\x1fEW\x12" +
-	"e\xac6E\xa9\xebmo\xac}\xf9\xc9\xa7_;!" +
-	"\x1a\xac\x8a\xfe\x89\x95+3\xc8\xed\xfe\xe5O\x9b\xdd3" +
-	"'\x05\xb2\xee\x8d>O\xcf^\xf3`\xfe\x1f\xdb~<" +
-	"q\xaa\"u\xf9\xe8BT\xef\x8dRS'\xaa\xa0\xba" +
-	" Fswj\xc9\xb1\xd3G\xdf}\xeeo\x15\xe6\xb5" +
-	"\xb1\x9bQ\xbd\x8e\xda\xa8W\xc7\x8e\xa9{\x99u\xd3\xe3" +
-	"\xb7\xfe\xc8>4\xfa\xf7\x0a\x1e\xb7\xc6ZQ\x1d\xa36" +
-	"\x99m1\x193{b\x8c\xc7\xf7\x1f\xfc\xcc\xef\x1f\xa8" +
-	"\xff\xf2\xfb\xa58\x18\xce\xb1\xd8\x11\x1a\xc7\xb31\xcaL" +
-	"\xf1\xf4\x1dO\xbfs\xfe\xc3\x0f*\x0e|$\xde\x89\xea" +
-	"\xf68=\xf0\x89\xb8\x8c\x99\xef\xc7\xd9\x81\xd7.\x9b\xf8" +
-	"\x9fr\xf7\x92\x8f\xc4>\xde\x1e\x1f\xa1\x07>\x13\xa7}" +
-	"\xbc\xfe\xe4\xd6\xb6\xaf\x7fa\xcf\x7f\x85\xc4\\\x8c\xbfD" +
-	"\x13s\xe4\xcd\x98u\x8d{t\xb2\"\xd2\x7f\xc7oF" +
-	"\xf5\"\xbdJ\x9d\x8c\xdf\xae6%n\x02p\xffr\xf6" +
-	"\xc4\xceTT\xbe 20?\xc1\x0a\xa3%\x91\x82>" +
-	"\xb7\xdf\xc9\xeaf~I:\xe4d3NvqN7" +
-	"\x07\xcd\xb6\x95\xba\x99q\xb2v\xce\xca\x9b\xc5\xfc\xa6\xc1" +
-	"\xd5\xfa`_A6\xac4\xa2\x16\x92k\x00\xfc~F" +
-	"^\x1c\x84dA\"\xb5\x8a\xdbOm\x8d\xbbuP\x0a" +
-	"\x8e\xd1\x81iD\xff\x8ayS\xae\xe82\x86\xf29#" +
-	"\xed=5\x9dl\xda\xdad\x1aV1o\xd8\x8di\xdd" +
-	"\xd2\x07l\x00-,\x87\x00B\x08@\x16u\x02h\x8d" +
-	"2jK%$\x88\x0dH\x1f\xde\xd2\x0a\xa05\xcb\xa8" +
-	"}^\xc2\x87\x8a\xfd\xf9\xc1ouwa\x14$\x8c\x02" +
-	"&Mk\x93ic\xbd\xfb\xc0w\x06o\xddpn\xe2" +
-	"\x1c\x00b=\x04xj.\x83g\xd5\x901X\xa4P" +
-	"\x14}\xc0\xd6\xa2>\x92U\x14I\x87\x8c\xdaZ\x01I" +
-	"7}\xd8%\xa3\x96\x96\x90HR\x03J\x00\xe4N\x0a" +
-	"o\xb5\x8c\xda\xbaJx\x0f\x19\xf4x\x01\xee\x90^p" +
-	"\x0c\x8c\x81\x84\xb1Y\x80\\\xd7\xd5\xd8c\xd8N\xa1\x88" +
-	"vu>\xb6\x93\xfdJ\x8e\xb2\xda\x98\xd6\x13V5\x91" +
-	"\xad\x09\x82\xf0#\xd3\xa8\xe5Z\x19\xb5\xafVF\xe6\xea" +
-	"\xec\xfc\xee.\x00\xf0\xa3\xf5\xea\xc2B\x12|\xf1\x00\x91" +
-	"\xcc\x10\xe9z\xdb\xb0\x02\xcc\xeb\xba\xecR\xa06@5" +
-	">\xa6\x10\xa7\xa5\xcb\x03\xb6V\xef\xc7\xa9g\x01\xb4o" +
-	"\xc8\xa8\x15\x848\xf34\xa4>\x195S\x88s\x80\x06" +
-	"_\x90Q\xbbGB\"\xcb\x0d(\x03\x10\x87\xd2j\xca" +
-	"\xa8\xdd/\xa1k:\xd9B\xde\xee7@\xb1\x04r\xab" +
-	"H\xc94\x84\xcf\xbb\\#\x1a\xd6b\xded\x05\xc7h" +
-	"L'Y\xafh!?\xbaX+k\x1c\xd4\x1a$~" +
-	"I\xbd;\xfa\xf0\x8e\x89\xbd\xef\x9d\xdc=\xb5\x09d\xf1" +
-	":\xd3\xc9\xdaN6cXC\xf9\\\xd2\xb8K\x1f0" +
-	"\xd2\x88%\xbc@\xb0-\xe5\x19TI\x99\xd7?\x8c4" +
-	"\xb9h\xcfE\x06**{\xaa\xaf\xe7\xe5\x016\xe8c" +
-	"\xf10\xbfu\x85\xd4P:\xa32j\xd7J\xe8\xf61" +
-	"\xdb2NfQ\x8c%\x89\x12\x0f\xef\x0c\xf2^E\xbd" +
-	"\x97)nN7i\xbaK\x91x7\x01\x94e\x7f\xc4" +
-	"\xcd\xe9&3\xc0\xc0\xe2\xd2<\x8a\x801Ke;\xca" +
-	"d\x9b\xcfi\xc8\xc7\x01\xa2\xf5\x80D\xba\x15D\x7f\xfa" +
-	"@>Z\x91\xf65 \x91\xe5\x0aJ\xfe`\x84|\x04" +
-	"$\x8b\xda@\"\xf3\x15\x97w\x19\xe0`\x07\xba\x9ct" +
-	"\x00\xe8\xc0\x94\x97\xa8\xf2o@5\x15\xc32\x8bs\xec" +
-	"W\xfa\xb0_F\xad(\xf4\xeb\xe6\xce\xa0\x89\xab\xeb\xd7" +
-	"\xa9\xe2\\\x05\x9d\xb1\xa9}+R\x19\xa8n\xa0b\xdc" +
-	"\xf1r%]v\x90/\xdaB\xd9\xf5\x085m{\xc6" +
-	"\xdd\x80]\xb3\xa9\xe9@,):\xa5P\x9cE\xcb\x05" +
-	"\xc7\xf8\xcc\x09\xe0\xda\x82\x9eH9\xb6!\xe4|\xce\x8a" +
-	"\xd7\x93\xf22X=\xc4\xf2\x14\xf6\x18I\xe6/\xc2\\" +
-	"\x18\xc0Tr\xba\x89$\x98\xb3\xa6\xf0<\x9b|p\xed" +
-	"\x9b\xf9&\x7fK\xb8\xcc\x07\xf1\xd2\xf3I\x8fa'\xca" +
-	"\xb2!O\xe7\xa6d\x1c\xa6\x05\xf5L\x0b\xf8\xa6\x88|" +
-	"\x06'\x9bi\xbf\xe7\xa9\x16\xf05\x13\xf92Ez-" +
-	"\x90\xc8z\xaa\x05|tE\xbeI\x92\xeeV\x90H\xbb" +
-	"\x82\xb2\xbfB\"\x1f_I\x0b\xd5\x97EL'\x02e" +
-	"p\xb9\xcaC\x92\xe9|\x07&\xd9$\xe3)H\xa0'" +
-	"\xa2p\xc8\xd3\xa5=\xc1\xa2\xf3%\x8e/y\xc8'_" +
-	"\xa2\x0ds\x89\xe3[\x12\xf2\xc5\x85\xb4\x8f\x80D\xbeH" +
-	"\xc3\xe2k\x10\xf2\x9d\x85\xdcBCnR\\\xfeUA" +
-	".\xba\x1dx)%\xf6\x9e2\xf2!\xc9\x9e\xcd\x10@" +
-	"I\xee\x99\xb5g\\&\xf5\xd6\xd4\xa3\xa6\xad\x89iU" +
-	"&\xe5}\x9f\xae\xe0\xd0\xd3y%\x86\x9e9~\x17\xc5" +
-	"\xd2/\xff*\x0e\xfb\xfc(\xfc\xfd4\xc2z\x89\xc9\xf9" +
-	"\x8a\xac\x19\xc5\xbe\xaeM\xb9\xd9\xcd\xed\xb6 \xb7I{" +
-	"\xc6\xee\xf5\x09N\x94\xaa\xa4\xb4\x81\xf1\x95\x14\xf9\x9f\x02" +
-	"\x84l\xf460\xbf\x85\xe4A\xbb\x03\xb50b\xb0L" +
-	"\x8b\xffI\x08\xc3\xc3\xec\xc6*\xae83\xabZp'" +
-	"\xa3\xf7\xd3\x00\x00\x00\xff\xff\x8a\x12}\xf4"
+const schema_f33c8b5943a21269 = "x\xda\xd4X\x7fp\x14\xd5\x1d\xff~w\xef\xd8l\xee" +
+	"\x17\xcf\x8dc\xc1\xa6'L\xd0H[08v \x16" +
+	"\x13B\x98\x92\x94\xda\xdb\\\xe8Tf\x98\xe9\xdee!" +
+	"7s\x17\xce\xdd\xdb(\xa3\x08b%\xa8\xd0!Q\x98" +
+	"\x02b+:\xa5\x05DA\x9d\"B\xa9X+3e" +
+	":\xd4\x0e\x8c\xd3V\xb0Z\x08\xed\x1f8\xd52\xb4\xa6" +
+	"u;\xefm\xde\xde\xbb\xbb\x10\x12\xda\x7f\xfc/y\xfb" +
+	"y\xdf\xef\xe7}\x7f|\xde\xf7\xddm\x9d\xc1\xe6@C" +
+	"$\x1e\x05I\x7f>8\xc1\xbd\xb4\xf6\x1f\xe7g\xcc\x9d" +
+	"\xbf\x06H\x8d\xecf\xae\xdb9\xff\x9e'\xbe\xfe\x09\x00" +
+	"\xde~i\xc2\x12\xd4TE\x01\xd0\x82\xca7\xb4\x06\xfa" +
+	"\x97{C\xdd\xd0\xa3\xd2{\x9d\xeb\x80\xd4!@PV" +
+	"\x00n\x9f\xa4\xecF@\xedV\xe5E@w\xc3}'" +
+	"?[\x968\xd1'\x02\xdeRvR\xc0)\x06\xb0\xbb" +
+	"\xdc\xfa}U\xb3\xfb\x81L\xa5\x80\x00\x05\xe4\xaa\xb6Q" +
+	"\xc0\xaa\xaaA@w\xb6:\xd88pv\xd3\x00\x90/" +
+	"S\x00R\xc0=\xea\xc7\x14\x90S\x9b\x00\xdd=\xf5\xee" +
+	"\xc0G\xaf\xbf\xfe\x14\x90\x9a@\x09\xe3\x8d\xea,\xd4v" +
+	"\xa8\x0a@\xf2\x87\xaa\x8c\xc9\xe7U\x09\x01\xdc\xc9sw" +
+	"\xd4\xc77\xffr\xb3\xe7\x919\xdc\xaanC\x08\xb8'" +
+	"_\x9a\xd9\xbbw\xe1\xec-\x1eY\xf6\xe51\xf5\x00\xfd" +
+	"\xd2\xb6\xef\xa5#\xb7\x1c{`+\x90i>\x89\x95\xea" +
+	"\x07\x94\xc4FF\xe2\x98v\xf2\xc2\xb7\x89\xb2\xbb\x82\xc4" +
+	"~J\xe2\x0dF\xe20%q\xdc#\xf1\xf4S\x97_" +
+	"}\x7fO\xc3\x9e\x0a\xfc\x11\xb5\x1d\xb5\xdf1\xfc\x09\x8a" +
+	"\x7f\xd7\xc3?\xb0d\xd3\xf1\xd7\xb2\x8b_\xa8H\xcb)" +
+	"\xf5:\xd4\xceQ\xbc\xf6g\xb5O\x9bSM\xd3\xb2\xed" +
+	"7\xfbv\xdc\xf4\xe1\x83\xfb\xc4\xa0N\xa9\x1e\xa0t\x1b" +
+	"\xaaiP\x03[\x1eY\xfa\xc4\xdc/\xbdX\xe1^\x0d" +
+	"MGmR\x88\xba\xaf\x09\xc9\x98\xbc)\xc4\xdc\xff\xfc" +
+	"\x9d\xbbc\xdbo\xde\xfc\x8aw~foR\xe8\x18\x8d" +
+	"\xcc\xe4\x1f\xf7\xc9\xbb\xaa#\x87\xc5\xc8\xa8\xa1\xbfQW" +
+	"\xb5!\x1a\x99\xc2\x0f\xfe\xf9\xa7\xfb\x06k\x8e\x08[\xe7" +
+	"\x85\x0e\xd1\xad\xeb\x8f\xae\xdbb\xd4\x1fzSHDC" +
+	"h'\xfd2\xf4\xea\xe5)\xb3\xd3\xbb\xde\x12\x8dN\x09" +
+	"\xbdC\x8d\xde\xc1\x8c~\xe5\x85\xa6E\xc6\x81]\xbf\xf6" +
+	"\x8a\x82m]\x1c\xfa\x94n\xbd\xf3\xb6w\xef\x88\xfd\xfb" +
+	"\xe6\xdf\x8b[\xdbB\xac\\\x96\xb2\xadw\x1e_\xf4\xda" +
+	"\x93\xcf\xbcyJ\x04\xac\x0a\xfd\x81\x02\xfa\x19 \xbd\xfd" +
+	"\x17/\xd7\xbb\x7f=-T\xc1\xfe\xd0nj\xbb\xb6\x7f" +
+	"\xef\x93\xeb~\xf6\xc1\x1f+\xa2\xf6l\xa8\x05\xb5\xfd," +
+	"j{i\xd4\x0ezQk\x7f(sa\xd3O\x0e\x9e" +
+	"\xadH\xda\xfe\xd0T\xd4\xde\xa0x\xedH\xa8O\xbb>" +
+	"L\x93vv\xe6\xdb\x83G?\xfc\xe9_*\xd0\xff\xa1" +
+	"9\x89P\x8c\xa6\x86\xdf\xd6\xfa\x19z\xda\xfa\xaf=g" +
+	"\xbf2p\xae\x82\xcb\xca\xf0,\xd4\x1e\xa3\x98\xe4\xf7\xc3" +
+	"2&7\x85\x19\x97_\xe5.\xdc\xf5\xc8s\x87\xcf\x0f" +
+	"\x1f\xdb+\xee\xf0\x01z\xec\xadaZ\x12\x17\x1f\xba\xf1" +
+	"\xb7\xab&\xdeuQ\x04\xdc\x1b9D\x01\x0fG(`" +
+	"\xe3\x8d\x9f\xceY\xffl\xef\xc5\x0a\x8fK\xa3\xd5\xa8\xe5" +
+	"\xa2\xd4cwT\xc6d!\xca<\x16\x06\xbf\xf9\xcc\xfb" +
+	"\x97?\xfe\xa8\x02\x9f\x89\xb6\xa0\xb6\x92\xe1\x0b\x14\xbff" +
+	"\x18\xbf\xe1L\xcb\xd0\x99\xdaK\x95'\x8aJ\xa8=\xca" +
+	"\xf0k(~\x83\x87?t\"b\xdd\xe0\x1e\xfdWE" +
+	"\xbc\x1e\x8eNG\xad\x9f\xe2\xb5\x8d\xd1>\xed\\\xf4\x16" +
+	"\x00\xf7\xcc'\xa7\xb66\x85\xe5!1\xed\xefEY\x9d" +
+	"\xfe=J\xd3\xfe\xf4\xe9\x1f\xbd\xfc\xd9\xf6\xc2P\x85{" +
+	"\x12\x9b\x8e\xda\x94\x18u\xff\xc5\x98\x8c\xc9\xfa\x98\x84\xd0" +
+	"\xe2v;)#\x9f\x99\x99\x088\xa9\xa4\x93\x9a\x916" +
+	"\xf2=\xf9\xc6\xf9F>\xe9\xa4\xec\xb4\x95\xc9\x172+" +
+	"z\x16\x1a=]Y\xd9\xb4\x12\x88z@\x0e\x02\xf8j" +
+	"\x86\xbc\x82\x09I\x81DT\xc5\xed\xa6X\xf3;\x06(" +
+	"Y\xc7l\xc6\x04\xa2\xef\"X\xe6\xa2\xd5\xec\xcd\xa4\xcd" +
+	"\x84\xb7j;\xa9yi\xea\xac.a\xc4,#g\xeb" +
+	"a9\x00\x10@\x00\xb2\xa0\x05@o\x96Q_$!" +
+	"A\xacA\xba\xd8\xd6\x0e\xa0/\x94Q\xef\x94\x90HR" +
+	"\x0dJ\x00D\xa7\xc8E2\xea\xdf\x95pu\xa1;\xd3" +
+	"\xb3\xbc\xad\x15\xc3 a\x18\xd05\x98\xfd\xb6V\x00\xe0" +
+	"k\xab=\xba\x16\x92\xe2\x8d\x01\x88\x04\xc6\xc8:\xef\xa4" +
+	"\x16\xf4\x9a=\x85\xba\x84a)c!M\x17[e\xd4" +
+	"\x13\x02\xe9o\xcd*\x9e\xa4\x9c\xf4j\x93\x9a/\xfe\x1f" +
+	"\xef5\xb2\x8e\x89\x11\x9002\x0a\xc9\xc5\xb6i\x15)" +
+	"\xfa\x81\xb5\x0c9g\xeb\x13}\x8eF\x0a@\xff\x9e\x8c" +
+	"zV\xe0\x98\xa1\x1c\xbbd\xd4\xf3\x02\xc7\x1c\x8dvV" +
+	"F\xfd~\x09\x89,\xd7\xa0\x0c@\x1cJ</\xa3\xfe" +
+	"\xa0\x84n\xdeIe3v\xb7\x09\x8a%\xd0\x1fC\x0e" +
+	"\xaep\xa4\x09W+H\xd3\x9a\xc1\x8b-\xeb\x98u\x89" +
+	"\xb8\xc1\xca&\xe0\x9f.B\xe9U\xc9\xa8\xd7H\xdc\xc9" +
+	"Dw`\xcd\x96\x83;\xce\x9f\xdeN\xd3<Qp'" +
+	"\x8b\xee\xf2N\xcavRI\xd3\xea\xcd\xa4\xe3\xe6\xddF" +
+	"\xceL \x0e\xf3\x05\x82\x8dM\x1e`,\xe1\xb7y\x85" +
+	"t\x98\xb6\x93\x95\x0b\xf6x\xdb\xa1\xc3\x8c\xdbNV\xd8" +
+	"W\x1e\x18o\x87G\xd6\xa4\xcb\xa2!\xbf0\x85\xb0\xd0" +
+	"T\x86e\xd4\xbf \xa1\xdb\xc5\xb0%\xf9\x189$9" +
+	"\xd3\xb6\x8d\xe5f\xe7\xca\xbc9/\xce\x98\x95\x85\xc4\xcb" +
+	"\xec\xc8z\x926\xf24\x88\xc3\x1c=f\x00%\x06\x1e" +
+	"w\xd3F\x9e\x01\xb0\x88\x18\x99\x8a\x18`LQQ\xaa" +
+	"b\xa2\xc4g0\xe472i\xe8\x00\x89\xdc\xaa \xfa" +
+	"\xa3\x04\xf2\xb1\x89\xd4\xb6\x83D\xaeW\\\xde\x1f\x80=" +
+	"\xcd\xe8\xf2t\x01\xc0\xe8\xe25R\x8ai\x83\xe5\xf0\x1a" +
+	"\x1b\x8c.v\xcb\xa8\x17\x84\x06\xbb\xb7\xa5\xd8uck" +
+	"\xb0r\xbd\x18\x83\xc0\x95\xc4\xd6\xcb\"M\xd6\xfc\x15\xb1" +
+	"\x9ee\x99\xe5%I\xb2\xdc\xf4\x0a\xba\xe8X\x107J" +
+	"\xd2\x1d)\xefV1\xd5\xc5j\xb6\xbd6(\xd8\xc07" +
+	"^\xad\x98K\x0c\xf9w\x83P\xcd\x1dB5\xdb\x1e\xb8" +
+	"\x0d\xb0\xb5\xa2\x9a\x83Wc\xc8rh\xd7u4\x99\xa5" +
+	"\xfd6&m\xa5\xc7R\xc6\xd5\xa5E3~\xdd\x08\xa7" +
+	"j,JW\x93c\x9bB\xc6\xafY +\x0e6a" +
+	"|\xb1\xe7B$\xd2\x9cZ\xa4\xa9\xa4\x8d<\x92\xe28" +
+	"SVe\xe3\x89\x07\x97\xca\xd1=\xf9o\x89k\xba\xb0" +
+	";L;V\x12\x8d\x12\xc1b]\xc4t\xdfZ\x917" +
+	"\xadB\xc6\xb4K\xe5j\x89\x9b\x1f\xfe\x02\xb2i_Q" +
+	"\xa7|\xdfJ\xd2\x11\x94\x8a?'\x91\x0f\xe9\xa4\xa1\x9d" +
+	"+\x15\x7f\x8b\"\x7f\xc6\x91\xda\x0e_\xa9\x8a\xda\xe4\xda" +
+	"\xa2n\x89J%_)\xd21\xc6\x05Q\x0f3\x12\xfc" +
+	"1\x88|\xa6$\xfaZ\x90H\x1b%\xc1\x9fC\xc8\xdf" +
+	"!d\xee\xe3 \x919\x0aJ\xfe\xab\x06\xf9\x13\x84|" +
+	"\xd5\x02\x89LS\\~\xf7 \x17\xf0f\x1cI\xd5\xbd" +
+	"U\x96o\x88\xb3\xb5Q\x0e0|u0\xb4\x07.W" +
+	"\xa4RS\xe3\xeew>7|\xbeD;8V\xbdm" +
+	"J\xfc\x0f\xc7\x1bq\xe8k\xf9\x7f\x0c}\xe3\xbd\x97\x98" +
+	"I;a\x99\xcb2\xf7\x97M\x0e\x8dM\xde\xc7QG" +
+	"\x0fQ\x04J\xb7\xaf\xf5\xcb6\xc8\xbf\x8ft7\xf9\x8a" +
+	"\xd0\xd9Z\xba\x7f\xb2\\\xe8\xbab\xef\xf9i\x89\xa5J" +
+	"\x04\x80\xbfR\x91\xff\"A\x1a\x96p\x01\xe0O\\\xe4" +
+	"?9\xf8\x02\xe0\xb7\xbc\xdcc\x8b\xb3\x0a\xda\xcd\xa8W" +
+	"!\x16_\xea\xe2O-\xc2\x185\xbe\xd1\x91K\xe4\xe8" +
+	"2\\\xf49J\xfa\x84\xe9qA\x8cr.\x09\xe1\xac" +
+	"8\x8b\xee\x7f\x03\x00\x00\xff\xff\xdf.\xb4~"
 
 func init() {
 	schemas.Register(schema_f33c8b5943a21269,
 		0x80433d2ee6f482f5,
 		0x8654dd0285fb2417,
 		0x87cc5066fed0778c,
-		0x8a5bb4a2615ad89f,
-		0x8efab8ac3a0cf3ae,
-		0x8f93aea5ec1f82bf,
 		0x913808ae28ff6473,
 		0x9290df923ae70938,
 		0x94bbbbef92ff28ab,
 		0x95c0951f289d3d1a,
 		0x963848ac762fb0d0,
 		0x997bc227bdb0ae49,
-		0xa1fcad99b548f00c,
+		0xaa07114fe8d013c2,
 		0xab31abe0b5f7949c,
 		0xad556cb9c8905a7b,
 		0xae7ce3209daecb9a,
+		0xaf1e3d8b5d839604,
 		0xb495269b0f4ed2b7,
 		0xbc0d0aa70387a01a,
+		0xbd14e777dcf88e74,
 		0xc3ba28619686bf88,
 		0xc5a7633821f7b5fb,
 		0xc6a7b2614c3fad2c,
 		0xd326fc0f35d8303b,
 		0xd5c39e93b94cc83b,
 		0xd6e9ff28b3be9b63,
+		0xdbe2a98693ac911d,
 		0xdfb8a690e8697e4a,
 		0xe4a8e3bfe7c72fdf,
 		0xe592b473a3368825,
+		0xe6bca3833ee86dc4,
 		0xee3e107dce1b7eee,
+		0xee76a18839fa1b8d,
 		0xeff2f7e09e4be774,
-		0xf42f5607f8b83318,
-		0xf69c375c3a85d655,
+		0xf51ddefb42de8c74,
 		0xf9bfff17720dccba,
-		0xfb030c3f99d5f3de)
+		0xfb030c3f99d5f3de,
+		0xfb749bfeb39fd69c)
 }

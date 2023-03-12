@@ -11,7 +11,7 @@ const goISO8601Format :Text = "2006-01-02T15:04:05.000-0700";
 
 struct ThingValue {
     # ThingValue holds events, actions or TD documents. Anything that comes from a Thing.
-    # It contains contextual information related to the Thing such as its publisher (gatewayID)
+    # It contains contextual information related to the Thing such as its publisherID
 
     publisherID @0 :Text;
     # ID of the thing publishing the value.
@@ -23,8 +23,10 @@ struct ThingValue {
     # Name of event or action as described in the thing TD
     # If the value holds a TD then this is 'td'
 
-    valueJSON @3:Data;
-    # Value, JSON encoded []byte array.
+    data @3:Data;
+    # value data, serialized into a []byte array.
+    # Use of JSON is recommended as it is universally accepted and doesn't require clients to adopt capnp.
+    # However, any serialization method can be used.
 
     created @4:Text;
     # Timestamp the value was created, in ISO8601 format (see above).

@@ -14,6 +14,22 @@ const capNameDevicePubSub :Text = "capDevicePubSub";
 const capNameServicePubSub :Text = "capServicePubSub";
 const capNameUserPubSub :Text = "capUserPubSub";
 
+const thingsPrefix :Text = "things";
+# pubsub topic prefix used for Thing events and actions
+const messageTypeAction :Text = "action";
+# pubsub topic for action messages
+const messageTypeEvent :Text = "event";
+# pubsub topic for event messages
+
+const eventNameProperties :Text = "properties";
+# standardized event name containing a property key-value map
+const eventNameTD :Text = "td";
+# standardized event name containing a JSON serialized TD document
+
+const actionNameConfig :Text = "configuration";
+# standardized action name containing a key-value map for property configuration
+
+
 interface CapPubSubService {
 # CapPubSubService capabilities for publishing and subscribing to Thing messages
 
@@ -41,28 +57,18 @@ interface CapDevicePubSub {
 
 	pubEvent @0 (thingID :Text, eventID :Text, value :Data) -> ();
     # PubEvent publishes the given thing event. The payload is an event value as per TD.
-	# This will combine the thingID with the device's thingID to publish it under the thing address
+	# This will combine the device's publisherID with the given thingID in the publication address
 	#  thingID of the Thing whose event is published
 	#  eventID is the key of the event affordance in the Thing's event map
 	#  value is the serialized event value, or nil if the event has no value
 
-	pubProperties  @1 (thingID :Text, props :Bucket.KeyValueMap) -> ();
-	# PubProperties creates a topic and publishes properties of a thing.
-	# This will combine the thingID with the device's thingID to publish it under the thing address
-	#  thingID of the Thing whose event is published (not the thing address)
-	#  The props is a map of property name-value pairs.
-
-	pubTD  @2 (thingID :Text, tdDoc :Data) -> ();
-	# PubTD publishes the given thing TD. The payload is a serialized TD document.
-	# This will combine the publisher thingID with the device's thingID as the thing address
-	#  thingID of the Thing whose event is published (not the thing address)
-
-	subAction  @3 (thingID :Text, actionID :Text, handler :CapSubscriptionHandler) -> ();
-	# SubAction creates a topic and registers a listener for actions to things with this gateway.
-	# This supports receiving queued messages for this gateway since it last disconnected.
+	subAction  @1 (thingID :Text, actionID :Text, handler :CapSubscriptionHandler) -> ();
+	# SubAction subscribes to actions aimed at things published by this device.
+	# To request configuration changes use the "properties" action ID.
 	#  thingID is the thing to subscribe for, or "" to subscribe to all things of this gateway
-	#  actionID is the ID in the actions map, or "" to subscribe to all actions
-	#  handler will be invoked when an action is received for this device
+	#  actionID is the ID in the actions map, or "" to subscribe to all actions including 'configurationActionName'
+	#   for configuration requests.
+	#  handler will be invoked when an action request is received
 }
 
 interface CapServicePubSub extends(CapDevicePubSub, CapUserPubSub) {
@@ -71,16 +77,25 @@ interface CapServicePubSub extends(CapDevicePubSub, CapUserPubSub) {
 # subscribe similar to consumers. In addition to all events, actions and TDs.
 
 	subActions @0 (publisherID :Text, thingID :Text, actionID :Text, handler :CapSubscriptionHandler) -> ();
-	# SubActions subscribes to actions aimed at things.
-	# Services can subscribe to other actions for logging, automation and other use-cases.
-	# For subscribing to service directed actions, use SubAction.
+	# SubActions subscribes to actions aimed at things from any publisher.
 	#
-	#  publisherID is the ID of the publisher that is receiving the actions.
-	#   normally that would be the serviceID but services can also subscribe
-	#   to actions send to other things.
-	#  thingID is the ID of the Thing whose action to subscribe to or "" for
-	#   all things published by the publisher.
+	# This is intended for services that track actions aimed at other devices or services,
+	# Possibly a logging, monitoring or automation service.
+	#
+	#  publisherID is the ID of the publisher that is receiving the actions, or "" for all publishers.
+	#  thingID is the ID of the Thing whose action to subscribe to or "" for all things of the selected publisher.
 	#  actionID or "" to subscribe to all actions
+	#  handler is a callback invoked when actions are received
+
+	subEvents @1 (publisherID :Text, thingID :Text, eventID :Text, handler :CapSubscriptionHandler) -> ();
+	# subEvents subscribes to events from things from any publisher.
+	#
+	# It is not recommended to subscribe to all events of all things of all publishers unless
+	# absolutely needed for the task at hand, as this can generate a lot of calls.
+	#
+	#  publisherID is the ID of the publisher that is publishing the event.
+	#  thingID is the ID of the Thing whose event to subscribe to or "" for all things published by the publisher.
+	#  eventID or "" to subscribe to all events.
 	#  handler is a callback invoked when actions are received
 }
 
@@ -90,23 +105,25 @@ interface CapUserPubSub {
 
 	pubAction @0 (publisherID :Text, thingID :Text, actionID :Text, value :Data) -> ();
     # PubAction publishes an action request for a Thing.
-	# Authorization will only allow actions to be published for things that are in the same group as the user
-	# and for which the user has the operator or manager role.
+    #
+	# Authorization will only allow actions to be published for things that are in the same group as
+	# the user and for which the user has the operator or manager role.
+	# The manager role allows sending the hubapi.ActionNameConfiguration action.
+	#
 	#  publisherID is the ID of the device or service that is publishing the thing
 	#  thingID is the ID of the Thing whose action is being requested
-	#  actionID is the ID as defined in the Thing's TD
+	#  actionID is the ID as defined in the Thing's TD or configurationActionName for configuration of writable properties
 	#  value is the JSON encoded value of the action
 
 	subEvent @1 (publisherID :Text, thingID :Text, eventID :Text, handler :CapSubscriptionHandler) -> ();
 	# SubEvent subscribes to events from a thing
+	#
+	# It is not allowed to subscribe to all events of all things of all publishers.
+	# A thingID or an eventID must be provided or this will return an error.
+	#
 	#  publisherID is the ID of the device or service that is publishing the thing event.
 	#  thingID is the ID of the Thing whose event is published.
 	#  eventID of the event. Use "" to subscribe to all events of the things.
-
-	subTDs @2 (handler :CapSubscriptionHandler) -> ();
-	# SubTDs subscribes to eligible TD events
-	#  handler is a callback invoked when a TD is received
-
 }
 
 

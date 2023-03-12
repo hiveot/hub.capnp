@@ -89,7 +89,7 @@ func main() {
 
 			pubsubcli.SubTDCommand(ctx, &runFolder),
 			pubsubcli.SubEventsCommand(ctx, &runFolder),
-			//pubsubcli.PubActionCommand(ctx, &runFolder),
+			pubsubcli.PubActionCommand(ctx, &runFolder),
 
 			directorycli.DirectoryListCommand(ctx, &runFolder),
 

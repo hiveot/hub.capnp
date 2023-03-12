@@ -48,7 +48,7 @@ func (svc *AddHistory) encodeValue(thingValue *thing.ThingValue, isAction bool) 
 		key = key + "/e"
 	}
 	// TODO: reorganize data to store. Remove duplication. Timestamp in msec since epoc
-	val = thingValue.ValueJSON
+	val = thingValue.Data
 	return key, val
 }
 
@@ -76,7 +76,7 @@ func (svc *AddHistory) AddAction(_ context.Context, actionValue *thing.ThingValu
 // If the event has no created time, it will be set to 'now'
 func (svc *AddHistory) AddEvent(ctx context.Context, eventValue *thing.ThingValue) error {
 
-	valueStr := eventValue.ValueJSON
+	valueStr := eventValue.Data
 	if len(valueStr) > 20 {
 		valueStr = valueStr[:20]
 	}

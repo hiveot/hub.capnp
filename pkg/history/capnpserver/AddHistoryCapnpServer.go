@@ -24,7 +24,7 @@ func (capsrv *AddHistoryCapnpServer) AddAction(
 	publisherID, _ := capValue.PublisherID()
 	thingID, _ := capValue.ThingID()
 	name, _ := capValue.Name()
-	valueJSON, _ := capValue.ValueJSON()
+	valueJSON, _ := capValue.Data()
 	created, _ := capValue.Created()
 	actionValue := thing.NewThingValue(publisherID, thingID, name, valueJSON)
 	actionValue.Created = created
@@ -40,7 +40,7 @@ func (capsrv *AddHistoryCapnpServer) AddEvent(
 	publisherID, _ := capValue.PublisherID()
 	thingID, _ := capValue.ThingID()
 	name, _ := capValue.Name()
-	valueJSON, _ := capValue.ValueJSON()
+	valueJSON, _ := capValue.Data()
 	created, _ := capValue.Created()
 	eventValue := thing.NewThingValue(publisherID, thingID, name, valueJSON)
 	eventValue.Created = created

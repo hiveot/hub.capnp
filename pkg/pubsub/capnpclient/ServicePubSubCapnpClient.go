@@ -33,6 +33,24 @@ func (cl *ServicePubSubCapnpClient) SubActions(
 	return err
 }
 
+func (cl *ServicePubSubCapnpClient) SubEvents(
+	ctx context.Context, publisherID, thingID, eventID string,
+	handler func(action *thing.ThingValue)) (err error) {
+
+	method, release := cl.capability.SubEvents(ctx,
+		func(params hubapi.CapServicePubSub_subEvents_Params) error {
+			_ = params.SetPublisherID(publisherID)
+			_ = params.SetThingID(thingID)
+			_ = params.SetEventID(eventID)
+			handlerCapnp := NewSubscriptionHandlerCapnpServer(handler)
+			err = params.SetHandler(handlerCapnp)
+			return err
+		})
+	defer release()
+	_, err = method.Struct()
+	return err
+}
+
 func (cl *ServicePubSubCapnpClient) Release() {
 	cl.UserPubSubCapnpClient.Release()
 	cl.DevicePubSubCapnpClient.Release()

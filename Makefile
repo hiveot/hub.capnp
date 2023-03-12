@@ -9,11 +9,11 @@ INSTALL_HOME=~/bin/hiveot
 
 .FORCE: 
 
-all: hubapi hub  ## Build APIs, CLI, Hub services
+all: api hub  ## Build APIs, CLI, Hub services
 
 hub: hubcli launcher services   ## Build hub services and cli
 
-hubapi: hubapi-go  ## Build the hub api for all languages (currently only golang)
+api: hubapi-go  ## Build the hub api for all languages (currently only golang)
 
 hubapi-go: .FORCE  ## Build the golang API from capnp
 	$(CAPNP_GO)  $(CAPNP_SRC)/hubapi/Resolver.capnp

@@ -21,7 +21,7 @@ func DirectoryListCommand(ctx context.Context, runFolder *string) *cli.Command {
 	var verbose = false
 	return &cli.Command{
 		Name:      "listdir [<publisherID> <thingID> [-v]]",
-		Aliases:   []string{"ld"},
+		Aliases:   []string{"listdir", "ld"},
 		Category:  "directory",
 		Usage:     "List directory",
 		UsageText: "List all Things or a selected Thing in the directory",
@@ -64,8 +64,8 @@ func HandleListDirectory(ctx context.Context, runFolder string, limit int, offse
 	}
 
 	cursor := rd.Cursor(ctx)
-	fmt.Printf("Publisher ID    Thing ID             Device Type          Title                           #props  #events #actions   Modified         \n")
-	fmt.Printf("-------------   -------------------  -------------------  ----------------------------    ------  ------- --------   --------------------------\n")
+	fmt.Printf("Publisher ID    Thing ID             Device Type          Title                                #props  #events #actions   Modified         \n")
+	fmt.Printf("-------------   -------------------  -------------------  -----------------------------------  ------  ------- --------   --------------------------\n")
 	i := 0
 	tv, valid := cursor.First()
 	if offset > 0 {
@@ -74,7 +74,7 @@ func HandleListDirectory(ctx context.Context, runFolder string, limit int, offse
 	}
 	for ; valid && i < limit; tv, valid = cursor.Next() {
 		var tdDoc thing.TD
-		err = json.Unmarshal(tv.ValueJSON, &tdDoc)
+		err = json.Unmarshal(tv.Data, &tdDoc)
 		var utime time.Time
 		if tdDoc.Modified != "" {
 			utime, err = dateparse.ParseAny(tdDoc.Modified)
@@ -83,7 +83,7 @@ func HandleListDirectory(ctx context.Context, runFolder string, limit int, offse
 		}
 		timeStr := utime.In(time.Local).Format("02 Jan 2006 15:04:05 -0700")
 
-		fmt.Printf("%-15s %-20s %-20s %-30s %7d  %7d  %7d   %-30s\n",
+		fmt.Printf("%-15s %-20s %-20.20s %-35.35s %7d  %7d  %7d   %-30s\n",
 			tv.PublisherID,
 			tdDoc.ID,
 			tdDoc.DeviceType,
@@ -116,7 +116,7 @@ func HandleListThing(ctx context.Context, runFolder string, pubID, thingID strin
 	if err != nil {
 		return err
 	}
-	err = json.Unmarshal(tv.ValueJSON, &tdDoc)
+	err = json.Unmarshal(tv.Data, &tdDoc)
 	if err != nil {
 		return err
 	}
@@ -128,24 +128,24 @@ func HandleListThing(ctx context.Context, runFolder string, pubID, thingID strin
 	fmt.Println("")
 
 	fmt.Println(utils.COGreen + "Attributes:")
-	fmt.Println(" ID                              Title                                    Initial Value   Description")
-	fmt.Println(" -----------------------------   ---------------------------------------  -------------   -----------" + utils.COReset)
+	fmt.Println(" ID                             Title                                    Initial Value   Description")
+	fmt.Println(" ----------------------------   ---------------------------------------  -------------   -----------" + utils.COReset)
 	keys := utils.OrderedMapKeys(tdDoc.Properties)
 	for _, key := range keys {
 		prop, found := tdDoc.Properties[key]
 		if found && prop.ReadOnly {
-			fmt.Printf(" %-30.30s  %-40.40s %s%-15.15v%s %s\n",
+			fmt.Printf(" %-30s %-40.40s %s%-15.15v%s %s\n",
 				key, prop.Title, utils.COGreen, prop.InitialValue, utils.COReset, prop.Description)
 		}
 	}
 	fmt.Println()
 	fmt.Println(utils.COBlue + "Configuration:")
-	fmt.Println(" ID                              Title                                    DataType   Initial Value   Description")
-	fmt.Println(" -----------------------------   ---------------------------------------  ---------  -------------   -----------" + utils.COReset)
+	fmt.Println(" ID                             Title                                    DataType   Initial Value   Description")
+	fmt.Println(" -----------------------------  ---------------------------------------  ---------  -------------   -----------" + utils.COReset)
 	for _, key := range keys {
 		prop, found := tdDoc.Properties[key]
 		if found && !prop.ReadOnly {
-			fmt.Printf(" %-30.30s  %-40.40s %-10s %s%-15.15v%s %s\n",
+			fmt.Printf(" %-30s %-40.40s %-10s %s%-15.15v%s %s\n",
 				key, prop.Title, prop.Type, utils.COBlue, prop.InitialValue, utils.COReset, prop.Description)
 		}
 	}
@@ -164,7 +164,7 @@ func HandleListThing(ctx context.Context, runFolder string, pubID, thingID strin
 		if ev.Data != nil {
 			initialValue = ev.Data.InitialValue
 		}
-		fmt.Printf(" %-30.30s %-15.15s %-40.40s %-10.10v %s%-15.15s%s %s\n",
+		fmt.Printf(" %-30s %-15.15s %-40.40s %-10.10v %s%-15.15s%s %s\n",
 			key, ev.EventType, ev.Title, dataType, utils.COYellow, initialValue, utils.COReset, ev.Description)
 	}
 
@@ -205,6 +205,6 @@ func HandleListThingVerbose(ctx context.Context, runFolder string, pubID, thingI
 		return err
 	}
 	fmt.Println("TD of", pubID, thingID)
-	fmt.Printf("%s\n", tv.ValueJSON)
+	fmt.Printf("%s\n", tv.Data)
 	return err
 }

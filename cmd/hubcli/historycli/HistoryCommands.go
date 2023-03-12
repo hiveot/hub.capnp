@@ -135,7 +135,7 @@ func HandleListEvents(ctx context.Context, runFolder string, publisherID, thingI
 			tv.ThingID,
 			utime.Format("02 Jan 2006 15:04:05 MST"),
 			tv.ID,
-			tv.ValueJSON,
+			tv.Data,
 		)
 	}
 	rd.Release()
@@ -205,7 +205,7 @@ func HandleListLatestEvents(
 			prop.ThingID,
 			//utime.Format("02 Jan 2006 15:04:05 -0700"),
 			utime.Format("02 Jan 2006 15:04:05 MST"),
-			prop.ValueJSON,
+			prop.Data,
 		)
 	}
 	readHist.Release()

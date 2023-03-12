@@ -28,6 +28,18 @@ func (capsrv *ServicePubSubCapnpServer) SubActions(
 	return err
 }
 
+func (capsrv *ServicePubSubCapnpServer) SubEvents(
+	ctx context.Context, call hubapi.CapServicePubSub_subEvents) error {
+	args := call.Args()
+	thingID, _ := args.ThingID()
+	publisherID, _ := args.PublisherID()
+	eventID, _ := args.EventID()
+	handlerCap := args.Handler()
+	handlerClient := NewSubscriptionHandlerCapnpClient(handlerCap.AddRef())
+	// the server registers the callback handler and invokes it when actions for the Thing are received
+	err := capsrv.svc.SubEvents(ctx, publisherID, thingID, eventID, handlerClient.HandleValue)
+	return err
+}
 func (capsrv *ServicePubSubCapnpServer) Shutdown() {
 	// Client is released, release the subscriptions
 	capsrv.svc.Release()

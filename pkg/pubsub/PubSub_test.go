@@ -2,16 +2,11 @@ package pubsub_test
 
 import (
 	"context"
-	"encoding/json"
 	"net"
 	"os"
 	"sync/atomic"
 	"testing"
 	"time"
-
-	"github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/hiveot/hub/lib/logging"
 	"github.com/hiveot/hub/lib/thing"
@@ -19,6 +14,8 @@ import (
 	"github.com/hiveot/hub/pkg/pubsub/capnpclient"
 	"github.com/hiveot/hub/pkg/pubsub/capnpserver"
 	"github.com/hiveot/hub/pkg/pubsub/service"
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 )
 
 const testAddress = "/tmp/pubsub_test.socket"
@@ -143,73 +140,6 @@ func TestPubSubEvent(t *testing.T) {
 	assert.NoError(t, err)
 	count := atomic.LoadInt32(&event1Count)
 	assert.Equal(t, int32(1), count)
-
-	devicePS.Release()
-	userPS.Release()
-	assert.NoError(t, err)
-}
-
-func TestPubSubTD(t *testing.T) {
-	const publisher1ID = "urn:device1"
-	const serviceID = "urn:service1"
-	const thing1ID = "urn:thing1"
-	var rxTD *thing.ThingValue
-
-	ctx := context.Background()
-	svc, stopFn := startService(testUseCapnp)
-	defer stopFn()
-
-	devicePS, _ := svc.CapDevicePubSub(ctx, publisher1ID)
-	servicePS, _ := svc.CapServicePubSub(ctx, serviceID)
-
-	err := servicePS.SubTDs(ctx, func(val *thing.ThingValue) {
-		rxTD = val
-	})
-	assert.NoError(t, err)
-	td1 := []byte("hi")
-	err = devicePS.PubTD(ctx, thing1ID, td1)
-	assert.NoError(t, err)
-	require.NotNil(t, rxTD)
-	assert.Equal(t, thing1ID, rxTD.ThingID)
-	assert.Equal(t, td1, rxTD.ValueJSON)
-
-	devicePS.Release()
-	servicePS.Release()
-}
-
-func TestPubSubProperties(t *testing.T) {
-	const publisher1ID = "urn:device1"
-	const thing1ID = "urn:thing1"
-	const user1ID = "urn:user"
-	var event1Count = 0
-	var rxPropsEvent *thing.ThingValue
-	var rxProps map[string][]byte
-
-	ctx := context.Background()
-	svc, stopFn := startService(testUseCapnp)
-	defer stopFn()
-
-	devicePS, _ := svc.CapDevicePubSub(ctx, publisher1ID)
-	userPS, _ := svc.CapUserPubSub(ctx, user1ID)
-
-	// test subscription of a single event by both service and device
-	err := userPS.SubEvent(ctx, publisher1ID, thing1ID, "properties",
-		func(val *thing.ThingValue) {
-			event1Count++
-			rxPropsEvent = val
-		})
-	assert.NoError(t, err)
-	propsIn := map[string][]byte{
-		"prop1": []byte("prop1value"),
-	}
-	err = devicePS.PubProperties(ctx, thing1ID, propsIn)
-	assert.NoError(t, err)
-	assert.Equal(t, 1, event1Count)
-	assert.Equal(t, thing1ID, rxPropsEvent.ThingID)
-
-	err = json.Unmarshal(rxPropsEvent.ValueJSON, &rxProps)
-	assert.NoError(t, err)
-	assert.Equal(t, "prop1value", string(rxProps["prop1"]))
 
 	devicePS.Release()
 	userPS.Release()

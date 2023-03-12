@@ -77,7 +77,7 @@ func (svc *HistoryService) Start() (err error) {
 	logrus.Infof("")
 	err = svc.bucketStore.Open()
 	if err != nil {
-		logrus.Panic("can't open histroy store")
+		logrus.Panic("can't open history store")
 	}
 	propsbucket := svc.bucketStore.GetBucket(PropertiesBucketName)
 	svc.propsStore = NewPropertiesStore(propsbucket)

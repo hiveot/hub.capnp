@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/hiveot/hub/api/go/hubapi"
 	"net"
 	"os"
 	"path"
@@ -125,7 +126,7 @@ func TestAddRemoveTD(t *testing.T) {
 	if assert.NoError(t, err) {
 		assert.NotNil(t, tv2)
 		assert.Equal(t, thing1ID, tv2.ThingID)
-		assert.Equal(t, tdDoc1, tv2.ValueJSON)
+		assert.Equal(t, tdDoc1, tv2.Data)
 	}
 	err = updateCap.RemoveTD(ctx, publisherID, thing1ID)
 	assert.NoError(t, err)
@@ -197,12 +198,12 @@ func TestCursor(t *testing.T) {
 	tdValue, valid := cursor.First()
 	assert.True(t, valid)
 	assert.NotEmpty(t, tdValue)
-	assert.NotEmpty(t, tdValue.ValueJSON)
+	assert.NotEmpty(t, tdValue.Data)
 
 	tdValue, valid = cursor.Next() // second
 	assert.True(t, valid)
 	assert.NotEmpty(t, tdValue)
-	assert.NotEmpty(t, tdValue.ValueJSON)
+	assert.NotEmpty(t, tdValue.Data)
 
 	tdValue, valid = cursor.Next() // there is no third
 	assert.False(t, valid)
@@ -237,7 +238,7 @@ func TestPubSub(t *testing.T) {
 
 	// publish the TD
 	tdDoc := createTDDoc(thing1ID, title1)
-	err = svcPubSub.PubTD(ctx, thing1ID, tdDoc)
+	err = svcPubSub.PubEvent(ctx, thing1ID, hubapi.EventNameTD, tdDoc)
 	assert.NoError(t, err)
 
 	// expect it to be added to the directory
@@ -248,7 +249,7 @@ func TestPubSub(t *testing.T) {
 	if assert.NoError(t, err) {
 		assert.NotNil(t, tv2)
 		assert.Equal(t, thing1ID, tv2.ThingID)
-		assert.Equal(t, tdDoc, tv2.ValueJSON)
+		assert.Equal(t, tdDoc, tv2.Data)
 	}
 
 	// cleanup

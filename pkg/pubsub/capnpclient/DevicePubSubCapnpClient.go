@@ -3,8 +3,6 @@ package capnpclient
 import (
 	"context"
 
-	"github.com/hiveot/hub/lib/caphelp"
-
 	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/lib/thing"
 )
@@ -30,45 +28,14 @@ func (cl *DevicePubSubCapnpClient) PubEvent(
 	return err
 }
 
-// PubProperties publishes properties of a thing.
-func (cl *DevicePubSubCapnpClient) PubProperties(ctx context.Context, thingID string, props map[string][]byte) (err error) {
-
-	method, release := cl.capability.PubProperties(ctx,
-		func(params hubapi.CapDevicePubSub_pubProperties_Params) error {
-			_ = params.SetThingID(thingID)
-			propsCapnp := caphelp.MarshalKeyValueMap(props)
-			err = params.SetProps(propsCapnp)
-			return err
-		})
-	defer release()
-	_, err = method.Struct()
-	return err
-}
-
-// PubTD publishes the given thing TD. The payload is a serialized TD document.
-func (cl *DevicePubSubCapnpClient) PubTD(
-	ctx context.Context, thingID string, tdDoc []byte) (err error) {
-
-	method, release := cl.capability.PubTD(ctx,
-		func(params hubapi.CapDevicePubSub_pubTD_Params) error {
-			_ = params.SetThingID(thingID)
-			err = params.SetTdDoc(tdDoc)
-			return err
-		})
-	defer release()
-	_, err = method.Struct()
-	return err
-}
-
 // Release the capability and end subscriptions
 func (cl *DevicePubSubCapnpClient) Release() {
 	cl.capability.Release()
 }
 
-// SubAction creates a topic and registers a listener for actions to things with this gateway.
-// This supports receiving queued messages for this gateway since it last disconnected.
+// SubAction creates registers a callback for action requests made to things managed by this device.
 //
-//	thingID is the thing to subscribe for, or "" to subscribe to all things of this gateway
+//	thingID is the thing to subscribe for, or "" to subscribe to all things of this device
 //	actionID is the action ID, or "" to subscribe to all actions
 //	handler will be invoked when an action is received for this device
 func (cl *DevicePubSubCapnpClient) SubAction(

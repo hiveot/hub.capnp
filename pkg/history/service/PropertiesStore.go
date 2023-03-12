@@ -110,7 +110,7 @@ func (srv *LastPropertiesStore) HandleAddValue(event *thing.ThingValue, isAction
 	if event.ID == history.EventNameProperties {
 		// this is a properties event that holds a map of property name:values
 		props := make(map[string][]byte)
-		err := json.Unmarshal(event.ValueJSON, &props)
+		err := json.Unmarshal(event.Data, &props)
 		if err != nil {
 			return // data is not used
 		}

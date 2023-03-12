@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"github.com/hiveot/hub/api/go/hubapi"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -11,7 +12,6 @@ import (
 	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/bucketstore"
 	"github.com/hiveot/hub/pkg/directory"
-	"github.com/hiveot/hub/pkg/pubsub"
 )
 
 // UpdateDirectory is a provides the capability to update the directory
@@ -39,8 +39,8 @@ func (svc *UpdateDirectory) UpdateTD(_ context.Context, publisherID, thingID str
 	bucketValue := &thing.ThingValue{
 		PublisherID: publisherID,
 		ThingID:     thingID,
-		ID:          pubsub.MessageTypeTD,
-		ValueJSON:   td,
+		ID:          hubapi.EventNameTD,
+		Data:        td,
 		Created:     time.Now().Format(vocab.ISO8601Format),
 	}
 	bucketData, _ := json.Marshal(bucketValue)

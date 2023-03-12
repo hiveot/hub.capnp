@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/hiveot/hub/api/go/hubapi"
-	"github.com/hiveot/hub/lib/caphelp"
 	"github.com/hiveot/hub/pkg/pubsub"
 )
 
@@ -22,26 +21,6 @@ func (capsrv *DevicePubSubCapnpServer) PubEvent(
 	eventID, _ := args.EventID()
 	value, _ := args.Value()
 	err := capsrv.svc.PubEvent(ctx, thingID, eventID, value)
-	return err
-}
-
-func (capsrv *DevicePubSubCapnpServer) PubProperties(
-	ctx context.Context, call hubapi.CapDevicePubSub_pubProperties) error {
-
-	args := call.Args()
-	thingID, _ := args.ThingID()
-	propsCap, _ := args.Props()
-	props := caphelp.UnmarshalKeyValueMap(propsCap)
-	err := capsrv.svc.PubProperties(ctx, thingID, props)
-	return err
-}
-
-func (capsrv *DevicePubSubCapnpServer) PubTD(
-	ctx context.Context, call hubapi.CapDevicePubSub_pubTD) error {
-	args := call.Args()
-	thingID, _ := args.ThingID()
-	tdDoc, _ := args.TdDoc()
-	err := capsrv.svc.PubTD(ctx, thingID, tdDoc)
 	return err
 }
 

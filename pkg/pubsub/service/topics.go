@@ -2,8 +2,7 @@ package service
 
 import (
 	"fmt"
-
-	"github.com/hiveot/hub/pkg/pubsub"
+	"github.com/hiveot/hub/api/go/hubapi"
 )
 
 // MakeThingTopic makes a new topic address for publishing or subscribing to things.
@@ -22,7 +21,7 @@ func MakeThingTopic(publisherID, thingID, messageType, name string) string {
 		name = "+"
 	}
 	topic := fmt.Sprintf("%s/%s/%s/%s/%s",
-		pubsub.ThingsPrefix, publisherID, thingID, messageType, name)
+		hubapi.ThingsPrefix, publisherID, thingID, messageType, name)
 	return topic
 }
 

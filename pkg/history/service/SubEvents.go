@@ -18,7 +18,7 @@ type PubSubEventHandler struct {
 // Start listening for events
 func (svc *PubSubEventHandler) Start() error {
 	ctx := context.Background()
-	err := svc.serviceSub.SubEvent(ctx, "", "", "",
+	err := svc.serviceSub.SubEvents(ctx, "", "", "",
 		func(eventValue *thing.ThingValue) {
 			logrus.Infof("received event '%s'", eventValue.ID)
 

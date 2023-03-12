@@ -37,7 +37,7 @@ func (hc *HistoryCursor) decodeValue(key string, data []byte) (thingValue *thing
 		ThingID:     hc.thingID,
 		PublisherID: hc.publisherID,
 		ID:          parts[1],
-		ValueJSON:   data,
+		Data:        data,
 		Created:     timeIso8601,
 	}
 	return thingValue, true

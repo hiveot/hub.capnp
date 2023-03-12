@@ -3,12 +3,13 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"fmt"
+	"github.com/hiveot/hub/api/go/hubapi"
 	"sync"
 
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub/lib/thing"
-	"github.com/hiveot/hub/pkg/pubsub"
 	"github.com/hiveot/hub/pkg/pubsub/core"
 )
 
@@ -26,7 +27,7 @@ func (cap *UserPubSub) PubAction(
 
 	logrus.Infof("userID=%s, thingID=%s, actionName=%s", cap.userID, thingID, actionID)
 
-	topic := MakeThingTopic(publisherID, thingID, pubsub.MessageTypeAction, actionID)
+	topic := MakeThingTopic(publisherID, thingID, hubapi.MessageTypeAction, actionID)
 	tv := thing.NewThingValue(publisherID, thingID, actionID, value)
 	// note that marshal will copy the values so changes to the buffer containing value will not affect it
 	message, _ := json.Marshal(tv)
@@ -34,15 +35,26 @@ func (cap *UserPubSub) PubAction(
 	return
 }
 
-// SubMessage subscribes to topic
-func (cap *UserPubSub) subMessage(publisherID, thingID, msgType, id string,
+// SubEvent creates a topic for receiving events.
+// Either a thingID or eventID must be provided.
+//
+//	publisherID publisher of the event. Use "" to subscribe to all publishers
+//	thingID of the publisher event. Use "" to subscribe to events from all Things
+//	eventID of the event. Use "" to subscribe to all events of a thing
+func (cap *UserPubSub) SubEvent(_ context.Context, publisherID, thingID, eventID string,
 	handler func(msgValue *thing.ThingValue)) error {
 
-	subTopic := MakeThingTopic(publisherID, thingID, msgType, id)
+	// it is not allowed to subscribe to all events of all things. Pick one or the other.
+	if thingID == "" && eventID == "" {
+		return fmt.Errorf("a thingID or eventID must be provided")
+	}
+
+	logrus.Infof("userID=%s, thingID=%s, eventID=%s", cap.userID, thingID, eventID)
+	subTopic := MakeThingTopic(publisherID, thingID, hubapi.MessageTypeEvent, eventID)
 
 	subID, err := cap.core.Subscribe(subTopic,
 		func(topic string, message []byte) {
-
+			// FIXME: capnp serialization of messageValue
 			msgValue := &thing.ThingValue{}
 			err := json.Unmarshal(message, msgValue)
 			if err != nil {
@@ -58,30 +70,6 @@ func (cap *UserPubSub) subMessage(publisherID, thingID, msgType, id string,
 		cap.subMutex.Unlock()
 	}
 	return err
-}
-
-// SubEvent creates a topic for receiving events
-//
-//	publisherID publisher of the event. Use "" to subscribe to all publishers
-//	thingID of the publisher event. Use "" to subscribe to events from all Things
-//	eventID of the event. Use "" to subscribe to all events of publisher things
-func (cap *UserPubSub) SubEvent(ctx context.Context, publisherID, thingID, eventID string,
-	handler func(event *thing.ThingValue)) (err error) {
-
-	logrus.Infof("userID=%s, thingID=%s, eventName=%s", cap.userID, thingID, eventID)
-	err = cap.subMessage(publisherID, thingID, pubsub.MessageTypeEvent, eventID, handler)
-	return err
-}
-
-// SubTDs subscribes to all (eligible) TDs from a gateway.
-//
-//	 publisherID is optional. "" to subscribe to TD messages from all gateways.
-//		handler is a callback invoked when a TD is received from a thing's publisher
-func (cap *UserPubSub) SubTDs(_ context.Context, handler func(event *thing.ThingValue)) (err error) {
-
-	logrus.Infof("userID=%s", cap.userID)
-	err = cap.subMessage("", "", pubsub.MessageTypeTD, "", handler)
-	return
 }
 
 // Release the capability and end subscriptions

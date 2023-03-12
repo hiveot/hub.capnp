@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"github.com/hiveot/hub/api/go/hubapi"
 
 	"github.com/sirupsen/logrus"
 
@@ -56,7 +57,7 @@ func (svc *DirectoryService) handleTDEvent(event *thing.ThingValue) {
 	// TODO: reserve a capability for this instead of create/release
 	ud, err := svc.CapUpdateDirectory(ctx, directory.ServiceName)
 	if err == nil {
-		err = ud.UpdateTD(ctx, event.PublisherID, event.ThingID, event.ValueJSON)
+		err = ud.UpdateTD(ctx, event.PublisherID, event.ThingID, event.Data)
 		ud.Release()
 	}
 }
@@ -67,7 +68,7 @@ func (svc *DirectoryService) Start(ctx context.Context) error {
 
 	// subscribe to TD events to add to the directory
 	if err == nil && svc.servicePubSub != nil {
-		err = svc.servicePubSub.SubTDs(ctx, svc.handleTDEvent)
+		err = svc.servicePubSub.SubEvent(ctx, "", "", hubapi.EventNameTD, svc.handleTDEvent)
 	}
 
 	if err == nil {
@@ -75,7 +76,7 @@ func (svc *DirectoryService) Start(ctx context.Context) error {
 		myTDJSON, _ := json.Marshal(myTD)
 		if svc.servicePubSub != nil {
 			// publish the TD
-			err = svc.servicePubSub.PubTD(ctx, svc.serviceID, myTDJSON)
+			err = svc.servicePubSub.PubEvent(ctx, svc.serviceID, hubapi.EventNameTD, myTDJSON)
 		} else {
 			// no pubsub, so store the TD
 			ud, err2 := svc.CapUpdateDirectory(ctx, directory.ServiceName)

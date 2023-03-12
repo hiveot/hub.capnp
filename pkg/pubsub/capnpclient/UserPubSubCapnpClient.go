@@ -54,20 +54,6 @@ func (cl *UserPubSubCapnpClient) SubEvent(
 	return err
 }
 
-func (cl *UserPubSubCapnpClient) SubTDs(ctx context.Context,
-	handler func(action *thing.ThingValue)) (err error) {
-
-	method, release := cl.capability.SubTDs(ctx,
-		func(params hubapi.CapUserPubSub_subTDs_Params) error {
-			handlerCapnp := NewSubscriptionHandlerCapnpServer(handler)
-			err = params.SetHandler(handlerCapnp)
-			return err
-		})
-	defer release()
-	_, err = method.Struct()
-	return err
-}
-
 // NewUserPubSubCapnpClient returns a capnp RPC client for the user pubsub capability
 func NewUserPubSubCapnpClient(capability hubapi.CapUserPubSub) *UserPubSubCapnpClient {
 	userCl := &UserPubSubCapnpClient{

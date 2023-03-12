@@ -119,7 +119,7 @@ func makeValueBatch(publisherID string, nrValues, nrThings, timespanSec int) (ba
 			PublisherID: publisherID,
 			ThingID:     thingID,
 			ID:          names[randomName],
-			ValueJSON:   []byte(fmt.Sprintf("%2.3f", randomValue)),
+			Data:        []byte(fmt.Sprintf("%2.3f", randomValue)),
 			Created:     randomTime,
 		}
 		// track the actual most recent event for the name for thing 3
@@ -213,12 +213,12 @@ func TestAddGetEvent(t *testing.T) {
 
 	// add thing1 temperature from 5 minutes ago
 	ev1_1 := &thing.ThingValue{PublisherID: publisherID, ThingID: thing1ID, ID: evTemperature,
-		ValueJSON: []byte("12.5"), Created: fivemago.Format(vocab.ISO8601Format)}
+		Data: []byte("12.5"), Created: fivemago.Format(vocab.ISO8601Format)}
 	err := addHistory1.AddEvent(ctx, ev1_1)
 	assert.NoError(t, err)
 	// add thing1 humidity from 55 minutes ago
 	ev1_2 := &thing.ThingValue{PublisherID: publisherID, ThingID: thing1ID, ID: evHumidity,
-		ValueJSON: []byte("70"), Created: fiftyfivemago.Format(vocab.ISO8601Format)}
+		Data: []byte("70"), Created: fiftyfivemago.Format(vocab.ISO8601Format)}
 	err = addHistory1.AddEvent(ctx, ev1_2)
 	assert.NoError(t, err)
 
@@ -226,13 +226,13 @@ func TestAddGetEvent(t *testing.T) {
 	addHistory2, _ := svc.CapAddHistory(ctx, device1, true)
 	// add thing2 humidity from 5 minutes ago
 	ev2_1 := &thing.ThingValue{PublisherID: publisherID, ThingID: thing2ID, ID: evHumidity,
-		ValueJSON: []byte("50"), Created: fivemago.Format(vocab.ISO8601Format)}
+		Data: []byte("50"), Created: fivemago.Format(vocab.ISO8601Format)}
 	err = addHistory2.AddEvent(ctx, ev2_1)
 	assert.NoError(t, err)
 
 	// add thing2 temperature from 55 minutes ago
 	ev2_2 := &thing.ThingValue{PublisherID: publisherID, ThingID: thing2ID, ID: evTemperature,
-		ValueJSON: []byte("17.5"), Created: fiftyfivemago.Format(vocab.ISO8601Format)}
+		Data: []byte("17.5"), Created: fiftyfivemago.Format(vocab.ISO8601Format)}
 	err = addHistory2.AddEvent(ctx, ev2_2)
 	assert.NoError(t, err)
 	addHistory2.Release()
@@ -301,13 +301,13 @@ func TestAddPropertiesEvent(t *testing.T) {
 		PublisherID: publisherID,
 		ThingID:     thing1ID,
 		ID:          vocab.VocabSwitch,
-		ValueJSON:   []byte("on"),
+		Data:        []byte("on"),
 	}
 	event1 := &thing.ThingValue{
 		PublisherID: publisherID,
 		ThingID:     thing1ID,
 		ID:          vocab.VocabTemperature,
-		ValueJSON:   []byte(temp1),
+		Data:        []byte(temp1),
 	}
 	badEvent1 := &thing.ThingValue{
 		PublisherID: publisherID,
@@ -339,7 +339,7 @@ func TestAddPropertiesEvent(t *testing.T) {
 		PublisherID: publisherID,
 		ThingID:     thing1ID,
 		ID:          history.EventNameProperties,
-		ValueJSON:   propsValue,
+		Data:        propsValue,
 	}
 
 	// in total add 5 properties
@@ -370,7 +370,7 @@ func TestAddPropertiesEvent(t *testing.T) {
 	props := readHist.GetProperties(ctx, []string{vocab.VocabTemperature, vocab.VocabSwitch})
 	assert.Equal(t, 2, len(props))
 	assert.Equal(t, vocab.VocabTemperature, props[0].ID)
-	assert.Equal(t, []byte(temp1), props[0].ValueJSON)
+	assert.Equal(t, []byte(temp1), props[0].Data)
 	assert.Equal(t, vocab.VocabSwitch, props[1].ID)
 
 	// restart
@@ -389,7 +389,7 @@ func TestAddPropertiesEvent(t *testing.T) {
 	props = readHist.GetProperties(ctx, []string{vocab.VocabTemperature, vocab.VocabSwitch})
 	assert.Equal(t, 2, len(props))
 	assert.Equal(t, props[0].ID, vocab.VocabTemperature)
-	assert.Equal(t, props[0].ValueJSON, []byte(temp1))
+	assert.Equal(t, props[0].Data, []byte(temp1))
 	assert.Equal(t, props[1].ID, vocab.VocabSwitch)
 	readHist.Release()
 

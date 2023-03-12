@@ -42,15 +42,6 @@ func (capsrv *UserPubSubCapnpServer) SubEvent(
 	return err
 }
 
-func (capsrv *UserPubSubCapnpServer) SubTDs(
-	ctx context.Context, call hubapi.CapUserPubSub_subTDs) error {
-	args := call.Args()
-	handlerCap := args.Handler()
-	handler := NewSubscriptionHandlerCapnpClient(handlerCap.AddRef())
-	err := capsrv.svc.SubTDs(ctx, handler.HandleValue)
-	return err
-}
-
 func (capsrv *UserPubSubCapnpServer) Shutdown() {
 	// Client is released, release the subscriptions
 	capsrv.svc.Release()
