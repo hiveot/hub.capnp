@@ -17,12 +17,12 @@ import (
 //	     id: <thingID>,
 //	     title: <human description>,  (why is this not a property?)
 //	     modified: <iso8601>,
-//	     actions: {name: ActionAffordance, ...},
-//	     events:  {name: EventAffordance, ...},
-//	     properties: {name: PropertyAffordance, ...}
+//	     actions: {actionID: ActionAffordance, ...},
+//	     events:  {eventID: EventAffordance, ...},
+//	     properties: {propID: PropertyAffordance, ...}
 //	}
 type TD struct {
-	// JSON-LD keyword to define short-hand names called terms that are used throughout a TD document. Required.
+	// JSON-LD keyword to define shorthand names called terms that are used throughout a TD document. Required.
 	AtContext []string `json:"@context"`
 
 	// JSON-LD keyword to label the object with semantic tags (or types).
@@ -102,11 +102,13 @@ type TD struct {
 //	actionType from the vocabulary or "" if this is a non-standardized action
 //	title is the short display title of the action
 //	description optional explanation of the action
-func (tdoc *TD) AddAction(id string, actionType string, title string, description string) *ActionAffordance {
+//	input with dataschema of the action input data, if any
+func (tdoc *TD) AddAction(id string, actionType string, title string, description string, input *DataSchema) *ActionAffordance {
 	actionAff := &ActionAffordance{
 		ActionType:  actionType,
 		Title:       title,
 		Description: description,
+		Input:       input,
 	}
 	tdoc.UpdateAction(id, actionAff)
 	return actionAff
@@ -121,11 +123,13 @@ func (tdoc *TD) AddAction(id string, actionType string, title string, descriptio
 //	eventType describes the type of event in HiveOT vocabulary if available, or "" if non-standard.
 //	title is the short display title of the event
 //	dataType is the type of data the event holds, WoTDataTypeNumber, ..Object, ..Array, ..String, ..Integer, ..Boolean or null
-func (tdoc *TD) AddEvent(id string, eventType string, title string, description string) *EventAffordance {
+//	schema optional event data schema or nil if the event doesn't carry any data
+func (tdoc *TD) AddEvent(id string, eventType string, title string, description string, schema *DataSchema) *EventAffordance {
 	evAff := &EventAffordance{
 		EventType:   eventType,
 		Title:       title,
 		Description: description,
+		Data:        schema,
 	}
 	tdoc.UpdateEvent(id, evAff)
 	return evAff
@@ -139,13 +143,15 @@ func (tdoc *TD) AddEvent(id string, eventType string, title string, description 
 //	propType describes the type of property in HiveOT vocabulary if available, or "" if this is a non-standard property.
 //	title is the short display title of the property.
 //	dataType is the type of data the property holds, WoTDataTypeNumber, ..Object, ..Array, ..String, ..Integer, ..Boolean or null
-func (tdoc *TD) AddProperty(id string, propType string, title string, dataType string) *PropertyAffordance {
+//	initialValue optional value, in text format, at time of creation. Intended for testing or debugging
+func (tdoc *TD) AddProperty(id string, propType string, title string, dataType string, initialValue string) *PropertyAffordance {
 	prop := &PropertyAffordance{
 		DataSchema: DataSchema{
-			AtType:   propType,
-			Title:    title,
-			Type:     dataType,
-			ReadOnly: true,
+			AtType:       propType,
+			Title:        title,
+			Type:         dataType,
+			ReadOnly:     true,
+			InitialValue: initialValue,
 		},
 	}
 	tdoc.UpdateProperty(id, prop)
@@ -168,12 +174,12 @@ func (tdoc *TD) AsMap() map[string]interface{} {
 // Other:  https://github.com/piprate/json-gold
 
 // GetAction returns the action affordance with Schema for the action.
-// Returns nil if name is not an action or no affordance is defined.
-func (tdoc *TD) GetAction(name string) *ActionAffordance {
+// Returns nil if actionID is not an action or no affordance is defined.
+func (tdoc *TD) GetAction(actionID string) *ActionAffordance {
 	tdoc.updateMutex.RLock()
 	defer tdoc.updateMutex.RUnlock()
 
-	actionAffordance, found := tdoc.Actions[name]
+	actionAffordance, found := tdoc.Actions[actionID]
 	if !found {
 		return nil
 	}
@@ -181,22 +187,22 @@ func (tdoc *TD) GetAction(name string) *ActionAffordance {
 }
 
 // GetEvent returns the Schema for the event or nil if the event doesn't exist
-func (tdoc *TD) GetEvent(name string) *EventAffordance {
+func (tdoc *TD) GetEvent(eventID string) *EventAffordance {
 	tdoc.updateMutex.RLock()
 	defer tdoc.updateMutex.RUnlock()
 
-	eventAffordance, found := tdoc.Events[name]
+	eventAffordance, found := tdoc.Events[eventID]
 	if !found {
 		return nil
 	}
 	return eventAffordance
 }
 
-// GetProperty returns the Schema and value for the property or nil if name is not a property
-func (tdoc *TD) GetProperty(name string) *PropertyAffordance {
+// GetProperty returns the Schema and value for the property or nil if propID is not a property
+func (tdoc *TD) GetProperty(propID string) *PropertyAffordance {
 	tdoc.updateMutex.RLock()
 	defer tdoc.updateMutex.RUnlock()
-	propAffordance, found := tdoc.Properties[name]
+	propAffordance, found := tdoc.Properties[propID]
 	if !found {
 		return nil
 	}
@@ -208,22 +214,27 @@ func (tdoc *TD) GetID() string {
 	return tdoc.ID
 }
 
-// UpdateAction adds a new or replaces an existing action affordance (Schema) of name. Intended for creating TDs
-// Use UpdateProperty if name is a property name.
-// Returns the added affordance to support chaining
-func (tdoc *TD) UpdateAction(name string, affordance *ActionAffordance) *ActionAffordance {
+// UpdateAction adds a new or replaces an existing action affordance of actionID. Intended for creating TDs.
+//
+//	actionID is the ID under which to store the affordance.
+//
+// This returns the added action affordance
+func (tdoc *TD) UpdateAction(actionID string, affordance *ActionAffordance) *ActionAffordance {
 	tdoc.updateMutex.Lock()
 	defer tdoc.updateMutex.Unlock()
-	tdoc.Actions[name] = affordance
+	tdoc.Actions[actionID] = affordance
 	return affordance
 }
 
-// UpdateEvent adds a new or replaces an existing event affordance (Schema) of name. Intended for creating TDs
-// Returns the added affordance to support chaining
-func (tdoc *TD) UpdateEvent(name string, affordance *EventAffordance) *EventAffordance {
+// UpdateEvent adds a new or replaces an existing event affordance of eventID. Intended for creating TDs
+//
+//	eventID is the ID under which to store the affordance.
+//
+// This returns the added event affordance.
+func (tdoc *TD) UpdateEvent(eventID string, affordance *EventAffordance) *EventAffordance {
 	tdoc.updateMutex.Lock()
 	defer tdoc.updateMutex.Unlock()
-	tdoc.Events[name] = affordance
+	tdoc.Events[eventID] = affordance
 	return affordance
 }
 
@@ -237,11 +248,14 @@ func (tdoc *TD) UpdateForms(formList []Form) {
 }
 
 // UpdateProperty adds or replaces a property affordance in the TD. Intended for creating TDs
-// Returns the added affordance to support chaining
-func (tdoc *TD) UpdateProperty(name string, affordance *PropertyAffordance) *PropertyAffordance {
+//
+//	propID is the ID under which to store the affordance.
+//
+// This returns the added affordance to support chaining
+func (tdoc *TD) UpdateProperty(propID string, affordance *PropertyAffordance) *PropertyAffordance {
 	tdoc.updateMutex.Lock()
 	defer tdoc.updateMutex.Unlock()
-	tdoc.Properties[name] = affordance
+	tdoc.Properties[propID] = affordance
 	return affordance
 }
 
@@ -253,27 +267,6 @@ func (tdoc *TD) UpdateTitleDescription(title string, description string) {
 	tdoc.Description = description
 }
 
-//// UpdateStatus sets the status property of a Thing
-//// The status property is an object that holds possible status values
-//// For example, an error status can be set using the 'error' field of the status property
-//func (tdoc *ThingDescription) UpdateStatus(statusName string, value string) {
-//	sprop := tdoc.GetProperty("status")
-//	if sprop == nil {
-//		sprop = &PropertyAffordance{}
-//		sprop.Title = "Status"
-//		sprop.Description = "Device status info"
-//		sprop.Type = vocab.WoTDataTypeObject
-//	}
-//	tdoc.UpdatePropertyValue("status", errorStatus)
-//	// FIXME:is this a property
-//	status := td["status"]
-//	if status == nil {
-//		status = make(map[string]interface{})
-//		td["status"] = status
-//	}
-//	status.(map[string]interface{})["error"] = errorStatus
-//}
-
 // NewTD creates a new Thing Description document with properties, events and actions
 // Its structure:
 //
@@ -283,9 +276,9 @@ func (tdoc *TD) UpdateTitleDescription(title string, description string) {
 //	     title: string,              // required. Human description of the thing
 //	     @type: <deviceType>,        // required in HiveOT. See DeviceType vocabulary
 //	     created: <iso8601>,         // will be the current timestamp. See vocabulary TimeFormat
-//	     actions: {name:TDAction, ...},
-//	     events:  {name: TDEvent, ...},
-//	     properties: {name: TDProperty, ...}
+//	     actions: {actionID:TDAction, ...},
+//	     events:  {eventID: TDEvent, ...},
+//	     properties: {propID: TDProperty, ...}
 //	}
 func NewTD(thingID string, title string, deviceType string) *TD {
 	td := TD{

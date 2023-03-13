@@ -27,10 +27,10 @@ type ActionAffordance struct {
 	UriVariables map[string]DataSchema `json:"uriVariables,omitempty"`
 	//---InteractionAffordance ends
 
-	// Define the input data Schema of the action
+	// Define the input data Schema of the action or nil if the action doesn't take input data
 	Input *DataSchema `json:"input,omitempty"`
 
-	// Defines the output data Schema of the action
+	// Defines the output data Schema of the action or nil if the action doesn't have outputs
 	Output *DataSchema `json:"output,omitempty"`
 
 	// Signals if the Action is state safe (=true) or not
