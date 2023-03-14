@@ -3,7 +3,6 @@ package launchercli
 import (
 	"context"
 	"fmt"
-
 	"github.com/urfave/cli/v2"
 
 	"github.com/hiveot/hub/lib/hubclient"
@@ -14,11 +13,11 @@ import (
 func LauncherListCommand(ctx context.Context, runFolder *string) *cli.Command {
 
 	return &cli.Command{
-		Name:      "listservices",
-		Aliases:   []string{"ls"},
-		Usage:     "List services",
-		UsageText: "List services and their runtime status",
-		Category:  "launcher",
+		Name: "ls",
+		//Aliases: []string{"ls"},
+		//ArgsUsage: "(no args)",
+		Usage:    "List services and their runtime status",
+		Category: "launcher",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 0 {
 				return fmt.Errorf("no arguments expected")
@@ -32,10 +31,10 @@ func LauncherListCommand(ctx context.Context, runFolder *string) *cli.Command {
 func LauncherStartCommand(ctx context.Context, runFolder *string) *cli.Command {
 
 	return &cli.Command{
-		Name:      "startservice <servicename>",
-		Aliases:   []string{"start"},
-		Usage:     "Start a service",
-		UsageText: "Start a service or use 'all' to start all services",
+		Name: "start",
+		//Aliases:   []string{"start"},
+		ArgsUsage: "<servicename>|all",
+		Usage:     "Start a service or all services",
 		Category:  "launcher",
 		//ArgsUsage: "start <serviceName> | all",
 		Action: func(cCtx *cli.Context) error {
@@ -51,10 +50,10 @@ func LauncherStartCommand(ctx context.Context, runFolder *string) *cli.Command {
 func LauncherStopCommand(ctx context.Context, runFolder *string) *cli.Command {
 
 	return &cli.Command{
-		Name:      "stopservice <servicename>",
-		Aliases:   []string{"stop"},
-		Usage:     "Stop a service",
-		UsageText: "Stop a running service or use 'all' to stop all services",
+		Name: "stop",
+		//Aliases:   []string{"stop"},
+		ArgsUsage: "<servicename>|all",
+		Usage:     "Stop a service or all services",
 		Category:  "launcher",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 1 {

@@ -14,10 +14,9 @@ import (
 // AuthnAddUserCommand adds a user
 func AuthnAddUserCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
-		Name:      "adduser <loginID>", // loginID is ignored in the command
-		Usage:     "Add a user",
-		Aliases:   []string{"addu"},
-		UsageText: "Add a Hub user and generate a temporary password.",
+		Name:      "addu", // loginID is ignored in the command
+		Usage:     "Add a user and generate a temporary password",
+		ArgsUsage: "<userID>",
 		Category:  "authentication",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 1 {
@@ -34,11 +33,9 @@ func AuthnAddUserCommand(ctx context.Context, runFolder *string) *cli.Command {
 // AuthnListUsersCommand lists user profiles
 func AuthnListUsersCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
-		Name:      "listusers",
-		Aliases:   []string{"liu"},
-		Usage:     "List users",
-		UsageText: "List all registered Hub users",
-		Category:  "authentication",
+		Name:     "lu",
+		Usage:    "List users",
+		Category: "authentication",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() > 0 {
 				err := fmt.Errorf("too many arguments")
@@ -53,10 +50,9 @@ func AuthnListUsersCommand(ctx context.Context, runFolder *string) *cli.Command 
 // AuthnRemoveUserCommand removes a user
 func AuthnRemoveUserCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
-		Name:      "removeuser <loginID>",
-		Aliases:   []string{"remu"},
-		Usage:     "Remove a user",
-		UsageText: "Remove a user from the Hub. Use with care. This does not ask for confirmation",
+		Name:      "rmu",
+		Usage:     "Remove a user. (careful, no confirmation)",
+		ArgsUsage: "<loginID>",
 		Category:  "authentication",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 1 {

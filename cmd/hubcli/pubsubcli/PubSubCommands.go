@@ -18,10 +18,10 @@ import (
 
 func PubActionCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
-		Name:     "pubaction <pubID> <thingID> <action> [<value>]",
-		Aliases:  []string{"puba"},
-		Usage:    "Publish action",
-		Category: "pubsub",
+		Name:      "pub",
+		Usage:     "Publish action for Thing",
+		ArgsUsage: "<pubID> <thingID> <action> [<value>]",
+		Category:  "pubsub",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() < 3 {
 				return fmt.Errorf("missing arguments")
@@ -39,11 +39,9 @@ func PubActionCommand(ctx context.Context, runFolder *string) *cli.Command {
 // SubTDCommand shows TD publications
 func SubTDCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
-		Name:      "subtd",
-		Aliases:   []string{"std"},
-		Usage:     "Show TD publications",
-		UsageText: "Live show TD publications from the pubsub message bus. Use Ctrl-C to stop watching.",
-		Category:  "pubsub",
+		Name:     "subtd",
+		Usage:    "Subscribe to TD publications",
+		Category: "pubsub",
 		Action: func(cCtx *cli.Context) error {
 			err := HandleSubTD(ctx, *runFolder)
 			return err
@@ -53,11 +51,9 @@ func SubTDCommand(ctx context.Context, runFolder *string) *cli.Command {
 
 func SubEventsCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
-		Name:      "subevents",
-		Aliases:   []string{"sev"},
-		Usage:     "Show Thing events",
-		UsageText: "Live show Thing event publications from the pubsub message bus. Use Ctrl-C to stop watching.",
-		Category:  "pubsub",
+		Name:     "subev",
+		Usage:    "Subscribe to Thing events",
+		Category: "pubsub",
 		Action: func(cCtx *cli.Context) error {
 			err := HandleSubEvents(ctx, *runFolder)
 			return err

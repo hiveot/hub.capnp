@@ -16,10 +16,9 @@ import (
 func AuthzListGroupsCommand(ctx context.Context, runFolder *string) *cli.Command {
 	clientID := ""
 	return &cli.Command{
-		Name:      "listgroups [clientID]",
-		Aliases:   []string{"lig"},
-		Usage:     "List groups",
-		UsageText: "List groups the given client is a member of, or all groups.",
+		Name:      "lgr",
+		Usage:     "List groups the user is a member of",
+		ArgsUsage: "[<loginID>]",
 		Category:  "authorization",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() > 0 {

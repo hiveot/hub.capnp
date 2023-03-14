@@ -41,7 +41,6 @@ func (srv *ServiceCertsService) _createServiceCert(
 		validityDays = certs.DefaultServiceCertValidityDays
 	}
 
-	logrus.Infof("Create service certificate for IP/name: %s", names)
 	// firefox complains if serial is the same as that of the CA. So generate a unique one based on timestamp.
 	serial := time.Now().Unix() - 3
 	template := &x509.Certificate{
@@ -95,7 +94,7 @@ func (srv *ServiceCertsService) CreateServiceCert(
 	certPEM string, caCertPEM string, err error) {
 	var cert *x509.Certificate
 
-	logrus.Infof("serviceID='%s' pubKey='%s', names='%s'", serviceID, pubKeyPEM, names)
+	logrus.Infof("Creating service certificate: serviceID='%s', names='%s'", serviceID, names)
 	pubKey, err := certsclient.PublicKeyFromPEM(pubKeyPEM)
 	if err == nil {
 		cert, err = srv._createServiceCert(

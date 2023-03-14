@@ -24,10 +24,9 @@ func CertsCreateUserCommand(ctx context.Context, runFolder *string) *cli.Command
 	validityDays := certs.DefaultUserCertValidityDays
 
 	return &cli.Command{
-		Name:      "createusercert <loginID>",
-		Aliases:   []string{"cruc"},
-		Usage:     "Create user certificate",
-		UsageText: "Create a new user client auuthentication certificate for the given user's login",
+		Name:      "cruc",
+		Usage:     "Create user client authentication certificate",
+		ArgsUsage: "<loginID>",
 		Category:  "certs",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
@@ -59,10 +58,9 @@ func CertCreateDeviceCommands(ctx context.Context, runFolder *string) *cli.Comma
 	validityDays := certs.DefaultDeviceCertValidityDays
 
 	return &cli.Command{
-		Name:      "createdevicecert <deviceID>",
-		Aliases:   []string{"crdc"},
-		Usage:     "Create device certificate",
-		UsageText: "Create an IoT device authentication certificate for a device with the given instance ID",
+		Name:      "crdc",
+		Usage:     "Create an IoT device authentication certificate",
+		ArgsUsage: "<deviceID>",
 		Category:  "certs",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
@@ -95,10 +93,9 @@ func CertsCreateServiceCommand(ctx context.Context, runFolder *string) *cli.Comm
 	ipAddr := ""
 
 	return &cli.Command{
-		Name:      "creatservicecert <serviceID>",
-		Aliases:   []string{"crsc"},
+		Name:      "crsc",
+		ArgsUsage: "<serviceID>",
 		Usage:     "Create service certificate",
-		UsageText: "Create a service authentication certificate for the given service instance ID",
 		Category:  "certs",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
@@ -129,11 +126,11 @@ func CertsCreateServiceCommand(ctx context.Context, runFolder *string) *cli.Comm
 	}
 }
 func CertsShowInfoCommand(ctx context.Context, runFolder *string) *cli.Command {
+	_ = runFolder
 	return &cli.Command{
-		Name:      "viewcert <certFile.pem>",
-		Aliases:   []string{"vci"},
-		Usage:     "View certificate",
-		UsageText: "View certificate details for the given certificate PEM file",
+		Name:      "lc",
+		ArgsUsage: "<certFile.pem>",
+		Usage:     "View certificate details",
 		Category:  "certs",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 1 {

@@ -5,6 +5,8 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"gopkg.in/yaml.v3"
+	"os"
 	"path"
 	"strings"
 
@@ -13,24 +15,24 @@ import (
 
 	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/lib/certsclient"
-	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/pkg/certs/service/selfsigned"
 	"github.com/hiveot/hub/pkg/gateway/capnpclient"
 	"github.com/hiveot/hub/pkg/gateway/config"
 )
 
-func loadCerts(f svcconfig.AppFolders) (clientCert *tls.Certificate, caCert *x509.Certificate) {
+func loadCerts(certsFolder string) (clientCert *tls.Certificate, caCert *x509.Certificate) {
 	var err error
 	// load the CA
-	caCertPath := path.Join(f.Certs, hubapi.DefaultCaCertFile)
-	caKeyPath := path.Join(f.Certs, hubapi.DefaultCaKeyFile)
+	fmt.Println("certfolder = ", certsFolder)
+	caCertPath := path.Join(certsFolder, hubapi.DefaultCaCertFile)
+	caKeyPath := path.Join(certsFolder, hubapi.DefaultCaKeyFile)
 	caCert, err = certsclient.LoadX509CertFromPEM(caCertPath)
 	if err != nil {
 		logrus.Fatalf("unable to load the CA cert: %s", err)
 	}
 	// load the client cert
-	clientKeyPath := path.Join(f.Certs, "hubcliKey.pem")
-	clientCertPath := path.Join(f.Certs, "hubcliCert.pem")
+	clientKeyPath := path.Join(certsFolder, "hubcliKey.pem")
+	clientCertPath := path.Join(certsFolder, "hubcliCert.pem")
 	clientCert, err = certsclient.LoadTLSCertFromPEM(clientCertPath, clientKeyPath)
 
 	// hubcli cert not found, create a temporary client cert
@@ -39,7 +41,7 @@ func loadCerts(f svcconfig.AppFolders) (clientCert *tls.Certificate, caCert *x50
 		err = err2
 		// if no key is available then continue as unauthenticated client
 		if err2 == nil {
-			logrus.Warningf("Creating temporary client cert")
+			logrus.Warningf("CLI cert not found. Creating temporary client cert")
 			clientKey := certsclient.CreateECDSAKeys()
 			svc := selfsigned.NewServiceCertsService(caCert, caKey)
 			pubKeyPem, _ := certsclient.PublicKeyToPEM(&clientKey.PublicKey)
@@ -58,33 +60,38 @@ func loadCerts(f svcconfig.AppFolders) (clientCert *tls.Certificate, caCert *x50
 	return clientCert, caCert
 }
 
-func GatewayListCommand(ctx context.Context, f svcconfig.AppFolders) *cli.Command {
+func GatewayListCommand(ctx context.Context, certsFolder *string, configFolder *string) *cli.Command {
 	return &cli.Command{
-		Name:      "listgw",
-		Aliases:   []string{"lgw"},
-		Usage:     "List gateway capabilities",
-		Category:  "gateway",
-		ArgsUsage: "(no args)",
+		Name:     "lgw",
+		Usage:    "List gateway capabilities",
+		Category: "gateway",
+		//ArgsUsage: "(no args)",
 		Action: func(cCtx *cli.Context) error {
+
 			if cCtx.NArg() != 0 {
 				return fmt.Errorf("no arguments expected")
 			}
-			err := HandleListGateway(ctx, f)
+			err := HandleListGateway(ctx, certsFolder, configFolder)
 			return err
 		},
 	}
 }
 
 // HandleListGateway handles list capabilities request and print the list of gateway capabilities
-func HandleListGateway(ctx context.Context, f svcconfig.AppFolders) error {
-	logrus.Infof("f.Config: %v", f.Config)
+func HandleListGateway(ctx context.Context, certsFolder *string, configFolder *string) error {
+
 	var clientCert *tls.Certificate
 	var caCert *x509.Certificate
-
 	gwConfig := config.NewGatewayConfig()
-	f.ConfigFile = path.Join(f.Config, "gateway.yaml")
-	f.LoadConfig(&gwConfig)
-
+	configFile := path.Join(*configFolder, "gateway.yaml")
+	cfgData, err := os.ReadFile(configFile)
+	if err != nil {
+		return err
+	}
+	err = yaml.Unmarshal(cfgData, &gwConfig)
+	if err != nil {
+		return err
+	}
 	fullUrl := "tcp://" + gwConfig.Address
 	if !gwConfig.NoWS {
 		if gwConfig.NoTLS {
@@ -94,14 +101,13 @@ func HandleListGateway(ctx context.Context, f svcconfig.AppFolders) error {
 		}
 	}
 	if !gwConfig.NoTLS {
-		clientCert, caCert = loadCerts(f)
+		clientCert, caCert = loadCerts(*certsFolder)
 	}
 	gw, err := capnpclient.ConnectToGateway(fullUrl, clientCert, caCert)
 	if err != nil {
 		return err
 	}
 	defer gw.Release()
-	//logrus.Infof("Sending request")
 
 	// ask as a service. we might want to make this a parameter
 	capList, err := gw.ListCapabilities(ctx)

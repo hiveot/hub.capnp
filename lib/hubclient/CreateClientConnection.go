@@ -40,7 +40,6 @@ func ConnectToService(serviceName, socketFolder string) (net.Conn, error) {
 //	caCert is the CA certificate used to verify the server authenticity. Use nil if server auth is not yet established.
 func CreateClientConnection(
 	fullUrl string, clientCert *tls.Certificate, caCert *x509.Certificate) (conn net.Conn, err error) {
-	// func CreateTLSClientConnection(network, address string, clientCert *tls.Certificate, caCert *x509.Certificate) (*tls.Conn, error) {
 
 	// var tlsConn *tls.Conn
 	const timeout = time.Second * 3
@@ -120,7 +119,7 @@ func CreateClientConnection(
 		err = fmt.Errorf("unable to connect to '%s'. Error: %s", fullUrl, err)
 		logrus.Error(err)
 	} else {
-		logrus.Infof("connected to '%s'", fullUrl)
+		//logrus.Infof("connected to '%s'", fullUrl)
 	}
 	return conn, err
 }

@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/lib/utils"
+	"github.com/sirupsen/logrus"
 	"os"
 	"path"
 
-	"github.com/sirupsen/logrus"
 	"github.com/urfave/cli/v2"
 
 	"github.com/hiveot/hub/cmd/hubcli/authncli"
@@ -27,6 +27,8 @@ const Version = `0.5-alpha`
 var binFolder string
 var homeFolder string
 var runFolder string
+var certsFolder string
+var configFolder string
 var nowrap bool
 
 // CLI Main entry
@@ -37,8 +39,9 @@ func main() {
 	nowrap = false
 	ctx := context.Background()
 	f := svcconfig.GetFolders(homeFolder, false)
+	certsFolder = f.Certs
+	configFolder = f.Config
 
-	//logrus.Infof("folders is %v", f)
 	app := &cli.App{
 		EnableBashCompletion: true,
 		Name:                 "hubcli",
@@ -61,7 +64,9 @@ func main() {
 		},
 		Before: func(c *cli.Context) error {
 			f = svcconfig.GetFolders(homeFolder, false)
+			certsFolder = f.Certs
 			runFolder = f.Run
+			configFolder = f.Config
 			if nowrap {
 				fmt.Printf(utils.WrapOff)
 			}
@@ -77,11 +82,11 @@ func main() {
 			authncli.AuthnRemoveUserCommand(ctx, &runFolder),
 
 			authzcli.AuthzListGroupsCommand(ctx, &runFolder),
-			//authzcli.AuthzSetClientRoleCommand(ctx, f),
-			//authzcli.AuthzRemoveClientCommand(ctx, f),
+			//authzcli.AuthzSetClientRoleCommand(ctx, &certsFolder),
+			//authzcli.AuthzRemoveClientCommand(ctx, &certsFolder),
 
-			certscli.CreateCACommand(ctx, &f.Certs),
-			certscli.ViewCACommand(ctx, &f.Certs),
+			certscli.CreateCACommand(ctx, &certsFolder),
+			certscli.ViewCACommand(ctx, &certsFolder),
 			certscli.CertCreateDeviceCommands(ctx, &runFolder),
 			certscli.CertsCreateServiceCommand(ctx, &runFolder),
 			certscli.CertsCreateUserCommand(ctx, &runFolder),
@@ -104,13 +109,33 @@ func main() {
 			provcli.ProvisionGetPendingRequestsCommand(ctx, &runFolder),
 			provcli.ProvisionGetApprovedRequestsCommand(ctx, &runFolder),
 
-			gatewaycli.GatewayListCommand(ctx, f),
+			gatewaycli.GatewayListCommand(ctx, &certsFolder, &configFolder),
 		},
 	}
 
+	// Show the arguments in the command line
+	cli.AppHelpTemplate = `NAME:
+  {{.Name}} - {{.Usage}}
+USAGE:
+  {{.HelpName}} {{if .VisibleFlags}}[global options]{{end}}{{if .Commands}} command [command options]{{end}} {{if .ArgsUsage}}{{.ArgsUsage}}{{else}}[arguments...]{{end}}
+  {{if len .Authors}}
+AUTHOR:
+  {{range .Authors}}{{ . }}{{end}}
+  {{end}}{{if .Commands}}
+COMMANDS: {{range .VisibleCategories}}{{if .Name}}
+   {{.Name }}:{{"\t"}}{{range .VisibleCommands}}
+      {{join .Names ", "}} {{.ArgsUsage}} {{"\t"}}{{.Usage}}{{end}}{{else}}{{template "visibleCommandTemplate" .}}{{end}}{{end}}
+
+GLOBAL OPTIONS:
+  {{range .VisibleFlags}}{{.}}
+  {{end}}
+{{end}}
+`
+	app.Suggest = true
+	app.HideHelpCommand = true
 	if err := app.Run(os.Args); err != nil {
 		logrus.Error("ERROR: ", err)
 		helpArgs := append(os.Args, "-h")
-		app.Run(helpArgs)
+		_ = app.Run(helpArgs)
 	}
 }

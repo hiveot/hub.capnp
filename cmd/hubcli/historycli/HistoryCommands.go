@@ -16,11 +16,10 @@ import (
 
 func HistoryInfoCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
-		Name: "histinfo",
-		//Aliases:   []string{"hin"},
-		Usage:     "Show history store info",
-		Category:  "history",
-		ArgsUsage: "(no args)",
+		Name:     "hsi",
+		Usage:    "Show history store info",
+		Category: "history",
+		//ArgsUsage: "(no args)",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 0 {
 				return fmt.Errorf("no arguments expected")
@@ -33,10 +32,9 @@ func HistoryInfoCommand(ctx context.Context, runFolder *string) *cli.Command {
 
 func HistoryListCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
-		Name:      "histevents <pubID> <thingID>",
-		Aliases:   []string{"hev", "lev"},
-		Usage:     "List historical events",
-		UsageText: "List the history of events from a Thing by its publisher and Thing ID",
+		Name:      "lev",
+		Usage:     "List history of thing events",
+		ArgsUsage: "<pubID> <thingID>",
 		Category:  "history",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 2 {
@@ -50,10 +48,9 @@ func HistoryListCommand(ctx context.Context, runFolder *string) *cli.Command {
 
 func HistoryLatestCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
-		Name:      "histlatest <pubID> <thingID>",
+		Name:      "lla",
 		Usage:     "List latest values of a thing",
-		UsageText: "List the latest value of each property/event of a thing by its publisher/thing ID",
-		Aliases:   []string{"hla"},
+		ArgsUsage: "<pubID> <thingID>",
 		Category:  "history",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 2 {
@@ -66,11 +63,10 @@ func HistoryLatestCommand(ctx context.Context, runFolder *string) *cli.Command {
 }
 func HistoryRetainCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
-		Name:      "histretained",
-		Aliases:   []string{"hrt"},
-		Usage:     "List retained events",
-		UsageText: "List the events that are retained in the history store",
-		Category:  "history",
+		Name:  "shre",
+		Usage: "Show history retained events",
+		//ArgsUsage: "(no args)",
+		Category: "history",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 0 {
 				return fmt.Errorf("no arguments expected")
@@ -209,6 +205,6 @@ func HandleListLatestEvents(
 		)
 	}
 	readHist.Release()
-	conn.Close()
-	return nil
+	err = conn.Close()
+	return err
 }

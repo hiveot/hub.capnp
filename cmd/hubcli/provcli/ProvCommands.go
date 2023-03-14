@@ -11,34 +11,13 @@ import (
 	"github.com/hiveot/hub/pkg/provisioning/capnpclient"
 )
 
-// ProvisioningCommands returns the provisioning handling commands
-// This requires the provisioning service to run.
-func ProvisioningCommands(ctx context.Context, runFolder *string) *cli.Command {
-
-	cmd := &cli.Command{
-		//hub prov add|list  <deviceID> <secret>
-		Name:    "provision",
-		Aliases: []string{"pr"},
-		Usage:   "IoT device provisioning",
-		Subcommands: cli.Commands{
-			ProvisionAddOOBSecretsCommand(ctx, runFolder),
-			ProvisionApproveRequestCommand(ctx, runFolder),
-			ProvisionGetPendingRequestsCommand(ctx, runFolder),
-			ProvisionGetApprovedRequestsCommand(ctx, runFolder),
-		},
-	}
-
-	return cmd
-}
-
 // ProvisionAddOOBSecretsCommand
 // prov add  <deviceID> <oobsecret>
 func ProvisionAddOOBSecretsCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
-		Name:      "addoob <deviceID> <secret>",
-		Aliases:   []string{"ados"},
-		Usage:     "Add a provisioning secret",
-		UsageText: "Add an out-of-band device provisioning secret for automatic provisioning",
+		Name:      "addsecret",
+		Usage:     "Add a out of band provisioning secret for a Thing",
+		ArgsUsage: "<deviceID> <secret>",
 		Category:  "provisioning",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 2 {
@@ -57,10 +36,9 @@ func ProvisionAddOOBSecretsCommand(ctx context.Context, runFolder *string) *cli.
 // prov approve <deviceID>
 func ProvisionApproveRequestCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
-		Name:      "approveprov <deviceID>",
-		Aliases:   []string{"appr"},
-		Usage:     "Approve provisioning request",
-		UsageText: "Approvide a pending provisioning request to issue a device authentication certificate",
+		Name:      "approve",
+		Usage:     "Approve a pending provisioning request",
+		ArgsUsage: "<deviceID>",
 		Category:  "provisioning",
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() != 1 {
@@ -77,11 +55,9 @@ func ProvisionApproveRequestCommand(ctx context.Context, runFolder *string) *cli
 // prov approved
 func ProvisionGetApprovedRequestsCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
-		Name:      "listapproved",
-		Aliases:   []string{"lap"},
-		Usage:     "List approved provisioning requests",
-		UsageText: "View a list of recent approved provisioning requests. ",
-		Category:  "provisioning",
+		Name:     "lapproved",
+		Usage:    "List approved provisioning requests",
+		Category: "provisioning",
 		Action: func(cCtx *cli.Context) error {
 			err := HandleGetApprovedRequests(ctx, *runFolder)
 			return err
@@ -93,11 +69,9 @@ func ProvisionGetApprovedRequestsCommand(ctx context.Context, runFolder *string)
 // prov approved
 func ProvisionGetPendingRequestsCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
-		Name:      "listpending",
-		Aliases:   []string{"lip"},
-		Usage:     "List pending provisioning requests",
-		UsageText: "View a list of recent pending provisioning requests",
-		Category:  "provisioning",
+		Name:     "lpending",
+		Usage:    "List pending provisioning requests",
+		Category: "provisioning",
 		Action: func(cCtx *cli.Context) error {
 			err := HandleGetPendingRequests(ctx, *runFolder)
 			return err

@@ -14,13 +14,13 @@ const defaultCaCertFile :Text = "caCert.pem";
 const defaultCaKeyFile :Text = "caKey.pem";
 # Default name of CA key file
 
-const defaultServiceCertValidityDays :Int32 = 30;
+const defaultServiceCertValidityDays :Int32 = 365;
 # Default validity of generated service certificates
 
-const defaultUserCertValidityDays :Int32 = 30;
+const defaultUserCertValidityDays :Int32 = 365;
 # Default validity of generated client certificates
 
-const defaultDeviceCertValidityDays :Int32 = 30;
+const defaultDeviceCertValidityDays :Int32 = 365;
 # Default validity of generated device certificates
 
 

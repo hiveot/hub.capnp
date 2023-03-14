@@ -20,11 +20,10 @@ func DirectoryListCommand(ctx context.Context, runFolder *string) *cli.Command {
 	var offset = 0
 	var verbose = false
 	return &cli.Command{
-		Name:      "listdir [<publisherID> <thingID> [-v]]",
-		Aliases:   []string{"listdir", "ld"},
+		Name:      "ld",
 		Category:  "directory",
-		Usage:     "List directory",
-		UsageText: "List all Things or a selected Thing in the directory",
+		Usage:     "List directory of Things or selected Thing",
+		ArgsUsage: "[<publisherID> <thingID>]",
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
 				Name:        "v",

@@ -25,11 +25,9 @@ func CreateCACommand(_ context.Context, certsFolder *string) *cli.Command {
 	var validityDays = 365 * 5
 
 	return &cli.Command{
-		Name:      "createca",
-		Aliases:   []string{"crca"},
-		Usage:     "Create Hub CA",
-		UsageText: "Create a new self-signed Hub CA certificate and private key",
-		Category:  "certs",
+		Name:     "crca",
+		Usage:    "Create Hub CA certificate",
+		Category: "certs",
 		Flags: []cli.Flag{
 			&cli.IntFlag{
 				Name:        "days",
@@ -60,11 +58,9 @@ func CreateCACommand(_ context.Context, certsFolder *string) *cli.Command {
 func ViewCACommand(ctx context.Context, certsFolder *string) *cli.Command {
 
 	return &cli.Command{
-		Name:      "viewca",
-		Aliases:   []string{"vca"},
-		Category:  "certs",
-		Usage:     "View CA certificate info",
-		UsageText: "View Hub CA certificate info. Used to create all other certificates.",
+		Name:     "lca",
+		Category: "certs",
+		Usage:    "View CA certificate info",
 
 		Action: func(cCtx *cli.Context) error {
 			if cCtx.NArg() > 0 {
