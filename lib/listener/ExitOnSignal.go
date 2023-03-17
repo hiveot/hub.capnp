@@ -17,13 +17,7 @@ func ExitOnSignal(ctx context.Context, release func()) context.Context {
 
 	exitCtx, cancelFn := context.WithCancel(ctx)
 	go func() {
-		// catch all signals since not explicitly listing
-		exitChannel := make(chan os.Signal, 1)
-
-		signal.Notify(exitChannel, syscall.SIGINT, syscall.SIGTERM)
-
-		<-exitChannel
-		//logrus.Warningf("RECEIVED SIGNAL: %s", sig)
+		WaitForSignal(ctx)
 
 		// cancel the context. This should invoke Done()
 		cancelFn()
@@ -37,4 +31,19 @@ func ExitOnSignal(ctx context.Context, release func()) context.Context {
 		}
 	}()
 	return exitCtx
+}
+
+// WaitForSignal waits until a SIGINT or SIGTERM is received or the context is closed
+func WaitForSignal(ctx context.Context) {
+
+	// catch all signals since not explicitly listing
+	exitChannel := make(chan os.Signal, 1)
+
+	signal.Notify(exitChannel, syscall.SIGINT, syscall.SIGTERM)
+
+	select {
+	case <-exitChannel:
+	case <-ctx.Done():
+	}
+	return
 }

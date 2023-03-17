@@ -75,7 +75,7 @@ func CreateClientConnection(
 			}
 		}
 
-		// setup for mutual tls client authentication
+		// TLS setup for mutual tls client authentication
 		if clientCert != nil {
 			clientCertList = []tls.Certificate{*clientCert}
 		}
@@ -104,7 +104,7 @@ func CreateClientConnection(
 		dialer := ws.Dialer{TLSConfig: tlsConfig, Timeout: time.Second * 3}
 		conn, _, _, err = dialer.Dial(context.Background(), fullUrl)
 	} else if u.Scheme == "unix" {
-		// Unix domain socket
+		// Unix domain socket. TLS is not needed.
 		conn, err = net.DialTimeout(u.Scheme, u.Path, timeout)
 	} else {
 		// TCP socket

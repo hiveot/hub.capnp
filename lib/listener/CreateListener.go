@@ -3,8 +3,8 @@ package listener
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"fmt"
 	"net"
-	"strings"
 )
 
 // CreateTLSListener wraps the given listener in TLS v1.3
@@ -26,23 +26,21 @@ func CreateTLSListener(
 	return tlsLis
 }
 
-// CreateListener starts a network listener on the given address.
+// CreateListener starts a network listener on the given address and port
 //
 // If noTLS is set then serverCert and caCert can be nil. Obviously the
 // listener will not use encryption.
 //
-//	addrPort in the format address:port
+//	addr IP address. "" to listen on all addresses
+//	port to listen on
 //	noTLS to listen on the port without encryption
-//	serverCert server's TLS certificate to authenticate as if noTLS is false
-//	caCert server's CA to authenticate as if noTLS is false
+//	serverCert server's TLS certificate to authenticate as, or nil if noTLS is true
+//	caCert server's CA to authenticate as, or nil if noTLS is true
 func CreateListener(
-	addrPort string, noTLS bool, serverCert *tls.Certificate, caCert *x509.Certificate) (
+	addr string, port int, noTLS bool, serverCert *tls.Certificate, caCert *x509.Certificate) (
 	lis net.Listener, err error) {
 
-	// remove any trailing /path in case of WS
-	parts := strings.Split(addrPort, "/")
-
-	lis, err = net.Listen("tcp", parts[0])
+	lis, err = net.Listen("tcp", fmt.Sprintf("%s:%d", addr, port))
 	if !noTLS {
 		lis = CreateTLSListener(lis, serverCert, caCert)
 	}

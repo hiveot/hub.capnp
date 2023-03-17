@@ -4,32 +4,34 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"net"
 	"strings"
 
 	"capnproto.org/go/capnp/v3"
 	"capnproto.org/go/capnp/v3/rpc"
 	"capnproto.org/go/capnp/v3/rpc/transport"
 	websocketcapnp "zenhack.net/go/websocket-capnp"
-
-	"github.com/hiveot/hub/pkg/resolver"
 )
 
 // ConnectToHub using TLS and discovery.
 //
-//	 This connects to the resolver socket if available, or to the gateway if not.
-//	 DNS-SD of the gateway is planned.
+// If fullURL is not provided this will attempt to auto-discover the Hub.
 //
-//		fullURL is optional connection endpoint. Use "" to auto discover the resolver or gateway.
-func ConnectToHub(fullUrl string, clientCert *tls.Certificate, caCert *x509.Certificate) (net.Conn, error) {
-
-	// TODO: use discovery
-	if fullUrl == "" {
-		fullUrl = "unix://" + resolver.DefaultResolverPath
-	}
-
-	return CreateClientConnection(fullUrl, clientCert, caCert)
-}
+//  1. Unix socket at the default resolver path
+//
+//  2. Gateway TCP address at localhost:8883
+//
+//  3. DNS-SD for the hub gateway service (TODO)
+//
+//     fullURL is optional connection endpoint. Use "" to auto discover the resolver or gateway.
+//func ConnectToHub(fullUrl string, clientCert *tls.Certificate, caCert *x509.Certificate) (net.Conn, error) {
+//	// use gateway discovery
+//	if fullUrl == "" {
+//		// give it 3 seconds
+//		fullUrl = LocateHub("")
+//	}
+//
+//	return CreateClientConnection(fullUrl, clientCert, caCert)
+//}
 
 // ConnectToHubClient returns the connection and capnp client of the gateway or resolver service.
 //
@@ -39,14 +41,23 @@ func ConnectToHub(fullUrl string, clientCert *tls.Certificate, caCert *x509.Cert
 //
 // Note that when connecting without client certificate to the gateway, Login must be called to authenticate.
 //
-// This auto-discovers the gateway or default to 127.0.0.1:8883
+// If fullURL is not provided this will attempt to auto-discover the Hub using 'LocateHub'
+//  1. Unix socket at the default resolver path
+//  2. DNS-SD for the hub gateway service
+//
+// // This auto-discovers the gateway or default to 127.0.0.1:8883
 func ConnectToHubClient(
 	fullUrl string, clientCert *tls.Certificate, caCert *x509.Certificate) (
 	rpcCon *rpc.Conn, cap capnp.Client, err error) {
 
 	var tp transport.Transport
 
-	conn, err := ConnectToHub(fullUrl, clientCert, caCert)
+	// use gateway discovery
+	if fullUrl == "" {
+		// give it 3 seconds
+		fullUrl = LocateHub("", 3)
+	}
+	conn, err := CreateClientConnection(fullUrl, clientCert, caCert)
 	if err != nil {
 		return nil, cap, err
 	}

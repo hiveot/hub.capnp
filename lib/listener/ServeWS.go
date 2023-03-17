@@ -14,7 +14,7 @@ import (
 	websocketcapnp "zenhack.net/go/websocket-capnp"
 )
 
-// ServeWSCB incoming websocket connections to a handler
+// ServeWSCB serves incoming websocket connections to a handler
 func ServeWSCB(lis net.Listener, wsPath string, handler func(net.Conn, transport.Transport)) error {
 	if handler == nil {
 		panic("connection handler required")

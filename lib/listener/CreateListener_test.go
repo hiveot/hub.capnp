@@ -2,6 +2,7 @@ package listener_test
 
 import (
 	"crypto/tls"
+	"fmt"
 	"os"
 	"sync"
 	"testing"
@@ -31,11 +32,12 @@ func TestConnectWriteRead(t *testing.T) {
 	readBuf := make([]byte, 100)
 	var message = []byte("hello world")
 	var n int
-	address := "127.0.0.1:9999"
+	address := "127.0.0.1"
+	port := 9999
 	rwmux := sync.RWMutex{}
 
 	// create the server listener
-	tlsLis, err := listener.CreateListener(address, false, certs.ServerCert, certs.CaCert)
+	tlsLis, err := listener.CreateListener(address, port, false, certs.ServerCert, certs.CaCert)
 	require.NoError(t, err)
 	go func() {
 		srvConn, err := tlsLis.Accept()
@@ -62,7 +64,7 @@ func TestConnectWriteRead(t *testing.T) {
 	}()
 	time.Sleep(time.Millisecond)
 	// create the TLS client and connect
-	fullURL := address
+	fullURL := fmt.Sprintf("%s:%d", address, port)
 	conn, err := hubclient.CreateClientConnection(fullURL, certs.PluginCert, certs.CaCert)
 	require.NoError(t, err)
 

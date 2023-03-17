@@ -9,6 +9,9 @@ import (
 
 const ServiceName = hubapi.GatewayServiceName
 
+// HIVEOT_DNSSD_TYPE service type for hiveot services
+const HIVEOT_DNSSD_TYPE = "_hiveot._tcp"
+
 // ClientInfo contains client info as seen by the gateway
 // Intended for diagnostics and troubleshooting
 type ClientInfo struct {

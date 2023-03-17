@@ -92,18 +92,10 @@ func HandleListGateway(ctx context.Context, certsFolder *string, configFolder *s
 	if err != nil {
 		return err
 	}
-	fullUrl := "tcp://" + gwConfig.Address
-	if !gwConfig.NoWS {
-		if gwConfig.NoTLS {
-			fullUrl = "ws://" + gwConfig.WSAddress
-		} else {
-			fullUrl = "wss://" + gwConfig.WSAddress
-		}
-	}
 	if !gwConfig.NoTLS {
 		clientCert, caCert = loadCerts(*certsFolder)
 	}
-	gw, err := capnpclient.ConnectToGateway(fullUrl, clientCert, caCert)
+	gw, err := capnpclient.ConnectToGateway(gwConfig.Address, clientCert, caCert)
 	if err != nil {
 		return err
 	}

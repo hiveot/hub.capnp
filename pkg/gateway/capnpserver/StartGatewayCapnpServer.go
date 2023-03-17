@@ -1,13 +1,12 @@
 package capnpserver
 
 import (
-	"net"
-
 	"capnproto.org/go/capnp/v3"
 	"capnproto.org/go/capnp/v3/rpc"
 	"capnproto.org/go/capnp/v3/rpc/transport"
 	"capnproto.org/go/capnp/v3/server"
 	"github.com/sirupsen/logrus"
+	"net"
 
 	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/lib/listener"
@@ -19,13 +18,15 @@ import (
 // Each client therefore operates in its own session.
 //
 //	svc is the gateway service to serve
-//	lis is the tcp or TLS socket listener
-//	wsPath to use a websocket transport. "" to not use WS (FIXME: hidden dependency on lis)
+//	lis is the tcp or TLS socket listener on the proper port
+//	wsPath to use a websocket transport. "" uses tcp (FIXME: hidden dependency on lis)
+//
+// This does not return until the listener closes
 func StartGatewayCapnpServer(
-	svc *service.GatewayService, lis net.Listener, wsPath string) error {
+	svc *service.GatewayService, lis net.Listener, wssPath string) error {
 
-	if wsPath != "" {
-		logrus.Infof("listening on Websocket address %s%s", lis.Addr(), wsPath)
+	if wssPath != "" {
+		logrus.Infof("listening on Websocket address %s%s", lis.Addr(), wssPath)
 	} else {
 		logrus.Infof("listening on TCP address %s", lis.Addr())
 	}
@@ -62,8 +63,8 @@ func StartGatewayCapnpServer(
 		}()
 	}
 
-	if wsPath != "" {
-		return listener.ServeWSCB(lis, wsPath, onConnect)
+	if wssPath != "" {
+		return listener.ServeWSCB(lis, wssPath, onConnect)
 	} else {
 		return listener.ServeCB(lis, onConnect)
 	}

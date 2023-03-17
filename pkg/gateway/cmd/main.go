@@ -5,12 +5,9 @@ import (
 	"crypto/ecdsa"
 	"crypto/tls"
 	"crypto/x509"
-	"errors"
+	"github.com/sirupsen/logrus"
 	"net"
 	"os"
-	"strings"
-
-	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub/lib/certsclient"
 	"github.com/hiveot/hub/lib/hubclient"
@@ -35,15 +32,20 @@ func main() {
 	var svc *service.GatewayService
 	var lisTcp net.Listener
 	var lisWS net.Listener
+	var ipAddr string
 
 	f, _, _ := svcconfig.SetupFolderConfig(serviceName)
 	cfg := config.NewGatewayConfig()
 	_ = f.LoadConfig(&cfg)
+	ipAddr = cfg.Address
+	if ipAddr == "" {
+		ipAddr = listener.GetOutboundIP("").String()
+	}
 
 	// certificates are needed for TLS connections to the capnp server.
 	// on each restart a new set of keys is used and a new certificate is requested.
 	keys := certsclient.CreateECDSAKeys()
-	serverCert, caCert, err := RenewServiceCerts(serviceName, keys, f.Run)
+	serverCert, caCert, err := RenewServiceCerts(serviceName, ipAddr, keys, f.Run)
 	if err != nil {
 		logrus.Panicf("certs service not reachable when starting the gateway: %s", err)
 	}
@@ -68,38 +70,42 @@ func main() {
 		logrus.Infof("Listening requiring TLS")
 	}
 
-	// serve for websocket connections
-	if !cfg.NoWS {
-		lisWS, err = listener.CreateListener(cfg.WSAddress, cfg.NoTLS, serverCert, caCert)
+	// serve websocket connections
+	if cfg.WssPort > 0 && !cfg.NoWS {
+		lisWS, err = listener.CreateListener(ipAddr, cfg.WssPort, cfg.NoTLS, serverCert, caCert)
 		if err == nil {
-			// the WS runs in the background
-			parts := strings.Split(cfg.WSAddress, "/")
-			wsPath := "/" + parts[len(parts)-1]
-			go capnpserver.StartGatewayCapnpServer(svc, lisWS, wsPath)
+			go capnpserver.StartGatewayCapnpServer(svc, lisWS, cfg.WssPath)
 		}
 	}
 
-	// listen from TCP connections
+	// serve TCP connections
 	if err == nil {
-		lisTcp, err = listener.CreateListener(cfg.Address, cfg.NoTLS, serverCert, caCert)
+		lisTcp, err = listener.CreateListener(ipAddr, cfg.TcpPort, cfg.NoTLS, serverCert, caCert)
 		if err == nil {
 			// this blocks until done
-			err = capnpserver.StartGatewayCapnpServer(svc, lisTcp, "")
+			go capnpserver.StartGatewayCapnpServer(svc, lisTcp, "")
 		}
 	}
 	if err != nil {
 		logrus.Fatalf("Gateway startup error: %s", err)
+	} else if !cfg.NoDiscovery {
+		// DNS-SD discovery
+		addr, _, _ := net.SplitHostPort(lisTcp.Addr().String())
+		dnsSrv, err2 := listener.ServeDiscovery(
+			serviceName, "hiveot", addr, cfg.TcpPort, cfg.WssPort, cfg.WssPath)
+		if err2 == nil {
+			defer dnsSrv.Shutdown()
+		}
 	}
 
-	_ = listener.ExitOnSignal(context.Background(), func() {
-		_ = lisTcp.Close()
-		if lisWS != nil {
-			_ = lisWS.Close()
-		}
-		err = svc.Stop()
-	})
+	listener.WaitForSignal(context.Background())
+	_ = lisTcp.Close()
+	if lisWS != nil {
+		_ = lisWS.Close()
+	}
+	err = svc.Stop()
 
-	if errors.Is(err, net.ErrClosed) {
+	if err == nil {
 		logrus.Warningf("%s service has shutdown gracefully", serviceName)
 		os.Exit(0)
 	} else {
@@ -114,14 +120,17 @@ func main() {
 // This panics if the certs service is not reachable
 //
 //	serviceID is the instance ID of the service used as the CN on the certificate
+//	ipAddr ip address the service is listening on or "" for outbound IP
 //	pubKeyPEM is the public key for the certificate
 //	socketFolder is the location of the certs service socket
-func RenewServiceCerts(serviceID string, keys *ecdsa.PrivateKey, socketFolder string) (
+func RenewServiceCerts(serviceID string, ipAddr string, keys *ecdsa.PrivateKey, socketFolder string) (
 	svcCert *tls.Certificate, caCert *x509.Certificate, err error) {
 	var capServiceCert certs.IServiceCerts
-
-	ipAddr := listener.GetOutboundIP("")
-	names := []string{"127.0.0.1", ipAddr.String()}
+	if ipAddr == "" {
+		ip := listener.GetOutboundIP("")
+		ipAddr = ip.String()
+	}
+	names := []string{"127.0.0.1", ipAddr}
 	pubKeyPEM, err := certsclient.PublicKeyToPEM(&keys.PublicKey)
 	if err != nil {
 		logrus.Errorf("invalid public key: %s", err)

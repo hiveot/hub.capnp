@@ -13,21 +13,21 @@ import (
 )
 
 // SetupFolderConfig creates a folder configuration for based on commandline options.
-// Returns the folders, service TLS certificate, and CA Certificate if found
+// Returns the folders, <serviceName>Cert.pem TLS certificate, and caCert.pem CA Certificate, if found.
 //
 // This invokes flag.Parse(). Flag commandline options added are:
 //
-//		 -c configFile
-//		 --home directory
-//		 --certs directory
-//		 --services directory
-//		 --logs directory
-//	  --loglevel info|warning
-//		 --run directory
+//	 -c configFile
+//	 --home directory
+//	 --certs directory
+//	 --services directory
+//	 --logs directory
+//	 --loglevel info|warning
+//	 --run directory
 //
-//		If a 'cfg' interface is provided, the configuration is loaded from file and parsed as yaml.
+//	If a 'cfg' interface is provided, the configuration is loaded from file and parsed as yaml.
 //
-//		serviceName is used for the configuration file with the '.yaml' extension
+//	serviceName is used for the configuration file with the '.yaml' extension
 func SetupFolderConfig(serviceName string) (f AppFolders, svcCert *tls.Certificate, caCert *x509.Certificate) {
 
 	// run the commandline options

@@ -1,34 +1,45 @@
 package config
 
 import (
-	"fmt"
-
 	"github.com/hiveot/hub/lib/listener"
 )
 
-const DefaultGatewayPort = ":8883"
-const DefaultGatewayWSPort = ":8884/ws"
+const DefaultGatewayTcpPort = 9883 // TLS over TCP
+const DefaultGatewayWssPort = 9884 // Websocket over TLS
+const DefaultGatewayWssPath = "/ws"
 
 type GatewayConfig struct {
-	// server listening address:port
+	// server listening address or "" for automatic outbound IP
 	Address string `yaml:"address"`
 
-	// websocket  listening address:port/path. Default is {Address}/ws
-	WSAddress string `yaml:"wsAddress"`
+	// noDiscovery disables the DNS-SD discovery
+	// discovery is useful for remote clients failover services
+	NoDiscovery bool `yaml:"noDiscovery"`
 
 	// noTLS disables TLS. Default is enabled. Intended for testing.
-	NoTLS bool `yaml:"noTLS"`
+	NoTLS bool `yaml:"noTLS,omitempty"`
 
-	// useWS disables the websocket listener
-	NoWS bool `yaml:"noWS"`
+	// noWS disables websockets. Default is enabled. Intended for testing.
+	NoWS bool `yaml:"noWS,omitempty"`
+
+	// TCP listening port, default is 9883
+	TcpPort int `yaml:"tcpPort"`
+
+	// websocket listening port, default is 9884
+	WssPort int `yaml:"wssPort,omitempty"`
+
+	// websocket listening path, default is "/ws"
+	WssPath string `yaml:"wssPath,omitempty"`
 }
 
 // NewGatewayConfig creates a new gateway configuration with defaults
 func NewGatewayConfig() *GatewayConfig {
 	oip := listener.GetOutboundIP("")
 	gwConfig := GatewayConfig{
-		Address:   fmt.Sprintf("%s%s", oip.String(), DefaultGatewayPort),
-		WSAddress: fmt.Sprintf("%s%s", oip.String(), DefaultGatewayWSPort),
+		Address: oip.String(),
+		TcpPort: DefaultGatewayTcpPort,
+		WssPort: DefaultGatewayWssPort,
+		WssPath: DefaultGatewayWssPath,
 	}
 	return &gwConfig
 }
