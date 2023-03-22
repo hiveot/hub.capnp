@@ -155,7 +155,7 @@ func HandleCreateDeviceCert(ctx context.Context, runFolder string, deviceID stri
 	var cc certs.ICerts
 	var dc certs.IDeviceCerts
 
-	conn, err := hubclient.ConnectToService(certs.ServiceName, runFolder)
+	conn, err := hubclient.ConnectToUDS(certs.ServiceName, runFolder)
 	if err != nil {
 		return err
 	}
@@ -200,7 +200,7 @@ func HandleCreateServiceCert(ctx context.Context, runFolder string,
 	var cc certs.ICerts
 	var sc certs.IServiceCerts
 
-	conn, err := hubclient.ConnectToService(certs.ServiceName, runFolder)
+	conn, err := hubclient.ConnectToUDS(certs.ServiceName, runFolder)
 	if err != nil {
 		return err
 	}
@@ -240,7 +240,7 @@ func HandleCreateUserCert(ctx context.Context, runFolder string, clientID string
 	var cc certs.ICerts
 	var uc certs.IUserCerts
 
-	conn, err := hubclient.ConnectToService(certs.ServiceName, runFolder)
+	conn, err := hubclient.ConnectToUDS(certs.ServiceName, runFolder)
 	if err != nil {
 		return err
 	}

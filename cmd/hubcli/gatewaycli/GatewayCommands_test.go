@@ -31,7 +31,7 @@ import (
 
 const testHomeDir = "/tmp/test-hubcli"
 
-var useWS = false
+var useWS = true
 
 // var testSocketDir = path.Join(testHomeDir, "run")
 var resolverSocketPath = path.Join(testHomeDir, resolver.ServiceName+".socket")
@@ -86,7 +86,7 @@ func TestConnectToGateway(t *testing.T) {
 
 	// step 4: client connects
 	fullURL := "tcp://" + srvListener.Addr().String()
-	gw, err := capnpclient.ConnectToGateway(fullURL, &testServiceCert, testCACert)
+	gw, err := capnpclient.ConnectToGateway(fullURL, 1, &testServiceCert, testCACert)
 
 	assert.NoError(t, err)
 	assert.NotEmpty(t, gw)

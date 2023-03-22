@@ -72,7 +72,7 @@ func HandleAddUser(ctx context.Context, runFolder string, loginID string) error 
 	var authnClient authn.IAuthnService
 	var manageAuthn authn.IManageAuthn
 
-	conn, err := hubclient.ConnectToService(authn.ServiceName, runFolder)
+	conn, err := hubclient.ConnectToUDS(authn.ServiceName, runFolder)
 	if err == nil {
 		authnClient = capnpclient.NewAuthnClientFromCapnpConnection(ctx, conn)
 	}
@@ -99,7 +99,7 @@ func HandleListUsers(ctx context.Context, runFolder string) error {
 	var authnClient authn.IAuthnService
 	var manageAuthn authn.IManageAuthn
 
-	conn, err := hubclient.ConnectToService(authn.ServiceName, runFolder)
+	conn, err := hubclient.ConnectToUDS(authn.ServiceName, runFolder)
 	if err == nil {
 		authnClient = capnpclient.NewAuthnClientFromCapnpConnection(ctx, conn)
 	}
@@ -129,7 +129,7 @@ func HandleRemoveUser(ctx context.Context, runFolder string, loginID string) err
 	var authnClient authn.IAuthnService
 	var manageAuthn authn.IManageAuthn
 
-	conn, err := hubclient.ConnectToService(authn.ServiceName, runFolder)
+	conn, err := hubclient.ConnectToUDS(authn.ServiceName, runFolder)
 	if err == nil {
 		authnClient = capnpclient.NewAuthnClientFromCapnpConnection(ctx, conn)
 	}

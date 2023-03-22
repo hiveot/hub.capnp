@@ -87,7 +87,7 @@ func HandleAddOobSecret(ctx context.Context, runFolder string, deviceID string, 
 	var pc provisioning.IProvisioning
 	var secrets []provisioning.OOBSecret
 
-	conn, err := hubclient.ConnectToService(provisioning.ServiceName, runFolder)
+	conn, err := hubclient.ConnectToUDS(provisioning.ServiceName, runFolder)
 	if err == nil {
 		pc = capnpclient.NewProvisioningCapnpClient(ctx, conn)
 	}
@@ -113,7 +113,7 @@ func HandleAddOobSecret(ctx context.Context, runFolder string, deviceID string, 
 func HandleApproveRequest(ctx context.Context, runFolder string, deviceID string) error {
 	var pc provisioning.IProvisioning
 
-	conn, err := hubclient.ConnectToService(provisioning.ServiceName, runFolder)
+	conn, err := hubclient.ConnectToUDS(provisioning.ServiceName, runFolder)
 	if err == nil {
 		pc = capnpclient.NewProvisioningCapnpClient(ctx, conn)
 		manage, _ := pc.CapManageProvisioning(ctx, "hubcli")
@@ -127,7 +127,7 @@ func HandleGetApprovedRequests(ctx context.Context, runFolder string) error {
 	var pc provisioning.IProvisioning
 	var provStatus []provisioning.ProvisionStatus
 
-	conn, err := hubclient.ConnectToService(provisioning.ServiceName, runFolder)
+	conn, err := hubclient.ConnectToUDS(provisioning.ServiceName, runFolder)
 	if err == nil {
 		pc = capnpclient.NewProvisioningCapnpClient(ctx, conn)
 		manage, _ := pc.CapManageProvisioning(ctx, "hubcli")
@@ -153,7 +153,7 @@ func HandleGetPendingRequests(ctx context.Context, runFolder string) error {
 	var pc provisioning.IProvisioning
 	var provStatus []provisioning.ProvisionStatus
 
-	conn, err := hubclient.ConnectToService(provisioning.ServiceName, runFolder)
+	conn, err := hubclient.ConnectToUDS(provisioning.ServiceName, runFolder)
 	if err == nil {
 		pc = capnpclient.NewProvisioningCapnpClient(ctx, conn)
 		manage, _ := pc.CapManageProvisioning(ctx, "hubcli")

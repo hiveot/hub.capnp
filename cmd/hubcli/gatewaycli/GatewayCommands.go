@@ -61,24 +61,40 @@ func loadCerts(certsFolder string) (clientCert *tls.Certificate, caCert *x509.Ce
 }
 
 func GatewayListCommand(ctx context.Context, certsFolder *string, configFolder *string) *cli.Command {
+	var fullURL = ""
+	var duration = 1
 	return &cli.Command{
 		Name:     "lgw",
 		Usage:    "List gateway capabilities",
 		Category: "gateway",
 		//ArgsUsage: "(no args)",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:        "url",
+				Usage:       "full URL of gateway. ",
+				Value:       "",
+				Destination: &fullURL,
+			},
+			&cli.IntFlag{
+				Name:        "duration",
+				Usage:       "Search duration for auto discovery",
+				Value:       duration,
+				Destination: &duration,
+			},
+		},
 		Action: func(cCtx *cli.Context) error {
 
 			if cCtx.NArg() != 0 {
 				return fmt.Errorf("no arguments expected")
 			}
-			err := HandleListGateway(ctx, certsFolder, configFolder)
+			err := HandleListGateway(ctx, fullURL, duration, certsFolder, configFolder)
 			return err
 		},
 	}
 }
 
 // HandleListGateway handles list capabilities request and print the list of gateway capabilities
-func HandleListGateway(ctx context.Context, certsFolder *string, configFolder *string) error {
+func HandleListGateway(ctx context.Context, fullURL string, searchTimeSec int, certsFolder *string, configFolder *string) error {
 
 	var clientCert *tls.Certificate
 	var caCert *x509.Certificate
@@ -95,7 +111,9 @@ func HandleListGateway(ctx context.Context, certsFolder *string, configFolder *s
 	if !gwConfig.NoTLS {
 		clientCert, caCert = loadCerts(*certsFolder)
 	}
-	gw, err := capnpclient.ConnectToGateway(gwConfig.Address, clientCert, caCert)
+	//fullUrl := fmt.Sprintf("%s:%d", gwConfig.Address, gwConfig.TcpPort)
+	//fullUrl := fmt.Sprintf("wss://%s:%d%s", gwConfig.Address, gwConfig.WssPort, gwConfig.WssPath)
+	gw, err := capnpclient.ConnectToGateway(fullURL, searchTimeSec, clientCert, caCert)
 	if err != nil {
 		return err
 	}

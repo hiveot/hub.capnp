@@ -39,7 +39,7 @@ func HandleListGroups(ctx context.Context, runFolder, clientID string) error {
 	var authzClient authz.IAuthz
 	var manageAuthz authz.IManageAuthz
 
-	conn, err := hubclient.ConnectToService(authz.ServiceName, runFolder)
+	conn, err := hubclient.ConnectToUDS(authz.ServiceName, runFolder)
 	if err == nil {
 		authzClient = capnpclient.NewAuthzCapnpClient(ctx, conn)
 	}

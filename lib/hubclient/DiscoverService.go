@@ -67,12 +67,14 @@ func DiscoverService(serviceType string, waitSec int) (
 // This first checks if a UDS socket exists on the default resolver-service path.
 // Secondly, perform a DNS-SD search. If multiple results are returned then preference goes to "tcp" transport.
 func LocateHub(transport string, searchTime int) (fullURL string) {
-
+	if searchTime <= 0 {
+		searchTime = 1
+	}
 	// prefer the default resolver using unix domain sockets
 	if transport == "" || transport == "unix" {
 		if _, err := os.Stat(resolver.DefaultResolverPath); err == nil {
-			//fullURL = "unix://" + resolver.DefaultResolverPath
-			//return fullURL
+			fullURL = "unix://" + resolver.DefaultResolverPath
+			return fullURL
 		} else {
 			// not found, continue the search
 		}

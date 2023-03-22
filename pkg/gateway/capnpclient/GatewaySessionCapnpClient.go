@@ -127,20 +127,21 @@ func (cl *GatewaySessionCapnpClient) Release() {
 // Users should call Release when done. This will close the connection and any
 // capabilities obtained from the resolver.
 //
-//	fullUrl of the server: eg tcp://server:port, or wss://server:port/ws
+//	fullUrl of the server: eg tcp://server:port, or wss://server:port/ws, or "" for auto discovery
+//	searchTimeSec of autodiscovery or 0 for default
 //	clientCert is the TLS client certificate for mutual authentication. Use nil to connect
-//			   as an unauthenticated client.
+//				   as an unauthenticated client.
 //	caCert is the server's CA certificate to verify that the gateway service is valid.
-//			   Use nil to not verify the server's certificate.
-//				network is either "unix" or "tcp". Default "" uses "tcp"
-//				address is the UDS or TCP address:port of the gateway
+//				   Use nil to not verify the server's certificate.
+//					network is either "unix" or "tcp". Default "" uses "tcp"
+//					address is the UDS or TCP address:port of the gateway
 //
 // This returns a client for a gateway session
-func ConnectToGateway(fullUrl string,
+func ConnectToGateway(fullUrl string, searchTimeSec int,
 	clientCert *tls.Certificate, caCert *x509.Certificate) (
 	gatewayClient gateway.IGatewaySession, err error) {
 
-	rpcCon, hubClient, err := hubclient.ConnectToHubClient(fullUrl, clientCert, caCert)
+	rpcCon, hubClient, err := hubclient.ConnectToHubClient(fullUrl, searchTimeSec, clientCert, caCert)
 
 	capGatewaySession := hubapi.CapGatewaySession(hubClient)
 

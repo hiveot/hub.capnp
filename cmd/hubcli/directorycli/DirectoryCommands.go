@@ -53,7 +53,7 @@ func HandleListDirectory(ctx context.Context, runFolder string, limit int, offse
 	var dir directory.IDirectory
 	var rd directory.IReadDirectory
 
-	conn, err := hubclient.ConnectToService(directory.ServiceName, runFolder)
+	conn, err := hubclient.ConnectToUDS(directory.ServiceName, runFolder)
 	if err == nil {
 		dir = capnpclient.NewDirectoryCapnpClient(ctx, conn)
 		rd, err = dir.CapReadDirectory(ctx, "hubcli")
@@ -103,7 +103,7 @@ func HandleListThing(ctx context.Context, runFolder string, pubID, thingID strin
 	var rd directory.IReadDirectory
 	var tdDoc thing.TD
 
-	conn, err := hubclient.ConnectToService(directory.ServiceName, runFolder)
+	conn, err := hubclient.ConnectToUDS(directory.ServiceName, runFolder)
 	if err == nil {
 		dir = capnpclient.NewDirectoryCapnpClient(ctx, conn)
 		rd, err = dir.CapReadDirectory(ctx, "hubcli")
@@ -191,7 +191,7 @@ func HandleListThingVerbose(ctx context.Context, runFolder string, pubID, thingI
 	var dir directory.IDirectory
 	var rd directory.IReadDirectory
 
-	conn, err := hubclient.ConnectToService(directory.ServiceName, runFolder)
+	conn, err := hubclient.ConnectToUDS(directory.ServiceName, runFolder)
 	if err == nil {
 		dir = capnpclient.NewDirectoryCapnpClient(ctx, conn)
 		rd, err = dir.CapReadDirectory(ctx, "hubcli")

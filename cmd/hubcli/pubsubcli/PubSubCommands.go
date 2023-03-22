@@ -69,7 +69,7 @@ func SubEventsCommand(ctx context.Context, runFolder *string) *cli.Command {
 func HandlePubActions(ctx context.Context, runFolder string, pubID string, thingID string, action string, args string) error {
 	var pubSubSvc pubsub.IPubSubService
 
-	conn, err := hubclient.ConnectToService(pubsub.ServiceName, runFolder)
+	conn, err := hubclient.ConnectToUDS(pubsub.ServiceName, runFolder)
 	if err == nil {
 		pubSubSvc = capnpclient.NewPubSubCapnpClient(ctx, conn)
 	}
@@ -88,7 +88,7 @@ func HandlePubActions(ctx context.Context, runFolder string, pubID string, thing
 func HandleSubTD(ctx context.Context, runFolder string) error {
 	var pubSubSvc pubsub.IPubSubService
 
-	conn, err := hubclient.ConnectToService(pubsub.ServiceName, runFolder)
+	conn, err := hubclient.ConnectToUDS(pubsub.ServiceName, runFolder)
 	if err == nil {
 		pubSubSvc = capnpclient.NewPubSubCapnpClient(ctx, conn)
 	}
@@ -120,7 +120,7 @@ func HandleSubTD(ctx context.Context, runFolder string) error {
 func HandleSubEvents(ctx context.Context, runFolder string) error {
 	var pubSubSvc pubsub.IPubSubService
 
-	conn, err := hubclient.ConnectToService(pubsub.ServiceName, runFolder)
+	conn, err := hubclient.ConnectToUDS(pubsub.ServiceName, runFolder)
 	if err == nil {
 		pubSubSvc = capnpclient.NewPubSubCapnpClient(ctx, conn)
 	}

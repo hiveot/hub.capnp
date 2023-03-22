@@ -28,7 +28,7 @@ func main() {
 	store := cmd.NewBucketStore(cfg.Directory, cfg.ServiceID, cfg.Backend)
 
 	// the service receives the events to store from pubsub.
-	conn, err := hubclient.ConnectToHub(fullUrl, clientCert, caCert)
+	conn, err := hubclient.ConnectToService(fullUrl, 0, clientCert, caCert)
 	pubSubClient := capnpclient.NewPubSubCapnpClient(ctx, conn)
 	svcPubSub, err := pubSubClient.CapServicePubSub(ctx, cfg.ServiceID)
 	if err != nil {

@@ -138,7 +138,7 @@ func RenewServiceCerts(serviceID string, ipAddr string, keys *ecdsa.PrivateKey, 
 	}
 
 	ctx := context.Background()
-	csConn, err := hubclient.ConnectToService(certs.ServiceName, socketFolder)
+	csConn, err := hubclient.ConnectToUDS(certs.ServiceName, socketFolder)
 	if err != nil {
 		logrus.Errorf("unable to connect to certs service: %s. Workaround with local instance", err)
 		// FIXME: workaround or panic?

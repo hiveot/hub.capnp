@@ -37,7 +37,7 @@ func main() {
 
 	// subscribe to pubsub to store captured TD events. Pubsub can live anywhere
 	// and must be reached through the gateway.
-	conn, err := hubclient.ConnectToHub(fullUrl, clientCert, caCert)
+	conn, err := hubclient.ConnectToService(fullUrl, 0, clientCert, caCert)
 	if err == nil {
 		pubSubClient := capnpclient.NewPubSubCapnpClient(ctx, conn)
 		svcPubSub, err = pubSubClient.CapServicePubSub(ctx, serviceID)
