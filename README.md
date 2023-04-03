@@ -6,76 +6,50 @@ communication.
 
 ## Project Status
 
-THIS PROJECT IS NOT READY FOR USE AND HEAVILY IN DEVELOPMENT. 
-ONCE ALPHA IS REACHED IT WILL BE FUNCTIONAL BUT APIs ARE STILL SUBJECT TO CHANGE.
+THIS PROJECT IS IN ALPHA AND HEAVILY IN DEVELOPMENT. IT IS FUNCTIONAL BUT APIs ARE STILL SUBJECT TO CHANGE.
 
-Status: The status of the Hub is pre-alpha. Closing in on alpha.
-
-2023-01-16: completed initial version of:
+Status: The status of the Hub is Alpha (April 2023)
 
 Core micro-services of the Hub
 ```
-- launcher      manage starting and stopping of services
-- certs         certificate management for services
-- directory     storage of the thing directory
-- history       storage of thing event and action values
-- pubsub        publish and subscribe message bus for notifications between services
-- resolver      local discovery and access to service capabilities
 - authn         user authentication management
 - authz         user authorization of capabilities
+- certs         certificate management for services
+- directory     storage of the thing directory
 - gateway       single entry point to obtain service capabilities for remote clients
                 websocket support for Node clients and web browsers
-- state         easy to use persistance of state for services
+- history       storage of thing event and action values -- needs rework
+- hubcli        commandline interface to hub services for administrators
+- launcher      starting and stopping of services
 - provisioning  automated provisioning of IoT devices using certificate authentication
-```
-Bindings for the Hub
-```
-- owserver      1-wire binding
-- zwavejs       Z-Wave support using node-zwavejs [in progress]
+- pubsub        publish and subscribe message bus for notifications between services
+- resolver      local discovery and access to service capabilities
+- state         easy to use persistance of state for services
 ```
 
-Todo in order to reach Alpha:
-```
-- http jwt auth
-  - http JWT token authentication
-- basic web client:
-  - use one of: vue3, svelvte, templates? using SSR? with JS capnp?
-  - login page
-  - accounts page list publishers and device Things
-  - subscribe to device updates
-  - dashboard with text cards
-- 3 bindings:
-  - owserver 1-wire (done)
-  - zwave (in progress)
-  - isy99 Insteon binding (legacy protocol, for consideration)
-- update documentation
-  - git readme and github landing page
+For available protocol bindings see the [bindings repo](https://github.com/hiveot/bindings)
 
+### Short Term Road Map
 ```
-
-Todo for beta (stable API)
-```
-- autoreconnect            clients should attempt auto-reconnect to services (resiliency)
-- python client            capnproto python client api library
-- javascript client        capnproto python client api library
-- scripting engine         build IoT applications using JS or python on the fly
-- 10 bindings              wider range of bindings to verify APIs and services meet the needs
-- min 90% code coverage    improved testing framework including coverage, fuzzing
+1. Websocket API for use by browser clients. Access to a subset of API's using websockets.
+   * login
+   * pub/sub
+   * directory
+   * history
+2. Dashboard viewer (hiveoview)
+3. Bindings
+   * isy99 Insteon binding (legacy protocol, for consideration)
+   * weathermap
+4. Client libraries using capnproto APIs:
+   * javascript client (using websockets)
+   * python client
+5. Auto reconnect by clients   
 ```
 
-For future consideration:
-```
-- middleware               hooks to authorize, log, rate limit gateways
-- mosquitto gateway       integrate pubsub with mqtt
-- queued actions          allow 'sleepy' IoT devices to poll for queued actions after waking up
-- service discovery       discover of remote capabilities
-- bucketstore mongo       add support for mongodb in the bucket store
-- bucketstore sqlite      add support for SQLite in the bucket store
-- bridge                  bridge two hubs and share select things
-```
 
-Documention:
-* [HiveOT design](docs/hive-design.md)
+Additional Documention:
+* [HiveOT Overview](https://hiveot.github.io/)
+* [HiveOT design](docs/hiveot-design.md)
 * [Thing TDs](docs/README-TD.md)
 
 
@@ -85,7 +59,7 @@ This project is aimed at software developers and system implementors that are wo
 
 ## Objectives
 
-1. The primary objective of HiveOT is to provide a solution to secure the 'internet of things'.  
+The primary objective of HiveOT is to provide a solution to secure the 'internet of things'.  
 
 The state of security of IoT devices is appalling. Many of those devices become part of botnets once exposed to the internet. It is too easy to hack these devices and most of them do not support firmware updates to install security patches.
 
@@ -95,15 +69,15 @@ This security objective is supported by not allowing direct access to IoT device
 
 When IoT devices don't run TCP servers they cannot be connected to. This removes a broad attack surface. Instead, IoT devices connect to the hub using standard protocols for provisioning, publishing events, and subscribing to actions.
 
-2. The secondary objective is to simplify development of IoT devices for the web of things. 
+The secondary objective is to simplify development of IoT devices for the web of things. 
 
 The HiveOT Hub supports this objective by handling authentication, authorization, logging, tracing, persistence, rate limiting, resiliency and user interface. The IoT device only has to send the TD document describing the things it has on board, submit events for changes, and accept actions by subscribing to the Hub.
 
-3. The third objective is to follow the WoT and other open standard where possible.
+The third objective is to follow the WoT and other open standard where possible.
 
 Open standards improves interoperability with devices and 3rd party services. Protocol bindings provide this interop. 
 
-4. Provide a decentralized solution. Multiple Hubs can build a bigger hive without requiring a cloud service and can operate successfully on a private network. 
+Provide a decentralized solution. Multiple Hubs can build a bigger hive without requiring a cloud service and can operate successfully on a private network. 
 
 HiveOT is based on the [W3C WoT TD 1.1 specification](https://www.w3.org/TR/wot-thing-description11/). See [docs/README-TD] for more information.
 
