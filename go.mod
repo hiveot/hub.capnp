@@ -78,4 +78,3 @@ require (
 	zenhack.net/go/util v0.0.0-20230305222753-27582c3a8381 // indirect
 )
 
-//replace capnproto.org/go/capnp/v3 => ../../go-capnproto2
