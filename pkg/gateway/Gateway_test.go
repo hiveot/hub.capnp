@@ -163,7 +163,7 @@ func startService(useCapnp bool) (gwSession gateway.IGatewaySession, stopFn func
 		}
 
 		gwClient, err2 := capnpclient.ConnectToGateway(
-			testGatewayURL, &testClientCert, testCACert)
+			testGatewayURL, 0, &testClientCert, testCACert)
 		if err2 != nil {
 			panic("unable to connect the client to the gateway:" + err2.Error())
 		}
@@ -284,7 +284,7 @@ func TestGetCapability(t *testing.T) {
 	// gwClient2, err := capnpclient.ConnectToGatewayProxyClient(
 	// 	"tcp", testGatewayAddr, &testServiceCert, testCACert)
 	rpcConn, gwClient2, err := hubclient.ConnectToHubClient(
-		testGatewayURL, &testServiceCert, testCACert)
+		testGatewayURL, 0, &testServiceCert, testCACert)
 	require.NoError(t, err)
 	_ = rpcConn
 	capability := testsvc.CapTestService(gwClient2)

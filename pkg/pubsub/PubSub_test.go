@@ -38,7 +38,7 @@ func startService(useCapnp bool) (pubsub.IPubSubService, func()) {
 
 		// connect the client to the server above
 		clConn, _ := net.Dial("unix", testAddress)
-		capClient := capnpclient.NewPubSubCapnpClient(ctx, clConn)
+		capClient := capnpclient.NewPubSubCapnpClientConnection(ctx, clConn)
 
 		return capClient, func() {
 			capClient.Release()

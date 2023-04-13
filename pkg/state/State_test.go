@@ -60,7 +60,7 @@ func startStateService(useCapnp bool) (store state.IStateService, stopFn func(),
 		if err2 != nil {
 			panic(err2)
 		}
-		capClient, err2 := capnpclient.NewStateCapnpClient(ctx, clConn)
+		capClient := capnpclient.NewStateCapnpClientConnection(ctx, clConn)
 		// the stop function cancels the context, closes the listener and stops the store
 		return capClient, func() {
 			// don't kill the capnp messenger yet as capabilities are being released in the test cases

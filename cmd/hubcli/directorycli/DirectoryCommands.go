@@ -33,7 +33,7 @@ func DirectoryListCommand(ctx context.Context, runFolder *string) *cli.Command {
 			},
 		},
 		Action: func(cCtx *cli.Context) error {
-			var err error = fmt.Errorf("expected 0 or 2 parameters")
+			var err = fmt.Errorf("expected 0 or 2 parameters")
 			if cCtx.NArg() == 0 {
 				err = HandleListDirectory(ctx, *runFolder, limit, offset)
 			} else if cCtx.NArg() == 2 {
@@ -55,7 +55,7 @@ func HandleListDirectory(ctx context.Context, runFolder string, limit int, offse
 
 	conn, err := hubclient.ConnectToUDS(directory.ServiceName, runFolder)
 	if err == nil {
-		dir = capnpclient.NewDirectoryCapnpClient(ctx, conn)
+		dir = capnpclient.NewDirectoryCapnpClientConnection(ctx, conn)
 		rd, err = dir.CapReadDirectory(ctx, "hubcli")
 	}
 	if err != nil {
@@ -105,7 +105,7 @@ func HandleListThing(ctx context.Context, runFolder string, pubID, thingID strin
 
 	conn, err := hubclient.ConnectToUDS(directory.ServiceName, runFolder)
 	if err == nil {
-		dir = capnpclient.NewDirectoryCapnpClient(ctx, conn)
+		dir = capnpclient.NewDirectoryCapnpClientConnection(ctx, conn)
 		rd, err = dir.CapReadDirectory(ctx, "hubcli")
 	}
 	if err != nil {
@@ -193,7 +193,7 @@ func HandleListThingVerbose(ctx context.Context, runFolder string, pubID, thingI
 
 	conn, err := hubclient.ConnectToUDS(directory.ServiceName, runFolder)
 	if err == nil {
-		dir = capnpclient.NewDirectoryCapnpClient(ctx, conn)
+		dir = capnpclient.NewDirectoryCapnpClientConnection(ctx, conn)
 		rd, err = dir.CapReadDirectory(ctx, "hubcli")
 	}
 	if err != nil {

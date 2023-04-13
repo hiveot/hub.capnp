@@ -71,7 +71,7 @@ func HandlePubActions(ctx context.Context, runFolder string, pubID string, thing
 
 	conn, err := hubclient.ConnectToUDS(pubsub.ServiceName, runFolder)
 	if err == nil {
-		pubSubSvc = capnpclient.NewPubSubCapnpClient(ctx, conn)
+		pubSubSvc = capnpclient.NewPubSubCapnpClientConnection(ctx, conn)
 	}
 	if err != nil {
 		return err
@@ -90,7 +90,7 @@ func HandleSubTD(ctx context.Context, runFolder string) error {
 
 	conn, err := hubclient.ConnectToUDS(pubsub.ServiceName, runFolder)
 	if err == nil {
-		pubSubSvc = capnpclient.NewPubSubCapnpClient(ctx, conn)
+		pubSubSvc = capnpclient.NewPubSubCapnpClientConnection(ctx, conn)
 	}
 	if err != nil {
 		return err
@@ -122,7 +122,7 @@ func HandleSubEvents(ctx context.Context, runFolder string) error {
 
 	conn, err := hubclient.ConnectToUDS(pubsub.ServiceName, runFolder)
 	if err == nil {
-		pubSubSvc = capnpclient.NewPubSubCapnpClient(ctx, conn)
+		pubSubSvc = capnpclient.NewPubSubCapnpClientConnection(ctx, conn)
 	}
 	if err != nil {
 		return err

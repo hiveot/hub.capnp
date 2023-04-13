@@ -81,7 +81,7 @@ func newHistoryService(useCapnp bool) (history.IHistoryService, func()) {
 
 		// connect the client to the server above
 		clConn, _ := net.Dial("unix", testSocket)
-		cl := capnpclient.NewHistoryCapnpClient(ctx, clConn)
+		cl := capnpclient.NewHistoryCapnpClientConnection(ctx, clConn)
 
 		return cl, func() {
 			cl.Release()

@@ -83,7 +83,7 @@ func HandleHistoryInfo(ctx context.Context, runFolder string) error {
 
 	conn, err := hubclient.ConnectToUDS(history.ServiceName, runFolder)
 	if err == nil {
-		hist = capnpclient.NewHistoryCapnpClient(ctx, conn)
+		hist = capnpclient.NewHistoryCapnpClientConnection(ctx, conn)
 		rd, err = hist.CapReadHistory(ctx, "hubcli", "", "")
 	}
 	if err != nil {
@@ -107,7 +107,7 @@ func HandleListEvents(ctx context.Context, runFolder string, publisherID, thingI
 
 	conn, err := hubclient.ConnectToUDS(history.ServiceName, runFolder)
 	if err == nil {
-		hist = capnpclient.NewHistoryCapnpClient(ctx, conn)
+		hist = capnpclient.NewHistoryCapnpClientConnection(ctx, conn)
 		rd, err = hist.CapReadHistory(ctx, "hubcli", publisherID, thingID)
 	}
 	if err != nil {
@@ -147,7 +147,7 @@ func HandleListRetainedEvents(ctx context.Context, runFolder string) error {
 
 	conn, err := hubclient.ConnectToUDS(history.ServiceName, runFolder)
 	if err == nil {
-		hist = capnpclient.NewHistoryCapnpClient(ctx, conn)
+		hist = capnpclient.NewHistoryCapnpClientConnection(ctx, conn)
 		mngRet, err = hist.CapManageRetention(ctx, "hubcli")
 	}
 	if err != nil {
@@ -182,7 +182,7 @@ func HandleListLatestEvents(
 
 	conn, err := hubclient.ConnectToUDS(history.ServiceName, runFolder)
 	if err == nil {
-		hist = capnpclient.NewHistoryCapnpClient(ctx, conn)
+		hist = capnpclient.NewHistoryCapnpClientConnection(ctx, conn)
 		readHist, err = hist.CapReadHistory(ctx, "hubcli", publisherID, thingID)
 	}
 	if err != nil {

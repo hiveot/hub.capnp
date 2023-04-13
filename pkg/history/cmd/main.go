@@ -29,7 +29,7 @@ func main() {
 
 	// the service receives the events to store from pubsub.
 	conn, err := hubclient.ConnectToService(fullUrl, 0, clientCert, caCert)
-	pubSubClient := capnpclient.NewPubSubCapnpClient(ctx, conn)
+	pubSubClient := capnpclient.NewPubSubCapnpClientConnection(ctx, conn)
 	svcPubSub, err := pubSubClient.CapServicePubSub(ctx, cfg.ServiceID)
 	if err != nil {
 		panic("can't connect to pubsub")

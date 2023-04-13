@@ -2,6 +2,7 @@
 package capnpclient
 
 import (
+	"capnproto.org/go/capnp/v3"
 	"context"
 	"net"
 
@@ -11,14 +12,14 @@ import (
 	"github.com/hiveot/hub/pkg/state"
 )
 
-// StateServiceCapnpClient provides the POGS wrapper around the capnp client API
+// StateCapnpClient provides the POGS wrapper around the capnp client API
 // This implements the IStateService interface
-type StateServiceCapnpClient struct {
+type StateCapnpClient struct {
 	connection *rpc.Conn       // connection to capnp server
 	capability hubapi.CapState // capnp client of the state store
 }
 
-func (cl *StateServiceCapnpClient) CapClientState(
+func (cl *StateCapnpClient) CapClientState(
 	ctx context.Context, clientID string, appID string) (state.IClientState, error) {
 
 	method, release := cl.capability.CapClientState(ctx,
@@ -33,24 +34,31 @@ func (cl *StateServiceCapnpClient) CapClientState(
 	return newCap, nil
 }
 
-func (cl *StateServiceCapnpClient) Release() {
+func (cl *StateCapnpClient) Release() {
 	// release will release  client service instance
 	cl.capability.Release()
 }
 
-// NewStateCapnpClient returns a state store client using the capnp protocol
+// NewStateCapnpClientConnection returns a state store client using the capnp protocol
 //
 //	ctx is the context for retrieving capabilities
 //	connection is the client connection to the capnp RPC server
-func NewStateCapnpClient(ctx context.Context, connection net.Conn) (*StateServiceCapnpClient, error) {
-	var cl *StateServiceCapnpClient
+func NewStateCapnpClientConnection(ctx context.Context, connection net.Conn) *StateCapnpClient {
+
 	transport := rpc.NewStreamTransport(connection)
 	rpcConn := rpc.NewConn(transport, nil)
-	capability := hubapi.CapState(rpcConn.Bootstrap(ctx))
+	cl := NewStateCapnpClient(rpcConn.Bootstrap(ctx))
+	cl.connection = rpcConn
+	return cl
+}
 
-	cl = &StateServiceCapnpClient{
-		connection: rpcConn,
+// NewStateCapnpClient returns a state store client using the capnp protocol
+func NewStateCapnpClient(client capnp.Client) *StateCapnpClient {
+	capability := hubapi.CapState(client)
+
+	cl := &StateCapnpClient{
+		connection: nil,
 		capability: capability,
 	}
-	return cl, nil
+	return cl
 }

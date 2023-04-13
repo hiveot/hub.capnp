@@ -70,33 +70,26 @@ func (cl *PubSubCapnpClient) Release() {
 	}
 }
 
-// NewPubSubCapnpClient creates a new client for using the pubsub service with the given connection.
+// NewPubSubCapnpClientConnection creates a new client for using the pubsub service with the given connection.
 // After use, the caller must invoke Release
-func NewPubSubCapnpClient(ctx context.Context, c net.Conn) *PubSubCapnpClient {
-	var cl *PubSubCapnpClient
-
+func NewPubSubCapnpClientConnection(ctx context.Context, c net.Conn) *PubSubCapnpClient {
 	// use a direct connection to the service
 	transport := rpc.NewStreamTransport(c)
 	rpcConn := rpc.NewConn(transport, nil)
-	capPubSub := hubapi.CapPubSubService(rpcConn.Bootstrap(ctx))
-
-	cl = &PubSubCapnpClient{
-		connection: rpcConn,
-		capability: capPubSub,
-	}
+	cl := NewPubSubCapnpClient(rpcConn.Bootstrap(ctx))
+	cl.connection = rpcConn
 	return cl
 }
 
-// NewPubSubClient creates a new client for using the pubsub service with the given capnp client.
+// NewPubSubCapnpClient creates a new client for using the pubsub service with the given capnp client.
 // The capnp client can be that of the service, the resolver or the gateway
-func NewPubSubClient(capClient capnp.Client) *PubSubCapnpClient {
-	var cl *PubSubCapnpClient
+func NewPubSubCapnpClient(capClient capnp.Client) *PubSubCapnpClient {
 
 	// use a direct connection to the service
-	capPubSub := hubapi.CapPubSubService(capClient)
-	cl = &PubSubCapnpClient{
+	capability := hubapi.CapPubSubService(capClient)
+	cl := &PubSubCapnpClient{
 		connection: nil,
-		capability: capPubSub,
+		capability: capability,
 	}
 	return cl
 }

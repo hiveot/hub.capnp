@@ -51,7 +51,7 @@ import (
 //  1. Unix socket at the default resolver path
 //  2. DNS-SD for the hub gateway service
 //
-// // This auto-discovers the gateway or default to 127.0.0.1:8883
+// This auto-discovers the gateway or default to 127.0.0.1:8883
 func ConnectToHubClient(
 	fullUrl string, searchTimeSec int, clientCert *tls.Certificate, caCert *x509.Certificate) (
 	rpcCon *rpc.Conn, cap capnp.Client, err error) {

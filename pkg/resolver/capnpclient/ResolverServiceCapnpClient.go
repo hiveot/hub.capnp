@@ -1,6 +1,7 @@
 package capnpclient
 
 import (
+	"capnproto.org/go/capnp/v3"
 	"context"
 	"net"
 
@@ -12,19 +13,19 @@ import (
 	"github.com/hiveot/hub/pkg/resolver/capserializer"
 )
 
-type ResolverServiceCapnpClient struct {
+type ResolverCapnpClient struct {
 	connection *rpc.Conn                 // connection to capnp server
 	capability hubapi.CapResolverService // capnp client of the resolver service
 }
 
 // Capability of the capnp client used to talk to the resolver
-func (cl *ResolverServiceCapnpClient) Capability() hubapi.CapResolverService {
+func (cl *ResolverCapnpClient) Capability() hubapi.CapResolverService {
 	return cl.capability
 }
 
 // ListCapabilities lists the available capabilities of the service
 // Returns a list of capabilities that can be obtained through the service
-func (cl *ResolverServiceCapnpClient) ListCapabilities(
+func (cl *ResolverCapnpClient) ListCapabilities(
 	ctx context.Context, authType string) (infoList []resolver.CapabilityInfo, err error) {
 
 	infoList = make([]resolver.CapabilityInfo, 0)
@@ -46,7 +47,7 @@ func (cl *ResolverServiceCapnpClient) ListCapabilities(
 
 //
 //// RegisterCapabilities registers a service's capabilities along with the CapProvider
-//func (cl *ResolverServiceCapnpClient) RegisterCapabilities(ctx context.Context,
+//func (cl *ResolverCapnpClient) RegisterCapabilities(ctx context.Context,
 //	serviceID string, capInfoList []resolver.CapabilityInfo,
 //	capProvider hubapi.CapProvider) (err error) {
 //
@@ -64,7 +65,7 @@ func (cl *ResolverServiceCapnpClient) ListCapabilities(
 //}
 
 // Release the client
-func (cl *ResolverServiceCapnpClient) Release() {
+func (cl *ResolverCapnpClient) Release() {
 	cl.capability.Release()
 	if cl.connection != nil {
 		err := cl.connection.Close()
@@ -74,20 +75,28 @@ func (cl *ResolverServiceCapnpClient) Release() {
 	}
 }
 
-// NewResolverServiceCapnpClient create a new resolver client for obtaining capabilities.
+// NewResolverCapnpClientConnection create a new resolver client for obtaining capabilities.
 // Intended for remote clients such as IoT devices, services or users to connect to the
 // Hub's resolver. A connection must be established first.
 //
 //	conn is the network connection to use.
-func NewResolverServiceCapnpClient(ctx context.Context, conn net.Conn) (cl *ResolverServiceCapnpClient, err error) {
+func NewResolverCapnpClientConnection(ctx context.Context, conn net.Conn) *ResolverCapnpClient {
 
 	transport := rpc.NewStreamTransport(conn)
 	rpcConn := rpc.NewConn(transport, nil)
-	capResolverService := hubapi.CapResolverService(rpcConn.Bootstrap(ctx))
+	cl := NewResolverCapnpClient(rpcConn.Bootstrap(ctx))
+	cl.connection = rpcConn
+	return cl
+}
 
-	cl = &ResolverServiceCapnpClient{
-		connection: rpcConn,
-		capability: capResolverService,
+// NewResolverCapnpClient create a new resolver client for obtaining capabilities.
+func NewResolverCapnpClient(client capnp.Client) *ResolverCapnpClient {
+
+	capability := hubapi.CapResolverService(client)
+
+	cl := &ResolverCapnpClient{
+		connection: nil,
+		capability: capability,
 	}
-	return cl, nil
+	return cl
 }

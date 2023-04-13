@@ -51,7 +51,7 @@ func startTestAuthzService(useCapnp bool) (svc authz.IAuthz, closeFn func()) {
 
 		// connect the client to the server above
 		clConn, _ := net.Dial("unix", socketPath)
-		capClient := capnpclient.NewAuthzCapnpClient(ctx, clConn)
+		capClient := capnpclient.NewAuthzCapnpClientConnection(ctx, clConn)
 		return capClient, func() {
 			capClient.Release()
 			_ = clConn.Close()

@@ -49,10 +49,7 @@ func startResolverAndClient(useCapnp bool) (resolver.IResolverService, func()) {
 
 		// connect the client to the server above
 		conn, _ := net.Dial("unix", testResolverSocket)
-		capClient, err := capnpclient.NewResolverServiceCapnpClient(ctx, conn)
-		if err != nil {
-			panic("")
-		}
+		capClient := capnpclient.NewResolverCapnpClientConnection(ctx, conn)
 		return capClient, func() {
 			capClient.Release()
 			_ = srvListener.Close()
@@ -96,8 +93,7 @@ func TestConnectDisconnectClients(t *testing.T) {
 	// second connection
 	conn2, err := net.Dial("unix", testResolverSocket)
 	require.NoError(t, err)
-	cl2, err := capnpclient.NewResolverServiceCapnpClient(ctx, conn2)
-	assert.NoError(t, err)
+	cl2 := capnpclient.NewResolverCapnpClientConnection(ctx, conn2)
 	capInfo2, err := cl2.ListCapabilities(ctx, hubapi.AuthTypeService)
 	assert.NoError(t, err)
 	assert.NotNil(t, capInfo2)
@@ -121,8 +117,8 @@ func TestConnectDisconnectProviders(t *testing.T) {
 	// create the client and a registration
 	conn2, err := net.Dial("unix", testResolverSocket)
 	require.NoError(t, err)
-	cl2, err := capnpclient.NewResolverServiceCapnpClient(ctx, conn2)
-	assert.NoError(t, err)
+	cl2 := capnpclient.NewResolverCapnpClientConnection(ctx, conn2)
+	assert.NotNil(t, cl2)
 
 	// register a capability provider
 	ts := testsvc.NewTestService()

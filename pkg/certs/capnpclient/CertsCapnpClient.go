@@ -2,6 +2,7 @@
 package capnpclient
 
 import (
+	"capnproto.org/go/capnp/v3"
 	"context"
 	"net"
 
@@ -87,18 +88,22 @@ func (cl *CertsCapnpClient) Release() {
 	cl.capability.Release()
 }
 
-// NewCertServiceCapnpClient returns a capability to create certificates using the capnp protocol
+// NewCertsCapnpClientConnection returns a capability to create certificates using the capnp protocol
 // Intended for bootstrapping the capability chain
-//
-//	ctx is the context for retrieving capabilities
-func NewCertServiceCapnpClient(conn net.Conn) *CertsCapnpClient {
-	ctx := context.Background()
+func NewCertsCapnpClientConnection(ctx context.Context, conn net.Conn) *CertsCapnpClient {
 	transport := rpc.NewStreamTransport(conn)
 	rpcConn := rpc.NewConn(transport, nil)
-	capability := hubapi.CapCerts(rpcConn.Bootstrap(ctx))
+	cl := NewCertsCapnpClient(rpcConn.Bootstrap(ctx))
+	cl.connection = rpcConn
+	return cl
+}
+
+// NewCertsCapnpClient returns a capability to create certificates //
+func NewCertsCapnpClient(capClient capnp.Client) *CertsCapnpClient {
+	capability := hubapi.CapCerts(capClient)
 
 	cl := &CertsCapnpClient{
-		connection: rpcConn,
+		connection: nil,
 		capability: capability,
 	}
 	return cl

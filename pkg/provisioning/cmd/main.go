@@ -30,7 +30,7 @@ func main() {
 	// connect to the certificate service to get its capability for issuing device certificates
 	certConn, err := hubclient.ConnectToUDS(certs.ServiceName, f.Run)
 	if err == nil {
-		certsClient = certsclient.NewCertServiceCapnpClient(certConn)
+		certsClient = certsclient.NewCertsCapnpClientConnection(ctx, certConn)
 		// the provisioning service requires certificate capabilities
 		deviceCap, err = certsClient.CapDeviceCerts(ctx, provisioning.ServiceName)
 		if err == nil {

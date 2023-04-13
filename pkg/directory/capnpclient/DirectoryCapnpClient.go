@@ -2,6 +2,7 @@
 package capnpclient
 
 import (
+	"capnproto.org/go/capnp/v3"
 	"context"
 	"net"
 
@@ -58,18 +59,25 @@ func (cl *DirectoryCapnpClient) Release() error {
 	return nil
 }
 
-// NewDirectoryCapnpClient returns a directory store client using the capnp protocol
+// NewDirectoryCapnpClientConnection returns a directory store client using the capnp protocol
 //
 //	ctx is the context for retrieving capabilities
 //	connection is the client connection to the capnp server
-func NewDirectoryCapnpClient(ctx context.Context, connection net.Conn) *DirectoryCapnpClient {
-	var cl *DirectoryCapnpClient
+func NewDirectoryCapnpClientConnection(ctx context.Context, connection net.Conn) *DirectoryCapnpClient {
 	transport := rpc.NewStreamTransport(connection)
 	rpcConn := rpc.NewConn(transport, nil)
-	capability := hubapi.CapDirectoryService(rpcConn.Bootstrap(ctx))
+	cl := NewDirectoryCapnpClient(rpcConn.Bootstrap(ctx))
+	cl.connection = rpcConn
+	return cl
+}
 
-	cl = &DirectoryCapnpClient{
-		connection: rpcConn,
+// NewDirectoryCapnpClient creates a new client for using the directory service
+// The capnp client can be that of the service, the resolver or the gateway
+func NewDirectoryCapnpClient(capClient capnp.Client) *DirectoryCapnpClient {
+	// use a direct connection to the service
+	capability := hubapi.CapDirectoryService(capClient)
+	cl := &DirectoryCapnpClient{
+		connection: nil,
 		capability: capability,
 	}
 	return cl

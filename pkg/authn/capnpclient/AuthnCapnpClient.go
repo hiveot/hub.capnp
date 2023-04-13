@@ -1,6 +1,7 @@
 package capnpclient
 
 import (
+	"capnproto.org/go/capnp/v3"
 	"context"
 	"net"
 
@@ -13,6 +14,7 @@ import (
 // AuthnCapnpClient provides the POGS wrapper around the capnp client API
 // This implements the IAuthnService interface
 type AuthnCapnpClient struct {
+	connection *rpc.Conn       // connection to capnp server
 	capability hubapi.CapAuthn // capnp client of the authentication service
 }
 
@@ -44,27 +46,26 @@ func (cl *AuthnCapnpClient) Release() {
 	cl.capability.Release()
 }
 
-// NewAuthnClientFromCapnpConnection returns a new authentication client from a connection to a
+// NewAuthnCapnpClientConnection returns a new authentication client from a connection to a
 // capnp server.
 //
 //	ctx is the context for retrieving capabilities
 //	connection is the client connection to the capnp server
-func NewAuthnClientFromCapnpConnection(ctx context.Context, connection net.Conn) *AuthnCapnpClient {
-	var cl *AuthnCapnpClient
+func NewAuthnCapnpClientConnection(ctx context.Context, connection net.Conn) *AuthnCapnpClient {
 	transport := rpc.NewStreamTransport(connection)
 	rpcConn := rpc.NewConn(transport, nil)
-	capability := hubapi.CapAuthn(rpcConn.Bootstrap(ctx))
+	cl := NewAuthnCapnpClient(rpcConn.Bootstrap(ctx))
+	cl.connection = rpcConn
 
-	cl = &AuthnCapnpClient{
-		capability: capability,
-	}
 	return cl
 }
 
-// NewAuthnClientFromCapnpCapability returns a authn client from its capnpCapability
+// NewAuthnCapnpClient returns a authn client from its capnpCapability
 // Use when using a proxy client such as the resolver and gateway.
-func NewAuthnClientFromCapnpCapability(capability hubapi.CapAuthn) *AuthnCapnpClient {
+func NewAuthnCapnpClient(capClient capnp.Client) *AuthnCapnpClient {
+	capability := hubapi.CapAuthn(capClient)
 	cl := &AuthnCapnpClient{
+		connection: nil,
 		capability: capability,
 	}
 	return cl

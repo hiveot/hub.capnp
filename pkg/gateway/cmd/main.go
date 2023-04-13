@@ -145,7 +145,7 @@ func RenewServiceCerts(serviceID string, ipAddr string, keys *ecdsa.PrivateKey, 
 		capServiceCert = selfsigned.NewServiceCertsService(caCert, nil)
 		return nil, nil, err
 	} else {
-		cs := capnpclient.NewCertServiceCapnpClient(csConn)
+		cs := capnpclient.NewCertsCapnpClientConnection(ctx, csConn)
 		capServiceCert, err = cs.CapServiceCerts(ctx, hubapi.AuthTypeService)
 		_ = err
 	}

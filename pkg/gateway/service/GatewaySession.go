@@ -35,7 +35,7 @@ type GatewaySession struct {
 
 	//
 	resolverPath    string
-	resolverService *capnpclient.ResolverServiceCapnpClient
+	resolverService *capnpclient.ResolverCapnpClient
 	//resolverClient  *hubapi.CapResolverService
 	resolverConn net.Conn
 
@@ -56,8 +56,8 @@ func (session *GatewaySession) getUserAuthn(
 			session.userAuthn, err = session.authnService.CapUserAuthn(ctx, clientID)
 		} else {
 			// the resolver capnp client is a proxy for all capabilities it has a connection to
-			capAuthn := hubapi.CapAuthn(session.resolverService.Capability())
-			authnClient := capnpclient2.NewAuthnClientFromCapnpCapability(capAuthn)
+			capAuthn := capnp.Client(session.resolverService.Capability())
+			authnClient := capnpclient2.NewAuthnCapnpClient(capAuthn)
 			session.userAuthn, err = authnClient.CapUserAuthn(ctx, clientID)
 		}
 		if err != nil {
@@ -198,12 +198,7 @@ func StartGatewaySession(
 		return nil, err
 	}
 	session.resolverConn = resolverConn
-	session.resolverService, err = capnpclient.NewResolverServiceCapnpClient(ctx, resolverConn)
-
-	if err != nil {
-		_ = resolverConn.Close()
-		return nil, err
-	}
+	session.resolverService = capnpclient.NewResolverCapnpClientConnection(ctx, resolverConn)
 
 	return session, err
 }

@@ -55,7 +55,7 @@ func newServer(useCapnp bool) (provSvc provisioning.IProvisioning, closeFn func(
 		// connect the client to the server above
 		//clConn, _ := net.Dial("unix", testSocket)
 		clConn, _ := net.Dial("tcp", srvListener.Addr().String())
-		cl := capnpclient.NewProvisioningCapnpClient(ctx, clConn)
+		cl := capnpclient.NewProvisioningCapnpClientConnection(ctx, clConn)
 
 		return cl, func() {
 			cl.Release()

@@ -65,7 +65,7 @@ func TestConnectWriteRead(t *testing.T) {
 	time.Sleep(time.Millisecond)
 	// create the TLS client and connect
 	fullURL := fmt.Sprintf("%s:%d", address, port)
-	conn, err := hubclient.ConnectToService(fullURL, certs.PluginCert, certs.CaCert)
+	conn, err := hubclient.ConnectToService(fullURL, 1, certs.PluginCert, certs.CaCert)
 	require.NoError(t, err)
 
 	tlsConn, valid := conn.(*tls.Conn)

@@ -2,6 +2,7 @@
 package capnpclient
 
 import (
+	"capnproto.org/go/capnp/v3"
 	"context"
 	"net"
 
@@ -63,18 +64,26 @@ func (authz *AuthzCapnpClient) Release() {
 	authz.capability.Release()
 }
 
+// NewAuthzCapnpClientConnection returns a authorization client using the capnp protocol
+//
+//	ctx is the context for retrieving capabilities
+//	connection is the client connection to the capnp server
+func NewAuthzCapnpClientConnection(ctx context.Context, connection net.Conn) *AuthzCapnpClient {
+	transport := rpc.NewStreamTransport(connection)
+	rpcConn := rpc.NewConn(transport, nil)
+	cl := NewAuthzCapnpClient(rpcConn.Bootstrap(ctx))
+	cl.connection = rpcConn
+	return cl
+}
+
 // NewAuthzCapnpClient returns a authorization client using the capnp protocol
 //
 //	ctx is the context for retrieving capabilities
 //	connection is the client connection to the capnp server
-func NewAuthzCapnpClient(ctx context.Context, connection net.Conn) *AuthzCapnpClient {
-	var cl *AuthzCapnpClient
-	transport := rpc.NewStreamTransport(connection)
-	rpcConn := rpc.NewConn(transport, nil)
-	capability := hubapi.CapAuthz(rpcConn.Bootstrap(ctx))
-
-	cl = &AuthzCapnpClient{
-		connection: rpcConn,
+func NewAuthzCapnpClient(capClient capnp.Client) *AuthzCapnpClient {
+	capability := hubapi.CapAuthz(capClient)
+	cl := &AuthzCapnpClient{
+		connection: nil,
 		capability: capability,
 	}
 	return cl

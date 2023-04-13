@@ -152,8 +152,8 @@ func ConnectToGateway(fullUrl string, searchTimeSec int,
 	return cl, err
 }
 
-// NewGatewaySessionFromCapnpCapability returns a POGS wrapper around the gateway capnp instance
-func NewGatewaySessionFromCapnpCapability(capability hubapi.CapGatewaySession) gateway.IGatewaySession {
+// NewGatewaySessionCapnpClient returns a POGS wrapper around the gateway capnp instance
+func NewGatewaySessionCapnpClient(capability hubapi.CapGatewaySession) gateway.IGatewaySession {
 	gws := GatewaySessionCapnpClient{capability: capability}
 	return &gws
 }

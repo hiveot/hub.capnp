@@ -1,6 +1,7 @@
 package capnpclient
 
 import (
+	"capnproto.org/go/capnp/v3"
 	"context"
 	"net"
 
@@ -68,19 +69,24 @@ func (cl *ProvisioningCapnpClient) Release() {
 	_ = cl.connection.Close()
 }
 
-// NewProvisioningCapnpClient returns a provisioning service client using the capnp protocol
+// NewProvisioningCapnpClientConnection returns a provisioning service client using the capnp protocol
 //
 //	ctx is the context for this client's connection. Release it to release the client.
 //	conn is the connection with the provisioning capnp RPC server
-func NewProvisioningCapnpClient(ctx context.Context, connection net.Conn) *ProvisioningCapnpClient {
-	var cl *ProvisioningCapnpClient
-
+func NewProvisioningCapnpClientConnection(ctx context.Context, connection net.Conn) *ProvisioningCapnpClient {
 	transport := rpc.NewStreamTransport(connection)
 	rpcConn := rpc.NewConn(transport, nil)
-	capability := hubapi.CapProvisioning(rpcConn.Bootstrap(ctx))
+	cl := NewProvisioningCapnpClient(rpcConn.Bootstrap(ctx))
+	cl.connection = rpcConn
+	return cl
+}
 
-	cl = &ProvisioningCapnpClient{
-		connection: rpcConn,
+// NewProvisioningCapnpClient returns a provisioning service client using the capnp protocol
+func NewProvisioningCapnpClient(client capnp.Client) *ProvisioningCapnpClient {
+	capability := hubapi.CapProvisioning(client)
+
+	cl := &ProvisioningCapnpClient{
+		connection: nil,
 		capability: capability,
 	}
 	return cl

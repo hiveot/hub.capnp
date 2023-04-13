@@ -94,7 +94,7 @@ func LocateHub(transport string, searchTime int) (fullURL string) {
 	} else if transport == "wss" {
 		wssPort, found := params["wss"]
 		if found {
-			fullURL = fmt.Sprintf("%s:%d%s", addr, wssPort, params["path"])
+			fullURL = fmt.Sprintf("%s:%s%s", addr, wssPort, params["path"])
 		}
 	}
 	return

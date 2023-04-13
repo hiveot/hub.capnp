@@ -57,7 +57,7 @@ func startDirectory(useCapnp bool, svcPubSub pubsub.IServicePubSub) (dir directo
 
 		// connect the client to the server above
 		clConn, _ := net.Dial("tcp", srvListener.Addr().String())
-		capClient := capnpclient.NewDirectoryCapnpClient(ctx, clConn)
+		capClient := capnpclient.NewDirectoryCapnpClientConnection(ctx, clConn)
 		return capClient, func() {
 			cancelFunc()
 			_ = capClient.Release()

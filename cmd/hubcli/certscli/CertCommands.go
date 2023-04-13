@@ -159,7 +159,7 @@ func HandleCreateDeviceCert(ctx context.Context, runFolder string, deviceID stri
 	if err != nil {
 		return err
 	}
-	cc = capnpclient.NewCertServiceCapnpClient(conn)
+	cc = capnpclient.NewCertsCapnpClientConnection(ctx, conn)
 	dc, _ = cc.CapDeviceCerts(ctx, "hubcli")
 
 	pubKeyPEM, generatedPrivKey, err = LoadOrCreateKey(keyFile)
@@ -204,7 +204,7 @@ func HandleCreateServiceCert(ctx context.Context, runFolder string,
 	if err != nil {
 		return err
 	}
-	cc = capnpclient.NewCertServiceCapnpClient(conn)
+	cc = capnpclient.NewCertsCapnpClientConnection(ctx, conn)
 	sc, _ = cc.CapServiceCerts(ctx, "hubcli")
 	pubKeyPEM, generatedPrivKey, err = LoadOrCreateKey(keyFile)
 
@@ -244,7 +244,7 @@ func HandleCreateUserCert(ctx context.Context, runFolder string, clientID string
 	if err != nil {
 		return err
 	}
-	cc = capnpclient.NewCertServiceCapnpClient(conn)
+	cc = capnpclient.NewCertsCapnpClientConnection(ctx, conn)
 
 	uc, _ = cc.CapUserCerts(ctx, "hubcli")
 	pubKeyPEM, generatedPrivKey, err = LoadOrCreateKey(keyFile)

@@ -39,7 +39,7 @@ func main() {
 	// and must be reached through the gateway.
 	conn, err := hubclient.ConnectToService(fullUrl, 0, clientCert, caCert)
 	if err == nil {
-		pubSubClient := capnpclient.NewPubSubCapnpClient(ctx, conn)
+		pubSubClient := capnpclient.NewPubSubCapnpClientConnection(ctx, conn)
 		svcPubSub, err = pubSubClient.CapServicePubSub(ctx, serviceID)
 	}
 	if err != nil {

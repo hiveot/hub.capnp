@@ -2,6 +2,7 @@
 package capnpclient
 
 import (
+	"capnproto.org/go/capnp/v3"
 	"context"
 	"net"
 
@@ -92,19 +93,26 @@ func (cl *HistoryServiceCapnpClient) Release() {
 	cl.capability.Release()
 }
 
-// NewHistoryCapnpClient returns a history service client using the capnp protocol.
+// NewHistoryCapnpClientConnection returns a history service client using the capnp protocol.
 // This implements the IHistoryService interface.
 //
 //	ctx is the context for getting capabilities from the server
 //	connection is the connection to the capnp server
-func NewHistoryCapnpClient(ctx context.Context, connection net.Conn) *HistoryServiceCapnpClient {
-	var cl *HistoryServiceCapnpClient
+func NewHistoryCapnpClientConnection(ctx context.Context, connection net.Conn) *HistoryServiceCapnpClient {
 	transport := rpc.NewStreamTransport(connection)
 	rpcConn := rpc.NewConn(transport, nil)
-	capability := hubapi.CapHistoryService(rpcConn.Bootstrap(ctx))
+	cl := NewHistoryCapnpClient(rpcConn.Bootstrap(ctx))
+	cl.connection = rpcConn
+	return cl
+}
 
-	cl = &HistoryServiceCapnpClient{
-		connection: rpcConn,
+// NewHistoryCapnpClient creates a new client for using the history service after obtaining the service capnp client.
+// The capnp client can be that of the service, the resolver or the gateway
+func NewHistoryCapnpClient(capClient capnp.Client) *HistoryServiceCapnpClient {
+	// use a direct connection to the service
+	capability := hubapi.CapHistoryService(capClient)
+	cl := &HistoryServiceCapnpClient{
+		connection: nil,
 		capability: capability,
 	}
 	return cl
