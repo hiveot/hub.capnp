@@ -118,12 +118,15 @@ Prerequisites:
 
 ### Build Hub Services And CLI
 
+NOTE: Capnp-v3 is in alpha and while pretty stable things might break at times.
+Currently best to stick to 	capnproto.org/go/capnp/v3 v3.0.0-alpha.24
+
 1. Download source code:
 ```sh
 git clone git@github.com:hiveot/hub
 cd hub
 ``` 
-2. Install capnp tools
+2. Install go-capnp tools 
 ```sh
 sudo apt get install capnproto (for Ubuntu)
 make setup 
@@ -134,6 +137,8 @@ make hub
 ```
 
 After the build is successful, the distribution files can be found in the 'dist' folder.
+
+
 
 ### Build Bindings
 

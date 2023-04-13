@@ -89,9 +89,9 @@ clean: ## Clean distribution files
 help: ## Show this help
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-setup: ## Setup the capnp build environment
+setup: ## Setup the capnp build environment - using alpha-24
 	go get capnproto.org/go/capnp/v3
-	go install capnproto.org/go/capnp/v3/capnpc-go@latest
+	go install capnproto.org/go/capnp/v3/capnpc-go@v3.0.0-alpha.24
 	#GO111MODULE=off go get -u capnproto.org/go/capnp/v3/
 
 install:  hub  ## build and install the services

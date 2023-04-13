@@ -3,7 +3,7 @@ module github.com/hiveot/hub
 go 1.19
 
 require (
-	capnproto.org/go/capnp/v3 v3.0.0-alpha.25
+	capnproto.org/go/capnp/v3 v3.0.0-alpha.24
 	github.com/alexedwards/argon2id v0.0.0-20230305115115-4b3c3280a736
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de
 	github.com/cockroachdb/pebble v0.0.0-20230412222916-60cfeb46143b
@@ -14,7 +14,7 @@ require (
 	github.com/grandcat/zeroconf v1.0.0
 	github.com/samber/lo v1.38.1
 	github.com/sirupsen/logrus v1.9.0
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	github.com/struCoder/pidusage v0.2.1
 	github.com/thanhpk/randstr v1.0.5
 	github.com/tidwall/btree v1.6.0
@@ -29,7 +29,6 @@ require (
 	gopkg.in/square/go-jose.v2 v2.6.0
 	gopkg.in/yaml.v3 v3.0.1
 	zenhack.net/go/websocket-capnp v0.0.0-20230212023810-f179b8b2c72b
-
 )
 
 require (
@@ -72,5 +71,4 @@ require (
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
-	zenhack.net/go/util v0.0.0-20230218002511-744d2d6d1739 // indirect
 )
