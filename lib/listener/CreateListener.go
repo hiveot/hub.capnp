@@ -5,6 +5,8 @@ import (
 	"crypto/x509"
 	"fmt"
 	"net"
+
+	"github.com/sirupsen/logrus"
 )
 
 // CreateTLSListener wraps the given listener in TLS v1.3
@@ -40,6 +42,7 @@ func CreateListener(
 	addr string, port int, noTLS bool, serverCert *tls.Certificate, caCert *x509.Certificate) (
 	lis net.Listener, err error) {
 
+	logrus.Infof("creating listener on %s:%d", addr, port)
 	lis, err = net.Listen("tcp", fmt.Sprintf("%s:%d", addr, port))
 	if !noTLS {
 		lis = CreateTLSListener(lis, serverCert, caCert)

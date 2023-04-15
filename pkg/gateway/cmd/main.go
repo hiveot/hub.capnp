@@ -5,9 +5,10 @@ import (
 	"crypto/ecdsa"
 	"crypto/tls"
 	"crypto/x509"
-	"github.com/sirupsen/logrus"
 	"net"
 	"os"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub/lib/certsclient"
 	"github.com/hiveot/hub/lib/hubclient"
@@ -39,7 +40,8 @@ func main() {
 	_ = f.LoadConfig(&cfg)
 	ipAddr = cfg.Address
 	if ipAddr == "" {
-		ipAddr = listener.GetOutboundIP("").String()
+		// listen on all addresses
+		// ipAddr = listener.GetOutboundIP("").String()
 	}
 
 	// certificates are needed for TLS connections to the capnp server.
@@ -50,11 +52,11 @@ func main() {
 		logrus.Panicf("certs service not reachable when starting the gateway: %s", err)
 	}
 
-	// need certs but not authn
+	// Start the gateway service instance.
 	if err == nil {
+		// Need the resolver service socket to connect to. This is a fixed path.
 		//resolverPath := path.Join(f.Run, resolver.ServiceName+".socket")
 		resolverPath := resolver.DefaultResolverPath
-		// get the authn service from the resolver when needed
 		svc = service.NewGatewayService(resolverPath, nil)
 	}
 	err = svc.Start()
@@ -63,6 +65,7 @@ func main() {
 		os.Exit(-1)
 	}
 
+	// Create the network listener to attach to the gateway service
 	if cfg.NoTLS {
 		// just use the regular listener
 		logrus.Warn("TLS disabled")
@@ -88,16 +91,23 @@ func main() {
 	}
 	if err != nil {
 		logrus.Fatalf("Gateway startup error: %s", err)
-	} else if !cfg.NoDiscovery {
-		// DNS-SD discovery
-		addr, _, _ := net.SplitHostPort(lisTcp.Addr().String())
+		return
+	}
+
+	// serve DNS-SD discovery
+	if !cfg.NoDiscovery {
+		discoAddr := ipAddr
+		if ipAddr == "" {
+			discoAddr = listener.GetOutboundIP("").String()
+		}
+		// addr, _, _ := net.SplitHostPort(lisTcp.Addr().String())
 		dnsSrv, err2 := listener.ServeDiscovery(
-			serviceName, "hiveot", addr, cfg.TcpPort, cfg.WssPort, cfg.WssPath)
+			serviceName, "hiveot", discoAddr, cfg.TcpPort, cfg.WssPort, cfg.WssPath)
 		if err2 == nil {
 			defer dnsSrv.Shutdown()
 		}
 	}
-
+	// wait for the shutdown signal and close down
 	listener.WaitForSignal(context.Background())
 	_ = lisTcp.Close()
 	if lisWS != nil {

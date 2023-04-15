@@ -1,15 +1,11 @@
 package config
 
-import (
-	"github.com/hiveot/hub/lib/listener"
-)
-
 const DefaultGatewayTcpPort = 9883 // TLS over TCP
 const DefaultGatewayWssPort = 9884 // Websocket over TLS
 const DefaultGatewayWssPath = "/ws"
 
 type GatewayConfig struct {
-	// server listening address or "" for automatic outbound IP
+	// server listening address or "" to listen on all interfaces
 	Address string `yaml:"address"`
 
 	// noDiscovery disables the DNS-SD discovery
@@ -34,9 +30,8 @@ type GatewayConfig struct {
 
 // NewGatewayConfig creates a new gateway configuration with defaults
 func NewGatewayConfig() *GatewayConfig {
-	oip := listener.GetOutboundIP("")
 	gwConfig := GatewayConfig{
-		Address: oip.String(),
+		Address: "",
 		TcpPort: DefaultGatewayTcpPort,
 		WssPort: DefaultGatewayWssPort,
 		WssPath: DefaultGatewayWssPath,

@@ -127,7 +127,7 @@ func (svc *GatewayService) Stop() (err error) {
 // NewGatewayService returns a new instance of the gateway service.
 //
 //	resolverPath is the path to the resolver unix socket to pass requests to.
-//	testAuthn for creating authentication clients. Used for testing only. Do not release this service.
+//	testAuthn for testing to create authentication clients. nil for production.
 func NewGatewayService(resolverPath string, testAuthn authn.IAuthnService) *GatewayService {
 	svc := &GatewayService{
 		resolverPath: resolverPath,
