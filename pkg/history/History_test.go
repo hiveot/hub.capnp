@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/hiveot/hub/lib/hubclient"
 	"math/rand"
 	"net"
 	"os"
@@ -67,7 +68,6 @@ func newHistoryService(useCapnp bool) (history.IHistoryService, func()) {
 	store := cmd.NewBucketStore(testFolder, testClientID, HistoryStoreBackend)
 	// start the service ; not using pubsub
 	svc := service.NewHistoryService(&svcConfig, store, sub)
-	ctx, cancelFn := context.WithCancel(context.Background())
 	err := svc.Start()
 	if err != nil {
 		logrus.Fatalf("Failed starting the state service: %s", err)
@@ -80,12 +80,11 @@ func newHistoryService(useCapnp bool) (history.IHistoryService, func()) {
 		go capnpserver.StartHistoryServiceCapnpServer(svc, srvListener)
 
 		// connect the client to the server above
-		clConn, _ := net.Dial("unix", testSocket)
-		cl := capnpclient.NewHistoryCapnpClientConnection(ctx, clConn)
+		capClient, _ := hubclient.ConnectWithCapnpUDS("", testSocket)
+		histClient := capnpclient.NewHistoryCapnpClient(capClient)
 
-		return cl, func() {
-			cl.Release()
-			cancelFn()
+		return histClient, func() {
+			histClient.Release()
 			_ = srvListener.Close()
 			_ = svc.Stop()
 			// give it some time to shut down before the next test
@@ -95,7 +94,6 @@ func newHistoryService(useCapnp bool) (history.IHistoryService, func()) {
 
 	return svc, func() {
 		_ = svc.Stop()
-		cancelFn()
 	}
 }
 

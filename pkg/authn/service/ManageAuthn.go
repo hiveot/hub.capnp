@@ -18,15 +18,17 @@ type ManageAuthn struct {
 }
 
 // AddUser adds a new user and returns a generated password
-func (svc *ManageAuthn) AddUser(ctx context.Context, loginID string) (newPassword string, err error) {
+func (svc *ManageAuthn) AddUser(ctx context.Context, loginID string, newPassword string) (password string, err error) {
 	_ = ctx
 	exists := svc.pwStore.Exists(loginID)
 	if exists {
 		return "", fmt.Errorf("user with loginID '%s' already exists", loginID)
 	}
-	pw := svc.GeneratePassword(0, false)
-	err = svc.pwStore.SetPassword(loginID, pw)
-	return pw, err
+	if newPassword == "" {
+		newPassword = svc.GeneratePassword(0, false)
+	}
+	err = svc.pwStore.SetPassword(loginID, newPassword)
+	return newPassword, err
 }
 
 // GeneratePassword with upper, lower, numbers and special characters
@@ -85,11 +87,13 @@ func (svc *ManageAuthn) RemoveUser(ctx context.Context, loginID string) (err err
 }
 
 // ResetPassword reset a user's password and returns a new temporary password
-func (svc *ManageAuthn) ResetPassword(ctx context.Context, loginID string) (newPassword string, err error) {
+func (svc *ManageAuthn) ResetPassword(ctx context.Context, loginID string, newPassword string) (password string, err error) {
 	_ = ctx
-	newpw := svc.GeneratePassword(8, false)
-	err = svc.pwStore.SetPassword(loginID, newpw)
-	return newpw, err
+	if newPassword == "" {
+		newPassword = svc.GeneratePassword(8, false)
+	}
+	err = svc.pwStore.SetPassword(loginID, newPassword)
+	return newPassword, err
 }
 
 // UpdateUser updates a user's name

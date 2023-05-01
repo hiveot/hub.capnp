@@ -1,0 +1,23 @@
+// Protocol Buffers definition for the gateway service directory API
+syntax = "proto3";
+package hiveot.grpc;
+import "google/protobuf/empty.proto";
+import "thingvalue.proto";
+
+option go_package = "github.com/hiveot/hub/api/go/grpc";
+
+
+//
+message SubEvent_Args {
+  string publisherID = 1;
+  string thingID = 2;
+  string event = 3;
+}
+
+// CapUserPubSub is the publish/subscribe capability available to Hub end-users.
+service CapUserPubSub {
+
+  // SubEvent subscribes to events from a thing
+  rpc subEvent (SubEvent_Args) returns (google.protobuf.Empty);
+
+}

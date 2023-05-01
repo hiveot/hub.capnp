@@ -166,10 +166,10 @@ func NewJWTAuthn(signingKey *ecdsa.PrivateKey, accessTokenValidity int, refreshT
 		signingKey = certsclient.CreateECDSAKeys()
 	}
 	if accessTokenValidity == 0 {
-		accessTokenValidity = authn.DefaultAccessTokenValiditySec
+		accessTokenValidity = int(authn.DefaultAccessTokenValiditySec)
 	}
 	if refreshTokenValidity == 0 {
-		refreshTokenValidity = authn.DefaultRefreshTokenValiditySec
+		refreshTokenValidity = int(authn.DefaultRefreshTokenValiditySec)
 	}
 
 	jwtauthn := &JWTAuthn{

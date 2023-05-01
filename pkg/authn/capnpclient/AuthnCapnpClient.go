@@ -2,10 +2,8 @@ package capnpclient
 
 import (
 	"capnproto.org/go/capnp/v3"
-	"context"
-	"net"
-
 	"capnproto.org/go/capnp/v3/rpc"
+	"context"
 
 	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/pkg/authn"
@@ -44,20 +42,6 @@ func (cl *AuthnCapnpClient) CapManageAuthn(ctx context.Context, clientID string)
 // Release this client capability
 func (cl *AuthnCapnpClient) Release() {
 	cl.capability.Release()
-}
-
-// NewAuthnCapnpClientConnection returns a new authentication client from a connection to a
-// capnp server.
-//
-//	ctx is the context for retrieving capabilities
-//	connection is the client connection to the capnp server
-func NewAuthnCapnpClientConnection(ctx context.Context, connection net.Conn) *AuthnCapnpClient {
-	transport := rpc.NewStreamTransport(connection)
-	rpcConn := rpc.NewConn(transport, nil)
-	cl := NewAuthnCapnpClient(rpcConn.Bootstrap(ctx))
-	cl.connection = rpcConn
-
-	return cl
 }
 
 // NewAuthnCapnpClient returns a authn client from its capnpCapability

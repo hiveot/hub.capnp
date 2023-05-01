@@ -5,7 +5,7 @@ const DefaultGatewayWssPort = 9884 // Websocket over TLS
 const DefaultGatewayWssPath = "/ws"
 
 type GatewayConfig struct {
-	// server listening address or "" to listen on all interfaces
+	// server listening address or "" to listen on all interfaces (default)
 	Address string `yaml:"address"`
 
 	// noDiscovery disables the DNS-SD discovery

@@ -16,40 +16,37 @@ const ServiceName = hubapi.PubsubServiceName
 //
 // The address format used in publishing and subscribing is:
 //
-//	things/{gatewayID}/{thingID}/{messageType}[/{name}]
+//	things/{publisherID}/{thingID}/{messageType}[/{name}]
 //
 // Where:
 //  things is the prefix for publishing Thing related data. The pubsub can be used for other internal purposes as well.
-//  {gatewayID} is the thingID of the gateway itself. Eg urn:servicename where servicename is unique to the hub.
+//  {publisherID} is the thingID of the publishing device. Eg urn:servicename where servicename is unique to the hub.
 //  {messageType} is event, action or td
 //  {name} is the event or action name, following the vocabulary standardized names
 //         if messageType is a td then name is the device type
 //
-// Gateways typically publish their own thing as well on address:
+// Devices and services typically publish their own Thing TD on address:
 //
-//	things/{gatewayID}/{gatewayID}/{messageType}/{name}
+//	things/{publisherID}/{publisherID}/{messageType}/{name}
 //
-// * Valid GatewayIDs and ThingIDs must start with "urn:" and contain only alphanum or ":_-." characters.
+// * Valid publisherIDs and thingIDs must start with "urn:" and contain only alphanum or ":_-." characters.
 // * The character "+" is a wildcard characters for that part of the address.
-// * Gateways listen for actions on the gateway address {gatewayID}/+/action/+
-// * Gateways publish events on the gateway address {gatewayID}/{thingID}/event/{name}
+// * Publishers listen for actions on the address {publisherID}/+/action/+
+// * Publishers publish events on the address {publisherID}/{thingID}/event/{name}
 
 // The IPubSubService interface provides a high level API to publish and subscribe actions and events
 type IPubSubService interface {
 
-	// CapDevicePubSub provides the capability to pub/sub thing information as an IoT device.
-	// The issuer must only provide this capability after verifying the device ID.
+	// CapDevicePubSub provides the capability to pub/sub Thing information as an IoT device.
+	// This capability is only available to authenticated IoT devices.
 	//
-	// If the connection to the pubsub service fails then this capability becomes invalid and
-	// must be obtained again of the connection is restored.
-	//
-	// If the device is a service or gateway device, it is also publisher for those devices.
 	// The deviceID is the thingID of the device and used as the publisherID for all TD's and
 	// events published by this device.
 	CapDevicePubSub(ctx context.Context, deviceID string) (IDevicePubSub, error)
 
 	// CapServicePubSub provides the capability to pub/sub thing information as a hub service.
 	// Hub services can publish their own information and receive events from any thing.
+	// This capability is only available to authenticated Hub services.
 	//
 	// If the connection to the pubsub service fails then this capability becomes invalid and
 	// must be obtained again of the connection is restored.
@@ -58,11 +55,8 @@ type IPubSubService interface {
 	CapServicePubSub(ctx context.Context, serviceID string) (IServicePubSub, error)
 
 	// CapUserPubSub provides the capability for an end-user to publish or subscribe to messages.
+	// This capability is only available to authenticated Hub users.
 	//
-	// If the connection to the pubsub service fails then this capability becomes invalid and
-	// must be obtained again of the connection is restored.
-	//
-	// The caller must authenticate the user and provide appropriate configuration.
 	//  userID is the login ID of an authenticated user and is used as the publisherID
 	CapUserPubSub(ctx context.Context, userID string) (IUserPubSub, error)
 }

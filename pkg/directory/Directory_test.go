@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hiveot/hub/api/go/hubapi"
+	"github.com/hiveot/hub/lib/hubclient"
+	"github.com/hiveot/hub/lib/resolver"
 	"net"
 	"os"
 	"path"
@@ -56,12 +58,11 @@ func startDirectory(useCapnp bool, svcPubSub pubsub.IServicePubSub) (dir directo
 		go capnpserver.StartDirectoryServiceCapnpServer(svc, srvListener)
 
 		// connect the client to the server above
-		clConn, _ := net.Dial("tcp", srvListener.Addr().String())
-		capClient := capnpclient.NewDirectoryCapnpClientConnection(ctx, clConn)
-		return capClient, func() {
+		capClient, _ := hubclient.ConnectWithCapnpTCP(srvListener.Addr().String(), nil, nil)
+		dirClient := capnpclient.NewDirectoryCapnpClient(capClient)
+		return dirClient, func() {
 			cancelFunc()
-			_ = capClient.Release()
-			_ = clConn.Close()
+			dirClient.Release()
 			_ = srvListener.Close()
 			_ = svc.Stop()
 		}
@@ -94,6 +95,7 @@ func TestMain(m *testing.M) {
 
 func TestStartStop(t *testing.T) {
 	logrus.Infof("--- TestStartStop start ---")
+
 	_ = os.Remove(testStoreFile)
 	store, stopFunc := startDirectory(testUseCapnp, nil)
 	defer stopFunc()
@@ -225,11 +227,16 @@ func TestPubSub(t *testing.T) {
 	const title1 = "title1"
 	ctx := context.Background()
 
-	// need a pubsub for the service
+	// use an in-memory version of the pubsub service
 	pubSubSvc := service2.NewPubSubService()
+	resolver.RegisterService[pubsub.IPubSubService](pubSubSvc)
+	//cap := resolver.GetCapability[directory.IDirectory]()
+	//cap.Release()
+
 	err := pubSubSvc.Start()
 	require.NoError(t, err)
-	// get the pubsub client for the history service
+
+	// get the pubsub capability for services
 	svcPubSub, err := pubSubSvc.CapServicePubSub(ctx, "test")
 	require.NoError(t, err)
 

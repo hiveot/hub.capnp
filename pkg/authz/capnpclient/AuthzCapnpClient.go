@@ -3,10 +3,8 @@ package capnpclient
 
 import (
 	"capnproto.org/go/capnp/v3"
-	"context"
-	"net"
-
 	"capnproto.org/go/capnp/v3/rpc"
+	"context"
 
 	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/pkg/authz"
@@ -62,18 +60,6 @@ func (authz *AuthzCapnpClient) CapVerifyAuthz(ctx context.Context, clientID stri
 
 func (authz *AuthzCapnpClient) Release() {
 	authz.capability.Release()
-}
-
-// NewAuthzCapnpClientConnection returns a authorization client using the capnp protocol
-//
-//	ctx is the context for retrieving capabilities
-//	connection is the client connection to the capnp server
-func NewAuthzCapnpClientConnection(ctx context.Context, connection net.Conn) *AuthzCapnpClient {
-	transport := rpc.NewStreamTransport(connection)
-	rpcConn := rpc.NewConn(transport, nil)
-	cl := NewAuthzCapnpClient(rpcConn.Bootstrap(ctx))
-	cl.connection = rpcConn
-	return cl
 }
 
 // NewAuthzCapnpClient returns a authorization client using the capnp protocol

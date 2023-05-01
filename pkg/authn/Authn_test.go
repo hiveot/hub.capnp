@@ -3,6 +3,7 @@ package authn_test
 import (
 	"context"
 	"fmt"
+	"github.com/hiveot/hub/lib/hubclient"
 	"net"
 	"os"
 	"path"
@@ -44,7 +45,7 @@ func startTestAuthnService(useCapnp bool) (authSvc authn.IAuthnService, stopFn f
 		mng, err2 := svc.CapManageAuthn(ctx, "test")
 		err = err2
 		defer mng.Release()
-		testpass1, err = mng.AddUser(ctx, testuser1)
+		testpass1, err = mng.AddUser(ctx, testuser1, "")
 	}
 	if err != nil {
 		logrus.Panicf("cant start test authn service: %s", err)
@@ -60,9 +61,10 @@ func startTestAuthnService(useCapnp bool) (authSvc authn.IAuthnService, stopFn f
 
 		// connect the client to the server above
 		clConn, err := net.Dial("tcp", srvListener.Addr().String())
-		capClient := capnpclient.NewAuthnCapnpClientConnection(ctx, clConn)
-		return capClient, func() {
-			capClient.Release()
+		capClient, err := hubclient.ConnectWithCapnpTCP(srvListener.Addr().String(), nil, nil)
+		authnClient := capnpclient.NewAuthnCapnpClient(capClient)
+		return authnClient, func() {
+			authnClient.Release()
 			_ = clConn.Close()
 			time.Sleep(time.Millisecond)
 			cancelFunc()
@@ -141,7 +143,7 @@ func TestManageUser(t *testing.T) {
 	require.Equal(t, 0, len(userList))
 
 	// reset password adds the user again
-	newpw, err := mng.ResetPassword(ctx, testuser1)
+	newpw, err := mng.ResetPassword(ctx, testuser1, "")
 	assert.NoError(t, err)
 	assert.NotEmpty(t, newpw)
 	userList, err = mng.ListUsers(ctx)
@@ -149,7 +151,7 @@ func TestManageUser(t *testing.T) {
 	require.Equal(t, 1, len(userList))
 
 	// add existing user should fail
-	_, err = mng.AddUser(ctx, testuser1)
+	_, err = mng.AddUser(ctx, testuser1, "")
 	assert.Error(t, err)
 
 }

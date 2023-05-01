@@ -2,6 +2,7 @@ package authz_test
 
 import (
 	"context"
+	"github.com/hiveot/hub/lib/hubclient"
 	"net"
 	"os"
 	"path"
@@ -49,12 +50,11 @@ func startTestAuthzService(useCapnp bool) (svc authz.IAuthz, closeFn func()) {
 		}
 		go capnpserver.StartAuthzCapnpServer(authSvc, srvListener)
 
-		// connect the client to the server above
-		clConn, _ := net.Dial("unix", socketPath)
-		capClient := capnpclient.NewAuthzCapnpClientConnection(ctx, clConn)
-		return capClient, func() {
-			capClient.Release()
-			_ = clConn.Close()
+		//
+		capClient, err := hubclient.ConnectWithCapnpUDS("", socketPath)
+		authzClient := capnpclient.NewAuthzCapnpClient(capClient)
+		return authzClient, func() {
+			authzClient.Release()
 			_ = srvListener.Close()
 			cancelFunc()
 			authSvc.Stop()

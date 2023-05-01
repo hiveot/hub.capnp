@@ -10,7 +10,7 @@ import (
 	"github.com/hiveot/hub/pkg/resolver"
 )
 
-// DummyCapResolver for testing. This implements ICapResolver and ICapProvider interfaces
+// DummyCapResolver for testing of services that need the resolver or gateway service
 type DummyCapResolver struct {
 }
 

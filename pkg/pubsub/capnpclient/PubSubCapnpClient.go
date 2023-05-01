@@ -1,11 +1,9 @@
 package capnpclient
 
 import (
-	"context"
-	"net"
-
 	"capnproto.org/go/capnp/v3"
 	"capnproto.org/go/capnp/v3/rpc"
+	"context"
 
 	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/pkg/pubsub"
@@ -68,17 +66,6 @@ func (cl *PubSubCapnpClient) Release() {
 	if cl.connection != nil {
 		_ = cl.connection.Close()
 	}
-}
-
-// NewPubSubCapnpClientConnection creates a new client for using the pubsub service with the given connection.
-// After use, the caller must invoke Release
-func NewPubSubCapnpClientConnection(ctx context.Context, c net.Conn) *PubSubCapnpClient {
-	// use a direct connection to the service
-	transport := rpc.NewStreamTransport(c)
-	rpcConn := rpc.NewConn(transport, nil)
-	cl := NewPubSubCapnpClient(rpcConn.Bootstrap(ctx))
-	cl.connection = rpcConn
-	return cl
 }
 
 // NewPubSubCapnpClient creates a new client for using the pubsub service with the given capnp client.

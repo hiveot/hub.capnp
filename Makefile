@@ -1,7 +1,16 @@
 # Makefile to build and test the HiveOT Hub launcher
 BIN_FOLDER=./dist/bin
+
+# Capnproto compiler
 CAPNP_SRC=./api/capnp
 CAPNP_GO=capnp compile "-I$(GOPATH)/src/capnproto.org/go/capnp/std" -ogo:./api/go/ --src-prefix=api/capnp/
+
+# gRPC compiler
+GRPC_SRC=./api/proto
+GRPC_GOOPT=--go_opt=paths=source_relative --go-grpc_opt=paths=source_relative
+GRPC_GOOUT=--go_out=./api/go/grpc --go-grpc_out=./api/go/grpc
+GRPC_GO=protoc --proto_path=api/proto $(GRPC_GOOPT) $(GRPC_GOOUT)
+
 SERVICE_FOLDER=$(BIN_FOLDER)/services
 DIST_FOLDER=./dist
 INSTALL_HOME=~/bin/hiveot
@@ -32,6 +41,13 @@ hubapi-go: .FORCE  ## Build the golang API from capnp
 	$(CAPNP_GO)  $(CAPNP_SRC)/vocab/HiveVocabulary.capnp
 	$(CAPNP_GO)  $(CAPNP_SRC)/vocab/WoTVocabulary.capnp
 	go mod tidy
+
+hubgrpc-go: .FORCE ## Build the golang API from gRPC
+	$(GRPC_GO)  $(GRPC_SRC)/gateway.proto
+	$(GRPC_GO)  $(GRPC_SRC)/thingvalue.proto
+	$(GRPC_GO)  $(GRPC_SRC)/pubsub.proto
+	$(GRPC_GO)  $(GRPC_SRC)/directory.proto
+
 
 services: authn authz certs directory gateway history provisioning pubsub resolver state ## Build all services
 
@@ -92,7 +108,8 @@ help: ## Show this help
 setup: ## Setup the capnp build environment - using alpha-24
 	go get capnproto.org/go/capnp/v3
 	go install capnproto.org/go/capnp/v3/capnpc-go@v3.0.0-alpha.24
-	#GO111MODULE=off go get -u capnproto.org/go/capnp/v3/
+	go get google.golang.org/protobuf/cmd/protoc-gen-go@latest
+	go get google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
 
 install:  hub  ## build and install the services
 	mkdir -p $(INSTALL_HOME)/bin

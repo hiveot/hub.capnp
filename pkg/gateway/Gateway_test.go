@@ -1,10 +1,9 @@
 package gateway_test
 
 import (
+	"capnproto.org/go/capnp/v3"
+	"capnproto.org/go/capnp/v3/rpc"
 	"context"
-	"crypto/ecdsa"
-	"crypto/tls"
-	"crypto/x509"
 	"fmt"
 	"github.com/hiveot/hub/pkg/gateway"
 	"net"
@@ -18,14 +17,12 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/hiveot/hub/api/go/hubapi"
-	"github.com/hiveot/hub/lib/certsclient"
 	"github.com/hiveot/hub/lib/dummy"
 	"github.com/hiveot/hub/lib/hubclient"
 	"github.com/hiveot/hub/lib/listener"
 	"github.com/hiveot/hub/lib/logging"
-	"github.com/hiveot/hub/lib/testsvc"
+	"github.com/hiveot/hub/lib/testenv"
 	"github.com/hiveot/hub/pkg/authn"
-	"github.com/hiveot/hub/pkg/certs/service/selfsigned"
 	"github.com/hiveot/hub/pkg/gateway/capnpclient"
 	"github.com/hiveot/hub/pkg/gateway/capnpserver"
 	"github.com/hiveot/hub/pkg/gateway/service"
@@ -36,66 +33,16 @@ import (
 
 const testSocketDir = "/tmp/test-gateway"
 const testClientID = "client1"
-const testUseCapnp = true
-const testUseWS = false //true
+const testUseCapnp = true // can't disable. capnp is needed
+const testUseWS = false
 
 var resolverSocketPath = path.Join(testSocketDir, resolver.ServiceName+".socket")
 var testServiceSocketPath = path.Join(testSocketDir, "testService.socket")
 
 var testGatewayURL = ""
-var testCACert *x509.Certificate
-var testCAKey *ecdsa.PrivateKey
-
-var testServiceKeys *ecdsa.PrivateKey
-var testServiceCert tls.Certificate
-var testServiceCertPEM string
-var testServicePubKeyPEM string
-var testServicePrivKeyPEM string
-
-var testClientKeys *ecdsa.PrivateKey
-var testClientCert tls.Certificate
-var testClientCertPEM string
-var testClientPubKeyPEM string
-var testClientPrivKeyPEM string
 
 // CA, server and plugin test certificate
-//var testCerts testenv.TestCerts
-
-func createCerts() error {
-	var err error
-	var ctx = context.Background()
-	// a CA is needed
-	testCACert, testCAKey, _ = selfsigned.CreateHubCA(1)
-	certSvc := selfsigned.NewSelfSignedCertsService(testCACert, testCAKey)
-	capServiceCert, _ := certSvc.CapServiceCerts(ctx, testClientID)
-	capDeviceCert, err := certSvc.CapDeviceCerts(ctx, testClientID)
-	if err != nil {
-		return err
-	}
-	// the server cert
-	testServiceKeys = certsclient.CreateECDSAKeys()
-	testServicePubKeyPEM, _ = certsclient.PublicKeyToPEM(&testServiceKeys.PublicKey)
-	testServicePrivKeyPEM, _ = certsclient.PrivateKeyToPEM(testServiceKeys)
-	testServiceCertPEM, _, err = capServiceCert.CreateServiceCert(
-		ctx, testClientID, testServicePubKeyPEM, []string{"localhost", "127.0.0.1"}, 1)
-	if err != nil {
-		return err
-	}
-	testServiceCert, _ = tls.X509KeyPair([]byte(testServiceCertPEM), []byte(testServicePrivKeyPEM))
-
-	// and a client cert, also signed by the CA
-	testClientKeys = certsclient.CreateECDSAKeys()
-	testClientPubKeyPEM, _ = certsclient.PublicKeyToPEM(&testClientKeys.PublicKey)
-	testClientPrivKeyPEM, _ = certsclient.PrivateKeyToPEM(testClientKeys)
-	testClientCertPEM, _, err = capDeviceCert.CreateDeviceCert(
-		ctx, testClientID, testClientPubKeyPEM, 1)
-	if err != nil {
-		return err
-	}
-	testClientCert, err = tls.X509KeyPair([]byte(testClientCertPEM), []byte(testClientPrivKeyPEM))
-
-	return err
-}
+var testCerts = testenv.CreateCertBundle()
 
 // start resolver and register a dummy authn
 func startResolver() (stopfn func()) {
@@ -117,25 +64,27 @@ func startResolver() (stopfn func()) {
 	}
 }
 
-func startService(useCapnp bool) (gwSession gateway.IGatewaySession, stopFn func()) {
+func StartTestGateway(useCapnp bool) (gwSession gateway.IGatewaySession, stopFn func()) {
 	_ = os.RemoveAll(testSocketDir)
 	_ = os.MkdirAll(testSocketDir, 0700)
-	err := createCerts()
-	if err != nil {
-		panic(err)
-	}
+
+	//if err != nil {
+	//	panic(err)
+	//}
 	// authn service is needed for login
 	var authnDummy authn.IAuthnService = dummy.NewDummyAuthnService()
 	//
 	stopResolver := startResolver()
 	svc := service.NewGatewayService(resolverSocketPath, authnDummy)
-	err = svc.Start()
+	err := svc.Start()
 	if err != nil {
 		panic(err)
 	}
 
 	// optionally test with capnp RPC over TLS
 	if useCapnp {
+		var capClient capnp.Client
+
 		wsPath := ""
 		if testUseWS {
 			// Can't register a path twice. Using "/" seems to work
@@ -149,7 +98,7 @@ func startService(useCapnp bool) (gwSession gateway.IGatewaySession, stopFn func
 		if err2 != nil {
 			logrus.Panicf("Unable to create a listener, can't run test: %s", err2)
 		}
-		srvListener = listener.CreateTLSListener(srvListener, &testServiceCert, testCACert)
+		srvListener = listener.CreateTLSListener(srvListener, testCerts.ServerCert, testCerts.CaCert)
 		// TODO: cleanup the need for wsPath
 		go capnpserver.StartGatewayCapnpServer(svc, srvListener, wsPath)
 
@@ -157,13 +106,15 @@ func startService(useCapnp bool) (gwSession gateway.IGatewaySession, stopFn func
 
 		// --- connect the client to the server above, using the same service certificate
 		testGatewayAddr := srvListener.Addr().String()
-		testGatewayURL = fmt.Sprintf("tcp://%s/", testGatewayAddr)
 		if testUseWS {
 			testGatewayURL = fmt.Sprintf("wss://%s%s", testGatewayAddr, wsPath)
+			capClient, err = hubclient.ConnectWithCapnpWebsockets(testGatewayURL, testCerts.DeviceCert, testCerts.CaCert)
+		} else {
+			testGatewayURL = fmt.Sprintf("tcp://%s/", testGatewayAddr)
+			capClient, err = hubclient.ConnectWithCapnpTCP(testGatewayURL, testCerts.DeviceCert, testCerts.CaCert)
 		}
 
-		gwClient, err2 := capnpclient.ConnectToGateway(
-			testGatewayURL, 0, &testClientCert, testCACert)
+		gwClient := capnpclient.NewGatewaySessionCapnpClient(capClient)
 		if err2 != nil {
 			panic("unable to connect the client to the gateway:" + err2.Error())
 		}
@@ -192,7 +143,7 @@ func TestMain(m *testing.M) {
 
 func TestStartStop(t *testing.T) {
 	ctx := context.Background()
-	svc, stopFn := startService(testUseCapnp)
+	svc, stopFn := StartTestGateway(testUseCapnp)
 
 	clientInfo, err := svc.Ping(ctx)
 	assert.NoError(t, err)
@@ -203,7 +154,7 @@ func TestStartStop(t *testing.T) {
 
 func TestLogin(t *testing.T) {
 	ctx := context.Background()
-	svc, stopFn := startService(testUseCapnp)
+	svc, stopFn := StartTestGateway(testUseCapnp)
 	defer stopFn()
 
 	authToken, refreshToken, err := svc.Login(ctx, testClientID, "password")
@@ -219,7 +170,7 @@ func TestLogin(t *testing.T) {
 
 func TestRefresh(t *testing.T) {
 	ctx := context.Background()
-	svc, stopFn := startService(testUseCapnp)
+	svc, stopFn := StartTestGateway(testUseCapnp)
 	defer stopFn()
 
 	authToken, refreshToken, err := svc.Login(ctx, testClientID, "password")
@@ -235,13 +186,13 @@ func TestRefresh(t *testing.T) {
 func TestGetInfo(t *testing.T) {
 
 	ctx := context.Background()
-	svc, stopFn := startService(testUseCapnp)
+	svc, stopFn := StartTestGateway(testUseCapnp)
 	defer stopFn()
 	_ = svc
 	_ = ctx
 
 	// use test service to get the capability
-	ts := testsvc.NewTestService()
+	ts := testenv.NewTestService()
 	err := ts.Start(testServiceSocketPath)
 	assert.NoError(t, err)
 	// give the resolver time to discover the test service
@@ -260,14 +211,16 @@ func TestGetInfo(t *testing.T) {
 
 func TestGetCapability(t *testing.T) {
 	const serviceID1 = "service1"
+	var rpcConn *rpc.Conn
+	var gwClient2 capnp.Client
 	ctx := context.Background()
 
 	// Phase 1 - setup environment with a resolver and test service
-	gwClient, stopFn := startService(testUseCapnp)
+	gwClient, stopFn := StartTestGateway(testUseCapnp)
 	defer stopFn()
 
 	// register a test service
-	ts := testsvc.NewTestService()
+	ts := testenv.NewTestService()
 	err := ts.Start(testServiceSocketPath)
 	assert.NoError(t, err)
 
@@ -281,16 +234,18 @@ func TestGetCapability(t *testing.T) {
 
 	// Phase 3 - obtain the test service capability for method1 using the gateway connection
 	// use the gateway as a proxy for the test service
-	// gwClient2, err := capnpclient.ConnectToGatewayProxyClient(
-	// 	"tcp", testGatewayAddr, &testServiceCert, testCACert)
-	rpcConn, gwClient2, err := hubclient.ConnectToHubClient(
-		testGatewayURL, 0, &testServiceCert, testCACert)
-	require.NoError(t, err)
+	if testUseWS {
+		gwClient2, err = hubclient.ConnectWithCapnpWebsockets(testGatewayURL, testCerts.ServerCert, testCerts.CaCert)
+
+	} else {
+		gwClient2, err = hubclient.ConnectWithCapnpTCP(testGatewayURL, testCerts.ServerCert, testCerts.CaCert)
+	}
+	assert.NoError(t, err)
 	_ = rpcConn
-	capability := testsvc.CapTestService(gwClient2)
+	capability := testenv.CapTestService(gwClient2)
 
 	method1, release1 := capability.CapMethod1(ctx,
-		func(params testsvc.CapTestService_capMethod1_Params) error {
+		func(params testenv.CapTestService_capMethod1_Params) error {
 			err2 := params.SetClientID(serviceID1)
 			assert.NoError(t, err2)
 			_ = params.SetAuthType(hubapi.AuthTypeService)
@@ -302,7 +257,7 @@ func TestGetCapability(t *testing.T) {
 
 	capMethod1 := m1s.Capabilit()
 	// invoke method 1
-	method2, release := capMethod1.Method1(ctx, nil)
+	method2, release2 := capMethod1.Method1(ctx, nil)
 	// get the result
 	resp, err3 := method2.Struct()
 	assert.NoError(t, err3)
@@ -311,7 +266,7 @@ func TestGetCapability(t *testing.T) {
 	assert.NotEmpty(t, msg1)
 	t.Logf("Received method1 response from testserver: %s", msg1)
 	// release the method and capability
-	release()
+	release2()
 	capMethod1.Release()
 
 	// Phase 4 - stop the test service. Its capabilities should disappear
@@ -326,7 +281,7 @@ func TestGetCapability(t *testing.T) {
 	// fixme: can we do without the boilerplate please?
 	// when the service disconnects the capabilities should disappear
 	method3, release3 := capability.CapMethod1(ctx,
-		func(params testsvc.CapTestService_capMethod1_Params) error {
+		func(params testenv.CapTestService_capMethod1_Params) error {
 			err2 := params.SetClientID(serviceID1)
 			assert.NoError(t, err2)
 			_ = params.SetAuthType(hubapi.AuthTypeService)
@@ -338,12 +293,11 @@ func TestGetCapability(t *testing.T) {
 	// getting capability should fail
 	method4, release4 := capMethod3.Method1(ctx, nil)
 	defer release4()
-	// get the result
+
+	// get the result should fail as method4 is released
+	time.Sleep(time.Millisecond)
 	_, err4 := method4.Struct()
-
 	assert.Error(t, err4)
-
-	release()
 }
 
 //
@@ -351,7 +305,7 @@ func TestGetCapability(t *testing.T) {
 //	const authType = hubapi.AuthTypeService
 //	ctx := context.Background()
 //
-//	svc, stopFn := startService(testUseCapnp)
+//	svc, stopFn := StartTestGateway(testUseCapnp)
 //	defer stopFn()
 //
 //	// get capability that doesn't exist

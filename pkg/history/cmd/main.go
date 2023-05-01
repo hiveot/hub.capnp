@@ -27,9 +27,12 @@ func main() {
 	// the service uses the bucket store to store history
 	store := cmd.NewBucketStore(cfg.Directory, cfg.ServiceID, cfg.Backend)
 
-	// the service receives the events to store from pubsub.
-	conn, err := hubclient.ConnectToService(fullUrl, 0, clientCert, caCert)
-	pubSubClient := capnpclient.NewPubSubCapnpClientConnection(ctx, conn)
+	// the service receives the events to store from pubsub. To obtain the pubsub capability
+	// connect to the resolver or gateway service.
+	fullUrl = hubclient.LocateHub("", 0)
+	// the resolver client is a proxy for all connected services including pubsub
+	capClient, err := hubclient.ConnectWithCapnpTCP(fullUrl, clientCert, caCert)
+	pubSubClient := capnpclient.NewPubSubCapnpClient(capClient)
 	svcPubSub, err := pubSubClient.CapServicePubSub(ctx, cfg.ServiceID)
 	if err != nil {
 		panic("can't connect to pubsub")

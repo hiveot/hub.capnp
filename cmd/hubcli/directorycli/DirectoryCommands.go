@@ -53,9 +53,9 @@ func HandleListDirectory(ctx context.Context, runFolder string, limit int, offse
 	var dir directory.IDirectory
 	var rd directory.IReadDirectory
 
-	conn, err := hubclient.ConnectToUDS(directory.ServiceName, runFolder)
+	capClient, err := hubclient.ConnectWithCapnpUDS(directory.ServiceName, runFolder)
 	if err == nil {
-		dir = capnpclient.NewDirectoryCapnpClientConnection(ctx, conn)
+		dir = capnpclient.NewDirectoryCapnpClient(capClient)
 		rd, err = dir.CapReadDirectory(ctx, "hubcli")
 	}
 	if err != nil {
@@ -103,9 +103,9 @@ func HandleListThing(ctx context.Context, runFolder string, pubID, thingID strin
 	var rd directory.IReadDirectory
 	var tdDoc thing.TD
 
-	conn, err := hubclient.ConnectToUDS(directory.ServiceName, runFolder)
+	capClient, err := hubclient.ConnectWithCapnpUDS(directory.ServiceName, runFolder)
 	if err == nil {
-		dir = capnpclient.NewDirectoryCapnpClientConnection(ctx, conn)
+		dir = capnpclient.NewDirectoryCapnpClient(capClient)
 		rd, err = dir.CapReadDirectory(ctx, "hubcli")
 	}
 	if err != nil {
@@ -191,9 +191,9 @@ func HandleListThingVerbose(ctx context.Context, runFolder string, pubID, thingI
 	var dir directory.IDirectory
 	var rd directory.IReadDirectory
 
-	conn, err := hubclient.ConnectToUDS(directory.ServiceName, runFolder)
+	capClient, err := hubclient.ConnectWithCapnpUDS(directory.ServiceName, runFolder)
 	if err == nil {
-		dir = capnpclient.NewDirectoryCapnpClientConnection(ctx, conn)
+		dir = capnpclient.NewDirectoryCapnpClient(capClient)
 		rd, err = dir.CapReadDirectory(ctx, "hubcli")
 	}
 	if err != nil {

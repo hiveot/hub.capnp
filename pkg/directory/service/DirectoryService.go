@@ -63,6 +63,7 @@ func (svc *DirectoryService) handleTDEvent(event *thing.ThingValue) {
 }
 
 // Start opens the store and publishes the service's own TD
+// This subscribes to pubsub TD events and updates the directory.
 func (svc *DirectoryService) Start(ctx context.Context) error {
 	err := svc.store.Open()
 
@@ -99,6 +100,8 @@ func (svc *DirectoryService) Stop() error {
 	err := svc.store.Close()
 	return err
 }
+
+func (svc *DirectoryService) Release() {}
 
 // NewDirectoryService creates a service to access TD documents
 // This is using the KV bucket store.

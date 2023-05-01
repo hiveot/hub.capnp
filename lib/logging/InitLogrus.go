@@ -67,6 +67,7 @@ func InitLogrus(levelName string, logFile string) *logrus.Logger {
 			FullTimestamp:   true,
 			CallerPrettyfier: func(f *runtime.Frame) (string, string) {
 				funcName := f.Func.Name()
+
 				// remove classname
 				names := strings.Split(funcName, ".")
 				if len(names) > 1 {

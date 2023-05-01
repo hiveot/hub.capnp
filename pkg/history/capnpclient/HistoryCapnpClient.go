@@ -3,10 +3,8 @@ package capnpclient
 
 import (
 	"capnproto.org/go/capnp/v3"
-	"context"
-	"net"
-
 	"capnproto.org/go/capnp/v3/rpc"
+	"context"
 
 	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/pkg/history"
@@ -91,19 +89,6 @@ func (cl *HistoryServiceCapnpClient) CapReadHistory(
 
 func (cl *HistoryServiceCapnpClient) Release() {
 	cl.capability.Release()
-}
-
-// NewHistoryCapnpClientConnection returns a history service client using the capnp protocol.
-// This implements the IHistoryService interface.
-//
-//	ctx is the context for getting capabilities from the server
-//	connection is the connection to the capnp server
-func NewHistoryCapnpClientConnection(ctx context.Context, connection net.Conn) *HistoryServiceCapnpClient {
-	transport := rpc.NewStreamTransport(connection)
-	rpcConn := rpc.NewConn(transport, nil)
-	cl := NewHistoryCapnpClient(rpcConn.Bootstrap(ctx))
-	cl.connection = rpcConn
-	return cl
 }
 
 // NewHistoryCapnpClient creates a new client for using the history service after obtaining the service capnp client.

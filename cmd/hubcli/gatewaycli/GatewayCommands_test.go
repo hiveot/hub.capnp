@@ -3,6 +3,7 @@ package gatewaycli
 import (
 	"context"
 	"crypto/tls"
+	"github.com/hiveot/hub/lib/hubclient"
 	"net"
 	"os"
 	"path"
@@ -86,7 +87,8 @@ func TestConnectToGateway(t *testing.T) {
 
 	// step 4: client connects
 	fullURL := "tcp://" + srvListener.Addr().String()
-	gw, err := capnpclient.ConnectToGateway(fullURL, 1, &testServiceCert, testCACert)
+	capClient, err := hubclient.ConnectWithCapnpTCP(fullURL, &testServiceCert, testCACert)
+	gw := capnpclient.NewGatewaySessionCapnpClient(capClient)
 
 	assert.NoError(t, err)
 	assert.NotEmpty(t, gw)

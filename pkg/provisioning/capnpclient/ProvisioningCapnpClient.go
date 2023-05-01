@@ -2,10 +2,8 @@ package capnpclient
 
 import (
 	"capnproto.org/go/capnp/v3"
-	"context"
-	"net"
-
 	"capnproto.org/go/capnp/v3/rpc"
+	"context"
 
 	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/pkg/provisioning"
@@ -66,19 +64,9 @@ func (cl *ProvisioningCapnpClient) CapRefreshProvisioning(
 // Release the client capability
 func (cl *ProvisioningCapnpClient) Release() {
 	cl.capability.Release()
-	_ = cl.connection.Close()
-}
-
-// NewProvisioningCapnpClientConnection returns a provisioning service client using the capnp protocol
-//
-//	ctx is the context for this client's connection. Release it to release the client.
-//	conn is the connection with the provisioning capnp RPC server
-func NewProvisioningCapnpClientConnection(ctx context.Context, connection net.Conn) *ProvisioningCapnpClient {
-	transport := rpc.NewStreamTransport(connection)
-	rpcConn := rpc.NewConn(transport, nil)
-	cl := NewProvisioningCapnpClient(rpcConn.Bootstrap(ctx))
-	cl.connection = rpcConn
-	return cl
+	if cl.connection != nil {
+		_ = cl.connection.Close()
+	}
 }
 
 // NewProvisioningCapnpClient returns a provisioning service client using the capnp protocol

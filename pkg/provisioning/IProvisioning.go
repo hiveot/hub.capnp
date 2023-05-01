@@ -53,6 +53,9 @@ type IProvisioning interface {
 
 	// CapRefreshProvisioning provides the capability for IoT devices to refresh
 	CapRefreshProvisioning(ctx context.Context, clientID string) (IRefreshProvisioning, error)
+
+	// Release the client capability
+	Release()
 }
 
 // IManageProvisioning provides the capability to manage provisioning requests and OOB secrets

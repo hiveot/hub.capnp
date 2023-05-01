@@ -3,10 +3,8 @@ package capnpclient
 
 import (
 	"capnproto.org/go/capnp/v3"
-	"context"
-	"net"
-
 	"capnproto.org/go/capnp/v3/rpc"
+	"context"
 
 	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/pkg/directory"
@@ -54,26 +52,14 @@ func (cl *DirectoryCapnpClient) CapUpdateDirectory(
 
 // Release the client capability
 // Release MUST be called after use
-func (cl *DirectoryCapnpClient) Release() error {
+func (cl *DirectoryCapnpClient) Release() {
 	cl.capability.Release()
-	return nil
-}
-
-// NewDirectoryCapnpClientConnection returns a directory store client using the capnp protocol
-//
-//	ctx is the context for retrieving capabilities
-//	connection is the client connection to the capnp server
-func NewDirectoryCapnpClientConnection(ctx context.Context, connection net.Conn) *DirectoryCapnpClient {
-	transport := rpc.NewStreamTransport(connection)
-	rpcConn := rpc.NewConn(transport, nil)
-	cl := NewDirectoryCapnpClient(rpcConn.Bootstrap(ctx))
-	cl.connection = rpcConn
-	return cl
 }
 
 // NewDirectoryCapnpClient creates a new client for using the directory service
 // The capnp client can be that of the service, the resolver or the gateway
-func NewDirectoryCapnpClient(capClient capnp.Client) *DirectoryCapnpClient {
+// func NewDirectoryCapnpClient(capClient capnp.Client) *DirectoryCapnpClient {
+func NewDirectoryCapnpClient(capClient capnp.Client) directory.IDirectory {
 	// use a direct connection to the service
 	capability := hubapi.CapDirectoryService(capClient)
 	cl := &DirectoryCapnpClient{
@@ -82,3 +68,9 @@ func NewDirectoryCapnpClient(capClient capnp.Client) *DirectoryCapnpClient {
 	}
 	return cl
 }
+
+//
+//func RegisterDirectoryCapnpClient(reslv resolver.ResolverClient) {
+//
+//	resolver.RegisterCapnpProxy[directory.IDirectory](NewDirectoryCapnpClient)
+//}

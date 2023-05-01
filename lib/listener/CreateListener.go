@@ -33,16 +33,21 @@ func CreateTLSListener(
 // If noTLS is set then serverCert and caCert can be nil. Obviously the
 // listener will not use encryption.
 //
-//	addr IP address. "" to listen on all addresses
-//	port to listen on
-//	noTLS to listen on the port without encryption
-//	serverCert server's TLS certificate to authenticate as, or nil if noTLS is true
-//	caCert server's CA to authenticate as, or nil if noTLS is true
+// NOTE: if an address is given, then this no longer listens on localhost. Any
+//
+//	 locally run service or SSR client using localhost will not be able to connect.
+//
+//		addr IP address. "" to listen on all addresses
+//		port to listen on
+//		noTLS to listen on the port without encryption
+//		serverCert server's TLS certificate to authenticate as, or nil if noTLS is true
+//		caCert server's CA to authenticate as, or nil if noTLS is true
 func CreateListener(
 	addr string, port int, noTLS bool, serverCert *tls.Certificate, caCert *x509.Certificate) (
 	lis net.Listener, err error) {
 
 	logrus.Infof("creating listener on %s:%d", addr, port)
+	// TODO: listen on multiple interfaces if an address is given???
 	lis, err = net.Listen("tcp", fmt.Sprintf("%s:%d", addr, port))
 	if !noTLS {
 		lis = CreateTLSListener(lis, serverCert, caCert)

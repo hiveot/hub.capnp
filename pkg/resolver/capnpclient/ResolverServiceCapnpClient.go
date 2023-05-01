@@ -2,10 +2,8 @@ package capnpclient
 
 import (
 	"capnproto.org/go/capnp/v3"
-	"context"
-	"net"
-
 	"capnproto.org/go/capnp/v3/rpc"
+	"context"
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub/api/go/hubapi"
@@ -73,20 +71,6 @@ func (cl *ResolverCapnpClient) Release() {
 			logrus.Error(err)
 		}
 	}
-}
-
-// NewResolverCapnpClientConnection create a new resolver client for obtaining capabilities.
-// Intended for remote clients such as IoT devices, services or users to connect to the
-// Hub's resolver. A connection must be established first.
-//
-//	conn is the network connection to use.
-func NewResolverCapnpClientConnection(ctx context.Context, conn net.Conn) *ResolverCapnpClient {
-
-	transport := rpc.NewStreamTransport(conn)
-	rpcConn := rpc.NewConn(transport, nil)
-	cl := NewResolverCapnpClient(rpcConn.Bootstrap(ctx))
-	cl.connection = rpcConn
-	return cl
 }
 
 // NewResolverCapnpClient create a new resolver client for obtaining capabilities.

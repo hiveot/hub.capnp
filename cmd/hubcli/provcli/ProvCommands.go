@@ -87,9 +87,9 @@ func HandleAddOobSecret(ctx context.Context, runFolder string, deviceID string, 
 	var pc provisioning.IProvisioning
 	var secrets []provisioning.OOBSecret
 
-	conn, err := hubclient.ConnectToUDS(provisioning.ServiceName, runFolder)
+	capClient, err := hubclient.ConnectWithCapnpUDS(provisioning.ServiceName, runFolder)
 	if err == nil {
-		pc = capnpclient.NewProvisioningCapnpClientConnection(ctx, conn)
+		pc = capnpclient.NewProvisioningCapnpClient(capClient)
 	}
 	if err != nil {
 		return err
@@ -113,9 +113,9 @@ func HandleAddOobSecret(ctx context.Context, runFolder string, deviceID string, 
 func HandleApproveRequest(ctx context.Context, runFolder string, deviceID string) error {
 	var pc provisioning.IProvisioning
 
-	conn, err := hubclient.ConnectToUDS(provisioning.ServiceName, runFolder)
+	capClient, err := hubclient.ConnectWithCapnpUDS(provisioning.ServiceName, runFolder)
 	if err == nil {
-		pc = capnpclient.NewProvisioningCapnpClientConnection(ctx, conn)
+		pc = capnpclient.NewProvisioningCapnpClient(capClient)
 		manage, _ := pc.CapManageProvisioning(ctx, "hubcli")
 		err = manage.ApproveRequest(ctx, deviceID)
 	}
@@ -127,9 +127,9 @@ func HandleGetApprovedRequests(ctx context.Context, runFolder string) error {
 	var pc provisioning.IProvisioning
 	var provStatus []provisioning.ProvisionStatus
 
-	conn, err := hubclient.ConnectToUDS(provisioning.ServiceName, runFolder)
+	capClient, err := hubclient.ConnectWithCapnpUDS(provisioning.ServiceName, runFolder)
 	if err == nil {
-		pc = capnpclient.NewProvisioningCapnpClientConnection(ctx, conn)
+		pc = capnpclient.NewProvisioningCapnpClient(capClient)
 		manage, _ := pc.CapManageProvisioning(ctx, "hubcli")
 		provStatus, err = manage.GetApprovedRequests(ctx)
 	}
@@ -153,9 +153,9 @@ func HandleGetPendingRequests(ctx context.Context, runFolder string) error {
 	var pc provisioning.IProvisioning
 	var provStatus []provisioning.ProvisionStatus
 
-	conn, err := hubclient.ConnectToUDS(provisioning.ServiceName, runFolder)
+	capClient, err := hubclient.ConnectWithCapnpUDS(provisioning.ServiceName, runFolder)
 	if err == nil {
-		pc = capnpclient.NewProvisioningCapnpClientConnection(ctx, conn)
+		pc = capnpclient.NewProvisioningCapnpClient(capClient)
 		manage, _ := pc.CapManageProvisioning(ctx, "hubcli")
 		provStatus, err = manage.GetPendingRequests(ctx)
 	}

@@ -1,10 +1,9 @@
 package capnpclient
 
 import (
-	"context"
-	"net"
-
+	"capnproto.org/go/capnp/v3"
 	"capnproto.org/go/capnp/v3/rpc"
+	"context"
 
 	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/pkg/launcher"
@@ -93,14 +92,12 @@ func (cl *LauncherCapnpClient) StopAll(ctx context.Context) (err error) {
 //
 //	ctx is the context for obtaining capabilities
 //	connection is the connection to the capnp RPC server
-func NewLauncherCapnpClient(ctx context.Context, connection net.Conn) (*LauncherCapnpClient, error) {
+func NewLauncherCapnpClient(capClient capnp.Client) (*LauncherCapnpClient, error) {
 	var cl *LauncherCapnpClient
-	transport := rpc.NewStreamTransport(connection)
-	rpcConn := rpc.NewConn(transport, nil)
-	capability := hubapi.CapLauncher(rpcConn.Bootstrap(ctx))
+	capability := hubapi.CapLauncher(capClient)
 
 	cl = &LauncherCapnpClient{
-		connection: rpcConn,
+		connection: nil,
 		capability: capability,
 	}
 

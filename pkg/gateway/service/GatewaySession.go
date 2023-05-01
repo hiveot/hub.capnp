@@ -1,13 +1,12 @@
 package service
 
 import (
+	"capnproto.org/go/capnp/v3"
+	"capnproto.org/go/capnp/v3/server"
 	"context"
 	"crypto/tls"
 	"fmt"
-	"net"
-
-	"capnproto.org/go/capnp/v3"
-	"capnproto.org/go/capnp/v3/server"
+	"github.com/hiveot/hub/lib/hubclient"
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub/api/go/hubapi"
@@ -36,8 +35,6 @@ type GatewaySession struct {
 	//
 	resolverPath    string
 	resolverService *capnpclient.ResolverCapnpClient
-	//resolverClient  *hubapi.CapResolverService
-	resolverConn net.Conn
 
 	// Cached user authn capability for login and refresh
 	authnService authn.IAuthnService
@@ -159,9 +156,6 @@ func (session *GatewaySession) Release() {
 	if session.resolverService != nil {
 		session.resolverService.Release()
 	}
-	if session.resolverConn != nil {
-		_ = session.resolverConn.Close() // is this needed?
-	}
 	// do not release the userAuthn service as it belongs to the service, not the session
 }
 
@@ -181,7 +175,6 @@ func StartGatewaySession(
 	resolverPath string, clientID string, authType string, clientConn *tls.Conn,
 	authnService authn.IAuthnService) (*GatewaySession, error) {
 
-	ctx := context.Background()
 	session := &GatewaySession{
 		clientID:     clientID,
 		clientConn:   clientConn,
@@ -192,13 +185,12 @@ func StartGatewaySession(
 	if clientConn != nil {
 
 	}
-	resolverConn, err := net.Dial("unix", resolverPath)
+	capClient, err := hubclient.ConnectWithCapnpUDS("", resolverPath)
 	if err != nil {
 		err = fmt.Errorf("unable to connect to the resolver socket at '%s': %s", resolverPath, err)
 		return nil, err
 	}
-	session.resolverConn = resolverConn
-	session.resolverService = capnpclient.NewResolverCapnpClientConnection(ctx, resolverConn)
+	session.resolverService = capnpclient.NewResolverCapnpClient(capClient)
 
 	return session, err
 }

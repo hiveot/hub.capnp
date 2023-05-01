@@ -49,16 +49,23 @@ type IGatewaySession interface {
 
 	// Login to the gateway as a user in order to get additional capabilities.
 	//
-	// If successful this sets the session clientID to the given client ID.
+	// If successful this sets the session clientID to the given client ID and
+	// sets the session to authenticated.
+	//
 	// This returns an authToken and refreshToken that can be used with services that require
-	// authentication.
-	// If the authentication token has expired then call refresh.
+	// authentication. The refresh token is valid for N days where N is configured
+	// in the service. Default is defined in authn and is 14 days.
+	// The refresh token can be used with 'Refresh' to reauthenticate in a new sessions
+	// as long as the token is still valid.
 	Login(ctx context.Context, clientID, password string) (authToken, refreshToken string, err error)
 
 	// Ping helps determine if the gateway is reachable
 	Ping(ctx context.Context) (reply ClientInfo, err error)
 
-	// Refresh the auth token pair
+	// Refresh the auth token pair and reauthenticates the session.
+	// The token must be for the given clientID and must still be valid.
+	// This returns a new refresh token that is valid for another N days, where N is configured
+	// in the service.
 	Refresh(ctx context.Context, clientID string, oldRefreshToken string) (newAuthToken, newRefreshToken string, err error)
 
 	// Release the session when its incoming RPC connection closes

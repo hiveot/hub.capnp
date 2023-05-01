@@ -10,10 +10,10 @@ import (
 const ServiceName = hubapi.AuthnServiceName
 
 // DefaultAccessTokenValiditySec with access token validity in seconds
-const DefaultAccessTokenValiditySec = 3600
+const DefaultAccessTokenValiditySec = hubapi.DefaultAccessTokenValiditySec
 
 // DefaultRefreshTokenValiditySec with Refresh token validity before refresh
-const DefaultRefreshTokenValiditySec = 1209600
+const DefaultRefreshTokenValiditySec = hubapi.DefaultRefreshTokenValiditySec
 
 // UserProfile contains user information
 type UserProfile struct {
@@ -38,10 +38,10 @@ type IAuthnService interface {
 // Intended for administrators only.
 type IManageAuthn interface {
 
-	// AddUser adds a user and generates a temporary password
+	// AddUser adds a user and generates a temporary password if one isn't given
 	// If the loginID already exists then an error is returned
 	// Users can set their own user name with IUserAuth
-	AddUser(ctx context.Context, loginID string) (password string, err error)
+	AddUser(ctx context.Context, loginID string, password string) (newPassword string, err error)
 
 	// ListUsers provide a list of users and their info
 	ListUsers(ctx context.Context) (profiles []UserProfile, err error)
@@ -51,7 +51,8 @@ type IManageAuthn interface {
 	RemoveUser(ctx context.Context, loginID string) error
 
 	// ResetPassword reset the user's password and returns a new password
-	ResetPassword(ctx context.Context, loginID string) (newPassword string, err error)
+	// the given password is optional. Use "" to generate a password
+	ResetPassword(ctx context.Context, loginID string, password string) (newPassword string, err error)
 
 	// Release the provided capability after use
 	Release()

@@ -1,15 +1,12 @@
 package capnpclient
 
 import (
-	"context"
-	"crypto/tls"
-	"crypto/x509"
-
+	"capnproto.org/go/capnp/v3"
 	"capnproto.org/go/capnp/v3/rpc"
+	"context"
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub/api/go/hubapi"
-	"github.com/hiveot/hub/lib/hubclient"
 	"github.com/hiveot/hub/pkg/gateway"
 	"github.com/hiveot/hub/pkg/resolver"
 	"github.com/hiveot/hub/pkg/resolver/capserializer"
@@ -61,10 +58,15 @@ func (cl *GatewaySessionCapnpClient) Login(ctx context.Context,
 func (cl *GatewaySessionCapnpClient) Ping(
 	ctx context.Context) (clientInfo gateway.ClientInfo, err error) {
 
+	isValid := cl.capability.IsValid()
+
 	method, release := cl.capability.Ping(ctx, nil)
 	defer release()
-
+	isValid = cl.capability.IsValid()
+	_ = isValid
 	resp, err := method.Struct()
+	isValid = cl.capability.IsValid()
+	_ = isValid
 	if err == nil {
 		clInfoCapnp, err2 := resp.Reply()
 		err = err2
@@ -137,23 +139,27 @@ func (cl *GatewaySessionCapnpClient) Release() {
 //					address is the UDS or TCP address:port of the gateway
 //
 // This returns a client for a gateway session
-func ConnectToGateway(fullUrl string, searchTimeSec int,
-	clientCert *tls.Certificate, caCert *x509.Certificate) (
-	gatewayClient gateway.IGatewaySession, err error) {
-
-	rpcCon, hubClient, err := hubclient.ConnectToHubClient(fullUrl, searchTimeSec, clientCert, caCert)
-
-	capGatewaySession := hubapi.CapGatewaySession(hubClient)
-
-	cl := &GatewaySessionCapnpClient{
-		connection: rpcCon,
-		capability: capGatewaySession,
-	}
-	return cl, err
-}
+//func ConnectToGateway(fullUrl string, searchTimeSec int,
+//	clientCert *tls.Certificate, caCert *x509.Certificate) (
+//	gatewayClient gateway.IGatewaySession, err error) {
+//
+//	rpcCon, hubClient, err := hubclient.ConnectWithCapnp(fullUrl, searchTimeSec, clientCert, caCert)
+//
+//	capGatewaySession := hubapi.CapGatewaySession(hubClient)
+//
+//	cl := &GatewaySessionCapnpClient{
+//		connection: rpcCon,
+//		capability: capGatewaySession,
+//	}
+//	return cl, err
+//}
 
 // NewGatewaySessionCapnpClient returns a POGS wrapper around the gateway capnp instance
-func NewGatewaySessionCapnpClient(capability hubapi.CapGatewaySession) gateway.IGatewaySession {
-	gws := GatewaySessionCapnpClient{capability: capability}
+func NewGatewaySessionCapnpClient(capClient capnp.Client) gateway.IGatewaySession {
+	capGateway := hubapi.CapGatewaySession(capClient)
+	gws := GatewaySessionCapnpClient{
+		capability: capGateway,
+		connection: nil,
+	}
 	return &gws
 }

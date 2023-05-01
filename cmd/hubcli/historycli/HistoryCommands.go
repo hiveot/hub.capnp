@@ -81,9 +81,9 @@ func HandleHistoryInfo(ctx context.Context, runFolder string) error {
 	var hist history.IHistoryService
 	var rd history.IReadHistory
 
-	conn, err := hubclient.ConnectToUDS(history.ServiceName, runFolder)
+	capClient, err := hubclient.ConnectWithCapnpUDS(history.ServiceName, runFolder)
 	if err == nil {
-		hist = capnpclient.NewHistoryCapnpClientConnection(ctx, conn)
+		hist = capnpclient.NewHistoryCapnpClient(capClient)
 		rd, err = hist.CapReadHistory(ctx, "hubcli", "", "")
 	}
 	if err != nil {
@@ -97,7 +97,7 @@ func HandleHistoryInfo(ctx context.Context, runFolder string) error {
 	fmt.Println(fmt.Sprintf("Engine       %s", info.Engine))
 
 	rd.Release()
-	return conn.Close()
+	return err
 }
 
 // HandleListEvents lists the history content
@@ -105,9 +105,9 @@ func HandleListEvents(ctx context.Context, runFolder string, publisherID, thingI
 	var hist history.IHistoryService
 	var rd history.IReadHistory
 
-	conn, err := hubclient.ConnectToUDS(history.ServiceName, runFolder)
+	capClient, err := hubclient.ConnectWithCapnpUDS(history.ServiceName, runFolder)
 	if err == nil {
-		hist = capnpclient.NewHistoryCapnpClientConnection(ctx, conn)
+		hist = capnpclient.NewHistoryCapnpClient(capClient)
 		rd, err = hist.CapReadHistory(ctx, "hubcli", publisherID, thingID)
 	}
 	if err != nil {
@@ -135,7 +135,6 @@ func HandleListEvents(ctx context.Context, runFolder string, publisherID, thingI
 		)
 	}
 	rd.Release()
-	err = conn.Close()
 	return err
 }
 
@@ -145,9 +144,9 @@ func HandleListRetainedEvents(ctx context.Context, runFolder string) error {
 	var hist history.IHistoryService
 	var mngRet history.IManageRetention
 
-	conn, err := hubclient.ConnectToUDS(history.ServiceName, runFolder)
+	capClient, err := hubclient.ConnectWithCapnpUDS(history.ServiceName, runFolder)
 	if err == nil {
-		hist = capnpclient.NewHistoryCapnpClientConnection(ctx, conn)
+		hist = capnpclient.NewHistoryCapnpClient(capClient)
 		mngRet, err = hist.CapManageRetention(ctx, "hubcli")
 	}
 	if err != nil {
@@ -171,7 +170,6 @@ func HandleListRetainedEvents(ctx context.Context, runFolder string) error {
 		)
 	}
 	mngRet.Release()
-	err = conn.Close()
 	return err
 }
 
@@ -180,9 +178,9 @@ func HandleListLatestEvents(
 	var hist history.IHistoryService
 	var readHist history.IReadHistory
 
-	conn, err := hubclient.ConnectToUDS(history.ServiceName, runFolder)
+	capClient, err := hubclient.ConnectWithCapnpUDS(history.ServiceName, runFolder)
 	if err == nil {
-		hist = capnpclient.NewHistoryCapnpClientConnection(ctx, conn)
+		hist = capnpclient.NewHistoryCapnpClient(capClient)
 		readHist, err = hist.CapReadHistory(ctx, "hubcli", publisherID, thingID)
 	}
 	if err != nil {
@@ -205,6 +203,5 @@ func HandleListLatestEvents(
 		)
 	}
 	readHist.Release()
-	err = conn.Close()
 	return err
 }

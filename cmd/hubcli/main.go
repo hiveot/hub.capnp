@@ -80,6 +80,7 @@ func main() {
 			authncli.AuthnListUsersCommand(ctx, &runFolder),
 			authncli.AuthnAddUserCommand(ctx, &runFolder),
 			authncli.AuthnRemoveUserCommand(ctx, &runFolder),
+			authncli.AuthnPasswordCommand(ctx, &runFolder),
 
 			authzcli.AuthzListGroupsCommand(ctx, &runFolder),
 			//authzcli.AuthzSetClientRoleCommand(ctx, &certsFolder),

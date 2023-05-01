@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"github.com/hiveot/hub/lib/hubclient"
 	"gopkg.in/yaml.v3"
 	"os"
 	"path"
@@ -113,7 +114,8 @@ func HandleListGateway(ctx context.Context, fullURL string, searchTimeSec int, c
 	}
 	//fullUrl := fmt.Sprintf("%s:%d", gwConfig.Address, gwConfig.TcpPort)
 	//fullUrl := fmt.Sprintf("wss://%s:%d%s", gwConfig.Address, gwConfig.WssPort, gwConfig.WssPath)
-	gw, err := capnpclient.ConnectToGateway(fullURL, searchTimeSec, clientCert, caCert)
+	capClient, err := hubclient.ConnectWithCapnpTCP(fullURL, clientCert, caCert)
+	gw := capnpclient.NewGatewaySessionCapnpClient(capClient)
 	if err != nil {
 		return err
 	}

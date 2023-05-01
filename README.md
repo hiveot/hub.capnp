@@ -112,9 +112,9 @@ Prerequisites:
 1. An x86 or arm based Linuxsystem. Ubuntu, Debian, Raspberrian 
 2. Golang 1.19 or newer (with GOPATH set)
 3. GCC Make any 2020+ version
-4. Cap'n proto v0.8 or newer: https://capnproto.org/install.html (only when rebuilding the API)
-5. tsc (typescript compiler) for javascript bindings
-
+4. Cap'n proto v0.8 or newer: https://capnproto.org/install.html  (only when rebuilding the capnproto API)
+5. protobuf (snap)
+  (only when rebuilding the gRPC API)
 
 ### Build Hub Services And CLI
 

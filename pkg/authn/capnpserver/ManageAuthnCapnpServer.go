@@ -18,11 +18,12 @@ func (capsrv *ManageAuthnCapnpServer) AddUser(
 
 	args := call.Args()
 	loginID, _ := args.LoginID()
-	passwd, err := capsrv.svc.AddUser(ctx, loginID)
+	newPassword, _ := args.Password()
+	password, err := capsrv.svc.AddUser(ctx, loginID, newPassword)
 	if err == nil {
 		res, err2 := call.AllocResults()
 		err = err2
-		_ = res.SetPassword(passwd)
+		_ = res.SetPassword(password)
 	}
 	return err
 }
@@ -51,10 +52,11 @@ func (capsrv *ManageAuthnCapnpServer) ResetPassword(
 	ctx context.Context, call hubapi.CapManageAuthn_resetPassword) error {
 	args := call.Args()
 	loginID, _ := args.LoginID()
-	newPassword, err := capsrv.svc.ResetPassword(ctx, loginID)
+	newPassword, _ := args.NewPassword()
+	password, err := capsrv.svc.ResetPassword(ctx, loginID, newPassword)
 	if err == nil {
 		resp, _ := call.AllocResults()
-		err = resp.SetNewPassword(newPassword)
+		err = resp.SetPassword(password)
 	}
 	return err
 }

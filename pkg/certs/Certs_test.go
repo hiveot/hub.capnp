@@ -3,6 +3,7 @@ package certs_test
 import (
 	"context"
 	"crypto/x509"
+	"github.com/hiveot/hub/lib/hubclient"
 	"net"
 	"os"
 	"path"
@@ -44,11 +45,10 @@ func NewService() (svc certs.ICerts, stopFunc func()) {
 		srvListener, _ := net.Listen("unix", testSocket)
 		go capnpserver.StartCertsCapnpServer(certSvc, srvListener)
 		// connect the client to the server above
-		clConn, _ := net.Dial("unix", testSocket)
-		capClient := capnpclient.NewCertsCapnpClientConnection(context.Background(), clConn)
-		return capClient, func() {
-			capClient.Release()
-			_ = clConn.Close()
+		capClient, _ := hubclient.ConnectWithCapnpUDS("", testSocket)
+		certsClient := capnpclient.NewCertsCapnpClient(capClient)
+		return certsClient, func() {
+			certsClient.Release()
 			_ = srvListener.Close()
 			_ = certSvc.Stop()
 		}

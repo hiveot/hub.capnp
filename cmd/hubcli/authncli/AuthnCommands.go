@@ -14,7 +14,7 @@ import (
 // AuthnAddUserCommand adds a user
 func AuthnAddUserCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
-		Name:      "addu", // loginID is ignored in the command
+		Name:      "addu",
 		Usage:     "Add a user and generate a temporary password",
 		ArgsUsage: "<userID>",
 		Category:  "authentication",
@@ -66,15 +66,37 @@ func AuthnRemoveUserCommand(ctx context.Context, runFolder *string) *cli.Command
 	}
 }
 
+// AuthnPasswordCommand replaces a user's password
+func AuthnPasswordCommand(ctx context.Context, runFolder *string) *cli.Command {
+	return &cli.Command{
+		Name:      "password",
+		Usage:     "Change password. (careful, no confirmation)",
+		ArgsUsage: "<loginID> <newpass>",
+		Category:  "authentication",
+		Action: func(cCtx *cli.Context) error {
+			newPassword := ""
+			if cCtx.NArg() != 2 {
+				err := fmt.Errorf("expected 2 arguments")
+				return err
+			}
+			loginID := cCtx.Args().Get(0)
+			newPassword = cCtx.Args().Get(1)
+			err := HandleResetPassword(ctx, *runFolder, loginID, newPassword)
+			return err
+		},
+	}
+}
+
 // HandleAddUser adds a user
 func HandleAddUser(ctx context.Context, runFolder string, loginID string) error {
 	var err error
 	var authnClient authn.IAuthnService
 	var manageAuthn authn.IManageAuthn
+	var newPassword string
 
-	conn, err := hubclient.ConnectToUDS(authn.ServiceName, runFolder)
+	capClient, err := hubclient.ConnectWithCapnpUDS(authn.ServiceName, runFolder)
 	if err == nil {
-		authnClient = capnpclient.NewAuthnCapnpClientConnection(ctx, conn)
+		authnClient = capnpclient.NewAuthnCapnpClient(capClient)
 	}
 	if err == nil {
 		manageAuthn, _ = authnClient.CapManageAuthn(ctx, "hubcli")
@@ -82,13 +104,15 @@ func HandleAddUser(ctx context.Context, runFolder string, loginID string) error 
 	if err != nil {
 		return err
 	}
-	newPassword, err := manageAuthn.AddUser(ctx, loginID)
+	tmpPassword, err := manageAuthn.AddUser(ctx, loginID, newPassword)
 
 	if err != nil {
 		fmt.Println("Error: " + err.Error())
+	} else if newPassword == "" {
+		fmt.Println("User " + loginID + " added successfully. Temp password: " + tmpPassword)
 	} else {
-		fmt.Println("User " + loginID + " added successfully. Temp password: " + newPassword)
-
+		// no need to show the given password
+		fmt.Println("User " + loginID + " added successfully")
 	}
 	return err
 }
@@ -99,9 +123,9 @@ func HandleListUsers(ctx context.Context, runFolder string) error {
 	var authnClient authn.IAuthnService
 	var manageAuthn authn.IManageAuthn
 
-	conn, err := hubclient.ConnectToUDS(authn.ServiceName, runFolder)
+	capClient, err := hubclient.ConnectWithCapnpUDS(authn.ServiceName, runFolder)
 	if err == nil {
-		authnClient = capnpclient.NewAuthnCapnpClientConnection(ctx, conn)
+		authnClient = capnpclient.NewAuthnCapnpClient(capClient)
 	}
 	if err == nil {
 		manageAuthn, _ = authnClient.CapManageAuthn(ctx, "hubcli")
@@ -129,9 +153,9 @@ func HandleRemoveUser(ctx context.Context, runFolder string, loginID string) err
 	var authnClient authn.IAuthnService
 	var manageAuthn authn.IManageAuthn
 
-	conn, err := hubclient.ConnectToUDS(authn.ServiceName, runFolder)
+	capClient, err := hubclient.ConnectWithCapnpUDS(authn.ServiceName, runFolder)
 	if err == nil {
-		authnClient = capnpclient.NewAuthnCapnpClientConnection(ctx, conn)
+		authnClient = capnpclient.NewAuthnCapnpClient(capClient)
 	}
 	if err == nil {
 		manageAuthn, _ = authnClient.CapManageAuthn(ctx, "hubcli")
@@ -147,6 +171,38 @@ func HandleRemoveUser(ctx context.Context, runFolder string, loginID string) err
 	} else {
 		fmt.Println("User " + loginID + " removed")
 
+	}
+	return err
+}
+
+// HandleResetPassword resets or replaces a password
+//
+//	loginID is the ID or email of the user
+//	newPassword can be empty to aut-generate a password
+func HandleResetPassword(ctx context.Context, runFolder string, loginID string, newPassword string) error {
+	var err error
+	var authnClient authn.IAuthnService
+	var manageAuthn authn.IManageAuthn
+
+	capClient, err := hubclient.ConnectWithCapnpUDS(authn.ServiceName, runFolder)
+	if err == nil {
+		authnClient = capnpclient.NewAuthnCapnpClient(capClient)
+	}
+	if err == nil {
+		manageAuthn, _ = authnClient.CapManageAuthn(ctx, "hubcli")
+	}
+	if err != nil {
+		return err
+	}
+	// TODO: that the user's data should also be removed
+	password, err := manageAuthn.ResetPassword(ctx, loginID, newPassword)
+
+	if err != nil {
+		fmt.Println("Error: " + err.Error())
+	} else if newPassword == "" {
+		fmt.Println("User "+loginID+" password has been updated. Generated password:", password)
+	} else {
+		fmt.Println("User " + loginID + " password has been updated")
 	}
 	return err
 }

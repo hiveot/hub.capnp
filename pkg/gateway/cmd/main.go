@@ -2,23 +2,16 @@ package main
 
 import (
 	"context"
-	"crypto/ecdsa"
-	"crypto/tls"
-	"crypto/x509"
 	"net"
 	"os"
 
 	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub/lib/certsclient"
-	"github.com/hiveot/hub/lib/hubclient"
 	"github.com/hiveot/hub/lib/listener"
 	"github.com/hiveot/hub/lib/svcconfig"
 
-	"github.com/hiveot/hub/api/go/hubapi"
-	"github.com/hiveot/hub/pkg/certs"
 	"github.com/hiveot/hub/pkg/certs/capnpclient"
-	"github.com/hiveot/hub/pkg/certs/service/selfsigned"
 	"github.com/hiveot/hub/pkg/gateway"
 	"github.com/hiveot/hub/pkg/gateway/capnpserver"
 	"github.com/hiveot/hub/pkg/gateway/config"
@@ -47,7 +40,7 @@ func main() {
 	// certificates are needed for TLS connections to the capnp server.
 	// on each restart a new set of keys is used and a new certificate is requested.
 	keys := certsclient.CreateECDSAKeys()
-	serverCert, caCert, err := RenewServiceCerts(serviceName, ipAddr, keys, f.Run)
+	serverCert, caCert, err := capnpclient.RenewServiceCert(serviceName, ipAddr, keys, f.Run)
 	if err != nil {
 		logrus.Panicf("certs service not reachable when starting the gateway: %s", err)
 	}
@@ -122,50 +115,4 @@ func main() {
 		logrus.Errorf("%s service shutdown with error: %s", serviceName, err)
 		os.Exit(-1)
 	}
-}
-
-// RenewServiceCerts obtains a new service certificate from the certs service
-// This returns a service certificate signed by the CA, and the certificate of
-// the CA that signed the service cert.
-// This panics if the certs service is not reachable
-//
-//	serviceID is the instance ID of the service used as the CN on the certificate
-//	ipAddr ip address the service is listening on or "" for outbound IP
-//	pubKeyPEM is the public key for the certificate
-//	socketFolder is the location of the certs service socket
-func RenewServiceCerts(serviceID string, ipAddr string, keys *ecdsa.PrivateKey, socketFolder string) (
-	svcCert *tls.Certificate, caCert *x509.Certificate, err error) {
-	var capServiceCert certs.IServiceCerts
-	if ipAddr == "" {
-		ip := listener.GetOutboundIP("")
-		ipAddr = ip.String()
-	}
-	names := []string{"127.0.0.1", ipAddr}
-	pubKeyPEM, err := certsclient.PublicKeyToPEM(&keys.PublicKey)
-	if err != nil {
-		logrus.Errorf("invalid public key: %s", err)
-		return nil, nil, err
-	}
-
-	ctx := context.Background()
-	csConn, err := hubclient.ConnectToUDS(certs.ServiceName, socketFolder)
-	if err != nil {
-		logrus.Errorf("unable to connect to certs service: %s. Workaround with local instance", err)
-		// FIXME: workaround or panic?
-		capServiceCert = selfsigned.NewServiceCertsService(caCert, nil)
-		return nil, nil, err
-	} else {
-		cs := capnpclient.NewCertsCapnpClientConnection(ctx, csConn)
-		capServiceCert, err = cs.CapServiceCerts(ctx, hubapi.AuthTypeService)
-		_ = err
-	}
-	svcPEM, caPEM, err := capServiceCert.CreateServiceCert(ctx, serviceID, pubKeyPEM, names, 0)
-	if err != nil {
-		logrus.Errorf("unable to create a service certificate: %s", err)
-		return nil, nil, err
-	}
-	caCert, _ = certsclient.X509CertFromPEM(caPEM)
-	privKeyPEM, _ := certsclient.PrivateKeyToPEM(keys)
-	newSvcCert, err := tls.X509KeyPair([]byte(svcPEM), []byte(privKeyPEM))
-	return &newSvcCert, caCert, err
 }

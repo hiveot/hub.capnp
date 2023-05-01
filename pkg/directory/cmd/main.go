@@ -3,28 +3,24 @@ package main
 
 import (
 	"context"
+	"github.com/hiveot/hub/lib/hubclient"
 	"net"
 	"path/filepath"
 
-	"github.com/hiveot/hub/lib/hubclient"
 	"github.com/hiveot/hub/lib/listener"
 	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/pkg/bucketstore/kvbtree"
 	"github.com/hiveot/hub/pkg/directory"
 	"github.com/hiveot/hub/pkg/directory/capnpserver"
 	"github.com/hiveot/hub/pkg/directory/service"
-	"github.com/hiveot/hub/pkg/pubsub"
 	"github.com/hiveot/hub/pkg/pubsub/capnpclient"
 )
 
 // name of the storage file
 const storeFile = "directorystore.json"
 
-var pubSubClient capnpclient.PubSubCapnpClient
-
 // Connect the service
 func main() {
-	var svcPubSub pubsub.IServicePubSub
 	var fullUrl = "" // TODO, from config
 
 	ctx := context.Background()
@@ -35,15 +31,20 @@ func main() {
 	storePath := filepath.Join(f.Stores, directory.ServiceName, storeFile)
 	store := kvbtree.NewKVStore(directory.ServiceName, storePath)
 
-	// subscribe to pubsub to store captured TD events. Pubsub can live anywhere
-	// and must be reached through the gateway.
-	conn, err := hubclient.ConnectToService(fullUrl, 0, clientCert, caCert)
-	if err == nil {
-		pubSubClient := capnpclient.NewPubSubCapnpClientConnection(ctx, conn)
-		svcPubSub, err = pubSubClient.CapServicePubSub(ctx, serviceID)
-	}
-	if err != nil {
+	// Initialize the resolver client and marshallers to access the certificate and pubsub services
+	// This allows them to live anywhere.
+	//resolver.RegisterCapnpMarshaller[pubsub.IPubSubService](capnpclient.NewPubSubCapnpClient, "")
+
+	// the resolver client is a proxy for all connected services including pubsub
+	fullUrl = hubclient.LocateHub("", 0)
+	capClient, err := hubclient.ConnectWithCapnpTCP(fullUrl, clientCert, caCert)
+	pubSubClient := capnpclient.NewPubSubCapnpClient(capClient)
+	if pubSubClient == nil {
 		panic("can't connect to pubsub")
+	}
+	svcPubSub, err := pubSubClient.CapServicePubSub(ctx, serviceID)
+	if err != nil {
+		panic("unable to get the service pubsub capability")
 	}
 
 	svc := service.NewDirectoryService(serviceID, store, svcPubSub)

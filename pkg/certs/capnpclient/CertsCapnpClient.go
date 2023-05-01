@@ -3,10 +3,8 @@ package capnpclient
 
 import (
 	"capnproto.org/go/capnp/v3"
-	"context"
-	"net"
-
 	"capnproto.org/go/capnp/v3/rpc"
+	"context"
 
 	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/pkg/certs"
@@ -86,16 +84,6 @@ func (cl *CertsCapnpClient) CapVerifyCerts(ctx context.Context, clientID string)
 // Release the provided capabilities after use and release resources
 func (cl *CertsCapnpClient) Release() {
 	cl.capability.Release()
-}
-
-// NewCertsCapnpClientConnection returns a capability to create certificates using the capnp protocol
-// Intended for bootstrapping the capability chain
-func NewCertsCapnpClientConnection(ctx context.Context, conn net.Conn) *CertsCapnpClient {
-	transport := rpc.NewStreamTransport(conn)
-	rpcConn := rpc.NewConn(transport, nil)
-	cl := NewCertsCapnpClient(rpcConn.Bootstrap(ctx))
-	cl.connection = rpcConn
-	return cl
 }
 
 // NewCertsCapnpClient returns a capability to create certificates //

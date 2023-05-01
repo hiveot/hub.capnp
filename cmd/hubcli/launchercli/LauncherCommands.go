@@ -69,9 +69,9 @@ func LauncherStopCommand(ctx context.Context, runFolder *string) *cli.Command {
 func HandleListServices(ctx context.Context, runFolder string) error {
 	var ls launcher.ILauncher
 
-	conn, err := hubclient.ConnectToUDS(launcher.ServiceName, runFolder)
+	capClient, err := hubclient.ConnectWithCapnpUDS(launcher.ServiceName, runFolder)
 	if err == nil {
-		ls, err = capnpclient.NewLauncherCapnpClient(ctx, conn)
+		ls, err = capnpclient.NewLauncherCapnpClient(capClient)
 	}
 	if err != nil {
 		return err
@@ -108,10 +108,9 @@ func HandleListServices(ctx context.Context, runFolder string) error {
 func HandleStartService(ctx context.Context, runFolder string, serviceName string) error {
 	var ls launcher.ILauncher
 
-	conn, err := hubclient.ConnectToUDS(launcher.ServiceName, runFolder)
-
+	capClient, err := hubclient.ConnectWithCapnpUDS(launcher.ServiceName, runFolder)
 	if err == nil {
-		ls, err = capnpclient.NewLauncherCapnpClient(ctx, conn)
+		ls, err = capnpclient.NewLauncherCapnpClient(capClient)
 	}
 	if err != nil {
 		return err
@@ -143,9 +142,9 @@ func HandleStartService(ctx context.Context, runFolder string, serviceName strin
 func HandleStopService(ctx context.Context, runFolder string, serviceName string) error {
 	var ls launcher.ILauncher
 
-	conn, err := hubclient.ConnectToUDS(launcher.ServiceName, runFolder)
+	capClient, err := hubclient.ConnectWithCapnpUDS(launcher.ServiceName, runFolder)
 	if err == nil {
-		ls, err = capnpclient.NewLauncherCapnpClient(ctx, conn)
+		ls, err = capnpclient.NewLauncherCapnpClient(capClient)
 	}
 	if err != nil {
 		return err

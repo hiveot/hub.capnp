@@ -2,6 +2,7 @@ package launcher_test
 
 import (
 	"context"
+	"github.com/hiveot/hub/lib/hubclient"
 	"net"
 	"os"
 	"path"
@@ -51,14 +52,13 @@ func newServer(useCapnp bool) (l launcher.ILauncher, stopFn func()) {
 		go capnpserver.StartLauncherCapnpServer(srvListener, svc)
 
 		// connect the client to the server above
-		clConn, _ := net.Dial("tcp", srvListener.Addr().String())
-		cl, err := capnpclient.NewLauncherCapnpClient(ctx, clConn)
+		capClient, _ := hubclient.ConnectWithCapnpTCP(srvListener.Addr().String(), nil, nil)
+		cl, err := capnpclient.NewLauncherCapnpClient(capClient)
 		if err != nil {
 			logrus.Fatalf("Failed starting capnp client: %s", err)
 		}
 		return cl, func() {
 			cl.Release()
-			_ = clConn.Close()
 			_ = srvListener.Close()
 			cancelFunc()
 			_ = svc.StopAll(ctx)

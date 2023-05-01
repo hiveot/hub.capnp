@@ -1,4 +1,4 @@
-package testsvc
+package testenv
 
 import (
 	"context"

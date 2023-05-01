@@ -24,7 +24,7 @@ func (dummy *DummyAuthnService) CapManageAuthn(
 
 // --- Manage ---
 
-func (dummy *DummyAuthnService) AddUser(_ context.Context, loginID string) (password string, err error) {
+func (dummy *DummyAuthnService) AddUser(_ context.Context, loginID string, passwd string) (password string, err error) {
 	dummy.pwMap[loginID] = loginID
 	return "newpassword", nil
 }
@@ -39,7 +39,7 @@ func (dummy *DummyAuthnService) RemoveUser(_ context.Context, loginID string) er
 	return nil
 }
 
-func (dummy *DummyAuthnService) ResetPassword(_ context.Context, loginID string) (newPassword string, err error) {
+func (dummy *DummyAuthnService) ResetPassword(_ context.Context, loginID string, newPasswd string) (password string, err error) {
 	_ = loginID
 	newpw := "newpassword"
 	return newpw, nil

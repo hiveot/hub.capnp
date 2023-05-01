@@ -17,10 +17,12 @@ type ManageAuthnCapnpClient struct {
 	capability hubapi.CapManageAuthn // capnp client of the user profile service
 }
 
-func (cl *ManageAuthnCapnpClient) AddUser(ctx context.Context, loginID string) (password string, err error) {
+func (cl *ManageAuthnCapnpClient) AddUser(ctx context.Context,
+	loginID string, newPassword string) (password string, err error) {
 
 	method, release := cl.capability.AddUser(ctx, func(params hubapi.CapManageAuthn_addUser_Params) error {
 		err2 := params.SetLoginID(loginID)
+		_ = params.SetPassword(newPassword)
 		return err2
 	})
 	defer release()
@@ -61,18 +63,19 @@ func (cl *ManageAuthnCapnpClient) RemoveUser(ctx context.Context, loginID string
 
 // ResetPassword reset the user's password and returns a new password
 func (cl *ManageAuthnCapnpClient) ResetPassword(
-	ctx context.Context, loginID string) (newPassword string, err error) {
+	ctx context.Context, loginID string, newPassword string) (password string, err error) {
 
 	method, release := cl.capability.ResetPassword(ctx, func(params hubapi.CapManageAuthn_resetPassword_Params) error {
 		err2 := params.SetLoginID(loginID)
+		params.SetNewPassword(newPassword)
 		return err2
 	})
 	defer release()
 	resp, err := method.Struct()
 	if err == nil {
-		newPassword, err = resp.NewPassword()
+		password, err = resp.Password()
 	}
-	return newPassword, err
+	return password, err
 }
 
 func (cl *ManageAuthnCapnpClient) Release() {

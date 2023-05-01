@@ -4,12 +4,11 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"flag"
-	"path"
-	"path/filepath"
-
 	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/lib/certsclient"
 	"github.com/hiveot/hub/lib/logging"
+	"path"
+	"path/filepath"
 )
 
 // SetupFolderConfig creates a folder configuration for based on commandline options.

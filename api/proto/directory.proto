@@ -1,0 +1,31 @@
+// Protocol Buffers definition for the gateway service directory API
+syntax = "proto3";
+package hiveot.grpc;
+
+option go_package = "github.com/hiveot/hub/api/go/grpc";
+//import "google/protobuf/empty.proto";
+import "thingvalue.proto";
+
+
+// Argument with Thing ID
+message ThingID_Args {
+  // Thing ID whose TD to get
+  string thingID = 1;
+}
+
+// Argument for obtaining a list of TDs
+message ListTD_Args {
+  // optional array of IDs whose TDs to get. Ignore to get all.
+  repeated string thingIDs = 1;
+  // optional limit the number of results for paging.
+  int32 limit = 2;
+  // optional starting offset for paging. Default is 0.
+  int32 offset = 3;
+}
+
+// Capabilities for reading the directory
+service CapReadDirectory {
+
+  // Get a list of TD documents the user is authorized for
+  rpc ListTD(ListTD_Args) returns (hiveot.grpc.ThingValueList);
+}

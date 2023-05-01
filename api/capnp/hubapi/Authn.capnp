@@ -47,10 +47,11 @@ interface CapManageAuthn {
 # CapManageAuthn defines the interface for managing the authentication service
 # Intended for administrators only.
 
-	addUser @0 (loginID :Text) -> (password :Text);
+	addUser @0 (loginID :Text, password :Text) -> (password :Text);
 	# AddUser adds a new user and generates a temporary password.
 	# If the user already exists an error is returned.
 	# Users can set their own name with CapUserAuthn.UpdateProfile.
+	# Optionally provide a password or use "" to auto generate one
 
 	listUsers @1() -> (profiles :List(UserProfile));
 	# ListUsers provide a list of users and their info
@@ -59,8 +60,9 @@ interface CapManageAuthn {
 	# RemoveUser removes a user and disables login
 	# Existing tokens are immediately expired (tbd)
 
-	resetPassword @3 (loginID :Text) -> (newPassword :Text);
+	resetPassword @3 (loginID :Text, newPassword :Text) -> (password :Text);
 	# ResetPassword reset the user's password and returns a new password
+	# Optionally provide a new password or use "" to auto generate one
 }
 
 interface CapUserAuthn {

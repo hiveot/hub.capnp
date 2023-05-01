@@ -3,10 +3,8 @@ package capnpclient
 
 import (
 	"capnproto.org/go/capnp/v3"
-	"context"
-	"net"
-
 	"capnproto.org/go/capnp/v3/rpc"
+	"context"
 
 	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/pkg/state"
@@ -37,19 +35,6 @@ func (cl *StateCapnpClient) CapClientState(
 func (cl *StateCapnpClient) Release() {
 	// release will release  client service instance
 	cl.capability.Release()
-}
-
-// NewStateCapnpClientConnection returns a state store client using the capnp protocol
-//
-//	ctx is the context for retrieving capabilities
-//	connection is the client connection to the capnp RPC server
-func NewStateCapnpClientConnection(ctx context.Context, connection net.Conn) *StateCapnpClient {
-
-	transport := rpc.NewStreamTransport(connection)
-	rpcConn := rpc.NewConn(transport, nil)
-	cl := NewStateCapnpClient(rpcConn.Bootstrap(ctx))
-	cl.connection = rpcConn
-	return cl
 }
 
 // NewStateCapnpClient returns a state store client using the capnp protocol

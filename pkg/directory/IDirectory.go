@@ -4,7 +4,6 @@ package directory
 
 import (
 	"context"
-
 	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/lib/thing"
 )
@@ -21,6 +20,8 @@ type IDirectory interface {
 
 	// CapUpdateDirectory provides the capability to update the thing directory
 	CapUpdateDirectory(ctx context.Context, clientID string) (IUpdateDirectory, error)
+
+	Release()
 }
 
 // IDirectoryCursor is a cursor to iterate the directory

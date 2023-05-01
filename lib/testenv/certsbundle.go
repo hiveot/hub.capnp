@@ -1,5 +1,5 @@
-// Package testsvc with managing certificates for testing
-package testsvc
+// Package testenv with managing certificates for testing
+package testenv
 
 import (
 	"bytes"
@@ -23,15 +23,20 @@ const ServerAddress = "127.0.0.1"
 
 // TestCerts contain test certificates for CA, server and plugin (client)
 type TestCerts struct {
-	CaCert    *x509.Certificate
-	CaKey     *ecdsa.PrivateKey
-	ServerKey *ecdsa.PrivateKey
-	DeviceKey *ecdsa.PrivateKey
-	PluginKey *ecdsa.PrivateKey
+	CaCert *x509.Certificate
+	CaKey  *ecdsa.PrivateKey
+
+	DeviceCert *tls.Certificate
+	DeviceID   string
+	DeviceKey  *ecdsa.PrivateKey
 
 	ServerCert *tls.Certificate
-	PluginCert *tls.Certificate
-	DeviceCert *tls.Certificate
+	ServerID   string
+	ServerKey  *ecdsa.PrivateKey
+
+	UserCert *tls.Certificate
+	UserID   string
+	UserKey  *ecdsa.PrivateKey
 }
 
 // CreateCertBundle creates new certificates for CA, Server, Plugin and Thing Device testing
@@ -39,16 +44,20 @@ type TestCerts struct {
 //
 //	this returns the x509 and tls certificates
 func CreateCertBundle() TestCerts {
-	testCerts := TestCerts{}
+	testCerts := TestCerts{
+		DeviceID: "device1",
+		ServerID: "service1",
+		UserID:   "user1",
+	}
 	testCerts.CaCert, testCerts.CaKey = CreateCA()
 	testCerts.ServerKey = certsclient.CreateECDSAKeys()
-	testCerts.PluginKey = certsclient.CreateECDSAKeys()
+	testCerts.UserKey = certsclient.CreateECDSAKeys()
 	testCerts.DeviceKey = certsclient.CreateECDSAKeys()
-	testCerts.ServerCert = CreateTlsCert("Server", "hiveot", true,
+	testCerts.ServerCert = CreateTlsCert(testCerts.ServerID, hubapi.AuthTypeService, true,
 		testCerts.ServerKey, testCerts.CaCert, testCerts.CaKey)
-	testCerts.PluginCert = CreateTlsCert("Plugin", hubapi.AuthTypeService, false,
-		testCerts.PluginKey, testCerts.CaCert, testCerts.CaKey)
-	testCerts.DeviceCert = CreateTlsCert("Device", hubapi.AuthTypeIotDevice, false,
+	testCerts.UserCert = CreateTlsCert(testCerts.UserID, hubapi.AuthTypeUser, false,
+		testCerts.UserKey, testCerts.CaCert, testCerts.CaKey)
+	testCerts.DeviceCert = CreateTlsCert(testCerts.DeviceID, hubapi.AuthTypeIotDevice, false,
 		testCerts.DeviceKey, testCerts.CaCert, testCerts.CaKey)
 	return testCerts
 }
@@ -69,7 +78,7 @@ func CreateCA() (caCert *x509.Certificate, caKey *ecdsa.PrivateKey) {
 			Organization: []string{"Testing"},
 			Province:     []string{"BC"},
 			Locality:     []string{"hiveot"},
-			CommonName:   "HiveOT CA",
+			CommonName:   "HiveOT Test CA",
 		},
 		NotBefore: time.Now().Add(-10 * time.Second),
 		NotAfter:  time.Now().Add(validity),
@@ -130,11 +139,11 @@ func CreateX509Cert(cn string, ou string, isServer bool, pubKey *ecdsa.PublicKey
 	caCert *x509.Certificate, caKey *ecdsa.PrivateKey) (cert *x509.Certificate, derBytes []byte, err error) {
 	validity := time.Hour
 
-	extkeyUsage := x509.ExtKeyUsageClientAuth
 	keyUsage := x509.KeyUsageDigitalSignature
+	extkeyUsage := []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth}
 	if isServer {
-		extkeyUsage = x509.ExtKeyUsageServerAuth
-		keyUsage = x509.KeyUsageCertSign | x509.KeyUsageCRLSign
+		extkeyUsage = []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth, x509.ExtKeyUsageClientAuth}
+		keyUsage = x509.KeyUsageDigitalSignature | x509.KeyUsageDataEncipherment | x509.KeyUsageKeyEncipherment
 	}
 	serial := time.Now().Unix() - 2
 
@@ -142,17 +151,17 @@ func CreateX509Cert(cn string, ou string, isServer bool, pubKey *ecdsa.PublicKey
 		SerialNumber: big.NewInt(serial),
 		Subject: pkix.Name{
 			Country:            []string{"CA"},
-			Organization:       []string{"Testing"},
 			Province:           []string{"BC"},
 			Locality:           []string{"hiveot"},
-			CommonName:         cn,
+			Organization:       []string{"Testing"},
 			OrganizationalUnit: []string{ou},
+			CommonName:         cn,
 			Names:              make([]pkix.AttributeTypeAndValue, 0),
 		},
 		NotBefore:   time.Now().Add(-10 * time.Second),
 		NotAfter:    time.Now().Add(validity),
 		KeyUsage:    keyUsage,
-		ExtKeyUsage: []x509.ExtKeyUsage{extkeyUsage},
+		ExtKeyUsage: extkeyUsage,
 
 		BasicConstraintsValid: true,
 		IsCA:                  false,
@@ -182,7 +191,7 @@ func CreateX509Cert(cn string, ou string, isServer bool, pubKey *ecdsa.PublicKey
 //	certsclient.SaveTLSCertToPEM(testCerts.ServerCert,
 //		path.Join(certFolder, serverCertFile),
 //		path.Join(certFolder, serverKeyFile))
-//	certsclient.SaveTLSCertToPEM(testCerts.PluginCert,
+//	certsclient.SaveTLSCertToPEM(testCerts.UserCert,
 //		path.Join(certFolder, pluginCertFile),
 //		path.Join(certFolder, pluginKeyFile))
 //}

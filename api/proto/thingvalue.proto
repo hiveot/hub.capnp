@@ -1,0 +1,34 @@
+// Protocol Buffers definition for the gateway service directory API
+syntax = "proto3";
+package hiveot.grpc;
+//import "google/protobuf/empty.proto";
+
+option go_package = "github.com/hiveot/hub/api/go/grpc";
+
+// ThingValue holds events, actions or TD documents. Anything that comes from a Thing.
+// It contains contextual information related to the Thing such as its publisherID
+message ThingValue {
+
+  // ID of the thing publishing the value.
+  string publisherID = 1;
+
+  // ID of the thing owning the value.
+  string thingID =2;
+
+  // Name of event or action as described in the thing TD
+  // If the value holds a TD then this is 'td'
+  string name =3;
+
+  // value data, serialized into a []byte array.
+  // Use of JSON is recommended as it is universally accepted and doesn't require clients to adopt capnp.
+  // However, any serialization method can be used.
+  bytes data =4;
+
+  // Timestamp the value was created, in ISO8601 format (see above).
+  string created = 5;
+}
+
+// List of ThingValue objects
+message ThingValueList {
+  repeated ThingValue values = 1;
+}

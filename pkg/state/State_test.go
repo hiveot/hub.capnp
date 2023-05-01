@@ -2,6 +2,7 @@ package state_test
 
 import (
 	"context"
+	"github.com/hiveot/hub/lib/hubclient"
 	"net"
 	"os"
 	"syscall"
@@ -55,17 +56,12 @@ func startStateService(useCapnp bool) (store state.IStateService, stopFn func(),
 			_ = capnpserver.StartStateCapnpServer(stateSvc, srvListener)
 		}()
 		// connect the client to the server above
-		clConn, err2 := net.Dial("unix", testAddress)
-		//clConn, err2 := net.Dial("tcp", srvListener.Addr().String())
-		if err2 != nil {
-			panic(err2)
-		}
-		capClient := capnpclient.NewStateCapnpClientConnection(ctx, clConn)
+		capClient, _ := hubclient.ConnectWithCapnpUDS("", testAddress)
+		stateClient := capnpclient.NewStateCapnpClient(capClient)
 		// the stop function cancels the context, closes the listener and stops the store
-		return capClient, func() {
+		return stateClient, func() {
 			// don't kill the capnp messenger yet as capabilities are being released in the test cases
-			capClient.Release()
-			_ = clConn.Close()
+			stateClient.Release()
 			cancelCtx()
 			_ = srvListener.Close()
 			_ = stateSvc.Stop()

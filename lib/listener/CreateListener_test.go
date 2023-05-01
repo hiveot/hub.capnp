@@ -14,16 +14,16 @@ import (
 
 	"github.com/hiveot/hub/lib/hubclient"
 	"github.com/hiveot/hub/lib/listener"
-	"github.com/hiveot/hub/lib/testsvc"
+	"github.com/hiveot/hub/lib/testenv"
 )
 
 // CA, server and plugin test certificate
-var certs testsvc.TestCerts
+var certs testenv.TestCerts
 
 // TestMain runs a http server
 // Used for all test cases in this package
 func TestMain(m *testing.M) {
-	certs = testsvc.CreateCertBundle()
+	certs = testenv.CreateCertBundle()
 	res := m.Run()
 	os.Exit(res)
 }
@@ -53,7 +53,7 @@ func TestConnectWriteRead(t *testing.T) {
 			// the test cert has a CN of "Plugin"
 			pcert := scs.PeerCertificates[0]
 			clientID := pcert.Subject.CommonName
-			assert.Equal(t, "Plugin", clientID)
+			assert.Equal(t, certs.UserID, clientID)
 		}
 		rwmux.Lock()
 		n, _ = srvConn.Read(readBuf)
@@ -65,7 +65,7 @@ func TestConnectWriteRead(t *testing.T) {
 	time.Sleep(time.Millisecond)
 	// create the TLS client and connect
 	fullURL := fmt.Sprintf("%s:%d", address, port)
-	conn, err := hubclient.ConnectToService(fullURL, 1, certs.PluginCert, certs.CaCert)
+	conn, err := hubclient.ConnectTCP(fullURL, certs.UserCert, certs.CaCert)
 	require.NoError(t, err)
 
 	tlsConn, valid := conn.(*tls.Conn)

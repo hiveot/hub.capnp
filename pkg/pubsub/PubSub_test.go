@@ -2,6 +2,7 @@ package pubsub_test
 
 import (
 	"context"
+	"github.com/hiveot/hub/lib/hubclient"
 	"net"
 	"os"
 	"sync/atomic"
@@ -22,7 +23,6 @@ const testAddress = "/tmp/pubsub_test.socket"
 const testUseCapnp = true
 
 func startService(useCapnp bool) (pubsub.IPubSubService, func()) {
-	ctx := context.Background()
 	svc := service.NewPubSubService()
 	err := svc.Start()
 	if err != nil {
@@ -37,11 +37,11 @@ func startService(useCapnp bool) (pubsub.IPubSubService, func()) {
 		go capnpserver.StartPubSubCapnpServer(svc, srvListener)
 
 		// connect the client to the server above
-		clConn, _ := net.Dial("unix", testAddress)
-		capClient := capnpclient.NewPubSubCapnpClientConnection(ctx, clConn)
+		capClient, _ := hubclient.ConnectWithCapnpUDS("", testAddress)
+		pubsubClient := capnpclient.NewPubSubCapnpClient(capClient)
 
-		return capClient, func() {
-			capClient.Release()
+		return pubsubClient, func() {
+			pubsubClient.Release()
 			_ = srvListener.Close()
 			// allow ongoing releases to finish
 			time.Sleep(time.Millisecond * 1)

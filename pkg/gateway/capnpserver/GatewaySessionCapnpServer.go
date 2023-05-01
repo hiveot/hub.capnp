@@ -5,6 +5,7 @@ import (
 
 	"capnproto.org/go/capnp/v3"
 	"capnproto.org/go/capnp/v3/server"
+	"github.com/sirupsen/logrus"
 
 	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/pkg/gateway/service"
@@ -43,6 +44,7 @@ func (capsrv *GatewaySessionCapnpServer) Login(
 	args := call.Args()
 	loginID, _ := args.ClientID()
 	password, _ := args.Password()
+	logrus.Infof("Capnp server login loginID=%s", loginID)
 	authToken, refreshToken, err := capsrv.session.Login(ctx, loginID, password)
 	if err == nil {
 		res, err2 := call.AllocResults()

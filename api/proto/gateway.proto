@@ -1,0 +1,30 @@
+// Protocol Buffers definition for the gateway service API
+syntax = "proto3";
+package hiveot.grpc;
+
+option go_package = "github.com/hiveot/hub/api/go/grpc";
+import "google/protobuf/empty.proto";
+
+
+message LoginRequest {
+  string clientID = 1;
+  string password = 2;
+}
+
+message LoginReply {
+  string clientID = 1;
+  string refreshToken = 2;
+}
+
+message PingRequest {
+  string clientID = 1;
+  string authType = 2;
+}
+
+// Capabilities for gateway service
+service CapGateway {
+
+  rpc Login(LoginRequest) returns (LoginReply);
+
+  rpc Ping(google.protobuf.Empty) returns (PingRequest);
+}

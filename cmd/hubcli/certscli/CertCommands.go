@@ -155,11 +155,11 @@ func HandleCreateDeviceCert(ctx context.Context, runFolder string, deviceID stri
 	var cc certs.ICerts
 	var dc certs.IDeviceCerts
 
-	conn, err := hubclient.ConnectToUDS(certs.ServiceName, runFolder)
+	capClient, err := hubclient.ConnectWithCapnpUDS(certs.ServiceName, runFolder)
 	if err != nil {
 		return err
 	}
-	cc = capnpclient.NewCertsCapnpClientConnection(ctx, conn)
+	cc = capnpclient.NewCertsCapnpClient(capClient)
 	dc, _ = cc.CapDeviceCerts(ctx, "hubcli")
 
 	pubKeyPEM, generatedPrivKey, err = LoadOrCreateKey(keyFile)
@@ -200,11 +200,11 @@ func HandleCreateServiceCert(ctx context.Context, runFolder string,
 	var cc certs.ICerts
 	var sc certs.IServiceCerts
 
-	conn, err := hubclient.ConnectToUDS(certs.ServiceName, runFolder)
+	capClient, err := hubclient.ConnectWithCapnpUDS(certs.ServiceName, runFolder)
 	if err != nil {
 		return err
 	}
-	cc = capnpclient.NewCertsCapnpClientConnection(ctx, conn)
+	cc = capnpclient.NewCertsCapnpClient(capClient)
 	sc, _ = cc.CapServiceCerts(ctx, "hubcli")
 	pubKeyPEM, generatedPrivKey, err = LoadOrCreateKey(keyFile)
 
@@ -240,11 +240,11 @@ func HandleCreateUserCert(ctx context.Context, runFolder string, clientID string
 	var cc certs.ICerts
 	var uc certs.IUserCerts
 
-	conn, err := hubclient.ConnectToUDS(certs.ServiceName, runFolder)
+	capClient, err := hubclient.ConnectWithCapnpUDS(certs.ServiceName, runFolder)
 	if err != nil {
 		return err
 	}
-	cc = capnpclient.NewCertsCapnpClientConnection(ctx, conn)
+	cc = capnpclient.NewCertsCapnpClient(capClient)
 
 	uc, _ = cc.CapUserCerts(ctx, "hubcli")
 	pubKeyPEM, generatedPrivKey, err = LoadOrCreateKey(keyFile)
