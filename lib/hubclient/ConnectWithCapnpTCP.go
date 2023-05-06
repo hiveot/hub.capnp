@@ -48,9 +48,6 @@ func ConnectTCP(fullUrl string, clientCert *tls.Certificate, caCert *x509.Certif
 		// No CA certificate so no client authentication either
 		// logrus.Warningf("destination '%s'. No CA certificate. InsecureSkipVerify used", fullUrl)
 		checkServerCert = false
-	} else if clientCert == nil {
-		// No CA certificate so no client authentication either
-		// logrus.Warningf("No client certificate for connecting to '%s'. Client auth unavailable", fullUrl)
 	} else {
 		// CA certificate is provided
 		logrus.Infof("Using TLS client auth. destination '%s'. CA certificate '%s'", fullUrl, caCert.Subject.CommonName)
@@ -121,81 +118,15 @@ func ConnectWithCapnpTCP(
 	client capnp.Client, err error) {
 
 	var conn net.Conn
-	const timeout = time.Second * 3
-	var tlsConfig *tls.Config
-	var clientCertList []tls.Certificate = nil
-	var checkServerCert bool
-	caCertPool := x509.NewCertPool()
-
-	// use gateway discovery
-	if fullUrl == "" {
-		return client, errors.New("missing service URL")
-		// this can add 0.6 MB of code so lets leave it up to the user whether this is needed
-		//fullUrl = LocateHub("", searchTimeSec)
-	}
-
-	// Use CA certificate for server authentication if it exists
-	if caCert == nil {
-		// No CA certificate so no client authentication either
-		// logrus.Warningf("destination '%s'. No CA certificate. InsecureSkipVerify used", fullUrl)
-		checkServerCert = false
-	} else if clientCert == nil {
-		// No CA certificate so no client authentication either
-		// logrus.Warningf("No client certificate for connecting to '%s'. Client auth unavailable", fullUrl)
-	} else {
-		// CA certificate is provided
-		logrus.Infof("Using TLS client auth. destination '%s'. CA certificate '%s'", fullUrl, caCert.Subject.CommonName)
-		caCertPool.AddCert(caCert)
-		checkServerCert = true
-
-		opts := x509.VerifyOptions{
-			Roots:     caCertPool,
-			KeyUsages: []x509.ExtKeyUsage{x509.ExtKeyUsageClientAuth},
-		}
-		if clientCert != nil {
-			x509Cert, _ := x509.ParseCertificate(clientCert.Certificate[0])
-			_, err = x509Cert.Verify(opts)
-			if err != nil {
-				logrus.Errorf("ConnectWithClientCert: certificate verfication failed: %s", err)
-				return client, err
-			}
-		}
-
-		// TLS setup for mutual tls client authentication
-		if clientCert != nil {
-			clientCertList = []tls.Certificate{*clientCert}
-		}
-
-		tlsConfig = &tls.Config{
-			RootCAs:            caCertPool,
-			Certificates:       clientCertList,
-			InsecureSkipVerify: !checkServerCert,
-		}
-	}
-	// default url to tcp://
-	// tcp://addr:port/path ->
-	u, err := url.Parse(fullUrl)
-	if err != nil {
-		u = &url.URL{Scheme: "tcp", Host: fullUrl}
-		fullUrl = "tcp://" + fullUrl
-	}
-	if u.Scheme == "unix" {
-		// Support Unix domain socket. TLS is not needed.
-		conn, err = net.DialTimeout(u.Scheme, u.Path, timeout)
-	} else {
-		// TCP socket
-		if tlsConfig != nil {
-			conn, err = tls.Dial(u.Scheme, u.Host, tlsConfig)
-		} else {
-			conn, err = net.DialTimeout(u.Scheme, u.Host, timeout)
-		}
-	}
+	conn, err = ConnectTCP(fullUrl, clientCert, caCert)
 
 	if err != nil {
 		err = fmt.Errorf("unable to connect to '%s'. Error: %s", fullUrl, err)
 		logrus.Error(err)
 	} else {
-		//logrus.Infof("connected to '%s'", fullUrl)
+		// add a capnp transport for this connection and return a bootstrap client
+		// the bootstrap client is a generic capnp client that can be used to send
+		// capnp encoded messages.
 		tp := rpc.NewStreamTransport(conn)
 		rpcConn := rpc.NewConn(tp, nil)
 		client = rpcConn.Bootstrap(context.Background())

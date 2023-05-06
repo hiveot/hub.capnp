@@ -5,7 +5,6 @@ import (
 	"crypto/x509"
 	"fmt"
 	"github.com/mochi-co/mqtt/v2"
-	"github.com/mochi-co/mqtt/v2/hooks/auth"
 	"github.com/mochi-co/mqtt/v2/listeners"
 	"github.com/sirupsen/logrus"
 	"sync"
@@ -16,11 +15,12 @@ const serviceName = "mqtt"
 // MqttService hooks into the mochi-co mqtt broker
 type MqttService struct {
 	mochiServer  *mqtt.Server
-	mochiHook    *MochiHook
+	mochiHook    *GatewayHook
 	gatewayUrl   string
 	sessionMutex sync.RWMutex
 	sessions     map[string]*MqttSession
 	caCert       *x509.Certificate
+	mux          sync.Mutex
 }
 
 // Start the mqtt server
@@ -32,13 +32,13 @@ type MqttService struct {
 func (svc *MqttService) Start(
 	mqttTcpPort, mqttWsPort int, serverCert *tls.Certificate, caCert *x509.Certificate, gwURL string) {
 
+	svc.mux.Lock()
+	defer svc.mux.Unlock()
 	svc.gatewayUrl = gwURL
+	svc.caCert = caCert
 
 	//srvOptions := &mqtt.Options{Capabilities: &mqtt.Capabilities{}}
 	svc.mochiServer = mqtt.New(nil)
-
-	// For development. Remove once hiveot auth hook is added
-	svc.mochiServer.AddHook(new(auth.AllowHook), nil)
 
 	// setup TLS listener for tcp and websocket
 	caCertPool := x509.NewCertPool()
@@ -82,6 +82,9 @@ func (svc *MqttService) Start(
 
 // Stop the mqtt broker
 func (svc *MqttService) Stop() error {
+	svc.mux.Lock()
+	defer svc.mux.Unlock()
+
 	err := svc.mochiServer.Close()
 	return err
 }

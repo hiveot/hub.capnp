@@ -29,7 +29,7 @@ var testCerts testenv.TestCerts = testenv.CreateCertBundle()
 // start a dummy gateway
 // returns the gateway URL to connect to
 func startDummyGateway() (dummyGw *dummy.DummyGateway, url string, err error) {
-	dummyGw = dummy.NewDummyGateway()
+	dummyGw = dummy.NewDummyGateway(nil)
 	url, err = dummyGw.Start(testCerts)
 	return dummyGw, url, err
 }
@@ -39,7 +39,7 @@ func startService() (stopFn func()) {
 	_ = os.RemoveAll(testSocketDir)
 	_ = os.MkdirAll(testSocketDir, 0700)
 
-	gw, gwURL, err := startDummyGateway()
+	dummyGW, gwURL, err := startDummyGateway()
 	if err != nil {
 		panic(err)
 	}
@@ -50,7 +50,7 @@ func startService() (stopFn func()) {
 	time.Sleep(time.Millisecond)
 	return func() {
 		_ = svc.Stop()
-		gw.Stop()
+		dummyGW.Stop()
 	}
 }
 func TestMain(m *testing.M) {
@@ -59,18 +59,41 @@ func TestMain(m *testing.M) {
 	os.Exit(res)
 }
 
-func TestStartStop(t *testing.T) {
+// connect and login using TCP
+func TestStartStopTcp(t *testing.T) {
 	stopFn := startService()
+	url := fmt.Sprintf("tls://127.0.0.1:%d", testMqttTcpPort)
+	cl := mqttclient.NewHubMqttClient()
+	err := cl.Connect(url, testClientID, "test", nil, testCerts.CaCert)
+	assert.NoError(t, err)
+	cl.Disconnect()
 	stopFn()
 }
 
-func TestLogin(t *testing.T) {
+// connect and login using websockets
+func TestStartStopWs(t *testing.T) {
 	stopFn := startService()
+	url := fmt.Sprintf("wss://127.0.0.1:%d", testMqttWSPort)
+	cl := mqttclient.NewHubMqttClient()
+	err := cl.Connect(url, testClientID, "", nil, testCerts.CaCert)
+	assert.NoError(t, err)
+	cl.Disconnect()
+	stopFn()
+}
+
+// login with a previous refresh token
+func TestTokenLogin(t *testing.T) {
+	url := fmt.Sprintf("tls://127.0.0.1:%d", testMqttTcpPort)
+	stopFn := startService()
+	cl := mqttclient.NewHubMqttClient()
+	err := cl.Connect(url, testClientID, "", nil, testCerts.CaCert)
+	assert.NoError(t, err)
+	cl.Disconnect()
 	stopFn()
 }
 
 func TestRefresh(t *testing.T) {
-	t.Error(t, "notimplemented")
+	assert.Fail(t, "notimplemented")
 }
 
 func TestPubSubEvent(t *testing.T) {
@@ -89,7 +112,7 @@ func TestPubSubEvent(t *testing.T) {
 	defer stopFn()
 
 	cl := mqttclient.NewHubMqttClient()
-	err := cl.Connect(mqttUrl, loginID, password)
+	err := cl.Connect(mqttUrl, loginID, password, nil, testCerts.CaCert)
 	require.NoError(t, err)
 
 	//

@@ -37,13 +37,6 @@ The binding obtains a publication capability for the Thing from the pubsub servi
 
 The IoT device is already connected and subscribed to action requests for its things. It receives the request via the subscribe capability and  changes the state of the switch. The state change result triggers publication of an event which confirms the action is complete.
 
-### Protocol bindings such as MQTT 
-
-MQTT is a popular message bus used with IoT. The MQTT binding provides a bridge between the internal message bus and the MQTT protocol. Messages from the MQTT bus are validated in the same way as messages from the HTTP gateway or IoT gateway.  
-
-The MQTT binding lets consumers including web browsers work seamlessly with the Hub to receive events and publish actions.
-
-This binding is a separate 'gateway' service for communicating with 3rd party clients and out of scope for this service.
 
 ### Authorization 
 
@@ -100,8 +93,8 @@ Rate limiting can be added as a middleware task, injected in the publish capabil
 
 The term topic comes from MQTT and defines the address of the message. A topic consists of multiple address parts: part1/part2/... 
 
-In the Hub's internal pubsub, a topic is constructed as: things/{publisherID}/{thingID}/{msgType}/{name}. This will match the default schema used for the MQTT binding.
-* where things is the prefix used to indicate the topic is that of a Thing event, action or td 
+In the Hub's internal pubsub, a topic is constructed as: things/{publisherID}/{thingID}/{msgType}/{name}. 
+* where "things/" is the prefix used to indicate the topic is that of a Thing event, action or td 
 * where {publisherID} is the ThingID of the device that publishes the Thing.
 * where {thingID} is the unique ID of the thing to subscribe to. ThingID's start with "urn:" as per WoT standard.
 * where {msgType} is the type of message: "td", "event" or "action" as defined per vocabulary. 
