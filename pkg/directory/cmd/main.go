@@ -29,7 +29,6 @@ func main() {
 
 	// the service uses the bucket store to store directory entries
 	storePath := filepath.Join(f.Stores, directory.ServiceName, storeFile)
-	store := kvbtree.NewKVStore(directory.ServiceName, storePath)
 
 	// Initialize the resolver client and marshallers to access the certificate and pubsub services
 	// This allows them to live anywhere.
@@ -43,24 +42,27 @@ func main() {
 		panic("can't connect to pubsub")
 	}
 	svcPubSub, err := pubSubClient.CapServicePubSub(ctx, serviceID)
-	if err != nil {
-		panic("unable to get the service pubsub capability")
-	}
 
+	store := kvbtree.NewKVStore(directory.ServiceName, storePath)
+	err = store.Open()
+	if err != nil {
+		panic("unable to open the directory store")
+	}
 	svc := service.NewDirectoryService(serviceID, store, svcPubSub)
 
 	listener.RunService(directory.ServiceName, f.SocketPath,
 		func(ctx context.Context, lis net.Listener) error {
 			// startup
-			err := svc.Start(ctx)
+			err := svc.Start()
 			if err == nil {
 				err = capnpserver.StartDirectoryServiceCapnpServer(svc, lis)
 			}
 			return err
 		}, func() error {
 			// shutdown
-			err := svc.Stop()
+			svc.Stop()
 			pubSubClient.Release()
+			err = store.Close()
 			return err
 		})
 }

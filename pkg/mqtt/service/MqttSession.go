@@ -75,6 +75,24 @@ func (session *MqttSession) getReadHistory() history.IReadHistory {
 
 // OnDisconnect release the gateway session on a disconnect
 func (session *MqttSession) OnDisconnect() {
+	if session.readHist != nil {
+		session.readHist.Release()
+	}
+	if session.readDir != nil {
+		session.readDir.Release()
+	}
+	if session.userAuthn != nil {
+		session.userAuthn.Release()
+	}
+	if session.devicePubSub != nil {
+		session.devicePubSub.Release()
+	}
+	if session.userPubSub != nil {
+		session.userPubSub.Release()
+	}
+	if session.gwClient != nil {
+		session.gwClient.Release()
+	}
 }
 
 // Login to the resolver session, most likely the gateway

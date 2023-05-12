@@ -15,7 +15,6 @@ import (
 	capnpclient2 "github.com/hiveot/hub/pkg/pubsub/capnpclient"
 	"github.com/mochi-co/mqtt/v2"
 	"github.com/mochi-co/mqtt/v2/listeners"
-	"github.com/sirupsen/logrus"
 	"sync"
 )
 
@@ -39,8 +38,10 @@ type MqttService struct {
 //	mqttTcpPort and mqttWsPort are the listening ports for TCP and websocket connections
 //	serverCert holds the TLS server certificate and key.
 //	caCert holds the CA certificate used to generate the TLS cert.
+//
+// Returns an error if startup fails
 func (svc *MqttService) Start(
-	mqttTcpPort, mqttWsPort int, serverCert *tls.Certificate, caCert *x509.Certificate) {
+	mqttTcpPort, mqttWsPort int, serverCert *tls.Certificate, caCert *x509.Certificate) error {
 
 	svc.mux.Lock()
 	defer svc.mux.Unlock()
@@ -62,31 +63,31 @@ func (svc *MqttService) Start(
 		ServerName:   "HiveOT MQTT Gateway",
 	}
 	lisCfg := &listeners.Config{TLSConfig: &tlsConfig}
-	tcplis := listeners.NewTCP(
-		serviceName+"tcp", fmt.Sprintf(":%d", mqttTcpPort), lisCfg)
-	err := svc.mochiServer.AddListener(tcplis)
-	if err != nil {
-		logrus.Fatal(err)
+	if mqttTcpPort != 0 {
+		tcplis := listeners.NewTCP(
+			serviceName+"-tcp", fmt.Sprintf(":%d", mqttTcpPort), lisCfg)
+		err := svc.mochiServer.AddListener(tcplis)
+		if err != nil {
+			return err
+		}
 	}
-
-	// Create a WS listener on the given
-	//wslis := listeners.NewWebsocket(serviceName+"ws", fmt.Sprintf(":%d", mqttWsPort), nil)
-	//err = svc.mochiServer.AddListener(wslis)
-	//if err != nil {
-	//	logrus.Fatal(err)
-	//}
-
+	// Create a WS listener on the given websocket port
+	if mqttWsPort != 0 {
+		wslis := listeners.NewWebsocket(serviceName+"-wss", fmt.Sprintf(":%d", mqttWsPort), lisCfg)
+		err := svc.mochiServer.AddListener(wslis)
+		if err != nil {
+			return err
+		}
+	}
 	// add the hiveot hook to manage client sessions and access control
 	svc.mochiHook = NewMochiHook(svc.caCert)
-	err = svc.mochiServer.AddHook(svc.mochiHook, map[string]any{})
+	err := svc.mochiServer.AddHook(svc.mochiHook, map[string]any{})
 	if err != nil {
-		logrus.Fatal(err)
+		return err
 	}
 	//
 	err = svc.mochiServer.Serve()
-	if err != nil {
-		logrus.Fatal(err)
-	}
+	return err
 }
 
 // Stop the mqtt broker

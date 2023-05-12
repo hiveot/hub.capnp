@@ -79,10 +79,6 @@ func (svc *HistoryService) CapReadHistory(
 // This will open the store and panic if the store cannot be opened.
 func (svc *HistoryService) Start() (err error) {
 	logrus.Infof("")
-	err = svc.bucketStore.Open()
-	if err != nil {
-		logrus.Panic("can't open history store")
-	}
 	propsbucket := svc.bucketStore.GetBucket(PropertiesBucketName)
 	svc.propsStore = NewPropertiesStore(propsbucket)
 
@@ -109,10 +105,6 @@ func (svc *HistoryService) Stop() error {
 	if svc.subEventHandler != nil {
 		svc.subEventHandler.Stop()
 	}
-	err = svc.bucketStore.Close()
-	if err != nil {
-		logrus.Error(err)
-	}
 	return err
 }
 
@@ -120,7 +112,7 @@ func (svc *HistoryService) Stop() error {
 // storage bucket.
 //
 //	config optional configuration or nil to use defaults
-//	store contains the bucket store to use. This will be opened on Start() and closed on Stop()
+//	store contains an opened bucket store to use.
 //	sub optional pubsub client used to subscribe to events to store. nil to not subscribe to events. Will be released on Stop().
 func NewHistoryService(
 	config *config.HistoryConfig, store bucketstore.IBucketStore, sub pubsub.IServicePubSub) *HistoryService {

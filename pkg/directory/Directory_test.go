@@ -37,13 +37,16 @@ const testUseCapnp = true
 // startDirectory initializes a Directory service, optionally using capnp RPC
 func startDirectory(useCapnp bool, svcPubSub pubsub.IServicePubSub) (dir directory.IDirectory, stopFn func()) {
 
-	ctx, cancelFunc := context.WithCancel(context.Background())
 	logrus.Infof("startDirectory start")
 	defer logrus.Infof("startDirectory ended")
 	_ = os.Remove(testStoreFile)
 	store := kvbtree.NewKVStore(directory.ServiceName, testStoreFile)
+	err := store.Open()
+	if err != nil {
+		panic("unable to open directory store")
+	}
 	svc := service.NewDirectoryService("", store, svcPubSub)
-	err := svc.Start(ctx)
+	err = svc.Start()
 	if err != nil {
 		panic("service fails to start")
 	}
@@ -61,15 +64,15 @@ func startDirectory(useCapnp bool, svcPubSub pubsub.IServicePubSub) (dir directo
 		capClient, _ := hubclient.ConnectWithCapnpTCP(srvListener.Addr().String(), nil, nil)
 		dirClient := capnpclient.NewDirectoryCapnpClient(capClient)
 		return dirClient, func() {
-			cancelFunc()
 			dirClient.Release()
 			_ = srvListener.Close()
 			_ = svc.Stop()
+			_ = store.Close()
 		}
 	}
 	return svc, func() {
-		cancelFunc()
 		_ = svc.Stop()
+		_ = store.Close()
 	}
 }
 

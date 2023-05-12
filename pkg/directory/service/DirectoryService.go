@@ -62,13 +62,13 @@ func (svc *DirectoryService) handleTDEvent(event thing.ThingValue) {
 	}
 }
 
-// Start opens the store and publishes the service's own TD
+// Start the directory service and publish the service's own TD
 // This subscribes to pubsub TD events and updates the directory.
-func (svc *DirectoryService) Start(ctx context.Context) error {
-	err := svc.store.Open()
+func (svc *DirectoryService) Start() (err error) {
+	ctx := context.Background()
 
 	// subscribe to TD events to add to the directory
-	if err == nil && svc.servicePubSub != nil {
+	if svc.servicePubSub != nil {
 		err = svc.servicePubSub.SubEvent(ctx, "", "", hubapi.EventNameTD, svc.handleTDEvent)
 	}
 
@@ -92,13 +92,12 @@ func (svc *DirectoryService) Start(ctx context.Context) error {
 	return err
 }
 
-// Stop the storage server and flush changes to disk
+// Stop the service
 func (svc *DirectoryService) Stop() error {
 	if svc.servicePubSub != nil {
 		svc.servicePubSub.Release()
 	}
-	err := svc.store.Close()
-	return err
+	return nil
 }
 
 func (svc *DirectoryService) Release() {}
@@ -108,7 +107,7 @@ func (svc *DirectoryService) Release() {}
 // will be released on Stop.
 //
 //	serviceID is the instance ID of the service. Default ("") is the directory service name
-//	store bucket store for persisting  the directory data. This will be opened on Start and closed on Stop.
+//	store is an open bucket store for persisting the directory data.
 //	servicePubSub is the pubsub service
 func NewDirectoryService(
 	serviceID string, store bucketstore.IBucketStore, servicePubSub pubsub.IServicePubSub) *DirectoryService {

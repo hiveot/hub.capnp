@@ -8,6 +8,7 @@ import (
 	pahomqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/hiveot/hub/lib/thing"
 	"github.com/sirupsen/logrus"
+	"time"
 )
 
 // HubMqttGWClient to interact with the Hub gateway
@@ -21,7 +22,7 @@ type HubMqttGWClient struct {
 
 // Connect to the Hub with credentials
 //
-//	url contains the connection url, eg "tls://127.0.0.1:4883"
+//	url contains the connection url, for example "tls://127.0.0.1:4883" or "wss://127.0.0.4884"
 //	loginID Hub login ID and used as the clientID for publications
 //	password of the hub user. This can be a password or refresh token
 //	clientCert in case of certificate based authentication or nil for password auth
@@ -67,7 +68,8 @@ func (cl *HubMqttGWClient) Connect(
 
 // Disconnect from the Hub
 func (cl *HubMqttGWClient) Disconnect() {
-	cl.paho.Disconnect(1000)
+	cl.paho.Disconnect(10)
+	time.Sleep(time.Millisecond * 10)
 }
 
 // PubAction publishes the given action to the hub.

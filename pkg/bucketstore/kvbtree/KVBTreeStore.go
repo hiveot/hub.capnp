@@ -264,7 +264,7 @@ func (store *KVBTreeStore) Open() error {
 	defer store.mutex.Unlock()
 
 	if store.buckets != nil {
-		panic("store already open")
+		return fmt.Errorf("store already open")
 	}
 	store.buckets, err = importStoreFile(store.clientID, store.storePath)
 	// recover from bad file. Missing file is okay.
@@ -272,7 +272,7 @@ func (store *KVBTreeStore) Open() error {
 		if os.IsNotExist(err) {
 			// store doesn't yet exist. This is okay
 		} else {
-			logrus.Warningf("Unknown error reading store: %s", store.storePath)
+			return fmt.Errorf("unknown error reading store '%s': %w", store.storePath, err)
 		}
 		// write an empty store to make sure the location is writable
 		store.buckets = make(map[string]*KVBTreeBucket)
@@ -280,8 +280,7 @@ func (store *KVBTreeStore) Open() error {
 		err = writeStoreFile(store.storePath, dummy)
 		if err != nil {
 			// unable to recover. Hitting a dead end
-			logrus.Errorf("Store cannot be created: '%s'", err)
-			return err
+			return fmt.Errorf("failed creating store file: '%w'", err)
 		}
 	}
 	// after loading set the handler for all buckets

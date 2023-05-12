@@ -19,8 +19,8 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type CapGatewayClient interface {
-	Login(ctx context.Context, in *Login_Args, opts ...grpc.CallOption) (*Login_Res, error)
-	Ping(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Ping_Res, error)
+	Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginReply, error)
+	Ping(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*PingRequest, error)
 }
 
 type capGatewayClient struct {
@@ -31,8 +31,8 @@ func NewCapGatewayClient(cc grpc.ClientConnInterface) CapGatewayClient {
 	return &capGatewayClient{cc}
 }
 
-func (c *capGatewayClient) Login(ctx context.Context, in *Login_Args, opts ...grpc.CallOption) (*Login_Res, error) {
-	out := new(Login_Res)
+func (c *capGatewayClient) Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginReply, error) {
+	out := new(LoginReply)
 	err := c.cc.Invoke(ctx, "/hiveot.grpc.CapGateway/Login", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -40,8 +40,8 @@ func (c *capGatewayClient) Login(ctx context.Context, in *Login_Args, opts ...gr
 	return out, nil
 }
 
-func (c *capGatewayClient) Ping(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Ping_Res, error) {
-	out := new(Ping_Res)
+func (c *capGatewayClient) Ping(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*PingRequest, error) {
+	out := new(PingRequest)
 	err := c.cc.Invoke(ctx, "/hiveot.grpc.CapGateway/Ping", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -53,8 +53,8 @@ func (c *capGatewayClient) Ping(ctx context.Context, in *emptypb.Empty, opts ...
 // All implementations must embed UnimplementedCapGatewayServer
 // for forward compatibility
 type CapGatewayServer interface {
-	Login(context.Context, *Login_Args) (*Login_Res, error)
-	Ping(context.Context, *emptypb.Empty) (*Ping_Res, error)
+	Login(context.Context, *LoginRequest) (*LoginReply, error)
+	Ping(context.Context, *emptypb.Empty) (*PingRequest, error)
 	mustEmbedUnimplementedCapGatewayServer()
 }
 
@@ -62,10 +62,10 @@ type CapGatewayServer interface {
 type UnimplementedCapGatewayServer struct {
 }
 
-func (UnimplementedCapGatewayServer) Login(context.Context, *Login_Args) (*Login_Res, error) {
+func (UnimplementedCapGatewayServer) Login(context.Context, *LoginRequest) (*LoginReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Login not implemented")
 }
-func (UnimplementedCapGatewayServer) Ping(context.Context, *emptypb.Empty) (*Ping_Res, error) {
+func (UnimplementedCapGatewayServer) Ping(context.Context, *emptypb.Empty) (*PingRequest, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
 }
 func (UnimplementedCapGatewayServer) mustEmbedUnimplementedCapGatewayServer() {}
@@ -82,7 +82,7 @@ func RegisterCapGatewayServer(s grpc.ServiceRegistrar, srv CapGatewayServer) {
 }
 
 func _CapGateway_Login_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Login_Args)
+	in := new(LoginRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -94,7 +94,7 @@ func _CapGateway_Login_Handler(srv interface{}, ctx context.Context, dec func(in
 		FullMethod: "/hiveot.grpc.CapGateway/Login",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(CapGatewayServer).Login(ctx, req.(*Login_Args))
+		return srv.(CapGatewayServer).Login(ctx, req.(*LoginRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

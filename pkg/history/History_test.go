@@ -66,9 +66,14 @@ func newHistoryService(useCapnp bool) (history.IHistoryService, func()) {
 	// create a new empty store to use
 	_ = os.RemoveAll(svcConfig.Directory)
 	store := cmd.NewBucketStore(testFolder, testClientID, HistoryStoreBackend)
+	err := store.Open()
+	if err != nil {
+		logrus.Panic("can't open history bucket store")
+	}
+
 	// start the service ; not using pubsub
 	svc := service.NewHistoryService(&svcConfig, store, sub)
-	err := svc.Start()
+	err = svc.Start()
 	if err != nil {
 		logrus.Fatalf("Failed starting the state service: %s", err)
 	}
@@ -87,6 +92,7 @@ func newHistoryService(useCapnp bool) (history.IHistoryService, func()) {
 			histClient.Release()
 			_ = srvListener.Close()
 			_ = svc.Stop()
+			_ = store.Close()
 			// give it some time to shut down before the next test
 			time.Sleep(time.Millisecond)
 		}
@@ -94,6 +100,7 @@ func newHistoryService(useCapnp bool) (history.IHistoryService, func()) {
 
 	return svc, func() {
 		_ = svc.Stop()
+		_ = store.Close()
 	}
 }
 
@@ -178,6 +185,8 @@ func TestStartStop(t *testing.T) {
 	cfg := config.NewHistoryConfig(testFolder)
 
 	store := cmd.NewBucketStore(cfg.Directory, testClientID, bucketstore.BackendKVBTree)
+	store.Open()
+	defer store.Close()
 	svc := service.NewHistoryService(&cfg, store, nil)
 
 	err := svc.Start()
@@ -266,6 +275,7 @@ func TestAddGetEvent(t *testing.T) {
 
 	// after closing and reopening the svc the event should still be there
 	store2 := cmd.NewBucketStore(testFolder, testClientID, HistoryStoreBackend)
+	store2.Open()
 	svcConfig2 := config.NewHistoryConfig(testFolder)
 	svc2 := service.NewHistoryService(&svcConfig2, store2, nil)
 	err = svc2.Start()
@@ -373,6 +383,7 @@ func TestAddPropertiesEvent(t *testing.T) {
 	closeFn()
 
 	backend := cmd.NewBucketStore(testFolder, testClientID, HistoryStoreBackend)
+	_ = backend.Open()
 	cfg := config.NewHistoryConfig(testFolder)
 	svc := service.NewHistoryService(&cfg, backend, nil)
 	err = svc.Start()
@@ -388,6 +399,7 @@ func TestAddPropertiesEvent(t *testing.T) {
 	readHist.Release()
 
 	err = svc.Stop()
+	backend.Close()
 	assert.NoError(t, err)
 }
 
@@ -602,6 +614,7 @@ func TestPubSub(t *testing.T) {
 	// create a new empty store to use
 	_ = os.RemoveAll(svcConfig.Directory)
 	store := cmd.NewBucketStore(testFolder, testClientID, HistoryStoreBackend)
+	store.Open()
 
 	// start the service using pubsub
 	svc := service.NewHistoryService(&svcConfig, store, psClient)
@@ -643,6 +656,8 @@ func TestPubSub(t *testing.T) {
 	err = svc.Stop()
 	assert.NoError(t, err)
 	err = pubSubSvc.Stop()
+	assert.NoError(t, err)
+	err = store.Close()
 	assert.NoError(t, err)
 }
 

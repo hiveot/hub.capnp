@@ -5,8 +5,10 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/mqtt/mqttclient"
+	"github.com/hiveot/hub/pkg/pubsub/service"
 	"github.com/mochi-co/mqtt/v2"
 	"github.com/mochi-co/mqtt/v2/packets"
 	"github.com/sirupsen/logrus"
@@ -64,6 +66,7 @@ func (hook *GatewayHook) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packe
 	return err == nil
 }
 
+// OnDisconnect releases the session for this client
 func (hook *GatewayHook) OnDisconnect(cl *mqtt.Client, err error, expire bool) {
 	hook.sessionMutex.Lock()
 	defer hook.sessionMutex.Unlock()
@@ -79,6 +82,10 @@ func (hook *GatewayHook) OnPublish(cl *mqtt.Client, pk packets.Packet) (pkx pack
 	session := hook.sessions[cl.ID]
 	if session != nil {
 		err = session.OnPublish(pk.TopicName, pk.Payload)
+		if err != nil {
+			logrus.Error(err)
+			return pkx, err
+		}
 	}
 	// FIXME: don't publish this on the mqtt bus as it has to go through the pubsub service.
 	// ugh, undocumented stuff
@@ -86,27 +93,38 @@ func (hook *GatewayHook) OnPublish(cl *mqtt.Client, pk packets.Packet) (pkx pack
 	return pk, err
 }
 
+// OnSubscribe proxies the subscription to the pubsub service
+// The topic format of the pubsub and mqtt can differ.
 func (hook *GatewayHook) OnSubscribe(cl *mqtt.Client, pk packets.Packet) (pkx packets.Packet) {
+	var err error
 	hook.sessionMutex.Lock()
 	defer hook.sessionMutex.Unlock()
 	session := hook.sessions[cl.ID]
-	topic := pk.Filters[0].Filter
-	logrus.Infof("OnSubscribe to %s", topic)
+	mqttTopic := pk.Filters[0].Filter
+	pubID, thingID, msgType, name, err := mqttclient.SplitTopic(mqttTopic)
+	logrus.Infof("OnSubscribe to %s", mqttTopic)
+	if err != nil {
+		logrus.Errorf("invalid mqtt topic '%s'", mqttTopic)
+		return pk
+	}
 	if session != nil && len(pk.Filters) > 0 {
-		err := session.OnSubscribe(topic, func(ev thing.ThingValue) {
-			logrus.Infof("OnSubscribe. Received pubsub event on %s", topic)
+		// pass the subscription to the pubsub service
+		pubsubTopic := service.MakeThingTopic(pubID, thingID, msgType, name)
+		err = session.OnSubscribe(pubsubTopic, func(ev thing.ThingValue) {
+			logrus.Infof("OnSubscribe. Received pubsub event on %s", pubsubTopic)
 			newPk := pk //packets.NewPacket()
-			// FIXME: translate pubsub topic to mqtt topic
-			topic := mqttclient.MakeTopic(ev.PublisherID, ev.ThingID, "event", ev.ID)
+			mqttTopic = mqttclient.MakeTopic(ev.PublisherID, ev.ThingID, "event", ev.ID)
 			evJson, _ := json.Marshal(ev)
 			newPk.Payload = evJson
 			newPk.FixedHeader.Type = packets.Publish
-			newPk.TopicName = topic
-			if err := cl.WritePacket(newPk); err != nil {
-				logrus.Errorf("Unable to write packet to client: %w", err)
+			newPk.TopicName = mqttTopic
+			if err = cl.WritePacket(newPk); err != nil {
+				err = fmt.Errorf("unable to write packet to client: %w", err)
+				logrus.Error(err)
 			}
 		})
 		if err != nil {
+			err = fmt.Errorf("unable to subscribe to topic %s: %w", pubsubTopic, err)
 			logrus.Error(err)
 		}
 	}

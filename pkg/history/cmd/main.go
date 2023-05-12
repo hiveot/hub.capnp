@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"github.com/sirupsen/logrus"
 	"net"
 
 	"github.com/hiveot/hub/lib/hubclient"
@@ -24,9 +25,6 @@ func main() {
 	cfg := config.NewHistoryConfig(f.Stores)
 	_ = f.LoadConfig(&cfg)
 
-	// the service uses the bucket store to store history
-	store := cmd.NewBucketStore(cfg.Directory, cfg.ServiceID, cfg.Backend)
-
 	// the service receives the events to store from pubsub. To obtain the pubsub capability
 	// connect to the resolver or gateway service.
 	fullUrl = hubclient.LocateHub("", 0)
@@ -38,6 +36,12 @@ func main() {
 		panic("can't connect to pubsub")
 	}
 
+	// the service uses the bucket store to store history
+	store := cmd.NewBucketStore(cfg.Directory, cfg.ServiceID, cfg.Backend)
+	err = store.Open()
+	if err != nil {
+		logrus.Panic("can't open history bucket store")
+	}
 	svc := service.NewHistoryService(&cfg, store, svcPubSub)
 
 	listener.RunService(history.ServiceName, f.SocketPath,
@@ -52,6 +56,7 @@ func main() {
 			// shutdown
 			err := svc.Stop()
 			pubSubClient.Release()
+			_ = store.Close()
 			return err
 		})
 
