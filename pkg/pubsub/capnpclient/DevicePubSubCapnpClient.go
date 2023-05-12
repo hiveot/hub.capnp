@@ -40,7 +40,7 @@ func (cl *DevicePubSubCapnpClient) Release() {
 //	handler will be invoked when an action is received for this device
 func (cl *DevicePubSubCapnpClient) SubAction(
 	ctx context.Context, thingID string, actionID string,
-	handler func(action *thing.ThingValue)) (err error) {
+	handler func(thing.ThingValue)) (err error) {
 
 	method, release := cl.capability.SubAction(ctx,
 		func(params hubapi.CapDevicePubSub_subAction_Params) error {

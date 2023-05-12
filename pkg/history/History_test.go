@@ -55,8 +55,8 @@ const HistoryStoreBackend = bucketstore.BackendPebble
 
 var names = []string{"temperature", "humidity", "pressure", "wind", "speed", "switch", "location", "sensor-A", "sensor-B", "sensor-C"}
 
-// var testItems = make(map[string]*thing.ThingValue)
-//var testHighestName = make(map[string]*thing.ThingValue)
+// var testItems = make(map[string]thing.ThingValue)
+//var testHighestName = make(map[string]thing.ThingValue)
 
 // Create a new store, delete if it already exists
 func newHistoryService(useCapnp bool) (history.IHistoryService, func()) {
@@ -102,9 +102,9 @@ func newHistoryService(useCapnp bool) (history.IHistoryService, func()) {
 //}
 
 // generate a random batch of values for testing
-func makeValueBatch(publisherID string, nrValues, nrThings, timespanSec int) (batch []*thing.ThingValue, highest map[string]*thing.ThingValue) {
-	highest = make(map[string]*thing.ThingValue)
-	valueBatch := make([]*thing.ThingValue, 0, nrValues)
+func makeValueBatch(publisherID string, nrValues, nrThings, timespanSec int) (batch []thing.ThingValue, highest map[string]thing.ThingValue) {
+	highest = make(map[string]thing.ThingValue)
+	valueBatch := make([]thing.ThingValue, 0, nrValues)
 	for j := 0; j < nrValues; j++ {
 		randomID := rand.Intn(nrThings)
 		randomName := rand.Intn(10)
@@ -113,7 +113,7 @@ func makeValueBatch(publisherID string, nrValues, nrThings, timespanSec int) (ba
 		randomTime := time.Now().Add(-randomSeconds).Format(vocab.ISO8601Format)
 		thingID := thingIDPrefix + strconv.Itoa(randomID)
 
-		ev := &thing.ThingValue{
+		ev := thing.ThingValue{
 			PublisherID: publisherID,
 			ThingID:     thingID,
 			ID:          names[randomName],
@@ -134,7 +134,7 @@ func makeValueBatch(publisherID string, nrValues, nrThings, timespanSec int) (ba
 
 // add some history to the store using publisher 'device1'
 func addHistory(svc history.IHistoryService, count int, nrThings int, timespanSec int) (
-	highest map[string]*thing.ThingValue) {
+	highest map[string]thing.ThingValue) {
 	const publisherID = "device1"
 	var batchSize = 1000
 	if batchSize > count {
@@ -210,12 +210,12 @@ func TestAddGetEvent(t *testing.T) {
 	readHistory1, _ := svc.CapReadHistory(ctx, device1, publisherID, thing1ID)
 
 	// add thing1 temperature from 5 minutes ago
-	ev1_1 := &thing.ThingValue{PublisherID: publisherID, ThingID: thing1ID, ID: evTemperature,
+	ev1_1 := thing.ThingValue{PublisherID: publisherID, ThingID: thing1ID, ID: evTemperature,
 		Data: []byte("12.5"), Created: fivemago.Format(vocab.ISO8601Format)}
 	err := addHistory1.AddEvent(ctx, ev1_1)
 	assert.NoError(t, err)
 	// add thing1 humidity from 55 minutes ago
-	ev1_2 := &thing.ThingValue{PublisherID: publisherID, ThingID: thing1ID, ID: evHumidity,
+	ev1_2 := thing.ThingValue{PublisherID: publisherID, ThingID: thing1ID, ID: evHumidity,
 		Data: []byte("70"), Created: fiftyfivemago.Format(vocab.ISO8601Format)}
 	err = addHistory1.AddEvent(ctx, ev1_2)
 	assert.NoError(t, err)
@@ -223,13 +223,13 @@ func TestAddGetEvent(t *testing.T) {
 	// add events for thing 2, temperature and humidity
 	addHistory2, _ := svc.CapAddHistory(ctx, device1, true)
 	// add thing2 humidity from 5 minutes ago
-	ev2_1 := &thing.ThingValue{PublisherID: publisherID, ThingID: thing2ID, ID: evHumidity,
+	ev2_1 := thing.ThingValue{PublisherID: publisherID, ThingID: thing2ID, ID: evHumidity,
 		Data: []byte("50"), Created: fivemago.Format(vocab.ISO8601Format)}
 	err = addHistory2.AddEvent(ctx, ev2_1)
 	assert.NoError(t, err)
 
 	// add thing2 temperature from 55 minutes ago
-	ev2_2 := &thing.ThingValue{PublisherID: publisherID, ThingID: thing2ID, ID: evTemperature,
+	ev2_2 := thing.ThingValue{PublisherID: publisherID, ThingID: thing2ID, ID: evTemperature,
 		Data: []byte("17.5"), Created: fiftyfivemago.Format(vocab.ISO8601Format)}
 	err = addHistory2.AddEvent(ctx, ev2_2)
 	assert.NoError(t, err)
@@ -295,35 +295,35 @@ func TestAddPropertiesEvent(t *testing.T) {
 	addHist, _ := store.CapAddHistory(ctx, clientID, true)
 	readHist, _ := store.CapReadHistory(ctx, clientID, publisherID, thing1ID)
 
-	action1 := &thing.ThingValue{
+	action1 := thing.ThingValue{
 		PublisherID: publisherID,
 		ThingID:     thing1ID,
 		ID:          vocab.VocabSwitch,
 		Data:        []byte("on"),
 	}
-	event1 := &thing.ThingValue{
+	event1 := thing.ThingValue{
 		PublisherID: publisherID,
 		ThingID:     thing1ID,
 		ID:          vocab.VocabTemperature,
 		Data:        []byte(temp1),
 	}
-	badEvent1 := &thing.ThingValue{
+	badEvent1 := thing.ThingValue{
 		PublisherID: publisherID,
 		ThingID:     thing1ID,
 		ID:          "", // missing name
 	}
-	badEvent2 := &thing.ThingValue{
+	badEvent2 := thing.ThingValue{
 		PublisherID: "", // missing publisher
 		ThingID:     thing1ID,
 		ID:          "name",
 	}
-	badEvent3 := &thing.ThingValue{
+	badEvent3 := thing.ThingValue{
 		PublisherID: publisherID,
 		ThingID:     thing1ID,
 		ID:          "baddate",
 		Created:     "notadate",
 	}
-	badEvent4 := &thing.ThingValue{
+	badEvent4 := thing.ThingValue{
 		PublisherID: publisherID,
 		ThingID:     "", // missing ID
 		ID:          "temperature",
@@ -333,7 +333,7 @@ func TestAddPropertiesEvent(t *testing.T) {
 	propsList[vocab.VocabCPULevel] = []byte("30")
 	propsList[vocab.VocabSwitch] = []byte("off")
 	propsValue, _ := json.Marshal(propsList)
-	props1 := &thing.ThingValue{
+	props1 := thing.ThingValue{
 		PublisherID: publisherID,
 		ThingID:     thing1ID,
 		ID:          history.EventNameProperties,
@@ -357,11 +357,7 @@ func TestAddPropertiesEvent(t *testing.T) {
 	assert.NoError(t, err)
 	err = addHist.AddEvent(ctx, badEvent4)
 	assert.Error(t, err)
-	err = addHist.AddEvent(ctx, nil)
-	assert.Error(t, err)
 	err = addHist.AddAction(ctx, badEvent1)
-	assert.Error(t, err)
-	err = addHist.AddAction(ctx, nil)
 	assert.Error(t, err)
 
 	// verify named properties from different sources
@@ -684,7 +680,7 @@ func TestManageRetention(t *testing.T) {
 	ret3, err := mr.GetEventRetention(ctx, "blob1")
 	require.NoError(t, err)
 	assert.Equal(t, "blob1", ret3.Name)
-	valid, err := mr.TestEvent(ctx, &thing.ThingValue{
+	valid, err := mr.TestEvent(ctx, thing.ThingValue{
 		PublisherID: publisherID,
 		ThingID:     thing0ID,
 		ID:          "blob1",

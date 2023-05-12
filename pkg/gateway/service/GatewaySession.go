@@ -93,11 +93,6 @@ func (session *GatewaySession) HandleUnknownMethod(m capnp.Method) *server.Metho
 // ListCapabilities returns list of capabilities of all connected services sorted by service and capability names
 func (session *GatewaySession) ListCapabilities(ctx context.Context) ([]resolver.CapabilityInfo, error) {
 	capList := make([]resolver.CapabilityInfo, 0)
-	//cstate := session.clientConn.ConnectionState()
-	//logrus.Infof("clientID: %v", cstate.PeerCertificates[0].Subject.CommonName)
-	//logrus.Infof("authTypes: %v", cstate.PeerCertificates[0].Subject.OrganizationalUnit)
-	//logrus.Infof("handshake: %v", cstate.HandshakeComplete)
-	//logrus.Infof("clientID='%s'", session.clientID)
 	capList, err := session.resolverService.ListCapabilities(ctx, session.authType)
 	return capList, err
 }

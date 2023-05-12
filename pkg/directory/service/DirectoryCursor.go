@@ -16,19 +16,19 @@ type DirectoryCursor struct {
 
 // convert the storage key and raw data to a thing value object
 // This returns the value, or nil if the key is invalid
-func (dc *DirectoryCursor) decodeValue(key string, data []byte) (thingValue *thing.ThingValue, valid bool) {
+func (dc *DirectoryCursor) decodeValue(key string, data []byte) (thingValue thing.ThingValue, valid bool) {
 	// key is constructed as  {timestamp}/{valueName}/{a|e}
 	parts := strings.Split(key, "/")
 	if len(parts) < 2 {
-		return nil, false
+		return thingValue, false
 	}
-	thingValue = &thing.ThingValue{}
-	_ = json.Unmarshal(data, thingValue)
+	thingValue = thing.ThingValue{}
+	_ = json.Unmarshal(data, &thingValue)
 	return thingValue, true
 }
 
 // First returns the oldest value in the history
-func (dc *DirectoryCursor) First() (thingValue *thing.ThingValue, valid bool) {
+func (dc *DirectoryCursor) First() (thingValue thing.ThingValue, valid bool) {
 	k, v, valid := dc.bc.First()
 	if !valid {
 		// bucket is empty
@@ -40,7 +40,7 @@ func (dc *DirectoryCursor) First() (thingValue *thing.ThingValue, valid bool) {
 
 // Next moves the cursor to the next key from the current cursor
 // First() or Seek must have been called first.
-func (dc *DirectoryCursor) Next() (thingValue *thing.ThingValue, valid bool) {
+func (dc *DirectoryCursor) Next() (thingValue thing.ThingValue, valid bool) {
 	k, v, valid := dc.bc.Next()
 	if !valid {
 		// at the end
@@ -54,8 +54,8 @@ func (dc *DirectoryCursor) Next() (thingValue *thing.ThingValue, valid bool) {
 // and return a list with N values in incremental time order.
 // itemsRemaining is false if the iterator has reached the end.
 // Intended to speed up with batch iterations over rpc.
-func (dc *DirectoryCursor) NextN(steps uint) (values []*thing.ThingValue, itemsRemaining bool) {
-	values = make([]*thing.ThingValue, 0, steps)
+func (dc *DirectoryCursor) NextN(steps uint) (values []thing.ThingValue, itemsRemaining bool) {
+	values = make([]thing.ThingValue, 0, steps)
 	// tbd is it faster to use NextN and sort the keys?
 	for i := uint(0); i < steps; i++ {
 		thingValue, valid := dc.Next()

@@ -60,7 +60,11 @@ func (svc *HistoryService) CapManageRetention(
 	return evRet, nil
 }
 
-// CapReadHistory provides the capability to read history
+// CapReadHistory provides the capability to read history from a publisher Thing
+//
+//	clientID of the ID remote client doing the reading
+//	publisherID of the publisher whose Thing to read
+//	thingID of the Thing whose history to read
 func (svc *HistoryService) CapReadHistory(
 	_ context.Context, clientID, publisherID, thingID string) (history.IReadHistory, error) {
 
@@ -115,20 +119,26 @@ func (svc *HistoryService) Stop() error {
 // NewHistoryService creates a new instance for the history service using the given
 // storage bucket.
 //
-//	serviceID is the thingID of the service
+//	config optional configuration or nil to use defaults
 //	store contains the bucket store to use. This will be opened on Start() and closed on Stop()
-//	sub pubsub client to store events. nil to not subscribe to events. Will be released on Stop().
+//	sub optional pubsub client used to subscribe to events to store. nil to not subscribe to events. Will be released on Stop().
 func NewHistoryService(
 	config *config.HistoryConfig, store bucketstore.IBucketStore, sub pubsub.IServicePubSub) *HistoryService {
 
-	if config.ServiceID == "" {
+	var retentionMgr *ManageRetention
+	serviceID := history.ServiceName
+	if config != nil && config.ServiceID == "" {
 		config.ServiceID = history.ServiceName
 	}
-	retentionMgr := NewManageRetention(config.Retention)
+	if config != nil {
+		retentionMgr = NewManageRetention(config.Retention)
+	} else {
+		retentionMgr = NewManageRetention(nil)
+	}
 	svc := &HistoryService{
 		bucketStore:   store,
 		propsStore:    nil,
-		serviceID:     config.ServiceID,
+		serviceID:     serviceID,
 		retentionMgr:  retentionMgr,
 		servicePubSub: sub,
 	}

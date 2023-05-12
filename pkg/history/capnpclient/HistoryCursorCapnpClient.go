@@ -18,7 +18,7 @@ type HistoryCursorCapnpClient struct {
 }
 
 // First positions the cursor at the first key in the ordered list
-func (cl *HistoryCursorCapnpClient) First() (thingValue *thing.ThingValue, valid bool) {
+func (cl *HistoryCursorCapnpClient) First() (thingValue thing.ThingValue, valid bool) {
 	ctx := context.Background()
 	method, release := cl.capability.First(ctx, nil)
 	defer release()
@@ -32,7 +32,7 @@ func (cl *HistoryCursorCapnpClient) First() (thingValue *thing.ThingValue, valid
 }
 
 // Last positions the cursor at the last key in the ordered list
-func (cl *HistoryCursorCapnpClient) Last() (thingValue *thing.ThingValue, valid bool) {
+func (cl *HistoryCursorCapnpClient) Last() (thingValue thing.ThingValue, valid bool) {
 	ctx := context.Background()
 	method, release := cl.capability.Last(ctx, nil)
 	defer release()
@@ -46,7 +46,7 @@ func (cl *HistoryCursorCapnpClient) Last() (thingValue *thing.ThingValue, valid 
 }
 
 // Next moves the cursor to the next key from the current cursor
-func (cl *HistoryCursorCapnpClient) Next() (thingValue *thing.ThingValue, valid bool) {
+func (cl *HistoryCursorCapnpClient) Next() (thingValue thing.ThingValue, valid bool) {
 	ctx := context.Background()
 	method, release := cl.capability.Next(ctx, nil)
 	defer release()
@@ -60,7 +60,7 @@ func (cl *HistoryCursorCapnpClient) Next() (thingValue *thing.ThingValue, valid 
 }
 
 // NextN moves the cursor to the next N steps from the current cursor
-func (cl *HistoryCursorCapnpClient) NextN(steps uint) (batch []*thing.ThingValue, valid bool) {
+func (cl *HistoryCursorCapnpClient) NextN(steps uint) (batch []thing.ThingValue, valid bool) {
 	ctx := context.Background()
 
 	method, release := cl.capability.NextN(ctx,
@@ -79,7 +79,7 @@ func (cl *HistoryCursorCapnpClient) NextN(steps uint) (batch []*thing.ThingValue
 }
 
 // Prev moves the cursor to the previous key from the current cursor
-func (cl *HistoryCursorCapnpClient) Prev() (thingValue *thing.ThingValue, valid bool) {
+func (cl *HistoryCursorCapnpClient) Prev() (thingValue thing.ThingValue, valid bool) {
 	ctx := context.Background()
 	method, release := cl.capability.Prev(ctx, nil)
 	defer release()
@@ -93,7 +93,7 @@ func (cl *HistoryCursorCapnpClient) Prev() (thingValue *thing.ThingValue, valid 
 }
 
 // PrevN moves the cursor back N steps from the current cursor
-func (cl *HistoryCursorCapnpClient) PrevN(steps uint) (batch []*thing.ThingValue, valid bool) {
+func (cl *HistoryCursorCapnpClient) PrevN(steps uint) (batch []thing.ThingValue, valid bool) {
 	ctx := context.Background()
 	method, release := cl.capability.PrevN(ctx,
 		func(params hubapi.CapHistoryCursor_prevN_Params) error {
@@ -117,7 +117,7 @@ func (cl *HistoryCursorCapnpClient) Release() {
 }
 
 // Seek the starting point for iterating the history
-func (cl *HistoryCursorCapnpClient) Seek(isoTimestamp string) (thingValue *thing.ThingValue, valid bool) {
+func (cl *HistoryCursorCapnpClient) Seek(isoTimestamp string) (thingValue thing.ThingValue, valid bool) {
 	ctx := context.Background()
 	method, release := cl.capability.Seek(ctx, func(params hubapi.CapHistoryCursor_seek_Params) error {
 		err2 := params.SetIsoTimestamp(isoTimestamp)

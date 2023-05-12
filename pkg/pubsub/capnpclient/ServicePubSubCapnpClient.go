@@ -17,7 +17,7 @@ type ServicePubSubCapnpClient struct {
 
 func (cl *ServicePubSubCapnpClient) SubActions(
 	ctx context.Context, publisherID, thingID, actionID string,
-	handler func(action *thing.ThingValue)) (err error) {
+	handler func(thing.ThingValue)) (err error) {
 
 	method, release := cl.capability.SubActions(ctx,
 		func(params hubapi.CapServicePubSub_subActions_Params) error {
@@ -35,7 +35,7 @@ func (cl *ServicePubSubCapnpClient) SubActions(
 
 func (cl *ServicePubSubCapnpClient) SubEvents(
 	ctx context.Context, publisherID, thingID, eventID string,
-	handler func(action *thing.ThingValue)) (err error) {
+	handler func(thing.ThingValue)) (err error) {
 
 	method, release := cl.capability.SubEvents(ctx,
 		func(params hubapi.CapServicePubSub_subEvents_Params) error {

@@ -98,7 +98,7 @@ func (svc *ManageRetention) Stop() {
 // TestEvent tests if the event passes the retention filter rules
 // If no rules exist then all events pass.
 // returns True if the event passes, false if rejected.
-func (svc *ManageRetention) TestEvent(_ context.Context, eventValue *thing.ThingValue) (bool, error) {
+func (svc *ManageRetention) TestEvent(_ context.Context, eventValue thing.ThingValue) (bool, error) {
 
 	rules := svc.configuredRetentions
 	// no rules, so accept everything
@@ -121,6 +121,8 @@ func (svc *ManageRetention) TestEvent(_ context.Context, eventValue *thing.Thing
 }
 
 // NewManageRetention creates a new instance that implements IManageRetention
+//
+//	defaultConfig with events to retain or nil to use defaults
 func NewManageRetention(defaultConfig []history.EventRetention) *ManageRetention {
 	if defaultConfig == nil {
 		defaultConfig = make([]history.EventRetention, 0)

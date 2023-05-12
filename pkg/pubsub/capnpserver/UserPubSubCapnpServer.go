@@ -3,8 +3,6 @@ package capnpserver
 import (
 	"context"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/pkg/pubsub"
 )
@@ -36,7 +34,7 @@ func (capsrv *UserPubSubCapnpServer) SubEvent(
 	handlerCap := args.Handler()
 	handler := NewSubscriptionHandlerCapnpClient(handlerCap.AddRef())
 
-	logrus.Infof("subscribing to event %s/%s/%s", publisherID, thingID, eventID)
+	//logrus.Infof("subscribing to event %s/%s/%s", publisherID, thingID, eventID)
 
 	err := capsrv.svc.SubEvent(ctx, publisherID, thingID, eventID, handler.HandleValue)
 	return err

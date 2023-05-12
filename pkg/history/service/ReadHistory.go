@@ -11,7 +11,7 @@ import (
 
 // GetPropertiesFunc is a callback function to retrieve latest properties of a Thing
 // latest properties are stored separate from the history.
-type GetPropertiesFunc func(thingAddr string, names []string) []*thing.ThingValue
+type GetPropertiesFunc func(thingAddr string, names []string) []thing.ThingValue
 
 // ReadHistory provides read access to the history of a thing
 // This implements the IReadHistory interface
@@ -42,7 +42,7 @@ func (svc *ReadHistory) GetEventHistory(_ context.Context, name string) history.
 // Latest Properties are tracked in a 'latest' record which holds a map of propertyName:ThingValue records
 //
 //	providing 'names' can speed up read access significantly
-func (svc *ReadHistory) GetProperties(_ context.Context, names []string) (values []*thing.ThingValue) {
+func (svc *ReadHistory) GetProperties(_ context.Context, names []string) (values []thing.ThingValue) {
 	logrus.Infof("clientID=%s, thingID=%s", svc.clientID, svc.thingID)
 	values = svc.getPropertiesFunc(svc.thingAddr, names)
 	return values

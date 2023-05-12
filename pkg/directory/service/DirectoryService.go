@@ -52,7 +52,7 @@ func (svc *DirectoryService) createServiceTD() *thing.TD {
 	return td
 }
 
-func (svc *DirectoryService) handleTDEvent(event *thing.ThingValue) {
+func (svc *DirectoryService) handleTDEvent(event thing.ThingValue) {
 	ctx := context.Background()
 	// TODO: reserve a capability for this instead of create/release
 	ud, err := svc.CapUpdateDirectory(ctx, directory.ServiceName)
@@ -104,11 +104,12 @@ func (svc *DirectoryService) Stop() error {
 func (svc *DirectoryService) Release() {}
 
 // NewDirectoryService creates a service to access TD documents
-// This is using the KV bucket store.
+// The servicePubSub is optional and ignored when nil. It is used to subscribe to directory events and
+// will be released on Stop.
 //
 //	serviceID is the instance ID of the service. Default ("") is the directory service name
 //	store bucket store for persisting  the directory data. This will be opened on Start and closed on Stop.
-//	servicePubSub is the pubsub to use to subscribe to directory events. Will be released on Stop.
+//	servicePubSub is the pubsub service
 func NewDirectoryService(
 	serviceID string, store bucketstore.IBucketStore, servicePubSub pubsub.IServicePubSub) *DirectoryService {
 	if serviceID == "" {

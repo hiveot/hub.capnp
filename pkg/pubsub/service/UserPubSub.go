@@ -42,21 +42,20 @@ func (cap *UserPubSub) PubAction(
 //	thingID of the publisher event. Use "" to subscribe to events from all Things
 //	eventID of the event. Use "" to subscribe to all events of a thing
 func (cap *UserPubSub) SubEvent(_ context.Context, publisherID, thingID, eventID string,
-	handler func(msgValue *thing.ThingValue)) error {
+	handler func(thing.ThingValue)) error {
 
 	// it is not allowed to subscribe to all events of all things. Pick one or the other.
 	if thingID == "" && eventID == "" {
 		return fmt.Errorf("a thingID or eventID must be provided")
 	}
 
-	logrus.Infof("userID=%s, thingID=%s, eventID=%s", cap.userID, thingID, eventID)
+	//logrus.Infof("userID=%s, thingID=%s, eventID=%s", cap.userID, thingID, eventID)
 	subTopic := MakeThingTopic(publisherID, thingID, hubapi.MessageTypeEvent, eventID)
 
 	subID, err := cap.core.Subscribe(subTopic,
 		func(topic string, message []byte) {
-			// FIXME: capnp serialization of messageValue
-			msgValue := &thing.ThingValue{}
-			err := json.Unmarshal(message, msgValue)
+			msgValue := thing.ThingValue{}
+			err := json.Unmarshal(message, &msgValue)
 			if err != nil {
 				logrus.Error(err)
 			}

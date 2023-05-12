@@ -100,7 +100,7 @@ func (psc *PubSubCore) Subscribe(
 	psc.submux.Lock()
 	psc.subscribers = append(psc.subscribers, sub)
 	psc.submux.Unlock()
-	logrus.Infof("topic=%v. => subscriptionID=%s", topic, sub.id)
+	//logrus.Infof("topic=%v. => subscriptionID=%s", topic, sub.id)
 
 	return sub.id, nil
 }
@@ -110,7 +110,7 @@ func (psc *PubSubCore) Subscribe(
 //	subscriptionIDs as provided during subscribe
 func (psc *PubSubCore) Unsubscribe(subscriptionIDs []string) error {
 	psc.submux.Lock()
-	logrus.Infof("ids=%v", subscriptionIDs)
+	//logrus.Infof("ids=%v", subscriptionIDs)
 	for _, subscriptionID := range subscriptionIDs {
 
 		for i, sub := range psc.subscribers {

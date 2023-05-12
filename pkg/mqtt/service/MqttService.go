@@ -4,6 +4,15 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
+	"github.com/hiveot/hub/lib/resolver"
+	"github.com/hiveot/hub/pkg/directory"
+	capnpclient3 "github.com/hiveot/hub/pkg/directory/capnpclient"
+	"github.com/hiveot/hub/pkg/gateway"
+	"github.com/hiveot/hub/pkg/gateway/capnpclient"
+	"github.com/hiveot/hub/pkg/history"
+	capnpclient4 "github.com/hiveot/hub/pkg/history/capnpclient"
+	"github.com/hiveot/hub/pkg/pubsub"
+	capnpclient2 "github.com/hiveot/hub/pkg/pubsub/capnpclient"
 	"github.com/mochi-co/mqtt/v2"
 	"github.com/mochi-co/mqtt/v2/listeners"
 	"github.com/sirupsen/logrus"
@@ -16,25 +25,25 @@ const serviceName = "mqtt"
 type MqttService struct {
 	mochiServer  *mqtt.Server
 	mochiHook    *GatewayHook
-	gatewayUrl   string
 	sessionMutex sync.RWMutex
 	sessions     map[string]*MqttSession
 	caCert       *x509.Certificate
 	mux          sync.Mutex
 }
 
-// Start the mqtt server
+// Start the mqtt service.
 // If unable to start, this exits with a Fatal message
+//
+// Precondition: the global resolver must be connected to the gateway or other service resolver.
 //
 //	mqttTcpPort and mqttWsPort are the listening ports for TCP and websocket connections
 //	serverCert holds the TLS server certificate and key.
 //	caCert holds the CA certificate used to generate the TLS cert.
 func (svc *MqttService) Start(
-	mqttTcpPort, mqttWsPort int, serverCert *tls.Certificate, caCert *x509.Certificate, gwURL string) {
+	mqttTcpPort, mqttWsPort int, serverCert *tls.Certificate, caCert *x509.Certificate) {
 
 	svc.mux.Lock()
 	defer svc.mux.Unlock()
-	svc.gatewayUrl = gwURL
 	svc.caCert = caCert
 
 	//srvOptions := &mqtt.Options{Capabilities: &mqtt.Capabilities{}}
@@ -68,7 +77,7 @@ func (svc *MqttService) Start(
 	//}
 
 	// add the hiveot hook to manage client sessions and access control
-	svc.mochiHook = NewMochiHook(svc.gatewayUrl, svc.caCert)
+	svc.mochiHook = NewMochiHook(svc.caCert)
 	err = svc.mochiServer.AddHook(svc.mochiHook, map[string]any{})
 	if err != nil {
 		logrus.Fatal(err)
@@ -94,6 +103,13 @@ func (svc *MqttService) Stop() error {
 //
 //	serviceID is required mqtt-optional ID prefix used to listen on tcp/ws ports
 func NewMqttGatewayService() *MqttService {
+	// initialize the global resolver with marshallers user by this service
+	resolver.RegisterCapnpMarshaller[gateway.IGatewaySession](capnpclient.NewGatewaySessionCapnpClient, "")
+	resolver.RegisterCapnpMarshaller[pubsub.IDevicePubSub](capnpclient2.NewDevicePubSubCapnpClient, "")
+	resolver.RegisterCapnpMarshaller[pubsub.IUserPubSub](capnpclient2.NewUserPubSubCapnpClient, "")
+	resolver.RegisterCapnpMarshaller[directory.IReadDirectory](capnpclient3.NewReadDirectoryCapnpClient, "")
+	resolver.RegisterCapnpMarshaller[history.IReadHistory](capnpclient4.NewReadHistoryCapnpClient, "")
+
 	svc := &MqttService{
 		sessionMutex: sync.RWMutex{},
 		sessions:     make(map[string]*MqttSession),

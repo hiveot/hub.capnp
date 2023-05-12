@@ -15,7 +15,7 @@ import (
 )
 
 // DevicePubSub provides pub/sub capability to IoT devices.
-// The IoT device is a gateway for the Things it manages, hence it has a gateway ID that is also
+// The IoT device is a gateway for the Things it publishes, hence it has a publisherID that is also
 // its ThingID.
 type DevicePubSub struct {
 	// the publisherID is the thingID of the IoT device or service
@@ -30,10 +30,10 @@ type DevicePubSub struct {
 func (svc *DevicePubSub) PubEvent(
 	_ context.Context, thingID, eventID string, value []byte) (err error) {
 
-	logrus.Infof("publisherID=%s, thingID=%s, name=%s", svc.publisherID, thingID, eventID)
+	//logrus.Infof("publisherID=%s, thingID=%s, name=%s", svc.publisherID, thingID, eventID)
 
 	tv := thing.NewThingValue(svc.publisherID, thingID, eventID, caphelp.Clone(value))
-	// note that marshal will copy the value so its buffer can be reused by capnp
+	// note that marshal will copy the value so its buffer can be reused
 	tvSerialized, _ := json.Marshal(tv)
 	topic := MakeThingTopic(svc.publisherID, thingID, hubapi.MessageTypeEvent, eventID)
 	go svc.core.Publish(topic, tvSerialized)
@@ -45,7 +45,7 @@ func (svc *DevicePubSub) PubEvent(
 //	thingID and actionID are optional. Use "" to receive actions for all things or names.
 func (svc *DevicePubSub) SubAction(
 	_ context.Context, thingID string, actionID string,
-	handler func(actionValue *thing.ThingValue)) (err error) {
+	handler func(thing.ThingValue)) (err error) {
 
 	logrus.Infof("publisherID=%s, thingID=%s, actionName=%s",
 		svc.publisherID, thingID, actionID)
@@ -53,8 +53,8 @@ func (svc *DevicePubSub) SubAction(
 	topic := MakeThingTopic(svc.publisherID, thingID, hubapi.MessageTypeAction, actionID)
 	subscriptionID, err := svc.core.Subscribe(topic,
 		func(topic string, message []byte) {
-			msgValue := &thing.ThingValue{}
-			err = json.Unmarshal(message, msgValue)
+			msgValue := thing.ThingValue{}
+			err = json.Unmarshal(message, &msgValue)
 			if err != nil {
 				logrus.Error(err)
 			}
@@ -83,9 +83,9 @@ func (svc *DevicePubSub) Release() {
 //
 //	publisherID is the thingID of the IoT device doing the publishing
 //	core is the core pubsub that is used for publishing and subscribing
-func NewDevicePubSub(gatewayID string, core *core.PubSubCore) *DevicePubSub {
+func NewDevicePubSub(publisherID string, core *core.PubSubCore) *DevicePubSub {
 	deviceCap := &DevicePubSub{
-		publisherID:     gatewayID,
+		publisherID:     publisherID,
 		core:            core,
 		subscriptionIDs: make([]string, 0),
 	}

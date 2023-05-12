@@ -36,7 +36,7 @@ func (cl *UserPubSubCapnpClient) Release() {
 
 func (cl *UserPubSubCapnpClient) SubEvent(
 	ctx context.Context, publisherID, thingID string, eventID string,
-	handler func(action *thing.ThingValue)) (err error) {
+	handler func(thing.ThingValue)) (err error) {
 
 	//logrus.Infof("subscribing to event %s/%s/%s", publisherID, thingID, name)
 	method, release := cl.capability.SubEvent(ctx,

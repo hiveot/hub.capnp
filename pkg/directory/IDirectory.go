@@ -29,16 +29,16 @@ type IDirectoryCursor interface {
 	// First return the first directory entry.
 	//  ValueJSON contains the JSON encoded TD document
 	// Returns nil if the store is empty
-	First() (thingValue *thing.ThingValue, valid bool)
+	First() (thingValue thing.ThingValue, valid bool)
 
 	// Next returns the next directory entry
 	// Returns nil when trying to read past the last value
-	Next() (thingValue *thing.ThingValue, valid bool)
+	Next() (thingValue thing.ThingValue, valid bool)
 
 	// NextN returns a batch of next directory entries
 	// Returns empty list when trying to read past the last value
 	// itemsRemaining is true as long as more items can be retrieved
-	NextN(steps uint) (batch []*thing.ThingValue, itemsRemaining bool)
+	NextN(steps uint) (batch []thing.ThingValue, itemsRemaining bool)
 
 	// Release the cursor and resources
 	Release()
@@ -52,7 +52,7 @@ type IReadDirectory interface {
 	// GetTD returns the TD document for the given Publisher/Thing ID in JSON format.
 	// Returns the thingValue containing the JSON serialized TD,
 	// or nil if the publisherID/thingID doesn't exist and an error if the store is not reachable.
-	GetTD(ctx context.Context, publisherID, thingID string) (tv *thing.ThingValue, err error)
+	GetTD(ctx context.Context, publisherID, thingID string) (tv thing.ThingValue, err error)
 
 	// QueryTDs returns the TD's filtered using JSONpath on the TD content
 	// See 'docs/query-tds.md' for examples

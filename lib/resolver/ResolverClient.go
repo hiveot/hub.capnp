@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/lib/hubclient"
+	"github.com/hiveot/hub/pkg/authn"
 	"github.com/hiveot/hub/pkg/resolver"
 	"github.com/hiveot/hub/pkg/resolver/capnpclient"
 	"github.com/sirupsen/logrus"
@@ -66,8 +67,11 @@ type RemoteCapability struct {
 	protocol string
 }
 
-// ResolverClient for registration and generating of client proxies
+// ResolverClient holds the client session for registration and lookup of capabilities
 type ResolverClient struct {
+	// clientID for requests
+	clientID string
+
 	// Capability marshallers by capability name for remote capabilities
 	marshallers map[string]CapabilityMarshaller
 
@@ -88,70 +92,34 @@ type ResolverClient struct {
 	//remoteURL string
 	// result of ListCapabilities on the resolver service.
 	resolverCapabilities []resolver.CapabilityInfo
+
+	// authentication capability used to authenticate the client with the resolver service
+	userAuthn authn.IUserAuthn
+
 	// device or service client certificate based authentication, if available
 	//clientCert *tls.Certificate
 	// CA that signed the server certificate to verify authenticity of the resolver service
 	//caCert *x509.Certificate
 	// optional login with user credentials if this is a user connecting to the resolver
-	loginID  string
-	password string
 }
 
-// ConnectToResolverService connects this client to a resolver service using capnp and discover available
-// capabilities.
+// ConnectToResolverService links this resolver client to a capnp service that resolves
+// additional requests for capabilities.
+// Use ConnectWithCapnpTCP or ConnectWithCapnpWebsockets to obtain the capnp client.
 //
-// This is useful to obtain remote capabilities. A client certificate can be used to authenticate as a service or
-// a device. If a certificate is not available then login must be used to gain access to remote capabilities.
+// The given capnp client can be any capnp client that handles requests for capabilities.
+// Usually it is the gateway service or local resolver service.
 //
-// Note 1: Any service can be a resolver when it listens and uses the capnp protocol.
-// Note 2: A resolver service is not needed if the requested server was previously registered with a URL and protocol, eg
+// This is not needed if requested capabilities are locally registered. For test environments
+// where all capabilities are locally registered a resolver service is not needed.
 //
-//	when its address is known a direct connection can be made.
-//
-// The full URL is that of a resolver server listener, or gateway listener:
-// - "unix://path/to/socket"
-// - "tcp://address:port"
-// - "wss://address:port/path"
-//
-//	fullURL to the remote resolver or gateway service, using the capnp protocol
-//	clientCert optional client certificate to identify as
-//	caCert CA's certificate to verify remote service authenticity
-//func (cl *ResolverClient) ConnectToResolverService(fullURL string, clientCert *tls.Certificate, caCert *x509.Certificate) error {
-//	var err error
-//	authType := hubapi.AuthTypeService
-//	if clientCert == nil {
-//		authType = hubapi.AuthTypeUser
-//	}
-//	_ = authType
-//	cl.remoteURL = fullURL
-//	cl.clientCert = clientCert
-//	cl.caCert = caCert
-//	conn, err := hubclient.ConnectWithTCP(fullURL, clientCert, caCert)
-//	if err != nil {
-//		return err
-//	}
-//	capConn, capClient := hubclient.ConnectWithCapnp(conn)
-//
-//	cl.resolverConn = capConn
-//	cl.resolverCapnp = capClient
-//	cl.resolverService = capnpclient.NewResolverCapnpClient(capClient)
-//	// getting capabilities verifies the resolver service is reachable
-//	cl.resolverCapabilities, err = cl.resolverService.ListCapabilities(context.Background(), authType)
-//	return err
-//}
-
-// ConnectToResolverService links this client to a resolver service using the given capnp client capability
-// Use ConnectWithTCP or ConnectWithCapnpWebsockets to obtain the capability.
-//
-// Note 1: Any service can be a resolver when it listens and uses the capnp protocol.
-// Note 2: A resolver service is not needed if the requested server was previously registered with a URL and protocol, eg
-//
-// capClient is the resolver capability
+//	capClient is the capnp client of a service that resolves requests for capabilities using
+//	the capnp protocol. Resolver services implement the ListCapabilities method.
 func (cl *ResolverClient) ConnectToResolverService(capClient capnp.Client) error {
 	var err error
-	//capConn, capClient := hubclient.ConnectWithCapnp(conn)
 
-	//cl.resolverConn = capConn
+	// note1: capnp requires a different stream decoder for websocket connections so the
+	// decision is to let the caller handler that part.
 	cl.resolverCapnp = capClient
 	cl.resolverService = capnpclient.NewResolverCapnpClient(capClient)
 	// getting capabilities verifies the resolver service is reachable
@@ -161,17 +129,17 @@ func (cl *ResolverClient) ConnectToResolverService(capClient capnp.Client) error
 
 // GetCapability returns a new instance of a capability of the given name.
 //
-// This will use the following approaches:
+// This will attempt to resolve with the following steps:
 //  1. Locally registered services are returned immediately
-//  2. A marshaller must have been registered to continue
+//  2. A marshaller for this capability must have been registered
 //  3. If the marshashaller has a URL, connect to the URL
-//  4. Last, use the marshaller with the remote resolver service, if connected.
-//     Currently the resolver service only supports the capnp protocol.
+//  4. Last, use the resolver service to obtain the capability and
+//     wrap the client in the marshaller that is returned.
 //
 // It is recommended to use the global resolver.GetCapabilities method instead of this
 // instance method as it uses generics for type safety.
 //
-//	name must be the capabilityName of the interface that is returned
+//	name must be the name of the capability native interface. eg "IUserPubSub"
 //	returns the interface to the capability or nil if not available
 func (cl *ResolverClient) GetCapability(name string) interface{} {
 	// 1. local capabilities are ready for use
@@ -226,9 +194,23 @@ func (cl *ResolverClient) GetCapability(name string) interface{} {
 	return nil
 }
 
-// Login to the resolver with user credentials to obtain additional capabilities.
+// Login to the Hub with user credentials to obtain additional capabilities.
+// On success this sets the userID as the client ID for further requests
 func (cl *ResolverClient) Login(userID, password string) error {
-	return errors.New("not implemented")
+	if cl.userAuthn == nil {
+		cl.userAuthn = cl.GetCapability("IUserAuthn").(authn.IUserAuthn)
+	}
+	if cl.userAuthn == nil {
+		return errors.New("authentication capability is not available")
+	}
+	authToken, refreshToken, err := cl.userAuthn.Login(context.Background(), password)
+	_ = authToken
+	_ = refreshToken
+	// on success adopt the given userID for further requests
+	if err == nil {
+		cl.clientID = userID
+	}
+	return err
 }
 
 // Logout removes the current credentials and capabilities from the resolver

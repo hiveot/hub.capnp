@@ -133,7 +133,7 @@ func TestAddRemoveTD(t *testing.T) {
 	err = updateCap.RemoveTD(ctx, publisherID, thing1ID)
 	assert.NoError(t, err)
 	td3, err := readCap.GetTD(ctx, publisherID, thing1ID)
-	assert.Nil(t, td3)
+	assert.Empty(t, td3)
 	assert.Error(t, err)
 
 	readCap.Release()

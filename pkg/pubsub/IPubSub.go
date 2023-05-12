@@ -95,7 +95,7 @@ type IDevicePubSub interface {
 	//  actionID is the action ID, the key in TD action map. Use "" to subscribe to all actions including properties
 	//  handler will be invoked when an action is received for this device
 	SubAction(ctx context.Context, thingID string, actionID string,
-		handler func(action *thing.ThingValue)) (err error)
+		handler func(action thing.ThingValue)) (err error)
 }
 
 // IServicePubSub is the publish/subscribe capability available to Hub services.
@@ -119,7 +119,7 @@ type IServicePubSub interface {
 	//  actionID or "" to subscribe to all actions
 	//  handler is a callback invoked when actions are received
 	SubActions(ctx context.Context, publisherID, thingID string, actionID string,
-		handler func(action *thing.ThingValue)) (err error)
+		handler func(action thing.ThingValue)) (err error)
 
 	// SubEvents subscribes to events aimed at things from any publisher
 	//
@@ -129,7 +129,7 @@ type IServicePubSub interface {
 	// This is intended for services that track certain events from any device or service.
 	// Possibly a logging, monitoring or automation service.
 	SubEvents(ctx context.Context, publisherID, thingID string, eventID string,
-		handler func(action *thing.ThingValue)) (err error)
+		handler func(event thing.ThingValue)) (err error)
 
 	// Release the capability and end subscriptions
 	Release()
@@ -160,7 +160,7 @@ type IUserPubSub interface {
 	//  thingID is the ID of the Thing whose event is published.
 	//  eventID of the event. Use "" to subscribe to all events of a thing.
 	SubEvent(ctx context.Context, publisherID, thingID, eventID string,
-		handler func(event *thing.ThingValue)) error
+		handler func(event thing.ThingValue)) error
 
 	// Release the capability and end subscriptions
 	Release()

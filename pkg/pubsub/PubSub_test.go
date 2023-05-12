@@ -86,11 +86,11 @@ func TestPubSubAction(t *testing.T) {
 	servicePS, _ := svc.CapServicePubSub(ctx, service1ID)
 
 	// test subscription of a single action by both service and device
-	err := devicePS.SubAction(ctx, thing1ID, actionName1, func(val *thing.ThingValue) {
+	err := devicePS.SubAction(ctx, thing1ID, actionName1, func(val thing.ThingValue) {
 		deviceAction++
 	})
 	assert.NoError(t, err)
-	err = servicePS.SubActions(ctx, publisherID, thing1ID, actionName1, func(val *thing.ThingValue) {
+	err = servicePS.SubActions(ctx, publisherID, thing1ID, actionName1, func(val thing.ThingValue) {
 		serviceAction++
 	})
 	action1Msg := []byte("action1")
@@ -100,7 +100,7 @@ func TestPubSubAction(t *testing.T) {
 	assert.Equal(t, 1, serviceAction)
 
 	// test subscription of a wildcards action
-	err = devicePS.SubAction(ctx, "+", "+", func(val *thing.ThingValue) {
+	err = devicePS.SubAction(ctx, "+", "+", func(val thing.ThingValue) {
 		wildcardAction++
 	})
 	assert.NoError(t, err)
@@ -130,7 +130,7 @@ func TestPubSubEvent(t *testing.T) {
 	userPS, _ := svc.CapUserPubSub(ctx, user1ID)
 
 	// test subscription of a single event by both service and device
-	err := userPS.SubEvent(ctx, publisher1ID, thing1ID, event1Name, func(val *thing.ThingValue) {
+	err := userPS.SubEvent(ctx, publisher1ID, thing1ID, event1Name, func(val thing.ThingValue) {
 		atomic.AddInt32(&event1Count, 1)
 	})
 	assert.NoError(t, err)

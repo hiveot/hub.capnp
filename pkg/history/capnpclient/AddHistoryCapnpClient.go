@@ -18,7 +18,7 @@ type AddHistoryCapnpClient struct {
 
 // AddAction adds a Thing action with the given name and value to the action history
 // TODO: split this into get capability and add action
-func (cl *AddHistoryCapnpClient) AddAction(ctx context.Context, actionValue *thing.ThingValue) error {
+func (cl *AddHistoryCapnpClient) AddAction(ctx context.Context, actionValue thing.ThingValue) error {
 
 	// next add the action
 	method, release := cl.capability.AddAction(ctx,
@@ -34,7 +34,7 @@ func (cl *AddHistoryCapnpClient) AddAction(ctx context.Context, actionValue *thi
 
 // AddEvent adds an event to the event history
 func (cl *AddHistoryCapnpClient) AddEvent(
-	ctx context.Context, eventValue *thing.ThingValue) error {
+	ctx context.Context, eventValue thing.ThingValue) error {
 
 	method, release := cl.capability.AddEvent(ctx,
 		func(params hubapi.CapAddHistory_addEvent_Params) error {
@@ -48,7 +48,7 @@ func (cl *AddHistoryCapnpClient) AddEvent(
 }
 
 func (cl *AddHistoryCapnpClient) AddEvents(
-	ctx context.Context, events []*thing.ThingValue) error {
+	ctx context.Context, events []thing.ThingValue) error {
 
 	method, release := cl.capability.AddEvents(ctx,
 		func(params hubapi.CapAddHistory_addEvents_Params) error {

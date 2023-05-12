@@ -20,7 +20,7 @@ type SubscriptionHandlerCapnpClient struct {
 }
 
 // HandleValue invokes the remote callback handler with the given value
-func (cl *SubscriptionHandlerCapnpClient) HandleValue(value *thing.ThingValue) {
+func (cl *SubscriptionHandlerCapnpClient) HandleValue(value thing.ThingValue) {
 	ctx := context.Background()
 	method, release := cl.handlerCapnp.HandleValue(ctx,
 		func(params hubapi.CapSubscriptionHandler_handleValue_Params) error {

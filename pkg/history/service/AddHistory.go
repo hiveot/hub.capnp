@@ -21,14 +21,14 @@ type AddHistory struct {
 	// store with buckets for Things
 	store bucketstore.IBucketStore
 	// onAddedValue is a callback to invoke after a value is added. Intended for tracking most recent values.
-	onAddedValue func(ev *thing.ThingValue, isAction bool)
+	onAddedValue func(ev thing.ThingValue, isAction bool)
 	//
 	retentionMgr *ManageRetention
 }
 
 // encode a ThingValue into a single key value pair
 // Encoding generates a key as: timestampMsec/name/a|e, where a|e indicates action or event
-func (svc *AddHistory) encodeValue(thingValue *thing.ThingValue, isAction bool) (key string, val []byte) {
+func (svc *AddHistory) encodeValue(thingValue thing.ThingValue, isAction bool) (key string, val []byte) {
 	var err error
 	ts := time.Now()
 	if thingValue.Created != "" {
@@ -54,7 +54,7 @@ func (svc *AddHistory) encodeValue(thingValue *thing.ThingValue, isAction bool) 
 
 // AddAction adds a Thing action with the given name and value to the action history
 // value is json encoded. Optionally include a 'created' ISO8601 timestamp
-func (svc *AddHistory) AddAction(_ context.Context, actionValue *thing.ThingValue) error {
+func (svc *AddHistory) AddAction(_ context.Context, actionValue thing.ThingValue) error {
 	logrus.Infof("clientID=%s, thingID=%s, name=%s", svc.clientID, actionValue.ThingID, actionValue.ID)
 
 	if err := svc.validateValue(actionValue); err != nil {
@@ -74,7 +74,7 @@ func (svc *AddHistory) AddAction(_ context.Context, actionValue *thing.ThingValu
 
 // AddEvent adds an event to the event history
 // If the event has no created time, it will be set to 'now'
-func (svc *AddHistory) AddEvent(ctx context.Context, eventValue *thing.ThingValue) error {
+func (svc *AddHistory) AddEvent(ctx context.Context, eventValue thing.ThingValue) error {
 
 	valueStr := eventValue.Data
 	if len(valueStr) > 20 {
@@ -102,7 +102,7 @@ func (svc *AddHistory) AddEvent(ctx context.Context, eventValue *thing.ThingValu
 
 // AddEvents provides a bulk-add of events to the event history
 // Events that are invalid are skipped.
-func (svc *AddHistory) AddEvents(ctx context.Context, eventValues []*thing.ThingValue) (err error) {
+func (svc *AddHistory) AddEvents(ctx context.Context, eventValues []thing.ThingValue) (err error) {
 	logrus.Infof("clientID=%s, nrEvents=%d", svc.clientID, len(eventValues))
 	if eventValues == nil || len(eventValues) == 0 {
 		return nil
@@ -144,10 +144,7 @@ func (svc *AddHistory) Release() {
 }
 
 // validateValue checks the event has the right thing address and adds a timestamp if missing
-func (svc *AddHistory) validateValue(thingValue *thing.ThingValue) error {
-	if thingValue == nil {
-		return fmt.Errorf("nil event")
-	}
+func (svc *AddHistory) validateValue(thingValue thing.ThingValue) error {
 	if thingValue.ThingID == "" || thingValue.PublisherID == "" {
 		return fmt.Errorf("missing publisher/thing address in value with name '%s'", thingValue.ID)
 	}
@@ -175,7 +172,7 @@ func NewAddHistory(
 	clientID string,
 	store bucketstore.IBucketStore,
 	retentionMgr *ManageRetention,
-	onAddedValue func(value *thing.ThingValue, isAction bool)) *AddHistory {
+	onAddedValue func(value thing.ThingValue, isAction bool)) *AddHistory {
 	svc := &AddHistory{
 		clientID:     clientID,
 		store:        store,

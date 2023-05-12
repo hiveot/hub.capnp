@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/bucketstore"
 	"github.com/hiveot/hub/pkg/directory"
@@ -21,8 +19,8 @@ type ReadDirectory struct {
 }
 
 // GetTD returns the TD document for the given Thing ID in JSON format
-func (svc *ReadDirectory) GetTD(_ context.Context, publisherID, thingID string) (tdValue *thing.ThingValue, err error) {
-	logrus.Infof("clientID=%s, thingID=%s", svc.clientID, thingID)
+func (svc *ReadDirectory) GetTD(_ context.Context, publisherID, thingID string) (tdValue thing.ThingValue, err error) {
+	//logrus.Infof("clientID=%s, thingID=%s", svc.clientID, thingID)
 	// bucket keys are made of the gatewayID / thingID
 	thingAddr := publisherID + "/" + thingID
 	raw, err := svc.bucket.Get(thingAddr)
@@ -34,7 +32,7 @@ func (svc *ReadDirectory) GetTD(_ context.Context, publisherID, thingID string) 
 
 // Cursor returns an iterator for ThingValues containing a TD document
 func (svc *ReadDirectory) Cursor(_ context.Context) (cursor directory.IDirectoryCursor) {
-	logrus.Infof("clientID=%s", svc.clientID)
+	//logrus.Infof("clientID=%s", svc.clientID)
 	dirCursor := NewDirectoryCursor(svc.bucket.Cursor())
 	return dirCursor
 

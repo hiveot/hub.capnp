@@ -15,16 +15,16 @@ import (
 )
 
 // subscribers  things   events       duration          with capnp    with go background
-//    10          10       1000        2.9 msec            280 ms          1.5 ms
-//    10         100       1000        1.3 msec            140 ms          1.5
-//    10        1000       1000        1.1 msec            130 ms        123
-//   100          10       1000       20 msec             1500 ms        351
-//   100         100       1000        4 msec              290             1.5
-//   100        1000       1000        3 msec              140             1.6
-//  1000           1       1000     1700 msec           140000 msec (!)
-//  1000          10       1000      190 msec            15000 msec (!)
-//  1000         100       1000       37 msec             1700
-//  1000        1000       1000       20 msec              340
+//    10          10       1000        2.9 msec            100 ms          1.5 ms
+//    10         100       1000        1.3 msec             70 ms          1.5
+//    10        1000       1000        1.1 msec             66 ms        123
+//   100          10       1000       20 msec              260 ms        351
+//   100         100       1000        4 msec               95             1.5
+//   100        1000       1000        3 msec               70             1.6
+//  1000           1       1000     1700 msec            14200 msec (!)
+//  1000          10       1000      190 msec             5000 msec (!)
+//  1000         100       1000       37 msec              600
+//  1000        1000       1000       20 msec              140
 
 var BenchParams = []struct {
 	Subscribers int // number of subscribers
@@ -37,10 +37,10 @@ var BenchParams = []struct {
 	{Subscribers: 100, Things: 10, Events: 1000},
 	{Subscribers: 100, Things: 100, Events: 1000},
 	{Subscribers: 100, Things: 1000, Events: 1000},
-	//{Subscribers: 1000, Things: 1, Events: 1000},
-	//{Subscribers: 1000, Things: 10, Events: 1000},
-	//{Subscribers: 1000, Things: 100, Events: 1000},
-	//{Subscribers: 1000, Things: 1000, Events: 1000},
+	{Subscribers: 1000, Things: 1, Events: 1000},
+	{Subscribers: 1000, Things: 10, Events: 1000},
+	{Subscribers: 1000, Things: 100, Events: 1000},
+	{Subscribers: 1000, Things: 1000, Events: 1000},
 }
 
 // BenchmarkPubSub measures time needed to receive events
@@ -64,7 +64,7 @@ func BenchmarkPubSub(b *testing.B) {
 		for i := 0; i < tbl.Subscribers; i++ {
 			thingID := thingIDs[rand.Intn(tbl.Things)]
 			name := vocab.VocabTemperature
-			err := capUser.SubEvent(ctx, publisherID, thingID, name, func(tv *thing.ThingValue) {
+			err := capUser.SubEvent(ctx, publisherID, thingID, name, func(tv thing.ThingValue) {
 				//logrus.Infof("received tv thingAddr=%s name=%s", tv.thingAddr, tv.ID)
 				evCount++
 			})

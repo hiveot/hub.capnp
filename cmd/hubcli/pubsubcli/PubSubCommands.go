@@ -96,7 +96,7 @@ func HandleSubTD(ctx context.Context, runFolder string) error {
 		return err
 	}
 	pubSubUser, _ := pubSubSvc.CapUserPubSub(ctx, "hubcli")
-	err = pubSubUser.SubEvent(ctx, "", "", hubapi.EventNameTD, func(event *thing.ThingValue) {
+	err = pubSubUser.SubEvent(ctx, "", "", hubapi.EventNameTD, func(event thing.ThingValue) {
 		var td thing.TD
 		//fmt.Printf("%s\n", event.ValueJSON)
 		err = json.Unmarshal(event.Data, &td)
@@ -131,7 +131,7 @@ func HandleSubEvents(ctx context.Context, runFolder string) error {
 	fmt.Printf("---------------  -------------------  ------------------------  -----------------------------  ---------\n")
 
 	pubSubUser, _ := pubSubSvc.CapServicePubSub(ctx, "hubcli")
-	err = pubSubUser.SubEvents(ctx, "", "", "", func(event *thing.ThingValue) {
+	err = pubSubUser.SubEvents(ctx, "", "", "", func(event thing.ThingValue) {
 		createdTime, _ := dateparse.ParseAny(event.Created)
 		timeStr := createdTime.Format("15:04:05.000")
 		value := fmt.Sprintf("%-.30s", event.Data)

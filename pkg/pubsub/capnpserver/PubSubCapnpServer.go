@@ -4,8 +4,6 @@ import (
 	"context"
 	"net"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/pkg/pubsub"
 	"github.com/hiveot/hub/pkg/resolver/capprovider"
@@ -91,7 +89,7 @@ func StartPubSubCapnpServer(svc pubsub.IPubSubService, lis net.Listener) error {
 	capProv.ExportCapability(hubapi.CapNameUserPubSub,
 		[]string{hubapi.AuthTypeService, hubapi.AuthTypeUser})
 
-	logrus.Infof("Starting '%s' service capnp adapter on: %s", serviceName, lis.Addr())
+	//logrus.Infof("Starting '%s' service capnp adapter on: %s", serviceName, lis.Addr())
 	err := capProv.Start(lis)
 	return err
 }

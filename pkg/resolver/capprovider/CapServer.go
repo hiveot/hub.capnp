@@ -109,7 +109,7 @@ func (capsrv *CapServer) SetUnknownMethodHandler(handler func(m capnp.Method) *s
 //
 // Use Stop() to stop listening and close the listener.
 func (capsrv *CapServer) Start(lis net.Listener) error {
-	logrus.Infof("CapServer listening on %s", lis.Addr())
+	//logrus.Infof("CapServer listening on %s", lis.Addr())
 	//err := rpc.Serve(lis, capnp.Client(capsrv.capProviderCapability))
 	capsrv.lis = lis
 	err := listener.Serve(

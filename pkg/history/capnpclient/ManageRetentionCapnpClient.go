@@ -73,7 +73,7 @@ func (cl *ManageRetentionCapnpClient) SetEventRetention(
 }
 
 func (cl *ManageRetentionCapnpClient) TestEvent(
-	ctx context.Context, tv *thing.ThingValue) (retained bool, err error) {
+	ctx context.Context, tv thing.ThingValue) (retained bool, err error) {
 
 	method, release := cl.capability.TestEvent(ctx,
 		func(params hubapi.CapManageRetention_testEvent_Params) error {

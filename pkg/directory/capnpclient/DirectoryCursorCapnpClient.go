@@ -18,7 +18,7 @@ type DirectoryCursorCapnpClient struct {
 }
 
 // First positions the cursor at the first key in the ordered list
-func (cl *DirectoryCursorCapnpClient) First() (thingValue *thing.ThingValue, valid bool) {
+func (cl *DirectoryCursorCapnpClient) First() (thingValue thing.ThingValue, valid bool) {
 	ctx := context.Background()
 	method, release := cl.capability.First(ctx, nil)
 	defer release()
@@ -32,7 +32,7 @@ func (cl *DirectoryCursorCapnpClient) First() (thingValue *thing.ThingValue, val
 }
 
 // Next moves the cursor to the next key from the current cursor
-func (cl *DirectoryCursorCapnpClient) Next() (thingValue *thing.ThingValue, valid bool) {
+func (cl *DirectoryCursorCapnpClient) Next() (thingValue thing.ThingValue, valid bool) {
 	ctx := context.Background()
 	method, release := cl.capability.Next(ctx, nil)
 	defer release()
@@ -46,7 +46,7 @@ func (cl *DirectoryCursorCapnpClient) Next() (thingValue *thing.ThingValue, vali
 }
 
 // NextN moves the cursor to the next N steps from the current cursor
-func (cl *DirectoryCursorCapnpClient) NextN(steps uint) (batch []*thing.ThingValue, valid bool) {
+func (cl *DirectoryCursorCapnpClient) NextN(steps uint) (batch []thing.ThingValue, valid bool) {
 	ctx := context.Background()
 
 	method, release := cl.capability.NextN(ctx,

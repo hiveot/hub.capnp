@@ -11,10 +11,9 @@ import (
 	"capnproto.org/go/capnp/v3"
 	"capnproto.org/go/capnp/v3/rpc"
 	"capnproto.org/go/capnp/v3/rpc/transport"
-	"github.com/sirupsen/logrus"
 )
 
-// Serve incoming connections to a handler
+// ServeCB incoming connections to a handler
 func ServeCB(lis net.Listener, handler func(net.Conn, transport.Transport)) error {
 	for {
 		// Accept incoming connections
@@ -24,9 +23,9 @@ func ServeCB(lis net.Listener, handler func(net.Conn, transport.Transport)) erro
 		}
 
 		// Accept incoming connections
-		connID := GetConnectionID(conn)
+		//connID := GetConnectionID(conn)
 
-		logrus.Infof("from: %s. ID=%s", conn.RemoteAddr().String(), connID)
+		//logrus.Infof("from: %s. ID=%s", conn.RemoteAddr().String(), connID)
 
 		// Each connection gets a new RPC transport that will serve incoming RPC requests
 		tp := rpc.NewStreamTransport(conn)

@@ -19,7 +19,7 @@ type PubSubEventHandler struct {
 func (svc *PubSubEventHandler) Start() error {
 	ctx := context.Background()
 	err := svc.serviceSub.SubEvents(ctx, "", "", "",
-		func(eventValue *thing.ThingValue) {
+		func(eventValue thing.ThingValue) {
 			logrus.Infof("received event '%s'", eventValue.ID)
 
 			_ = svc.addHistory.AddEvent(ctx, eventValue)

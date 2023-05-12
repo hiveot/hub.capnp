@@ -33,7 +33,7 @@ func (cl *ReadHistoryCapnpClient) GetEventHistory(
 }
 
 func (cl *ReadHistoryCapnpClient) GetProperties(
-	ctx context.Context, names []string) (values []*thing.ThingValue) {
+	ctx context.Context, names []string) (values []thing.ThingValue) {
 
 	method, release := cl.capability.GetProperties(ctx,
 		func(params hubapi.CapReadHistory_getProperties_Params) error {

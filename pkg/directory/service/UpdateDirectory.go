@@ -34,7 +34,7 @@ func (svc *UpdateDirectory) RemoveTD(_ context.Context, publisherID, thingID str
 }
 
 func (svc *UpdateDirectory) UpdateTD(_ context.Context, publisherID, thingID string, td []byte) error {
-	logrus.Infof("clientID=%s, thingID=%s", svc.clientID, thingID)
+	//logrus.Infof("clientID=%s, thingID=%s", svc.clientID, thingID)
 
 	bucketValue := &thing.ThingValue{
 		PublisherID: publisherID,

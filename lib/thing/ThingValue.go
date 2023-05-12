@@ -8,16 +8,15 @@ import (
 
 // ThingValue contains an event, action value or TD of a thing
 type ThingValue struct {
+	// ID of event or action as defined in the TD event/action map.
+	// For the type of event/action see the TD event/action @type field.
+	ID string
 
 	// PublisherID of the thing
 	PublisherID string
 
 	// ThingID of the thing itself
 	ThingID string
-
-	// ID of event or action. This is the key used in the TD event/action map to describe the event or action.
-	// Note that this ID is the instance ID provided by the device and not the vocabulary name for this event/action.
-	ID string
 
 	// Data with serialized value payload, as defined by the TD affordance DataSchema
 	Data []byte
@@ -38,8 +37,8 @@ type ThingValue struct {
 
 // NewThingValue creates a new ThingValue object with the address of the thing, the action or event id and the serialized value data
 // This copies the value buffer.
-func NewThingValue(publisherID, thingID, id string, data []byte) *ThingValue {
-	return &ThingValue{
+func NewThingValue(publisherID, thingID, id string, data []byte) ThingValue {
+	return ThingValue{
 		PublisherID: publisherID,
 		ThingID:     thingID,
 		ID:          id,

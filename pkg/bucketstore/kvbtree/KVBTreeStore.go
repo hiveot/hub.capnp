@@ -52,7 +52,7 @@ type KVBTreeStore struct {
 	clientID string
 	// collection of buckets, one for each Thing, each being a map.
 	buckets              map[string]*KVBTreeBucket
-	storePath            string
+	storePath            string       // for file backed storage or "" for in-memory only
 	mutex                sync.RWMutex // simple locking is still fast enough
 	updateCount          int32        // nr of updates since last save
 	backgroundLoopEnded  chan bool
@@ -80,11 +80,15 @@ func importStoreFile(clientID, storePath string) (docs map[string]*KVBTreeBucket
 }
 
 // readStoreFile loads the store JSON content into a map
+// Returns empty data if storePath is "" (eg an memory-only store)
 // Returns the OS error if loading fails
 // not concurrent safe
 func readStoreFile(storePath string) (docs map[string]map[string][]byte, err error) {
 	//docs = make(map[string]*KVBTreeBucket)
 	docs = make(map[string]map[string][]byte)
+	if storePath == "" {
+		return docs, nil
+	}
 	var rawData []byte
 	rawData, err = os.ReadFile(storePath)
 	if err == nil {
@@ -102,10 +106,13 @@ func readStoreFile(storePath string) (docs map[string]map[string][]byte, err err
 // This creates the folder if it doesn't exist. (the parent must exist)
 // Note this is not concurrent safe. Callers must lock or create a shallow copy of the buckets.
 //
-//	storePath is the full path to the file
+//	storePath is the full path to the file or "" when ignored
 //	docs contains an object map of the store objects
 func writeStoreFile(storePath string, docs map[string]map[string][]byte) error {
 	logrus.Infof("writeStoreFile: Flush changes to json store at '%s'", storePath)
+	if storePath == "" {
+		return nil
+	}
 
 	// create the folder if needed
 	storeFolder := path.Dir(storePath)
@@ -203,7 +210,7 @@ func (store *KVBTreeStore) Close() error {
 		err = writeStoreFile(store.storePath, exportedCopy)
 	}
 	store.buckets = nil
-	logrus.Infof("Store '%s' close completed. Background loop ended", store.storePath)
+	logrus.Infof("Store '%s' close completed. Background loop ended", store.clientID)
 	return err
 }
 
@@ -312,7 +319,7 @@ func (store *KVBTreeStore) SetWriteDelay(delay time.Duration) {
 // Run Connect to start the background loop and Stop to end it.
 //
 //	ClientID service or user for debugging and logging
-//	storeFile path to storage file
+//	storeFile path to storage file or "" for in-memory only
 func NewKVStore(clientID, storePath string) (store *KVBTreeStore) {
 	writeDelay := time.Duration(3000) * time.Millisecond
 	store = &KVBTreeStore{

@@ -14,13 +14,13 @@ import (
 // (client is a server and the server is its client. Get it? :))
 // This implements the hubapi.CapSubscriptionHandler interface
 type SubscriptionHandlerCapnpServer struct {
-	handler func(value *thing.ThingValue)
+	handler func(thing.ThingValue)
 }
 
 // HandleValue is a Capnp Server method that invokes the client provided callback
 // This unmarshals the ThingValue and passes it to the callback
 func (capsrv *SubscriptionHandlerCapnpServer) HandleValue(
-	ctx context.Context, call hubapi.CapSubscriptionHandler_handleValue) error {
+	_ context.Context, call hubapi.CapSubscriptionHandler_handleValue) error {
 	args := call.Args()
 	tvCap, _ := args.Value()
 	tv := caphelp.UnmarshalThingValue(tvCap)
@@ -36,7 +36,7 @@ func (capsrv *SubscriptionHandlerCapnpServer) Shutdown() {
 	//logrus.Infof("SubscriptionHandlerCapnpServer was released ... somehow?")
 }
 
-func NewSubscriptionHandlerCapnpServer(handler func(value *thing.ThingValue)) hubapi.CapSubscriptionHandler {
+func NewSubscriptionHandlerCapnpServer(handler func(thing.ThingValue)) hubapi.CapSubscriptionHandler {
 	capsrv := &SubscriptionHandlerCapnpServer{handler: handler}
 	capability := hubapi.CapSubscriptionHandler_ServerToClient(capsrv)
 	return capability

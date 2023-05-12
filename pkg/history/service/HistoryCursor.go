@@ -24,16 +24,16 @@ type HistoryCursor struct {
 // convert the storage key and raw data to a thing value object
 // this must match the encoding done in AddHistory
 // This returns the value, or nil if the key is invalid
-func (hc *HistoryCursor) decodeValue(key string, data []byte) (thingValue *thing.ThingValue, valid bool) {
+func (hc *HistoryCursor) decodeValue(key string, data []byte) (thingValue thing.ThingValue, valid bool) {
 	// key is constructed as  {timestamp}/{valueName}/{a|e}
 	parts := strings.Split(key, "/")
 	if len(parts) < 2 {
-		return nil, false
+		return thingValue, false
 	}
 	millisec, _ := strconv.ParseInt(parts[0], 10, 64)
 	ts := time.UnixMilli(millisec)
 	timeIso8601 := ts.Format(vocab.ISO8601Format)
-	thingValue = &thing.ThingValue{
+	thingValue = thing.ThingValue{
 		ThingID:     hc.thingID,
 		PublisherID: hc.publisherID,
 		ID:          parts[1],
@@ -51,7 +51,7 @@ func (hc *HistoryCursor) decodeValue(key string, data []byte) (thingValue *thing
 //
 //	name is the event name to match
 //	until is the time not to exceed in the result. Intended to avoid unnecesary iteration in range queries
-func (hc *HistoryCursor) findNextName(name string, until time.Time) (thingValue *thing.ThingValue, found bool) {
+func (hc *HistoryCursor) findNextName(name string, until time.Time) (thingValue thing.ThingValue, found bool) {
 	found = false
 	for {
 		k, v, valid := hc.bc.Next()
@@ -90,7 +90,7 @@ func (hc *HistoryCursor) findNextName(name string, until time.Time) (thingValue 
 //
 //	name is the event name to match
 //	until is the time not to exceed in the result. Intended to avoid unnecesary iteration in range queries
-func (hc *HistoryCursor) findPrevName(name string, until time.Time) (thingValue *thing.ThingValue, found bool) {
+func (hc *HistoryCursor) findPrevName(name string, until time.Time) (thingValue thing.ThingValue, found bool) {
 	found = false
 	for {
 		k, v, valid := hc.bc.Prev()
@@ -122,7 +122,7 @@ func (hc *HistoryCursor) findPrevName(name string, until time.Time) (thingValue 
 }
 
 // First returns the oldest value in the history
-func (hc *HistoryCursor) First() (thingValue *thing.ThingValue, valid bool) {
+func (hc *HistoryCursor) First() (thingValue thing.ThingValue, valid bool) {
 	until := time.Now()
 	k, v, valid := hc.bc.First()
 	if !valid {
@@ -137,7 +137,7 @@ func (hc *HistoryCursor) First() (thingValue *thing.ThingValue, valid bool) {
 }
 
 // Last positions the cursor at the last key in the ordered list
-func (hc *HistoryCursor) Last() (thingValue *thing.ThingValue, valid bool) {
+func (hc *HistoryCursor) Last() (thingValue thing.ThingValue, valid bool) {
 	// the beginning of time?
 	until := time.Time{}
 	k, v, valid := hc.bc.Last()
@@ -154,7 +154,7 @@ func (hc *HistoryCursor) Last() (thingValue *thing.ThingValue, valid bool) {
 
 // Next moves the cursor to the next key from the current cursor
 // First() or Seek must have been called first.
-func (hc *HistoryCursor) Next() (thingValue *thing.ThingValue, valid bool) {
+func (hc *HistoryCursor) Next() (thingValue thing.ThingValue, valid bool) {
 	until := time.Now()
 	if hc.filterName != "" {
 		thingValue, valid = hc.findNextName(hc.filterName, until)
@@ -173,8 +173,8 @@ func (hc *HistoryCursor) Next() (thingValue *thing.ThingValue, valid bool) {
 // and return a list with N values in incremental time order.
 // itemsRemaining is false if the iterator has reached the end.
 // Intended to speed up with batch iterations over rpc.
-func (hc *HistoryCursor) NextN(steps uint) (values []*thing.ThingValue, itemsRemaining bool) {
-	values = make([]*thing.ThingValue, 0, steps)
+func (hc *HistoryCursor) NextN(steps uint) (values []thing.ThingValue, itemsRemaining bool) {
+	values = make([]thing.ThingValue, 0, steps)
 	// tbd is it faster to use NextN and sort the keys?
 	for i := uint(0); i < steps; i++ {
 		thingValue, valid := hc.Next()
@@ -188,7 +188,7 @@ func (hc *HistoryCursor) NextN(steps uint) (values []*thing.ThingValue, itemsRem
 
 // Prev moves the cursor to the previous key from the current cursor
 // Last() or Seek must have been called first.
-func (hc *HistoryCursor) Prev() (thingValue *thing.ThingValue, valid bool) {
+func (hc *HistoryCursor) Prev() (thingValue thing.ThingValue, valid bool) {
 	until := time.Time{}
 	if hc.filterName != "" {
 		thingValue, valid = hc.findPrevName(hc.filterName, until)
@@ -209,8 +209,8 @@ func (hc *HistoryCursor) Prev() (thingValue *thing.ThingValue, valid bool) {
 // and return a list with N values in decremental time order.
 // itemsRemaining is true if the iterator has reached the beginning
 // Intended to speed up with batch iterations over rpc.
-func (hc *HistoryCursor) PrevN(steps uint) (values []*thing.ThingValue, itemsRemaining bool) {
-	values = make([]*thing.ThingValue, 0, steps)
+func (hc *HistoryCursor) PrevN(steps uint) (values []thing.ThingValue, itemsRemaining bool) {
+	values = make([]thing.ThingValue, 0, steps)
 	// tbd is it faster to use NextN and sort the keys? - for a remote store yes
 	for i := uint(0); i < steps; i++ {
 		thingValue, valid := hc.Prev()
@@ -231,7 +231,7 @@ func (hc *HistoryCursor) Release() {
 // Seek positions the cursor at the given searchKey and corresponding value.
 // If the key is not found, the next key is returned.
 // cursor.Close must be invoked after use in order to close any read transactions.
-func (hc *HistoryCursor) Seek(isoTimestamp string) (thingValue *thing.ThingValue, valid bool) {
+func (hc *HistoryCursor) Seek(isoTimestamp string) (thingValue thing.ThingValue, valid bool) {
 	until := time.Now()
 	ts, err := dateparse.ParseAny(isoTimestamp)
 	if err != nil {

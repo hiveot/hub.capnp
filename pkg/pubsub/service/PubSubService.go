@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/hiveot/hub/pkg/pubsub"
 	"github.com/hiveot/hub/pkg/pubsub/core"
 )
@@ -21,7 +19,7 @@ type PubSubService struct {
 // CapDevicePubSub provides the capability to pub/sub thing information as an IoT device.
 // The issuer must only provide this capability after verifying the device ID.
 func (svc *PubSubService) CapDevicePubSub(_ context.Context, deviceID string) (pubsub.IDevicePubSub, error) {
-	logrus.Infof("deviceID='%s'", deviceID)
+	//logrus.Infof("deviceID='%s'", deviceID)
 	if deviceID == "" {
 		return nil, fmt.Errorf("missing deviceID")
 	}
@@ -32,7 +30,7 @@ func (svc *PubSubService) CapDevicePubSub(_ context.Context, deviceID string) (p
 // CapServicePubSub provides the capability to pub/sub thing information as a hub service.
 // Hub services can publish their own information and receive events from any thing.
 func (svc *PubSubService) CapServicePubSub(_ context.Context, serviceID string) (pubsub.IServicePubSub, error) {
-	logrus.Infof("serviceID='%s'", serviceID)
+	//logrus.Infof("serviceID='%s'", serviceID)
 	if serviceID == "" {
 		return nil, fmt.Errorf("missing serviceID")
 	}
@@ -45,7 +43,7 @@ func (svc *PubSubService) CapServicePubSub(_ context.Context, serviceID string) 
 //
 //	userID is the login ID of an authenticated user
 func (svc *PubSubService) CapUserPubSub(_ context.Context, userID string) (pubsub.IUserPubSub, error) {
-	logrus.Infof("userID='%s'", userID)
+	//logrus.Infof("userID='%s'", userID)
 	if userID == "" {
 		return nil, fmt.Errorf("missing userID")
 	}

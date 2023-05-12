@@ -71,15 +71,15 @@ type IAddHistory interface {
 
 	// AddAction adds a Thing action with the given name and value to the action history
 	// The given value object must not be modified after this call.
-	AddAction(ctx context.Context, thingValue *thing.ThingValue) error
+	AddAction(ctx context.Context, thingValue thing.ThingValue) error
 
 	// AddEvent adds an event to the event history
 	// The given value object must not be modified after this call.
-	AddEvent(ctx context.Context, thingValue *thing.ThingValue) error
+	AddEvent(ctx context.Context, thingValue thing.ThingValue) error
 
 	// AddEvents provides a bulk-add of events to the event history
 	// The given value objects must not be modified after this call.
-	AddEvents(ctx context.Context, eventValues []*thing.ThingValue) error
+	AddEvents(ctx context.Context, eventValues []thing.ThingValue) error
 
 	// Release the capability and its resources
 	Release()
@@ -90,29 +90,29 @@ type IAddHistory interface {
 type IHistoryCursor interface {
 	// First return the oldest value in the history
 	// Returns nil if the store is empty
-	First() (thingValue *thing.ThingValue, valid bool)
+	First() (thingValue thing.ThingValue, valid bool)
 
 	// Last returns the latest value in the history
 	// Returns nil if the store is empty
-	Last() (thingValue *thing.ThingValue, valid bool)
+	Last() (thingValue thing.ThingValue, valid bool)
 
 	// Next returns the next value in the history
 	// Returns nil when trying to read past the last value
-	Next() (thingValue *thing.ThingValue, valid bool)
+	Next() (thingValue thing.ThingValue, valid bool)
 
 	// NextN returns a batch of next history values
 	// Returns empty list when trying to read past the last value
 	// itemsRemaining is true as long as more items can be retrieved
-	NextN(steps uint) (batch []*thing.ThingValue, itemsRemaining bool)
+	NextN(steps uint) (batch []thing.ThingValue, itemsRemaining bool)
 
 	// Prev returns the previous value in history
 	// Returns nil when trying to read before the first value
-	Prev() (thingValue *thing.ThingValue, valid bool)
+	Prev() (thingValue thing.ThingValue, valid bool)
 
 	// PrevN returns a batch of previous history values
 	// Returns empty list when trying to read before the first value
 	// itemsRemaining is true as long as more items can be retrieved
-	PrevN(steps uint) (batch []*thing.ThingValue, itemsRemaining bool)
+	PrevN(steps uint) (batch []thing.ThingValue, itemsRemaining bool)
 
 	// Release the cursor and resources
 	Release()
@@ -120,7 +120,7 @@ type IHistoryCursor interface {
 	// Seek the starting point for iterating the history
 	// This returns the value at timestamp or next closest if it doesn't exist
 	// Returns empty list when there are no values at or past the given timestamp
-	Seek(isoTimestamp string) (thingValue *thing.ThingValue, valid bool)
+	Seek(isoTimestamp string) (thingValue thing.ThingValue, valid bool)
 }
 
 // IManageRetention defines the capability to manage the events that are recorded
@@ -143,7 +143,7 @@ type IManageRetention interface {
 	SetEventRetention(ctx context.Context, eventRet EventRetention) error
 
 	// TestEvent tests if the event will be retained
-	TestEvent(ctx context.Context, eventValue *thing.ThingValue) (bool, error)
+	TestEvent(ctx context.Context, eventValue thing.ThingValue) (bool, error)
 
 	// Release the capability and its resources
 	Release()
@@ -159,7 +159,7 @@ type IReadHistory interface {
 	// GetProperties returns the most recent property and event values of the Thing
 	//  names is the list of properties to return. Use nil or empty list to return all known properties.
 	//  This returns a list of thing values.
-	GetProperties(ctx context.Context, names []string) []*thing.ThingValue
+	GetProperties(ctx context.Context, names []string) []thing.ThingValue
 
 	// Info returns the history storage information of the thing
 	Info(ctx context.Context) *bucketstore.BucketStoreInfo

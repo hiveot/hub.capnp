@@ -12,7 +12,7 @@ import (
 )
 
 // ThingPropertyValues is a collection of thing property values by property/event name
-type ThingPropertyValues map[string]*thing.ThingValue
+type ThingPropertyValues map[string]thing.ThingValue
 
 // LastPropertiesStore holds the most recent property and event values of things.
 // It persists a record for each Thing containing a map of the most recent properties.
@@ -62,8 +62,8 @@ func (srv *LastPropertiesStore) LoadProps(thingAddr string) (found bool) {
 //
 //	 thingAddr is the address the thing is reachable at. Usually the publisherID/thingID.
 //		names is optional and can be used to limit the resulting array of values. Use nil to get all properties.
-func (srv *LastPropertiesStore) GetProperties(thingAddr string, names []string) (propList []*thing.ThingValue) {
-	propList = make([]*thing.ThingValue, 0)
+func (srv *LastPropertiesStore) GetProperties(thingAddr string, names []string) (propList []thing.ThingValue) {
+	propList = make([]thing.ThingValue, 0)
 
 	// ensure this thing has its properties cache loaded
 	srv.LoadProps(thingAddr)
@@ -92,7 +92,7 @@ func (srv *LastPropertiesStore) GetProperties(thingAddr string, names []string) 
 // HandleAddValue is the handler of update to a thing's event/property values
 // used to update the properties cache.
 // isAction indicates the value is an action.
-func (srv *LastPropertiesStore) HandleAddValue(event *thing.ThingValue, isAction bool) {
+func (srv *LastPropertiesStore) HandleAddValue(event thing.ThingValue, isAction bool) {
 	// ensure the Thing has its properties cache loaded
 	thingAddr := event.PublisherID + "/" + event.ThingID
 	srv.LoadProps(thingAddr)

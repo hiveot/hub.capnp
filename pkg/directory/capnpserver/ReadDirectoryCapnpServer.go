@@ -30,7 +30,7 @@ func (capsrv *ReadDirectoryCapnpServer) Cursor(
 	return err
 }
 func (capsrv *ReadDirectoryCapnpServer) GetTD(ctx context.Context, call hubapi.CapReadDirectory_getTD) (err error) {
-	var tv *thing.ThingValue
+	var tv thing.ThingValue
 
 	args := call.Args()
 	publisherID, _ := args.PublisherID()

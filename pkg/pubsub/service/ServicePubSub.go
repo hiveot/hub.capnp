@@ -31,15 +31,15 @@ type ServicePubSub struct {
 //	handler is a callback invoked when actions are received
 func (svc *ServicePubSub) SubActions(
 	_ context.Context, publisherID, thingID, actionID string,
-	handler func(action *thing.ThingValue)) (err error) {
+	handler func(thing.ThingValue)) (err error) {
 
 	logrus.Infof("publisherID=%s, thingID=%s, actionID=%s", publisherID, thingID, actionID)
 	subTopic := MakeThingTopic(publisherID, thingID, hubapi.MessageTypeAction, actionID)
 	subID, err := svc.core.Subscribe(subTopic,
 		func(topic string, message []byte) {
 			// FIXME: capnp serialization of messageValue?
-			msgValue := &thing.ThingValue{}
-			err := json.Unmarshal(message, msgValue)
+			msgValue := thing.ThingValue{}
+			err := json.Unmarshal(message, &msgValue)
 			if err != nil {
 				logrus.Error(err)
 			}
@@ -54,14 +54,14 @@ func (svc *ServicePubSub) SubActions(
 // SubEvents subscribes to events aimed at things from any publisher
 func (svc *ServicePubSub) SubEvents(
 	_ context.Context, publisherID, thingID, eventID string,
-	handler func(action *thing.ThingValue)) (err error) {
+	handler func(thing.ThingValue)) (err error) {
 
 	logrus.Infof("publisherID=%s, thingID=%s, eventID=%s", publisherID, thingID, eventID)
 	subTopic := MakeThingTopic(publisherID, thingID, hubapi.MessageTypeEvent, eventID)
 	subID, err := svc.core.Subscribe(subTopic,
 		func(topic string, message []byte) {
-			msgValue := &thing.ThingValue{}
-			err := json.Unmarshal(message, msgValue)
+			msgValue := thing.ThingValue{}
+			err := json.Unmarshal(message, &msgValue)
 			if err != nil {
 				logrus.Error(err)
 			}
