@@ -3,8 +3,6 @@ package capnpserver
 import (
 	"context"
 
-	"capnproto.org/go/capnp/v3"
-
 	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/lib/caphelp"
 	"github.com/hiveot/hub/pkg/history"
@@ -23,8 +21,10 @@ func (capsrv *ReadHistoryCapnpServer) GetEventHistory(
 	ctx context.Context, call hubapi.CapReadHistory_getEventHistory) error {
 
 	args := call.Args()
+	publisherID, _ := args.PublisherID()
+	thingID, _ := args.ThingID()
 	eventName, _ := args.Name()
-	cursor := capsrv.svc.GetEventHistory(ctx, eventName)
+	cursor := capsrv.svc.GetEventHistory(ctx, publisherID, thingID, eventName)
 
 	cursorSrv := NewHistoryCursorCapnpServer(cursor)
 	capnpCursorServer := hubapi.CapHistoryCursor_ServerToClient(cursorSrv)
@@ -43,9 +43,11 @@ func (capsrv *ReadHistoryCapnpServer) GetProperties(
 	ctx context.Context, call hubapi.CapReadHistory_getProperties) error {
 
 	args := call.Args()
+	publisherID, _ := args.PublisherID()
+	thingID, _ := args.ThingID()
 	capNameList, _ := args.Names()
 	names := caphelp.UnmarshalStringList(capNameList)
-	valueList := capsrv.svc.GetProperties(ctx, names)
+	valueList := capsrv.svc.GetProperties(ctx, publisherID, thingID, names)
 
 	res, err := call.AllocResults()
 	if err == nil {
@@ -55,21 +57,21 @@ func (capsrv *ReadHistoryCapnpServer) GetProperties(
 	return err
 }
 
-func (capsrv *ReadHistoryCapnpServer) Info(
-	ctx context.Context, call hubapi.CapReadHistory_info) error {
-	bucketInfo := capsrv.svc.Info(ctx)
-	res, err := call.AllocResults()
-	if err == nil {
-		_, seg, _ := capnp.NewMessage(capnp.SingleSegment(nil))
-		infoCapnp, _ := hubapi.NewBucketStoreInfo(seg)
-		infoCapnp.SetDataSize(bucketInfo.DataSize)
-		_ = infoCapnp.SetEngine(bucketInfo.Engine)
-		_ = infoCapnp.SetId(bucketInfo.Id)
-		infoCapnp.SetNrRecords(bucketInfo.NrRecords)
-		err = res.SetInfo(infoCapnp)
-	}
-	return err
-}
+//func (capsrv *ReadHistoryCapnpServer) Info(
+//	ctx context.Context, call hubapi.CapReadHistory_info) error {
+//	bucketInfo := capsrv.svc.Info(ctx)
+//	res, err := call.AllocResults()
+//	if err == nil {
+//		_, seg, _ := capnp.NewMessage(capnp.SingleSegment(nil))
+//		infoCapnp, _ := hubapi.NewBucketStoreInfo(seg)
+//		infoCapnp.SetDataSize(bucketInfo.DataSize)
+//		_ = infoCapnp.SetEngine(bucketInfo.Engine)
+//		_ = infoCapnp.SetId(bucketInfo.Id)
+//		infoCapnp.SetNrRecords(bucketInfo.NrRecords)
+//		err = res.SetInfo(infoCapnp)
+//	}
+//	return err
+//}
 
 func (capsrv *ReadHistoryCapnpServer) Shutdown() {
 	// Release on the client calls capnp release

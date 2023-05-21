@@ -100,7 +100,7 @@ func main() {
 			directorycli.DirectoryListCommand(ctx, &runFolder),
 
 			//historycli.HistoryCommands(ctx, &runFolder),
-			historycli.HistoryInfoCommand(ctx, &runFolder),
+			//historycli.HistoryInfoCommand(ctx, &runFolder),
 			historycli.HistoryListCommand(ctx, &runFolder),
 			historycli.HistoryLatestCommand(ctx, &runFolder),
 			historycli.HistoryRetainCommand(ctx, &runFolder),

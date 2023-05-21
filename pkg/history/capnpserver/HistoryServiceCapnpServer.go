@@ -59,9 +59,7 @@ func (capsrv *HistoryServiceCapnpServer) CapReadHistory(
 	// create a client instance for reading the history
 	args := call.Args()
 	clientID, _ := args.ClientID()
-	publisherID, _ := args.PublisherID()
-	thingID, _ := args.ThingID()
-	capRead, _ := capsrv.svc.CapReadHistory(ctx, clientID, publisherID, thingID)
+	capRead, _ := capsrv.svc.CapReadHistory(ctx, clientID)
 	readSrv := &ReadHistoryCapnpServer{
 		svc: capRead,
 	}

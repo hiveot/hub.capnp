@@ -65,13 +65,13 @@ func (svc *HistoryService) CapManageRetention(
 //	clientID of the ID remote client doing the reading
 //	publisherID of the publisher whose Thing to read
 //	thingID of the Thing whose history to read
-func (svc *HistoryService) CapReadHistory(
-	_ context.Context, clientID, publisherID, thingID string) (history.IReadHistory, error) {
+func (svc *HistoryService) CapReadHistory(_ context.Context, clientID string) (
+	history.IReadHistory, error) {
 
 	logrus.Infof("clientID=%s", clientID)
-	thingAddr := publisherID + "/" + thingID
-	bucket := svc.bucketStore.GetBucket(thingAddr)
-	readHistory := NewReadHistory(clientID, publisherID, thingID, bucket, svc.propsStore.GetProperties)
+	//thingAddr := publisherID + "/" + thingID
+	//bucket := svc.bucketStore.GetBucket(thingAddr)
+	readHistory := NewReadHistory(clientID, svc.bucketStore, svc.propsStore.GetProperties)
 	return readHistory, nil
 }
 

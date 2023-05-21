@@ -8,7 +8,7 @@ import (
 
 // ThingValue contains an event, action value or TD of a thing
 type ThingValue struct {
-	// ID of event or action as defined in the TD event/action map.
+	// ID of event, action or property as defined in the TD event/action map.
 	// For the type of event/action see the TD event/action @type field.
 	ID string
 

@@ -1,19 +1,15 @@
 package service
 
 import (
-	"context"
 	"crypto/x509"
-	"errors"
 	"fmt"
 	"github.com/hiveot/hub/lib/resolver"
-	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/authn"
-	"github.com/hiveot/hub/pkg/directory"
 	"github.com/hiveot/hub/pkg/gateway"
-	"github.com/hiveot/hub/pkg/history"
 	"github.com/hiveot/hub/pkg/mqtt/mqttclient"
-	"github.com/hiveot/hub/pkg/pubsub"
 	"github.com/mochi-co/mqtt/v2"
+	"github.com/sirupsen/logrus"
+	"strings"
 )
 
 // MqttSession manages a MQTT client session with the HiveOT gateway
@@ -28,68 +24,17 @@ type MqttSession struct {
 	// login ID of this client
 	clientID string
 
-	// user authentication
 	userAuthn authn.IUserAuthn
-	// pubsub capabilities is loaded on first use
-	userPubSub   pubsub.IUserPubSub
-	devicePubSub pubsub.IDevicePubSub
-
-	// directory capabilities
-	readDir directory.IReadDirectory
-
-	// history capabilities
-	readHist history.IReadHistory
-}
-
-// Return the user pubsub capability. Obtain it from the resolver on first use.
-func (session *MqttSession) getUserPubSub() pubsub.IUserPubSub {
-	if session.userPubSub == nil {
-		session.userPubSub = resolver.GetCapability[pubsub.IUserPubSub]()
-	}
-	return session.userPubSub
-}
-
-// Return the device pubsub capability. Obtain it from the resolver on first use.
-func (session *MqttSession) getDevicePubSub() pubsub.IDevicePubSub {
-	if session.devicePubSub == nil {
-		session.devicePubSub = resolver.GetCapability[pubsub.IDevicePubSub]()
-	}
-	return session.devicePubSub
-}
-
-// Return the read directory capability. Obtain it from the resolver on first use.
-func (session *MqttSession) getReadDirectory() directory.IReadDirectory {
-	if session.readDir == nil {
-		session.readDir = resolver.GetCapability[directory.IReadDirectory]()
-	}
-	return session.readDir
-}
-
-// Return the device pubsub capability. Obtain it from the resolver on first use.
-func (session *MqttSession) getReadHistory() history.IReadHistory {
-	if session.readHist == nil {
-		session.readHist = resolver.GetCapability[history.IReadHistory]()
-	}
-	return session.readHist
+	m2dir     *Mqtt2Directory
+	m2hist    *Mqtt2History
+	m2pubsub  *Mqtt2PubSub
 }
 
 // OnDisconnect release the gateway session on a disconnect
 func (session *MqttSession) OnDisconnect() {
-	if session.readHist != nil {
-		session.readHist.Release()
-	}
-	if session.readDir != nil {
-		session.readDir.Release()
-	}
-	if session.userAuthn != nil {
-		session.userAuthn.Release()
-	}
-	if session.devicePubSub != nil {
-		session.devicePubSub.Release()
-	}
-	if session.userPubSub != nil {
-		session.userPubSub.Release()
-	}
+	session.m2dir.Release()
+	session.m2hist.Release()
+	session.m2pubsub.Release()
 	if session.gwClient != nil {
 		session.gwClient.Release()
 	}
@@ -103,57 +48,58 @@ func (session *MqttSession) Login(loginID, password string) error {
 	return err
 }
 
-// OnSubscribe is invoked when the MQTT client requests subscription on a topic.
-// This is passed on to the pubsub service.
-func (session *MqttSession) OnSubscribe(topic string, cb func(thing.ThingValue)) error {
-	pubID, thingID, msgType, name, err := mqttclient.SplitTopic(topic)
-	if err != nil {
-		return fmt.Errorf("OnSubscribe: %w", err)
+// OnSubscribe is invoked by the MQTT Hook when the MQTT client requests subscription on a topic.
+//
+// Thing subscriptions on topic things/{publisherID}/{thingID}/{msgType}/{name} are
+// passed on to the pubsub service if they pass the authorization check.
+//
+// Subscription to service responses are handled by the mqtt broker and are ignored.
+func (session *MqttSession) OnSubscribe(cl *mqtt.Client, mqttTopic string, payload []byte) (err error) {
+	logrus.Infof("OnSubscribe to '%s' by client '%s'", mqttTopic, cl.ID)
+
+	if strings.HasPrefix(mqttTopic, string(mqttclient.ThingsTopic)) {
+		err = session.m2pubsub.HandleSubscribe(mqttTopic, payload)
+	} else if strings.HasPrefix(mqttTopic, "services/directory") {
+		// nothing to do here
+		//err = session.m2dir.HandleDirectorySubscribe(mqttTopic, payload)
+	} else if strings.HasPrefix(mqttTopic, "services/history") {
+		// nothing to do here
+		//err = session.m2hist.HandleHistorySubscribe(mqttTopic, payload)
+	} else {
+		// unsupported subscription
+		err = fmt.Errorf("unsupported subscription to '%s' by client '%s'", mqttTopic, cl.ID)
 	}
-	// TBD: authorization?
-	if msgType == "event" {
-		err = session.getUserPubSub().SubEvent(context.Background(), pubID, thingID, name, cb)
-	} else if msgType == "action" {
-		if pubID != session.clientID {
-			return fmt.Errorf("subscribe to action by '%s' from different publiser '%s'", session.clientID, pubID)
-		}
-		err = session.getDevicePubSub().SubAction(context.Background(), thingID, name, cb)
-	}
-	return nil
+	return err
 }
 
-// OnPublish handles a publish request.
+// OnPublish is invoked by the mqtt Hook and handles a thing or service publish request.
 //
-//	This proxies the publication to the Hub's pubsub service.
+//	This dispatches the request to the Hub's pubsub, directory or history service
 //
-// The publisher must be logged in and have permission to publishing
-// The topic format is: things/{publisherID}/{thingID}/{msgType}/name
+// # The publisher must be logged in and have permission to publishing
+//
+// The following topics are mapped to Hub capabilities
+//
+//	things/{publisherID}/{thingID}/event/{name}  -> DevicePubSub.PubEvent
+//	things/{publisherID}/{thingID}/td            -> DevicePubSub.PubTD
+//	things/{publisherID}/{thingID}/action/{name} -> UserPubSub.PubAction
+//	services/directory/action/directory          -> directory.ReadDirectory:
+//	services/history/action/history          -> history.GetEventHistory
+//	services/history/action/properties       -> history.GetProperties
+//
 // * where msgType is one of 'event', 'action', 'td'
 // * where name is the name of the event, action or the thing devicetype
-func (session *MqttSession) OnPublish(topic string, payload []byte) (err error) {
+func (session *MqttSession) OnPublish(cl *mqtt.Client, mqttTopic string, payload []byte) (err error) {
 	// first time obtain the publish capability
-	pubID, thingID, msgType, name, err := mqttclient.SplitTopic(topic)
-	if err != nil {
-		return fmt.Errorf("OnPublish error: %w", err)
-	}
-
-	if msgType == "event" { // device api
-		// events must come from the publisher
-		if pubID != session.clientID {
-			err = fmt.Errorf("event publisher '%s' doesn't match client ID '%s'", pubID, session.clientID)
-		} else {
-			err = session.getDevicePubSub().PubEvent(context.Background(), thingID, name, payload)
-		}
-	} else if msgType == "action" { // user api
-		err = session.getUserPubSub().PubAction(context.Background(), pubID, thingID, name, payload)
-	} else if msgType == "td" { // device api
-		// TDs must come from the publisher
-		if pubID != session.clientID {
-			err = errors.New(fmt.Sprintf("TD publisher '%s' doesn't match client ID '%s'", pubID, session.clientID))
-		} else {
-			// TD's use the event name 'td'
-			err = session.getDevicePubSub().PubEvent(context.Background(), thingID, msgType, payload)
-		}
+	if strings.HasPrefix(mqttTopic, string(mqttclient.ThingsTopic)) {
+		err = session.m2pubsub.HandlePublish(mqttTopic, payload)
+	} else if strings.HasPrefix(mqttTopic, "services/directory") {
+		err = session.m2dir.HandleDirectoryRequest(mqttTopic, payload)
+	} else if strings.HasPrefix(mqttTopic, "services/history") {
+		err = session.m2hist.HandleHistoryRequest(mqttTopic, payload)
+	} else {
+		// not a regular mqttTopic
+		err = fmt.Errorf("mqttTopic '%s' is not supported by the MQTT gateway", mqttTopic)
 	}
 	return err
 }
@@ -174,9 +120,15 @@ func NewMqttSession(caCert *x509.Certificate, client *mqtt.Client) (session *Mqt
 	//	err = errors.New("gateway is not accessible")
 	//	return nil, err
 	//}
+	clientID := string(client.Properties.Username)
+	writer := NewMqttClientWriter(client)
 	session = &MqttSession{
 		mqttClient: client,
 		gwClient:   nil, //gwClient,
+		// FIXME: get the login ID
+		m2dir:    NewMqtt2Directory(clientID, writer),
+		m2hist:   NewMqtt2History(clientID, writer),
+		m2pubsub: NewMqtt2PubSub(clientID, writer),
 	}
 	return session, err
 }

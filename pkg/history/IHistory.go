@@ -8,7 +8,6 @@ import (
 	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/api/go/vocab"
 	"github.com/hiveot/hub/lib/thing"
-	"github.com/hiveot/hub/pkg/bucketstore"
 )
 
 // ServiceName is the name of this service to connect to
@@ -50,16 +49,14 @@ type IHistoryService interface {
 	// CapManageRetention manages retention configuration for event storage
 	CapManageRetention(ctx context.Context, clientID string) (IManageRetention, error)
 
-	// CapReadHistory provides the capability to iterate history.
+	// CapReadHistory provides the capability to iterate history of a single Thing.
 	// This returns an iterator for the history.
 	// Values added after creating the cursor might not be included, depending on the
 	// underlying store.
 	// This capability can be provided to anyone who has read access to the thing.
 	//
 	//  clientID is the ID of the device or service requesting the capability
-	//  publisherID is the ID of the Thing's publisher
-	//  thingID is the ID of the thing whose history to read
-	CapReadHistory(ctx context.Context, clientID string, publisherID, thingID string) (IReadHistory, error)
+	CapReadHistory(ctx context.Context, clientID string) (IReadHistory, error)
 }
 
 // IAddHistory defines the capability to add to a Thing's history.
@@ -154,15 +151,19 @@ type IReadHistory interface {
 	// GetEventHistory returns a cursor to iterate the history of the thing
 	// name is the event or action to filter on. Use "" to iterate all events/action of the thing
 	// The cursor MUST be released after use.
-	GetEventHistory(ctx context.Context, name string) IHistoryCursor
+	//  publisherID is the ID of the Thing's publisher
+	//  thingID is the ID of the thing whose history to read
+	//  name is the event to read
+	GetEventHistory(ctx context.Context, publisherID string, thingID string, name string) IHistoryCursor
 
-	// GetProperties returns the most recent property and event values of the Thing
-	//  names is the list of properties to return. Use nil or empty list to return all known properties.
-	//  This returns a list of thing values.
-	GetProperties(ctx context.Context, names []string) []thing.ThingValue
+	// GetProperties returns the latest values of a Thing.
+	//  publisherID is the ID of the Thing's publisher
+	//  thingID is the ID of the thing whose history to read
+	//  names is the list of properties or events to return. Use nil for all known properties.
+	GetProperties(ctx context.Context, publisherID string, thingID string, names []string) []thing.ThingValue
 
 	// Info returns the history storage information of the thing
-	Info(ctx context.Context) *bucketstore.BucketStoreInfo
+	//Info(ctx context.Context) *bucketstore.BucketStoreInfo
 
 	// Release the capability and its resources
 	Release()

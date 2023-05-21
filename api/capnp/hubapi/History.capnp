@@ -51,7 +51,7 @@ interface CapHistoryService {
   # Intended for use by administrators.
   #  clientID is the client requesting the capability
 
-  capReadHistory @2 (clientID :Text, publisherID :Text, thingID :Text) -> (cap :CapReadHistory);
+  capReadHistory @2 (clientID :Text) -> (cap :CapReadHistory);
   # CapReadHistory provides the capability to iterate history.
   # This returns an iterator for the history.
   # The cursor key is the timestamp in ISO8601 in msec, eg YYYY-MM-DDTHH:MM:SS.sss-TZ
@@ -61,8 +61,6 @@ interface CapHistoryService {
   # This capability can be provided to anyone who has read access to the thing.
   #
   #  clientID is the client requesting the capability
-  #  publisherID to restrict reading to
-  #  thingID to restrict reading to
 }
 
 
@@ -106,15 +104,18 @@ interface CapManageRetention {
 interface CapReadHistory {
 # CapReadHistory defines the capability to read information from a thing
 
-	getEventHistory @0 (name :Text) -> (cursor :CapHistoryCursor);
+	getEventHistory @0 (publisherID :Text, thingID :Text, name :Text) -> (cursor :CapHistoryCursor);
 	# GetEventHistory returns a cursor to iterate the history of a thing's event
+    # publisherID of the thing's publisher
+    # thingID of the thing to read
 	# name is the event or action to filter on. Use "" to iterate all events/action of the thing
 
-	getProperties @1 (names :List(Text)) -> (valueList :List(Thing.ThingValue));
+	getProperties @1 (publisherID :Text, thingID :Text, names :List(Text)) -> (valueList :List(Thing.ThingValue));
 	# GetProperties returns the most recent property and event values of the Thing
+    # publisherID of the thing's publisher
+    # thingID of the thing to read
+    # names optional list of properties or events to read
 
-	info @2 () -> (info :Bucket.BucketStoreInfo);
-	# info() returns the storage information of the Thing
 }
 
 interface CapHistoryCursor {

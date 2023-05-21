@@ -114,7 +114,7 @@ func BenchmarkAddEvents(b *testing.B) {
 		addHistory(svc, tbl.dataSize, 10, timespanSec)
 
 		updateHistory, _ := svc.CapAddHistory(ctx, "test", true)
-		readHistory, _ := svc.CapReadHistory(ctx, "test", publisherID, thing0ID)
+		readHistory, _ := svc.CapReadHistory(ctx, "test")
 
 		// test adding records one by one
 		b.Run(fmt.Sprintf("[dbsize:%d] #things:%d add-single:%d", tbl.dataSize, tbl.nrThings, tbl.nrSets),
@@ -155,7 +155,7 @@ func BenchmarkAddEvents(b *testing.B) {
 			func(b *testing.B) {
 				for n := 0; n < b.N; n++ {
 
-					cursor := readHistory.GetEventHistory(ctx, "")
+					cursor := readHistory.GetEventHistory(ctx, publisherID, thing0ID, "")
 					require.NotNil(b, cursor)
 					cursor.First()
 					for i := 0; i < tbl.nrSets-1; i++ {
@@ -175,7 +175,7 @@ func BenchmarkAddEvents(b *testing.B) {
 			func(b *testing.B) {
 				for n := 0; n < b.N; n++ {
 
-					cursor := readHistory.GetEventHistory(ctx, "")
+					cursor := readHistory.GetEventHistory(ctx, publisherID, thing0ID, "")
 					require.NotNil(b, cursor)
 					cursor.First()
 					v, _ := cursor.NextN(uint(tbl.nrSets - 1))

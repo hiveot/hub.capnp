@@ -3,12 +3,8 @@ package service
 import (
 	"bytes"
 	"crypto/x509"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/hiveot/hub/lib/thing"
-	"github.com/hiveot/hub/pkg/mqtt/mqttclient"
-	"github.com/hiveot/hub/pkg/pubsub/service"
 	"github.com/mochi-co/mqtt/v2"
 	"github.com/mochi-co/mqtt/v2/packets"
 	"github.com/sirupsen/logrus"
@@ -30,16 +26,22 @@ func (hook *GatewayHook) ID() string {
 
 func (hook *GatewayHook) OnAuthPacket(cl *mqtt.Client, pk packets.Packet) (packets.Packet, error) {
 	// TBD
+	_ = cl
 	return pk, nil
 }
 
 // OnACLCheck returns true/allowed for all checks.
 func (hook *GatewayHook) OnACLCheck(cl *mqtt.Client, topic string, write bool) bool {
+	// TODO
+	_ = cl
+	_ = topic
+	_ = write
 	return true
 }
 
 // OnConnect creates a new mqtt session
 func (hook *GatewayHook) OnConnect(cl *mqtt.Client, pk packets.Packet) {
+	_ = pk
 	session, err := NewMqttSession(hook.caCert, cl)
 	if err != nil {
 		// reject the connection
@@ -81,13 +83,13 @@ func (hook *GatewayHook) OnPublish(cl *mqtt.Client, pk packets.Packet) (pkx pack
 	defer hook.sessionMutex.Unlock()
 	session := hook.sessions[cl.ID]
 	if session != nil {
-		err = session.OnPublish(pk.TopicName, pk.Payload)
+		err = session.OnPublish(cl, pk.TopicName, pk.Payload)
 		if err != nil {
 			logrus.Error(err)
 			return pkx, err
 		}
 	}
-	// FIXME: don't publish this on the mqtt bus as it has to go through the pubsub service.
+	// Don't publish this on the mqtt bus as it has to go through the pubsub service.
 	// ugh, undocumented stuff
 	err = packets.ErrRejectPacket
 	return pk, err
@@ -100,36 +102,21 @@ func (hook *GatewayHook) OnSubscribe(cl *mqtt.Client, pk packets.Packet) (pkx pa
 	hook.sessionMutex.Lock()
 	defer hook.sessionMutex.Unlock()
 	session := hook.sessions[cl.ID]
-	mqttTopic := pk.Filters[0].Filter
-	pubID, thingID, msgType, name, err := mqttclient.SplitTopic(mqttTopic)
-	logrus.Infof("OnSubscribe to %s", mqttTopic)
-	if err != nil {
-		logrus.Errorf("invalid mqtt topic '%s'", mqttTopic)
-		return pk
-	}
 	if session != nil && len(pk.Filters) > 0 {
-		// pass the subscription to the pubsub service
-		pubsubTopic := service.MakeThingTopic(pubID, thingID, msgType, name)
-		err = session.OnSubscribe(pubsubTopic, func(ev thing.ThingValue) {
-			logrus.Infof("OnSubscribe. Received pubsub event on %s", pubsubTopic)
-			newPk := pk //packets.NewPacket()
-			mqttTopic = mqttclient.MakeTopic(ev.PublisherID, ev.ThingID, "event", ev.ID)
-			evJson, _ := json.Marshal(ev)
-			newPk.Payload = evJson
-			newPk.FixedHeader.Type = packets.Publish
-			newPk.TopicName = mqttTopic
-			if err = cl.WritePacket(newPk); err != nil {
-				err = fmt.Errorf("unable to write packet to client: %w", err)
-				logrus.Error(err)
-			}
-		})
+		mqttTopic := pk.Filters[0].Filter
+		err = session.OnSubscribe(cl, mqttTopic, pk.Payload)
 		if err != nil {
-			err = fmt.Errorf("unable to subscribe to topic %s: %w", pubsubTopic, err)
+			err = fmt.Errorf("unable to subscribe to topic %s: %w", mqttTopic, err)
 			logrus.Error(err)
 		}
 	}
+	// TODO: how to reject a subscription?
+	pkx = pk
+	if err != nil {
+		//pkx. = ?
+	}
 	//
-	return pk
+	return pkx
 }
 
 func (hook *GatewayHook) Provides(b byte) bool {

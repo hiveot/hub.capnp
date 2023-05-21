@@ -18,7 +18,8 @@ type HistoryCursor struct {
 	publisherID string
 	thingID     string
 	filterName  string                    // optional event name to filter on
-	bc          bucketstore.IBucketCursor // the cursor of the underlying store
+	bucket      bucketstore.IBucket       // bucket being iterator
+	bc          bucketstore.IBucketCursor // the iteration
 }
 
 // convert the storage key and raw data to a thing value object
@@ -222,10 +223,11 @@ func (hc *HistoryCursor) PrevN(steps uint) (values []thing.ThingValue, itemsRema
 	return values, len(values) > 0
 }
 
-// Release close the cursor and release its resources.
+// Release closes the bucket and cursor
 // This invalidates all values obtained from the cursor
 func (hc *HistoryCursor) Release() {
 	hc.bc.Release()
+	hc.bucket.Close()
 }
 
 // Seek positions the cursor at the given searchKey and corresponding value.
@@ -261,10 +263,15 @@ func (hc *HistoryCursor) Seek(isoTimestamp string) (thingValue thing.ThingValue,
 //
 //	publisherID, thingID is the address the Thing can be reached at.
 //	filterName is an optional filter on value names, eg action, event, property or name
-func NewHistoryCursor(publisherID, thingID string, filterName string, bucketCursor bucketstore.IBucketCursor) *HistoryCursor {
+//	bucketStore to get the iteration bucket from
+func NewHistoryCursor(publisherID, thingID string, filterName string, store bucketstore.IBucketStore) *HistoryCursor {
+	thingAddr := publisherID + "/" + thingID
+	bucket := store.GetBucket(thingAddr)
+	bucketCursor := bucket.Cursor()
 	hc := &HistoryCursor{
 		publisherID: publisherID,
 		thingID:     thingID,
+		bucket:      bucket,
 		bc:          bucketCursor,
 		filterName:  filterName,
 	}

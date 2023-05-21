@@ -71,13 +71,11 @@ func (cl *HistoryServiceCapnpClient) CapManageRetention(
 
 // CapReadHistory the capability to iterate the history
 func (cl *HistoryServiceCapnpClient) CapReadHistory(
-	ctx context.Context, clientID string, publisherID, thingID string) (history.IReadHistory, error) {
+	ctx context.Context, clientID string) (history.IReadHistory, error) {
 
 	getCap, release := cl.capability.CapReadHistory(ctx,
 		func(params hubapi.CapHistoryService_capReadHistory_Params) error {
 			err2 := params.SetClientID(clientID)
-			_ = params.SetThingID(thingID)
-			_ = params.SetPublisherID(publisherID)
 			return err2
 		})
 	defer release()

@@ -1,7 +1,11 @@
 package gateway_test
 
 import (
+	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/hiveot/hub/api/go/hubapi"
+	"github.com/hiveot/hub/api/go/vocab"
 	"github.com/hiveot/hub/lib/dummy"
 	"github.com/hiveot/hub/lib/logging"
 	"github.com/hiveot/hub/lib/resolver"
@@ -32,6 +36,7 @@ const testUserID = "urn:user1"
 const testDeviceID = "urn:device1"
 const testPublisherID = "urn:pub1"
 const testThingID = "urn:thing1"
+const testServiceID = "urn:service1"
 const testPassword = "test1"
 const testMqttTcpPort = 9331
 const testMqttWSPort = 9332
@@ -77,7 +82,7 @@ func startTestEnv() func() {
 	_ = dummyPubSub.Start()
 	devicePubSub, _ := dummyPubSub.CapDevicePubSub(nil, testDeviceID)
 	userPubSub, _ := dummyPubSub.CapUserPubSub(nil, testUserID)
-	servicePubSub, _ := dummyPubSub.CapServicePubSub(nil, testUserID)
+	servicePubSub, _ := dummyPubSub.CapServicePubSub(nil, testServiceID)
 
 	// use a directory and history using a dummy store
 	dummyDirSvc := service3.NewDirectoryService(directory.ServiceName, dummyStore, servicePubSub)
@@ -85,7 +90,7 @@ func startTestEnv() func() {
 	readDir, _ := dummyDirSvc.CapReadDirectory(nil, testUserID)
 	dummyHistSvc := service4.NewHistoryService(nil, dummyStore, servicePubSub)
 	_ = dummyHistSvc.Start()
-	readHist, _ := dummyHistSvc.CapReadHistory(nil, testUserID, testPublisherID, testThingID)
+	readHist, _ := dummyHistSvc.CapReadHistory(nil, testUserID)
 
 	//resolver.RegisterService[gateway.IGatewaySession](dummyGwSession)
 	resolver.RegisterService[authn.IAuthnService](dummyAuthn)
@@ -201,4 +206,94 @@ func TestPubSubEvent(t *testing.T) {
 	mux.Unlock()
 	cl.Disconnect()
 	cl2.Disconnect()
+}
+
+func TestUpdateReadDirectory(t *testing.T) {
+	var mqttUrl = fmt.Sprintf("tls://127.0.0.1:%d", testMqttTcpPort)
+	var completed []thing.ThingValue
+	respChan := make(chan []thing.ThingValue)
+
+	stopFn := startService()
+	defer stopFn()
+
+	// test device publishes a TD via MQTT
+	td1 := thing.NewTD(testThingID, "test thing", vocab.DeviceTypeThermometer)
+	td1Json, _ := json.Marshal(&td1)
+	deviceClient := mqttclient.NewHubMqttClient()
+	err := deviceClient.Connect(mqttUrl, testDeviceID, "", testCerts.DeviceCert, testCerts.CaCert)
+	require.NoError(t, err)
+	defer deviceClient.Disconnect()
+	err = deviceClient.PubEvent(testThingID, hubapi.EventNameTD, td1Json)
+	assert.NoError(t, err)
+
+	// read the directory
+	userClient := mqttclient.NewHubMqttClient()
+	err = userClient.Connect(mqttUrl, testUserID, "", testCerts.UserCert, testCerts.CaCert)
+	require.NoError(t, err)
+	defer userClient.Disconnect()
+
+	err = userClient.SubReadDirectory(func(response *mqttclient.ReadDirectoryResponse) {
+		t.Logf("received directory. %d items", len(response.TDs))
+		respChan <- response.TDs
+		close(respChan)
+	})
+	assert.NoError(t, err)
+	err = userClient.PubReadDirectory("")
+	assert.NoError(t, err)
+
+	// check results
+	ctx, _ := context.WithTimeout(context.Background(), time.Second)
+	select {
+	case completed = <-respChan:
+	case <-ctx.Done():
+	}
+	assert.Greater(t, len(completed), 0)
+}
+
+func TestUpdateReadHistory(t *testing.T) {
+	const evTemperature = "temperature"
+	const evValue = "12.5"
+
+	var mqttUrl = fmt.Sprintf("tls://127.0.0.1:%d", testMqttTcpPort)
+	var completed mqttclient.ReadHistoryResponse
+	respChan := make(chan mqttclient.ReadHistoryResponse)
+
+	stopFn := startService()
+	defer stopFn()
+
+	// setup the mqtt client as a device
+	deviceClient := mqttclient.NewHubMqttClient()
+	err := deviceClient.Connect(mqttUrl, testDeviceID, "", testCerts.DeviceCert, testCerts.CaCert)
+	require.NoError(t, err)
+	defer deviceClient.Disconnect()
+
+	// publish the temperature for the history service
+	err = deviceClient.PubEvent(testThingID, evTemperature, []byte(evValue))
+	assert.NoError(t, err)
+
+	// read the history
+	userClient := mqttclient.NewHubMqttClient()
+	err = userClient.Connect(mqttUrl, testUserID, "", testCerts.UserCert, testCerts.CaCert)
+	require.NoError(t, err)
+	defer userClient.Disconnect()
+
+	err = userClient.SubReadHistory(func(response *mqttclient.ReadHistoryResponse) {
+		t.Logf("received histry. %d items", len(response.Values))
+		respChan <- *response
+		close(respChan)
+	})
+
+	err = userClient.PubReadHistory(testDeviceID, testThingID, evTemperature, "", 0, 100)
+	assert.NoError(t, err)
+
+	// check results
+	ctx, _ := context.WithTimeout(context.Background(), time.Second)
+	select {
+	case completed = <-respChan:
+	case <-ctx.Done():
+	}
+	assert.Equal(t, testDeviceID, completed.PublisherID)
+	assert.Equal(t, testThingID, completed.ThingID)
+	assert.Equal(t, evTemperature, completed.Name)
+	assert.Equal(t, 1, len(completed.Values))
 }

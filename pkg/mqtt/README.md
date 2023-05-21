@@ -20,7 +20,7 @@ Features:
 
 As Mqtt is a pub/sub protocol, not a request/response protocol, responses to request for directory or history are send asynchroneously from the request. 
 
-### Publish Action
+### Publish Thing Action
 
 Consumers can publish action requests from Things. The topic to use:
 > PUBLISH: things/{publisherID}/{thingID}/action/{name}
@@ -30,14 +30,14 @@ Consumers can publish action requests from Things. The topic to use:
 For an action to be accepted, the client that publishes the event must have a role of operator in the group that both the user and the thing are a member of, as defined by authz. 
 
 
-### Publish Event
+### Publish Thing Event
 
 Devices and services can publish events via MQTT in the same way actions are published.
 
 > PUBLISH: things/{publisherID}/{thingID}/event/{name}
 
 
-### Subscribe to Action
+### Subscribe to Thing Actions
 
 Publishers of devices and services can receive action requests on the topic:
 
@@ -49,7 +49,7 @@ Where:
 * {name} is that of the action to engage
 
 
-### Subscribe to Event
+### Subscribe to Thing Events
 
 To receive events from a Thing, consumers can subscribe to the event topic:
 > SUBSCRIBE: things/{publisherID}/{thingID}/event/{name}
@@ -66,52 +66,111 @@ At least one of the above parameters must be provided however. If all parameters
 
 The request to read the Thing Directory is published on the following MQTT topic:
 
-> things/directory/{thingID}/action/get
- 
-This requests the action 'get ThingID' from the directory service. ThingID can be a wildcard '+' which means all things in the directory.
+> services/directory/action/directory
 
-The responses are published on things/directory/{thingID}/td **to the requesting client only**. The client has to subscribe to the topic and can use a wildcard '+' for {thingID}.
+The payload must contain a JSON document with filter parameters:
+```json
+{
+  "publisherID": "publisherID", // optional filter on publisher of the Thing
+  "limit": 1000,   // maximum number of results to return
+}
+```
+
+This requests the action 'directory' from the default directory service.
+
+The responses are published on services/directory/event/directory **to the requesting client only**. The client has to subscribe to this topic.
+
+The payload:
+```json
+  tds: [{...TD...}]
+```
 
 The directory service must be running.
 
-### Read Thing Latest Values
+### Read Thing Value History
 
-To read the most recent values of a Thing, the client posts a request on the following MQTT topic:
+To request the history of a Thing event, the client posts a read action on the following MQTT topic:
 
-> things/history/{thingID}/action/latest[/{name}]
+> services/history/action/history
 
-Where [/{name}] is the optional event name whose value to get. By default, a properties event will all event values will be returned.
+Where:
+* history addresses the default history service.
+* action indicates the message is an action request 
+* read indications the request is to read history
 
-The response is published on things/{historyID}/{thingID}/event[/{name}]. If no name was given in the request then a properties event is returned containing a KV map with the most recent property values.
+The payload must contain a JSON document with filter parameters:
+```json
+{
+  "publisherID": "publisherID",            // required publisher of the Thing
+  "thingID": "thingID",                    // required thing whose history to get
+  "name": "eventname",                     // required name of event whose history to get
+  "startTime": "YYYY-MM-DDTHH:MM:SS.TZ",   // optional ISO8601, default 24 hours ago
+  "duration": {seconds},                   // optional seconds. default is 24*3600
+  "limit": 1000                            // optional max results to include, default is 1000
+}
+```
+
+The response is published on services/history/event/history. The payload is a JSON object, containing a time ordered list of ThingValue objects.
+
+
+```json
+{
+  "itemsRemaining": "false",
+  "name": "eventname",
+  "publisherID": "publisherID",
+  "thingID": "thingID",
+  "values": [
+    {
+      "id": "eventname",
+      "publisherID": "publisherID",
+      "thingID": "thingID",
+      "created": "timestamp1",
+      "data": "value1",
+    },
+    ...
+  ]
+}
+```
+
+Paging:
+If itemsRemaining is true then repeat the request with the start time of the last received event. This will return the next batch of event values. This can be repeated until 'itemsRemaining' is false.  
 
 The history service must be running.
 
 
-### Read Thing Value History
+### Read Thing Latest Values
 
-To read the history of a Thing event, the client posts a request on the following MQTT topic:
+To request the most recent property or event values of a Thing, the client posts a request on the following MQTT topic:
 
-> things/history/{thingID}/action/history/{name}
+> services/history/action/latest
 
-Where {name} is the event name whose history to get.
-
-The response is published on things/{historyID}/{thingID}/event/{name}, containing a map of {timestamp:value,...}. The default range is the last 24 hours.
-
-To request a different time range, include a JSON obtain in the payload containing the start time and end time:
-
+The payload is a JSON document with filter parameters:
 ```json
 {
-  "start": "YYYY-MM-DDTHH:MM",
-  "end": "YYYY-MM-DDTHH:MM",
-  "limit": 1000
+  "publisherID": "publisherID",  // filter by publisher
+  "thingID": "thingID",          // filter by thing ID
+  "names": []                    // list of event names to get. Default is all
 }
 ```
 
-Where "start" is the ISO8601 start time for the time range, "end" is the ISO8601 end time of the time range, and limit the number of values to include. If omitted, a default of 1000 is assumed. 
+The response is a list of value objects published on:
+> services/history/event/latest
 
-Paging:
-If the number of results equals limit, then repeat the request with the start time of the last received event. This will return the next batch of event values. This can be repeated until the number of results is less than limit or no results are returned.  
-
+containing the payload:
+```json
+{
+  "publisherID" : "publisherID",
+  "thingID": "thingID",
+  "values": [   
+    {
+      "name": "eventName",
+      "created": "2023-05-06T11:00:53-07:00",
+      "data": "...",    
+    },
+  ...
+  ]}
+```
+ 
 The history service must be running.
 
 

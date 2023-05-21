@@ -14,21 +14,21 @@ import (
 	"github.com/hiveot/hub/pkg/history/capnpclient"
 )
 
-func HistoryInfoCommand(ctx context.Context, runFolder *string) *cli.Command {
-	return &cli.Command{
-		Name:     "hsi",
-		Usage:    "Show history store info",
-		Category: "history",
-		//ArgsUsage: "(no args)",
-		Action: func(cCtx *cli.Context) error {
-			if cCtx.NArg() != 0 {
-				return fmt.Errorf("no arguments expected")
-			}
-			err := HandleHistoryInfo(ctx, *runFolder)
-			return err
-		},
-	}
-}
+//func HistoryInfoCommand(ctx context.Context, runFolder *string) *cli.Command {
+//	return &cli.Command{
+//		Name:     "hsi",
+//		Usage:    "Show history store info",
+//		Category: "history",
+//		//ArgsUsage: "(no args)",
+//		Action: func(cCtx *cli.Context) error {
+//			if cCtx.NArg() != 0 {
+//				return fmt.Errorf("no arguments expected")
+//			}
+//			err := HandleHistoryInfo(ctx, *runFolder)
+//			return err
+//		},
+//	}
+//}
 
 func HistoryListCommand(ctx context.Context, runFolder *string) *cli.Command {
 	return &cli.Command{
@@ -77,28 +77,28 @@ func HistoryRetainCommand(ctx context.Context, runFolder *string) *cli.Command {
 	}
 }
 
-func HandleHistoryInfo(ctx context.Context, runFolder string) error {
-	var hist history.IHistoryService
-	var rd history.IReadHistory
-
-	capClient, err := hubclient.ConnectWithCapnpUDS(history.ServiceName, runFolder)
-	if err == nil {
-		hist = capnpclient.NewHistoryCapnpClient(capClient)
-		rd, err = hist.CapReadHistory(ctx, "hubcli", "", "")
-	}
-	if err != nil {
-		return err
-	}
-	info := rd.Info(ctx)
-
-	fmt.Println(fmt.Sprintf("ID:          %s", info.Id))
-	fmt.Println(fmt.Sprintf("Size:        %d", info.DataSize))
-	fmt.Println(fmt.Sprintf("Nr Records   %d", info.NrRecords))
-	fmt.Println(fmt.Sprintf("Engine       %s", info.Engine))
-
-	rd.Release()
-	return err
-}
+//func HandleHistoryInfo(ctx context.Context, runFolder string) error {
+//	var hist history.IHistoryService
+//	var rd history.IReadHistory
+//
+//	capClient, err := hubclient.ConnectWithCapnpUDS(history.ServiceName, runFolder)
+//	if err == nil {
+//		hist = capnpclient.NewHistoryCapnpClient(capClient)
+//		rd, err = hist.CapReadHistory(ctx, "hubcli", "", "")
+//	}
+//	if err != nil {
+//		return err
+//	}
+//	info := rd.Info(ctx)
+//
+//	fmt.Println(fmt.Sprintf("ID:          %s", info.Id))
+//	fmt.Println(fmt.Sprintf("Size:        %d", info.DataSize))
+//	fmt.Println(fmt.Sprintf("Nr Records   %d", info.NrRecords))
+//	fmt.Println(fmt.Sprintf("Engine       %s", info.Engine))
+//
+//	rd.Release()
+//	return err
+//}
 
 // HandleListEvents lists the history content
 func HandleListEvents(ctx context.Context, runFolder string, publisherID, thingID string, limit int) error {
@@ -108,13 +108,13 @@ func HandleListEvents(ctx context.Context, runFolder string, publisherID, thingI
 	capClient, err := hubclient.ConnectWithCapnpUDS(history.ServiceName, runFolder)
 	if err == nil {
 		hist = capnpclient.NewHistoryCapnpClient(capClient)
-		rd, err = hist.CapReadHistory(ctx, "hubcli", publisherID, thingID)
+		rd, err = hist.CapReadHistory(ctx, "hubcli")
 	}
 	if err != nil {
 		return err
 	}
 	eventName := ""
-	cursor := rd.GetEventHistory(ctx, eventName)
+	cursor := rd.GetEventHistory(ctx, publisherID, thingID, eventName)
 	fmt.Println("PublisherID    ThingID            Timestamp                    Event           Value (truncated)")
 	fmt.Println("-----------    -------            ---------                    -----           ---------------- ")
 	count := 0
@@ -181,12 +181,12 @@ func HandleListLatestEvents(
 	capClient, err := hubclient.ConnectWithCapnpUDS(history.ServiceName, runFolder)
 	if err == nil {
 		hist = capnpclient.NewHistoryCapnpClient(capClient)
-		readHist, err = hist.CapReadHistory(ctx, "hubcli", publisherID, thingID)
+		readHist, err = hist.CapReadHistory(ctx, "hubcli")
 	}
 	if err != nil {
 		return err
 	}
-	props := readHist.GetProperties(ctx, nil)
+	props := readHist.GetProperties(ctx, publisherID, thingID, nil)
 
 	fmt.Println("Event ID         Publisher       Thing                Created                     Value")
 	fmt.Println("----------         ---------       -----                -------                     -----")
