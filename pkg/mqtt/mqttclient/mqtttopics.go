@@ -5,72 +5,81 @@ import (
 	"strings"
 )
 
-type TopicType string
-
+// topics for passing messages
 const (
-	ThingsTopic   TopicType = "things"
-	ServicesTopic TopicType = "services"
+	MessageTypeAction          = "action"
+	MessageTypeEvent           = "event"
+	ThingsTopicPrefix          = "things"
+	DirectoryTopicPrefix       = "services/directory"
+	HistoryTopicPrefix         = "services/history"
+	ReadDirectoryRequestTopic  = DirectoryTopicPrefix + "/action/directory"
+	ReadDirectoryResponseTopic = DirectoryTopicPrefix + "/event/directory"
+	ReadHistoryRequestTopic    = HistoryTopicPrefix + "/action/history"
+	ReadHistoryResponseTopic   = HistoryTopicPrefix + "/event/history"
+	ReadLatestRequestTopic     = HistoryTopicPrefix + "/action/latest"
+	ReadLatestResponseTopic    = HistoryTopicPrefix + "/event/latest"
 )
 
-// MakeThingTopic constructs a mqtt topic for addressing Things
-// This builds a topic with the format: things/pubID/thingID/msgType/name
+// IsThingsTopic test if the given topic is a thing pub/sub topic
+func IsThingsTopic(topic string) bool {
+	return strings.HasPrefix(topic, ThingsTopicPrefix)
+}
+
+// IsDirectoryTopic test if the given topic is a directory service topic
+func IsDirectoryTopic(topic string) bool {
+	return strings.HasPrefix(topic, DirectoryTopicPrefix)
+}
+
+// IsHistoryTopic test if the given topic is a history service topic
+func IsHistoryTopic(topic string) bool {
+	return strings.HasPrefix(topic, HistoryTopicPrefix)
+}
+
+// MakeActionTopic constructs a mqtt topic for publishing Thing actions
+// This builds a topic with the format: things/publisherID/thingID/action/name
 //
-//	pubID is the publisher
+//	publisherID is the publisher
 //	thingID is the Thing's TD
-//	msgType is "action", "event", or "td"
 //	name is the event or action name, or td device type
-func MakeThingTopic(pubID, thingID, msgType, name string) string {
-	parts := []string{"things", pubID, thingID, msgType, name}
+func MakeActionTopic(publisherID, thingID, name string) string {
+	parts := []string{ThingsTopicPrefix, publisherID, thingID, MessageTypeAction, name}
 	return strings.Join(parts, "/")
 }
 
-// MakeServiceTopic constructs a mqtt topic for addressing services
-// This builds a topic with the format: services/serviceID/msgType/name
-func MakeServiceTopic(serviceID, msgType, name string) string {
-	parts := []string{"things", serviceID, msgType, name}
+// MakeEventTopic constructs a mqtt topic for addressing Things
+// This builds a topic with the format: things/publisherID/thingID/event/name
+//
+//	publisherID is the publisher
+//	thingID is the Thing's TD
+//	name is the event or action name
+func MakeEventTopic(publisherID, thingID, name string) string {
+	parts := []string{ThingsTopicPrefix, publisherID, thingID, MessageTypeEvent, name}
 	return strings.Join(parts, "/")
-}
-
-// SplitServiceTopic into its parts and check for errors
-// This splits a MQTT topic
-//
-//	   services/serviceID/msgType/name, or
-//
-//		serviceID is the type of service to address, eg "directory"...
-//		msgType is action, event, or td
-//		name is the event or action name, or td device type
-//
-// Returns the topic parts or an error if it is invalid
-func SplitServiceTopic(topic string) (serviceID, msgType, name string, err error) {
-	parts := strings.Split(topic, "/")
-	if len(parts) < 4 {
-		err = errors.New("invalid services topic format: " + topic)
-		return
-	}
-	serviceID = parts[1]
-	msgType = parts[2]
-	name = parts[3]
-	return
 }
 
 // SplitThingsTopic into its parts and check for errors
-// This splits a MQTT topic
+// This splits a MQTT topic into its parts:
 //
-//	   things/pubID/thingID/msgType/name, or
+//	things/publisherID/thingID/msgType/name
 //
-//		pubID is the publisher or service to be addressed
-//		thingID is the Thing's ID, or "" for services
-//		msgType is action, event, or td
-//		name is the event or action name, or td device type
+// Where:
+//   - publisherID is the publisher or service to be addressed
+//   - thingID is the Thing's ID to be address
+//   - msgType is action or event
+//   - name is the event or action name
 //
 // Returns the topic parts or an error if it is invalid
-func SplitThingsTopic(topic string) (pubID, thingID, msgType, name string, err error) {
+func SplitThingsTopic(topic string) (publisherID, thingID, msgType, name string, err error) {
 	parts := strings.Split(topic, "/")
 	if len(parts) < 5 {
 		err = errors.New("invalid things topic format: " + topic)
 		return
 	}
-	pubID = parts[1]
+	if parts[0] != ThingsTopicPrefix {
+		err = errors.New("not a things topic: " + topic)
+		return
+	}
+	publisherID = parts[1]
 	thingID = parts[2]
 	msgType = parts[3]
 	name = parts[4]

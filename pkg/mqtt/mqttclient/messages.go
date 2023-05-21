@@ -2,13 +2,6 @@ package mqttclient
 
 import "github.com/hiveot/hub/lib/thing"
 
-const ReadDirectoryRequestTopic = "services/directory/action/directory"
-const ReadDirectoryResponseTopic = "services/directory/event/directory"
-const ReadHistoryRequestTopic = "services/history/action/history"
-const ReadHistoryResponseTopic = "services/history/event/history"
-const ReadLatestRequestTopic = "services/history/action/latest"
-const ReadLatestResponseTopic = "services/history/event/latest"
-
 type ReadDirectoryRequest struct {
 	PublisherID string `json:"publisherID,omitempty"`
 	Limit       uint   `json:"limit,omitempty"`

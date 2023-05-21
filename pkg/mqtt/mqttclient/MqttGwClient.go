@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
-	"fmt"
 	pahomqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/hiveot/hub/lib/thing"
 	"github.com/sirupsen/logrus"
@@ -73,33 +72,34 @@ func (cl *MqttGwClient) Disconnect() {
 }
 
 // PubAction publishes the given action to the hub.
-// The client must be logged in first a must have permission to send action requests to the Thing
+// The client must be logged in first and must have permission to send action requests to the Thing
 // Intended for end users and services.
 //
-//	 publisherID that handles the action request
-//		thingID this action controls
-//		actionName of the action as defined in the TD
-//		actionValue to publish
+//	publisherID that handles the action request
+//	thingID this action controls
+//	actionName of the action as defined in the TD
+//	actionValue to publish
 //
 // Returns an error if publication fails
-func (cl *MqttGwClient) PubAction(publisherID, thingID, actionName, actionValue string) error {
-
-	topic := fmt.Sprintf("things/%s/%s/action/%s", publisherID, thingID, actionName)
-	token := cl.paho.Publish(topic, 1, false, []byte(actionValue))
+func (cl *MqttGwClient) PubAction(publisherID string, thingID string, actionName string, actionValue []byte) error {
+	topic := MakeActionTopic(publisherID, thingID, actionName)
+	token := cl.paho.Publish(topic, 1, false, actionValue)
 	return token.Error()
 }
 
 // PubEvent publishes the given event to the hub.
 // The client must be logged in first and will be used as publisher of the event.
-// Intended for devices and services.
+// Intended for devices and services to publish their events, properties, or td's
+// as defined in hubapi.EventNameXyz.
 //
-//	thingID this event is frompayload//	eventName of the event as per TD
-//	eventValue to publish
+//	thingID this event is from
+//	eventName to publish as defined in the TD, "td" or "properties"
+//	eventValue to publish as per TD
 //
 // Returns an error if publication fails
 func (cl *MqttGwClient) PubEvent(thingID string, eventName string, eventValue []byte) error {
 
-	topic := fmt.Sprintf("things/%s/%s/event/%s", cl.clientID, thingID, eventName)
+	topic := MakeEventTopic(cl.clientID, thingID, eventName)
 	logrus.Infof("clientID=%s, topic=%s", cl.clientID, topic)
 	token := cl.paho.Publish(topic, 1, false, eventValue)
 	return token.Error()
@@ -242,8 +242,7 @@ func (cl *MqttGwClient) SubReadLatest(
 	return token.Error()
 }
 
-// SubAction subscribes to thing action requests
-// Intended for services and bindings.
+// SubAction subscribes to thing action requests for use by publishers of Things.
 //
 //	thingID whose action to subscribe to or "" for all things of this publisher
 //	actionName to subscribe to or "" for all
@@ -256,10 +255,14 @@ func (cl *MqttGwClient) SubAction(thingID, actionName string, cb func(tv thing.T
 	if actionName == "" {
 		actionName = "+"
 	}
-	topic := fmt.Sprintf("things/%s/%s/event/%s", cl.clientID, thingID, actionName)
+	topic := MakeActionTopic(cl.clientID, thingID, actionName)
 	token := cl.paho.Subscribe(topic, 1, func(client pahomqtt.Client, msg pahomqtt.Message) {
 		tv := thing.ThingValue{}
-		tv.Data = msg.Payload()
+		err := json.Unmarshal(msg.Payload(), &tv)
+		if err != nil {
+			logrus.Errorf("Action with invalid payload on topic '%s': %s", msg.Topic(), err)
+			return
+		}
 		cb(tv)
 	})
 	return token.Error()
@@ -267,33 +270,27 @@ func (cl *MqttGwClient) SubAction(thingID, actionName string, cb func(tv thing.T
 
 // SubEvent subscribes to thing events
 //
-//	pubID to subscribe to or "" for all publishers
+//	publisherID to subscribe to or "" for all publishers
 //	thingID to subscribe to or "" for all things the user has access to (group membership)
-//	evName to subscribe to or "" for all
+//	eventName to subscribe to or "" for all
 //
 // Returns an error if subscription fails
-func (cl *MqttGwClient) SubEvent(pubID, thingID, name string, cb func(tv thing.ThingValue)) error {
-	if pubID == "" {
-		pubID = "+"
+func (cl *MqttGwClient) SubEvent(publisherID, thingID, eventName string, cb func(tv thing.ThingValue)) error {
+	if publisherID == "" {
+		publisherID = "+"
 	}
 	if thingID == "" {
 		thingID = "+"
 	}
-	if name == "" {
-		name = "+"
+	if eventName == "" {
+		eventName = "+"
 	}
-	topic := fmt.Sprintf("things/%s/%s/event/%s", pubID, thingID, name)
+	topic := MakeEventTopic(publisherID, thingID, eventName)
 	token := cl.paho.Subscribe(topic, 1, func(client pahomqtt.Client, msg pahomqtt.Message) {
-
-		//evPubID, evThingID, msgType, evName, err := SplitTopic(topic)
-		//_ = msgType // should be 'event'
-		//if err != nil {
-		//	logrus.Errorf("Received invalid topic '%s': %s", topic, err)
-		//}
 		tv := thing.ThingValue{}
 		err := json.Unmarshal(msg.Payload(), &tv)
 		if err != nil {
-			logrus.Errorf("Received invalid payload for topic %s. Expected ThingValue: %s", topic, err)
+			logrus.Errorf("Event with invalid payload for topic %s: %s", msg.Topic(), err)
 		}
 		cb(tv)
 	})

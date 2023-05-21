@@ -3,14 +3,13 @@ package service
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
+	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/lib/resolver"
 	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/mqtt/mqttclient"
 	"github.com/hiveot/hub/pkg/pubsub"
 	"github.com/sirupsen/logrus"
-	"strings"
 )
 
 // Mqtt2PubSub handles Hub pubsub requests over MQTT
@@ -65,30 +64,22 @@ func (m2pubsub *Mqtt2PubSub) Release() {
 func (m2pubsub *Mqtt2PubSub) HandlePublish(mqttTopic string, payload []byte) (err error) {
 	// only handle things topics
 	// first time obtain the publish capability
-	if !strings.HasPrefix(mqttTopic, string(mqttclient.ThingsTopic)) {
+	if !mqttclient.IsThingsTopic(mqttTopic) {
 		return nil
 	}
 	pubID, thingID, msgType, name, err := mqttclient.SplitThingsTopic(mqttTopic)
 	if err != nil {
 		return fmt.Errorf("OnPublish error: %w", err)
 	}
-	if msgType == "event" { // device api
+	if msgType == mqttclient.MessageTypeEvent { // device api
 		// events must come from the publisher
 		if pubID != m2pubsub.clientID {
 			err = fmt.Errorf("event publisher '%s' doesn't match client ID '%s'", pubID, m2pubsub.clientID)
 		} else {
 			err = m2pubsub.getDevicePubSub().PubEvent(context.Background(), thingID, name, payload)
 		}
-	} else if msgType == "action" { // user api
+	} else if msgType == mqttclient.MessageTypeAction { // user api
 		err = m2pubsub.getUserPubSub().PubAction(context.Background(), pubID, thingID, name, payload)
-	} else if msgType == "td" { // device api
-		// TDs must come from the publisher
-		if pubID != m2pubsub.clientID {
-			err = errors.New(fmt.Sprintf("TD publisher '%s' doesn't match client ID '%s'", pubID, m2pubsub.clientID))
-		} else {
-			// TD's use the event name 'td'
-			err = m2pubsub.getDevicePubSub().PubEvent(context.Background(), thingID, msgType, payload)
-		}
 	}
 	return err
 }
@@ -105,7 +96,7 @@ func (m2pubsub *Mqtt2PubSub) HandleSubscribe(mqttTopic string, payload []byte) e
 	logrus.Infof("OnSubscribe to '%s' by client %s", mqttTopic, m2pubsub.clientID)
 
 	// ignore if the topic isn't for 'things'
-	if !strings.HasPrefix(mqttTopic, string(mqttclient.ThingsTopic)) {
+	if !mqttclient.IsThingsTopic(mqttTopic) {
 		return nil
 	}
 	pubID, thingID, msgType, name, err := mqttclient.SplitThingsTopic(mqttTopic)
@@ -117,10 +108,10 @@ func (m2pubsub *Mqtt2PubSub) HandleSubscribe(mqttTopic string, payload []byte) e
 	// TODO: authorization
 
 	// pass the subscription to the pubsub service and the resulting subscription messages to the mqtt client.
-	if msgType == "event" {
+	if msgType == hubapi.MessageTypeEvent {
 		err = m2pubsub.getUserPubSub().SubEvent(context.Background(), pubID, thingID, name,
 			func(event thing.ThingValue) {
-				mqttTopic = mqttclient.MakeThingTopic(pubID, thingID, "event", name)
+				mqttTopic = mqttclient.MakeEventTopic(pubID, thingID, name)
 				evJson, _ := json.Marshal(event)
 				err = m2pubsub.writer.Write(mqttTopic, evJson)
 				if err != nil {
@@ -133,9 +124,9 @@ func (m2pubsub *Mqtt2PubSub) HandleSubscribe(mqttTopic string, payload []byte) e
 			return fmt.Errorf("subscribe to action by '%s' from different publisher '%s'", m2pubsub.clientID, pubID)
 		}
 		err = m2pubsub.getDevicePubSub().SubAction(context.Background(), thingID, name,
-			func(action thing.ThingValue) {
-				mqttTopic = mqttclient.MakeThingTopic(pubID, thingID, "event", name)
-				actionJson, _ := json.Marshal(action)
+			func(thingAction thing.ThingValue) {
+				mqttTopic = mqttclient.MakeActionTopic(pubID, thingID, name)
+				actionJson, _ := json.Marshal(thingAction)
 				err = m2pubsub.writer.Write(mqttTopic, actionJson)
 				if err != nil {
 					logrus.Errorf("Failed to publish received action to mqtt bus on topic '%s': %s", mqttTopic, err)

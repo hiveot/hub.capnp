@@ -57,12 +57,12 @@ func (session *MqttSession) Login(loginID, password string) error {
 func (session *MqttSession) OnSubscribe(cl *mqtt.Client, mqttTopic string, payload []byte) (err error) {
 	logrus.Infof("OnSubscribe to '%s' by client '%s'", mqttTopic, cl.ID)
 
-	if strings.HasPrefix(mqttTopic, string(mqttclient.ThingsTopic)) {
+	if mqttclient.IsThingsTopic(mqttTopic) {
 		err = session.m2pubsub.HandleSubscribe(mqttTopic, payload)
-	} else if strings.HasPrefix(mqttTopic, "services/directory") {
+	} else if mqttclient.IsDirectoryTopic(mqttTopic) {
 		// nothing to do here
 		//err = session.m2dir.HandleDirectorySubscribe(mqttTopic, payload)
-	} else if strings.HasPrefix(mqttTopic, "services/history") {
+	} else if mqttclient.IsHistoryTopic(mqttTopic) {
 		// nothing to do here
 		//err = session.m2hist.HandleHistorySubscribe(mqttTopic, payload)
 	} else {
@@ -77,25 +77,13 @@ func (session *MqttSession) OnSubscribe(cl *mqtt.Client, mqttTopic string, paylo
 //	This dispatches the request to the Hub's pubsub, directory or history service
 //
 // # The publisher must be logged in and have permission to publishing
-//
-// The following topics are mapped to Hub capabilities
-//
-//	things/{publisherID}/{thingID}/event/{name}  -> DevicePubSub.PubEvent
-//	things/{publisherID}/{thingID}/td            -> DevicePubSub.PubTD
-//	things/{publisherID}/{thingID}/action/{name} -> UserPubSub.PubAction
-//	services/directory/action/directory          -> directory.ReadDirectory:
-//	services/history/action/history          -> history.GetEventHistory
-//	services/history/action/properties       -> history.GetProperties
-//
-// * where msgType is one of 'event', 'action', 'td'
-// * where name is the name of the event, action or the thing devicetype
 func (session *MqttSession) OnPublish(cl *mqtt.Client, mqttTopic string, payload []byte) (err error) {
 	// first time obtain the publish capability
-	if strings.HasPrefix(mqttTopic, string(mqttclient.ThingsTopic)) {
+	if strings.HasPrefix(mqttTopic, mqttclient.ThingsTopicPrefix) {
 		err = session.m2pubsub.HandlePublish(mqttTopic, payload)
-	} else if strings.HasPrefix(mqttTopic, "services/directory") {
+	} else if strings.HasPrefix(mqttTopic, mqttclient.DirectoryTopicPrefix) {
 		err = session.m2dir.HandleDirectoryRequest(mqttTopic, payload)
-	} else if strings.HasPrefix(mqttTopic, "services/history") {
+	} else if strings.HasPrefix(mqttTopic, mqttclient.HistoryTopicPrefix) {
 		err = session.m2hist.HandleHistoryRequest(mqttTopic, payload)
 	} else {
 		// not a regular mqttTopic

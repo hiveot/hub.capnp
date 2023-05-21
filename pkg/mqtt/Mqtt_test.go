@@ -159,31 +159,81 @@ func TestStartStopWs(t *testing.T) {
 //	assert.Fail(t, "notimplemented")
 //}
 
+func TestPubSubAction(t *testing.T) {
+	var mqttUrl = fmt.Sprintf("tls://127.0.0.1:%d", testMqttTcpPort)
+	var action1Name = "action1"
+	var action1Payload = []byte("this is action 1")
+	var mux sync.RWMutex
+	var action1Count = 0
+	var receivedMsg thing.ThingValue
+
+	stopFn := startService()
+	defer stopFn()
+
+	// device subscribes to actions from a user device
+	cl := mqttclient.NewHubMqttClient()
+	err := cl.Connect(mqttUrl, testDeviceID, "", testCerts.DeviceCert, testCerts.CaCert)
+	require.NoError(t, err)
+
+	// test
+	err = cl.SubAction(testThingID, "",
+		func(val thing.ThingValue) {
+			logrus.Infof("Received action: %s", val)
+			mux.Lock()
+			defer mux.Unlock()
+			action1Count++
+			receivedMsg = val
+		})
+	assert.NoError(t, err)
+	// wait for subscription to complete
+	//time.Sleep(time.Millisecond * 1)
+
+	// test user publishes an action
+	cl2 := mqttclient.NewHubMqttClient()
+	err2 := cl2.Connect(mqttUrl, testUserID, testPassword, nil, testCerts.CaCert)
+	require.NoError(t, err2)
+	err2 = cl2.PubAction(testDeviceID, testThingID, action1Name, action1Payload)
+	assert.NoError(t, err2)
+
+	// wait for the background processes to start
+	time.Sleep(time.Millisecond * 10)
+
+	// expect the device to receive the action message
+	mux.Lock()
+	require.Equal(t, 1, action1Count)
+	assert.Equal(t, testDeviceID, receivedMsg.PublisherID)
+	assert.Equal(t, testThingID, receivedMsg.ThingID)
+	assert.Equal(t, action1Name, receivedMsg.ID)
+	assert.Equal(t, action1Payload, receivedMsg.Data)
+	mux.Unlock()
+	cl.Disconnect()
+	cl2.Disconnect()
+}
+
 func TestPubSubEvent(t *testing.T) {
 	var mqttUrl = fmt.Sprintf("tls://127.0.0.1:%d", testMqttTcpPort)
-	var password = "test"
 	var event1Name = "event1"
 	var event1Message = []byte("message1")
 	var mux sync.RWMutex
 	var event1Count = 0
-	var receivedMsg []byte
+	var receivedMsg thing.ThingValue
 
 	stopFn := startService()
 	defer stopFn()
 
 	// test user subscribes to events from a test device
 	cl := mqttclient.NewHubMqttClient()
-	err := cl.Connect(mqttUrl, testUserID, password, nil, testCerts.CaCert)
+	err := cl.Connect(mqttUrl, testUserID, testPassword, nil, testCerts.CaCert)
 	require.NoError(t, err)
 
 	// test
-	err = cl.SubEvent(testDeviceID, testThingID, event1Name,
+	err = cl.SubEvent("", "", "",
 		func(val thing.ThingValue) {
 			logrus.Infof("Received event: %s", val)
 			mux.Lock()
 			defer mux.Unlock()
 			event1Count++
-			receivedMsg = val.Data
+			receivedMsg = val
 		})
 	assert.NoError(t, err)
 	// wait for subscription to complete
@@ -196,13 +246,16 @@ func TestPubSubEvent(t *testing.T) {
 	err2 = cl2.PubEvent(testThingID, event1Name, event1Message)
 	assert.NoError(t, err2)
 
-	// wait for the background processes to complete
+	// wait for the background processes to start
 	time.Sleep(time.Millisecond * 10)
 
 	// expect the user to receive the device message
 	mux.Lock()
-	assert.Equal(t, 1, event1Count)
-	assert.Equal(t, []byte(event1Message), receivedMsg)
+	require.Equal(t, 1, event1Count)
+	assert.Equal(t, testDeviceID, receivedMsg.PublisherID)
+	assert.Equal(t, testThingID, receivedMsg.ThingID)
+	assert.Equal(t, event1Name, receivedMsg.ID)
+	assert.Equal(t, []byte(event1Message), receivedMsg.Data)
 	mux.Unlock()
 	cl.Disconnect()
 	cl2.Disconnect()
@@ -255,8 +308,10 @@ func TestUpdateReadHistory(t *testing.T) {
 	const evValue = "12.5"
 
 	var mqttUrl = fmt.Sprintf("tls://127.0.0.1:%d", testMqttTcpPort)
-	var completed mqttclient.ReadHistoryResponse
-	respChan := make(chan mqttclient.ReadHistoryResponse)
+	var historyResp mqttclient.ReadHistoryResponse
+	var latestResp mqttclient.ReadLatestResponse
+	historyChan := make(chan mqttclient.ReadHistoryResponse)
+	latestChan := make(chan mqttclient.ReadLatestResponse)
 
 	stopFn := startService()
 	defer stopFn()
@@ -279,21 +334,33 @@ func TestUpdateReadHistory(t *testing.T) {
 
 	err = userClient.SubReadHistory(func(response *mqttclient.ReadHistoryResponse) {
 		t.Logf("received histry. %d items", len(response.Values))
-		respChan <- *response
-		close(respChan)
+		historyChan <- *response
+		close(historyChan)
+	})
+	err = userClient.SubReadLatest(func(response *mqttclient.ReadLatestResponse) {
+		latestChan <- *response
+		close(latestChan)
 	})
 
 	err = userClient.PubReadHistory(testDeviceID, testThingID, evTemperature, "", 0, 100)
 	assert.NoError(t, err)
+	err = userClient.PubReadLatest(testDeviceID, testThingID, nil)
+	assert.NoError(t, err)
+
+	time.Sleep(time.Millisecond)
 
 	// check results
-	ctx, _ := context.WithTimeout(context.Background(), time.Second)
-	select {
-	case completed = <-respChan:
-	case <-ctx.Done():
-	}
-	assert.Equal(t, testDeviceID, completed.PublisherID)
-	assert.Equal(t, testThingID, completed.ThingID)
-	assert.Equal(t, evTemperature, completed.Name)
-	assert.Equal(t, 1, len(completed.Values))
+	historyResp = <-historyChan
+	latestResp = <-latestChan
+
+	assert.Equal(t, testDeviceID, historyResp.PublisherID)
+	assert.Equal(t, testThingID, historyResp.ThingID)
+	assert.Equal(t, evTemperature, historyResp.Name)
+	assert.Equal(t, 1, len(historyResp.Values))
+
+	// this should also be the latest value
+	assert.Equal(t, testDeviceID, latestResp.PublisherID)
+	assert.Equal(t, testThingID, latestResp.ThingID)
+	require.Equal(t, 1, len(latestResp.Values))
+	assert.Equal(t, []byte(evValue), latestResp.Values[0].Data)
 }
