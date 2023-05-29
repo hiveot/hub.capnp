@@ -7,7 +7,7 @@ import (
 	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/lib/resolver"
 	"github.com/hiveot/hub/lib/thing"
-	"github.com/hiveot/hub/pkg/mqtt/mqttclient"
+	"github.com/hiveot/hub/pkg/mqttgw/mqttclient"
 	"github.com/hiveot/hub/pkg/pubsub"
 	"github.com/sirupsen/logrus"
 )
@@ -51,7 +51,7 @@ func (m2pubsub *Mqtt2PubSub) Release() {
 
 // HandlePublish handles the request to publish a message to the Hub pubsub
 //
-// The following mqtt topics are mapped to Hub pubsub:
+// The following mqttgw topics are mapped to Hub pubsub:
 //
 //	things/{publisherID}/{thingID}/event/{name}  -> DevicePubSub.PubEvent
 //	things/{publisherID}/{thingID}/td            -> DevicePubSub.PubTD
@@ -69,7 +69,7 @@ func (m2pubsub *Mqtt2PubSub) HandlePublish(mqttTopic string, payload []byte) (er
 	}
 	pubID, thingID, msgType, name, err := mqttclient.SplitThingsTopic(mqttTopic)
 	if err != nil {
-		return fmt.Errorf("OnPublish error: %w", err)
+		return fmt.Errorf("invalid mqttgw topic: %w", err)
 	}
 	if msgType == mqttclient.MessageTypeEvent { // device api
 		// events must come from the publisher
@@ -89,7 +89,7 @@ func (m2pubsub *Mqtt2PubSub) HandlePublish(mqttTopic string, payload []byte) (er
 // Thing subscriptions on topic things/{publisherID}/{thingID}/{msgType}/{name} are
 // passed on to the pubsub service if they pass the authorization check.
 //
-// Other subscriptions are ignored and will be handled by the mqtt broker as normal.
+// Other subscriptions are ignored and will be handled by the mqttgw broker as normal.
 // This returns an error if the client is unauthorized.
 func (m2pubsub *Mqtt2PubSub) HandleSubscribe(mqttTopic string, payload []byte) error {
 
@@ -107,7 +107,7 @@ func (m2pubsub *Mqtt2PubSub) HandleSubscribe(mqttTopic string, payload []byte) e
 
 	// TODO: authorization
 
-	// pass the subscription to the pubsub service and the resulting subscription messages to the mqtt client.
+	// pass the subscription to the pubsub service and the resulting subscription messages to the mqttgw client.
 	if msgType == hubapi.MessageTypeEvent {
 		err = m2pubsub.getUserPubSub().SubEvent(context.Background(), pubID, thingID, name,
 			func(event thing.ThingValue) {
@@ -115,7 +115,7 @@ func (m2pubsub *Mqtt2PubSub) HandleSubscribe(mqttTopic string, payload []byte) e
 				evJson, _ := json.Marshal(event)
 				err = m2pubsub.writer.Write(mqttTopic, evJson)
 				if err != nil {
-					logrus.Errorf("Failed to publish received event to mqtt bus on topic '%s': %s", mqttTopic, err)
+					logrus.Errorf("Failed to publish received event to mqttgw bus on topic '%s': %s", mqttTopic, err)
 				}
 			})
 		return err
@@ -129,7 +129,7 @@ func (m2pubsub *Mqtt2PubSub) HandleSubscribe(mqttTopic string, payload []byte) e
 				actionJson, _ := json.Marshal(thingAction)
 				err = m2pubsub.writer.Write(mqttTopic, actionJson)
 				if err != nil {
-					logrus.Errorf("Failed to publish received action to mqtt bus on topic '%s': %s", mqttTopic, err)
+					logrus.Errorf("Failed to publish received action to mqttgw bus on topic '%s': %s", mqttTopic, err)
 				}
 			})
 		return err
@@ -139,11 +139,11 @@ func (m2pubsub *Mqtt2PubSub) HandleSubscribe(mqttTopic string, payload []byte) e
 }
 
 // NewMqtt2PubSub starts a new session with the hub gateway
-// This uses the client credentials, passed to mqtt, as gateway credentials.
+// This uses the client credentials, passed to mqttgw, as gateway credentials.
 //
 //	resolverClient for resolving capabilities
 //	caCert is optional to ensure a valid connection to the gateway
-//	client is the mqtt instance of the client connection
+//	client is the mqttgw instance of the client connection
 //
 // Returns a session instance or an error if the gateway connection fails
 func NewMqtt2PubSub(clientID string, writer *MqttClientWriter) *Mqtt2PubSub {

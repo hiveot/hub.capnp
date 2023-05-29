@@ -4,28 +4,37 @@ The MQTT gateway is intended for clients that cannot use capnproto or require MQ
 
 ## Status
 
-This service is in development
+This service is functional.
 
+Known issues:
+* certificate based authentication is in development
+* JWT refresh token support
+* authorization is in development
+* directory paging is not yet supported
+* The history response of a thing repeats publisherID, thingID and event name for every value, which is very inefficient. 
+* The directory response encodes the TD then encodes the response in json, which is also inefficient. 
 
 ## Summary
 
-Javascript clients do not have an easy way to establish a capnproto connection. This service provides a MQTT gateway to the hub, offering limited capabilities for use by javascript clients running in a web browser, or any other MQTT clients.
+Not all clients have an easy way to establish a Capnproto connection with the Hub. For example, there is no easy to use javascript serializer and RPC at the time of writing. To work arond this, this service provides a MQTT gateway to the hub that can be used over TCP and websocket connections. It offers the ability to users and devices for accessing some of the Hub capabilities. It is also useful to facilitate integration with MQTT capable systems.
 
 Features:
-1. User based authentication
-2. Subscribe to TD, events and actions
-3. Publish TD, actions and events
-4. Read directory [1] 
-5. Read history [1]
+1. Authentication using password, token, or peer certificates
+2. Authorization using the authz service
+3. Users can subscribe to events and publish actions
+4. Devices can publish events and subscribe to actions
+5. Users can read directory
+6. Users can read history
+7. A golang client for ease of use
 
 As Mqtt is a pub/sub protocol, not a request/response protocol, responses to request for directory or history are send asynchroneously from the request. 
 
-### Publish Thing Action
+### Publish Thing Action Requests
 
-Consumers can publish action requests from Things. The topic to use:
+Consumers can request actions of Things. The mqtt topic to use:
 > PUBLISH: things/{publisherID}/{thingID}/action/{name}
  
-... where name is the name of the action described in the Thing's TD.
+... where {name} is the name of the action described in the Thing's TD.
 
 For an action to be accepted, the client that publishes the event must have a role of operator in the group that both the user and the thing are a member of, as defined by authz. 
 
@@ -39,12 +48,12 @@ Devices and services can publish events via MQTT in the same way actions are pub
 
 ### Subscribe to Thing Actions
 
-Publishers of devices and services can receive action requests on the topic:
+Publishers of devices and services can receive action requests by subscribing to the topic:
 
 > SUBSCRIBE: things/{publisherID}/{thingID}/action/{name}
 
 Where:
-* {publisherID} must be a valid publisher
+* {publisherID} must be the authenticated publisher of the Thing
 * {thingID} is that of the Thing to activate
 * {name} is that of the action to engage
 
@@ -59,7 +68,7 @@ Where:
 * {thingID} is that of a Thing or '+' for any Thing event from the publisher
 * {name} is that of the event to subscribe to, or '+' for all events
 
-At least one of the above parameters must be provided however. If all parameters are '+' the subscription is refused.
+At least one of the above parameters should be provided however. If all parameters are '+' the subscription can be refused.
 
 
 ### Read Thing Directory
@@ -72,17 +81,34 @@ The payload must contain a JSON document with filter parameters:
 ```json
 {
   "publisherID": "publisherID", // optional filter on publisher of the Thing
-  "limit": 1000,   // maximum number of results to return
+  "offset": 0,                  // starting offset for paging
+  "limit": 1000,                // maximum number of results to return for paging
 }
 ```
 
-This requests the action 'directory' from the default directory service.
+This requests the action 'read directory' from the directory service.
 
 The responses are published on services/directory/event/directory **to the requesting client only**. The client has to subscribe to this topic.
 
-The payload:
+The payload contains a list of ThingValue objects as returned by the directory service:
 ```json
-  tds: [{...TD...}]
+{
+  "tds": [
+      thing.ThingValue...
+  ],
+  "itemsRemaining": false
+}
+```
+
+...where a thing.ThingValue contains: 
+```json
+{
+  "id": "td",
+  "publisherID": "publisher thingID",
+  "thingID": "thingID",
+  "data": "{json encoded TD}",
+  "created": "2023-05-22T07:00:00-0700"
+}
 ```
 
 The directory service must be running.
@@ -189,12 +215,12 @@ Subscriptions are constrained to the topics for things and services the user has
 
 Effectively the MQTT broker is limited to client-gateway interaction and is constrained by the capabilities the gateway has afforded the client based on its credentials.
 
-> MQTT client -> MQTT broker -> Mqtt session -> gateway session -> service capability.
+> MQTT client -> Mochi-co mqtt broker -> mqttgw session -> gateway session -> service capability.
 
 Note that these constraints and redirects are transparent to the client. Clients can interact with the MQTT broker as normally would be the case.
 
 **Latency Penalty:** 
-The mqtt to gateway forwarding will have a latency penalty due to the extra hops from mqtt session (this service) to the gateway. If this service and gateway live on the same machine, this extra hop adds a latency in the order of 100usec - 1msec, depending on the machine resources. (this is a rough estimate based on other performance tests)
+The mqtt to gateway forwarding will have a latency penalty due to the extra hops from mqtt session (this service) to the gateway. If this service and gateway live on the same machine, this extra hop adds a latency in the order of 100usec, depending on the machine resources. (this is a rough estimate based on other performance tests)
 
 
 ### Authentication
@@ -217,15 +243,15 @@ If a request is refused, the publication is ignored when using MQTT 3 and an err
 
 When the client publishes onto a topic, this is intercepted by the service. The publication is never passed on to any other subscribers.
 
-This service determines which capability is needed to handle the publication, for example the read directory capability, read history capability or publish capability from the pubsub service. 
+This service determines which capability is needed to handle the publication, for example the read directory capability, read history capability or publish capability from the pubsub service. Pubsub publications are passed on to the pubsub service. Directory and History publications will invoke these services.    
 
 On the first request, the needed capability is obtained from the gateway. On successive requests it is re-used. When the connection is closed, all capabilities are released.
 
 ### Subscribe
 
-When the client subscribes to a topic, this is intercepted by the service. 
+When the client subscribes to a topic, this is intercepted by the service. Pubsub subscriptions are passed on to the pubsub service. All mqtt subscriptions are passed on to the broker. 
 
-This service determines which capability is needed to handle the subscription, for example the read directory capability, read history capability or subscribe capability from the pubsub service.
+When a pubsub subscription is receiving a publication on the Hub message bus, it is passed on to the remote mqtt client via Mochi-co's direct message feature.  
 
 On the first request, the needed capability is obtained from the gateway. On successive requests it is re-used. When the connection is closed, all capabilities are released.
 

@@ -7,16 +7,16 @@ import (
 	"github.com/hiveot/hub/lib/svcconfig"
 	"github.com/hiveot/hub/pkg/certs/capnpclient"
 	"github.com/hiveot/hub/pkg/gateway/config"
-	"github.com/hiveot/hub/pkg/mqtt/service"
+	"github.com/hiveot/hub/pkg/mqttgw/service"
 	"github.com/sirupsen/logrus"
 	"os"
 )
 
-const serviceName = "mqtt"
+const serviceName = "mqttgw"
 const mqttTcpPort = 8883
 const mqttWsPort = 8884
 
-// main launches the mqtt gateway service using TLS websocket
+// main launches the mqttgw gateway service using TLS websocket
 func main() {
 	var err error
 	var ipAddr string

@@ -21,6 +21,7 @@ Core micro-services of the Hub
 - history       storage of thing event and action values -- needs rework
 - hubcli        commandline interface to hub services for administrators
 - launcher      starting and stopping of services
+- mqtt          mqtt gateway to Hub pubsub, directory and history
 - provisioning  automated provisioning of IoT devices using certificate authentication
 - pubsub        publish and subscribe message bus for notifications between services
 - resolver      local discovery and access to service capabilities
@@ -31,19 +32,15 @@ For available protocol bindings see the [bindings repo](https://github.com/hiveo
 
 ### Short Term Road Map
 ```
-1. Websocket API for use by browser clients. Access to a subset of API's using websockets.
-   * login
-   * pub/sub
-   * directory
-   * history
-2. Dashboard viewer (hiveoview)
-3. Bindings
+1. Dashboard viewer (hiveoview)
+2. Bindings
    * isy99 Insteon binding (legacy protocol, for consideration)
    * weathermap
-4. Client libraries using capnproto APIs:
-   * javascript client (using websockets)
+   * aurora watch
+3. Client libraries using capnproto APIs:
+   * javascript client for mqtt gateway
    * python client
-5. Auto reconnect by clients   
+4. Auto reconnect by clients
 ```
 
 

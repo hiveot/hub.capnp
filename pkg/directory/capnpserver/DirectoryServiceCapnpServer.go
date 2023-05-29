@@ -12,8 +12,7 @@ import (
 )
 
 // DirectoryServiceCapnpServer provides the capnp RPC server for directory services
-// This implements the capnproto generated interface Directory_Server
-// See hub/api/go/hubapi/DirectoryStore.capnp.go for the interface.
+// This implements the capnproto generated interface DirectoryService_Server
 type DirectoryServiceCapnpServer struct {
 	svc directory.IDirectory
 }

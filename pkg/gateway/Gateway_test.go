@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/hiveot/hub/pkg/gateway"
+	capnpclient2 "github.com/hiveot/hub/pkg/resolver/capnpclient"
 	"net"
 	"os"
 	"path"
@@ -45,7 +46,7 @@ var testGatewayURL = ""
 var testCerts = testenv.CreateCertBundle()
 
 // start resolver and register a dummy authn
-func startResolver() (stopfn func()) {
+func startResolver() (resolverClient *capnpclient2.ResolverCapnpClient, stopfn func()) {
 	_ = os.RemoveAll(resolverSocketPath)
 	svc := service2.NewResolverService(testSocketDir)
 	err := svc.Start(context.Background())
@@ -57,14 +58,16 @@ func startResolver() (stopfn func()) {
 		panic("need resolver")
 	}
 	go capnpserver2.StartResolverServiceCapnpServer(svc, lis, svc.HandleUnknownMethod)
+	boot, _ := hubclient.ConnectWithCapnpUDS("", resolverSocketPath)
+	capclient := capnpclient2.NewResolverCapnpClient(boot)
 
-	return func() {
+	return capclient, func() {
 		_ = lis.Close()
 		_ = svc.Stop()
 	}
 }
 
-func StartTestGateway(useCapnp bool) (gwSession gateway.IGatewaySession, stopFn func()) {
+func StartTestGateway(useCapnp bool) (gw gateway.IGatewayService, stopFn func()) {
 	_ = os.RemoveAll(testSocketDir)
 	_ = os.MkdirAll(testSocketDir, 0700)
 
@@ -73,9 +76,11 @@ func StartTestGateway(useCapnp bool) (gwSession gateway.IGatewaySession, stopFn 
 	//}
 	// authn service is needed for login
 	var authnDummy authn.IAuthnService = dummy.NewDummyAuthnService()
+	userAuthn, _ := authnDummy.CapUserAuthn(context.Background(), gateway.ServiceName)
 	//
-	stopResolver := startResolver()
-	svc := service.NewGatewayService(resolverSocketPath, authnDummy)
+	resolverSvc, stopResolver := startResolver()
+	time.Sleep(time.Second)
+	svc := service.NewGatewayService(resolverSvc, userAuthn)
 	err := svc.Start()
 	if err != nil {
 		panic(err)
@@ -100,7 +105,7 @@ func StartTestGateway(useCapnp bool) (gwSession gateway.IGatewaySession, stopFn 
 		}
 		srvListener = listener.CreateTLSListener(srvListener, testCerts.ServerCert, testCerts.CaCert)
 		// TODO: cleanup the need for wsPath
-		go capnpserver.StartGatewayCapnpServer(svc, srvListener, wsPath)
+		go capnpserver.StartGatewayServiceCapnpServer(svc, srvListener, wsPath)
 
 		time.Sleep(time.Millisecond)
 
@@ -114,7 +119,7 @@ func StartTestGateway(useCapnp bool) (gwSession gateway.IGatewaySession, stopFn 
 			capClient, err = hubclient.ConnectWithCapnpTCP(testGatewayURL, testCerts.DeviceCert, testCerts.CaCert)
 		}
 
-		gwClient := capnpclient.NewGatewaySessionCapnpClient(capClient)
+		gwClient := capnpclient.NewGatewayServiceCapnpClient(capClient)
 		if err2 != nil {
 			panic("unable to connect the client to the gateway:" + err2.Error())
 		}
@@ -142,46 +147,37 @@ func TestMain(m *testing.M) {
 }
 
 func TestStartStop(t *testing.T) {
-	ctx := context.Background()
 	svc, stopFn := StartTestGateway(testUseCapnp)
 
-	clientInfo, err := svc.Ping(ctx)
-	assert.NoError(t, err)
-	assert.Equal(t, hubapi.AuthTypeIotDevice, clientInfo.AuthType)
+	token := svc.AuthNoAuth("itsme")
+	assert.NotEmpty(t, token)
 	stopFn()
 	time.Sleep(time.Millisecond)
 }
 
 func TestLogin(t *testing.T) {
-	ctx := context.Background()
 	svc, stopFn := StartTestGateway(testUseCapnp)
 	defer stopFn()
 
-	authToken, refreshToken, err := svc.Login(ctx, testClientID, "password")
-	require.NoError(t, err)
+	authToken := svc.AuthWithPassword(testClientID, "password")
 	assert.NotEmpty(t, authToken)
-	assert.NotEmpty(t, refreshToken)
 
-	clientInfo, err := svc.Ping(ctx)
-	assert.NoError(t, err)
-	assert.Equal(t, hubapi.AuthTypeUser, clientInfo.AuthType)
-	assert.Equal(t, testClientID, clientInfo.ClientID)
+	session, err := svc.NewSession(authToken)
+	require.NoError(t, err)
+	assert.NotEmpty(t, session)
+
+	session.Release()
 }
 
 func TestRefresh(t *testing.T) {
-	ctx := context.Background()
 	svc, stopFn := StartTestGateway(testUseCapnp)
 	defer stopFn()
 
-	authToken, refreshToken, err := svc.Login(ctx, testClientID, "password")
-	require.NoError(t, err)
+	authToken := svc.AuthWithPassword(testClientID, "password")
 	assert.NotEmpty(t, authToken)
-	assert.NotEmpty(t, refreshToken)
 
-	newAuthToken, newRefreshToken, err := svc.Refresh(ctx, testClientID, refreshToken)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, newAuthToken)
-	assert.NotEmpty(t, newRefreshToken)
+	newToken := svc.AuthRefresh(testClientID, authToken)
+	assert.NotEmpty(t, newToken)
 }
 func TestGetInfo(t *testing.T) {
 
@@ -200,8 +196,12 @@ func TestGetInfo(t *testing.T) {
 
 	// the client is logged in with a client cert and should be recognized as a service
 	// the given client type is ignored
+	authToken := svc.AuthWithCert()
+	assert.NotEmpty(t, authToken)
+	session, err := svc.NewSession(authToken)
 	assert.NoError(t, err)
-	capList, err := svc.ListCapabilities(ctx)
+
+	capList, err := session.ListCapabilities(ctx)
 	assert.NoError(t, err)
 	require.Equal(t, 1, len(capList))
 
@@ -216,8 +216,9 @@ func TestGetCapability(t *testing.T) {
 	ctx := context.Background()
 
 	// Phase 1 - setup environment with a resolver and test service
-	gwClient, stopFn := StartTestGateway(testUseCapnp)
+	svc, stopFn := StartTestGateway(testUseCapnp)
 	defer stopFn()
+	authToken := svc.AuthWithCert()
 
 	// register a test service
 	ts := testenv.NewTestService()
@@ -228,7 +229,9 @@ func TestGetCapability(t *testing.T) {
 	time.Sleep(time.Millisecond * 10)
 
 	// Phase 2 - obtain the test service capability from the gateway/resolver
-	caps, err := gwClient.ListCapabilities(ctx)
+	session, err := svc.NewSession(authToken)
+	assert.NoError(t, err)
+	caps, err := session.ListCapabilities(ctx)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(caps))
 
@@ -273,7 +276,7 @@ func TestGetCapability(t *testing.T) {
 	ts.Stop()
 	// remote side needs time to discover disconnect
 	time.Sleep(time.Millisecond * 1)
-	caps, err = gwClient.ListCapabilities(ctx)
+	caps, err = session.ListCapabilities(ctx)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(caps))
 

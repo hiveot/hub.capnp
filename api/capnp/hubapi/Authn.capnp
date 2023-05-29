@@ -8,11 +8,12 @@ $Go.import("github.com/hiveot/hub/api/go/hubapi");
 const authnServiceName :Text = "authn";
 # ServiceName of the service used for logging and connecting
 
-const defaultAccessTokenValiditySec :Int32 = 3600;
+const defaultAccessTokenValiditySec :UInt32 = 3600;
 # DefaultAccessTokenValiditySec with access token validity in seconds
 
-const defaultRefreshTokenValiditySec : Int32 = 1209600;
+const defaultRefreshTokenValiditySec : UInt32 = 1209600;
 # DefaultRefreshTokenValiditySec with Refresh token validity before refresh
+# Default is 14 days
 
 struct UserProfile {
 # Container for profile information
@@ -66,7 +67,7 @@ interface CapManageAuthn {
 }
 
 interface CapUserAuthn {
-# CapAuthentication defines the capabilities to handle authentication of a client
+# CapUserAuthn defines the capabilities to handle authentication of a user
 # Intended for end-users to login, logout, or obtain their profile
 
 	getProfile @0 () -> (profile :UserProfile);

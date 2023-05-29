@@ -10,7 +10,7 @@ type MqttClientWriter struct {
 	cl *mqtt.Client
 }
 
-// write a message directly to the mqtt client
+// write a message directly to the mqttgw client
 func (wr *MqttClientWriter) Write(mqttTopic string, payload []byte) error {
 	newPk := packets.Packet{}
 	newPk.Payload = payload
@@ -20,7 +20,7 @@ func (wr *MqttClientWriter) Write(mqttTopic string, payload []byte) error {
 	return err
 }
 
-// NewMqttClientWriter resturn a new instance of the mqtt client writer
+// NewMqttClientWriter resturn a new instance of the mqttgw client writer
 func NewMqttClientWriter(cl *mqtt.Client) *MqttClientWriter {
 	wr := &MqttClientWriter{cl: cl}
 	return wr

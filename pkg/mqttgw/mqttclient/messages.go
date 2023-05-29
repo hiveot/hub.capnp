@@ -5,10 +5,10 @@ import "github.com/hiveot/hub/lib/thing"
 type ReadDirectoryRequest struct {
 	PublisherID string `json:"publisherID,omitempty"`
 	Limit       uint   `json:"limit,omitempty"`
+	Offset      uint   `json:"offset,omitempty"`
 }
 
 type ReadDirectoryResponse struct {
-	// TBD: should this just contain the value result of the service?
 	TDs            []thing.ThingValue `json:"tds"`
 	ItemsRemaining bool               `json:"itemsRemaining,omitempty"`
 }

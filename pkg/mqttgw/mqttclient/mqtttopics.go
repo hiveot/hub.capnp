@@ -35,7 +35,7 @@ func IsHistoryTopic(topic string) bool {
 	return strings.HasPrefix(topic, HistoryTopicPrefix)
 }
 
-// MakeActionTopic constructs a mqtt topic for publishing Thing actions
+// MakeActionTopic constructs a mqttgw topic for publishing Thing actions
 // This builds a topic with the format: things/publisherID/thingID/action/name
 //
 //	publisherID is the publisher
@@ -46,7 +46,7 @@ func MakeActionTopic(publisherID, thingID, name string) string {
 	return strings.Join(parts, "/")
 }
 
-// MakeEventTopic constructs a mqtt topic for addressing Things
+// MakeEventTopic constructs a mqttgw topic for addressing Things
 // This builds a topic with the format: things/publisherID/thingID/event/name
 //
 //	publisherID is the publisher

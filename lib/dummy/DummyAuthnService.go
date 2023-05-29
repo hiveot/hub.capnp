@@ -2,7 +2,7 @@ package dummy
 
 import (
 	"context"
-
+	"errors"
 	"github.com/hiveot/hub/pkg/authn"
 )
 
@@ -14,6 +14,7 @@ type DummyAuthnService struct {
 func (dummy *DummyAuthnService) CapUserAuthn(
 	_ context.Context, clientID string) (authn.IUserAuthn, error) {
 	_ = clientID
+	// this service is combined with user authn
 	return dummy, nil
 }
 
@@ -53,8 +54,11 @@ func (dummy *DummyAuthnService) GetProfile(_ context.Context) (profile authn.Use
 	return profile, nil
 }
 
+// Login accepts any password as long as one is provided
 func (dummy *DummyAuthnService) Login(_ context.Context, password string) (authToken, refreshToken string, err error) {
-	_ = password
+	if password == "" {
+		return "", "", errors.New("missing password")
+	}
 	authToken = "auth"
 	refreshToken = "refresh"
 	err = nil

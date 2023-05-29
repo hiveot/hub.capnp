@@ -10,23 +10,23 @@ import (
 type ThingValue struct {
 	// ID of event, action or property as defined in the TD event/action map.
 	// For the type of event/action see the TD event/action @type field.
-	ID string
+	ID string `json:"id"`
 
 	// PublisherID of the thing
-	PublisherID string
+	PublisherID string `json:"publisherID,omitempty"`
 
 	// ThingID of the thing itself
-	ThingID string
+	ThingID string `json:"thingID,omitempty"`
 
 	// Data with serialized value payload, as defined by the TD affordance DataSchema
-	Data []byte
+	Data []byte `json:"data,omitempty"`
 
 	// Timestamp the value was created, in ISO8601 UTC format. Default "" is now()
-	Created string
+	Created string `json:"created,omitempty"`
 	// Timestamp in unix time, msec since Epoch.
 	//CreatedMsec int64
 
-	// Expiry time of the message in seconds since epoc.
+	// Expiry time of the value in seconds since epoc.
 	// Events expire based on their update interval.
 	// Actions expiry is used for queueing. 0 means the action expires immediately after receiving it and is not queued.
 	//Expiry int64

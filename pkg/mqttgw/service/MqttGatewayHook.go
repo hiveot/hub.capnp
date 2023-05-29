@@ -5,13 +5,14 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
+	"github.com/hiveot/hub/lib/listener"
 	"github.com/mochi-co/mqtt/v2"
 	"github.com/mochi-co/mqtt/v2/packets"
 	"github.com/sirupsen/logrus"
 	"sync"
 )
 
-// GatewayHook is a hiveot hook for the mochi-co mqtt broker
+// GatewayHook is a hiveot hook for the mochi-co mqttgw broker
 type GatewayHook struct {
 	mqtt.HookBase
 	sessionMutex sync.RWMutex
@@ -39,7 +40,7 @@ func (hook *GatewayHook) OnACLCheck(cl *mqtt.Client, topic string, write bool) b
 	return true
 }
 
-// OnConnect creates a new mqtt session
+// OnConnect creates a new mqttgw session
 func (hook *GatewayHook) OnConnect(cl *mqtt.Client, pk packets.Packet) {
 	_ = pk
 	session, err := NewMqttSession(hook.caCert, cl)
@@ -54,18 +55,28 @@ func (hook *GatewayHook) OnConnect(cl *mqtt.Client, pk packets.Packet) {
 	logrus.Infof("New client connection clientID=%s, userName=%s", cl.ID, cl.Properties.Username)
 }
 func (hook *GatewayHook) OnConnectAuthenticate(cl *mqtt.Client, pk packets.Packet) bool {
-
+	var err error
 	clientID := string(pk.Connect.Username)
 	password := string(pk.Connect.Password)
 	hook.sessionMutex.Lock()
 	session, found := hook.sessions[cl.ID]
 	hook.sessionMutex.Unlock()
 	if !found {
-		logrus.Errorf("missing session for mqtt client connection %s", cl.ID)
+		logrus.Errorf("missing session for mqttgw client connection %s", cl.ID)
 		return false
 	}
-	err := session.Login(clientID, password)
-	return err == nil
+	// check for client cert auth
+	peerCert := listener.GetPeerCert(cl.Net.Conn)
+	if peerCert == nil {
+		err = session.LoginWithPassword(clientID, password)
+	} else {
+		err = session.LoginWithCert(clientID, peerCert)
+	}
+	if err != nil {
+		logrus.Warningf("invalid login attempt as '%s'", clientID)
+		return false
+	}
+	return true
 }
 
 // OnDisconnect releases the session for this client
@@ -89,14 +100,14 @@ func (hook *GatewayHook) OnPublish(cl *mqtt.Client, pk packets.Packet) (pkx pack
 			return pkx, err
 		}
 	}
-	// Don't publish this on the mqtt bus as it has to go through the pubsub service.
+	// Don't publish this on the mqttgw bus as it has to go through the pubsub service.
 	// ugh, undocumented stuff
 	err = packets.ErrRejectPacket
 	return pk, err
 }
 
 // OnSubscribe proxies the subscription to the pubsub service
-// The topic format of the pubsub and mqtt can differ.
+// The topic format of the pubsub and mqttgw can differ.
 func (hook *GatewayHook) OnSubscribe(cl *mqtt.Client, pk packets.Packet) (pkx packets.Packet) {
 	var err error
 	hook.sessionMutex.Lock()
@@ -126,14 +137,14 @@ func (hook *GatewayHook) Provides(b byte) bool {
 		mqtt.OnConnectAuthenticate,
 		mqtt.OnDisconnect,
 		mqtt.OnSubscribe,
-		//mqtt.OnUnsubscribe,
+		//mqttgw.OnUnsubscribe,
 		mqtt.OnPublish,
 	}, []byte{b})
 }
 
-// NewMochiHook returns a new instance of the mochi-co mqtt server hook
+// NewMochiHook returns a new instance of the mochi-co mqttgw server hook
 //
-//	serviceID is required mqtt-optional ID prefix used to listen on tcp/ws ports
+//	serviceID is required mqttgw-optional ID prefix used to listen on tcp/ws ports
 func NewMochiHook(caCert *x509.Certificate) *GatewayHook {
 	svc := &GatewayHook{
 		caCert:       caCert,

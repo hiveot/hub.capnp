@@ -23,28 +23,53 @@ struct ClientInfo {
   #  AuthTypeUser              - client is authenticated as a user with login/password
   #  AuthTypeIoTDevice         - client is authenticated as an IoT device with certificate
   #  AuthTypeService           - client is authenticated as a service with certificate
-  # The available capabilities depend on the client type.
+  # The available capabilities depend on the auth type.
 }
 
 
+interface CapGatewayService  {
+# CapGatewayService is the gateway service used to access Hub capabilities.
 
-interface CapGatewaySession  {
+    newSession @0 (clientID :Text, sessionToken :Text) -> (session :Resolver.CapProvider);
+    # Obtain a new gateway session for the given session token.
+    # This fails with an error if the session token has already been used or is invalid.
+    # A new sesion token can be obtained by the 'authXyz' methods of this service.
+    # The capabilities available in the provided session depend on the token.
 
-	listCapabilities @0 () -> (infoList :List(Resolver.CapabilityInfo));
-	# ListCapabilities returns the list of provided capabilities
-	# the result depends on the client's authentication type
+    authNoAuth @1 (clientID :Text) -> (sessionToken :Text);
+    # Obtain a session token of an unauthenticated user.
+    # clientID is the 'claimed' identity associated with the session
+    #
+    # Intended for an unprovisioned IoT device or unauthenticated client that need
+    # capabilities available to unauthenticated users. For example, the provisioning capability.
+    # This returns a token that can be used with newSession.
 
-    login @1 (clientID:Text, password:Text) -> (authToken :Text, refreshToken :Text);
-    # Login to the gateway as a user in order to get additional capabilities.
-    # This returns an authToken and refreshToken that can be used with services that require
-    # authentication.
-    # If the authentication token has expired then call refresh.
+    authProxy @2 (clientID:Text, clientCertPEM:Text) -> (sessionToken :Text);
+    # Obtain a new session token on behalf of a client with a certificate.
+    #
+    # Intended for a trusted proxy service that itself is authenticated using the connected
+    # client certificate.
+    #
+    # clientID is that of the represented client and certPEM must be a valid certificate for that client.
+    # This returns a token that can be used with newSession.
 
-    # User login to the gateway to use its capabilities. This is intended for end-users only
+    authRefresh @3 (clientID:Text, sessionToken :Text) -> (sessionToken :Text);
+    # Refresh the session token of a client with the given ID.
+    # This returns a token that can be used with newSession.
+    #
+    # The default session token lifetime is 10 days and cannot be refreshed once expired.
+    # The gateway can invalidate the previous session token.
 
-    ping @2 () -> (reply :ClientInfo);
-    # ping the gateway, no authentication is required
+    authWithCert @4 () -> (sessionToken:Text);
+    # Authenticate using the connected client certificate.
+    #
+    # Intended for clients that use a client certificate authentication, such as devices
+    # or services.
+    # This returns a token that can be used with newSession.
 
-    refresh @3 (clientID:Text, refreshToken :Text) -> (authToken :Text, refreshToken :Text);
-    # Refresh the token pair obtained with login
+    authWithPassword @5 (clientID:Text, password:Text) -> (sessionToken :Text);
+    # Authenticate using a password.
+    #
+    # Intended for users with a login ID and password.
+    # This returns a token that can be used with newSession.
 }

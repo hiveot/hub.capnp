@@ -31,7 +31,7 @@ func StartGatewayCapnpServer(
 		logrus.Infof("listening on TCP address %s", lis.Addr())
 	}
 
-	// Each incoming connection is handled in a separate session.
+	// Each incoming connection is handled in a separate capnp session.
 	// This handler will create a new capnp client and a gateway session object.
 	onConnect := func(conn net.Conn, tp transport.Transport) {
 		session := svc.OnIncomingConnection(conn)

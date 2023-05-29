@@ -8,7 +8,7 @@ import (
 	"github.com/hiveot/hub/lib/resolver"
 	"github.com/hiveot/hub/lib/thing"
 	"github.com/hiveot/hub/pkg/history"
-	"github.com/hiveot/hub/pkg/mqtt/mqttclient"
+	"github.com/hiveot/hub/pkg/mqttgw/mqttclient"
 	"github.com/mochi-co/mqtt/v2"
 	"time"
 )
@@ -21,7 +21,7 @@ type Mqtt2History struct {
 	// history capabilities
 	readHist history.IReadHistory
 
-	// the mqtt client this serves
+	// the mqttgw client this serves
 	mqttClient *mqtt.Client
 
 	writer *MqttClientWriter

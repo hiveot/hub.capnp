@@ -12,7 +12,7 @@ const ServiceName = hubapi.AuthnServiceName
 // DefaultAccessTokenValiditySec with access token validity in seconds
 const DefaultAccessTokenValiditySec = hubapi.DefaultAccessTokenValiditySec
 
-// DefaultRefreshTokenValiditySec with Refresh token validity before refresh
+// DefaultRefreshTokenValiditySec with Refresh token validity before refresh (14 days)
 const DefaultRefreshTokenValiditySec = hubapi.DefaultRefreshTokenValiditySec
 
 // UserProfile contains user information

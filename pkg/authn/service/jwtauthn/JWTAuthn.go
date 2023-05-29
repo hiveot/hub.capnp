@@ -20,54 +20,49 @@ type JWTAuthn struct {
 	signingKey      *ecdsa.PrivateKey
 	verificationKey *ecdsa.PublicKey
 
-	accessTokenValidity  time.Duration
-	refreshTokenValidity time.Duration
+	accessTokenValidity  uint
+	refreshTokenValidity uint
 
 	// invalidated tokens with their expiry unix time for auto cleaning
 	invalidatedTokens map[string]int64
+}
+
+// CreateToken creates JWT session token for the given user and client type (audience)
+func (jwtauthn *JWTAuthn) CreateToken(
+	userID string, clientType string, validitySec uint) (token string, err error) {
+
+	expTime := time.Now().Add(time.Second * time.Duration(validitySec))
+	if userID == "" {
+		err = fmt.Errorf("CreateJWTTokens: Missing userID")
+		return "", err
+	}
+
+	// Create the JWT claims, which includes the userID, clientType, and expiry time
+	claims := &jwt.StandardClaims{
+		Issuer:   "hub",
+		Audience: clientType,
+		Subject:  userID,
+		Id:       uuid.New().String(),
+		// In JWT, the expiry time is expressed as unix milliseconds
+		ExpiresAt: expTime.Unix(),
+		IssuedAt:  time.Now().Unix(),
+		NotBefore: time.Now().Unix(),
+	}
+	jwtToken := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
+	token, _ = jwtToken.SignedString(jwtauthn.signingKey)
+	return token, nil
 }
 
 // CreateTokens creates JWT access and refresh tokens for the given user
 func (jwtauthn *JWTAuthn) CreateTokens(userID string) (accessToken, refreshToken string, err error) {
 
 	logrus.Debugf("create tokens for user '%s'. Access token valid for %d seconds, refresh for %d seconds",
-		userID, jwtauthn.accessTokenValidity/time.Second,
-		jwtauthn.refreshTokenValidity/time.Second)
+		userID, jwtauthn.accessTokenValidity,
+		jwtauthn.refreshTokenValidity)
 
-	accessExpTime := time.Now().Add(jwtauthn.accessTokenValidity)
-	refreshExpTime := time.Now().Add(jwtauthn.refreshTokenValidity)
-	if userID == "" {
-		err = fmt.Errorf("CreateJWTTokens: Missing userID")
-		return "", "", err
-	}
+	accessToken, _ = jwtauthn.CreateToken(userID, "", jwtauthn.accessTokenValidity)
+	refreshToken, err = jwtauthn.CreateToken(userID, "", jwtauthn.accessTokenValidity)
 
-	// Create the JWT claims, which includes the userID and expiry time
-	accessClaims := &jwt.StandardClaims{
-		Issuer:  "hub",
-		Subject: userID,
-		Id:      uuid.New().String(),
-		// In JWT, the expiry time is expressed as unix milliseconds
-		ExpiresAt: accessExpTime.Unix(),
-		IssuedAt:  time.Now().Unix(),
-		NotBefore: time.Now().Unix(),
-	}
-	// Declare the token with the algorithm used for signing, and the claims
-	jwtAccessToken := jwt.NewWithClaims(jwt.SigningMethodES256, accessClaims)
-	accessToken, _ = jwtAccessToken.SignedString(jwtauthn.signingKey)
-
-	// same for refresh token
-	refreshClaims := &jwt.StandardClaims{
-		Issuer:  "hub",
-		Subject: userID,
-		Id:      uuid.New().String(),
-		// In JWT, the expiry time is expressed as unix milliseconds
-		ExpiresAt: refreshExpTime.Unix(),
-		IssuedAt:  time.Now().Unix(),
-		NotBefore: time.Now().Unix(),
-	}
-	// Create the JWT string
-	jwtRefreshToken := jwt.NewWithClaims(jwt.SigningMethodES256, refreshClaims)
-	refreshToken, err = jwtRefreshToken.SignedString(jwtauthn.signingKey)
 	return accessToken, refreshToken, err
 }
 
@@ -161,22 +156,22 @@ func (jwtauthn *JWTAuthn) ValidateToken(userID, tokenString string) (
 //	signingKey is the private key used for signing. Use nil to have one auto-generated.
 //	accessTokenValidity in seconds. Use 0 for default.
 //	refreshTokenValidity in seconds. Use 0 for default.
-func NewJWTAuthn(signingKey *ecdsa.PrivateKey, accessTokenValidity int, refreshTokenValidity int) *JWTAuthn {
+func NewJWTAuthn(signingKey *ecdsa.PrivateKey, accessTokenValidity uint, refreshTokenValidity uint) *JWTAuthn {
 	if signingKey == nil {
 		signingKey = certsclient.CreateECDSAKeys()
 	}
 	if accessTokenValidity == 0 {
-		accessTokenValidity = int(authn.DefaultAccessTokenValiditySec)
+		accessTokenValidity = uint(authn.DefaultAccessTokenValiditySec)
 	}
 	if refreshTokenValidity == 0 {
-		refreshTokenValidity = int(authn.DefaultRefreshTokenValiditySec)
+		refreshTokenValidity = uint(authn.DefaultRefreshTokenValiditySec)
 	}
 
 	jwtauthn := &JWTAuthn{
 		signingKey:           signingKey,
 		verificationKey:      &signingKey.PublicKey,
-		accessTokenValidity:  time.Duration(accessTokenValidity) * time.Second,
-		refreshTokenValidity: time.Duration(refreshTokenValidity) * time.Second,
+		accessTokenValidity:  accessTokenValidity,
+		refreshTokenValidity: refreshTokenValidity,
 		invalidatedTokens:    make(map[string]int64),
 	}
 	return jwtauthn

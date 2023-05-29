@@ -1,8 +1,6 @@
 package gateway
 
 import (
-	"context"
-
 	"github.com/hiveot/hub/api/go/hubapi"
 	"github.com/hiveot/hub/pkg/resolver"
 )
@@ -27,47 +25,40 @@ type ClientInfo struct {
 }
 
 // IGatewayService provides the capability to accept new sessions with remote clients
-//type IGatewayService interface {
-//	// OnIncomingConnection notifies the service of a new incoming RPC connection.
-//	// This is invoked by the underlying RPC protocol (eg capnp) server.
-//	// This creates a new session for each connection in order to track authentication
-//	// and performance. If the RPC connection closes the session is released.
-//	OnIncomingConnection(conn net.Conn) IGatewaySession
-//
-//	// OnConnectionClosed is invoked if the connection with the client has closed.
-//	// The service will remove the session.
-//	OnConnectionClosed(conn net.Conn, session IGatewaySession)
-//}
-
-// IGatewaySession provides Hub capabilities to clients on the network
-// Each client connection receives a session with the capabilities that are dependent
-// on the client's authentication.
-type IGatewaySession interface {
-
-	// ListCapabilities returns the list of capabilities provided by capability providers.
-	ListCapabilities(ctx context.Context) (capInfo []resolver.CapabilityInfo, err error)
-
-	// Login to the gateway as a user in order to get additional capabilities.
+type IGatewayService interface {
+	//	// OnIncomingConnection notifies the service of a new incoming RPC connection.
+	//	// This is invoked by the underlying RPC protocol (eg capnp) server.
+	//	// This creates a new session for each connection in order to track authentication
+	//	// and performance. If the RPC connection closes the session is released.
+	//	OnIncomingConnection(conn net.Conn) IGatewaySession
 	//
-	// If successful this sets the session clientID to the given client ID and
-	// sets the session to authenticated.
-	//
-	// This returns an authToken and refreshToken that can be used with services that require
-	// authentication. The refresh token is valid for N days where N is configured
-	// in the service. Default is defined in authn and is 14 days.
-	// The refresh token can be used with 'Refresh' to reauthenticate in a new sessions
-	// as long as the token is still valid.
-	Login(ctx context.Context, clientID, password string) (authToken, refreshToken string, err error)
+	//	// OnConnectionClosed is invoked if the connection with the client has closed.
+	//	// The service will remove the session.
+	//	OnConnectionClosed(conn net.Conn, session IGatewaySession)
 
-	// Ping helps determine if the gateway is reachable
-	Ping(ctx context.Context) (reply ClientInfo, err error)
+	// NewSession returns a hub gateway session using an authentication token
+	//  sessionToken can be obtained using any of the service auth methods.
+	// This returns a capability provider for capabilities that are available
+	// to the client based on their authentication method and clientID.
+	// The CapProvider client
+	NewSession(sessionToken string) (resolver.ICapProvider, error)
 
-	// Refresh the auth token pair and reauthenticates the session.
-	// The token must be for the given clientID and must still be valid.
-	// This returns a new refresh token that is valid for another N days, where N is configured
-	// in the service.
-	Refresh(ctx context.Context, clientID string, oldRefreshToken string) (newAuthToken, newRefreshToken string, err error)
+	// AuthNoAuth returns a session token for unauthenticated users
+	AuthNoAuth(clientID string) (sessionToken string)
 
-	// Release the session when its incoming RPC connection closes
-	Release()
+	// AuthProxy returns a session token for clients of a proxy services
+	// the proxy service MUST be authenticated using a client certificate or
+	// no token will be returned.
+	AuthProxy(clientID string, clientCertPEM string) (sessionToken string)
+
+	// AuthRefresh issues a new session token using an existing non-expired token
+	// Intended for resuming a session without requiring a new login.
+	// The old session token can be invalidated and should no longer be used.
+	AuthRefresh(clientID string, oldSessionToken string) (sessionToken string)
+
+	// AuthWithCert obtains a session token for clients that connect with a client certificate.
+	AuthWithCert() (sessionToken string)
+
+	// AuthWithPassword obtains a session token for users with login id and password
+	AuthWithPassword(loginID string, password string) (sessionToken string)
 }

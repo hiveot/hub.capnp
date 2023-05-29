@@ -27,7 +27,7 @@ type AuthnService struct {
 func (svc *AuthnService) CapUserAuthn(ctx context.Context, clientID string) (authn.IUserAuthn, error) {
 	_ = ctx
 	jwtAuthn := jwtauthn.NewJWTAuthn(
-		svc.signingKey, svc.config.AccessTokenValiditySec, svc.config.RefreshTokenValiditySec)
+		svc.signingKey, uint(svc.config.AccessTokenValiditySec), uint(svc.config.RefreshTokenValiditySec))
 	capUserAuthn := NewUserAuthn(clientID, jwtAuthn, svc.pwStore)
 	return capUserAuthn, nil
 }

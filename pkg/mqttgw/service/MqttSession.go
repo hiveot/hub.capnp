@@ -6,7 +6,7 @@ import (
 	"github.com/hiveot/hub/lib/resolver"
 	"github.com/hiveot/hub/pkg/authn"
 	"github.com/hiveot/hub/pkg/gateway"
-	"github.com/hiveot/hub/pkg/mqtt/mqttclient"
+	"github.com/hiveot/hub/pkg/mqttgw/mqttclient"
 	"github.com/mochi-co/mqtt/v2"
 	"github.com/sirupsen/logrus"
 	"strings"
@@ -17,12 +17,9 @@ import (
 // This session establishes a gateway session on startup and releases it on disconnect.
 // This uses the client resolver to obtain capabilities, which also aids in testing using stubs.
 type MqttSession struct {
-	mqttClient *mqtt.Client
-	//gwCapClient  capnp.Client
+	mqttClient   *mqtt.Client
 	gwClient     gateway.IGatewaySession
 	refreshToken string
-	// login ID of this client
-	clientID string
 
 	userAuthn authn.IUserAuthn
 	m2dir     *Mqtt2Directory
@@ -40,11 +37,18 @@ func (session *MqttSession) OnDisconnect() {
 	}
 }
 
-// Login to the resolver session, most likely the gateway
+// LoginWithPassword to the resolver session, most likely the gateway
 // This requires that the resolver client is connected to the resolver service.
-func (session *MqttSession) Login(loginID, password string) error {
-	session.clientID = loginID
+func (session *MqttSession) LoginWithPassword(loginID, password string) error {
+	//session.clientID = loginID
 	err := resolver.Login(loginID, password)
+	return err
+}
+
+// LoginWithCert login to the resolver session using a client certificate
+func (session *MqttSession) LoginWithCert(loginID string, peerCert *x509.Certificate) error {
+	//session.clientID = loginID
+	err := resolver.LoginWithCert(loginID, peerCert)
 	return err
 }
 
@@ -53,7 +57,7 @@ func (session *MqttSession) Login(loginID, password string) error {
 // Thing subscriptions on topic things/{publisherID}/{thingID}/{msgType}/{name} are
 // passed on to the pubsub service if they pass the authorization check.
 //
-// Subscription to service responses are handled by the mqtt broker and are ignored.
+// Subscription to service responses are handled by the mqttgw broker and are ignored.
 func (session *MqttSession) OnSubscribe(cl *mqtt.Client, mqttTopic string, payload []byte) (err error) {
 	logrus.Infof("OnSubscribe to '%s' by client '%s'", mqttTopic, cl.ID)
 
@@ -72,7 +76,7 @@ func (session *MqttSession) OnSubscribe(cl *mqtt.Client, mqttTopic string, paylo
 	return err
 }
 
-// OnPublish is invoked by the mqtt Hook and handles a thing or service publish request.
+// OnPublish is invoked by the mqttgw Hook and handles a thing or service publish request.
 //
 //	This dispatches the request to the Hub's pubsub, directory or history service
 //
@@ -93,14 +97,13 @@ func (session *MqttSession) OnPublish(cl *mqtt.Client, mqttTopic string, payload
 }
 
 // NewMqttSession starts a new session with the hub gateway
-// This uses the client credentials, passed to mqtt, as gateway credentials.
+// This uses the client credentials, passed to mqttgw, as gateway credentials.
 //
 //	resolverClient for resolving capabilities
-//	caCert is optional to ensure a valid connection to the gateway
-//	client is the mqtt instance of the client connection
+//	client is the mqttgw instance of the client connection
 //
 // Returns a session instance or an error if the gateway connection fails
-func NewMqttSession(caCert *x509.Certificate, client *mqtt.Client) (session *MqttSession, err error) {
+func NewMqttSession(client *mqtt.Client) (session *MqttSession, err error) {
 
 	// TODO: use client credentials
 	//gwClient := resolver.GetCapability[gateway.IGatewaySession]()

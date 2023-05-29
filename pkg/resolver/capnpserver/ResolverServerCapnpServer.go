@@ -114,6 +114,7 @@ func StartResolverServiceCapnpServer(
 		service: service,
 	}
 
+	// instead of using CapResolverService_ServerToClient, this lets us hook into its HandleUnknownMethod handler
 	//main := hubapi.CapResolverService_ServerToClient(srv)
 	c, _ := hubapi.CapResolverService_Server(srv).(server.Shutdowner)
 	methods := hubapi.CapResolverService_Methods(nil, srv)

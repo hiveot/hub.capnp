@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/hiveot/hub/lib/resolver"
 	"github.com/hiveot/hub/pkg/directory"
-	"github.com/hiveot/hub/pkg/mqtt/mqttclient"
+	"github.com/hiveot/hub/pkg/mqttgw/mqttclient"
 )
 
 // Mqtt2Directory handles directory requests over MQTT using the gateway/resolver

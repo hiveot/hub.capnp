@@ -18,9 +18,9 @@ import (
 	"sync"
 )
 
-const serviceName = "mqtt"
+const serviceName = "mqttgw"
 
-// MqttService hooks into the mochi-co mqtt broker
+// MqttService hooks into the mochi-co mqttgw broker
 type MqttService struct {
 	mochiServer  *mqtt.Server
 	mochiHook    *GatewayHook
@@ -30,7 +30,7 @@ type MqttService struct {
 	mux          sync.Mutex
 }
 
-// Start the mqtt service.
+// Start the mqttgw service.
 // If unable to start, this exits with a Fatal message
 //
 // Precondition: the global resolver must be connected to the gateway or other service resolver.
@@ -47,7 +47,7 @@ func (svc *MqttService) Start(
 	defer svc.mux.Unlock()
 	svc.caCert = caCert
 
-	//srvOptions := &mqtt.Options{Capabilities: &mqtt.Capabilities{}}
+	//srvOptions := &mqttgw.Options{Capabilities: &mqttgw.Capabilities{}}
 	svc.mochiServer = mqtt.New(nil)
 
 	// setup TLS listener for tcp and websocket
@@ -90,7 +90,7 @@ func (svc *MqttService) Start(
 	return err
 }
 
-// Stop the mqtt broker
+// Stop the mqttgw broker
 func (svc *MqttService) Stop() error {
 	svc.mux.Lock()
 	defer svc.mux.Unlock()
@@ -99,10 +99,10 @@ func (svc *MqttService) Stop() error {
 	return err
 }
 
-// NewMqttGatewayService returns a new instance of the mqtt gateway service.
+// NewMqttGatewayService returns a new instance of the mqttgw gateway service.
 // Use Start() to run.
 //
-//	serviceID is required mqtt-optional ID prefix used to listen on tcp/ws ports
+//	serviceID is required mqttgw-optional ID prefix used to listen on tcp/ws ports
 func NewMqttGatewayService() *MqttService {
 	// initialize the global resolver with marshallers user by this service
 	resolver.RegisterCapnpMarshaller[gateway.IGatewaySession](capnpclient.NewGatewaySessionCapnpClient, "")

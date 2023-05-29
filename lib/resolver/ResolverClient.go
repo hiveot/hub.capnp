@@ -3,14 +3,18 @@ package resolver
 import (
 	"capnproto.org/go/capnp/v3"
 	"context"
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"github.com/hiveot/hub/api/go/hubapi"
+	"github.com/hiveot/hub/lib/certsclient"
 	"github.com/hiveot/hub/lib/hubclient"
 	"github.com/hiveot/hub/pkg/authn"
+	"github.com/hiveot/hub/pkg/certs"
 	"github.com/hiveot/hub/pkg/resolver"
 	"github.com/hiveot/hub/pkg/resolver/capnpclient"
 	"github.com/sirupsen/logrus"
+	"gopkg.in/square/go-jose.v2/jwt"
 	"reflect"
 )
 
@@ -69,8 +73,8 @@ type RemoteCapability struct {
 
 // ResolverClient holds the client session for registration and lookup of capabilities
 type ResolverClient struct {
-	// clientID for requests
-	clientID string
+	// sessionToken token with userID and role claims
+	sessionToken jwt.JSONWebToken
 
 	// Capability marshallers by capability name for remote capabilities
 	marshallers map[string]CapabilityMarshaller
@@ -94,7 +98,8 @@ type ResolverClient struct {
 	resolverCapabilities []resolver.CapabilityInfo
 
 	// authentication capability used to authenticate the client with the resolver service
-	userAuthn authn.IUserAuthn
+	userAuthn  authn.IUserAuthn
+	verifyCert certs.IVerifyCerts
 
 	// device or service client certificate based authentication, if available
 	//clientCert *tls.Certificate
@@ -115,6 +120,7 @@ type ResolverClient struct {
 //
 //	capClient is the capnp client of a service that resolves requests for capabilities using
 //	the capnp protocol. Resolver services implement the ListCapabilities method.
+//	authToken is the authentication token of the client for use in this session.
 func (cl *ResolverClient) ConnectToResolverService(capClient capnp.Client) error {
 	var err error
 
@@ -194,9 +200,10 @@ func (cl *ResolverClient) GetCapability(name string) interface{} {
 	return nil
 }
 
-// Login to the Hub with user credentials to obtain additional capabilities.
-// On success this sets the userID as the client ID for further requests
-func (cl *ResolverClient) Login(userID, password string) error {
+// AuthWithPassword authenticates the user with loginID and password.
+//
+// On success this sets the client session as authenticated with role user.
+func (cl *ResolverClient) AuthWithPassword(userID, password string) error {
 	if cl.userAuthn == nil {
 		cl.userAuthn = cl.GetCapability("IUserAuthn").(authn.IUserAuthn)
 	}
@@ -206,10 +213,21 @@ func (cl *ResolverClient) Login(userID, password string) error {
 	authToken, refreshToken, err := cl.userAuthn.Login(context.Background(), password)
 	_ = authToken
 	_ = refreshToken
-	// on success adopt the given userID for further requests
-	if err == nil {
-		cl.clientID = userID
+	return err
+}
+
+// AuthWithCert authenticates the client with the Hub certificate service.
+// On success this sets the clientID as the clientID for further requests and
+// the client type to that embedded in the certificate OU.
+func (cl *ResolverClient) AuthWithCert(clientID string, clientCert *x509.Certificate) error {
+	if cl.verifyCert == nil {
+		cl.verifyCert = cl.GetCapability("IVerifyCerts").(certs.IVerifyCerts)
 	}
+	if cl.verifyCert == nil {
+		return errors.New("cert capability is not available")
+	}
+	certPem := certsclient.X509CertToPEM(clientCert)
+	err := cl.verifyCert.VerifyCert(context.Background(), clientID, certPem)
 	return err
 }
 
@@ -259,15 +277,6 @@ func NewResolverClient() *ResolverClient {
 	return res
 }
 
-//// ConnectToResolverService connects this resolver client to the resolver service for discovering additional capabilities
-////
-////	fullURL to the remote resolver or gateway service
-////	clientCert optional client certificate to identify as
-////	caCert CA's certificate to verify remote service authenticity
-//func ConnectToResolverService(fullURL string, clientCert *tls.Certificate, caCert *x509.Certificate) error {
-//	return Resolver.ConnectToResolverService(fullURL, clientCert, caCert)
-//}
-
 // ConnectToResolverService connects this resolver client to the resolver service for discovering additional capabilities
 //
 //	conn the network connection to use
@@ -291,9 +300,15 @@ func GetCapability[T interface{}]() T {
 	return c.(T)
 }
 
-// Login provides the resolver with credentials needed to obtain capabilities
-func Login(userID, password string) error {
-	return Resolver.Login(userID, password)
+// LoginWithPassword authenticates the client with the resolver service using userID and password
+func LoginWithPassword(userID, password string) error {
+	return Resolver.AuthWithPassword(userID, password)
+}
+
+// LoginWithCert authenticates the client with the resolver service using a peer certificate
+// The given clientID must match the certificate.
+func LoginWithCert(clientID string, peerCert *x509.Certificate) error {
+	return Resolver.AuthWithCert(clientID, peerCert)
 }
 
 // Logout removes the current credentials and capabilities from the resolver

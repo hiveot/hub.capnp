@@ -70,7 +70,7 @@ func (svc *ResolverService) HandleUnknownMethod(m capnp.Method) *server.Method {
 	}
 	logrus.Infof("interfaceName=%s, methodName=%s: Found.", m.InterfaceName, m.MethodName)
 	// return a helper for forwarding the request
-	forwarder := NewForwarderMethod(m, (*capnp.Client)(capProvider))
+	forwarder := NewForwarderMethod(m, (capnp.Client)(*capProvider))
 	return forwarder
 }
 

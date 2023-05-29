@@ -46,7 +46,8 @@ type CapabilityInfo struct {
 	Address string
 }
 
-// ICapProvider is the interface of a capability provider used to provide capabilities
+// ICapProvider is the native interface of a capability provider used to provide capabilities
+// This is typically not used directly but through the local resolver client.
 type ICapProvider interface {
 
 	// ListCapabilities returns the list of capabilities provided by capability providers.

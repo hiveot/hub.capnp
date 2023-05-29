@@ -61,6 +61,13 @@ func Serve(serviceID string,
 		opts := rpc.Options{
 			BootstrapClient: boot.AddRef(),
 		}
+		// attach the client certificate of the connection to the bootstrap client
+		clientCert, clientID, ou, err := GetPeerCert(c)
+		if err != nil {
+			opts.BootstrapClient.State().Metadata.Put("peerCert", clientCert)
+			opts.BootstrapClient.State().Metadata.Put("clientID", clientID)
+			opts.BootstrapClient.State().Metadata.Put("ou", ou)
+		}
 		// Each connection gets a new RPC transport that will serve incoming RPC requests
 		// transport := rpc.NewStreamTransport(conn)
 		rpcConn := rpc.NewConn(tp, &opts)

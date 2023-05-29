@@ -11,7 +11,7 @@ import (
 // ForwarderMethod forwards the method to the destination client
 type ForwarderMethod struct {
 	capnp.Method
-	destination *capnp.Client
+	destination capnp.Client
 }
 
 // Impl forward the requested method to the cap destination
@@ -29,7 +29,7 @@ func (m *ForwarderMethod) Impl(ctx context.Context, call *server.Call) error {
 		},
 	}
 	// Pass the message to the remote destination
-	ans, release := (*m.destination).SendCall(ctx, s)
+	ans, release := (m.destination).SendCall(ctx, s)
 	defer release()
 
 	res, err := ans.Struct()
@@ -51,7 +51,7 @@ func (m *ForwarderMethod) Impl(ctx context.Context, call *server.Call) error {
 }
 
 // NewForwarderMethod creates a new server method that forwards the capnp method to its destination
-func NewForwarderMethod(method capnp.Method, destination *capnp.Client) *server.Method {
+func NewForwarderMethod(method capnp.Method, destination capnp.Client) *server.Method {
 	forwarder := ForwarderMethod{
 		Method:      method,
 		destination: destination,
