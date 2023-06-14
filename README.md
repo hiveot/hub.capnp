@@ -1,3 +1,6 @@
+# ARCHIVED NOTICE
+
+
 # Hive-Of-Things Hub
 
 The Hub for the *Hive of Things* provides a simple and secure base to view and operate IoT devices. The Hub securely mediates between consumers and IoT device 'Things' using a hub-and-spokes architecture. Consumers interact with Things via the Hub without connecting directly to the IoT devices or services. The Hub is based on the [W3C WoT TD 1.1 specification](https://www.w3.org/TR/wot-thing-description11/) and uses the [cap'n proto](https://capnproto.org/) for Capabilities based secure 
@@ -6,9 +9,18 @@ communication.
 
 ## Project Status
 
-THIS PROJECT IS IN ALPHA AND HEAVILY IN DEVELOPMENT. IT IS FUNCTIONAL BUT APIs ARE STILL SUBJECT TO CHANGE.
+THIS PROJECT IS FUNCTIONAL BUT NOT LONGER FURTHER DEVELOPED. - April 2023
 
-Status: The status of the Hub is Alpha (April 2023)
+This experiment to build a microservices based IoT Hub has run its course. A couple of the takeaways:
+* capn'proto is a solid choice for RPC. The capnp source files are very powerful, it is fast, and the golang compiler is robust. The capabilities based approach has the potential to make your application more secure. If you need a powerful RPC solution then I would recommend you consider this for your project. I'd like to thank the folks at go-capnproto2 for the excellent support.
+* capnproto for javascript can use some love. Calling capnp API's from the browser requires to jump through some hoops, such as using wasm with the golang client. 
+* RPC's are a lot of work. Especially maintaining an extensive API footprint with marshallers. It is overkill for this project.
+* IoT at its roots is served better by a messaging platform. There is a lot of event generation that needs to be directed.  
+
+Earlier iterations of hiveot were message based and found to be more suitable. Hence the decision is to move on to a message based approach. This RPC project will be renamed to hub.capnp and archived. The next message based iteration will be take the old name 'hub'.
+
+
+
 
 Core micro-services of the Hub
 ```
